@@ -1,0 +1,1 @@
+flutter build apk --build-name 1.4.0 --build-number 1
