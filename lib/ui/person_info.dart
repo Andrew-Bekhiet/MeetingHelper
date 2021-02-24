@@ -52,8 +52,8 @@ class PersonInfo extends StatelessWidget {
         initialData: person,
         stream: person.ref.snapshots().map(Person.fromDoc),
         builder: (context, data) {
-          Person _person = data.data;
-          if (_person == null)
+          Person person = data.data;
+          if (person == null)
             return Scaffold(
               body: Center(
                 child: Text('تم حذف الشخص'),
@@ -65,10 +65,10 @@ class PersonInfo extends StatelessWidget {
                   (BuildContext context, bool innerBoxIsScrolled) {
                 return <Widget>[
                   SliverAppBar(
-                    backgroundColor: _person.color != Colors.transparent
+                    backgroundColor: person.color != Colors.transparent
                         ? (Theme.of(context).brightness == Brightness.light
-                            ? TinyColor(_person.color).lighten().color
-                            : TinyColor(_person.color).darken().color)
+                            ? TinyColor(person.color).lighten().color
+                            : TinyColor(person.color).darken().color)
                         : null,
                     actions: <Widget>[
                       if (permission)
@@ -133,7 +133,7 @@ class PersonInfo extends StatelessWidget {
                           onPressed: () async {
                             dynamic result = await Navigator.of(context)
                                 .pushNamed('Data/EditPerson',
-                                    arguments: _person);
+                                    arguments: person);
                             if (result is DocumentReference) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
@@ -204,7 +204,7 @@ class PersonInfo extends StatelessWidget {
                           ),
                         ),
                         onPressed: () async {
-                          await Share.share(await sharePerson(_person));
+                          await Share.share(await sharePerson(person));
                         },
                         tooltip: 'مشاركة برابط',
                       ),
@@ -268,18 +268,18 @@ class PersonInfo extends StatelessWidget {
                                     builder: (context) => SimpleDialog(
                                       title: Text('اختر الهاتف:'),
                                       children: [
-                                        if (_person.phone?.isNotEmpty ?? false)
+                                        if (person.phone?.isNotEmpty ?? false)
                                           ListTile(
                                               onTap: () => Navigator.of(context)
                                                   .pop('Phone'),
                                               title: Text('شخصي')),
-                                        if (_person.fatherPhone?.isNotEmpty ??
+                                        if (person.fatherPhone?.isNotEmpty ??
                                             false)
                                           ListTile(
                                               onTap: () => Navigator.of(context)
                                                   .pop('FatherPhone'),
                                               title: Text('الأب')),
-                                        if (_person.motherPhone?.isNotEmpty ??
+                                        if (person.motherPhone?.isNotEmpty ??
                                             false)
                                           ListTile(
                                               onTap: () => Navigator.of(context)
@@ -294,22 +294,22 @@ class PersonInfo extends StatelessWidget {
                               if ((await Permission.contacts.request())
                                   .isGranted)
                                 await Contacts.addContact(Contact(
-                                    givenName: _person.name,
+                                    givenName: person.name,
                                     phones: [
                                       Item(
                                           label: 'Mobile',
-                                          value: _person.getMap()[at])
+                                          value: person.getMap()[at])
                                     ]));
                             } else if (i == 1) {
-                              _phoneCall(context, _person.getMap()[at]);
+                              _phoneCall(context, person.getMap()[at]);
                             } else if (i == 2) {
                               await launch('sms://' +
-                                  getPhone(_person.getMap()[at], false));
+                                  getPhone(person.getMap()[at], false));
                             } else if (i == 3) {
                               await launch('whatsapp://send?phone=+' +
-                                  getPhone(_person.getMap()[at]));
+                                  getPhone(person.getMap()[at]));
                             } else if (i == 4) {
-                              sendNotification(context, _person);
+                              sendNotification(context, person);
                             }
                           },
                           itemBuilder: (BuildContext context) {
@@ -335,11 +335,11 @@ class PersonInfo extends StatelessWidget {
                                   ? 0
                                   : 1,
                           child: Text(
-                            _person.name,
+                            person.name,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        background: _person.photo(),
+                        background: person.photo(),
                       ),
                     ),
                   ),
@@ -352,22 +352,22 @@ class PersonInfo extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       ListTile(
-                        title: Text(_person.name,
+                        title: Text(person.name,
                             style: Theme.of(context).textTheme.headline6),
                       ),
                       PhoneNumberProperty(
                         'موبايل:',
-                        _person.phone,
+                        person.phone,
                         (n) => _phoneCall(context, n),
                       ),
                       PhoneNumberProperty(
                         'موبايل (الأب):',
-                        _person.fatherPhone,
+                        person.fatherPhone,
                         (n) => _phoneCall(context, n),
                       ),
                       PhoneNumberProperty(
                         'موبايل (الأم):',
-                        _person.motherPhone,
+                        person.motherPhone,
                         (n) => _phoneCall(context, n),
                       ),
                       if (person.phones != null)
@@ -380,28 +380,28 @@ class PersonInfo extends StatelessWidget {
                         subtitle: Row(
                           children: <Widget>[
                             Expanded(
-                              child: Text(toDurationString(_person.birthDate,
+                              child: Text(toDurationString(person.birthDate,
                                   appendSince: false)),
                             ),
                             Text(
-                                _person.birthDate != null
+                                person.birthDate != null
                                     ? DateFormat('yyyy/M/d').format(
-                                        _person.birthDate.toDate(),
+                                        person.birthDate.toDate(),
                                       )
                                     : '',
                                 style: Theme.of(context).textTheme.overline),
                           ],
                         ),
                       ),
-                      CopiableProperty('العنوان:', _person.address),
-                      if (_person.location != null)
+                      CopiableProperty('العنوان:', person.address),
+                      if (person.location != null)
                         ElevatedButton.icon(
                           icon: Icon(Icons.map),
                           onPressed: () => Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => Scaffold(
-                                appBar: AppBar(title: Text(_person.name)),
-                                body: _person.getMapView(),
+                                appBar: AppBar(title: Text(person.name)),
+                                body: person.getMapView(),
                               ),
                             ),
                           ),
@@ -410,7 +410,7 @@ class PersonInfo extends StatelessWidget {
                       ListTile(
                         title: Text('المدرسة:'),
                         subtitle: FutureBuilder(
-                            future: _person.getSchoolName(),
+                            future: person.getSchoolName(),
                             builder: (context, data) {
                               if (data.hasData) return Text(data.data);
                               return LinearProgressIndicator();
@@ -419,7 +419,7 @@ class PersonInfo extends StatelessWidget {
                       ListTile(
                         title: Text('الكنيسة:'),
                         subtitle: FutureBuilder(
-                            future: _person.getChurchName(),
+                            future: person.getChurchName(),
                             builder: (context, data) {
                               if (data.hasData) return Text(data.data);
                               return LinearProgressIndicator();
@@ -428,45 +428,45 @@ class PersonInfo extends StatelessWidget {
                       ListTile(
                         title: Text('اب الاعتراف:'),
                         subtitle: FutureBuilder(
-                            future: _person.getCFatherName(),
+                            future: person.getCFatherName(),
                             builder: (context, data) {
                               if (data.hasData) return Text(data.data);
                               return LinearProgressIndicator();
                             }),
                       ),
-                      CopiableProperty('ملاحظات', _person.notes),
+                      CopiableProperty('ملاحظات', person.notes),
                       Divider(thickness: 1),
                       ElevatedButton.icon(
                         icon: Icon(Icons.analytics),
                         label: Text('احصائيات الحضور'),
-                        onPressed: () => _showAnalytics(context, _person),
+                        onPressed: () => _showAnalytics(context, person),
                       ),
                       DayHistoryProperty('تاريخ أخر حضور اجتماع:',
-                          _person.lastMeeting, _person.id, 'Meeting'),
+                          person.lastMeeting, person.id, 'Meeting'),
                       DayHistoryProperty('تاريخ أخر حضور قداس:',
-                          _person.lastKodas, _person.id, 'Kodas'),
-                      DayHistoryProperty('تاريخ أخر تناول:',
-                          _person.lastTanawol, _person.id, 'Tanawol'),
+                          person.lastKodas, person.id, 'Kodas'),
+                      DayHistoryProperty('تاريخ أخر تناول:', person.lastTanawol,
+                          person.id, 'Tanawol'),
                       TimeHistoryProperty(
                           'تاريخ أخر اعتراف:',
-                          _person.lastConfession,
-                          _person.ref.collection('ConfessionHistory')),
+                          person.lastConfession,
+                          person.ref.collection('ConfessionHistory')),
                       Divider(thickness: 1),
-                      HistoryProperty('تاريخ أخر زيارة:', _person.lastVisit,
-                          _person.ref.collection('VisitHistory')),
-                      HistoryProperty('تاريخ أخر مكالمة:', _person.lastCall,
-                          _person.ref.collection('CallHistory')),
+                      HistoryProperty('تاريخ أخر زيارة:', person.lastVisit,
+                          person.ref.collection('VisitHistory')),
+                      HistoryProperty('تاريخ أخر مكالمة:', person.lastCall,
+                          person.ref.collection('CallHistory')),
                       EditHistoryProperty(
                         'أخر تحديث للبيانات:',
-                        _person.lastEdit,
-                        _person.ref.collection('EditHistory'),
+                        person.lastEdit,
+                        person.ref.collection('EditHistory'),
                       ),
                       ListTile(
                         title: Text('داخل فصل:'),
-                        subtitle: _person.classId != null &&
-                                _person.classId.parent.id != 'null'
+                        subtitle: person.classId != null &&
+                                person.classId.parent.id != 'null'
                             ? FutureBuilder<Class>(
-                                future: Class.fromId(_person.classId.id),
+                                future: Class.fromId(person.classId.id),
                                 builder: (context, _class) => _class.hasData
                                     ? DataObjectWidget<Class>(_class.data,
                                         isDense: true)

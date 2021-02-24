@@ -45,8 +45,8 @@ class ClassInfo extends StatelessWidget {
         initialData: class$,
         stream: class$.ref.snapshots().map(Class.fromDoc),
         builder: (context, data) {
-          Class _class = data.data;
-          if (_class == null)
+          Class class$ = data.data;
+          if (class$ == null)
             return Scaffold(
               body: Center(
                 child: Text('تم حذف الفصل'),
@@ -58,10 +58,10 @@ class ClassInfo extends StatelessWidget {
               builder: (context, child) => NestedScrollView(
                 headerSliverBuilder: (context, _) => <Widget>[
                   SliverAppBar(
-                    backgroundColor: _class.color != Colors.transparent
+                    backgroundColor: class$.color != Colors.transparent
                         ? (Theme.of(context).brightness == Brightness.light
-                            ? TinyColor(_class.color).lighten().color
-                            : TinyColor(_class.color).darken().color)
+                            ? TinyColor(class$.color).lighten().color
+                            : TinyColor(class$.color).darken().color)
                         : null,
                     actions: <Widget>[
                       Selector<User, bool>(
@@ -129,7 +129,7 @@ class ClassInfo extends StatelessWidget {
                                 onPressed: () async {
                                   dynamic result = await Navigator.of(context)
                                       .pushNamed('Data/EditClass',
-                                          arguments: _class);
+                                          arguments: class$);
                                   if (result is DocumentReference) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
@@ -203,7 +203,7 @@ class ClassInfo extends StatelessWidget {
                         ),
                         onPressed: () async {
                           // Navigator.of(context).pop();
-                          await Share.share(await shareClass(_class));
+                          await Share.share(await shareClass(class$));
                         },
                         tooltip: 'مشاركة برابط',
                       ),
@@ -253,7 +253,7 @@ class ClassInfo extends StatelessWidget {
                         textColor:
                             Theme.of(context).primaryTextTheme.bodyText1.color,
                         child: PopupMenuButton(
-                          onSelected: (_) => sendNotification(context, _class),
+                          onSelected: (_) => sendNotification(context, class$),
                           itemBuilder: (context) {
                             return [
                               PopupMenuItem(
@@ -277,10 +277,10 @@ class ClassInfo extends StatelessWidget {
                               constraints.biggest.height > kToolbarHeight * 1.7
                                   ? 0
                                   : 1,
-                          child: Text(_class.name,
+                          child: Text(class$.name,
                               style: TextStyle(fontSize: 16.0)),
                         ),
-                        background: _class.photo(),
+                        background: class$.photo(),
                       ),
                     ),
                   ),
@@ -288,24 +288,24 @@ class ClassInfo extends StatelessWidget {
                     delegate: SliverChildListDelegate(
                       <Widget>[
                         ListTile(
-                          title: Text(_class.name,
+                          title: Text(class$.name,
                               style: Theme.of(context).textTheme.headline6),
                         ),
                         ListTile(
                           title: Text('السنة الدراسية:'),
                           subtitle: FutureBuilder(
-                              future: _class.getStudyYearName(),
+                              future: class$.getStudyYearName(),
                               builder: (context, data) {
                                 if (data.hasData)
                                   return Text(data.data +
                                       ' - ' +
-                                      _class.getGenderName());
+                                      class$.getGenderName());
                                 return LinearProgressIndicator();
                               }),
                         ),
                         ElevatedButton.icon(
                           icon: Icon(Icons.map),
-                          onPressed: () => showMap(context, _class),
+                          onPressed: () => showMap(context, class$),
                           label: Text('إظهار المخدومين على الخريطة'),
                         ),
                         ElevatedButton.icon(
@@ -357,13 +357,13 @@ class ClassInfo extends StatelessWidget {
                             child: const Icon(Icons.analytics_outlined),
                           ),
                           label: Text('احصائيات الحضور'),
-                          onPressed: () => _showAnalytics(context, _class),
+                          onPressed: () => _showAnalytics(context, class$),
                         ),
                         Divider(thickness: 1),
                         EditHistoryProperty(
                           'أخر تحديث للبيانات:',
-                          _class.lastEdit,
-                          _class.ref.collection('EditHistory'),
+                          class$.lastEdit,
+                          class$.ref.collection('EditHistory'),
                           discoverFeature: true,
                         ),
                         Text('الأشخاص بالفصل:'),
@@ -429,7 +429,7 @@ class ClassInfo extends StatelessWidget {
                               : null,
                           tap: personTap,
                           generate: Person.fromDoc,
-                          documentsData: _class.getMembersLive(
+                          documentsData: class$.getMembersLive(
                               orderBy: options.personOrderBy,
                               descending: !options.personASC)),
                     ),
