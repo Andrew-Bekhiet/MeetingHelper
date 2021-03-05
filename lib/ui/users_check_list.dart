@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:async/async.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:collection/collection.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +25,7 @@ export 'package:meetinghelper/models/search_string.dart';
 export 'package:tuple/tuple.dart';
 
 class UsersCheckList extends StatefulWidget {
-  final CheckListOptions options;
+  final CheckListOptions<User> options;
 
   UsersCheckList({Key key, @required this.options}) : super(key: key);
 
@@ -88,7 +89,9 @@ class _ListState extends State<UsersCheckList>
                         return Consumer<SearchString>(
                           builder: (context, filter, _) {
                             if (data.hasError)
-                              return ErrorWidget.builder(data.error);
+                              return Text(
+                                  (data.error as FirebaseFunctionsException)
+                                      .message);
                             if (!data.hasData)
                               return const Center(
                                   child: CircularProgressIndicator());
@@ -340,7 +343,7 @@ class _ListState extends State<UsersCheckList>
     _requery();
   }
 
-  void _checkPerson(
+  Future<void> _checkPerson(
       {HistoryRecord record,
       bool checked,
       CheckListOptions<User> options,

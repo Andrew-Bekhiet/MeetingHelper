@@ -1,5 +1,6 @@
 import 'package:async/async.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:group_list_view/group_list_view.dart';
@@ -45,7 +46,8 @@ class _UsersEditListState extends State<UsersEditList> {
           return FutureBuilder<List<User>>(
             future: dataCache.fetch(User.getUsersForEdit),
             builder: (context, data) {
-              if (data.hasError) return ErrorWidget.builder(data.error);
+              if (data.hasError)
+                return Text((data.error as FirebaseFunctionsException).message);
               if (!data.hasData)
                 return const Center(child: CircularProgressIndicator());
               Map<String, StudyYear> studyYearByDocRef = {
@@ -151,7 +153,7 @@ class _UsersListState extends State<UsersList> {
   @override
   Widget build(BuildContext c) {
     return Consumer2<ListOptions<User>, SearchString>(
-      builder: (context, options, filter, _) => StreamBuilder<QuerySnapshot>(
+      builder: (context, options, filter, _) => StreamBuilder<List<User>>(
         stream: options.documentsData,
         builder: (context, stream) {
           if (stream.hasError) return Center(child: ErrorWidget(stream.error));
@@ -159,10 +161,9 @@ class _UsersListState extends State<UsersList> {
             return Center(child: CircularProgressIndicator());
           return Builder(
             builder: (context) {
-              List<DocumentSnapshot> documentData = stream.data.docs.sublist(0);
+              List<User> documentData = stream.data.sublist(0);
               if (filter.value != '')
-                documentData.retainWhere((element) => element
-                    .data()['Name']
+                documentData.retainWhere((element) => element.name
                     .toLowerCase()
                     .replaceAll(
                         RegExp(
@@ -181,7 +182,7 @@ class _UsersListState extends State<UsersList> {
                 cacheExtent: 200,
                 itemCount: documentData?.length ?? 0,
                 itemBuilder: (context, i) {
-                  var current = User.fromDoc(documentData[i]);
+                  var current = documentData[i];
                   return DataObjectWidget<User>(
                     current,
                     showSubTitle: false,

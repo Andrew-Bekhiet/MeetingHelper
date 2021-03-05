@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connectivity/connectivity.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -145,41 +145,42 @@ class _HistoryState extends State<History> {
         body: DataObjectList<HistoryDay>(
           key: ValueKey(list),
           options: ListOptions<HistoryDay>(
-              floatingActionButton: FloatingActionButton(
-                child: Icon(Icons.add),
-                onPressed: () async {
-                  var today = (await FirebaseFirestore.instance
-                          .collection('History')
-                          .where('Day',
-                              isEqualTo: Timestamp.fromMillisecondsSinceEpoch(
-                                DateTime.now().millisecondsSinceEpoch -
-                                    (DateTime.now().millisecondsSinceEpoch %
-                                        86400000),
-                              ))
-                          .get(dataSource))
-                      .docs;
-                  mainScfld.currentState.openEndDrawer();
-                  if (today.isNotEmpty) {
-                    await Navigator.of(context).pushNamed('Day',
-                        arguments: HistoryDay.fromDoc(today[0]));
-                  } else if (await Connectivity().checkConnectivity() !=
-                      ConnectivityResult.none) {
-                    await Navigator.of(context).pushNamed('Day');
-                  } else {
-                    await showDialog(
-                        context: context,
-                        builder: (context) =>
-                            AlertDialog(content: Text('لا يوجد اتصال انترنت')));
-                  }
-                },
-              ),
-              tap: (h, _) => historyTap(h, _),
-              documentsData: list ??
-                  FirebaseFirestore.instance
-                      .collection('History')
-                      .orderBy('Day', descending: true)
-                      .snapshots(),
-              generate: HistoryDay.fromDoc),
+            floatingActionButton: FloatingActionButton(
+              child: Icon(Icons.add),
+              onPressed: () async {
+                var today = (await FirebaseFirestore.instance
+                        .collection('History')
+                        .where('Day',
+                            isEqualTo: Timestamp.fromMillisecondsSinceEpoch(
+                              DateTime.now().millisecondsSinceEpoch -
+                                  (DateTime.now().millisecondsSinceEpoch %
+                                      86400000),
+                            ))
+                        .get(dataSource))
+                    .docs;
+                mainScfld.currentState.openEndDrawer();
+                if (today.isNotEmpty) {
+                  await Navigator.of(context).pushNamed('Day',
+                      arguments: HistoryDay.fromDoc(today[0]));
+                } else if (await Connectivity().checkConnectivity() !=
+                    ConnectivityResult.none) {
+                  await Navigator.of(context).pushNamed('Day');
+                } else {
+                  await showDialog(
+                      context: context,
+                      builder: (context) =>
+                          AlertDialog(content: Text('لا يوجد اتصال انترنت')));
+                }
+              },
+            ),
+            tap: (h) => historyTap(h, context),
+            documentsData: list ??
+                FirebaseFirestore.instance
+                    .collection('History')
+                    .orderBy('Day', descending: true)
+                    .snapshots()
+                    .map((s) => s.docs.map(HistoryDay.fromDoc).toList()),
+          ),
         ),
       ),
     );
@@ -276,43 +277,45 @@ class _ServantsHistoryState extends State<ServantsHistory> {
         body: DataObjectList<ServantsHistoryDay>(
           key: ValueKey(list),
           options: ListOptions<ServantsHistoryDay>(
-              floatingActionButton: FloatingActionButton(
-                child: Icon(Icons.add),
-                onPressed: () async {
-                  if (await Connectivity().checkConnectivity() !=
-                      ConnectivityResult.none) {
-                    var today = (await FirebaseFirestore.instance
-                            .collection('ServantsHistory')
-                            .where('Day',
-                                isEqualTo: Timestamp.fromMillisecondsSinceEpoch(
-                                  DateTime.now().millisecondsSinceEpoch -
-                                      (DateTime.now().millisecondsSinceEpoch %
-                                          86400000),
-                                ))
-                            .get(dataSource))
-                        .docs;
-                    mainScfld.currentState.openEndDrawer();
-                    if (today.isNotEmpty) {
-                      await Navigator.of(context).pushNamed('ServantsDay',
-                          arguments: ServantsHistoryDay.fromDoc(today[0]));
-                    } else {
-                      await Navigator.of(context).pushNamed('ServantsDay');
-                    }
+            floatingActionButton: FloatingActionButton(
+              child: Icon(Icons.add),
+              onPressed: () async {
+                if (await Connectivity().checkConnectivity() !=
+                    ConnectivityResult.none) {
+                  var today = (await FirebaseFirestore.instance
+                          .collection('ServantsHistory')
+                          .where('Day',
+                              isEqualTo: Timestamp.fromMillisecondsSinceEpoch(
+                                DateTime.now().millisecondsSinceEpoch -
+                                    (DateTime.now().millisecondsSinceEpoch %
+                                        86400000),
+                              ))
+                          .get(dataSource))
+                      .docs;
+                  mainScfld.currentState.openEndDrawer();
+                  if (today.isNotEmpty) {
+                    await Navigator.of(context).pushNamed('ServantsDay',
+                        arguments: ServantsHistoryDay.fromDoc(today[0]));
                   } else {
-                    await showDialog(
-                        context: context,
-                        builder: (context) =>
-                            AlertDialog(content: Text('لا يوجد اتصال انترنت')));
+                    await Navigator.of(context).pushNamed('ServantsDay');
                   }
-                },
-              ),
-              tap: (h, _) => historyTap(h, _),
-              documentsData: list ??
-                  FirebaseFirestore.instance
-                      .collection('ServantsHistory')
-                      .orderBy('Day', descending: true)
-                      .snapshots(),
-              generate: ServantsHistoryDay.fromDoc),
+                } else {
+                  await showDialog(
+                      context: context,
+                      builder: (context) =>
+                          AlertDialog(content: Text('لا يوجد اتصال انترنت')));
+                }
+              },
+            ),
+            tap: (h) => historyTap(h, context),
+            documentsData: list ??
+                FirebaseFirestore.instance
+                    .collection('ServantsHistory')
+                    .orderBy('Day', descending: true)
+                    .snapshots()
+                    .map(
+                        (s) => s.docs.map(ServantsHistoryDay.fromDoc).toList()),
+          ),
         ),
       ),
     );

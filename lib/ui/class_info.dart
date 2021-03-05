@@ -378,60 +378,63 @@ class ClassInfo extends StatelessWidget {
                 body: SafeArea(
                   child: Consumer<OrderOptions>(
                     builder: (context, options, _) => DataObjectList<Person>(
+                      key: ValueKey(options),
                       options: ListOptions<Person>(
-                          floatingActionButton: permission
-                              ? FloatingActionButton(
-                                  child: DescribedFeatureOverlay(
-                                    onBackgroundTap: () async {
-                                      await FeatureDiscovery
-                                          .completeCurrentStep(context);
-                                      return true;
-                                    },
-                                    onDismiss: () async {
-                                      await FeatureDiscovery
-                                          .completeCurrentStep(context);
-                                      return true;
-                                    },
-                                    backgroundDismissible: true,
-                                    contentLocation: ContentLocation.above,
-                                    featureId: 'Add',
-                                    tapTarget: Icon(Icons.person_add),
-                                    title: Text('اضافة شخص داخل الفصل'),
-                                    description: Column(
-                                      children: [
-                                        Text(
-                                            'يمكنك اضافة شخص داخل الفصل بسرعة وسهولة من هنا'),
-                                        OutlinedButton(
-                                          child: Text(
-                                            'تخطي',
-                                            style: TextStyle(
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyText2
-                                                  .color,
-                                            ),
+                        floatingActionButton: permission
+                            ? FloatingActionButton(
+                                child: DescribedFeatureOverlay(
+                                  onBackgroundTap: () async {
+                                    await FeatureDiscovery.completeCurrentStep(
+                                        context);
+                                    return true;
+                                  },
+                                  onDismiss: () async {
+                                    await FeatureDiscovery.completeCurrentStep(
+                                        context);
+                                    return true;
+                                  },
+                                  backgroundDismissible: true,
+                                  contentLocation: ContentLocation.above,
+                                  featureId: 'Add',
+                                  tapTarget: Icon(Icons.person_add),
+                                  title: Text('اضافة شخص داخل الفصل'),
+                                  description: Column(
+                                    children: [
+                                      Text(
+                                          'يمكنك اضافة شخص داخل الفصل بسرعة وسهولة من هنا'),
+                                      OutlinedButton(
+                                        child: Text(
+                                          'تخطي',
+                                          style: TextStyle(
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .bodyText2
+                                                .color,
                                           ),
-                                          onPressed: () => FeatureDiscovery
-                                              .completeCurrentStep(context),
                                         ),
-                                      ],
-                                    ),
-                                    backgroundColor:
-                                        Theme.of(context).accentColor,
-                                    targetColor: Theme.of(context).primaryColor,
-                                    textColor: Theme.of(context)
-                                        .primaryTextTheme
-                                        .bodyText1
-                                        .color,
-                                    child: Icon(Icons.person_add),
+                                        onPressed: () => FeatureDiscovery
+                                            .completeCurrentStep(context),
+                                      ),
+                                    ],
                                   ),
-                                  onPressed: () => addTap(context))
-                              : null,
-                          tap: personTap,
-                          generate: Person.fromDoc,
-                          documentsData: class$.getMembersLive(
-                              orderBy: options.personOrderBy,
-                              descending: !options.personASC)),
+                                  backgroundColor:
+                                      Theme.of(context).accentColor,
+                                  targetColor: Theme.of(context).primaryColor,
+                                  textColor: Theme.of(context)
+                                      .primaryTextTheme
+                                      .bodyText1
+                                      .color,
+                                  child: Icon(Icons.person_add),
+                                ),
+                                onPressed: () => addTap(context))
+                            : null,
+                        tap: (p) => personTap(p, context),
+                        documentsData: class$
+                            .getMembersLive(
+                                orderBy: options.personOrderBy,
+                                descending: !options.personASC)
+                            .map((s) => s.docs.map(Person.fromDoc).toList()),
+                      ),
                     ),
                   ),
                 ),

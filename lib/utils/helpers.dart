@@ -4,7 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:collection/collection.dart';
-import 'package:connectivity/connectivity.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
@@ -504,7 +504,7 @@ Future onNotificationClicked(String payload) {
 }
 
 Stream<Map<DocumentReference, Tuple2<Class, List<Person>>>> personsByClassRef(
-    [List<DocumentSnapshot> persons]) async* {
+    [List<Person> persons]) async* {
   await for (var sys in FirebaseFirestore.instance
       .collection('StudyYears')
       .orderBy('Grade')
@@ -527,7 +527,7 @@ Stream<Map<DocumentReference, Tuple2<Class, List<Person>>>> personsByClassRef(
               .orderBy('Gender')
               .snapshots())) {
         Map<DocumentReference, List<Person>> personsByClassRef =
-            groupBy(persons.map((p) => Person.fromDoc(p)), (p) => p.classId);
+            groupBy(persons, (p) => p.classId);
         var classes = cs.docs
             .map((c) => Class.fromDoc(c))
             .where((c) => personsByClassRef[c.ref] != null)
@@ -772,16 +772,17 @@ void sendNotification(BuildContext context, dynamic attachement) async {
           ),
           ListenableProvider(
               create: (_) => ListOptions<User>(
-                  documentsData: Stream.fromFuture(User.getAllUsersLive()))),
+                  documentsData: Stream.fromFuture(User.getAllUsersLive())
+                      .map((s) => s.docs.map(User.fromDoc).toList()))),
         ],
         builder: (context, child) => AlertDialog(
           actions: [
             TextButton(
-              child: Text('تم'),
               onPressed: () {
                 Navigator.pop(
                     context, context.read<ListOptions<User>>().selected);
               },
+              child: Text('تم'),
             )
           ],
           content: Container(
@@ -1136,10 +1137,10 @@ Future showErrorDialog(BuildContext context, String message,
       content: Text(message),
       actions: <Widget>[
         TextButton(
-          child: Text('حسنًا'),
           onPressed: () {
             Navigator.of(context).pop();
           },
+          child: Text('حسنًا'),
         ),
       ],
     ),
@@ -1297,7 +1298,7 @@ void showMeetingNotification() async {
         payload: 'Meeting');
 }
 
-void showMessage(BuildContext context, no.Notification notification) async {
+Future showMessage(BuildContext context, no.Notification notification) async {
   var attachement = await getLinkObject(
     Uri.parse(notification.attachement),
   );
@@ -1364,7 +1365,7 @@ void showMessage(BuildContext context, no.Notification notification) async {
   );
 }
 
-void showPendingMessage([BuildContext context]) async {
+Future showPendingMessage([BuildContext context]) async {
   context ??= mainScfld.currentContext;
   var pendingMessage = await FirebaseMessaging.instance.getInitialMessage();
   if (pendingMessage != null) {

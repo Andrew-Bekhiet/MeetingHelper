@@ -2,6 +2,7 @@ import 'package:async/async.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/material.dart';
+import 'package:meetinghelper/models/data_object_widget.dart';
 import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/models/user.dart';
@@ -14,17 +15,13 @@ class CheckListOptions<T extends DataObject> extends ListOptions<T> {
   final DayListType type;
 
   CheckListOptions(
-      {this.day,
-      List<DocumentSnapshot> items,
-      this.type,
-      final DataObject Function(DocumentSnapshot) generate,
-      Stream<QuerySnapshot> documentsData})
+      {this.day, List<T> items, this.type, Stream<List<T>> documentsData})
       : super(
-            hasNotch: false,
-            generate: generate,
-            items: items,
-            selectionMode: true,
-            documentsData: documentsData);
+          documentsData: documentsData,
+          items: items,
+          hasNotch: false,
+          selectionMode: true,
+        );
 
   Stream<QuerySnapshot> get attended async* {
     if (User.instance.superAccess ||
@@ -95,27 +92,28 @@ class HistoryDayOptions with ChangeNotifier {
 }
 
 class ListOptions<T extends DataObject> with ChangeNotifier {
-  Stream<QuerySnapshot> _documentsData;
+  Stream<List<T>> _documentsData;
 
-  Stream<QuerySnapshot> get documentsData => _documentsData;
+  Stream<List<T>> get documentsData => _documentsData;
 
-  set documentsData(Stream<QuerySnapshot> documentsData) {
-    _documentsData = documentsData.asBroadcastStream();
+  set documentsData(Stream<List<T>> documentsData) {
+    _documentsData = documentsData;
   }
 
-  List<DocumentSnapshot> _items = [];
+  List<T> _items = <T>[];
   bool _selectionMode = false;
 
   List<T> selected = <T>[];
   Map<String, AsyncMemoizer<String>> cache = {};
 
-  final void Function(T, BuildContext) tap;
-  final void Function(T, BuildContext) onLongPress;
+  final void Function(T) tap;
+  final void Function(T) onLongPress;
 
-  final DataObject Function(DocumentSnapshot) generate;
   final T empty;
   final bool showNull;
 
+  Widget Function(T, void Function() onLongPress, void Function() onTap,
+      Widget trailing) itemBuilder;
   final Widget floatingActionButton;
   final bool doubleActionButton;
   final bool hasNotch;
@@ -124,14 +122,15 @@ class ListOptions<T extends DataObject> with ChangeNotifier {
     this.doubleActionButton = false,
     this.hasNotch = true,
     this.floatingActionButton,
+    this.itemBuilder,
     this.onLongPress,
     this.tap,
-    this.generate,
     this.empty,
-    List<DocumentSnapshot> items,
+    List<T> items,
     this.showNull = false,
     bool selectionMode = false,
-    Stream<QuerySnapshot> documentsData,
+    Stream<List<T>> documentsData,
+    List<T> selected,
   })  : assert(showNull == false || (showNull == true && empty != null)),
         _items = items,
         _selectionMode = selectionMode {
@@ -139,10 +138,13 @@ class ListOptions<T extends DataObject> with ChangeNotifier {
     if (items != null && (cache?.length ?? 0) != items.length) {
       cache = {for (var d in items) d.id: AsyncMemoizer<String>()};
     }
+    this.selected = selected ?? [];
+    itemBuilder ??= (i, lp, t, tr) =>
+        DataObjectWidget<T>(i, onLongPress: lp, onTap: t, trailing: tr);
   }
 
-  List<DocumentSnapshot> get items => _items;
-  set items(List<DocumentSnapshot> items) {
+  List<T> get items => _items;
+  set items(List<T> items) {
     _items = items;
     if (items != null && (cache?.length ?? 0) != items.length) {
       cache = {for (var d in items) d.id: AsyncMemoizer<String>()};

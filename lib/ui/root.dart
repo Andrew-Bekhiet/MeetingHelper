@@ -5,8 +5,8 @@ import 'dart:ui';
 import 'package:battery_optimization/battery_optimization.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:connectivity/connectivity.dart';
-import 'package:device_info/device_info.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
@@ -16,11 +16,12 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:open_file/open_file.dart';
-import 'package:package_info/package_info.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:tuple/tuple.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../main.dart';
 import '../models/list_options.dart';
@@ -86,7 +87,7 @@ class _RootState extends State<Root>
                           icon: Icon(Icons.select_all),
                           label: Text('تحديد الكل'),
                           onPressed: () {
-                            _tabController.index == 2
+                            _tabController.index == 1
                                 ? orderOptions.personSelectAll.add(true)
                                 : orderOptions.classSelectAll.add(true);
                             Navigator.pop(context);
@@ -96,7 +97,7 @@ class _RootState extends State<Root>
                           icon: Icon(Icons.select_all),
                           label: Text('تحديد لا شئ'),
                           onPressed: () {
-                            _tabController.index == 2
+                            _tabController.index == 1
                                 ? orderOptions.personSelectAll.add(false)
                                 : orderOptions.classSelectAll.add(false);
                             Navigator.pop(context);
@@ -104,7 +105,7 @@ class _RootState extends State<Root>
                         ),
                         Text('ترتيب حسب:',
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                        ...(_tabController.index == 2
+                        ...(_tabController.index == 1
                             ? Person.getHumanReadableMap2()
                                 .entries
                                 .map((e) => RadioListTile(
@@ -131,12 +132,12 @@ class _RootState extends State<Root>
                                 .toList()),
                         RadioListTile(
                           value: true,
-                          groupValue: _tabController.index == 2
+                          groupValue: _tabController.index == 1
                               ? orderOptions.personASC
                               : orderOptions.classASC,
                           title: Text('تصاعدي'),
                           onChanged: (value) {
-                            _tabController.index == 2
+                            _tabController.index == 1
                                 ? orderOptions.setPersonASC(value)
                                 : orderOptions.setClassASC(value);
                             Navigator.pop(context);
@@ -144,12 +145,12 @@ class _RootState extends State<Root>
                         ),
                         RadioListTile(
                           value: false,
-                          groupValue: _tabController.index == 2
+                          groupValue: _tabController.index == 1
                               ? orderOptions.personASC
                               : orderOptions.classASC,
                           title: Text('تنازلي'),
                           onChanged: (value) {
-                            _tabController.index == 2
+                            _tabController.index == 1
                                 ? orderOptions.setPersonASC(value)
                                 : orderOptions.setClassASC(value);
                             Navigator.pop(context);
@@ -163,52 +164,51 @@ class _RootState extends State<Root>
               )
             else
               IconButton(
-                  icon: DescribedFeatureOverlay(
-                    barrierDismissible: false,
-                    contentLocation: ContentLocation.below,
-                    featureId: 'Search',
-                    tapTarget: const Icon(Icons.search),
-                    title: Text('البحث السريع'),
-                    description: Column(
-                      children: <Widget>[
-                        Text(
-                            'يمكنك في أي وقت عمل بحث سريع بالاسم عن المخدومين'),
-                        OutlinedButton.icon(
-                          icon: Icon(Icons.forward),
-                          label: Text(
-                            'التالي',
-                            style: TextStyle(
-                              color:
-                                  Theme.of(context).textTheme.bodyText2.color,
-                            ),
+                icon: DescribedFeatureOverlay(
+                  barrierDismissible: false,
+                  contentLocation: ContentLocation.below,
+                  featureId: 'Search',
+                  tapTarget: const Icon(Icons.search),
+                  title: Text('البحث السريع'),
+                  description: Column(
+                    children: <Widget>[
+                      Text('يمكنك في أي وقت عمل بحث سريع بالاسم عن المخدومين'),
+                      OutlinedButton.icon(
+                        icon: Icon(Icons.forward),
+                        label: Text(
+                          'التالي',
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyText2.color,
                           ),
-                          onPressed: () {
-                            mainScfld.currentState.openDrawer();
-                            FeatureDiscovery.completeCurrentStep(context);
-                          },
                         ),
-                        OutlinedButton(
-                          child: Text(
-                            'تخطي',
-                            style: TextStyle(
-                              color:
-                                  Theme.of(context).textTheme.bodyText2.color,
-                            ),
+                        onPressed: () {
+                          mainScfld.currentState.openDrawer();
+                          FeatureDiscovery.completeCurrentStep(context);
+                        },
+                      ),
+                      OutlinedButton(
+                        child: Text(
+                          'تخطي',
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyText2.color,
                           ),
-                          onPressed: () => FeatureDiscovery.dismissAll(context),
                         ),
-                      ],
-                    ),
-                    backgroundColor: Theme.of(context).accentColor,
-                    targetColor: Colors.transparent,
-                    textColor:
-                        Theme.of(context).primaryTextTheme.bodyText1.color,
-                    child: const Icon(Icons.search),
+                        onPressed: () => FeatureDiscovery.dismissAll(context),
+                      ),
+                    ],
                   ),
-                  onPressed: () => setState(() {
-                        _searchFocus.requestFocus();
-                        _showSearch = true;
-                      })),
+                  backgroundColor: Theme.of(context).accentColor,
+                  targetColor: Colors.transparent,
+                  textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
+                  child: const Icon(Icons.search),
+                ),
+                onPressed: () => setState(
+                  () {
+                    _searchFocus.requestFocus();
+                    _showSearch = true;
+                  },
+                ),
+              ),
             IconButton(
               icon: Icon(Icons.notifications),
               tooltip: 'الإشعارات',
@@ -377,6 +377,7 @@ class _RootState extends State<Root>
               selector: (_, o, u) =>
                   Tuple3<String, bool, User>(o.personOrderBy, o.personASC, u),
               builder: (context, options, child) => DataObjectList<Person>(
+                key: ValueKey(options),
                 options: ListOptions<Person>(
                   floatingActionButton: options.item3.write
                       ? FloatingActionButton(
@@ -385,10 +386,10 @@ class _RootState extends State<Root>
                           child: Icon(Icons.person_add),
                         )
                       : null,
-                  tap: personTap,
-                  generate: Person.fromDoc,
+                  tap: (p) => personTap(p, context),
                   documentsData: Person.getAllForUser(
-                      orderBy: options.item1, descending: !options.item2),
+                          orderBy: options.item1, descending: !options.item2)
+                      .map((s) => s.docs.map(Person.fromDoc).toList()),
                 ),
               ),
             ),
@@ -466,7 +467,8 @@ class _RootState extends State<Root>
                 },
               ),
               Selector<User, bool>(
-                selector: (_, user) => user.manageUsers,
+                selector: (_, user) =>
+                    user.manageUsers || user.manageAllowedUsers,
                 builder: (c, permission, data) {
                   if (!permission)
                     return Container(
@@ -986,6 +988,7 @@ class _RootState extends State<Root>
                   Navigator.of(context).pushNamed('Settings');
                 },
               ),
+              Divider(),
               ListTile(
                 leading: Icon(Icons.cloud_upload),
                 title: Text('استيراد من ملف اكسل'),
@@ -1000,7 +1003,7 @@ class _RootState extends State<Root>
                   return permission
                       ? ListTile(
                           leading: Icon(Icons.cloud_download),
-                          title: Text('تصدير إلى ملف اكسل'),
+                          title: Text('تصدير فصل إلى ملف اكسل'),
                           onTap: () async {
                             mainScfld.currentState.openEndDrawer();
                             Class rslt = await showDialog(
@@ -1096,7 +1099,7 @@ class _RootState extends State<Root>
                 builder: (context2, permission, _) {
                   return permission
                       ? ListTile(
-                          leading: Icon(Icons.file_download),
+                          leading: Icon(Icons.cloud_download),
                           title: Text('تصدير جميع البيانات'),
                           onTap: () async {
                             mainScfld.currentState.openEndDrawer();
@@ -1158,6 +1161,15 @@ class _RootState extends State<Root>
                       : Container();
                 },
               ),
+              Selector<User, bool>(
+                selector: (_, user) => user.exportClasses,
+                builder: (context, user, _) => ListTile(
+                  leading: Icon(Icons.list_alt),
+                  title: Text('عمليات التصدير السابقة'),
+                  onTap: () => Navigator.pushNamed(context, 'ExportOps'),
+                ),
+              ),
+              Divider(),
               ListTile(
                 leading: Icon(Icons.system_update_alt),
                 title: Text('تحديث البرنامج'),
@@ -1313,7 +1325,7 @@ class _RootState extends State<Root>
     });
   }
 
-  void showBatteryOptimizationDialog() async {
+  Future<void> showBatteryOptimizationDialog() async {
     if ((await DeviceInfoPlugin().androidInfo).version.sdkInt >= 23 &&
         !await BatteryOptimization.isIgnoringBatteryOptimizations() &&
         Hive.box('Settings').get('ShowBatteryDialog', defaultValue: true)) {
@@ -1326,7 +1338,7 @@ class _RootState extends State<Root>
                   TextButton(
                     child: Text('الغاء حفظ الطاقة للبرنامج'),
                     onPressed: () async {
-                      await Navigator.pop(context);
+                      Navigator.pop(context);
                       await BatteryOptimization
                           .openBatteryOptimizationSettings();
                     },
@@ -1336,7 +1348,7 @@ class _RootState extends State<Root>
                       onPressed: () async {
                         await Hive.box('Settings')
                             .put('ShowBatteryDialog', false);
-                        await Navigator.pop(context);
+                        Navigator.pop(context);
                       }),
                 ],
               ));
@@ -1376,7 +1388,8 @@ class _RootState extends State<Root>
       'Persons',
       'Search',
       'MyAccount',
-      if (User.instance.manageUsers) 'ManageUsers',
+      if (User.instance.manageUsers || User.instance.manageAllowedUsers)
+        'ManageUsers',
       'AddHistory',
       if (User.instance.secretary) 'AddServantsHistory',
       'History',
@@ -1400,11 +1413,11 @@ class _RootState extends State<Root>
     }
   }
 
-  void _recordActive() async {
+  Future<void> _recordActive() async {
     await User.instance.recordActive();
   }
 
-  void _recordLastSeen() async {
+  Future<void> _recordLastSeen() async {
     await User.instance.recordLastSeen();
   }
 }

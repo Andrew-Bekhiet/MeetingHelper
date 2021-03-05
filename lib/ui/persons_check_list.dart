@@ -11,9 +11,8 @@ import '../models/data_object_widget.dart';
 import '../models/list_options.dart';
 import '../models/order_options.dart';
 import '../models/search_string.dart';
-import '../models/super_classes.dart';
 import '../models/user.dart';
-import '../utils/Helpers.dart';
+import '../utils/helpers.dart';
 import 'List.dart';
 
 export 'package:tuple/tuple.dart';
@@ -23,7 +22,7 @@ export '../models/order_options.dart';
 export '../models/search_string.dart';
 
 class PersonsCheckList extends StatefulWidget {
-  final CheckListOptions options;
+  final CheckListOptions<Person> options;
 
   PersonsCheckList({Key key, @required this.options}) : super(key: key);
 
@@ -39,7 +38,7 @@ class _InnerList extends StatefulWidget {
 }
 
 class _InnerListState extends State<_InnerList> {
-  List<DocumentSnapshot> _documentsData;
+  List<Person> _documentsData;
   String _oldFilter = '';
   HistoryDayOptions _dayOptions = HistoryDayOptions();
 
@@ -176,7 +175,7 @@ class _InnerListState extends State<_InnerList> {
                   if (i == _documentsData.length)
                     return Container(
                         height: MediaQuery.of(context).size.height / 19);
-                  var current = listOptions.generate(_documentsData[i]);
+                  var current = _documentsData[i];
                   return DataObjectWidget<Person>(
                     current,
                     subtitle: snapshot.data[current.id] != null
@@ -191,7 +190,7 @@ class _InnerListState extends State<_InnerList> {
                               await snapshot.data[current.id].ref.delete();
                             } else {
                               await HistoryRecord(
-                                      classId: (current as Person).classId,
+                                      classId: current.classId,
                                       id: current.id,
                                       parent: listOptions.day,
                                       type: listOptions.type,
@@ -207,7 +206,7 @@ class _InnerListState extends State<_InnerList> {
                           ? (v) async {
                               if (v) {
                                 await HistoryRecord(
-                                        classId: (current as Person).classId,
+                                        classId: current.classId,
                                         id: current.id,
                                         parent: listOptions.day,
                                         type: listOptions.type,
@@ -255,7 +254,7 @@ class _InnerListState extends State<_InnerList> {
     // _requery();
   }
 
-  void _checkPerson(
+  Future<void> _checkPerson(
       {HistoryRecord record,
       bool checked,
       CheckListOptions<Person> options,
@@ -299,7 +298,7 @@ class _InnerListState extends State<_InnerList> {
         _documentsData = _documentsData
             .where((d) =>
                 attendant[d.id] != null &&
-                (d.data()['Name'] as String)
+                d.name
                     .toLowerCase()
                     .replaceAll(
                         RegExp(
@@ -317,7 +316,7 @@ class _InnerListState extends State<_InnerList> {
           filter.startsWith(_oldFilter) &&
           _documentsData != null) {
         _documentsData = _documentsData
-            .where((d) => (d.data()['Name'] as String)
+            .where((d) => d.name
                 .toLowerCase()
                 .replaceAll(
                     RegExp(
@@ -337,7 +336,7 @@ class _InnerListState extends State<_InnerList> {
             .items
             .where((d) =>
                 attendant[d.id] != null &&
-                (d.data()['Name'] as String)
+                d.name
                     .toLowerCase()
                     .replaceAll(
                         RegExp(
@@ -355,7 +354,7 @@ class _InnerListState extends State<_InnerList> {
         _documentsData = context
             .read<CheckListOptions<Person>>()
             .items
-            .where((d) => (d.data()['Name'] as String)
+            .where((d) => d.name
                 .toLowerCase()
                 .replaceAll(
                     RegExp(
@@ -539,7 +538,7 @@ class _ListState extends State<PersonsCheckList>
     super.build(context);
     _builtOnce = true;
     updateKeepAlive();
-    return StreamBuilder<QuerySnapshot>(
+    return StreamBuilder<List<Person>>(
       stream: widget.options.documentsData,
       builder: (context, stream) {
         if (stream.hasError) return ErrorWidget(stream.error);
@@ -547,13 +546,12 @@ class _ListState extends State<PersonsCheckList>
           return const Center(child: CircularProgressIndicator());
         return ChangeNotifierProxyProvider0<CheckListOptions<Person>>(
           create: (_) => CheckListOptions<Person>(
-            generate: widget.options.generate,
-            items: stream.data.docs,
+            items: stream.data,
             day: widget.options.day,
             documentsData: widget.options.documentsData,
             type: widget.options.type,
           ),
-          update: (_, old) => old..items = stream.data.docs,
+          update: (_, old) => old..items = stream.data,
           builder: (context, _) => _InnerList(),
         );
       },

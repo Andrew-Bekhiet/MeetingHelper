@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_contact/contacts.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:meetinghelper/models/data_object_widget.dart';
+import 'package:meetinghelper/models/invitation.dart';
 import 'package:meetinghelper/models/list_options.dart';
 import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/models/order_options.dart';
@@ -116,7 +116,7 @@ class _InnerList<T extends DataObject> extends StatefulWidget {
 }
 
 class _InnerListState<T extends DataObject> extends State<_InnerList<T>> {
-  List<DocumentSnapshot> _documentsData;
+  List<T> _documentsData;
   String _oldFilter = '';
 
   @override
@@ -133,10 +133,10 @@ class _InnerListState<T extends DataObject> extends State<_InnerList<T>> {
           itemBuilder: (context, i) {
             if (i == _documentsData.length)
               return Container(height: MediaQuery.of(context).size.height / 19);
-            var current = options.generate(_documentsData[i]);
-            return DataObjectWidget<T>(
+            var current = _documentsData[i];
+            return options.itemBuilder(
               current,
-              onLongPress: options.onLongPress ??
+              options.onLongPress ??
                   () async {
                     options.selectionMode = !options.selectionMode;
                     if (!options.selectionMode) {
@@ -240,16 +240,10 @@ class _InnerListState<T extends DataObject> extends State<_InnerList<T>> {
                                       for (Person item
                                           in options.selected.cast<Person>()) {
                                         try {
-                                          await Contacts.addContact(
-                                            Contact(
-                                              givenName: item.name,
-                                              phones: [
-                                                Item(
-                                                    label: 'Mobile',
-                                                    value: item.phone)
-                                              ],
-                                            ),
-                                          );
+                                          final c = Contact()
+                                            ..name.first = item.name
+                                            ..phones = [Phone(item.phone)];
+                                          await c.insert();
                                         } catch (err, stkTrace) {
                                           await FirebaseCrashlytics.instance
                                               .setCustomKey('LastErrorIn',
@@ -280,11 +274,11 @@ class _InnerListState<T extends DataObject> extends State<_InnerList<T>> {
                           : options.selected.add(current);
                     }
                   },
-              onTap: () {
+              () {
                 if (!options.selectionMode) {
                   options.tap == null
                       ? dataObjectTap(current, context)
-                      : options.tap(current, context);
+                      : options.tap(current);
                 } else if (options.selected.contains(current)) {
                   setState(() {
                     options.selected.remove(current);
@@ -295,7 +289,7 @@ class _InnerListState<T extends DataObject> extends State<_InnerList<T>> {
                   });
                 }
               },
-              trailing: options.selectionMode
+              options.selectionMode
                   ? Checkbox(
                       value: options.selected.contains(current),
                       onChanged: (v) {
@@ -331,10 +325,7 @@ class _InnerListState<T extends DataObject> extends State<_InnerList<T>> {
           filter.startsWith(_oldFilter) &&
           _documentsData != null)
         _documentsData = _documentsData
-            .where((d) => context
-                .read<ListOptions<T>>()
-                .generate(d)
-                .name
+            .where((d) => d.name
                 .toLowerCase()
                 .replaceAll(
                     RegExp(
@@ -352,10 +343,7 @@ class _InnerListState<T extends DataObject> extends State<_InnerList<T>> {
         _documentsData = context
             .read<ListOptions<T>>()
             .items
-            .where((d) => context
-                .read<ListOptions<T>>()
-                .generate(d)
-                .name
+            .where((d) => d.name
                 .toLowerCase()
                 .replaceAll(
                     RegExp(
@@ -388,7 +376,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
     super.build(context);
     _builtOnce = true;
     updateKeepAlive();
-    return StreamBuilder<QuerySnapshot>(
+    return StreamBuilder<List<T>>(
       stream: widget.options.documentsData,
       builder: (context, stream) {
         if (stream.hasError) return Center(child: ErrorWidget(stream.error));
@@ -396,19 +384,18 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
         return ChangeNotifierProxyProvider0<ListOptions<T>>(
           create: (_) => ListOptions<T>(
               tap: widget.options.tap,
-              generate: widget.options.generate,
               empty: widget.options.empty,
+              selected: widget.options.selected,
               showNull: widget.options.showNull,
-              items: stream.data.docs,
+              items: stream.data,
               selectionMode: widget.options.selectionMode),
-          update: (_, old) => old..items = stream.data.docs,
-          builder: (context, _) =>
-              Selector<ListOptions<T>, List<DocumentSnapshot>>(
+          update: (_, old) => old..items = stream.data,
+          builder: (context, _) => Selector<ListOptions<T>, List<T>>(
             selector: (_, op) => op.items,
             builder: (context, docs, child) {
               return Scaffold(
                 extendBody: true,
-                body: stream.data.docs.isEmpty
+                body: stream.data.isEmpty
                     ? Center(child: Text('لا يوجد ${_getPluralStringType()}'))
                     : child != null
                         ? Column(
@@ -441,8 +428,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
             child: widget.options.showNull
                 ? DataObjectWidget<T>(
                     widget.options.empty,
-                    onTap: () =>
-                        widget.options.tap(widget.options.empty, context),
+                    onTap: () => widget.options.tap(widget.options.empty),
                   )
                 : null,
           ),
@@ -463,6 +449,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
     if (T == HistoryDay || T == ServantsHistoryDay) return 'سجل';
     if (T == Class) return 'فصل';
     if (T == Person) return 'شخص';
+    if (T == Invitation) return 'دعوة';
     throw UnimplementedError();
   }
 
@@ -470,6 +457,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
     if (T == HistoryDay || T == ServantsHistoryDay) return 'سجلات';
     if (T == Class) return 'فصول';
     if (T == Person) return 'أشخاص';
+    if (T == Invitation) return 'دعوات';
     throw UnimplementedError();
   }
 }

@@ -485,7 +485,7 @@ class _SearchQueryState extends State<SearchQuery> {
         //   stream: FirebaseFirestore.instance
         //       .collection('States')
         //       .orderBy('Name')
-        //       .snapshots(),
+        //       .snapshots().map((s)=>s.docs.map(Person.fromDoc).toList()),
         //   builder: (context, data) {
         //     if (data.hasData) {
         //       return DropdownButtonFormField(
@@ -544,7 +544,7 @@ class _SearchQueryState extends State<SearchQuery> {
         //     stream: FirebaseFirestore.instance
         //         .collection('ServingTypes')
         //         .orderBy('Name')
-        //         .snapshots(),
+        //         .snapshots().map((s)=>s.docs.map(Person.fromDoc).toList()),
         //     builder: (context, data) {
         //       if (data.hasData) {
         //         return DropdownButtonFormField(
@@ -930,13 +930,13 @@ class _SearchQueryState extends State<SearchQuery> {
         if (parentIndex == 0) {
           body = DataObjectList<Class>(
             options: ListOptions<Class>(
-              tap: classTap,
-              generate: Class.fromDoc,
+              tap: (c) => classTap(c, context),
               documentsData: classes
                   .where(childItems[parentIndex][childIndex].value.value,
                       isEqualTo: queryValue,
                       isNull: queryValue == null ? true : null)
-                  .snapshots(),
+                  .snapshots()
+                  .map((s) => s.docs.map(Class.fromDoc).toList()),
             ),
           );
           break;
@@ -944,8 +944,7 @@ class _SearchQueryState extends State<SearchQuery> {
         if (!birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
               options: ListOptions<Person>(
-            tap: personTap,
-            generate: Person.fromDoc,
+            tap: (p) => personTap(p, context),
             documentsData: persons
                 .where('BirthDay',
                     isGreaterThanOrEqualTo: queryValue != null
@@ -961,19 +960,20 @@ class _SearchQueryState extends State<SearchQuery> {
                                 queryValue.toDate().day + 1),
                           )
                         : null)
-                .snapshots(),
+                .snapshots()
+                .map((s) => s.docs.map(Person.fromDoc).toList()),
           ));
           break;
         }
         body = DataObjectList<Person>(
           options: ListOptions<Person>(
-            tap: personTap,
-            generate: Person.fromDoc,
+            tap: (p) => personTap(p, context),
             documentsData: persons
                 .where(childItems[parentIndex][childIndex].value.value,
                     isEqualTo: queryValue,
                     isNull: queryValue == null ? true : null)
-                .snapshots(),
+                .snapshots()
+                .map((s) => s.docs.map(Person.fromDoc).toList()),
           ),
         );
         break;
@@ -981,12 +981,12 @@ class _SearchQueryState extends State<SearchQuery> {
         if (parentIndex == 0) {
           body = DataObjectList<Class>(
             options: ListOptions<Class>(
-              tap: classTap,
-              generate: Class.fromDoc,
+              tap: (c) => classTap(c, context),
               documentsData: classes
                   .where(childItems[parentIndex][childIndex].value.value,
                       arrayContains: queryValue)
-                  .snapshots(),
+                  .snapshots()
+                  .map((s) => s.docs.map(Class.fromDoc).toList()),
             ),
           );
           break;
@@ -994,8 +994,7 @@ class _SearchQueryState extends State<SearchQuery> {
         if (!birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
             options: ListOptions<Person>(
-              tap: personTap,
-              generate: Person.fromDoc,
+              tap: (p) => personTap(p, context),
               documentsData: persons
                   .where('BirthDay',
                       arrayContains: queryValue != null
@@ -1004,19 +1003,20 @@ class _SearchQueryState extends State<SearchQuery> {
                               queryValue.toDate().month,
                               queryValue.toDate().day))
                           : null)
-                  .snapshots(),
+                  .snapshots()
+                  .map((s) => s.docs.map(Person.fromDoc).toList()),
             ),
           );
           break;
         }
         body = DataObjectList<Person>(
           options: ListOptions<Person>(
-            tap: personTap,
-            generate: Person.fromDoc,
+            tap: (p) => personTap(p, context),
             documentsData: persons
                 .where(childItems[parentIndex][childIndex].value.value,
                     arrayContains: queryValue)
-                .snapshots(),
+                .snapshots()
+                .map((s) => s.docs.map(Person.fromDoc).toList()),
           ),
         );
         break;
@@ -1024,20 +1024,19 @@ class _SearchQueryState extends State<SearchQuery> {
         if (parentIndex == 0) {
           body = DataObjectList<Class>(
             options: ListOptions<Class>(
-                tap: classTap,
-                generate: Class.fromDoc,
+                tap: (c) => classTap(c, context),
                 documentsData: classes
                     .where(childItems[parentIndex][childIndex].value.value,
                         isGreaterThanOrEqualTo: queryValue)
-                    .snapshots()),
+                    .snapshots()
+                    .map((s) => s.docs.map(Class.fromDoc).toList())),
           );
           break;
         }
         if (!birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
             options: ListOptions<Person>(
-              tap: personTap,
-              generate: Person.fromDoc,
+              tap: (p) => personTap(p, context),
               documentsData: persons
                   .where('BirthDay',
                       isGreaterThanOrEqualTo: queryValue != null
@@ -1046,19 +1045,20 @@ class _SearchQueryState extends State<SearchQuery> {
                               queryValue.toDate().month,
                               queryValue.toDate().day))
                           : null)
-                  .snapshots(),
+                  .snapshots()
+                  .map((s) => s.docs.map(Person.fromDoc).toList()),
             ),
           );
           break;
         }
         body = DataObjectList<Person>(
           options: ListOptions<Person>(
-            tap: personTap,
-            generate: Person.fromDoc,
+            tap: (p) => personTap(p, context),
             documentsData: persons
                 .where(childItems[parentIndex][childIndex].value.value,
                     isGreaterThanOrEqualTo: queryValue)
-                .snapshots(),
+                .snapshots()
+                .map((s) => s.docs.map(Person.fromDoc).toList()),
           ),
         );
         break;
@@ -1066,12 +1066,12 @@ class _SearchQueryState extends State<SearchQuery> {
         if (parentIndex == 0) {
           body = DataObjectList<Class>(
             options: ListOptions<Class>(
-              tap: classTap,
-              generate: Class.fromDoc,
+              tap: (c) => classTap(c, context),
               documentsData: classes
                   .where(childItems[parentIndex][childIndex].value.value,
                       isLessThanOrEqualTo: queryValue)
-                  .snapshots(),
+                  .snapshots()
+                  .map((s) => s.docs.map(Class.fromDoc).toList()),
             ),
           );
           break;
@@ -1079,8 +1079,7 @@ class _SearchQueryState extends State<SearchQuery> {
         if (!birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
             options: ListOptions<Person>(
-              tap: personTap,
-              generate: Person.fromDoc,
+              tap: (p) => personTap(p, context),
               documentsData: persons
                   .where('BirthDay',
                       isLessThanOrEqualTo: queryValue != null
@@ -1089,19 +1088,20 @@ class _SearchQueryState extends State<SearchQuery> {
                               queryValue.toDate().month,
                               queryValue.toDate().day))
                           : null)
-                  .snapshots(),
+                  .snapshots()
+                  .map((s) => s.docs.map(Person.fromDoc).toList()),
             ),
           );
           break;
         }
         body = DataObjectList<Person>(
           options: ListOptions<Person>(
-            tap: personTap,
-            generate: Person.fromDoc,
+            tap: (p) => personTap(p, context),
             documentsData: persons
                 .where(childItems[parentIndex][childIndex].value.value,
                     isLessThanOrEqualTo: queryValue)
-                .snapshots(),
+                .snapshots()
+                .map((s) => s.docs.map(Person.fromDoc).toList()),
           ),
         );
         break;
@@ -1295,7 +1295,7 @@ class _SearchQueryState extends State<SearchQuery> {
                   Expanded(
                     child: DataObjectList<Class>(
                       options: ListOptions<Class>(
-                          tap: (value, context) {
+                          tap: (value) {
                             Navigator.of(context).pop();
                             setState(() {
                               queryValue = FirebaseFirestore.instance
@@ -1304,12 +1304,12 @@ class _SearchQueryState extends State<SearchQuery> {
                               queryText = value.name;
                             });
                           },
-                          generate: Class.fromDoc,
                           documentsData: Class.getAllForUser(
-                              orderBy:
-                                  context.read<OrderOptions>().classOrderBy,
-                              descending:
-                                  !context.read<OrderOptions>().classASC)),
+                                  orderBy:
+                                      context.read<OrderOptions>().classOrderBy,
+                                  descending:
+                                      !context.read<OrderOptions>().classASC)
+                              .map((s) => s.docs.map(Class.fromDoc).toList())),
                     ),
                   ),
                 ],
