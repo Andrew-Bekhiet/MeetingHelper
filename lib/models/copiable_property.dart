@@ -4,30 +4,52 @@ import 'package:meetinghelper/utils/helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class CopiableProperty extends StatelessWidget {
-  const CopiableProperty(this.name, this.value, {Key key})
+  const CopiableProperty(this.name, this.value, {Key key, this.items})
       : assert(name != null),
         super(key: key);
 
   final String name;
   final String value;
+  final List<Widget> items;
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(name),
       subtitle: Text(value ?? ''),
-      trailing: value != null && value.isNotEmpty
-          ? IconButton(
-              icon: Icon(Icons.copy),
-              tooltip: 'نسخ',
-              onPressed: () => Clipboard.setData(ClipboardData(text: value)),
+      trailing: items != null
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                value != null && value.isNotEmpty
+                    ? IconButton(
+                        icon: Icon(Icons.copy),
+                        tooltip: 'نسخ',
+                        onPressed: () =>
+                            Clipboard.setData(ClipboardData(text: value)),
+                      )
+                    : IconButton(
+                        icon: Icon(Icons.warning),
+                        tooltip: 'بيانات غير كاملة',
+                        onPressed: null,
+                        color: Colors.red,
+                      ),
+                ...items,
+              ],
             )
-          : IconButton(
-              icon: Icon(Icons.warning),
-              tooltip: 'بيانات غير كاملة',
-              onPressed: null,
-              color: Colors.red,
-            ),
+          : value != null && value.isNotEmpty
+              ? IconButton(
+                  icon: Icon(Icons.copy),
+                  tooltip: 'نسخ',
+                  onPressed: () =>
+                      Clipboard.setData(ClipboardData(text: value)),
+                )
+              : IconButton(
+                  icon: Icon(Icons.warning),
+                  tooltip: 'بيانات غير كاملة',
+                  onPressed: null,
+                  color: Colors.red,
+                ),
     );
   }
 }
