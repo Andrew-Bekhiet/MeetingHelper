@@ -4,12 +4,14 @@ import 'package:meetinghelper/utils/helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class CopiableProperty extends StatelessWidget {
-  const CopiableProperty(this.name, this.value, {Key key, this.items})
+  const CopiableProperty(this.name, this.value,
+      {Key key, this.showError, this.items})
       : assert(name != null),
         super(key: key);
 
   final String name;
   final String value;
+  final bool showError;
   final List<Widget> items;
 
   @override
@@ -21,19 +23,20 @@ class CopiableProperty extends StatelessWidget {
           ? Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                value != null && value.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(Icons.copy),
-                        tooltip: 'نسخ',
-                        onPressed: () =>
-                            Clipboard.setData(ClipboardData(text: value)),
-                      )
-                    : IconButton(
-                        icon: Icon(Icons.warning),
-                        tooltip: 'بيانات غير كاملة',
-                        onPressed: null,
-                        color: Colors.red,
-                      ),
+                if (value != null && value.isNotEmpty)
+                  IconButton(
+                    icon: Icon(Icons.copy),
+                    tooltip: 'نسخ',
+                    onPressed: () =>
+                        Clipboard.setData(ClipboardData(text: value)),
+                  )
+                else if (showError)
+                  IconButton(
+                    icon: Icon(Icons.warning),
+                    tooltip: 'بيانات غير كاملة',
+                    onPressed: null,
+                    color: Colors.red,
+                  ),
                 ...items,
               ],
             )
@@ -44,12 +47,14 @@ class CopiableProperty extends StatelessWidget {
                   onPressed: () =>
                       Clipboard.setData(ClipboardData(text: value)),
                 )
-              : IconButton(
-                  icon: Icon(Icons.warning),
-                  tooltip: 'بيانات غير كاملة',
-                  onPressed: null,
-                  color: Colors.red,
-                ),
+              : showError
+                  ? IconButton(
+                      icon: Icon(Icons.warning),
+                      tooltip: 'بيانات غير كاملة',
+                      onPressed: null,
+                      color: Colors.red,
+                    )
+                  : null,
     );
   }
 }
