@@ -28,13 +28,6 @@ class PersonInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> choices = [
-      'إضافة إلى جهات الاتصال',
-      'نسخ في لوحة الاتصال',
-      'إرسال رسالة',
-      'إرسال رسالة (واتساب)',
-      'ارسال إشعار للمستخدمين عن الشخص'
-    ];
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await Future.delayed(Duration(milliseconds: 300));
       FeatureDiscovery.discoverFeatures(context, [
@@ -260,62 +253,14 @@ class PersonInfo extends StatelessWidget {
                             Theme.of(context).primaryTextTheme.bodyText1.color,
                         child: PopupMenuButton(
                           onSelected: (item) async {
-                            int i = choices.indexOf(item);
-                            String at = i != 4
-                                ? await showDialog(
-                                    context: context,
-                                    builder: (context) => SimpleDialog(
-                                      title: Text('اختر الهاتف:'),
-                                      children: [
-                                        if (person.phone?.isNotEmpty ?? false)
-                                          ListTile(
-                                              onTap: () => Navigator.of(context)
-                                                  .pop('Phone'),
-                                              title: Text('شخصي')),
-                                        if (person.fatherPhone?.isNotEmpty ??
-                                            false)
-                                          ListTile(
-                                              onTap: () => Navigator.of(context)
-                                                  .pop('FatherPhone'),
-                                              title: Text('الأب')),
-                                        if (person.motherPhone?.isNotEmpty ??
-                                            false)
-                                          ListTile(
-                                              onTap: () => Navigator.of(context)
-                                                  .pop('MotherPhone'),
-                                              title: Text('الأم')),
-                                      ],
-                                    ),
-                                  )
-                                : '';
-                            if (at == null) return;
-                            if (i == 0) {
-                              if ((await Permission.contacts.request())
-                                  .isGranted) {
-                                final c = Contact()
-                                  ..name.first = person.name
-                                  ..phones = [Phone(person.getMap()[at])];
-                                await c.insert();
-                              }
-                            } else if (i == 1) {
-                              _phoneCall(context, person.getMap()[at]);
-                            } else if (i == 2) {
-                              await launch('sms://' +
-                                  getPhone(person.getMap()[at], false));
-                            } else if (i == 3) {
-                              await launch('whatsapp://send?phone=+' +
-                                  getPhone(person.getMap()[at]));
-                            } else if (i == 4) {
-                              sendNotification(context, person);
-                            }
+                            await sendNotification(context, person);
                           },
                           itemBuilder: (BuildContext context) {
-                            return choices.map((v) {
-                              return PopupMenuItem(
-                                value: v,
-                                child: Text(v),
-                              );
-                            }).toList();
+                            return [
+                              PopupMenuItem(
+                                  child:
+                                      Text('ارسال إشعار للمستخدمين عن الشخص'))
+                            ];
                           },
                         ),
                       ),
@@ -356,21 +301,30 @@ class PersonInfo extends StatelessWidget {
                         'موبايل:',
                         person.phone,
                         (n) => _phoneCall(context, n),
+                        (n) => _contactAdd(n),
                       ),
                       PhoneNumberProperty(
                         'موبايل (الأب):',
                         person.fatherPhone,
                         (n) => _phoneCall(context, n),
+                        (n) => _contactAdd(n),
                       ),
                       PhoneNumberProperty(
                         'موبايل (الأم):',
                         person.motherPhone,
                         (n) => _phoneCall(context, n),
+                        (n) => _contactAdd(n),
                       ),
                       if (person.phones != null)
                         ...person.phones.entries
-                            .map((e) => PhoneNumberProperty(
-                                e.key, e.value, (_) => _phoneCall(context, _)))
+                            .map(
+                              (e) => PhoneNumberProperty(
+                                e.key,
+                                e.value,
+                                (n) => _phoneCall(context, n),
+                                (n) => _contactAdd(n),
+                              ),
+                            )
                             .toList(),
                       ListTile(
                         title: Text('السن:'),
@@ -612,5 +566,14 @@ class PersonInfo extends StatelessWidget {
 
   void _showAnalytics(BuildContext context, Person person) {
     Navigator.pushNamed(context, 'Analytics', arguments: person);
+  }
+
+  Future<void> _contactAdd(String phone) async {
+    if ((await Permission.contacts.request()).isGranted) {
+      final c = Contact()
+        ..name.first = person.name
+        ..phones = [Phone(phone)];
+      await c.insert();
+    }
   }
 }

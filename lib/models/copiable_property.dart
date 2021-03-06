@@ -60,12 +60,15 @@ class CopiableProperty extends StatelessWidget {
 }
 
 class PhoneNumberProperty extends StatelessWidget {
-  const PhoneNumberProperty(this.name, this.value, this.phoneCall, {Key key})
+  const PhoneNumberProperty(
+      this.name, this.value, this.phoneCall, this.contactAdd,
+      {Key key})
       : super(key: key);
 
   final String name;
   final String value;
   final void Function(String) phoneCall;
+  final void Function(String) contactAdd;
 
   @override
   Widget build(BuildContext context) {
@@ -80,6 +83,11 @@ class PhoneNumberProperty extends StatelessWidget {
                   icon: Icon(Icons.phone),
                   tooltip: 'اجراء مكالمة',
                   onPressed: () => phoneCall(value),
+                ),
+                IconButton(
+                  icon: Icon(Icons.person_add_alt),
+                  tooltip: 'اضافة الى جهات الاتصال',
+                  onPressed: () => contactAdd(value),
                 ),
                 IconButton(
                   icon: Image.asset('assets/whatsapp.png',
