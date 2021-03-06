@@ -7,6 +7,7 @@ import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:rxdart/rxdart.dart';
 
 import 'mini_models.dart';
 
@@ -92,11 +93,14 @@ class HistoryDayOptions with ChangeNotifier {
 }
 
 class ListOptions<T extends DataObject> with ChangeNotifier {
-  Stream<List<T>> _documentsData;
+  BehaviorSubject<List<T>> _documentsData;
 
   Stream<List<T>> get documentsData => _documentsData;
 
   set documentsData(Stream<List<T>> documentsData) {
+    _documentsData = documentsData != null
+        ? (BehaviorSubject<List<T>>()..addStream(documentsData))
+        : null;
     _documentsData = documentsData;
   }
 
@@ -134,7 +138,9 @@ class ListOptions<T extends DataObject> with ChangeNotifier {
   })  : assert(showNull == false || (showNull == true && empty != null)),
         _items = items,
         _selectionMode = selectionMode {
-    _documentsData = documentsData?.asBroadcastStream();
+    _documentsData = documentsData != null
+        ? (BehaviorSubject<List<T>>()..addStream(documentsData))
+        : null;
     if (items != null && (cache?.length ?? 0) != items.length) {
       cache = {for (var d in items) d.id: AsyncMemoizer<String>()};
     }
@@ -161,12 +167,15 @@ class ListOptions<T extends DataObject> with ChangeNotifier {
 }
 
 class ServicesListOptions with ChangeNotifier {
-  Stream<Map<StudyYear, List<Class>>> _documentsData;
+  BehaviorSubject<Map<StudyYear, List<Class>>> _documentsData;
 
   Stream<Map<StudyYear, List<Class>>> get documentsData => _documentsData;
 
   set documentsData(Stream<Map<StudyYear, List<Class>>> documentsData) {
-    _documentsData = documentsData.asBroadcastStream();
+    _documentsData = documentsData != null
+        ? (BehaviorSubject<Map<StudyYear, List<Class>>>()
+          ..addStream(documentsData))
+        : null;
   }
 
   bool _selectionMode = false;
@@ -189,7 +198,10 @@ class ServicesListOptions with ChangeNotifier {
     bool selectionMode = false,
     Stream<Map<StudyYear, List<Class>>> documentsData,
   })  : _selectionMode = selectionMode,
-        _documentsData = documentsData?.asBroadcastStream();
+        _documentsData = documentsData != null
+            ? (BehaviorSubject<Map<StudyYear, List<Class>>>()
+              ..addStream(documentsData))
+            : null;
 
   bool get selectionMode => _selectionMode;
 
