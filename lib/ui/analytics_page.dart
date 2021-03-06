@@ -90,7 +90,7 @@ class _ClassAnalyticsPageState extends State<ClassAnalyticsPage> {
         key: globalKey,
         stream: FirebaseFirestore.instance
             .collection('History')
-            .orderBy('Day', descending: true)
+            .orderBy('Day')
             .where(
               'Day',
               isLessThanOrEqualTo:
@@ -259,7 +259,7 @@ class _HistoryDayAnalyticsPageState extends State<HistoryDayAnalyticsPage> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 trailing: IconButton(
-                  icon: Icon(Icons.list),
+                  icon: Icon(Icons.list_alt),
                   tooltip: 'اختيار الفصول',
                   onPressed: () async {
                     var rslt = await selectClasses(context, classes);
@@ -344,7 +344,7 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
         key: globalKey,
         stream: FirebaseFirestore.instance
             .collection('History')
-            .orderBy('Day', descending: true)
+            .orderBy('Day')
             .where(
               'Day',
               isLessThanOrEqualTo:
@@ -524,7 +524,7 @@ class _GeneralAnalyticsPageState extends State<GeneralAnalyticsPage> {
           return StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
                 .collection('History')
-                .orderBy('Day', descending: true)
+                .orderBy('Day')
                 .where(
                   'Day',
                   isLessThanOrEqualTo:
@@ -589,7 +589,7 @@ class _GeneralAnalyticsPageState extends State<GeneralAnalyticsPage> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     trailing: IconButton(
-                      icon: Icon(Icons.list),
+                      icon: Icon(Icons.list_alt),
                       tooltip: 'اختيار الفصول',
                       onPressed: () async {
                         var rslt = await selectClasses(context, classes);

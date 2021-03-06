@@ -74,13 +74,13 @@ class AttendanceChart extends StatelessWidget {
                     checkToShowHorizontalLine: (v) => v % (maxY ~/ 5) == 0,
                     getDrawingHorizontalLine: (value) {
                       return FlLine(
-                        color: const Color(0xff37434d),
+                        color: Colors.grey,
                         strokeWidth: 1,
                       );
                     },
                     getDrawingVerticalLine: (value) {
                       return FlLine(
-                        color: const Color(0xff37434d),
+                        color: Colors.grey,
                         strokeWidth: 1,
                       );
                     },
@@ -121,8 +121,7 @@ class AttendanceChart extends StatelessWidget {
                   ),
                   borderData: FlBorderData(
                     show: true,
-                    border:
-                        Border.all(color: const Color(0xff37434d), width: 1),
+                    border: Border.all(color: Colors.grey, width: 1),
                   ),
                   minX: 0,
                   maxX: (days.length - 1).toDouble(),
@@ -131,20 +130,23 @@ class AttendanceChart extends StatelessWidget {
                   lineBarsData: [
                     LineChartBarData(
                       spots: spots,
-                      colors: [Colors.amber],
+                      colorStops: [0, 1],
+                      colors: [Colors.amber[300], Colors.amber[800]],
                       isStrokeCapRound: true,
                       dotData: FlDotData(
                         show: false,
                       ),
                       belowBarData: BarAreaData(
                         show: true,
-                        colors: [Colors.amber]
+                        gradientColorStops: [0, 1],
+                        colors: [Colors.amber[300], Colors.amber[800]]
                             .map((color) => color.withOpacity(0.3))
                             .toList(),
                       ),
                     ),
                   ],
                 ),
+                swapAnimationDuration: Duration(milliseconds: 200),
               );
             },
           );
