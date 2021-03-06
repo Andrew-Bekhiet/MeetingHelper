@@ -278,7 +278,8 @@ class _EditClassState extends State<EditClass> {
                       icon: Icon(Icons.color_lens),
                       label: Text('اللون')),
                   Selector<User, bool>(
-                    selector: (_, user) => user.manageUsers,
+                    selector: (_, user) =>
+                        user.manageUsers || user.manageAllowedUsers,
                     builder: (c, permission, data) {
                       if (permission) {
                         return ElevatedButton.icon(
@@ -467,8 +468,10 @@ class _EditClassState extends State<EditClass> {
                         ListenableProvider(
                             create: (_) => ListOptions<User>(
                                 documentsData:
-                                    Stream.fromFuture(User.getAllUsersLive()))
-                              ..selected = users.data)
+                                    Stream.fromFuture(User.getAllUsersLive())
+                                        .map((s) =>
+                                            s.docs.map(User.fromDoc).toList()),
+                                selected: users.data))
                       ],
                       builder: (context, child) => AlertDialog(
                         actions: [
