@@ -24,11 +24,12 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  final TextEditingController passwordText = TextEditingController();
-  final FocusNode passwordFocus = FocusNode();
+  final TextEditingController _passwordText = TextEditingController();
+  final FocusNode _passwordFocus = FocusNode();
 
   Completer<bool> _authCompleter = Completer<bool>();
 
+  bool obscurePassword = true;
   bool ignoreBiometrics = false;
 
   @override
@@ -138,6 +139,15 @@ class _AuthScreenState extends State<AuthScreen> {
               Divider(),
               TextFormField(
                 decoration: InputDecoration(
+                  suffix: IconButton(
+                    icon: Icon(obscurePassword
+                        ? Icons.visibility
+                        : Icons.visibility_off),
+                    tooltip:
+                        obscurePassword ? 'اظهار كلمة السر' : 'اخفاء كلمة السر',
+                    onPressed: () =>
+                        setState(() => obscurePassword = !obscurePassword),
+                  ),
                   labelText: 'كلمة السر',
                   border: OutlineInputBorder(
                     borderSide:
@@ -145,11 +155,11 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                 ),
                 textInputAction: TextInputAction.done,
-                obscureText: true,
+                obscureText: obscurePassword,
                 autocorrect: false,
                 autofocus: future.hasData && !future.data,
-                controller: passwordText,
-                focusNode: passwordFocus,
+                controller: _passwordText,
+                focusNode: _passwordFocus,
                 validator: (value) {
                   if (value.isEmpty) {
                     return 'هذا الحقل مطلوب';
@@ -159,7 +169,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 onFieldSubmitted: (v) => _submit(v),
               ),
               ElevatedButton(
-                onPressed: () => _submit(passwordText.text),
+                onPressed: () => _submit(_passwordText.text),
                 child: Text('تسجيل الدخول'),
               ),
               if (canCheckBio)
@@ -190,9 +200,10 @@ class _AuthScreenState extends State<AuthScreen> {
     try {
       if (!await _localAuthentication.canCheckBiometrics) return;
       _authCompleter = Completer<bool>();
-      bool value = await _localAuthentication.authenticateWithBiometrics(
+      bool value = await _localAuthentication.authenticate(
           localizedReason: 'برجاء التحقق للمتابعة',
           stickyAuth: true,
+          biometricOnly: true,
           useErrorDialogs: false);
       if (!_authCompleter.isCompleted) _authCompleter.complete(value);
       if (value) {
@@ -236,7 +247,7 @@ class _AuthScreenState extends State<AuthScreen> {
     } else {
       encryptedPassword = null;
       await showErrorDialog(context, 'كلمة سر خاطئة!');
-      passwordText.clear();
+      _passwordText.clear();
       setState(() {});
     }
     encryptedPassword = null;
