@@ -2,10 +2,17 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:connectivity/connectivity.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:meetinghelper/models/list_options.dart';
+import 'package:meetinghelper/models/order_options.dart';
+import 'package:meetinghelper/models/search_filters.dart';
+import 'package:meetinghelper/models/search_string.dart';
+import 'package:meetinghelper/ui/users_list.dart';
+import 'package:provider/provider.dart';
+import 'package:tuple/tuple.dart';
 
 import '../models/mini_models.dart';
 import '../models/user.dart';
@@ -226,17 +233,30 @@ class _EditUserState extends State<EditUser> {
                     ),
                   ),
                 ),
+                if (User.instance.manageUsers)
+                  ListTile(
+                    trailing: Checkbox(
+                      value: widget.user.manageUsers,
+                      onChanged: (v) =>
+                          setState(() => widget.user.manageUsers = v),
+                    ),
+                    leading: Icon(
+                        const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
+                    title: Text('إدارة المستخدمين'),
+                    onTap: () => setState(() =>
+                        widget.user.manageUsers = !widget.user.manageUsers),
+                  ),
                 ListTile(
                   trailing: Checkbox(
-                    value: widget.user.manageUsers,
+                    value: widget.user.manageAllowedUsers,
                     onChanged: (v) =>
-                        setState(() => widget.user.manageUsers = v),
+                        setState(() => widget.user.manageAllowedUsers = v),
                   ),
                   leading: Icon(
                       const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
-                  title: Text('إدارة المستخدمين'),
-                  onTap: () => setState(
-                      () => widget.user.manageUsers = !widget.user.manageUsers),
+                  title: Text('إدارة مستخدمين محددين'),
+                  onTap: () => setState(() => widget.user.manageAllowedUsers =
+                      !widget.user.manageAllowedUsers),
                 ),
                 ListTile(
                   trailing: Checkbox(
@@ -342,6 +362,14 @@ class _EditUserState extends State<EditUser> {
                       !(widget.user.meetingNotify ?? false)),
                 ),
                 ElevatedButton.icon(
+                  onPressed: editAllowedUsers,
+                  icon: Icon(Icons.shield),
+                  label: Text('تعديل المستخدمين المسموح لهم بتعديل المستخدم',
+                      softWrap: false,
+                      textScaleFactor: 0.95,
+                      overflow: TextOverflow.fade),
+                ),
+                ElevatedButton.icon(
                   onPressed: resetPassword,
                   icon: Icon(Icons.lock_open),
                   label: Text('إعادة تعيين كلمة السر'),
@@ -358,6 +386,68 @@ class _EditUserState extends State<EditUser> {
         child: Icon(Icons.save),
       ),
     );
+  }
+
+  void editAllowedUsers() async {
+    widget.user.allowedUsers = await showDialog(
+          context: context,
+          builder: (context) {
+            return FutureBuilder<List<User>>(
+              future: User.getUsers(widget.user.allowedUsers),
+              builder: (c, users) => users.hasData
+                  ? MultiProvider(
+                      providers: [
+                        ListenableProvider<SearchString>(
+                          create: (_) => SearchString(''),
+                        ),
+                        ListenableProvider(
+                            create: (_) => ListOptions<User>(
+                                documentsData: Stream.fromFuture(
+                                    User.getAllSemiManagers()),
+                                selected: users.data))
+                      ],
+                      builder: (context, child) => AlertDialog(
+                        actions: [
+                          TextButton(
+                            child: Text('تم'),
+                            onPressed: () {
+                              Navigator.pop(
+                                  context,
+                                  context
+                                      .read<ListOptions<User>>()
+                                      .selected
+                                      ?.map((f) => f.uid)
+                                      ?.toList());
+                            },
+                          )
+                        ],
+                        content: Container(
+                          width: 280,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SearchField(
+                                  textStyle:
+                                      Theme.of(context).textTheme.bodyText2),
+                              Expanded(
+                                child: Selector<OrderOptions,
+                                    Tuple2<String, bool>>(
+                                  selector: (_, o) => Tuple2<String, bool>(
+                                      o.classOrderBy, o.classASC),
+                                  builder: (context, options, child) =>
+                                      UsersList(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                  : Center(child: CircularProgressIndicator()),
+            );
+          },
+        ) ??
+        widget.user.allowedUsers;
   }
 
   void deleteUser() {
@@ -479,6 +569,24 @@ class _EditUserState extends State<EditUser> {
   }
 
   Future resetPassword() async {
+    if (await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('هل أنت متأكد من إعادة تعيين كلمة السر ل' +
+                widget.user.name +
+                '؟'),
+            actions: [
+              TextButton(
+                  child: Text('نعم'),
+                  onPressed: () => Navigator.pop(context, true)),
+              TextButton(
+                child: Text('لا'),
+                onPressed: () => Navigator.pop(context, false),
+              ),
+            ],
+          ),
+        ) !=
+        true) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: LinearProgressIndicator(),
@@ -528,10 +636,17 @@ class _EditUserState extends State<EditUser> {
               {'affectedUser': widget.user.uid, 'newName': widget.user.name});
         }
         update.remove('name');
+        update.remove('allowedUsers');
         if (update.isNotEmpty) {
           await FirebaseFunctions.instance
               .httpsCallable('updatePermissions')
               .call({'affectedUser': widget.user.uid, 'permissions': update});
+        }
+        if (old['allowedUsers'] != widget.user.allowedUsers) {
+          await FirebaseFirestore.instance
+              .collection('Users')
+              .doc(widget.user.uid)
+              .update({'allowedUsers': widget.user.allowedUsers});
         }
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         Navigator.of(context).pop(widget.user);

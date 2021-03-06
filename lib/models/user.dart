@@ -5,11 +5,12 @@ import 'package:async/async.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:connectivity/connectivity.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_stream_notifiers/flutter_stream_notifiers.dart';
 import 'package:hive/hive.dart';
 import 'package:meetinghelper/utils/globals.dart';
 
@@ -20,6 +21,7 @@ class User extends DataObject
   static final User instance = User._initInstance();
 
   Completer<bool> _initialized = Completer<bool>();
+
   Future<bool> get initialized => _initialized.future;
 
   String _uid;
@@ -42,7 +44,9 @@ class User extends DataObject
   bool secretary;
 
   bool manageUsers;
+  bool manageAllowedUsers;
   bool exportClasses;
+  List<String> allowedUsers = [];
 
   bool birthdayNotify;
   bool confessionsNotify;
@@ -70,7 +74,9 @@ class User extends DataObject
   final AsyncCache<String> _photoUrlCache =
       AsyncCache<String>(Duration(days: 1));
 
-  User._initInstance() : super(null, null, null) {
+  User._initInstance()
+      : allowedUsers = [],
+        super(null, null, null) {
     hasPhoto = true;
     defaultIcon = Icons.account_circle;
     _initListeners();
@@ -81,6 +87,7 @@ class User extends DataObject
       String name,
       String password,
       bool manageUsers,
+      bool manageAllowedUsers,
       bool superAccess,
       bool write,
       bool secretary,
@@ -95,6 +102,7 @@ class User extends DataObject
       int lastTanawol,
       String servingStudyYear,
       bool servingStudyGender,
+      List<String> allowedUsers,
       String email}) {
     if (uid == null || uid == auth.FirebaseAuth.instance.currentUser.uid) {
       return instance;
@@ -104,6 +112,7 @@ class User extends DataObject
         name,
         password,
         manageUsers,
+        manageAllowedUsers,
         superAccess,
         write,
         secretary,
@@ -118,6 +127,7 @@ class User extends DataObject
         lastTanawol,
         servingStudyYear,
         servingStudyGender,
+        allowedUsers,
         email: email);
   }
 
@@ -126,6 +136,7 @@ class User extends DataObject
       String name,
       this.password,
       this.manageUsers,
+      bool manageAllowedUsers,
       this.superAccess,
       this.write,
       this.secretary,
@@ -140,10 +151,13 @@ class User extends DataObject
       this.lastTanawol,
       this.servingStudyYear,
       this.servingStudyGender,
+      List<String> allowedUsers,
       {this.email})
       : super(_uid, name, null) {
     hasPhoto = true;
     defaultIcon = Icons.account_circle;
+    this.manageAllowedUsers = manageAllowedUsers ?? false;
+    this.allowedUsers = allowedUsers ?? [];
   }
 
   void _initListeners() {
@@ -197,6 +211,8 @@ class User extends DataObject
             name = user.displayName;
             password = idTokenClaims['password'];
             manageUsers = idTokenClaims['manageUsers'].toString() == 'true';
+            manageAllowedUsers =
+                idTokenClaims['manageAllowedUsers'].toString() == 'true';
             superAccess = idTokenClaims['superAccess'].toString() == 'true';
             write = idTokenClaims['write'].toString() == 'true';
             secretary = idTokenClaims['secretary'].toString() == 'true';
@@ -266,6 +282,8 @@ class User extends DataObject
           name = user.displayName;
           password = idTokenClaims['password'];
           manageUsers = idTokenClaims['manageUsers'].toString() == 'true';
+          manageAllowedUsers =
+              idTokenClaims['manageAllowedUsers'].toString() == 'true';
           superAccess = idTokenClaims['superAccess'].toString() == 'true';
           write = idTokenClaims['write'].toString() == 'true';
           secretary = idTokenClaims['secretary'].toString() == 'true';
@@ -307,9 +325,9 @@ class User extends DataObject
     if (!_initialized.isCompleted) _initialized.complete(false);
     _initialized = Completer<bool>();
     uid = null;
+    notifyListeners();
     await auth.FirebaseAuth.instance.signOut();
     await connectionListener?.cancel();
-    notifyListeners();
   }
 
   User._createFromData(this._uid, Map<String, dynamic> data)
@@ -318,6 +336,8 @@ class User extends DataObject
     uid = data['uid'] ?? _uid;
     password = data['password'];
     manageUsers = data['manageUsers'];
+    manageAllowedUsers = data['manageAllowedUsers'];
+    allowedUsers = data['allowedUsers']?.cast<String>();
     superAccess = data['superAccess'];
     write = data['write'];
     secretary = data['secretary'];
@@ -346,6 +366,7 @@ class User extends DataObject
       name,
       password,
       manageUsers,
+      manageAllowedUsers,
       superAccess,
       write,
       secretary,
@@ -368,12 +389,12 @@ class User extends DataObject
 
   @override
   bool operator ==(other) {
-    return other is User && other.hashCode == hashCode;
+    return other is User && other.uid == uid;
   }
 
   @override
   Future dispose() async {
-    recordLastSeen();
+    await recordLastSeen();
     await userTokenListener?.cancel();
     await connectionListener?.cancel();
     await authListener?.cancel();
@@ -392,6 +413,7 @@ class User extends DataObject
     if (approved ?? false) {
       String permissions = '';
       if (manageUsers ?? false) permissions += 'تعديل المستخدمين،';
+      if (manageAllowedUsers ?? false) permissions += 'تعديل مستخدمين محددين،';
       if (superAccess ?? false) permissions += 'رؤية جميع البيانات،';
       if (secretary ?? false) permissions += 'تسجيل حضور الخدام،';
       if (exportClasses ?? false) permissions += 'تصدير فصل،';
@@ -519,6 +541,7 @@ class User extends DataObject
     return {
       'name': name,
       'manageUsers': manageUsers,
+      'manageAllowedUsers': manageAllowedUsers,
       'superAccess': superAccess,
       'write': write,
       'secretary': secretary,
@@ -534,6 +557,7 @@ class User extends DataObject
       'lastTanawol': lastTanawol,
       'servingStudyYear': servingStudyYear,
       'servingStudyGender': servingStudyGender,
+      'allowedUsers': allowedUsers ?? [],
     };
   }
 
@@ -631,34 +655,39 @@ class User extends DataObject
   }
 
   static Future<List<User>> getUsersForEdit() async {
+    final users = {
+      for (var u in (await User.getAllUsersLive()).docs)
+        u.id: (u.data()['allowedUsers'] as List)?.cast<String>()
+    };
     return (await FirebaseFunctions.instance.httpsCallable('getUsers').call())
         .data
         .map((u) => User(
-              uid: u['uid'],
-              name: u['name'],
-              password: u['password'],
-              manageUsers: u['manageUsers'],
-              superAccess: u['superAccess'],
-              write: u['write'],
-              secretary: u['secretary'],
-              exportClasses: u['exportClasses'],
-              birthdayNotify: u['birthdayNotify'],
-              confessionsNotify: u['confessionsNotify'],
-              tanawolNotify: u['tanawolNotify'],
-              kodasNotify: u['kodasNotify'],
-              meetingNotify: u['meetingNotify'],
-              approved: u['approved'],
-              lastConfession: u['lastConfession'],
-              lastTanawol: u['lastTanawol'],
-              servingStudyYear: u['servingStudyYear'],
-              servingStudyGender: u['servingStudyGender'],
-              email: u['email'],
-            ))
+            uid: u['uid'],
+            name: u['name'],
+            password: u['password'],
+            manageUsers: u['manageUsers'],
+            manageAllowedUsers: u['manageAllowedUsers'],
+            superAccess: u['superAccess'],
+            write: u['write'],
+            secretary: u['secretary'],
+            exportClasses: u['exportClasses'],
+            birthdayNotify: u['birthdayNotify'],
+            confessionsNotify: u['confessionsNotify'],
+            tanawolNotify: u['tanawolNotify'],
+            kodasNotify: u['kodasNotify'],
+            meetingNotify: u['meetingNotify'],
+            approved: u['approved'],
+            lastConfession: u['lastConfession'],
+            lastTanawol: u['lastTanawol'],
+            servingStudyYear: u['servingStudyYear'],
+            servingStudyGender: u['servingStudyGender'],
+            email: u['email'],
+            allowedUsers: users[u['uid']]))
         .toList()
         ?.cast<User>();
   }
 
-  void recordActive() async {
+  Future<void> recordActive() async {
     if (uid == null) return;
     await FirebaseDatabase.instance
         .reference()
@@ -666,7 +695,7 @@ class User extends DataObject
         .set('Active');
   }
 
-  void recordLastSeen() async {
+  Future<void> recordLastSeen() async {
     if (uid == null) return;
     await FirebaseDatabase.instance
         .reference()
@@ -703,56 +732,18 @@ class User extends DataObject
   void reloadImage() {
     _photoUrlCache.invalidate();
   }
-}
 
-mixin ChangeNotifierStream<T extends ChangeNotifier> on ChangeNotifier {
-  /// Stream of [T] extending [ChangeNotifier], on a change notification.
-  ///
-  /// A latest value is delivered on listen immediately.
-  /// It allows multiple stream listeners.
-  /// All streams are closed on [dispose].
-  /// After it is disposed, any new stream is closed immediately
-  /// without any values.
-  Stream<T> get stream {
-    return Stream.multi((controller) {
-      if (_isDisposed) {
-        controller.close();
-        return;
-      }
-
-      final callback = () {
-        controller.add(this as T);
-      };
-      addListener(callback);
-      controller
-        ..onCancel = () {
-          removeListener(callback);
-          controller.close();
-          controllers.remove(controller);
-        }
-        ..add(this as T);
-      controllers.add(controller);
-    });
+  static Future<List<User>> getAllSemiManagers() async {
+    return (await getUsersForEdit())
+        .where((u) => u.manageAllowedUsers == true)
+        .toList();
   }
 
-  /// Do super.dispose and close all the streams.
-  ///
-  /// The returned future completes when the all streams are closed.
-  @override
-  Future<void> dispose() async {
-    super.dispose();
-
-    _isDisposed = true;
-
-    await Future.wait(controllers.map((c) {
-      c.onCancel = null;
-      return c.close();
-    }));
-    controllers.clear();
+  static Future<String> onlyName(String id) async {
+    return (await FirebaseFirestore.instance
+            .collection('Users')
+            .doc(id)
+            .get(dataSource))
+        .data()['Name'];
   }
-
-  @visibleForTesting
-  // ignore: public_member_api_docs
-  final Set<MultiStreamController<T>> controllers = {};
-  bool _isDisposed = false;
 }

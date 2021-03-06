@@ -5,9 +5,13 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/list_options.dart';
+import 'package:meetinghelper/models/search_filters.dart';
 import 'package:meetinghelper/models/user.dart';
+import 'package:meetinghelper/ui/list.dart';
 import 'package:meetinghelper/ui/services_list.dart';
+import 'package:meetinghelper/ui/users_list.dart';
 import 'package:meetinghelper/utils/helpers.dart';
+import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'edit_user.dart';
@@ -164,6 +168,12 @@ class _UserInfoState extends State<UserInfo> {
                           const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
                       title: Text('إدارة المستخدمين'),
                     ),
+                  if (user.manageAllowedUsers == true)
+                    ListTile(
+                      leading: Icon(
+                          const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
+                      title: Text('إدارة مستخدمين محددين'),
+                    ),
                   if (user.superAccess == true)
                     ListTile(
                       leading: Icon(
@@ -238,6 +248,57 @@ class _UserInfoState extends State<UserInfo> {
                     ],
                   ),
                 ),
+              ),
+            ),
+            ElevatedButton.icon(
+              label: Text('المستخدمين المسموح لهم بتعديل صلاحيات ' + user.name,
+                  textScaleFactor: 0.95, overflow: TextOverflow.fade),
+              icon: Icon(Icons.shield),
+              onPressed: () => showDialog(
+                context: context,
+                builder: (context) {
+                  return FutureBuilder<List<User>>(
+                    future: User.getUsers(user.allowedUsers),
+                    builder: (c, users) => users.hasData
+                        ? MultiProvider(
+                            providers: [
+                              ListenableProvider<SearchString>(
+                                create: (_) => SearchString(''),
+                              ),
+                              ListenableProvider(
+                                  create: (_) => ListOptions<User>(
+                                      documentsData: Stream.fromFuture(
+                                          User.getAllSemiManagers()),
+                                      selected: users.data))
+                            ],
+                            builder: (context, child) => AlertDialog(
+                              content: Container(
+                                width: 280,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SearchField(
+                                        textStyle: Theme.of(context)
+                                            .textTheme
+                                            .bodyText2),
+                                    Expanded(
+                                      child: Selector<OrderOptions,
+                                          Tuple2<String, bool>>(
+                                        selector: (_, o) =>
+                                            Tuple2<String, bool>(
+                                                o.classOrderBy, o.classASC),
+                                        builder: (context, options, child) =>
+                                            UsersList(),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          )
+                        : Center(child: CircularProgressIndicator()),
+                  );
+                },
               ),
             ),
           ],

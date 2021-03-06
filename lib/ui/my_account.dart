@@ -94,7 +94,8 @@ class _MyAccountState extends State<MyAccount> {
                             duration: Duration(minutes: 2),
                           ));
                           await FirebaseFunctions.instance
-                              .httpsCallable('deleteImage');
+                              .httpsCallable('deleteImage')
+                              .call();
                           user.reloadImage();
                           setState(() {});
                           ScaffoldMessenger.of(context).hideCurrentSnackBar();
