@@ -41,16 +41,15 @@ class _MapViewState extends State<MapView> {
               });
             }
           : null,
-      markers: widget.person.location != null
-          ? {
-              Marker(
-                  markerId: MarkerId(widget.person.id),
-                  infoWindow: InfoWindow(title: widget.person.name),
-                  position: widget.person.location != null
-                      ? fromGeoPoint(widget.person.location)
-                      : center)
-            }
-          : null,
+      markers: {
+        if (widget.person.location != null)
+          Marker(
+              markerId: MarkerId(widget.person.id),
+              infoWindow: InfoWindow(title: widget.person.name),
+              position: widget.person.location != null
+                  ? fromGeoPoint(widget.person.location)
+                  : null)
+      },
       onMapCreated: (con) => controller = con,
       initialCameraPosition: CameraPosition(
         zoom: 16,
