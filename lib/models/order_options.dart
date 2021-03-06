@@ -52,4 +52,11 @@ class OrderOptions extends ChangeNotifier {
     classSelectAll.close();
     super.dispose();
   }
+
+  @override
+  int get hashCode =>
+      hashValues(personOrderBy, personASC, classOrderBy, classASC);
+
+  @override
+  bool operator ==(dynamic o) => o is OrderOptions && o.hashCode == hashCode;
 }

@@ -6,7 +6,6 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:photo_view/photo_view.dart';
 
 import 'user.dart';
 
@@ -22,15 +21,7 @@ abstract class DataObject {
         color = Color(data['Color'] ?? Colors.transparent.value);
 
   @override
-  int get hashCode => hashList([
-        id,
-        ...getMap()
-            .values
-            .map((e) => e is List
-                ? hashList(e)
-                : (e is DocumentReference ? e?.path : e))
-            .toList()
-      ]);
+  int get hashCode => hashList([id, _fullyHash(getMap().values.toList())]);
 
   DocumentReference get ref;
 
@@ -44,6 +35,33 @@ abstract class DataObject {
   Map<String, dynamic> getHumanReadableMap();
 
   Future<String> getSecondLine();
+
+  int _fullyHash(dynamic e) {
+    if (e is Map)
+      return hashValues(
+          _fullyHash(e.keys.toList()), _fullyHash(e.values.toList()));
+    else if (e is DocumentReference)
+      return e?.path?.hashCode;
+    else if (e is List &&
+        e.whereType<Map>().isEmpty &&
+        e.whereType<DocumentReference>().isEmpty)
+      return hashList(e);
+    else if (e is List) return hashList(e.map((it) => _fullyHash(it)));
+
+    return e.hashCode;
+  }
+
+  Future<void> set() async {
+    await ref.set(getMap());
+  }
+
+  Future<void> update({Map<String, dynamic> old}) async {
+    if (old != null)
+      await ref
+          .update(getMap()..removeWhere((key, value) => old[key] == value));
+    else
+      await ref.update(getMap());
+  }
 }
 
 abstract class ParentObject<T extends DataObject> {
@@ -213,19 +231,15 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                           child: Hero(
                             tag: widget.heroTag ??
                                 widget.object.photoRef.fullPath,
-                            child: CachedNetworkImage(
-                              imageUrl: data.data,
-                              imageBuilder: (context, imageProvider) =>
-                                  PhotoView(
-                                imageProvider: imageProvider,
-                                tightMode: true,
-                                enableRotation: true,
-                              ),
-                              progressIndicatorBuilder:
-                                  (context, url, progress) => AspectRatio(
-                                aspectRatio: 1,
-                                child: CircularProgressIndicator(
-                                    value: progress.progress),
+                            child: InteractiveViewer(
+                              child: CachedNetworkImage(
+                                imageUrl: data.data,
+                                progressIndicatorBuilder:
+                                    (context, url, progress) => AspectRatio(
+                                  aspectRatio: 1,
+                                  child: CircularProgressIndicator(
+                                      value: progress.progress),
+                                ),
                               ),
                             ),
                           ),
