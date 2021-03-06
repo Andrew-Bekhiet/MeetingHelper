@@ -42,7 +42,7 @@ import '../ui/search_query.dart';
 import '../ui/users_list.dart';
 import '../utils/globals.dart';
 
-void changeTheme(
+Future<void> changeTheme(
     {int primary,
     int accent,
     Brightness brightness,
@@ -340,7 +340,7 @@ void import(BuildContext context) async {
   }
 }
 
-Future importClass(
+Future<void> importClass(
     SpreadsheetDecoder decoder, Class _class, BuildContext context) async {
   try {
     var batchUpdate = FirebaseFirestore.instance.batch();
@@ -588,7 +588,7 @@ void personTap(Person person, BuildContext context) {
   Navigator.of(context).pushNamed('PersonInfo', arguments: person);
 }
 
-Future processClickedNotification(BuildContext context,
+Future<void> processClickedNotification(BuildContext context,
     [String payload]) async {
   var notificationDetails =
       await FlutterLocalNotificationsPlugin().getNotificationAppLaunchDetails();
@@ -716,7 +716,7 @@ Future processClickedNotification(BuildContext context,
   }
 }
 
-Future processLink(Uri deepLink, BuildContext context) async {
+Future<void> processLink(Uri deepLink, BuildContext context) async {
   try {
     if (deepLink != null &&
         deepLink.pathSegments.isNotEmpty &&
@@ -761,7 +761,7 @@ Future processLink(Uri deepLink, BuildContext context) async {
   }
 }
 
-void sendNotification(BuildContext context, dynamic attachement) async {
+Future<void> sendNotification(BuildContext context, dynamic attachement) async {
   List<User> users = await showDialog(
     context: context,
     builder: (context) {
@@ -1127,7 +1127,7 @@ void showConfessionNotification() async {
         payload: 'Confessions');
 }
 
-Future showErrorDialog(BuildContext context, String message,
+Future<void> showErrorDialog(BuildContext context, String message,
     {String title}) async {
   return await showDialog(
     context: context,
@@ -1147,7 +1147,7 @@ Future showErrorDialog(BuildContext context, String message,
   );
 }
 
-Future showErrorUpdateDataDialog(
+Future<void> showErrorUpdateDataDialog(
     {BuildContext context, bool pushApp = true}) async {
   if (pushApp ||
       Hive.box('Settings').get('DialogLastShown') !=
@@ -1298,7 +1298,7 @@ void showMeetingNotification() async {
         payload: 'Meeting');
 }
 
-Future showMessage(BuildContext context, no.Notification notification) async {
+Future<void> showMessage(BuildContext context, no.Notification notification) async {
   var attachement = await getLinkObject(
     Uri.parse(notification.attachement),
   );
@@ -1365,7 +1365,7 @@ Future showMessage(BuildContext context, no.Notification notification) async {
   );
 }
 
-Future showPendingMessage([BuildContext context]) async {
+Future<void> showPendingMessage([BuildContext context]) async {
   context ??= mainScfld.currentContext;
   var pendingMessage = await FirebaseMessaging.instance.getInitialMessage();
   if (pendingMessage != null) {
