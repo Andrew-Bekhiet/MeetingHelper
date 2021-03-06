@@ -251,16 +251,16 @@ class _ServicesListState extends State<ServicesList>
           floatingActionButton: widget.options.floatingActionButton,
           bottomNavigationBar: BottomAppBar(
             color: Theme.of(context).primaryColor,
-            child: Text((services.data?.length ?? 0).toString() + ' خدمة',
-                textAlign: TextAlign.center,
-                strutStyle:
-                    StrutStyle(height: IconTheme.of(context).size / 7.5),
-                style: Theme.of(context).primaryTextTheme.bodyText1),
             shape: widget.options.hasNotch
                 ? widget.options.doubleActionButton
                     ? const DoubleCircularNotchedButton()
                     : const CircularNotchedRectangle()
                 : null,
+            child: Text((services.data?.length ?? 0).toString() + ' خدمة',
+                textAlign: TextAlign.center,
+                strutStyle:
+                    StrutStyle(height: IconTheme.of(context).size / 7.5),
+                style: Theme.of(context).primaryTextTheme.bodyText1),
           ),
         );
       },

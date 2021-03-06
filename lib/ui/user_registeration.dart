@@ -157,6 +157,7 @@ class _UserRegistrationState extends State<UserRegistration> {
                         mainAxisSize: MainAxisSize.max,
                         children: <Widget>[
                           Flexible(
+                            flex: 3,
                             child: Container(
                               padding: EdgeInsets.symmetric(vertical: 4.0),
                               child: Focus(
@@ -189,7 +190,6 @@ class _UserRegistrationState extends State<UserRegistration> {
                                 ),
                               ),
                             ),
-                            flex: 3,
                           ),
                         ],
                       );
@@ -207,6 +207,7 @@ class _UserRegistrationState extends State<UserRegistration> {
                         mainAxisSize: MainAxisSize.max,
                         children: <Widget>[
                           Flexible(
+                            flex: 3,
                             child: Container(
                               padding: EdgeInsets.symmetric(vertical: 4.0),
                               child: Focus(
@@ -238,7 +239,6 @@ class _UserRegistrationState extends State<UserRegistration> {
                                 ),
                               ),
                             ),
-                            flex: 3,
                           ),
                         ],
                       );
@@ -322,8 +322,8 @@ class _UserRegistrationState extends State<UserRegistration> {
                 },
               ),
               ElevatedButton(
-                child: Text('تفعيل الحساب باللينك'),
                 onPressed: () => _registerUser(_linkController.text),
+                child: Text('تفعيل الحساب باللينك'),
               ),
             ],
           ),

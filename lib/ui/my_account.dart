@@ -81,9 +81,9 @@ class _MyAccountState extends State<MyAccount> {
                                         Navigator.pop(context, true),
                                   ),
                                   TextButton(
-                                    child: Text('تراجع'),
                                     onPressed: () =>
                                         Navigator.pop(context, false),
+                                    child: Text('تراجع'),
                                   )
                                 ],
                               ),
@@ -133,13 +133,13 @@ class _MyAccountState extends State<MyAccount> {
                               content: Text('هل تريد تغير الصورة؟'),
                               actions: [
                                 TextButton(
-                                  child: Text('تغيير'),
                                   onPressed: () => Navigator.pop(context, true),
+                                  child: Text('تغيير'),
                                 ),
                                 TextButton(
-                                  child: Text('تراجع'),
                                   onPressed: () =>
                                       Navigator.pop(context, false),
+                                  child: Text('تراجع'),
                                 )
                               ],
                             ),
@@ -227,11 +227,11 @@ class _MyAccountState extends State<MyAccount> {
                     title: Text('إدارة المستخدمين'),
                   ),
                 if (user.manageAllowedUsers == true)
-                    ListTile(
-                      leading: Icon(
-                          const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
-                      title: Text('إدارة مستخدمين محددين'),
-                    ),
+                  ListTile(
+                    leading: Icon(
+                        const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
+                    title: Text('إدارة مستخدمين محددين'),
+                  ),
                 if (user.superAccess == true)
                   ListTile(
                     leading: Icon(

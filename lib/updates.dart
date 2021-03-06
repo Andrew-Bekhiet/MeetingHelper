@@ -18,7 +18,7 @@ class Update extends StatefulWidget {
 class UpdateHelper {
   static Future<RemoteConfig> setupRemoteConfig() async {
     try {
-      remoteConfig = await RemoteConfig.instance;
+      remoteConfig = RemoteConfig.instance;
       await remoteConfig.setDefaults(<String, dynamic>{
         'LatestVersion': (await PackageInfo.fromPlatform()).version,
         'LoadApp': 'false',
@@ -55,7 +55,6 @@ class Updates {
                 : 'للأسف فإصدار البرنامج الحالي غير مدعوم\nيرجى تحديث البرنامج'),
             actions: <Widget>[
               TextButton(
-                  child: Text(canCancel ? 'نعم' : 'تحديث'),
                   onPressed: () async {
                     if (await canLaunch((await UpdateHelper.setupRemoteConfig())
                         .getString('DownloadLink')
@@ -75,7 +74,8 @@ class Updates {
                         ),
                       );
                     }
-                  }),
+                  },
+                  child: Text(canCancel ? 'نعم' : 'تحديث'),),
             ],
           );
         },
@@ -93,7 +93,6 @@ class Updates {
                 : 'للأسف فإصدار البرنامج الحالي غير مدعوم\nيرجى تحديث البرنامج'),
             actions: <Widget>[
               TextButton(
-                  child: Text(canCancel ? 'نعم' : 'تحديث'),
                   onPressed: () async {
                     Navigator.of(context).pop();
                     if (await canLaunch((await UpdateHelper.setupRemoteConfig())
@@ -114,13 +113,14 @@ class Updates {
                         ),
                       );
                     }
-                  }),
+                  },
+                  child: Text(canCancel ? 'نعم' : 'تحديث'),),
               if (canCancel)
                 TextButton(
-                    child: Text('لا'),
                     onPressed: () {
                       Navigator.of(context).pop();
-                    }),
+                    },
+                    child: Text('لا'),),
             ],
           );
         },

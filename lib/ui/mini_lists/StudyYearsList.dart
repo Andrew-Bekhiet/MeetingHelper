@@ -32,24 +32,25 @@ class _StudyYearsEditListState extends State<StudyYearsEditList> {
                 }),
             Expanded(
               child: RefreshIndicator(
-                  child: ListView.builder(
-                      itemCount: data.data.docs.length,
-                      itemBuilder: (context, i) {
-                        StudyYear current =
-                            StudyYear.fromDoc(data.data.docs[i]);
-                        return current.name.contains(filter)
-                            ? Card(
-                                child: ListTile(
-                                  onTap: () => widget.tap(current),
-                                  title: Text(current.name),
-                                ),
-                              )
-                            : Container();
-                      }),
-                  onRefresh: () {
-                    setState(() {});
-                    return widget.list;
-                  }),
+                onRefresh: () {
+                  setState(() {});
+                  return widget.list;
+                },
+                child: ListView.builder(
+                  itemCount: data.data.docs.length,
+                  itemBuilder: (context, i) {
+                    StudyYear current = StudyYear.fromDoc(data.data.docs[i]);
+                    return current.name.contains(filter)
+                        ? Card(
+                            child: ListTile(
+                              onTap: () => widget.tap(current),
+                              title: Text(current.name),
+                            ),
+                          )
+                        : Container();
+                  },
+                ),
+              ),
             ),
           ]);
         } else {

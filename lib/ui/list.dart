@@ -411,17 +411,17 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                 floatingActionButton: widget.options.floatingActionButton,
                 bottomNavigationBar: BottomAppBar(
                   color: Theme.of(context).primaryColor,
+                  shape: widget.options.hasNotch
+                      ? widget.options.doubleActionButton
+                          ? const DoubleCircularNotchedButton()
+                          : const CircularNotchedRectangle()
+                      : null,
                   child: Text(
                       (docs?.length ?? 0).toString() + ' ' + _getStringType(),
                       textAlign: TextAlign.center,
                       strutStyle:
                           StrutStyle(height: IconTheme.of(context).size / 7.5),
                       style: Theme.of(context).primaryTextTheme.bodyText1),
-                  shape: widget.options.hasNotch
-                      ? widget.options.doubleActionButton
-                          ? const DoubleCircularNotchedButton()
-                          : const CircularNotchedRectangle()
-                      : null,
                 ),
               );
             },

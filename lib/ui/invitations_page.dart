@@ -25,10 +25,10 @@ class _InvitationsPageState extends State<InvitationsPage> {
                 .snapshots()
                 .map((s) => s.docs.map(Invitation.fromDoc).toList()),
             floatingActionButton: FloatingActionButton(
-              child: Icon(Icons.add_link),
               tooltip: 'اضافة دعوة',
               onPressed: () =>
                   Navigator.of(context).pushNamed('EditInvitation'),
+              child: Icon(Icons.add_link),
             ),
             tap: (i) =>
                 Navigator.of(context).pushNamed('InvitationInfo', arguments: i),

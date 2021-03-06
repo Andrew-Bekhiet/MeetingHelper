@@ -120,15 +120,16 @@ class _EditUserState extends State<EditUser> {
                           items: data.data.docs
                               .map(
                                 (item) => DropdownMenuItem(
-                                    child: Text(item.data()['Name']),
-                                    value: item.reference.path),
+                                  value: item.reference.path,
+                                  child: Text(item.data()['Name']),
+                                ),
                               )
                               .toList()
                                 ..insert(
                                   0,
                                   DropdownMenuItem(
-                                    child: Text(''),
                                     value: null,
+                                    child: Text(''),
                                   ),
                                 ),
                           onChanged: (value) {
@@ -161,11 +162,17 @@ class _EditUserState extends State<EditUser> {
                     items: [true, false]
                         .map(
                           (item) => DropdownMenuItem(
-                              child: Text(item ? 'بنين' : 'بنات'), value: item),
+                            value: item,
+                            child: Text(item ? 'بنين' : 'بنات'),
+                          ),
                         )
                         .toList()
-                          ..insert(0,
-                              DropdownMenuItem(child: Text(''), value: null)),
+                          ..insert(
+                              0,
+                              DropdownMenuItem(
+                                value: null,
+                                child: Text(''),
+                              )),
                     onChanged: (value) {
                       setState(() {});
                       widget.user.servingStudyGender = value;
@@ -409,7 +416,6 @@ class _EditUserState extends State<EditUser> {
                       builder: (context, child) => AlertDialog(
                         actions: [
                           TextButton(
-                            child: Text('تم'),
                             onPressed: () {
                               Navigator.pop(
                                   context,
@@ -419,6 +425,7 @@ class _EditUserState extends State<EditUser> {
                                       ?.map((f) => f.uid)
                                       ?.toList());
                             },
+                            child: Text('تم'),
                           )
                         ],
                         content: Container(
@@ -462,7 +469,6 @@ class _EditUserState extends State<EditUser> {
             style: Theme.of(context).textButtonTheme.style.copyWith(
                 foregroundColor:
                     MaterialStateProperty.resolveWith((state) => Colors.red)),
-            child: Text('حذف'),
             onPressed: () async {
               try {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -498,12 +504,13 @@ class _EditUserState extends State<EditUser> {
                 );
               }
             },
+            child: Text('حذف'),
           ),
           TextButton(
-            child: Text('تراجع'),
             onPressed: () {
               Navigator.of(context).pop();
             },
+            child: Text('تراجع'),
           ),
         ],
       ),
@@ -518,7 +525,6 @@ class _EditUserState extends State<EditUser> {
         content: Text('إلغاء تنشيط الحساب لن يقوم بالضرورة بحذف الحساب '),
         actions: <Widget>[
           TextButton(
-            child: Text('متابعة'),
             onPressed: () async {
               try {
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -546,12 +552,13 @@ class _EditUserState extends State<EditUser> {
                 ));
               }
             },
+            child: Text('متابعة'),
           ),
           TextButton(
-            child: Text('تراجع'),
             onPressed: () {
               Navigator.of(navContext).pop();
             },
+            child: Text('تراجع'),
           ),
         ],
       ),
@@ -577,11 +584,12 @@ class _EditUserState extends State<EditUser> {
                 '؟'),
             actions: [
               TextButton(
-                  child: Text('نعم'),
-                  onPressed: () => Navigator.pop(context, true)),
+                onPressed: () => Navigator.pop(context, true),
+                child: Text('نعم'),
+              ),
               TextButton(
-                child: Text('لا'),
                 onPressed: () => Navigator.pop(context, false),
+                child: Text('لا'),
               ),
             ],
           ),

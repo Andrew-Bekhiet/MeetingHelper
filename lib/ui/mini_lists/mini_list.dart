@@ -137,7 +137,6 @@ class _MiniListState extends State<MiniList> {
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.endDocked,
             floatingActionButton: FloatingActionButton(
-              child: Icon(Icons.add),
               tooltip: 'اضافة',
               onPressed: widget.onAdd ??
                   () async {
@@ -161,6 +160,7 @@ class _MiniListState extends State<MiniList> {
                         null)
                       await widget.parent.doc().set({'Name': name.text});
                   },
+              child: Icon(Icons.add),
             ),
           ),
         );

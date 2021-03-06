@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:meetinghelper/models/list_options.dart';
 import 'package:meetinghelper/models/models.dart';
-import 'package:meetinghelper/models/search_filters.dart';
 import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/ui/list.dart';
 import 'package:meetinghelper/ui/lists/Lists.dart';
@@ -46,63 +45,6 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                         .inDays ==
                     0)),
       ],
-      child: Consumer<OrderOptions>(
-        builder: (context, personOrder, _) => TabBarView(
-          key: UniqueKey(),
-          controller: _tabs,
-          children: widget.record is! ServantsHistoryDay
-              ? [
-                  PersonsCheckList(
-                    key: UniqueKey(),
-                    options: CheckListOptions(
-                        day: widget.record,
-                        documentsData: Person.getAllForUser(
-                          orderBy: personOrder.personOrderBy,
-                          descending: !personOrder.personASC,
-                        ).map((s) => s.docs.map(Person.fromDoc).toList()),
-                        type: DayListType.Meeting),
-                  ),
-                  PersonsCheckList(
-                    key: UniqueKey(),
-                    options: CheckListOptions(
-                        day: widget.record,
-                        documentsData: Person.getAllForUser(
-                          orderBy: personOrder.personOrderBy,
-                          descending: !personOrder.personASC,
-                        ).map((s) => s.docs.map(Person.fromDoc).toList()),
-                        type: DayListType.Kodas),
-                  ),
-                  PersonsCheckList(
-                    key: UniqueKey(),
-                    options: CheckListOptions(
-                        day: widget.record,
-                        documentsData: Person.getAllForUser(
-                          orderBy: personOrder.personOrderBy,
-                          descending: !personOrder.personASC,
-                        ).map((s) => s.docs.map(Person.fromDoc).toList()),
-                        type: DayListType.Tanawol),
-                  )
-                ]
-              : [
-                  UsersCheckList(
-                    options: CheckListOptions<User>(
-                        items: [],
-                        day: widget.record,
-                        type: DayListType.Meeting),
-                  ),
-                  UsersCheckList(
-                    options: CheckListOptions<User>(
-                        items: [], day: widget.record, type: DayListType.Kodas),
-                  ),
-                  UsersCheckList(
-                    options: CheckListOptions<User>(
-                        items: [],
-                        day: widget.record,
-                        type: DayListType.Tanawol),
-                  ),
-                ],
-        ),
-      ),
       builder: (context, body) {
         return Scaffold(
           appBar: AppBar(
@@ -160,12 +102,12 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                     context: context,
                     builder: (context) => AlertDialog(actions: [
                       TextButton(
-                        child: Text('نعم'),
                         onPressed: () => Navigator.pop(context, true),
+                        child: Text('نعم'),
                       ),
                       TextButton(
-                        child: Text('لا'),
                         onPressed: () => Navigator.pop(context, false),
+                        child: Text('لا'),
                       )
                     ], content: Text('هل أنت متأكد من الحذف؟')),
                   )) {
@@ -198,6 +140,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                               FeatureDiscovery.completeCurrentStep(context),
                         ),
                         OutlinedButton(
+                          onPressed: () => FeatureDiscovery.dismissAll(context),
                           child: Text(
                             'تخطي',
                             style: TextStyle(
@@ -205,7 +148,6 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                                   Theme.of(context).textTheme.bodyText2.color,
                             ),
                           ),
-                          onPressed: () => FeatureDiscovery.dismissAll(context),
                         ),
                       ],
                     ),
@@ -231,11 +173,12 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                                 },
                               ),
                               GestureDetector(
-                                  child: Text('تقسيم حسب الفصول'),
-                                  onTap: () {
-                                    options.grouped = !options.grouped;
-                                    Navigator.pop(context);
-                                  }),
+                                onTap: () {
+                                  options.grouped = !options.grouped;
+                                  Navigator.pop(context);
+                                },
+                                child: Text('تقسيم حسب الفصول'),
+                              ),
                             ],
                           ),
                           Row(
@@ -248,12 +191,12 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                                 },
                               ),
                               GestureDetector(
-                                  child: Text('إظهار الحاضرين فقط'),
-                                  onTap: () {
-                                    options.showTrueOnly =
-                                        !options.showTrueOnly;
-                                    Navigator.pop(context);
-                                  }),
+                                onTap: () {
+                                  options.showTrueOnly = !options.showTrueOnly;
+                                  Navigator.pop(context);
+                                },
+                                child: Text('إظهار الحاضرين فقط'),
+                              ),
                             ],
                           ),
                           Divider(),
@@ -320,13 +263,13 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                         },
                       ),
                       OutlinedButton(
+                        onPressed: () => FeatureDiscovery.dismissAll(context),
                         child: Text(
                           'تخطي',
                           style: TextStyle(
                             color: Theme.of(context).textTheme.bodyText2.color,
                           ),
                         ),
-                        onPressed: () => FeatureDiscovery.dismissAll(context),
                       ),
                     ],
                   ),
@@ -353,6 +296,69 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
           body: body,
         );
       },
+      child: Consumer<OrderOptions>(
+        builder: (context, personOrder, _) => TabBarView(
+          key: ValueKey(personOrder),
+          controller: _tabs,
+          children: widget.record is! ServantsHistoryDay
+              ? [
+                  PersonsCheckList(
+                    key: ValueKey(OrderOptions(
+                        personOrderBy: personOrder.personOrderBy + '1',
+                        personASC: personOrder.personASC)),
+                    options: CheckListOptions(
+                        day: widget.record,
+                        documentsData: Person.getAllForUser(
+                          orderBy: personOrder.personOrderBy,
+                          descending: !personOrder.personASC,
+                        ).map((s) => s.docs.map(Person.fromDoc).toList()),
+                        type: DayListType.Meeting),
+                  ),
+                  PersonsCheckList(
+                    key: ValueKey(OrderOptions(
+                        personOrderBy: personOrder.personOrderBy + '2',
+                        personASC: personOrder.personASC)),
+                    options: CheckListOptions(
+                        day: widget.record,
+                        documentsData: Person.getAllForUser(
+                          orderBy: personOrder.personOrderBy,
+                          descending: !personOrder.personASC,
+                        ).map((s) => s.docs.map(Person.fromDoc).toList()),
+                        type: DayListType.Kodas),
+                  ),
+                  PersonsCheckList(
+                    key: ValueKey(OrderOptions(
+                        personOrderBy: personOrder.personOrderBy + '3',
+                        personASC: personOrder.personASC)),
+                    options: CheckListOptions(
+                        day: widget.record,
+                        documentsData: Person.getAllForUser(
+                          orderBy: personOrder.personOrderBy,
+                          descending: !personOrder.personASC,
+                        ).map((s) => s.docs.map(Person.fromDoc).toList()),
+                        type: DayListType.Tanawol),
+                  )
+                ]
+              : [
+                  UsersCheckList(
+                    options: CheckListOptions<User>(
+                        items: [],
+                        day: widget.record,
+                        type: DayListType.Meeting),
+                  ),
+                  UsersCheckList(
+                    options: CheckListOptions<User>(
+                        items: [], day: widget.record, type: DayListType.Kodas),
+                  ),
+                  UsersCheckList(
+                    options: CheckListOptions<User>(
+                        items: [],
+                        day: widget.record,
+                        type: DayListType.Tanawol),
+                  ),
+                ],
+        ),
+      ),
     );
   }
 
@@ -389,8 +395,8 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                 ' ثم الضغط على عرض بيانات المخدوم'),
             actions: [
               TextButton(
-                child: Text('تم'),
                 onPressed: () => Navigator.pop(context),
+                child: Text('تم'),
               )
             ],
           ),

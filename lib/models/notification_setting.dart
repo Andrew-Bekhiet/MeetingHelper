@@ -61,9 +61,18 @@ class _NotificationSettingState extends State<NotificationSetting> {
           flex: 25,
           child: DropdownButtonFormField(
             items: [
-              DropdownMenuItem(child: Text('يوم'), value: DateType.day),
-              DropdownMenuItem(child: Text('اسبوع'), value: DateType.week),
-              DropdownMenuItem(child: Text('شهر'), value: DateType.month)
+              DropdownMenuItem(
+                value: DateType.day,
+                child: Text('يوم'),
+              ),
+              DropdownMenuItem(
+                value: DateType.week,
+                child: Text('اسبوع'),
+              ),
+              DropdownMenuItem(
+                value: DateType.month,
+                child: Text('شهر'),
+              )
             ],
             value: _largestPossible(notificationsSettings.get(widget.hiveKey,
                 defaultValue: {'Period': 7}).cast<String, int>()['Period']),

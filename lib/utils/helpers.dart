@@ -1552,12 +1552,6 @@ class MessageIcon extends StatelessWidget {
       child: Material(
         type: MaterialType.transparency,
         child: InkWell(
-          child: CachedNetworkImage(
-            memCacheHeight: 221,
-            imageUrl: url,
-            progressIndicatorBuilder: (context, url, progress) =>
-                CircularProgressIndicator(value: progress.progress),
-          ),
           onTap: () => showDialog(
             context: context,
             builder: (context) => Dialog(
@@ -1575,6 +1569,12 @@ class MessageIcon extends StatelessWidget {
                 ),
               ),
             ),
+          ),
+          child: CachedNetworkImage(
+            memCacheHeight: 221,
+            imageUrl: url,
+            progressIndicatorBuilder: (context, url, progress) =>
+                CircularProgressIndicator(value: progress.progress),
           ),
         ),
       ),

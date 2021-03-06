@@ -18,6 +18,10 @@ class InnerListState extends State<_InnerSchoolsList> {
           }),
       Expanded(
         child: RefreshIndicator(
+            onRefresh: () {
+              setState(() {});
+              return null;
+            },
             child: StreamBuilder<QuerySnapshot>(
               stream: widget.data,
               builder: (context, schools) {
@@ -57,10 +61,7 @@ class InnerListState extends State<_InnerSchoolsList> {
                     });
               },
             ),
-            onRefresh: () {
-              setState(() {});
-              return null;
-            }),
+            ),
       ),
       Row(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -129,6 +130,10 @@ class _SchoolsEditListState extends State<SchoolsEditList> {
                 }),
             Expanded(
               child: RefreshIndicator(
+                  onRefresh: () {
+                    setState(() {});
+                    return widget.list;
+                  },
                   child: ListView.builder(
                       itemCount: data.data.docs.length,
                       itemBuilder: (context, i) {
@@ -142,11 +147,8 @@ class _SchoolsEditListState extends State<SchoolsEditList> {
                                 ),
                               )
                             : Container();
-                      }),
-                  onRefresh: () {
-                    setState(() {});
-                    return widget.list;
-                  }),
+                      },),
+                  ),
             ),
           ]);
         } else {

@@ -124,7 +124,6 @@ class _ClassAnalyticsPageState extends State<ClassAnalyticsPage> {
                   onPressed: () async {
                     var rslt = await showDateRangePicker(
                       builder: (context, dialog) => Theme(
-                        child: dialog,
                         data: Theme.of(context).copyWith(
                           textTheme: Theme.of(context).textTheme.copyWith(
                                 overline: TextStyle(
@@ -132,6 +131,7 @@ class _ClassAnalyticsPageState extends State<ClassAnalyticsPage> {
                                 ),
                               ),
                         ),
+                        child: dialog,
                       ),
                       helpText: null,
                       context: context,
@@ -375,7 +375,6 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
                   onPressed: () async {
                     var rslt = await showDateRangePicker(
                       builder: (context, dialog) => Theme(
-                        child: dialog,
                         data: Theme.of(context).copyWith(
                           textTheme: Theme.of(context).textTheme.copyWith(
                                 overline: TextStyle(
@@ -383,6 +382,7 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
                                 ),
                               ),
                         ),
+                        child: dialog,
                       ),
                       helpText: null,
                       context: context,
@@ -557,7 +557,6 @@ class _GeneralAnalyticsPageState extends State<GeneralAnalyticsPage> {
                       onPressed: () async {
                         var rslt = await showDateRangePicker(
                           builder: (context, dialog) => Theme(
-                            child: dialog,
                             data: Theme.of(context).copyWith(
                               textTheme: Theme.of(context).textTheme.copyWith(
                                     overline: TextStyle(
@@ -565,6 +564,7 @@ class _GeneralAnalyticsPageState extends State<GeneralAnalyticsPage> {
                                     ),
                                   ),
                             ),
+                            child: dialog,
                           ),
                           helpText: null,
                           context: context,

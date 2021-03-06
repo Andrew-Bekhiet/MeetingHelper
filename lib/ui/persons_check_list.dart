@@ -151,17 +151,17 @@ class _InnerListState extends State<_InnerList> {
                 floatingActionButton: listOptions.floatingActionButton,
                 bottomNavigationBar: BottomAppBar(
                   color: Theme.of(context).primaryColor,
+                  shape: listOptions.hasNotch
+                      ? listOptions.doubleActionButton
+                          ? const DoubleCircularNotchedButton()
+                          : const CircularNotchedRectangle()
+                      : null,
                   child: Text(
                       (snapshot?.data?.length ?? 0).toString() + ' شخص حاضر',
                       textAlign: TextAlign.center,
                       strutStyle:
                           StrutStyle(height: IconTheme.of(context).size / 7.5),
                       style: Theme.of(context).primaryTextTheme.bodyText1),
-                  shape: listOptions.hasNotch
-                      ? listOptions.doubleActionButton
-                          ? const DoubleCircularNotchedButton()
-                          : const CircularNotchedRectangle()
-                      : null,
                 ),
               );
             }
@@ -229,17 +229,17 @@ class _InnerListState extends State<_InnerList> {
               floatingActionButton: listOptions.floatingActionButton,
               bottomNavigationBar: BottomAppBar(
                 color: Theme.of(context).primaryColor,
+                shape: listOptions.hasNotch
+                    ? listOptions.doubleActionButton
+                        ? const DoubleCircularNotchedButton()
+                        : const CircularNotchedRectangle()
+                    : null,
                 child: Text(
                     (snapshot?.data?.length ?? 0).toString() + ' شخص حاضر',
                     textAlign: TextAlign.center,
                     strutStyle:
                         StrutStyle(height: IconTheme.of(context).size / 7.5),
                     style: Theme.of(context).primaryTextTheme.bodyText1),
-                shape: listOptions.hasNotch
-                    ? listOptions.doubleActionButton
-                        ? const DoubleCircularNotchedButton()
-                        : const CircularNotchedRectangle()
-                    : null,
               ),
             );
           },
@@ -499,16 +499,16 @@ class _InnerListState extends State<_InnerList> {
             ),
             actions: [
               TextButton(
-                child: Text('عرض بيانات ' + current.name),
                 onPressed: () {
                   Navigator.pop(context);
                   dataObjectTap(current, context);
                 },
+                child: Text('عرض بيانات ' + current.name),
               ),
               if (dayOptions.enabled)
                 TextButton(
-                  child: Text('حفظ'),
                   onPressed: () => Navigator.pop(context, true),
+                  child: Text('حفظ'),
                 ),
             ],
           ),

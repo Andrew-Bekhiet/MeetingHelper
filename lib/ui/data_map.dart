@@ -141,6 +141,8 @@ class _DataMapState extends State<DataMap> {
                                 FeatureDiscovery.completeCurrentStep(context),
                           ),
                           OutlinedButton(
+                            onPressed: () =>
+                                FeatureDiscovery.dismissAll(context),
                             child: Text(
                               'تخطي',
                               style: TextStyle(
@@ -148,8 +150,6 @@ class _DataMapState extends State<DataMap> {
                                     Theme.of(context).textTheme.bodyText2.color,
                               ),
                             ),
-                            onPressed: () =>
-                                FeatureDiscovery.dismissAll(context),
                           ),
                         ],
                       ),

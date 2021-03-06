@@ -39,56 +39,57 @@ class InnerListState extends State<_InnerFathersList> {
           }),
       Expanded(
         child: RefreshIndicator(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: widget.data,
-              builder: (context, fathers) {
-                if (!fathers.hasData) return CircularProgressIndicator();
-                return ListView.builder(
-                    itemCount: fathers.data.docs.length,
-                    itemBuilder: (context, i) {
-                      Father current = Father.fromDoc(fathers.data.docs[i]);
-                      return current.name.contains(filter)
-                          ? Card(
-                              child: ListTile(
-                                onTap: () {
-                                  widget.result
-                                          .map((f) => f.id)
-                                          .contains(current.id)
+          onRefresh: () {
+            setState(() {});
+            return null;
+          },
+          child: StreamBuilder<QuerySnapshot>(
+            stream: widget.data,
+            builder: (context, fathers) {
+              if (!fathers.hasData) return CircularProgressIndicator();
+              return ListView.builder(
+                  itemCount: fathers.data.docs.length,
+                  itemBuilder: (context, i) {
+                    Father current = Father.fromDoc(fathers.data.docs[i]);
+                    return current.name.contains(filter)
+                        ? Card(
+                            child: ListTile(
+                              onTap: () {
+                                widget.result
+                                        .map((f) => f.id)
+                                        .contains(current.id)
+                                    ? widget.result
+                                        .removeWhere((x) => x.id == current.id)
+                                    : widget.result.add(current);
+                                setState(() {});
+                              },
+                              title: Text(current.name),
+                              subtitle: FutureBuilder(
+                                  future: current.getChurchName(),
+                                  builder: (con, name) {
+                                    return name.hasData
+                                        ? Text(name.data)
+                                        : LinearProgressIndicator();
+                                  }),
+                              leading: Checkbox(
+                                value: widget.result
+                                    .map((f) => f.id)
+                                    .contains(current.id),
+                                onChanged: (x) {
+                                  !x
                                       ? widget.result.removeWhere(
                                           (x) => x.id == current.id)
                                       : widget.result.add(current);
                                   setState(() {});
                                 },
-                                title: Text(current.name),
-                                subtitle: FutureBuilder(
-                                    future: current.getChurchName(),
-                                    builder: (con, name) {
-                                      return name.hasData
-                                          ? Text(name.data)
-                                          : LinearProgressIndicator();
-                                    }),
-                                leading: Checkbox(
-                                  value: widget.result
-                                      .map((f) => f.id)
-                                      .contains(current.id),
-                                  onChanged: (x) {
-                                    !x
-                                        ? widget.result.removeWhere(
-                                            (x) => x.id == current.id)
-                                        : widget.result.add(current);
-                                    setState(() {});
-                                  },
-                                ),
                               ),
-                            )
-                          : Container();
-                    });
-              },
-            ),
-            onRefresh: () {
-              setState(() {});
-              return null;
-            }),
+                            ),
+                          )
+                        : Container();
+                  });
+            },
+          ),
+        ),
       ),
       Row(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -116,42 +117,46 @@ class _FathersEditListState extends State<FathersEditList> {
       future: widget.list,
       builder: (con, data) {
         if (data.hasData) {
-          return Column(children: <Widget>[
-            TextField(
-                decoration: InputDecoration(hintText: 'بحث...'),
-                onChanged: (text) {
-                  setState(() {
-                    filter = text;
-                  });
-                }),
-            Expanded(
-              child: RefreshIndicator(
-                  child: ListView.builder(
-                      itemCount: data.data.docs.length,
-                      itemBuilder: (context, i) {
-                        Father current = Father.fromDoc(data.data.docs[i]);
-                        return current.name.contains(filter)
-                            ? Card(
-                                child: ListTile(
-                                  onTap: () => widget.tap(current),
-                                  title: Text(current.name),
-                                  subtitle: FutureBuilder(
-                                      future: current.getChurchName(),
-                                      builder: (con, name) {
-                                        return name.hasData
-                                            ? Text(name.data)
-                                            : LinearProgressIndicator();
-                                      }),
-                                ),
-                              )
-                            : Container();
-                      }),
+          return Column(
+            children: <Widget>[
+              TextField(
+                  decoration: InputDecoration(hintText: 'بحث...'),
+                  onChanged: (text) {
+                    setState(() {
+                      filter = text;
+                    });
+                  }),
+              Expanded(
+                child: RefreshIndicator(
                   onRefresh: () {
                     setState(() {});
                     return widget.list;
-                  }),
-            ),
-          ]);
+                  },
+                  child: ListView.builder(
+                    itemCount: data.data.docs.length,
+                    itemBuilder: (context, i) {
+                      Father current = Father.fromDoc(data.data.docs[i]);
+                      return current.name.contains(filter)
+                          ? Card(
+                              child: ListTile(
+                                onTap: () => widget.tap(current),
+                                title: Text(current.name),
+                                subtitle: FutureBuilder(
+                                    future: current.getChurchName(),
+                                    builder: (con, name) {
+                                      return name.hasData
+                                          ? Text(name.data)
+                                          : LinearProgressIndicator();
+                                    }),
+                              ),
+                            )
+                          : Container();
+                    },
+                  ),
+                ),
+              ),
+            ],
+          );
         } else {
           return const Center(child: CircularProgressIndicator());
         }

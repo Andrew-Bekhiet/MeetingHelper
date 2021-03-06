@@ -171,6 +171,26 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                   var photo = Material(
                     type: MaterialType.transparency,
                     child: InkWell(
+                      onTap: () => showDialog(
+                        context: context,
+                        builder: (context) => Dialog(
+                          child: Hero(
+                            tag: widget.heroTag ??
+                                widget.object.photoRef.fullPath,
+                            child: InteractiveViewer(
+                              child: CachedNetworkImage(
+                                imageUrl: data.data,
+                                progressIndicatorBuilder:
+                                    (context, url, progress) => AspectRatio(
+                                  aspectRatio: 1,
+                                  child: CircularProgressIndicator(
+                                      value: progress.progress),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                       child: !(widget.object is User)
                           ? CachedNetworkImage(
                               memCacheHeight:
@@ -203,6 +223,7 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                                         ),
                                       ),
                                       Align(
+                                        alignment: Alignment.bottomLeft,
                                         child: Container(
                                           height: 15,
                                           width: 15,
@@ -214,7 +235,6 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                                             color: Colors.greenAccent,
                                           ),
                                         ),
-                                        alignment: Alignment.bottomLeft,
                                       ),
                                     ],
                                   );
@@ -225,26 +245,6 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                                   );
                               },
                             ),
-                      onTap: () => showDialog(
-                        context: context,
-                        builder: (context) => Dialog(
-                          child: Hero(
-                            tag: widget.heroTag ??
-                                widget.object.photoRef.fullPath,
-                            child: InteractiveViewer(
-                              child: CachedNetworkImage(
-                                imageUrl: data.data,
-                                progressIndicatorBuilder:
-                                    (context, url, progress) => AspectRatio(
-                                  aspectRatio: 1,
-                                  child: CircularProgressIndicator(
-                                      value: progress.progress),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
                     ),
                   );
                   return widget.wrapPhotoInCircle
@@ -252,8 +252,8 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                           child: photo,
                         )
                       : ClipRRect(
-                          child: photo,
                           borderRadius: BorderRadius.circular(15),
+                          child: photo,
                         );
                 }
               },

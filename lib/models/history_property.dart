@@ -200,13 +200,13 @@ class EditHistoryProperty extends StatelessWidget {
                         FeatureDiscovery.completeCurrentStep(context),
                   ),
                   OutlinedButton(
+                    onPressed: () => FeatureDiscovery.dismissAll(context),
                     child: Text(
                       'تخطي',
                       style: TextStyle(
                         color: Theme.of(context).textTheme.bodyText2.color,
                       ),
                     ),
-                    onPressed: () => FeatureDiscovery.dismissAll(context),
                   ),
                 ],
               ),

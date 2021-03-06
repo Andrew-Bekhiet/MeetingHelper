@@ -69,6 +69,10 @@ class _ListState extends State<UsersCheckList>
               return const Center(child: CircularProgressIndicator());
             return Scaffold(
               body: RefreshIndicator(
+                onRefresh: () {
+                  dataCache.invalidate();
+                  return dataCache.fetch(User.getUsersForEdit);
+                },
                 child: StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
                       .collection('StudyYears')
@@ -304,10 +308,6 @@ class _ListState extends State<UsersCheckList>
                     );
                   },
                 ),
-                onRefresh: () {
-                  dataCache.invalidate();
-                  return dataCache.fetch(User.getUsersForEdit);
-                },
               ),
               extendBody: true,
               floatingActionButtonLocation: listOptions.hasNotch
@@ -316,17 +316,17 @@ class _ListState extends State<UsersCheckList>
               floatingActionButton: listOptions.floatingActionButton,
               bottomNavigationBar: BottomAppBar(
                 color: Theme.of(context).primaryColor,
+                shape: listOptions.hasNotch
+                    ? listOptions.doubleActionButton
+                        ? const DoubleCircularNotchedButton()
+                        : const CircularNotchedRectangle()
+                    : null,
                 child: Text(
                     (snapshot2?.data?.length ?? 0).toString() + ' شخص حاضر',
                     textAlign: TextAlign.center,
                     strutStyle:
                         StrutStyle(height: IconTheme.of(context).size / 7.5),
                     style: Theme.of(context).primaryTextTheme.bodyText1),
-                shape: listOptions.hasNotch
-                    ? listOptions.doubleActionButton
-                        ? const DoubleCircularNotchedButton()
-                        : const CircularNotchedRectangle()
-                    : null,
               ),
             );
           },
@@ -578,16 +578,16 @@ class _ListState extends State<UsersCheckList>
             ),
             actions: [
               TextButton(
-                child: Text('عرض بيانات ' + current.name),
                 onPressed: () {
                   Navigator.pop(context);
                   dataObjectTap(current, context);
                 },
+                child: Text('عرض بيانات ' + current.name),
               ),
               if (dayOptions.enabled)
                 TextButton(
-                  child: Text('حفظ'),
                   onPressed: () => Navigator.pop(context, true),
+                  child: Text('حفظ'),
                 ),
             ],
           ),

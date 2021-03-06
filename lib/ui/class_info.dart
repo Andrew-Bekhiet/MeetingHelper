@@ -95,6 +95,9 @@ class ClassInfo extends StatelessWidget {
                                             .completeCurrentStep(context),
                                       ),
                                       OutlinedButton(
+                                        onPressed: () =>
+                                            FeatureDiscovery.dismissAll(
+                                                context),
                                         child: Text(
                                           'تخطي',
                                           style: TextStyle(
@@ -104,9 +107,6 @@ class ClassInfo extends StatelessWidget {
                                                 .color,
                                           ),
                                         ),
-                                        onPressed: () =>
-                                            FeatureDiscovery.dismissAll(
-                                                context),
                                       ),
                                     ],
                                   ),
@@ -172,6 +172,8 @@ class ClassInfo extends StatelessWidget {
                                         context),
                               ),
                               OutlinedButton(
+                                onPressed: () =>
+                                    FeatureDiscovery.dismissAll(context),
                                 child: Text(
                                   'تخطي',
                                   style: TextStyle(
@@ -181,8 +183,6 @@ class ClassInfo extends StatelessWidget {
                                         .color,
                                   ),
                                 ),
-                                onPressed: () =>
-                                    FeatureDiscovery.dismissAll(context),
                               ),
                             ],
                           ),
@@ -234,6 +234,8 @@ class ClassInfo extends StatelessWidget {
                                   FeatureDiscovery.completeCurrentStep(context),
                             ),
                             OutlinedButton(
+                              onPressed: () =>
+                                  FeatureDiscovery.dismissAll(context),
                               child: Text(
                                 'تخطي',
                                 style: TextStyle(
@@ -243,8 +245,6 @@ class ClassInfo extends StatelessWidget {
                                       .color,
                                 ),
                               ),
-                              onPressed: () =>
-                                  FeatureDiscovery.dismissAll(context),
                             ),
                           ],
                         ),
@@ -334,6 +334,8 @@ class ClassInfo extends StatelessWidget {
                                   },
                                 ),
                                 OutlinedButton(
+                                  onPressed: () =>
+                                      FeatureDiscovery.dismissAll(context),
                                   child: Text(
                                     'تخطي',
                                     style: TextStyle(
@@ -343,8 +345,6 @@ class ClassInfo extends StatelessWidget {
                                           .color,
                                     ),
                                   ),
-                                  onPressed: () =>
-                                      FeatureDiscovery.dismissAll(context),
                                 ),
                               ],
                             ),
@@ -382,6 +382,7 @@ class ClassInfo extends StatelessWidget {
                       options: ListOptions<Person>(
                         floatingActionButton: permission
                             ? FloatingActionButton(
+                                onPressed: () => addTap(context),
                                 child: DescribedFeatureOverlay(
                                   onBackgroundTap: () async {
                                     await FeatureDiscovery.completeCurrentStep(
@@ -403,6 +404,8 @@ class ClassInfo extends StatelessWidget {
                                       Text(
                                           'يمكنك اضافة شخص داخل الفصل بسرعة وسهولة من هنا'),
                                       OutlinedButton(
+                                        onPressed: () => FeatureDiscovery
+                                            .completeCurrentStep(context),
                                         child: Text(
                                           'تخطي',
                                           style: TextStyle(
@@ -412,8 +415,6 @@ class ClassInfo extends StatelessWidget {
                                                 .color,
                                           ),
                                         ),
-                                        onPressed: () => FeatureDiscovery
-                                            .completeCurrentStep(context),
                                       ),
                                     ],
                                   ),
@@ -426,7 +427,7 @@ class ClassInfo extends StatelessWidget {
                                       .color,
                                   child: Icon(Icons.person_add),
                                 ),
-                                onPressed: () => addTap(context))
+                              )
                             : null,
                         tap: (p) => personTap(p, context),
                         documentsData: class$

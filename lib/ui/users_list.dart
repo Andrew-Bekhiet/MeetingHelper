@@ -34,6 +34,10 @@ class _UsersEditListState extends State<UsersEditList> {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
+      onRefresh: () {
+        dataCache.invalidate();
+        return dataCache.fetch(User.getUsersForEdit);
+      },
       child: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('StudyYears')
@@ -141,10 +145,6 @@ class _UsersEditListState extends State<UsersEditList> {
           );
         },
       ),
-      onRefresh: () {
-        dataCache.invalidate();
-        return dataCache.fetch(User.getUsersForEdit);
-      },
     );
   }
 }

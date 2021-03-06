@@ -21,7 +21,6 @@ import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:tuple/tuple.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../main.dart';
 import '../models/list_options.dart';
@@ -187,13 +186,13 @@ class _RootState extends State<Root>
                         },
                       ),
                       OutlinedButton(
+                        onPressed: () => FeatureDiscovery.dismissAll(context),
                         child: Text(
                           'تخطي',
                           style: TextStyle(
                             color: Theme.of(context).textTheme.bodyText2.color,
                           ),
                         ),
-                        onPressed: () => FeatureDiscovery.dismissAll(context),
                       ),
                     ],
                   ),
@@ -244,13 +243,13 @@ class _RootState extends State<Root>
                             FeatureDiscovery.completeCurrentStep(context),
                       ),
                       OutlinedButton(
+                        onPressed: () => FeatureDiscovery.dismissAll(context),
                         child: Text(
                           'تخطي',
                           style: TextStyle(
                             color: Theme.of(context).textTheme.bodyText2.color,
                           ),
                         ),
-                        onPressed: () => FeatureDiscovery.dismissAll(context),
                       ),
                     ],
                   ),
@@ -283,13 +282,13 @@ class _RootState extends State<Root>
                             FeatureDiscovery.completeCurrentStep(context),
                       ),
                       OutlinedButton(
+                        onPressed: () => FeatureDiscovery.dismissAll(context),
                         child: Text(
                           'تخطي',
                           style: TextStyle(
                             color: Theme.of(context).textTheme.bodyText2.color,
                           ),
                         ),
-                        onPressed: () => FeatureDiscovery.dismissAll(context),
                       ),
                     ],
                   ),
@@ -400,7 +399,6 @@ class _RootState extends State<Root>
             children: <Widget>[
               Consumer<User>(
                 builder: (context, user, _) => DrawerHeader(
-                  child: Container(),
                   decoration: BoxDecoration(
                     image: DecorationImage(
                       image: AssetImage('assets/Logo.png'),
@@ -410,6 +408,7 @@ class _RootState extends State<Root>
                       stops: [0, 1],
                     ),
                   ),
+                  child: Container(),
                 ),
               ),
               ListTile(
@@ -441,6 +440,8 @@ class _RootState extends State<Root>
                             },
                           ),
                           OutlinedButton(
+                            onPressed: () =>
+                                FeatureDiscovery.dismissAll(context),
                             child: Text(
                               'تخطي',
                               style: TextStyle(
@@ -448,8 +449,6 @@ class _RootState extends State<Root>
                                     Theme.of(context).textTheme.bodyText2.color,
                               ),
                             ),
-                            onPressed: () =>
-                                FeatureDiscovery.dismissAll(context),
                           ),
                         ],
                       ),
@@ -501,6 +500,8 @@ class _RootState extends State<Root>
                                   FeatureDiscovery.completeCurrentStep(context),
                             ),
                             OutlinedButton(
+                              onPressed: () =>
+                                  FeatureDiscovery.dismissAll(context),
                               child: Text(
                                 'تخطي',
                                 style: TextStyle(
@@ -510,8 +511,6 @@ class _RootState extends State<Root>
                                       .color,
                                 ),
                               ),
-                              onPressed: () =>
-                                  FeatureDiscovery.dismissAll(context),
                             ),
                           ],
                         ),
@@ -570,13 +569,13 @@ class _RootState extends State<Root>
                             FeatureDiscovery.completeCurrentStep(context),
                       ),
                       OutlinedButton(
+                        onPressed: () => FeatureDiscovery.dismissAll(context),
                         child: Text(
                           'تخطي',
                           style: TextStyle(
                             color: Theme.of(context).textTheme.bodyText2.color,
                           ),
                         ),
-                        onPressed: () => FeatureDiscovery.dismissAll(context),
                       ),
                     ],
                   ),
@@ -645,6 +644,8 @@ class _RootState extends State<Root>
                                         context),
                               ),
                               OutlinedButton(
+                                onPressed: () =>
+                                    FeatureDiscovery.dismissAll(context),
                                 child: Text(
                                   'تخطي',
                                   style: TextStyle(
@@ -654,8 +655,6 @@ class _RootState extends State<Root>
                                         .color,
                                   ),
                                 ),
-                                onPressed: () =>
-                                    FeatureDiscovery.dismissAll(context),
                               ),
                             ],
                           ),
@@ -724,13 +723,13 @@ class _RootState extends State<Root>
                         },
                       ),
                       OutlinedButton(
+                        onPressed: () => FeatureDiscovery.dismissAll(context),
                         child: Text(
                           'تخطي',
                           style: TextStyle(
                             color: Theme.of(context).textTheme.bodyText2.color,
                           ),
                         ),
-                        onPressed: () => FeatureDiscovery.dismissAll(context),
                       ),
                     ],
                   ),
@@ -775,6 +774,8 @@ class _RootState extends State<Root>
                                         context),
                               ),
                               OutlinedButton(
+                                onPressed: () =>
+                                    FeatureDiscovery.dismissAll(context),
                                 child: Text(
                                   'تخطي',
                                   style: TextStyle(
@@ -784,8 +785,6 @@ class _RootState extends State<Root>
                                         .color,
                                   ),
                                 ),
-                                onPressed: () =>
-                                    FeatureDiscovery.dismissAll(context),
                               ),
                             ],
                           ),
@@ -830,13 +829,13 @@ class _RootState extends State<Root>
                         },
                       ),
                       OutlinedButton(
+                        onPressed: () => FeatureDiscovery.dismissAll(context),
                         child: Text(
                           'تخطي',
                           style: TextStyle(
                             color: Theme.of(context).textTheme.bodyText2.color,
                           ),
                         ),
-                        onPressed: () => FeatureDiscovery.dismissAll(context),
                       ),
                     ],
                   ),
@@ -878,13 +877,13 @@ class _RootState extends State<Root>
                         },
                       ),
                       OutlinedButton(
+                        onPressed: () => FeatureDiscovery.dismissAll(context),
                         child: Text(
                           'تخطي',
                           style: TextStyle(
                             color: Theme.of(context).textTheme.bodyText2.color,
                           ),
                         ),
-                        onPressed: () => FeatureDiscovery.dismissAll(context),
                       ),
                     ],
                   ),
@@ -924,13 +923,13 @@ class _RootState extends State<Root>
                         },
                       ),
                       OutlinedButton(
+                        onPressed: () => FeatureDiscovery.dismissAll(context),
                         child: Text(
                           'تخطي',
                           style: TextStyle(
                             color: Theme.of(context).textTheme.bodyText2.color,
                           ),
                         ),
-                        onPressed: () => FeatureDiscovery.dismissAll(context),
                       ),
                     ],
                   ),
@@ -966,14 +965,14 @@ class _RootState extends State<Root>
                       Text(
                           'يمكنك ضبط بعض الاعدادات بالبرنامج مثل مظهر البرنامج ومظهر البيانات وبعض البيانات الاضافية مثل الوظائف والأباء الكهنة'),
                       OutlinedButton(
+                        onPressed: () =>
+                            FeatureDiscovery.completeCurrentStep(context),
                         child: Text(
                           'تخطي',
                           style: TextStyle(
                             color: Theme.of(context).textTheme.bodyText2.color,
                           ),
                         ),
-                        onPressed: () =>
-                            FeatureDiscovery.completeCurrentStep(context),
                       ),
                     ],
                   ),
@@ -1280,8 +1279,8 @@ class _RootState extends State<Root>
               .push(
             MaterialPageRoute(
               builder: (context) => WillPopScope(
-                child: AuthScreen(),
                 onWillPop: () => Future.delayed(Duration.zero, () => false),
+                child: AuthScreen(),
               ),
             ),
           )
@@ -1330,28 +1329,28 @@ class _RootState extends State<Root>
         !await BatteryOptimization.isIgnoringBatteryOptimizations() &&
         Hive.box('Settings').get('ShowBatteryDialog', defaultValue: true)) {
       await showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-                content: Text(
-                    'برجاء الغاء تفعيل حفظ الطاقة للبرنامج لإظهار الاشعارات في الخلفية'),
-                actions: [
-                  TextButton(
-                    child: Text('الغاء حفظ الطاقة للبرنامج'),
-                    onPressed: () async {
-                      Navigator.pop(context);
-                      await BatteryOptimization
-                          .openBatteryOptimizationSettings();
-                    },
-                  ),
-                  TextButton(
-                      child: Text('عدم الاظهار مجددًا'),
-                      onPressed: () async {
-                        await Hive.box('Settings')
-                            .put('ShowBatteryDialog', false);
-                        Navigator.pop(context);
-                      }),
-                ],
-              ));
+        context: context,
+        builder: (context) => AlertDialog(
+          content: Text(
+              'برجاء الغاء تفعيل حفظ الطاقة للبرنامج لإظهار الاشعارات في الخلفية'),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await BatteryOptimization.openBatteryOptimizationSettings();
+              },
+              child: Text('الغاء حفظ الطاقة للبرنامج'),
+            ),
+            TextButton(
+              onPressed: () async {
+                await Hive.box('Settings').put('ShowBatteryDialog', false);
+                Navigator.pop(context);
+              },
+              child: Text('عدم الاظهار مجددًا'),
+            ),
+          ],
+        ),
+      );
     }
   }
 

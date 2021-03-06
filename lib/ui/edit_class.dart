@@ -182,6 +182,7 @@ class _EditClassState extends State<EditClass> {
                     ),
                   ),
                   Focus(
+                    focusNode: focuses[1],
                     child: FutureBuilder<QuerySnapshot>(
                       future: StudyYear.getAllForUser(),
                       builder: (conext, data) {
@@ -200,15 +201,16 @@ class _EditClassState extends State<EditClass> {
                               items: data.data.docs
                                   .map(
                                     (item) => DropdownMenuItem(
-                                        child: Text(item.data()['Name']),
-                                        value: item.reference.path),
+                                      value: item.reference.path,
+                                      child: Text(item.data()['Name']),
+                                    ),
                                   )
                                   .toList()
                                     ..insert(
                                       0,
                                       DropdownMenuItem(
-                                        child: Text(''),
                                         value: null,
+                                        child: Text(''),
                                       ),
                                     ),
                               onChanged: (value) {
@@ -231,9 +233,9 @@ class _EditClassState extends State<EditClass> {
                         }
                       },
                     ),
-                    focusNode: focuses[1],
                   ),
                   Focus(
+                    focusNode: focuses[2],
                     child: DropdownButtonFormField(
                       validator: (v) {
                         if (v == null) {
@@ -246,12 +248,13 @@ class _EditClassState extends State<EditClass> {
                       items: [null, true, false]
                           .map(
                             (item) => DropdownMenuItem(
-                                child: Text(item == null
-                                    ? ''
-                                    : item
-                                        ? 'بنين'
-                                        : 'بنات'),
-                                value: item),
+                              value: item,
+                              child: Text(item == null
+                                  ? ''
+                                  : item
+                                      ? 'بنين'
+                                      : 'بنات'),
+                            ),
                           )
                           .toList(),
                       onChanged: (value) {
@@ -265,7 +268,6 @@ class _EditClassState extends State<EditClass> {
                                 color: Theme.of(context).primaryColor),
                           )),
                     ),
-                    focusNode: focuses[2],
                   ),
                   ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
@@ -332,42 +334,43 @@ class _EditClassState extends State<EditClass> {
 
   void delete() {
     showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-              title: Text(classO.name),
-              content:
-                  Text('هل أنت متأكد من حذف ${classO.name} وكل ما به أشخاص؟'),
-              actions: <Widget>[
-                TextButton(
-                    child: Text('نعم'),
-                    onPressed: () async {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content:
-                              Text('جار حذف الفصل وما بداخلها من بيانات...'),
-                          duration: Duration(minutes: 20),
-                        ),
-                      );
-                      if (classO.hasPhoto) {
-                        await FirebaseStorage.instance
-                            .ref()
-                            .child('ClassesPhotos/${classO.id}')
-                            .delete();
-                      }
-                      await FirebaseFirestore.instance
-                          .collection('Classes')
-                          .doc(classO.id)
-                          .delete();
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pop('deleted');
-                    }),
-                TextButton(
-                    child: Text('تراجع'),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    }),
-              ],
-            ));
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(classO.name),
+        content: Text('هل أنت متأكد من حذف ${classO.name} وكل ما به أشخاص؟'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () async {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('جار حذف الفصل وما بداخلها من بيانات...'),
+                  duration: Duration(minutes: 20),
+                ),
+              );
+              if (classO.hasPhoto) {
+                await FirebaseStorage.instance
+                    .ref()
+                    .child('ClassesPhotos/${classO.id}')
+                    .delete();
+              }
+              await FirebaseFirestore.instance
+                  .collection('Classes')
+                  .doc(classO.id)
+                  .delete();
+              Navigator.of(context).pop();
+              Navigator.of(context).pop('deleted');
+            },
+            child: Text('نعم'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text('تراجع'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -476,7 +479,6 @@ class _EditClassState extends State<EditClass> {
                       builder: (context, child) => AlertDialog(
                         actions: [
                           TextButton(
-                            child: Text('تم'),
                             onPressed: () {
                               Navigator.pop(
                                   context,
@@ -486,6 +488,7 @@ class _EditClassState extends State<EditClass> {
                                       ?.map((f) => f.uid)
                                       ?.toList());
                             },
+                            child: Text('تم'),
                           )
                         ],
                         content: Container(

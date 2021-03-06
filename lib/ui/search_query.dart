@@ -292,16 +292,16 @@ class _SearchQueryState extends State<SearchQuery> {
                   items: data.data.docs
                       .map(
                         (item) => DropdownMenuItem(
-                          child: Text(item.data()['Name']),
                           value: item.reference.path,
+                          child: Text(item.data()['Name']),
                         ),
                       )
                       .toList()
                         ..insert(
                           0,
                           DropdownMenuItem(
-                            child: Text(''),
                             value: null,
+                            child: Text(''),
                           ),
                         ),
                   onChanged: (value) async {
@@ -330,16 +330,16 @@ class _SearchQueryState extends State<SearchQuery> {
                   items: data.data.docs
                       .map(
                         (item) => DropdownMenuItem(
-                          child: Text(item.data()['Name']),
                           value: item.reference.path,
+                          child: Text(item.data()['Name']),
                         ),
                       )
                       .toList()
                         ..insert(
                           0,
                           DropdownMenuItem(
-                            child: Text(''),
                             value: null,
+                            child: Text(''),
                           ),
                         ),
                   onChanged: (value) async {
@@ -368,16 +368,16 @@ class _SearchQueryState extends State<SearchQuery> {
                   items: data.data.docs
                       .map(
                         (item) => DropdownMenuItem(
-                          child: Text(item.data()['Name']),
                           value: item.reference.path,
+                          child: Text(item.data()['Name']),
                         ),
                       )
                       .toList()
                         ..insert(
                           0,
                           DropdownMenuItem(
-                            child: Text(''),
                             value: null,
+                            child: Text(''),
                           ),
                         ),
                   onChanged: (value) async {
@@ -406,16 +406,16 @@ class _SearchQueryState extends State<SearchQuery> {
                   items: data.data.docs
                       .map(
                         (item) => DropdownMenuItem(
-                          child: Text(item.data()['Name']),
                           value: item.reference.path,
+                          child: Text(item.data()['Name']),
                         ),
                       )
                       .toList()
                         ..insert(
                           0,
                           DropdownMenuItem(
-                            child: Text(''),
                             value: null,
+                            child: Text(''),
                           ),
                         ),
                   onChanged: (value) async {
@@ -622,16 +622,16 @@ class _SearchQueryState extends State<SearchQuery> {
                   items: data.data.docs
                       .map(
                         (item) => DropdownMenuItem(
-                          child: Text(item.data()['Name']),
                           value: item.reference.path,
+                          child: Text(item.data()['Name']),
                         ),
                       )
                       .toList()
                         ..insert(
                           0,
                           DropdownMenuItem(
-                            child: Text(''),
                             value: null,
+                            child: Text(''),
                           ),
                         ),
                   onChanged: (value) async {
@@ -716,8 +716,14 @@ class _SearchQueryState extends State<SearchQuery> {
                     isExpanded: true,
                     value: descending,
                     items: [
-                      DropdownMenuItem(child: Text('تصاعدي'), value: false),
-                      DropdownMenuItem(child: Text('تنازلي'), value: true)
+                      DropdownMenuItem(
+                        value: false,
+                        child: Text('تصاعدي'),
+                      ),
+                      DropdownMenuItem(
+                        value: true,
+                        child: Text('تنازلي'),
+                      ),
                     ],
                     onChanged: (value) {
                       setState(() {
@@ -1161,12 +1167,18 @@ class _SearchQueryState extends State<SearchQuery> {
     if (parentIndex == 0) {
       return Class.getHumanReadableMap2()
           .entries
-          .map((e) => DropdownMenuItem(child: Text(e.value), value: e.key))
+          .map((e) => DropdownMenuItem(
+                value: e.key,
+                child: Text(e.value),
+              ))
           .toList();
     } else if (parentIndex == 1) {
       return Person.getHumanReadableMap2()
           .entries
-          .map((e) => DropdownMenuItem(child: Text(e.value), value: e.key))
+          .map((e) => DropdownMenuItem(
+                value: e.key,
+                child: Text(e.value),
+              ))
           .toList();
     }
     return null;

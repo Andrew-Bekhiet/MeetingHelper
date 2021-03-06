@@ -22,8 +22,9 @@ class Loading extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Expanded(
-                child: Image.asset('assets/Logo.png', fit: BoxFit.scaleDown),
-                flex: 16),
+              flex: 16,
+              child: Image.asset('assets/Logo.png', fit: BoxFit.scaleDown),
+            ),
             Expanded(
               flex: 3,
               child: Column(
@@ -50,6 +51,7 @@ class Loading extends StatelessWidget {
             ),
             if (!kIsWeb && (showVersionInfo || error))
               Align(
+                alignment: Alignment.bottomRight,
                 child: FutureBuilder<PackageInfo>(
                   future: PackageInfo.fromPlatform(),
                   builder: (context, data) => data.hasData
@@ -57,7 +59,6 @@ class Loading extends StatelessWidget {
                           style: Theme.of(context).textTheme.caption)
                       : Text(''),
                 ),
-                alignment: Alignment.bottomRight,
               ),
           ],
         ),

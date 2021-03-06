@@ -103,34 +103,34 @@ class _SchoolsPageState extends State<SchoolsPage> {
             TextButton(
                 onPressed: () async {
                   await showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                            title: Text(school.name),
-                            content:
-                                Text('هل أنت متأكد من حذف ${school.name}؟'),
-                            actions: <Widget>[
-                              TextButton(
-                                  onPressed: () async {
-                                    await FirebaseFirestore.instance
-                                        .collection('Schools')
-                                        .doc(school.id)
-                                        .delete();
-                                    Navigator.of(context).pop();
-                                    Navigator.of(context).pop();
-                                    setState(() {
-                                      editMode = !editMode;
-                                    });
-                                  },
-                                  child: Text('نعم'),
-                                  ),
-                              TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: Text('تراجع'),
-                                  ),
-                            ],
-                          ),);
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text(school.name),
+                      content: Text('هل أنت متأكد من حذف ${school.name}؟'),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () async {
+                            await FirebaseFirestore.instance
+                                .collection('Schools')
+                                .doc(school.id)
+                                .delete();
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                            setState(() {
+                              editMode = !editMode;
+                            });
+                          },
+                          child: Text('نعم'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text('تراجع'),
+                        ),
+                      ],
+                    ),
+                  );
                 },
                 child: Text('حذف'))
         ],
@@ -219,34 +219,34 @@ class _ChurchesPageState extends State<ChurchesPage> {
             TextButton(
                 onPressed: () async {
                   await showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                            title: Text(church.name),
-                            content:
-                                Text('هل أنت متأكد من حذف ${church.name}؟'),
-                            actions: <Widget>[
-                              TextButton(
-                                  onPressed: () async {
-                                    await FirebaseFirestore.instance
-                                        .collection('Churches')
-                                        .doc(church.id)
-                                        .delete();
-                                    Navigator.of(context).pop();
-                                    Navigator.of(context).pop();
-                                    setState(() {
-                                      editMode = !editMode;
-                                    });
-                                  },
-                                  child: Text('نعم'),
-                                  ),
-                              TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: Text('تراجع'),
-                                  ),
-                            ],
-                          ),);
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text(church.name),
+                      content: Text('هل أنت متأكد من حذف ${church.name}؟'),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () async {
+                            await FirebaseFirestore.instance
+                                .collection('Churches')
+                                .doc(church.id)
+                                .delete();
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                            setState(() {
+                              editMode = !editMode;
+                            });
+                          },
+                          child: Text('نعم'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text('تراجع'),
+                        ),
+                      ],
+                    ),
+                  );
                 },
                 child: Text('حذف'))
         ],
@@ -350,34 +350,34 @@ class _ChurchesPageState extends State<ChurchesPage> {
             TextButton(
                 onPressed: () async {
                   await showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                            title: Text(father.name),
-                            content:
-                                Text('هل أنت متأكد من حذف ${father.name}؟'),
-                            actions: <Widget>[
-                              TextButton(
-                                  onPressed: () async {
-                                    await FirebaseFirestore.instance
-                                        .collection('Fathers')
-                                        .doc(father.id)
-                                        .delete();
-                                    Navigator.of(context).pop();
-                                    Navigator.of(context).pop();
-                                    setState(() {
-                                      editMode = !editMode;
-                                    });
-                                  },
-                                  child: Text('نعم'),
-                                  ),
-                              TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: Text('تراجع'),
-                                  ),
-                            ],
-                          ),);
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text(father.name),
+                      content: Text('هل أنت متأكد من حذف ${father.name}؟'),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () async {
+                            await FirebaseFirestore.instance
+                                .collection('Fathers')
+                                .doc(father.id)
+                                .delete();
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                            setState(() {
+                              editMode = !editMode;
+                            });
+                          },
+                          child: Text('نعم'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text('تراجع'),
+                        ),
+                      ],
+                    ),
+                  );
                 },
                 child: Text('حذف'))
         ],
@@ -424,11 +424,12 @@ class _ChurchesPageState extends State<ChurchesPage> {
                                     FirebaseFirestore.instance.doc(value);
                               },
                               decoration: InputDecoration(
-                                  labelText: 'الكنيسة',
-                                  border: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Theme.of(context).primaryColor),
-                                  ),),
+                                labelText: 'الكنيسة',
+                                border: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Theme.of(context).primaryColor),
+                                ),
+                              ),
                             ),
                           );
                         } else {
@@ -515,25 +516,25 @@ class _FathersPageState extends State<FathersPage> {
                                 Text('هل أنت متأكد من حذف ${church.name}؟'),
                             actions: <Widget>[
                               TextButton(
-                                  onPressed: () async {
-                                    await FirebaseFirestore.instance
-                                        .collection('Churches')
-                                        .doc(church.id)
-                                        .delete();
-                                    Navigator.of(context).pop();
-                                    Navigator.of(context).pop();
-                                    setState(() {
-                                      editMode = !editMode;
-                                    });
-                                  },
-                                  child: Text('نعم'),
-                                  ),
+                                onPressed: () async {
+                                  await FirebaseFirestore.instance
+                                      .collection('Churches')
+                                      .doc(church.id)
+                                      .delete();
+                                  Navigator.of(context).pop();
+                                  Navigator.of(context).pop();
+                                  setState(() {
+                                    editMode = !editMode;
+                                  });
+                                },
+                                child: Text('نعم'),
+                              ),
                               TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: Text('تراجع'),
-                                  ),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text('تراجع'),
+                              ),
                             ],
                           ));
                 },
@@ -646,23 +647,25 @@ class _FathersPageState extends State<FathersPage> {
                                 Text('هل أنت متأكد من حذف ${father.name}؟'),
                             actions: <Widget>[
                               TextButton(
-                                  child: Text('نعم'),
-                                  onPressed: () async {
-                                    await FirebaseFirestore.instance
-                                        .collection('Fathers')
-                                        .doc(father.id)
-                                        .delete();
-                                    Navigator.of(context).pop();
-                                    Navigator.of(context).pop();
-                                    setState(() {
-                                      editMode = !editMode;
-                                    });
-                                  }),
+                                onPressed: () async {
+                                  await FirebaseFirestore.instance
+                                      .collection('Fathers')
+                                      .doc(father.id)
+                                      .delete();
+                                  Navigator.of(context).pop();
+                                  Navigator.of(context).pop();
+                                  setState(() {
+                                    editMode = !editMode;
+                                  });
+                                },
+                                child: Text('نعم'),
+                              ),
                               TextButton(
-                                  child: Text('تراجع'),
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  }),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text('تراجع'),
+                              ),
                             ],
                           ));
                 },
@@ -694,16 +697,16 @@ class _FathersPageState extends State<FathersPage> {
                               items: data.data.docs
                                   .map(
                                     (item) => DropdownMenuItem(
-                                      child: Text(item.data()['Name']),
                                       value: item.reference.path,
+                                      child: Text(item.data()['Name']),
                                     ),
                                   )
                                   .toList()
                                     ..insert(
                                       0,
                                       DropdownMenuItem(
-                                        child: Text(''),
                                         value: null,
+                                        child: Text(''),
                                       ),
                                     ),
                               onChanged: (value) {
@@ -802,23 +805,25 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
                             content: Text('هل أنت متأكد من حذف ${year.name}؟'),
                             actions: <Widget>[
                               TextButton(
-                                  child: Text('نعم'),
-                                  onPressed: () async {
-                                    await FirebaseFirestore.instance
-                                        .collection('StudyYears')
-                                        .doc(year.id)
-                                        .delete();
-                                    Navigator.of(context).pop();
-                                    Navigator.of(context).pop();
-                                    setState(() {
-                                      editMode = !editMode;
-                                    });
-                                  }),
+                                onPressed: () async {
+                                  await FirebaseFirestore.instance
+                                      .collection('StudyYears')
+                                      .doc(year.id)
+                                      .delete();
+                                  Navigator.of(context).pop();
+                                  Navigator.of(context).pop();
+                                  setState(() {
+                                    editMode = !editMode;
+                                  });
+                                },
+                                child: Text('نعم'),
+                              ),
                               TextButton(
-                                  child: Text('تراجع'),
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  }),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text('تراجع'),
+                              ),
                             ],
                           ));
                 },

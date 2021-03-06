@@ -100,6 +100,8 @@ class PersonInfo extends StatelessWidget {
                                           context),
                                 ),
                                 OutlinedButton(
+                                  onPressed: () =>
+                                      FeatureDiscovery.dismissAll(context),
                                   child: Text(
                                     'تخطي',
                                     style: TextStyle(
@@ -109,8 +111,6 @@ class PersonInfo extends StatelessWidget {
                                           .color,
                                     ),
                                   ),
-                                  onPressed: () =>
-                                      FeatureDiscovery.dismissAll(context),
                                 ),
                               ],
                             ),
@@ -173,6 +173,8 @@ class PersonInfo extends StatelessWidget {
                                         context),
                               ),
                               OutlinedButton(
+                                onPressed: () =>
+                                    FeatureDiscovery.dismissAll(context),
                                 child: Text(
                                   'تخطي',
                                   style: TextStyle(
@@ -182,8 +184,6 @@ class PersonInfo extends StatelessWidget {
                                         .color,
                                   ),
                                 ),
-                                onPressed: () =>
-                                    FeatureDiscovery.dismissAll(context),
                               ),
                             ],
                           ),
@@ -240,6 +240,8 @@ class PersonInfo extends StatelessWidget {
                                   FeatureDiscovery.completeCurrentStep(context),
                             ),
                             OutlinedButton(
+                              onPressed: () =>
+                                  FeatureDiscovery.dismissAll(context),
                               child: Text(
                                 'تخطي',
                                 style: TextStyle(
@@ -249,8 +251,6 @@ class PersonInfo extends StatelessWidget {
                                       .color,
                                 ),
                               ),
-                              onPressed: () =>
-                                  FeatureDiscovery.dismissAll(context),
                             ),
                           ],
                         ),
@@ -478,6 +478,8 @@ class PersonInfo extends StatelessWidget {
             ),
             floatingActionButton: permission
                 ? FloatingActionButton(
+                    tooltip: 'تسجيل أخر زيارة اليوم',
+                    onPressed: () => recordLastVisit(context, person),
                     child: DescribedFeatureOverlay(
                       onBackgroundTap: () async {
                         await FeatureDiscovery.completeCurrentStep(context);
@@ -496,6 +498,8 @@ class PersonInfo extends StatelessWidget {
                         children: [
                           Text('يمكنك تسجيل أخر زيارة للمخدوم بسرعة من هنا'),
                           OutlinedButton(
+                            onPressed: () =>
+                                FeatureDiscovery.completeCurrentStep(context),
                             child: Text(
                               'تخطي',
                               style: TextStyle(
@@ -503,8 +507,6 @@ class PersonInfo extends StatelessWidget {
                                     Theme.of(context).textTheme.bodyText2.color,
                               ),
                             ),
-                            onPressed: () =>
-                                FeatureDiscovery.completeCurrentStep(context),
                           ),
                         ],
                       ),
@@ -514,8 +516,6 @@ class PersonInfo extends StatelessWidget {
                           Theme.of(context).primaryTextTheme.bodyText1.color,
                       child: Icon(Icons.update),
                     ),
-                    tooltip: 'تسجيل أخر زيارة اليوم',
-                    onPressed: () => recordLastVisit(context, person),
                   )
                 : null,
           );
@@ -532,11 +532,12 @@ class PersonInfo extends StatelessWidget {
               title: Text('هل تريد تسجيل أخر زيارة ل' + person.name + '؟'),
               actions: [
                 TextButton(
-                    child: Text('تسجيل أخر زيارة'),
-                    onPressed: () => Navigator.pop(context, true)),
+                  onPressed: () => Navigator.pop(context, true),
+                  child: Text('تسجيل أخر زيارة'),
+                ),
                 TextButton(
-                  child: Text('رجوع'),
                   onPressed: () => Navigator.pop(context, false),
+                  child: Text('رجوع'),
                 ),
               ],
             ),
@@ -586,11 +587,13 @@ class PersonInfo extends StatelessWidget {
           content: Text('هل تريد تسجيل تاريخ هذه المكالمة؟'),
           actions: [
             TextButton(
-                child: Text('نعم'),
-                onPressed: () => Navigator.pop(context, true)),
+              onPressed: () => Navigator.pop(context, true),
+              child: Text('نعم'),
+            ),
             TextButton(
-                child: Text('لا'),
-                onPressed: () => Navigator.pop(context, false)),
+              onPressed: () => Navigator.pop(context, false),
+              child: Text('لا'),
+            ),
           ],
         ),
       );

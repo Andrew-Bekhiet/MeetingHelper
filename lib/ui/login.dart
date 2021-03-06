@@ -44,26 +44,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                     primary: Colors.white, shape: btnShape),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    Container(
-                      padding: btnPdng,
-                      child: Image.asset(
-                        'assets/google_logo.png',
-                        width: 30,
-                        height: 30,
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        'Google',
-                        style: TextStyle(color: Colors.black),
-                      ),
-                    )
-                  ],
-                ),
                 onPressed: () async {
                   GoogleSignInAccount googleUser =
                       await GoogleSignIn().signIn();
@@ -103,6 +83,26 @@ class _LoginScreenState extends State<LoginScreen> {
                     }
                   }
                 },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Container(
+                      padding: btnPdng,
+                      child: Image.asset(
+                        'assets/google_logo.png',
+                        width: 30,
+                        height: 30,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        'Google',
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    )
+                  ],
+                ),
               ),
               Container(height: 10),
               // ElevatedButton(

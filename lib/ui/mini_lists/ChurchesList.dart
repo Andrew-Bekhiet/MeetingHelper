@@ -39,49 +39,51 @@ class InnerListState extends State<_InnerChurchsList> {
           }),
       Expanded(
         child: RefreshIndicator(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: widget.data,
-              builder: (context, churchs) {
-                if (!churchs.hasData) return CircularProgressIndicator();
-                return ListView.builder(
-                    itemCount: churchs.data.docs.length,
-                    itemBuilder: (context, i) {
-                      Church current = Church.fromDoc(churchs.data.docs[i]);
-                      return current.name.contains(filter)
-                          ? Card(
-                              child: ListTile(
-                                onTap: () {
-                                  widget.result
-                                          .map((f) => f.id)
-                                          .contains(current.id)
-                                      ? widget.result.removeWhere(
-                                          (x) => x.id == current.id)
-                                      : widget.result.add(current);
-                                  setState(() {});
-                                },
-                                title: Text(current.name),
-                                leading: Checkbox(
-                                  value: widget.result
+          onRefresh: () {
+            setState(() {});
+            return null;
+          },
+          child: StreamBuilder<QuerySnapshot>(
+            stream: widget.data,
+            builder: (context, churchs) {
+              if (!churchs.hasData) return CircularProgressIndicator();
+              return ListView.builder(
+                itemCount: churchs.data.docs.length,
+                itemBuilder: (context, i) {
+                  Church current = Church.fromDoc(churchs.data.docs[i]);
+                  return current.name.contains(filter)
+                      ? Card(
+                          child: ListTile(
+                            onTap: () {
+                              widget.result
                                       .map((f) => f.id)
-                                      .contains(current.id),
-                                  onChanged: (x) {
-                                    !x
-                                        ? widget.result.removeWhere(
-                                            (x) => x.id == current.id)
-                                        : widget.result.add(current);
-                                    setState(() {});
-                                  },
-                                ),
-                              ),
-                            )
-                          : Container();
-                    });
-              },
-            ),
-            onRefresh: () {
-              setState(() {});
-              return null;
-            }),
+                                      .contains(current.id)
+                                  ? widget.result
+                                      .removeWhere((x) => x.id == current.id)
+                                  : widget.result.add(current);
+                              setState(() {});
+                            },
+                            title: Text(current.name),
+                            leading: Checkbox(
+                              value: widget.result
+                                  .map((f) => f.id)
+                                  .contains(current.id),
+                              onChanged: (x) {
+                                !x
+                                    ? widget.result
+                                        .removeWhere((x) => x.id == current.id)
+                                    : widget.result.add(current);
+                                setState(() {});
+                              },
+                            ),
+                          ),
+                        )
+                      : Container();
+                },
+              );
+            },
+          ),
+        ),
       ),
       Row(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -109,16 +111,21 @@ class _ChurchesEditListState extends State<ChurchesEditList> {
       future: widget.list,
       builder: (con, data) {
         if (data.hasData) {
-          return Column(children: <Widget>[
-            TextField(
-                decoration: InputDecoration(hintText: 'بحث...'),
-                onChanged: (text) {
-                  setState(() {
-                    filter = text;
-                  });
-                }),
-            Expanded(
-              child: RefreshIndicator(
+          return Column(
+            children: <Widget>[
+              TextField(
+                  decoration: InputDecoration(hintText: 'بحث...'),
+                  onChanged: (text) {
+                    setState(() {
+                      filter = text;
+                    });
+                  }),
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () {
+                    setState(() {});
+                    return widget.list;
+                  },
                   child: ListView.builder(
                       itemCount: data.data.docs.length,
                       itemBuilder: (context, i) {
@@ -133,12 +140,10 @@ class _ChurchesEditListState extends State<ChurchesEditList> {
                               )
                             : Container();
                       }),
-                  onRefresh: () {
-                    setState(() {});
-                    return widget.list;
-                  }),
-            ),
-          ]);
+                ),
+              ),
+            ],
+          );
         } else {
           return const Center(child: CircularProgressIndicator());
         }

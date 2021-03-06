@@ -139,15 +139,16 @@ class _EditInvitationState extends State<EditInvitation> {
                           items: data.data.docs
                               .map(
                                 (item) => DropdownMenuItem(
-                                    child: Text(item.data()['Name']),
-                                    value: item.reference.path),
+                                  value: item.reference.path,
+                                  child: Text(item.data()['Name']),
+                                ),
                               )
                               .toList()
                                 ..insert(
                                   0,
                                   DropdownMenuItem(
-                                    child: Text(''),
                                     value: null,
+                                    child: Text(''),
                                   ),
                                 ),
                           onChanged: (value) {
@@ -181,11 +182,17 @@ class _EditInvitationState extends State<EditInvitation> {
                     items: [true, false]
                         .map(
                           (item) => DropdownMenuItem(
-                              child: Text(item ? 'بنين' : 'بنات'), value: item),
+                            value: item,
+                            child: Text(item ? 'بنين' : 'بنات'),
+                          ),
                         )
                         .toList()
-                          ..insert(0,
-                              DropdownMenuItem(child: Text(''), value: null)),
+                          ..insert(
+                              0,
+                              DropdownMenuItem(
+                                value: null,
+                                child: Text(''),
+                              )),
                     onChanged: (value) {
                       setState(() {});
                       widget.invitation.permissions['servingStudyGender'] =
@@ -382,7 +389,6 @@ class _EditInvitationState extends State<EditInvitation> {
             style: Theme.of(innerContext).textButtonTheme.style.copyWith(
                 foregroundColor:
                     MaterialStateProperty.resolveWith((state) => Colors.red)),
-            child: Text('حذف'),
             onPressed: () async {
               try {
                 ScaffoldMessenger.of(innerContext).showSnackBar(
@@ -416,12 +422,13 @@ class _EditInvitationState extends State<EditInvitation> {
                 );
               }
             },
+            child: Text('حذف'),
           ),
           TextButton(
-            child: Text('تراجع'),
             onPressed: () {
               Navigator.of(context).pop();
             },
+            child: Text('تراجع'),
           ),
         ],
       ),

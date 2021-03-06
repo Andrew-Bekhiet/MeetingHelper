@@ -89,13 +89,13 @@ class _HistoryState extends State<History> {
                           FeatureDiscovery.completeCurrentStep(context),
                     ),
                     OutlinedButton(
+                      onPressed: () => FeatureDiscovery.dismissAll(context),
                       child: Text(
                         'تخطي',
                         style: TextStyle(
                           color: Theme.of(context).textTheme.bodyText2.color,
                         ),
                       ),
-                      onPressed: () => FeatureDiscovery.dismissAll(context),
                     ),
                   ],
                 ),
@@ -146,7 +146,6 @@ class _HistoryState extends State<History> {
           key: ValueKey(list),
           options: ListOptions<HistoryDay>(
             floatingActionButton: FloatingActionButton(
-              child: Icon(Icons.add),
               onPressed: () async {
                 var today = (await FirebaseFirestore.instance
                         .collection('History')
@@ -172,6 +171,7 @@ class _HistoryState extends State<History> {
                           AlertDialog(content: Text('لا يوجد اتصال انترنت')));
                 }
               },
+              child: Icon(Icons.add),
             ),
             tap: (h) => historyTap(h, context),
             documentsData: list ??
@@ -278,7 +278,6 @@ class _ServantsHistoryState extends State<ServantsHistory> {
           key: ValueKey(list),
           options: ListOptions<ServantsHistoryDay>(
             floatingActionButton: FloatingActionButton(
-              child: Icon(Icons.add),
               onPressed: () async {
                 if (await Connectivity().checkConnectivity() !=
                     ConnectivityResult.none) {
@@ -306,6 +305,7 @@ class _ServantsHistoryState extends State<ServantsHistory> {
                           AlertDialog(content: Text('لا يوجد اتصال انترنت')));
                 }
               },
+              child: Icon(Icons.add),
             ),
             tap: (h) => historyTap(h, context),
             documentsData: list ??

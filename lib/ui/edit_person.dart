@@ -281,13 +281,15 @@ class _EditPersonState extends State<EditPerson> {
                                   builder: (context) => AlertDialog(
                                       actions: [
                                         TextButton(
-                                            child: Text('حفظ'),
-                                            onPressed: () => Navigator.pop(
-                                                context, name.text)),
+                                          onPressed: () =>
+                                              Navigator.pop(context, name.text),
+                                          child: Text('حفظ'),
+                                        ),
                                         TextButton(
-                                            child: Text('حذف'),
-                                            onPressed: () => Navigator.pop(
-                                                context, 'delete')),
+                                          onPressed: () =>
+                                              Navigator.pop(context, 'delete'),
+                                          child: Text('حذف'),
+                                        ),
                                       ],
                                       title: Text('اسم الهاتف'),
                                       content: TextField(controller: name)),
@@ -328,9 +330,10 @@ class _EditPersonState extends State<EditPerson> {
                             builder: (context) => AlertDialog(
                                 actions: [
                                   TextButton(
-                                      child: Text('حفظ'),
-                                      onPressed: () =>
-                                          Navigator.pop(context, name.text))
+                                    onPressed: () =>
+                                        Navigator.pop(context, name.text),
+                                    child: Text('حفظ'),
+                                  )
                                 ],
                                 title: Text('اسم الهاتف'),
                                 content: TextField(controller: name)),
@@ -344,6 +347,7 @@ class _EditPersonState extends State<EditPerson> {
                     mainAxisSize: MainAxisSize.max,
                     children: <Widget>[
                       Flexible(
+                        flex: 3,
                         child: Container(
                           padding: EdgeInsets.symmetric(vertical: 4.0),
                           child: Focus(
@@ -370,16 +374,16 @@ class _EditPersonState extends State<EditPerson> {
                             ),
                           ),
                         ),
-                        flex: 3,
                       ),
                       Flexible(
-                          child: TextButton.icon(
-                              icon: Icon(Icons.close),
-                              onPressed: () => setState(() {
-                                    person.birthDate = null;
-                                  }),
-                              label: Text('حذف التاريخ')),
-                          flex: 2),
+                        flex: 2,
+                        child: TextButton.icon(
+                            icon: Icon(Icons.close),
+                            onPressed: () => setState(() {
+                                  person.birthDate = null;
+                                }),
+                            label: Text('حذف التاريخ')),
+                      ),
                     ],
                   ),
                   Container(
@@ -448,6 +452,7 @@ class _EditPersonState extends State<EditPerson> {
                     children: <Widget>[
                       Expanded(
                         child: Focus(
+                          focusNode: foci[6],
                           child: FutureBuilder<QuerySnapshot>(
                             future: School.getAllForUser(),
                             builder: (context, data) {
@@ -459,16 +464,16 @@ class _EditPersonState extends State<EditPerson> {
                                     items: data.data.docs
                                         .map(
                                           (item) => DropdownMenuItem(
-                                            child: Text(item.data()['Name']),
                                             value: item.reference.path,
+                                            child: Text(item.data()['Name']),
                                           ),
                                         )
                                         .toList()
                                           ..insert(
                                             0,
                                             DropdownMenuItem(
-                                              child: Text(''),
                                               value: null,
+                                              child: Text(''),
                                             ),
                                           ),
                                     onChanged: (value) {
@@ -492,7 +497,6 @@ class _EditPersonState extends State<EditPerson> {
                               }
                             },
                           ),
-                          focusNode: foci[6],
                         ),
                       ),
                       TextButton.icon(
@@ -513,6 +517,7 @@ class _EditPersonState extends State<EditPerson> {
                     children: <Widget>[
                       Expanded(
                         child: Focus(
+                          focusNode: foci[7],
                           child: FutureBuilder<QuerySnapshot>(
                             future: Church.getAllForUser(),
                             builder: (context, data) {
@@ -524,16 +529,16 @@ class _EditPersonState extends State<EditPerson> {
                                     items: data.data.docs
                                         .map(
                                           (item) => DropdownMenuItem(
-                                            child: Text(item.data()['Name']),
                                             value: item.reference.path,
+                                            child: Text(item.data()['Name']),
                                           ),
                                         )
                                         .toList()
                                           ..insert(
                                             0,
                                             DropdownMenuItem(
-                                              child: Text(''),
                                               value: null,
+                                              child: Text(''),
                                             ),
                                           ),
                                     onChanged: (value) {
@@ -557,7 +562,6 @@ class _EditPersonState extends State<EditPerson> {
                               }
                             },
                           ),
-                          focusNode: foci[7],
                         ),
                       ),
                       TextButton.icon(
@@ -575,6 +579,7 @@ class _EditPersonState extends State<EditPerson> {
                     children: [
                       Expanded(
                         child: Focus(
+                          focusNode: foci[10],
                           child: FutureBuilder<QuerySnapshot>(
                             future: Father.getAllForUser(),
                             builder: (context, data) {
@@ -584,15 +589,16 @@ class _EditPersonState extends State<EditPerson> {
                                   items: data.data.docs
                                       .map(
                                         (item) => DropdownMenuItem(
-                                            child: Text(item.data()['Name']),
-                                            value: item.reference.path),
+                                          value: item.reference.path,
+                                          child: Text(item.data()['Name']),
+                                        ),
                                       )
                                       .toList()
                                         ..insert(
                                           0,
                                           DropdownMenuItem(
-                                            child: Text(''),
                                             value: null,
+                                            child: Text(''),
                                           ),
                                         ),
                                   onChanged: (value) {
@@ -615,7 +621,6 @@ class _EditPersonState extends State<EditPerson> {
                               }
                             },
                           ),
-                          focusNode: foci[10],
                         ),
                       ),
                       TextButton.icon(
@@ -667,6 +672,7 @@ class _EditPersonState extends State<EditPerson> {
                     mainAxisSize: MainAxisSize.max,
                     children: <Widget>[
                       Flexible(
+                        flex: 3,
                         child: Container(
                           padding: EdgeInsets.symmetric(vertical: 4.0),
                           child: Focus(
@@ -693,7 +699,6 @@ class _EditPersonState extends State<EditPerson> {
                             ),
                           ),
                         ),
-                        flex: 3,
                       ),
                     ],
                   ),
@@ -703,6 +708,7 @@ class _EditPersonState extends State<EditPerson> {
                     mainAxisSize: MainAxisSize.max,
                     children: <Widget>[
                       Flexible(
+                        flex: 3,
                         child: Container(
                           padding: EdgeInsets.symmetric(vertical: 4.0),
                           child: Focus(
@@ -729,7 +735,6 @@ class _EditPersonState extends State<EditPerson> {
                             ),
                           ),
                         ),
-                        flex: 3,
                       ),
                     ],
                   ),
@@ -739,6 +744,7 @@ class _EditPersonState extends State<EditPerson> {
                     mainAxisSize: MainAxisSize.max,
                     children: <Widget>[
                       Flexible(
+                        flex: 3,
                         child: Container(
                           padding: EdgeInsets.symmetric(vertical: 4.0),
                           child: Focus(
@@ -765,7 +771,6 @@ class _EditPersonState extends State<EditPerson> {
                             ),
                           ),
                         ),
-                        flex: 3,
                       ),
                     ],
                   ),
@@ -775,6 +780,7 @@ class _EditPersonState extends State<EditPerson> {
                     mainAxisSize: MainAxisSize.max,
                     children: <Widget>[
                       Flexible(
+                        flex: 3,
                         child: Container(
                           padding: EdgeInsets.symmetric(vertical: 4.0),
                           child: Focus(
@@ -801,7 +807,6 @@ class _EditPersonState extends State<EditPerson> {
                             ),
                           ),
                         ),
-                        flex: 3,
                       ),
                     ],
                   ),
@@ -922,26 +927,28 @@ class _EditPersonState extends State<EditPerson> {
               content: Text('هل أنت متأكد من حذف ${person.name}؟'),
               actions: <Widget>[
                 TextButton(
-                    child: Text('نعم'),
-                    onPressed: () async {
-                      if (person.hasPhoto) {
-                        await FirebaseStorage.instance
-                            .ref()
-                            .child('PersonsPhotos/${person.id}')
-                            .delete();
-                      }
-                      await FirebaseFirestore.instance
-                          .collection('Persons')
-                          .doc(person.id)
+                  onPressed: () async {
+                    if (person.hasPhoto) {
+                      await FirebaseStorage.instance
+                          .ref()
+                          .child('PersonsPhotos/${person.id}')
                           .delete();
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pop('deleted');
-                    }),
+                    }
+                    await FirebaseFirestore.instance
+                        .collection('Persons')
+                        .doc(person.id)
+                        .delete();
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop('deleted');
+                  },
+                  child: Text('نعم'),
+                ),
                 TextButton(
-                    child: Text('تراجع'),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    }),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('تراجع'),
+                ),
               ],
             ));
   }
