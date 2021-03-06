@@ -301,19 +301,19 @@ class PersonInfo extends StatelessWidget {
                         'موبايل:',
                         person.phone,
                         (n) => _phoneCall(context, n),
-                        (n) => _contactAdd(n),
+                        (n) => _contactAdd(context, n),
                       ),
                       PhoneNumberProperty(
                         'موبايل (الأب):',
                         person.fatherPhone,
                         (n) => _phoneCall(context, n),
-                        (n) => _contactAdd(n),
+                        (n) => _contactAdd(context, n),
                       ),
                       PhoneNumberProperty(
                         'موبايل (الأم):',
                         person.motherPhone,
                         (n) => _phoneCall(context, n),
-                        (n) => _contactAdd(n),
+                        (n) => _contactAdd(context, n),
                       ),
                       if (person.phones != null)
                         ...person.phones.entries
@@ -322,7 +322,7 @@ class PersonInfo extends StatelessWidget {
                                 e.key,
                                 e.value,
                                 (n) => _phoneCall(context, n),
-                                (n) => _contactAdd(n),
+                                (n) => _contactAdd(context, n),
                               ),
                             )
                             .toList(),
@@ -568,12 +568,35 @@ class PersonInfo extends StatelessWidget {
     Navigator.pushNamed(context, 'Analytics', arguments: person);
   }
 
-  Future<void> _contactAdd(String phone) async {
+  Future<void> _contactAdd(BuildContext context, String phone) async {
     if ((await Permission.contacts.request()).isGranted) {
-      final c = Contact()
-        ..name.first = person.name
-        ..phones = [Phone(phone)];
-      await c.insert();
+      TextEditingController _name = TextEditingController(text: person.name);
+      if (await showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text('ادخل اسم جهة الاتصال:'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextFormField(controller: _name),
+                  Container(height: 10),
+                  Text(phone ?? ''),
+                ],
+              ),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: Text('حفظ جهة الاتصال'))
+              ],
+            ),
+          ) ==
+          true) {
+        final c = Contact()
+          ..name.first = _name.text
+          ..phones = [Phone(phone)];
+        await c.insert();
+      }
     }
   }
 }
