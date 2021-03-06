@@ -44,6 +44,7 @@ class SettingsState extends State<Settings> {
   Widget build(BuildContext context) {
     // Future<User> user = User.getCurrentUser();
     return WillPopScope(
+      onWillPop: confirmExit,
       child: Scaffold(
         appBar: AppBar(
           title: Text('الاعدادات'),
@@ -188,17 +189,20 @@ class SettingsState extends State<Settings> {
                                 items: Class.getHumanReadableMap2()
                                     .entries
                                     .map((e) => DropdownMenuItem(
-                                        child: Text(e.value), value: e.key))
+                                        value: e.key, child: Text(e.value)))
                                     .toList()
                                       ..removeWhere(
                                           (element) => element.value == 'Color')
                                       ..add(DropdownMenuItem(
-                                          child: Text('الأشخاص بالفصل'),
-                                          value: 'Members'))
+                                        value: 'Members',
+                                        child: Text('الأشخاص بالفصل'),
+                                      ))
                                       ..insert(
                                           0,
                                           DropdownMenuItem(
-                                              child: Text(''), value: null)),
+                                            value: null,
+                                            child: Text(''),
+                                          )),
                                 onChanged: (value) {},
                                 onSaved: (value) async {
                                   await settings.put('ClassSecondLine', value);
@@ -219,14 +223,18 @@ class SettingsState extends State<Settings> {
                                 items: Person.getHumanReadableMap2()
                                     .entries
                                     .map((e) => DropdownMenuItem(
-                                        child: Text(e.value), value: e.key))
+                                          value: e.key,
+                                          child: Text(e.value),
+                                        ))
                                     .toList()
                                       ..removeWhere(
                                           (element) => element.value == 'Color')
                                       ..insert(
                                           0,
                                           DropdownMenuItem(
-                                              child: Text(''), value: null)),
+                                            value: null,
+                                            child: Text(''),
+                                          )),
                                 onChanged: (value) {},
                                 onSaved: (value) async {
                                   await settings.put('PersonSecondLine', value);
@@ -311,12 +319,11 @@ class SettingsState extends State<Settings> {
           ),
         ),
         floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.save),
           onPressed: () => _save(),
           tooltip: 'حفظ',
+          child: Icon(Icons.save),
         ),
       ),
-      onWillPop: confirmExit,
     );
   }
 
@@ -329,19 +336,19 @@ class SettingsState extends State<Settings> {
             title: Text('هل تريد الخروج دون الحفظ؟'),
             actions: [
               TextButton(
-                child: Text('الخروج دون حفظ'),
                 onPressed: () => Navigator.of(context).pop(true),
+                child: Text('الخروج دون حفظ'),
               ),
               TextButton(
-                child: Text('رجوع'),
                 onPressed: () => Navigator.of(context).pop(false),
+                child: Text('رجوع'),
               ),
               TextButton(
-                child: Text('الخروج مع حفظ'),
                 onPressed: () async {
                   _save();
                   Navigator.of(context).pop(true);
                 },
+                child: Text('الخروج مع حفظ'),
               ),
             ],
           ),

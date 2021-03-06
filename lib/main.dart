@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:connectivity/connectivity.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
@@ -19,11 +19,15 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:meetinghelper/admin.dart';
 import 'package:meetinghelper/ui/day.dart';
+import 'package:meetinghelper/ui/edit_invitation.dart';
+import 'package:meetinghelper/ui/exports.dart';
+import 'package:meetinghelper/ui/invitations_page.dart';
 import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart';
 
 import 'models/history_record.dart';
 import 'models/hive_persistence_provider.dart';
+import 'models/invitation.dart';
 import 'models/order_options.dart';
 import 'models/models.dart';
 import 'models/theme_notifier.dart';
@@ -35,6 +39,7 @@ import 'ui/data_map.dart';
 import 'ui/edit_class.dart';
 import 'ui/edit_person.dart';
 import 'ui/history.dart';
+import 'ui/invitation_info.dart';
 import 'ui/loading_widget.dart';
 import 'ui/login.dart';
 import 'ui/my_account.dart';
@@ -172,6 +177,9 @@ class AppState extends State<App> {
               return EditPerson(person: person);
             }
           },
+          'EditInvitation': (context) => EditInvitation(
+              invitation: ModalRoute.of(context).settings.arguments ??
+                  Invitation.empty()),
           'Day': (context) {
             if (ModalRoute.of(context).settings.arguments != null)
               return Day(record: ModalRoute.of(context).settings.arguments);
@@ -185,6 +193,7 @@ class AppState extends State<App> {
               return Day(record: ServantsHistoryDay());
           },
           'History': (context) => History(),
+          'ExportOps': (context) => Exports(),
           'ServantsHistory': (context) => ServantsHistory(),
           'MyAccount': (context) => MyAccount(),
           'Notifications': (context) => NotificationsPage(),
@@ -193,6 +202,8 @@ class AppState extends State<App> {
           'PersonInfo': (context) =>
               PersonInfo(person: ModalRoute.of(context).settings.arguments),
           'UserInfo': (context) => UserInfo(),
+          'InvitationInfo': (context) => InvitationInfo(
+              invitation: ModalRoute.of(context).settings.arguments),
           'Update': (context) => Update(),
           'Search': (context) => SearchQuery(),
           'DataMap': (context) => DataMap(),
@@ -221,6 +232,7 @@ class AppState extends State<App> {
           ,
           'UpdateUserDataError': (context) => UpdateUserDataErrorPage(),
           'ManageUsers': (context) => UsersPage(),
+          'Invitations': (context) => InvitationsPage(),
           'Analytics': (context) {
             if (ModalRoute.of(context).settings.arguments is Person)
               return PersonAnalyticsPage(

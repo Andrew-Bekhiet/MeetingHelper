@@ -23,6 +23,8 @@ class Day extends StatefulWidget {
 
 class _DayState extends State<Day> with SingleTickerProviderStateMixin {
   TabController _tabs;
+  bool _showSearch = false;
+  final FocusNode _searchFocus = FocusNode();
 
   @override
   Widget build(BuildContext context) {
@@ -46,37 +48,38 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
       ],
       child: Consumer<OrderOptions>(
         builder: (context, personOrder, _) => TabBarView(
+          key: UniqueKey(),
           controller: _tabs,
           children: widget.record is! ServantsHistoryDay
               ? [
                   PersonsCheckList(
+                    key: UniqueKey(),
                     options: CheckListOptions(
                         day: widget.record,
-                        generate: Person.fromDoc,
                         documentsData: Person.getAllForUser(
                           orderBy: personOrder.personOrderBy,
                           descending: !personOrder.personASC,
-                        ),
+                        ).map((s) => s.docs.map(Person.fromDoc).toList()),
                         type: DayListType.Meeting),
                   ),
                   PersonsCheckList(
+                    key: UniqueKey(),
                     options: CheckListOptions(
                         day: widget.record,
-                        generate: Person.fromDoc,
                         documentsData: Person.getAllForUser(
                           orderBy: personOrder.personOrderBy,
                           descending: !personOrder.personASC,
-                        ),
+                        ).map((s) => s.docs.map(Person.fromDoc).toList()),
                         type: DayListType.Kodas),
                   ),
                   PersonsCheckList(
+                    key: UniqueKey(),
                     options: CheckListOptions(
                         day: widget.record,
-                        generate: Person.fromDoc,
                         documentsData: Person.getAllForUser(
                           orderBy: personOrder.personOrderBy,
                           descending: !personOrder.personASC,
-                        ),
+                        ).map((s) => s.docs.map(Person.fromDoc).toList()),
                         type: DayListType.Tanawol),
                   )
                 ]
@@ -103,10 +106,53 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
       builder: (context, body) {
         return Scaffold(
           appBar: AppBar(
-            title: SearchField(
-                textStyle: Theme.of(context).textTheme.headline6.copyWith(
-                    color: Theme.of(context).primaryTextTheme.headline6.color)),
+            title: _showSearch
+                ? TextField(
+                    focusNode: _searchFocus,
+                    style: Theme.of(context).textTheme.headline6.copyWith(
+                        color:
+                            Theme.of(context).primaryTextTheme.headline6.color),
+                    decoration: InputDecoration(
+                        suffixIcon: IconButton(
+                          icon: Icon(Icons.close,
+                              color: Theme.of(context)
+                                  .primaryTextTheme
+                                  .headline6
+                                  .color),
+                          onPressed: () => setState(
+                            () {
+                              context.read<SearchString>().value = '';
+                              _showSearch = false;
+                            },
+                          ),
+                        ),
+                        hintStyle: Theme.of(context)
+                            .textTheme
+                            .headline6
+                            .copyWith(
+                                color: Theme.of(context)
+                                    .primaryTextTheme
+                                    .headline6
+                                    .color),
+                        icon: Icon(Icons.search,
+                            color: Theme.of(context)
+                                .primaryTextTheme
+                                .headline6
+                                .color),
+                        hintText: 'بحث ...'),
+                    onChanged: (t) => context.read<SearchString>().value = t,
+                  )
+                : Text('كشف الحضور'),
             actions: [
+              if (!_showSearch)
+                IconButton(
+                  icon: Icon(Icons.search),
+                  onPressed: () => setState(() {
+                    _searchFocus.requestFocus();
+                    _showSearch = true;
+                  }),
+                  tooltip: 'بحث',
+                ),
               IconButton(
                 icon: Icon(Icons.delete),
                 onPressed: () async {

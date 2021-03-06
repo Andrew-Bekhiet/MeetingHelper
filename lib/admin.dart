@@ -110,7 +110,6 @@ class _SchoolsPageState extends State<SchoolsPage> {
                                 Text('هل أنت متأكد من حذف ${school.name}؟'),
                             actions: <Widget>[
                               TextButton(
-                                  child: Text('نعم'),
                                   onPressed: () async {
                                     await FirebaseFirestore.instance
                                         .collection('Schools')
@@ -121,14 +120,17 @@ class _SchoolsPageState extends State<SchoolsPage> {
                                     setState(() {
                                       editMode = !editMode;
                                     });
-                                  }),
+                                  },
+                                  child: Text('نعم'),
+                                  ),
                               TextButton(
-                                  child: Text('تراجع'),
                                   onPressed: () {
                                     Navigator.of(context).pop();
-                                  }),
+                                  },
+                                  child: Text('تراجع'),
+                                  ),
                             ],
-                          ));
+                          ),);
                 },
                 child: Text('حذف'))
         ],
@@ -224,7 +226,6 @@ class _ChurchesPageState extends State<ChurchesPage> {
                                 Text('هل أنت متأكد من حذف ${church.name}؟'),
                             actions: <Widget>[
                               TextButton(
-                                  child: Text('نعم'),
                                   onPressed: () async {
                                     await FirebaseFirestore.instance
                                         .collection('Churches')
@@ -235,14 +236,17 @@ class _ChurchesPageState extends State<ChurchesPage> {
                                     setState(() {
                                       editMode = !editMode;
                                     });
-                                  }),
+                                  },
+                                  child: Text('نعم'),
+                                  ),
                               TextButton(
-                                  child: Text('تراجع'),
                                   onPressed: () {
                                     Navigator.of(context).pop();
-                                  }),
+                                  },
+                                  child: Text('تراجع'),
+                                  ),
                             ],
-                          ));
+                          ),);
                 },
                 child: Text('حذف'))
         ],
@@ -353,7 +357,6 @@ class _ChurchesPageState extends State<ChurchesPage> {
                                 Text('هل أنت متأكد من حذف ${father.name}؟'),
                             actions: <Widget>[
                               TextButton(
-                                  child: Text('نعم'),
                                   onPressed: () async {
                                     await FirebaseFirestore.instance
                                         .collection('Fathers')
@@ -364,14 +367,17 @@ class _ChurchesPageState extends State<ChurchesPage> {
                                     setState(() {
                                       editMode = !editMode;
                                     });
-                                  }),
+                                  },
+                                  child: Text('نعم'),
+                                  ),
                               TextButton(
-                                  child: Text('تراجع'),
                                   onPressed: () {
                                     Navigator.of(context).pop();
-                                  }),
+                                  },
+                                  child: Text('تراجع'),
+                                  ),
                             ],
-                          ));
+                          ),);
                 },
                 child: Text('حذف'))
         ],
@@ -401,16 +407,16 @@ class _ChurchesPageState extends State<ChurchesPage> {
                               items: data.data.docs
                                   .map(
                                     (item) => DropdownMenuItem(
-                                      child: Text(item.data()['Name']),
                                       value: item.reference.path,
+                                      child: Text(item.data()['Name']),
                                     ),
                                   )
                                   .toList()
                                     ..insert(
                                       0,
                                       DropdownMenuItem(
-                                        child: Text(''),
                                         value: null,
+                                        child: Text(''),
                                       ),
                                     ),
                               onChanged: (value) {
@@ -422,7 +428,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                                   border: OutlineInputBorder(
                                     borderSide: BorderSide(
                                         color: Theme.of(context).primaryColor),
-                                  )),
+                                  ),),
                             ),
                           );
                         } else {
@@ -509,7 +515,6 @@ class _FathersPageState extends State<FathersPage> {
                                 Text('هل أنت متأكد من حذف ${church.name}؟'),
                             actions: <Widget>[
                               TextButton(
-                                  child: Text('نعم'),
                                   onPressed: () async {
                                     await FirebaseFirestore.instance
                                         .collection('Churches')
@@ -520,12 +525,15 @@ class _FathersPageState extends State<FathersPage> {
                                     setState(() {
                                       editMode = !editMode;
                                     });
-                                  }),
+                                  },
+                                  child: Text('نعم'),
+                                  ),
                               TextButton(
-                                  child: Text('تراجع'),
                                   onPressed: () {
                                     Navigator.of(context).pop();
-                                  }),
+                                  },
+                                  child: Text('تراجع'),
+                                  ),
                             ],
                           ));
                 },
@@ -862,6 +870,10 @@ class _UsersPageState extends State<UsersPage> {
       builder: (context, child) => Scaffold(
         appBar: AppBar(
           actions: [
+            IconButton(
+                icon: Icon(Icons.link),
+                tooltip: 'لينكات الدعوة',
+                onPressed: () => Navigator.pushNamed(context, 'Invitations')),
             if (!_showSearch)
               IconButton(
                   icon: Icon(Icons.search),

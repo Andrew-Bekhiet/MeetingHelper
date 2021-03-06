@@ -54,10 +54,9 @@ const List<Color> accents = <Color>[
 
 AndroidParameters androidParameters = AndroidParameters(
     packageName: 'com.AndroidQuartz.meetinghelper',
-    minimumVersion: 4,
-    fallbackUrl: Uri.parse(
-        'https://onedrive.live.com/download?cid=857C7F256422E764&resid=85'
-        '7C7F256422E764%212535&authkey=AOvqyUErovriovU'));
+    minimumVersion: 3,
+    fallbackUrl:
+        Uri.parse('https://github.com/Andrew-Bekhiet/MeetingHelper/releases/'));
 
 GetOptions dataSource = GetOptions(source: Source.serverAndCache);
 

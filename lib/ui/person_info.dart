@@ -6,8 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_contact/contacts.dart';
-import 'package:flutter_phone_state/flutter_phone_state.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:icon_shadow/icon_shadow.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -292,14 +291,12 @@ class PersonInfo extends StatelessWidget {
                             if (at == null) return;
                             if (i == 0) {
                               if ((await Permission.contacts.request())
-                                  .isGranted)
-                                await Contacts.addContact(Contact(
-                                    givenName: person.name,
-                                    phones: [
-                                      Item(
-                                          label: 'Mobile',
-                                          value: person.getMap()[at])
-                                    ]));
+                                  .isGranted) {
+                                final c = Contact()
+                                  ..name.first = person.name
+                                  ..phones = [Phone(person.getMap()[at])];
+                                await c.insert();
+                              }
                             } else if (i == 1) {
                               _phoneCall(context, person.getMap()[at]);
                             } else if (i == 2) {
@@ -518,7 +515,7 @@ class PersonInfo extends StatelessWidget {
                       child: Icon(Icons.update),
                     ),
                     tooltip: 'تسجيل أخر زيارة اليوم',
-                    onPressed: () => recordLastVisit(context),
+                    onPressed: () => recordLastVisit(context, person),
                   )
                 : null,
           );
@@ -527,8 +524,24 @@ class PersonInfo extends StatelessWidget {
     );
   }
 
-  void recordLastVisit(BuildContext context) async {
+  void recordLastVisit(BuildContext context, Person person) async {
     try {
+      if (await showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text('هل تريد تسجيل أخر زيارة ل' + person.name + '؟'),
+              actions: [
+                TextButton(
+                    child: Text('تسجيل أخر زيارة'),
+                    onPressed: () => Navigator.pop(context, true)),
+                TextButton(
+                  child: Text('رجوع'),
+                  onPressed: () => Navigator.pop(context, false),
+                ),
+              ],
+            ),
+          ) !=
+          true) return;
       await person.ref.update({
         'LastVisit': Timestamp.now(),
         'LastEdit': FirebaseAuth.instance.currentUser.uid
@@ -566,7 +579,7 @@ class PersonInfo extends StatelessWidget {
     if (result == null) return;
     if (result) {
       await Permission.phone.request();
-      await FlutterPhoneState.startPhoneCall(getPhone(number, false)).done;
+      await launch('tel:' + getPhone(number, false));
       var recordLastCall = await showDialog(
         context: context,
         builder: (context) => AlertDialog(

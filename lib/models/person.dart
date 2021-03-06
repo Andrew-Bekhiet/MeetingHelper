@@ -404,7 +404,6 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
         'LastVisit': 'تاريخ أخر افتقاد',
         'LastCall': 'تاريخ أخر مكالمة',
         'Notes': 'ملاحظات',
-        'Meeting': 'الاجتماع المشارك به',
-        // 'Type': 'نوع الفرد',
+        'Location': 'الموقع',
       };
 }
