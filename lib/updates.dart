@@ -151,7 +151,7 @@ class _UpdateState extends State<Update> {
                     if (data.hasData) {
                       return Text(data.data.version);
                     }
-                    return CircularProgressIndicator();
+                    return LinearProgressIndicator();
                   },
                 ),
               ),
@@ -163,7 +163,7 @@ class _UpdateState extends State<Update> {
                     if (data.hasData) {
                       return Text(data.data.getString('LatestVersion'));
                     }
-                    return CircularProgressIndicator();
+                    return LinearProgressIndicator();
                   },
                 ),
               ),
