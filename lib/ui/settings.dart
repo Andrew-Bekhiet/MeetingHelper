@@ -130,7 +130,7 @@ class SettingsState extends State<Settings> {
                                 await Hive.box('Settings').put(
                                     'PrimaryColorIndex',
                                     primaries.indexOf(color));
-                                changeTheme(context: context);
+                                await changeTheme(context: context);
                               },
                               child: Text('تغيير'),
                             ),
