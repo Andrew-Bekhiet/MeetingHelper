@@ -11,6 +11,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/foundation.dart' as f;
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
@@ -281,59 +282,47 @@ void historyTap(HistoryDay history, BuildContext context) async {
 
 void import(BuildContext context) async {
   try {
-    var decoder = SpreadsheetDecoder.decodeBytes(
-        (await FilePicker.platform.pickFiles(
-                allowedExtensions: ['xlsx', 'xls'],
-                withData: true,
-                type: FileType.custom))
-            .files[0]
-            .bytes,
-        update: true);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('جار الحصول على البيانات من الملف...'),
-        duration: Duration(hours: 1),
-      ),
-    );
-    var _class = decoder.tables['Main'].rows[0];
-    var emptyClass = Class.getEmptyExportMap().keys.toList();
-
-    _class[emptyClass.indexOf('StudyYear')] = FirebaseFirestore.instance
-        .doc(_class[emptyClass.indexOf('StudyYear')].toString());
-
-    if (_class.length > emptyClass.indexOf('HasPhoto'))
-      _class[emptyClass.indexOf('HasPhoto')] =
-          _class[emptyClass.indexOf('HasPhoto')].toString() == 'true';
-
-    _class[emptyClass.indexOf('Gender')] =
-        _class[emptyClass.indexOf('Gender')].toString() == 'true';
-
-    if (_class.length > emptyClass.indexOf('Color'))
-      _class[emptyClass.indexOf('Color')] =
-          int.parse(_class[emptyClass.indexOf('Color')].toString());
-
-    if (_class.length > emptyClass.indexOf('Allowed'))
-      _class[emptyClass.indexOf('Allowed')] =
-          _class[emptyClass.indexOf('Allowed')].toString().split(',');
-
-    await importClass(
-      decoder,
-      Class.createFromData(
-          Class.getEmptyExportMap().map(
-            (key, value) => MapEntry(
-              key,
-              _class.length > emptyClass.indexOf(key)
-                  ? _class[emptyClass.indexOf(key)]
-                  : (key == 'Allowed'
-                      ? [auth.FirebaseAuth.instance.currentUser.uid]
-                      : null),
-            ),
-          ),
-          _class[0] == '' || _class[0] == null
-              ? FirebaseFirestore.instance.collection('Classes').doc().id
-              : _class[0]),
-      context,
-    );
+    final picked = await FilePicker.platform.pickFiles(
+        allowedExtensions: ['xlsx'], withData: true, type: FileType.custom);
+    if (picked == null) return;
+    final fileData = picked.files[0].bytes;
+    final decoder = SpreadsheetDecoder.decodeBytes(fileData);
+    if (decoder.tables.containsKey('Classes') &&
+        decoder.tables.containsKey('Persons')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('جار رفع الملف...'),
+          duration: Duration(minutes: 9),
+        ),
+      );
+      final filename = DateTime.now().toIso8601String();
+      await FirebaseStorage.instance
+          .ref('Imports/' + filename + '.xlsx')
+          .putData(
+              fileData,
+              SettableMetadata(
+                  customMetadata: {'createdBy': User.instance.uid}));
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('جار استيراد الملف...'),
+          duration: Duration(minutes: 9),
+        ),
+      );
+      await FirebaseFunctions.instance
+          .httpsCallable('importFromExcel')
+          .call({'fileId': filename + '.xlsx'});
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('تم الاستيراد بنجاح'),
+          duration: Duration(seconds: 4),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      await showErrorDialog(context, 'ملف غير صالح');
+    }
   } catch (e) {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     await showErrorDialog(context, e.toString());
@@ -1298,7 +1287,8 @@ void showMeetingNotification() async {
         payload: 'Meeting');
 }
 
-Future<void> showMessage(BuildContext context, no.Notification notification) async {
+Future<void> showMessage(
+    BuildContext context, no.Notification notification) async {
   var attachement = await getLinkObject(
     Uri.parse(notification.attachement),
   );
