@@ -838,6 +838,28 @@ class _EditPersonState extends State<EditPerson> {
                   ),
                   Container(
                     padding: EdgeInsets.symmetric(vertical: 4.0),
+                    child: Focus(
+                      child: GestureDetector(
+                        onTap: () async => person.lastCall = await _selectDate(
+                            'تاريخ أخر مكالمة',
+                            person.lastCall?.toDate() ?? DateTime.now()),
+                        child: InputDecorator(
+                          decoration: InputDecoration(
+                              labelText: 'تاريخ أخر مكالمة',
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Theme.of(context).primaryColor),
+                              )),
+                          child: person.lastCall != null
+                              ? Text(DateFormat('yyyy/M/d')
+                                  .format(person.lastCall.toDate()))
+                              : Text('(فارغ)'),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 4.0),
                     child: TextFormField(
                       decoration: InputDecoration(
                           labelText: 'ملاحظات',
