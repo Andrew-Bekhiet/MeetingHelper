@@ -294,7 +294,7 @@ class _EditClassState extends State<EditClass> {
                           icon: Icon(Icons.visibility),
                           onPressed: showUsers,
                           label: Text(
-                              'المستخدمين المسموح لهم برؤية الفصل وما بداخلها',
+                              'المستخدمين المسموح لهم برؤية الفصل والمخدومين داخله',
                               softWrap: false,
                               textScaleFactor: 0.95,
                               overflow: TextOverflow.fade),
