@@ -591,6 +591,17 @@ class _SearchQueryState extends State<SearchQuery> {
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        setState(() {
+                          queryValue = Colors.transparent.value;
+                        });
+                      },
+                      child: Text('بلا لون'),
+                    ),
+                  ],
                   content: ColorsList(
                     selectedColor: Color(queryValue is int
                         ? queryValue

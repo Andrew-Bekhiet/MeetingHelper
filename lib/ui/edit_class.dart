@@ -443,6 +443,17 @@ class _EditClassState extends State<EditClass> {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              setState(() {
+                classO.color = Colors.transparent;
+              });
+            },
+            child: Text('بلا لون'),
+          ),
+        ],
         content: ColorsList(
           selectedColor: classO.color,
           onSelect: (color) {

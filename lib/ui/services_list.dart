@@ -79,23 +79,17 @@ class _ServicesListState extends State<ServicesList>
               groupHeaderBuilder: (context, section) {
                 switch (groupedStudyYears.keys.elementAt(section)) {
                   case 0:
-                    return Text('KG',
-                        style: Theme.of(context).textTheme.bodyText2);
+                    return ListTile(title: Text('KG'));
                   case 1:
-                    return Text('ابتدائي',
-                        style: Theme.of(context).textTheme.bodyText2);
+                    return ListTile(title: Text('ابتدائي'));
                   case 2:
-                    return Text('اعدادي',
-                        style: Theme.of(context).textTheme.bodyText2);
+                    return ListTile(title: Text('اعدادي'));
                   case 3:
-                    return Text('ثانوي',
-                        style: Theme.of(context).textTheme.bodyText2);
+                    return ListTile(title: Text('ثانوي'));
                   case 4:
-                    return Text('جامعة',
-                        style: Theme.of(context).textTheme.bodyText2);
+                    return ListTile(title: Text('جامعة'));
                   default:
-                    return Text('أخرى',
-                        style: Theme.of(context).textTheme.bodyText2);
+                    return ListTile(title: Text('أخرى'));
                 }
               },
               itemBuilder: (context, index) {

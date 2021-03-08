@@ -902,6 +902,17 @@ class _EditPersonState extends State<EditPerson> {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              setState(() {
+                person.color = Colors.transparent;
+              });
+            },
+            child: Text('بلا لون'),
+          ),
+        ],
         content: ColorsList(
           selectedColor: person.color,
           onSelect: (color) {
