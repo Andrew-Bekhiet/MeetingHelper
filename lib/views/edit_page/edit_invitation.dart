@@ -474,7 +474,7 @@ class _EditInvitationState extends State<EditInvitation> {
           var update = widget.invitation.getMap()
             ..removeWhere((key, value) => old[key] == value);
           if (update.isNotEmpty) {
-            await widget.invitation.update();
+            await widget.invitation.update(old: update);
           }
         }
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
