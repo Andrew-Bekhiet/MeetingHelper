@@ -668,6 +668,17 @@ class _RootState extends State<Root>
                         ),
                         title: Text('كشف حضور اليوم (سجل الخدام)'),
                         onTap: () async {
+                          mainScfld.currentState.openEndDrawer();
+                          if (await Connectivity().checkConnectivity() ==
+                              ConnectivityResult.none) {
+                            await showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                content: Text('لا يوجد اتصال انترنت'),
+                              ),
+                            );
+                            return;
+                          }
                           var today = (await FirebaseFirestore.instance
                                   .collection('ServantsHistory')
                                   .where('Day',
@@ -680,20 +691,13 @@ class _RootState extends State<Root>
                                       ))
                                   .get(dataSource))
                               .docs;
-                          mainScfld.currentState.openEndDrawer();
                           if (today.isNotEmpty) {
                             await Navigator.of(context).pushNamed('ServantsDay',
                                 arguments:
                                     ServantsHistoryDay.fromDoc(today[0]));
-                          } else if (await Connectivity().checkConnectivity() !=
-                              ConnectivityResult.none) {
+                          } else {
                             await Navigator.of(context)
                                 .pushNamed('ServantsDay');
-                          } else {
-                            await showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                    content: Text('لا يوجد اتصال انترنت')));
                           }
                         },
                       )
