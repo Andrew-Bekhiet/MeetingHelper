@@ -108,7 +108,6 @@ class ListOptions<T extends DataObject> with ChangeNotifier {
   bool _selectionMode = false;
 
   List<T> selected = <T>[];
-  Map<String, AsyncMemoizer<String>> cache = {};
 
   final void Function(T) tap;
   final void Function(T) onLongPress;
@@ -116,8 +115,10 @@ class ListOptions<T extends DataObject> with ChangeNotifier {
   final T empty;
   final bool showNull;
 
-  Widget Function(T, void Function() onLongPress, void Function() onTap,
-      Widget trailing) itemBuilder;
+  Widget Function(T,
+      {@required void Function() onLongPress,
+      @required void Function() onTap,
+      Widget trailing}) itemBuilder;
   final Widget floatingActionButton;
   final bool doubleActionButton;
   final bool hasNotch;
@@ -141,20 +142,18 @@ class ListOptions<T extends DataObject> with ChangeNotifier {
     _documentsData = documentsData != null
         ? (BehaviorSubject<List<T>>()..addStream(documentsData))
         : null;
-    if (items != null && (cache?.length ?? 0) != items.length) {
-      cache = {for (var d in items) d.id: AsyncMemoizer<String>()};
-    }
     this.selected = selected ?? [];
-    itemBuilder ??= (i, lp, t, tr) =>
-        DataObjectWidget<T>(i, onLongPress: lp, onTap: t, trailing: tr);
+    itemBuilder ??= (i,
+            {void Function() onLongPress,
+            void Function() onTap,
+            Widget trailing}) =>
+        DataObjectWidget<T>(i,
+            onLongPress: onLongPress, onTap: onTap, trailing: trailing);
   }
 
   List<T> get items => _items;
   set items(List<T> items) {
     _items = items;
-    if (items != null && (cache?.length ?? 0) != items.length) {
-      cache = {for (var d in items) d.id: AsyncMemoizer<String>()};
-    }
     notifyListeners();
   }
 
