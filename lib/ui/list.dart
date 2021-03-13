@@ -222,10 +222,8 @@ class _InnerListState<T extends DataObject> extends State<_InnerList<T>> {
                                       for (Person person
                                           in options.selected.cast<Person>()) {
                                         String phone = getPhone(person.phone);
-                                        if (await canLaunch(
-                                            'https://wa.me/$phone?text=$msg'))
-                                          await launch(
-                                              'https://wa.me/$phone?text=$msg');
+                                        await launch(
+                                            'https://wa.me/$phone?text=$msg');
                                       }
                                     }
                                   },
