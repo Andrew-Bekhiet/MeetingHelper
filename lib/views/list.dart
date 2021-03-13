@@ -136,7 +136,7 @@ class _InnerListState<T extends DataObject> extends State<_InnerList<T>> {
             var current = _documentsData[i];
             return options.itemBuilder(
               current,
-              options.onLongPress ??
+              onLongPress: options.onLongPress ??
                   () async {
                     options.selectionMode = !options.selectionMode;
                     if (!options.selectionMode) {
@@ -272,7 +272,7 @@ class _InnerListState<T extends DataObject> extends State<_InnerList<T>> {
                           : options.selected.add(current);
                     }
                   },
-              () {
+              onTap: () {
                 if (!options.selectionMode) {
                   options.tap == null
                       ? dataObjectTap(current, context)
@@ -287,7 +287,7 @@ class _InnerListState<T extends DataObject> extends State<_InnerList<T>> {
                   });
                 }
               },
-              options.selectionMode
+              trailing: options.selectionMode
                   ? Checkbox(
                       value: options.selected.contains(current),
                       onChanged: (v) {
