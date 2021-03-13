@@ -10,12 +10,12 @@ import 'package:meetinghelper/models/list_options.dart';
 import 'package:meetinghelper/models/order_options.dart';
 import 'package:meetinghelper/models/search_filters.dart';
 import 'package:meetinghelper/models/search_string.dart';
-import 'package:meetinghelper/ui/users_list.dart';
+import 'package:meetinghelper/views/users_list.dart';
 import 'package:provider/provider.dart';
 import 'package:tuple/tuple.dart';
 
-import '../models/mini_models.dart';
-import '../models/user.dart';
+import '../../models/mini_models.dart';
+import '../../models/user.dart';
 
 class EditUser extends StatefulWidget {
   final User user;

@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:meetinghelper/models/invitation.dart';
-import 'package:meetinghelper/ui/list.dart';
+import 'package:meetinghelper/views/list.dart';
 import 'package:provider/provider.dart';
 
 class InvitationsPage extends StatefulWidget {

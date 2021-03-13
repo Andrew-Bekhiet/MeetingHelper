@@ -11,7 +11,7 @@ import '../models/notification_setting.dart';
 import '../models/user.dart';
 import '../utils/Helpers.dart';
 import '../utils/globals.dart';
-import 'mini_lists/ColorsList.dart';
+import 'mini_lists/colors_list.dart';
 
 enum DateType {
   month,

@@ -9,15 +9,15 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:tinycolor/tinycolor.dart';
 
-import '../models/user.dart';
-import '../models/history_property.dart';
-import '../models/list_options.dart';
-import '../models/order_options.dart';
-import '../models/search_filters.dart';
-import '../models/search_string.dart';
-import '../utils/helpers.dart';
-import 'data_map.dart';
-import 'list.dart';
+import '../../models/user.dart';
+import '../../models/history_property.dart';
+import '../../models/list_options.dart';
+import '../../models/order_options.dart';
+import '../../models/search_filters.dart';
+import '../../models/search_string.dart';
+import '../../utils/helpers.dart';
+import '../data_map.dart';
+import '../list.dart';
 
 class ClassInfo extends StatelessWidget {
   final Class class$;

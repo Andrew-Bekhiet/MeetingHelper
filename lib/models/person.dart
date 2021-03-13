@@ -11,7 +11,7 @@ import 'package:intl/intl.dart';
 import 'package:location/location.dart';
 import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/models/super_classes.dart';
-import 'package:meetinghelper/ui/map_view.dart';
+import 'package:meetinghelper/views/map_view.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 

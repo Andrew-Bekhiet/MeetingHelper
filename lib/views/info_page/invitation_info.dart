@@ -8,9 +8,9 @@ import 'package:share_plus/share_plus.dart';
 import 'package:tinycolor/tinycolor.dart';
 import 'package:intl/intl.dart';
 
-import '../models/user.dart';
-import '../models/search_string.dart';
-import 'list.dart';
+import '../../models/user.dart';
+import '../../models/search_string.dart';
+import '../list.dart';
 
 class InvitationInfo extends StatelessWidget {
   final Invitation invitation;

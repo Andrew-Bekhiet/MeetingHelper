@@ -15,12 +15,12 @@ import 'package:share_plus/share_plus.dart';
 import 'package:tinycolor/tinycolor.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../models/copiable_property.dart';
-import '../models/data_object_widget.dart';
-import '../models/history_property.dart';
-import '../models/models.dart';
-import '../models/user.dart';
-import '../utils/helpers.dart';
+import '../../models/copiable_property.dart';
+import '../../models/data_object_widget.dart';
+import '../../models/history_property.dart';
+import '../../models/models.dart';
+import '../../models/user.dart';
+import '../../utils/helpers.dart';
 
 class PersonInfo extends StatelessWidget {
   final Person person;

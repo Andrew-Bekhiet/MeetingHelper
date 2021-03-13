@@ -7,14 +7,14 @@ import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/list_options.dart';
 import 'package:meetinghelper/models/search_filters.dart';
 import 'package:meetinghelper/models/user.dart';
-import 'package:meetinghelper/ui/list.dart';
-import 'package:meetinghelper/ui/services_list.dart';
-import 'package:meetinghelper/ui/users_list.dart';
+import 'package:meetinghelper/views/list.dart';
+import 'package:meetinghelper/views/services_list.dart';
+import 'package:meetinghelper/views/users_list.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-import 'edit_user.dart';
+import '../edit_page/edit_user.dart';
 
 class UserInfo extends StatefulWidget {
   UserInfo({Key key}) : super(key: key);

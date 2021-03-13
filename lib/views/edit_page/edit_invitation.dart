@@ -7,8 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/invitation.dart';
 
-import '../models/mini_models.dart';
-import '../models/user.dart';
+import '../../models/mini_models.dart';
+import '../../models/user.dart';
 
 class EditInvitation extends StatefulWidget {
   final Invitation invitation;

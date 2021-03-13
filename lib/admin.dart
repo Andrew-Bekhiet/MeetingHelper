@@ -4,11 +4,11 @@ import 'package:provider/provider.dart';
 
 import 'models/mini_models.dart';
 import 'models/search_string.dart';
-import 'ui/mini_lists/ChurchesList.dart';
-import 'ui/mini_lists/FathersList.dart';
-import 'ui/mini_lists/SchoolsList.dart';
-import 'ui/mini_lists/StudyYearsList.dart';
-import 'ui/users_list.dart';
+import 'views/mini_lists/churches_list.dart';
+import 'views/mini_lists/fathers_list.dart';
+import 'views/mini_lists/schools_list.dart';
+import 'views/mini_lists/study_years_list.dart';
+import 'views/users_list.dart';
 
 class ChurchesPage extends StatefulWidget {
   ChurchesPage({Key key}) : super(key: key);

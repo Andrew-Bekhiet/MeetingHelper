@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 
-import '../ui/settings.dart';
+import '../views/settings.dart';
 
 class NotificationSetting extends StatefulWidget {
   final String label;

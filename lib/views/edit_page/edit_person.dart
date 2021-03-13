@@ -11,7 +11,7 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/user.dart';
-import 'package:meetinghelper/ui/list.dart';
+import 'package:meetinghelper/views/list.dart';
 import 'package:meetinghelper/models/list_options.dart';
 import 'package:meetinghelper/models/order_options.dart';
 import 'package:meetinghelper/models/search_filters.dart';
@@ -20,10 +20,10 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:tinycolor/tinycolor.dart';
 
-import '../ui/mini_lists/ColorsList.dart';
-import '../models/mini_models.dart';
-import '../models/models.dart';
-import 'services_list.dart';
+import '../../views/mini_lists/colors_list.dart';
+import '../../models/mini_models.dart';
+import '../../models/models.dart';
+import '../services_list.dart';
 
 class EditPerson extends StatefulWidget {
   final Person person;

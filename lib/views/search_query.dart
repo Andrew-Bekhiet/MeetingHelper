@@ -15,7 +15,7 @@ import '../models/user.dart';
 import '../utils/Helpers.dart';
 import '../utils/globals.dart';
 import 'list.dart';
-import 'mini_lists/ColorsList.dart';
+import 'mini_lists/colors_list.dart';
 
 class SearchQuery extends StatefulWidget {
   final Map<String, dynamic> query;

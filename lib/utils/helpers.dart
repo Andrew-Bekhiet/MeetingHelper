@@ -20,8 +20,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:meetinghelper/ui/lists/Lists.dart';
-import 'package:meetinghelper/ui/services_list.dart';
+import 'package:meetinghelper/views/lists/lists.dart';
+import 'package:meetinghelper/views/services_list.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 import 'package:spreadsheet_decoder/spreadsheet_decoder.dart';
@@ -36,11 +36,11 @@ import '../models/search_filters.dart';
 import '../models/super_classes.dart';
 import '../models/theme_notifier.dart';
 import '../models/user.dart';
-import '../ui/auth_screen.dart';
-import '../ui/list.dart';
-import '../ui/notification.dart' as no;
-import '../ui/search_query.dart';
-import '../ui/users_list.dart';
+import '../views/auth_screen.dart';
+import '../views/list.dart';
+import '../views/notification.dart' as no;
+import '../views/search_query.dart';
+import '../views/users_list.dart';
 import '../utils/globals.dart';
 
 Future<void> changeTheme(

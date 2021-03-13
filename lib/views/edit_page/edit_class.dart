@@ -14,13 +14,13 @@ import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 import 'package:tinycolor/tinycolor.dart';
 
-import '../models/mini_models.dart';
-import '../models/models.dart';
-import '../models/search_filters.dart';
-import '../models/user.dart';
-import 'list.dart';
-import 'mini_lists/ColorsList.dart';
-import 'users_list.dart';
+import '../../models/mini_models.dart';
+import '../../models/models.dart';
+import '../../models/search_filters.dart';
+import '../../models/user.dart';
+import '../list.dart';
+import '../mini_lists/colors_list.dart';
+import '../users_list.dart';
 
 class EditClass extends StatefulWidget {
   final Class classO;
