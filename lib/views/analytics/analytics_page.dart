@@ -572,7 +572,7 @@ class _GeneralAnalyticsPageState extends State<GeneralAnalyticsPage> {
                 },
               );
             } else {
-              return const CircularProgressIndicator();
+              return const Center(child: CircularProgressIndicator());
             }
           },
         ),
