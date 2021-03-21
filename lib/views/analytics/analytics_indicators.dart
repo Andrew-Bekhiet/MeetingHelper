@@ -114,8 +114,6 @@ class AttendanceChart extends StatelessWidget {
                                       .toStringAsFixed(1)
                                       .replaceAll('.0', '') +
                                   '%',
-                              style:
-                                  TextStyle(fontSize: 12, color: Colors.black),
                             ),
                           ],
                         ),
