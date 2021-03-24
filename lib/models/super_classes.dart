@@ -44,7 +44,8 @@ abstract class DataObject {
       return e?.path?.hashCode;
     else if (e is List &&
         e.whereType<Map>().isEmpty &&
-        e.whereType<DocumentReference>().isEmpty)
+        e.whereType<DocumentReference>().isEmpty &&
+        e.whereType<List>().isEmpty)
       return hashList(e);
     else if (e is List) return hashList(e.map((it) => _fullyHash(it)));
 
