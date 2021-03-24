@@ -406,6 +406,7 @@ class _EditUserState extends State<EditUser> {
                         Provider(
                           create: (_) => DataObjectListOptions<User>(
                             searchQuery: searchStream,
+                            selectionMode: true,
                             itemsStream:
                                 Stream.fromFuture(User.getAllSemiManagers()),
                             selected: {

@@ -271,11 +271,7 @@ class _UserInfoState extends State<UserInfo> {
                             Provider(
                               create: (_) => DataObjectListOptions<User>(
                                 searchQuery: searchStream,
-                                itemsStream: Stream.fromFuture(
-                                    User.getAllSemiManagers()),
-                                selected: {
-                                  for (var item in users.data) item.uid: item
-                                },
+                                itemsStream: Stream.value(users.data),
                               ),
                             ),
                           ],

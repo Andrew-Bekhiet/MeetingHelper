@@ -463,6 +463,7 @@ class _RootState extends State<Root>
               ),
               title: Text('حسابي'),
               onTap: () {
+                mainScfld.currentState.openEndDrawer();
                 Navigator.pushNamed(context, 'MyAccount');
               },
             ),
