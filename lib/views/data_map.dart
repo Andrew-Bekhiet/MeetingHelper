@@ -6,7 +6,7 @@ import 'package:location/location.dart';
 import 'package:provider/provider.dart';
 
 import '../models/models.dart';
-import '../utils/Helpers.dart';
+import '../utils/helpers.dart';
 
 class DataMap extends StatefulWidget {
   final Class classO;

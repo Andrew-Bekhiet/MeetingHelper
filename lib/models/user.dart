@@ -30,6 +30,7 @@ class User extends DataObject
 
   set uid(String uid) {
     _uid = uid;
+    id = uid;
     if (!_initialized.isCompleted) _initialized.complete(uid != null);
   }
 

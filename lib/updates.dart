@@ -31,7 +31,6 @@ class UpdateHelper {
           fetchTimeout: const Duration(seconds: 30),
           minimumFetchInterval: const Duration(minutes: 2)));
       await remoteConfig.fetchAndActivate();
-      return remoteConfig;
       // ignore: empty_catches
     } catch (err) {}
     return remoteConfig;
@@ -55,27 +54,28 @@ class Updates {
                 : 'للأسف فإصدار البرنامج الحالي غير مدعوم\nيرجى تحديث البرنامج'),
             actions: <Widget>[
               TextButton(
-                  onPressed: () async {
-                    if (await canLaunch((await UpdateHelper.setupRemoteConfig())
+                onPressed: () async {
+                  if (await canLaunch((await UpdateHelper.setupRemoteConfig())
+                      .getString('DownloadLink')
+                      .replaceFirst('https://', 'https:'))) {
+                    await launch((await UpdateHelper.setupRemoteConfig())
                         .getString('DownloadLink')
-                        .replaceFirst('https://', 'https:'))) {
-                      await launch((await UpdateHelper.setupRemoteConfig())
-                          .getString('DownloadLink')
-                          .replaceFirst('https://', 'https:'));
-                    } else {
-                      Navigator.of(context).pop();
-                      await Clipboard.setData(ClipboardData(
-                          text: (await UpdateHelper.setupRemoteConfig())
-                              .getString('DownloadLink')));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                              'حدث خطأ أثناء فتح رابط التحديث وتم نقله الى الحافظة'),
-                        ),
-                      );
-                    }
-                  },
-                  child: Text(canCancel ? 'نعم' : 'تحديث'),),
+                        .replaceFirst('https://', 'https:'));
+                  } else {
+                    Navigator.of(context).pop();
+                    await Clipboard.setData(ClipboardData(
+                        text: (await UpdateHelper.setupRemoteConfig())
+                            .getString('DownloadLink')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                            'حدث خطأ أثناء فتح رابط التحديث وتم نقله الى الحافظة'),
+                      ),
+                    );
+                  }
+                },
+                child: Text(canCancel ? 'نعم' : 'تحديث'),
+              ),
             ],
           );
         },
@@ -93,34 +93,36 @@ class Updates {
                 : 'للأسف فإصدار البرنامج الحالي غير مدعوم\nيرجى تحديث البرنامج'),
             actions: <Widget>[
               TextButton(
-                  onPressed: () async {
-                    Navigator.of(context).pop();
-                    if (await canLaunch((await UpdateHelper.setupRemoteConfig())
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  if (await canLaunch((await UpdateHelper.setupRemoteConfig())
+                      .getString('DownloadLink')
+                      .replaceFirst('https://', 'https:'))) {
+                    await launch((await UpdateHelper.setupRemoteConfig())
                         .getString('DownloadLink')
-                        .replaceFirst('https://', 'https:'))) {
-                      await launch((await UpdateHelper.setupRemoteConfig())
-                          .getString('DownloadLink')
-                          .replaceFirst('https://', 'https:'));
-                    } else {
-                      Navigator.of(context).pop();
-                      await Clipboard.setData(ClipboardData(
-                          text: (await UpdateHelper.setupRemoteConfig())
-                              .getString('DownloadLink')));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                              'حدث خطأ أثناء فتح رابط التحديث وتم نقله الى الحافظة'),
-                        ),
-                      );
-                    }
-                  },
-                  child: Text(canCancel ? 'نعم' : 'تحديث'),),
+                        .replaceFirst('https://', 'https:'));
+                  } else {
+                    Navigator.of(context).pop();
+                    await Clipboard.setData(ClipboardData(
+                        text: (await UpdateHelper.setupRemoteConfig())
+                            .getString('DownloadLink')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                            'حدث خطأ أثناء فتح رابط التحديث وتم نقله الى الحافظة'),
+                      ),
+                    );
+                  }
+                },
+                child: Text(canCancel ? 'نعم' : 'تحديث'),
+              ),
               if (canCancel)
                 TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text('لا'),),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('لا'),
+                ),
             ],
           );
         },
