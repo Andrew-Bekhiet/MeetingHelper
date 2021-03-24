@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:rxdart/rxdart.dart';
 
+import 'models/list_options.dart';
 import 'models/mini_models.dart';
-import 'models/search_string.dart';
+import 'models/user.dart';
 import 'views/mini_lists/churches_list.dart';
 import 'views/mini_lists/fathers_list.dart';
 import 'views/mini_lists/schools_list.dart';
@@ -867,46 +868,63 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
 
 class _UsersPageState extends State<UsersPage> {
   bool _showSearch = false;
+  final BehaviorSubject<String> _search = BehaviorSubject<String>.seeded('');
 
   @override
   Widget build(BuildContext context) {
-    return ListenableProvider<SearchString>(
-      create: (_) => SearchString(''),
-      builder: (context, child) => Scaffold(
-        appBar: AppBar(
-          actions: [
+    var _listOptions = DataObjectListOptions<User>(
+      itemsStream: Stream.fromFuture(User.getUsersForEdit()),
+      searchQuery: _search,
+    );
+    return Scaffold(
+      appBar: AppBar(
+        actions: [
+          IconButton(
+              icon: Icon(Icons.link),
+              tooltip: 'لينكات الدعوة',
+              onPressed: () => Navigator.pushNamed(context, 'Invitations')),
+          if (!_showSearch)
             IconButton(
-                icon: Icon(Icons.link),
-                tooltip: 'لينكات الدعوة',
-                onPressed: () => Navigator.pushNamed(context, 'Invitations')),
-            if (!_showSearch)
-              IconButton(
-                  icon: Icon(Icons.search),
-                  onPressed: () => setState(() => _showSearch = true)),
-          ],
-          title: _showSearch
-              ? TextField(
-                  decoration: InputDecoration(
-                      suffixIcon: IconButton(
-                        icon: Icon(Icons.close),
-                        onPressed: () => setState(
-                          () {
-                            context.read<SearchString>().value = '';
-                            _showSearch = false;
-                          },
-                        ),
+                icon: Icon(Icons.search),
+                onPressed: () => setState(() => _showSearch = true)),
+        ],
+        title: _showSearch
+            ? TextField(
+                decoration: InputDecoration(
+                    suffixIcon: IconButton(
+                      icon: Icon(Icons.close),
+                      onPressed: () => setState(
+                        () {
+                          _search.add('');
+                          _showSearch = false;
+                        },
                       ),
-                      hintStyle: Theme.of(context).primaryTextTheme.headline6,
-                      hintText: 'بحث ...'),
-                  onChanged: (t) => context.read<SearchString>().value = t,
-                )
-              : Text('المستخدمون'),
+                    ),
+                    hintStyle: Theme.of(context).primaryTextTheme.headline6,
+                    hintText: 'بحث ...'),
+                onChanged: _search.add,
+              )
+            : Text('المستخدمون'),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        color: Theme.of(context).primaryColor,
+        shape: const CircularNotchedRectangle(),
+        child: StreamBuilder(
+          stream: _listOptions.objectsData,
+          builder: (context, snapshot) {
+            return Text(
+              (snapshot.data?.length ?? 0).toString() + ' مستخدم',
+              textAlign: TextAlign.center,
+              strutStyle: StrutStyle(height: IconTheme.of(context).size / 7.5),
+              style: Theme.of(context).primaryTextTheme.bodyText1,
+            );
+          },
         ),
-        body: Builder(
-          builder: (context) => Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: UsersEditList(),
-          ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: UsersList(
+          listOptions: _listOptions,
         ),
       ),
     );

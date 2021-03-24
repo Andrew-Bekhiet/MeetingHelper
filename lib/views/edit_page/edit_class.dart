@@ -9,16 +9,17 @@ import 'package:flutter/material.dart';
 import 'package:icon_shadow/icon_shadow.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:meetinghelper/models/list_options.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:tinycolor/tinycolor.dart';
 
 import '../../models/mini_models.dart';
 import '../../models/models.dart';
 import '../../models/search_filters.dart';
 import '../../models/user.dart';
-import '../list.dart';
 import '../mini_lists/colors_list.dart';
 import '../users_list.dart';
 
@@ -229,7 +230,7 @@ class _EditClassState extends State<EditClass> {
                             ),
                           );
                         } else {
-                          return Container();
+                          return Container(width: 1, height: 1);
                         }
                       },
                     ),
@@ -300,7 +301,7 @@ class _EditClassState extends State<EditClass> {
                               overflow: TextOverflow.fade),
                         );
                       }
-                      return Container();
+                      return Container(width: 1, height: 1);
                     },
                   ),
                 ],
@@ -468,6 +469,7 @@ class _EditClassState extends State<EditClass> {
   }
 
   void showUsers() async {
+    BehaviorSubject<String> searchStream = BehaviorSubject<String>.seeded('');
     classO.allowedUsers = await showDialog(
           context: context,
           builder: (context) {
@@ -476,16 +478,16 @@ class _EditClassState extends State<EditClass> {
               builder: (c, users) => users.hasData
                   ? MultiProvider(
                       providers: [
-                        ListenableProvider<SearchString>(
-                          create: (_) => SearchString(''),
-                        ),
-                        ListenableProvider(
-                            create: (_) => ListOptions<User>(
-                                documentsData:
-                                    Stream.fromFuture(User.getAllUsersLive())
-                                        .map((s) =>
-                                            s.docs.map(User.fromDoc).toList()),
-                                selected: users.data))
+                        Provider(
+                          create: (_) => DataObjectListOptions<User>(
+                              searchQuery: searchStream,
+                              itemsStream:
+                                  Stream.fromFuture(User.getAllUsersLive()).map(
+                                      (s) => s.docs.map(User.fromDoc).toList()),
+                              selected: {
+                                for (var item in users.data) item.uid: item
+                              }),
+                        )
                       ],
                       builder: (context, child) => AlertDialog(
                         actions: [
@@ -494,8 +496,9 @@ class _EditClassState extends State<EditClass> {
                               Navigator.pop(
                                   context,
                                   context
-                                      .read<ListOptions<User>>()
-                                      .selected
+                                      .read<DataObjectListOptions<User>>()
+                                      .selectedLatest
+                                      .values
                                       ?.map((f) => f.uid)
                                       ?.toList());
                             },
@@ -508,16 +511,11 @@ class _EditClassState extends State<EditClass> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               SearchField(
+                                  searchStream: searchStream,
                                   textStyle:
                                       Theme.of(context).textTheme.bodyText2),
                               Expanded(
-                                child: Selector<OrderOptions,
-                                    Tuple2<String, bool>>(
-                                  selector: (_, o) => Tuple2<String, bool>(
-                                      o.classOrderBy, o.classASC),
-                                  builder: (context, options, child) =>
-                                      UsersList(),
-                                ),
+                                child: UsersList(),
                               ),
                             ],
                           ),

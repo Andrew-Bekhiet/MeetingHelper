@@ -7,12 +7,10 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/list_options.dart';
-import 'package:meetinghelper/models/order_options.dart';
 import 'package:meetinghelper/models/search_filters.dart';
-import 'package:meetinghelper/models/search_string.dart';
 import 'package:meetinghelper/views/users_list.dart';
 import 'package:provider/provider.dart';
-import 'package:tuple/tuple.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../../models/mini_models.dart';
 import '../../models/user.dart';
@@ -148,7 +146,7 @@ class _EditUserState extends State<EditUser> {
                         ),
                       );
                     } else {
-                      return Container();
+                      return Container(width: 1, height: 1);
                     }
                   },
                 ),
@@ -396,6 +394,7 @@ class _EditUserState extends State<EditUser> {
   }
 
   void editAllowedUsers() async {
+    BehaviorSubject<String> searchStream = BehaviorSubject<String>.seeded('');
     widget.user.allowedUsers = await showDialog(
           context: context,
           builder: (context) {
@@ -404,14 +403,16 @@ class _EditUserState extends State<EditUser> {
               builder: (c, users) => users.hasData
                   ? MultiProvider(
                       providers: [
-                        ListenableProvider<SearchString>(
-                          create: (_) => SearchString(''),
-                        ),
-                        ListenableProvider(
-                            create: (_) => ListOptions<User>(
-                                documentsData: Stream.fromFuture(
-                                    User.getAllSemiManagers()),
-                                selected: users.data))
+                        Provider(
+                          create: (_) => DataObjectListOptions<User>(
+                            searchQuery: searchStream,
+                            itemsStream:
+                                Stream.fromFuture(User.getAllSemiManagers()),
+                            selected: {
+                              for (var item in users.data) item.uid: item
+                            },
+                          ),
+                        )
                       ],
                       builder: (context, child) => AlertDialog(
                         actions: [
@@ -420,8 +421,9 @@ class _EditUserState extends State<EditUser> {
                               Navigator.pop(
                                   context,
                                   context
-                                      .read<ListOptions<User>>()
-                                      .selected
+                                      .read<DataObjectListOptions<User>>()
+                                      .selectedLatest
+                                      .values
                                       ?.map((f) => f.uid)
                                       ?.toList());
                             },
@@ -434,16 +436,11 @@ class _EditUserState extends State<EditUser> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               SearchField(
+                                  searchStream: searchStream,
                                   textStyle:
                                       Theme.of(context).textTheme.bodyText2),
                               Expanded(
-                                child: Selector<OrderOptions,
-                                    Tuple2<String, bool>>(
-                                  selector: (_, o) => Tuple2<String, bool>(
-                                      o.classOrderBy, o.classASC),
-                                  builder: (context, options, child) =>
-                                      UsersList(),
-                                ),
+                                child: UsersList(),
                               ),
                             ],
                           ),

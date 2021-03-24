@@ -1,61 +1,17 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:meetinghelper/models/models.dart';
-import 'package:meetinghelper/models/super_classes.dart';
 
-class OrderOptions extends ChangeNotifier {
-  String classOrderBy = 'Name';
-  String personOrderBy = 'Name';
-  bool personASC = true;
-  bool classASC = true;
-
-  StreamController<bool> personSelectAll = StreamController.broadcast();
-  StreamController<bool> classSelectAll = StreamController.broadcast();
+@immutable
+class OrderOptions {
+  final String orderBy;
+  final bool asc;
 
   OrderOptions({
-    this.classASC,
-    this.personASC,
-    this.classOrderBy,
-    this.personOrderBy,
+    this.orderBy = 'Name',
+    this.asc = true,
   });
 
-  void setClassOrderBy(String orderBy) {
-    classOrderBy = orderBy;
-    notifyListeners();
-  }
-
-  void setPersonOrderBy(String orderBy) {
-    personOrderBy = orderBy;
-    notifyListeners();
-  }
-
-  void setPersonASC(bool asc) {
-    personASC = asc;
-    notifyListeners();
-  }
-
-  void setClassASC(bool asc) {
-    classASC = asc;
-    notifyListeners();
-  }
-
-  StreamController<bool> selectAllOf<T extends DataObject>() {
-    if (T == Class) return classSelectAll;
-    if (T == Person) return personSelectAll;
-    throw UnimplementedError();
-  }
-
   @override
-  void dispose() {
-    personSelectAll.close();
-    classSelectAll.close();
-    super.dispose();
-  }
-
-  @override
-  int get hashCode =>
-      hashValues(personOrderBy, personASC, classOrderBy, classASC);
+  int get hashCode => hashValues(orderBy, asc);
 
   @override
   bool operator ==(dynamic o) => o is OrderOptions && o.hashCode == hashCode;

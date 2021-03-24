@@ -20,10 +20,12 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:meetinghelper/models/list_options.dart';
 import 'package:meetinghelper/views/lists/lists.dart';
 import 'package:meetinghelper/views/services_list.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:spreadsheet_decoder/spreadsheet_decoder.dart';
 import 'package:timeago/timeago.dart';
 
@@ -32,7 +34,6 @@ import '../models/history_record.dart';
 import '../models/mini_models.dart';
 import '../models/models.dart';
 import '../models/person.dart';
-import '../models/search_filters.dart';
 import '../models/super_classes.dart';
 import '../models/theme_notifier.dart';
 import '../models/user.dart';
@@ -172,90 +173,54 @@ Future<dynamic> getLinkObject(Uri deepLink) async {
     } else if (deepLink.pathSegments[0] == 'viewQuery') {
       return QueryIcon();
     }
-  } catch (err, stkTrace) {
-    await FirebaseCrashlytics.instance
-        .setCustomKey('LastErrorIn', 'Helpers.getLinkObject');
-    await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-  }
+    // ignore: empty_catches
+  } catch (err) {}
   return null;
 }
 
-List<RadioListTile> getOrderingOptions(
-    BuildContext context, OrderOptions orderOptions, int index) {
-  if (index == 0) {
-    return Class.getHumanReadableMap2()
-        .entries
-        .map(
-          (e) => RadioListTile(
-            value: e.key,
-            groupValue: orderOptions.classOrderBy,
-            title: Text(e.value),
-            onChanged: (value) {
-              orderOptions.setClassOrderBy(value);
-              Navigator.pop(context);
-            },
-          ),
-        )
-        .toList()
-          ..addAll(
-            [
-              RadioListTile(
-                value: 'true',
-                groupValue: orderOptions.classASC.toString(),
-                title: Text('تصاعدي'),
-                onChanged: (value) {
-                  orderOptions.setClassASC(value == 'true');
-                  Navigator.pop(context);
-                },
-              ),
-              RadioListTile(
-                value: 'false',
-                groupValue: orderOptions.classASC.toString(),
-                title: Text('تنازلي'),
-                onChanged: (value) {
-                  orderOptions.setClassASC(value == 'true');
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          );
-  } else //if(_tabController.index == 1){
-    return Person.getHumanReadableMap2()
-        .entries
-        .map(
-          (e) => RadioListTile(
-            value: e.key,
-            groupValue: orderOptions.personOrderBy,
-            title: Text(e.value),
-            onChanged: (value) {
-              orderOptions.setPersonOrderBy(value);
-              Navigator.pop(context);
-            },
-          ),
-        )
-        .toList()
-          ..addAll(
-            [
-              RadioListTile(
-                value: 'true',
-                groupValue: orderOptions.personASC.toString(),
-                title: Text('تصاعدي'),
-                onChanged: (value) {
-                  orderOptions.setPersonASC(value == 'true');
-                  Navigator.pop(context);
-                },
-              ),
-              RadioListTile(
-                value: 'false',
-                groupValue: orderOptions.personASC.toString(),
-                title: Text('تنازلي'),
-                onChanged: (value) {
-                  orderOptions.setPersonASC(value == 'true');
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          );
+List<RadioListTile> getOrderingOptions(BuildContext context,
+    BehaviorSubject<OrderOptions> orderOptions, int index) {
+  return (index == 0
+          ? Class.getHumanReadableMap2()
+          : Person.getHumanReadableMap2())
+      .entries
+      .map(
+        (e) => RadioListTile(
+          value: e.key,
+          groupValue: orderOptions.value.orderBy,
+          title: Text(e.value),
+          onChanged: (value) {
+            orderOptions
+                .add(OrderOptions(orderBy: value, asc: orderOptions.value.asc));
+            Navigator.pop(context);
+          },
+        ),
+      )
+      .toList()
+        ..addAll(
+          [
+            RadioListTile(
+              value: 'true',
+              groupValue: orderOptions.value.asc.toString(),
+              title: Text('تصاعدي'),
+              onChanged: (value) {
+                orderOptions.add(OrderOptions(
+                    orderBy: orderOptions.value.orderBy, asc: value == 'true'));
+                Navigator.pop(context);
+              },
+            ),
+            RadioListTile(
+              value: 'false',
+              groupValue: orderOptions.value.asc.toString(),
+              title: Text('تنازلي'),
+              onChanged: (value) {
+                orderOptions.add(OrderOptions(
+                    orderBy: orderOptions.value.orderBy, asc: value == 'true'));
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
 }
 
 String getPhone(String phone, [bool whatsapp = true]) {
@@ -329,139 +294,6 @@ void import(BuildContext context) async {
   }
 }
 
-Future<void> importClass(
-    SpreadsheetDecoder decoder, Class _class, BuildContext context) async {
-  try {
-    var batchUpdate = FirebaseFirestore.instance.batch();
-    var batchCount = 1;
-    List<String> keys;
-
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('جار رفع البيانات ...'),
-        duration: Duration(minutes: 5),
-      ),
-    );
-
-    batchUpdate.set(_class.ref, _class.getMap());
-
-    var end = false;
-    for (var row in decoder.tables['Contacts'].rows) {
-      if (keys == null) {
-        keys = List<String>.from(row..removeAt(0));
-        continue;
-      }
-      if (batchCount % 500 == 0 && batchCount != 0) {
-        await batchUpdate.commit().catchError((onError) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(onError.toString()),
-              duration: Duration(seconds: 10),
-            ),
-          );
-        }).then((k) {
-          if (decoder.tables.values.elementAt(2).rows.indexOf(row) ==
-              decoder.tables.values.elementAt(2).rows.length - 1) {
-            end = true;
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                    'تم استيراد بيانات 1 فصل و ${decoder.tables['Contacts'].rows.length - 1} شخص'),
-                duration: Duration(seconds: 4),
-              ),
-            );
-          }
-        });
-        batchUpdate = FirebaseFirestore.instance.batch();
-      }
-      Map<String, dynamic> map =
-          Map.fromIterables(keys, List<dynamic>.from(row..removeAt(0)))
-              .map((key, value) {
-        if (value == null) return MapEntry(key, null);
-        if (key.contains('BirthDa')) {
-          return MapEntry(
-              key,
-              value != null
-                  ? Timestamp.fromMillisecondsSinceEpoch(
-                      int.parse(value.toString()))
-                  : null);
-        } else if (key.startsWith('Is') || key == 'HasPhoto') {
-          return MapEntry(key, value.toString() == 'true');
-        } else if (key == 'Church') {
-          return MapEntry(
-              key, FirebaseFirestore.instance.doc('${key}es/$value'));
-        } else if (key == 'School') {
-          return MapEntry(
-              key, FirebaseFirestore.instance.doc('${key}s/$value'));
-        } else if (key == 'CFather') {
-          return MapEntry(
-              key, FirebaseFirestore.instance.doc('Fathers/$value'));
-        } else if (key == 'Color') {
-          return MapEntry(
-              key, value != null ? int.parse(value.toString()) : null);
-        } else if (key.startsWith('Last')) {
-          return MapEntry(
-              key,
-              value != null
-                  ? Timestamp.fromMillisecondsSinceEpoch(
-                      int.parse(value.toString()))
-                  : null);
-        } else if (key == 'Location') {
-          return MapEntry(
-              key,
-              value != null && value != ''
-                  ? GeoPoint(double.parse(value.toString().split(',')[0]),
-                      double.parse(value.toString().split(',')[1]))
-                  : null);
-        }
-        return MapEntry(key, value.toString());
-      });
-      map['ClassId'] = _class.ref;
-      batchUpdate.set(
-          FirebaseFirestore.instance
-              .collection('Persons')
-              .doc(row[0] == '' ? null : row[0]),
-          map);
-      batchCount++;
-    }
-
-    if (!end) {
-      await batchUpdate.commit().catchError((onError) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(onError.toString()),
-            duration: Duration(seconds: 10),
-          ),
-        );
-      }).then((k) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'تم استيراد بيانات 1 فصل و ${decoder.tables['Contacts'].rows.length - 1} شخص'),
-            duration: Duration(seconds: 4),
-          ),
-        );
-      });
-    }
-  } on Exception catch (err, stkTrace) {
-    await FirebaseCrashlytics.instance
-        .setCustomKey('LastErrorIn', 'Helpers.importClass');
-    await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(err.toString()),
-        duration: Duration(seconds: 10),
-      ),
-    );
-  }
-}
-
 Future<void> onBackgroundMessage(RemoteMessage message) async {
   await Hive.initFlutter();
   await Hive.openBox<Map>('Notifications');
@@ -490,6 +322,58 @@ Future onNotificationClicked(String payload) {
     processClickedNotification(mainScfld.currentContext, payload);
   }
   return null;
+}
+
+Stream<Map<DocumentReference, Tuple2<Class, List<User>>>> usersByClassRef(
+    [List<User> users]) async* {
+  await for (var sys in FirebaseFirestore.instance
+      .collection('StudyYears')
+      .orderBy('Grade')
+      .snapshots()) {
+    Map<String, StudyYear> studyYears = {
+      for (var sy in sys.docs) sy.reference.id: StudyYear.fromDoc(sy)
+    };
+    mergeSort<User>(
+      users,
+      compare: (u, u2) {
+        if (u.servingStudyYear == null && u2.servingStudyYear == null) return 0;
+        if (u.servingStudyYear == null) return 1;
+        if (u2.servingStudyYear == null) return -1;
+        if (u.servingStudyYear == u2.servingStudyYear) {
+          if (u.servingStudyGender == u2.servingStudyGender)
+            return u.name.compareTo(u2.name);
+          return u.servingStudyGender?.compareTo(u.servingStudyGender) ?? 1;
+        }
+        return studyYears[u.servingStudyYear]
+            .grade
+            .compareTo(studyYears[u2.servingStudyYear].grade);
+      },
+    );
+
+    Map<User, Class> usersWithClasses = {
+      for (var u in users)
+        u: Class(
+            u.servingStudyYear != null && u.servingStudyGender != null
+                ? u.servingStudyYear + '-' + u.servingStudyGender.toString()
+                : 'unknown',
+            u.servingStudyYear != null && u.servingStudyGender != null
+                ? studyYears[u.servingStudyYear].name +
+                    ' - ' +
+                    (u.servingStudyGender ? 'بنين' : 'بنات')
+                : 'غير محدد',
+            [],
+            studyYears[u.servingStudyYear]?.ref,
+            u.servingStudyGender,
+            false)
+    };
+
+    yield {
+      for (var e
+          in groupBy<User, Class>(users, (user) => usersWithClasses[user])
+              .entries)
+        e.key.ref: Tuple2(e.key, e.value)
+    };
+  }
 }
 
 Stream<Map<DocumentReference, Tuple2<Class, List<Person>>>> personsByClassRef(
@@ -751,17 +635,17 @@ Future<void> processLink(Uri deepLink, BuildContext context) async {
 }
 
 Future<void> sendNotification(BuildContext context, dynamic attachement) async {
+  BehaviorSubject<String> search = BehaviorSubject<String>.seeded('');
   List<User> users = await showDialog(
     context: context,
     builder: (context) {
       return MultiProvider(
         providers: [
-          ListenableProvider<SearchString>(
-            create: (_) => SearchString(''),
-          ),
-          ListenableProvider(
-              create: (_) => ListOptions<User>(
-                  documentsData: Stream.fromFuture(User.getAllUsersLive())
+          Provider(
+              create: (_) => DataObjectListOptions<User>(
+                  selectionMode: true,
+                  searchQuery: search,
+                  itemsStream: Stream.fromFuture(User.getAllUsersLive())
                       .map((s) => s.docs.map(User.fromDoc).toList()))),
         ],
         builder: (context, child) => AlertDialog(
@@ -769,26 +653,19 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
             TextButton(
               onPressed: () {
                 Navigator.pop(
-                    context, context.read<ListOptions<User>>().selected);
+                    context,
+                    context
+                        .read<DataObjectListOptions<User>>()
+                        .selectedLatest
+                        .values
+                        .toList());
               },
               child: Text('تم'),
             )
           ],
           content: Container(
             width: 280,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SearchField(textStyle: Theme.of(context).textTheme.bodyText2),
-                Expanded(
-                  child: Selector<OrderOptions, Tuple2<String, bool>>(
-                    selector: (_, o) =>
-                        Tuple2<String, bool>(o.classOrderBy, o.classASC),
-                    builder: (context, options, child) => UsersList(),
-                  ),
-                ),
-              ],
-            ),
+            child: UsersList(),
           ),
         ),
       );
@@ -1034,15 +911,10 @@ void showBirthDayNotification() async {
 Future<List<Class>> selectClasses(
     BuildContext context, List<Class> classes) async {
   var _options = ServicesListOptions(
+      itemsStream: classesByStudyYearRef(),
       selectionMode: true,
-      tap: (current, _) {
-        if (classes.contains(current)) {
-          classes.remove(current);
-        } else {
-          classes.add(current);
-        }
-      })
-    ..selected = classes;
+      selected: classes,
+      searchQuery: Stream.value(''));
   if (await Navigator.push(
         context,
         MaterialPageRoute(
@@ -1061,7 +933,7 @@ Future<List<Class>> selectClasses(
         ),
       ) ==
       true) {
-    return _options.selected;
+    return _options.selectedLatest.values.toList();
   }
   return null;
 }

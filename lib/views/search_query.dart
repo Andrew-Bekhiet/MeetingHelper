@@ -3,14 +3,14 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
+import 'package:meetinghelper/models/list_options.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../models/mini_models.dart';
 import '../models/models.dart';
 import '../models/order_options.dart';
 import '../models/search_filters.dart';
-import '../models/search_string.dart';
 import '../models/user.dart';
 import '../utils/Helpers.dart';
 import '../utils/globals.dart';
@@ -534,7 +534,7 @@ class _SearchQueryState extends State<SearchQuery> {
         //             )),
         //       );
         //     } else
-        //       return Container();
+        //       return Container(width: 1, height: 1);
         //   },
         // ),
         Container(),
@@ -908,13 +908,14 @@ class _SearchQueryState extends State<SearchQuery> {
   }
 
   void execute() async {
-    var body;
+    DataObjectList body;
     String userId = auth.FirebaseAuth.instance.currentUser.uid;
     bool isAdmin = User.instance.superAccess;
     Query classes = FirebaseFirestore.instance.collection('Classes');
     Query streets = FirebaseFirestore.instance.collection('Streets');
     Query families = FirebaseFirestore.instance.collection('Families');
     Query persons = FirebaseFirestore.instance.collection('Persons');
+    var searchQuery = BehaviorSubject<String>.seeded('');
     if (!isAdmin) {
       classes = classes.where('Allowed', arrayContains: userId);
       streets = streets.where('ClassId',
@@ -946,9 +947,10 @@ class _SearchQueryState extends State<SearchQuery> {
       case 0:
         if (parentIndex == 0) {
           body = DataObjectList<Class>(
-            options: ListOptions<Class>(
+            options: DataObjectListOptions<Class>(
+              searchQuery: searchQuery,
               tap: (c) => classTap(c, context),
-              documentsData: classes
+              itemsStream: classes
                   .where(childItems[parentIndex][childIndex].value.value,
                       isEqualTo: queryValue,
                       isNull: queryValue == null ? true : null)
@@ -960,9 +962,10 @@ class _SearchQueryState extends State<SearchQuery> {
         }
         if (!birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
-              options: ListOptions<Person>(
+              options: DataObjectListOptions<Person>(
+            searchQuery: searchQuery,
             tap: (p) => personTap(p, context),
-            documentsData: persons
+            itemsStream: persons
                 .where('BirthDay',
                     isGreaterThanOrEqualTo: queryValue != null
                         ? Timestamp.fromDate(
@@ -983,9 +986,10 @@ class _SearchQueryState extends State<SearchQuery> {
           break;
         }
         body = DataObjectList<Person>(
-          options: ListOptions<Person>(
+          options: DataObjectListOptions<Person>(
+            searchQuery: searchQuery,
             tap: (p) => personTap(p, context),
-            documentsData: persons
+            itemsStream: persons
                 .where(childItems[parentIndex][childIndex].value.value,
                     isEqualTo: queryValue,
                     isNull: queryValue == null ? true : null)
@@ -997,9 +1001,10 @@ class _SearchQueryState extends State<SearchQuery> {
       case 1:
         if (parentIndex == 0) {
           body = DataObjectList<Class>(
-            options: ListOptions<Class>(
+            options: DataObjectListOptions<Class>(
+              searchQuery: searchQuery,
               tap: (c) => classTap(c, context),
-              documentsData: classes
+              itemsStream: classes
                   .where(childItems[parentIndex][childIndex].value.value,
                       arrayContains: queryValue)
                   .snapshots()
@@ -1010,9 +1015,10 @@ class _SearchQueryState extends State<SearchQuery> {
         }
         if (!birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
-            options: ListOptions<Person>(
+            options: DataObjectListOptions<Person>(
+              searchQuery: searchQuery,
               tap: (p) => personTap(p, context),
-              documentsData: persons
+              itemsStream: persons
                   .where('BirthDay',
                       arrayContains: queryValue != null
                           ? Timestamp.fromDate(DateTime(
@@ -1027,9 +1033,10 @@ class _SearchQueryState extends State<SearchQuery> {
           break;
         }
         body = DataObjectList<Person>(
-          options: ListOptions<Person>(
+          options: DataObjectListOptions<Person>(
+            searchQuery: searchQuery,
             tap: (p) => personTap(p, context),
-            documentsData: persons
+            itemsStream: persons
                 .where(childItems[parentIndex][childIndex].value.value,
                     arrayContains: queryValue)
                 .snapshots()
@@ -1040,9 +1047,10 @@ class _SearchQueryState extends State<SearchQuery> {
       case 2:
         if (parentIndex == 0) {
           body = DataObjectList<Class>(
-            options: ListOptions<Class>(
+            options: DataObjectListOptions<Class>(
+                searchQuery: searchQuery,
                 tap: (c) => classTap(c, context),
-                documentsData: classes
+                itemsStream: classes
                     .where(childItems[parentIndex][childIndex].value.value,
                         isGreaterThanOrEqualTo: queryValue)
                     .snapshots()
@@ -1052,9 +1060,10 @@ class _SearchQueryState extends State<SearchQuery> {
         }
         if (!birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
-            options: ListOptions<Person>(
+            options: DataObjectListOptions<Person>(
+              searchQuery: searchQuery,
               tap: (p) => personTap(p, context),
-              documentsData: persons
+              itemsStream: persons
                   .where('BirthDay',
                       isGreaterThanOrEqualTo: queryValue != null
                           ? Timestamp.fromDate(DateTime(
@@ -1069,9 +1078,10 @@ class _SearchQueryState extends State<SearchQuery> {
           break;
         }
         body = DataObjectList<Person>(
-          options: ListOptions<Person>(
+          options: DataObjectListOptions<Person>(
+            searchQuery: searchQuery,
             tap: (p) => personTap(p, context),
-            documentsData: persons
+            itemsStream: persons
                 .where(childItems[parentIndex][childIndex].value.value,
                     isGreaterThanOrEqualTo: queryValue)
                 .snapshots()
@@ -1082,9 +1092,10 @@ class _SearchQueryState extends State<SearchQuery> {
       case 3:
         if (parentIndex == 0) {
           body = DataObjectList<Class>(
-            options: ListOptions<Class>(
+            options: DataObjectListOptions<Class>(
+              searchQuery: searchQuery,
               tap: (c) => classTap(c, context),
-              documentsData: classes
+              itemsStream: classes
                   .where(childItems[parentIndex][childIndex].value.value,
                       isLessThanOrEqualTo: queryValue)
                   .snapshots()
@@ -1095,9 +1106,10 @@ class _SearchQueryState extends State<SearchQuery> {
         }
         if (!birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
-            options: ListOptions<Person>(
+            options: DataObjectListOptions<Person>(
+              searchQuery: searchQuery,
               tap: (p) => personTap(p, context),
-              documentsData: persons
+              itemsStream: persons
                   .where('BirthDay',
                       isLessThanOrEqualTo: queryValue != null
                           ? Timestamp.fromDate(DateTime(
@@ -1112,9 +1124,10 @@ class _SearchQueryState extends State<SearchQuery> {
           break;
         }
         body = DataObjectList<Person>(
-          options: ListOptions<Person>(
+          options: DataObjectListOptions<Person>(
+            searchQuery: searchQuery,
             tap: (p) => personTap(p, context),
-            documentsData: persons
+            itemsStream: persons
                 .where(childItems[parentIndex][childIndex].value.value,
                     isLessThanOrEqualTo: queryValue)
                 .snapshots()
@@ -1126,48 +1139,47 @@ class _SearchQueryState extends State<SearchQuery> {
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) {
-          return ListenableProvider<SearchString>(
-            create: (_) => SearchString(''),
-            builder: (context, child) => Scaffold(
-              appBar: AppBar(
-                actions: <Widget>[
-                  IconButton(
-                    icon: Icon(Icons.share),
-                    onPressed: () async {
-                      await Share.share(
-                        await shareQuery({
-                          'parentIndex': parentIndex.toString(),
-                          'childIndex': childIndex.toString(),
-                          'operatorIndex': operatorIndex.toString(),
-                          'queryValue': queryValue is DocumentReference
-                              ? 'D' + (queryValue as DocumentReference).path
-                              : (queryValue is Timestamp
-                                  ? 'T' +
-                                      (queryValue as Timestamp)
-                                          .millisecondsSinceEpoch
-                                          .toString()
-                                  : (queryValue is int
-                                      ? 'I' + queryValue.toString()
-                                      : 'S' + queryValue.toString())),
-                          'queryText': queryText,
-                          'birthDate': birthDate.toString(),
-                          'descending': descending.toString(),
-                          'orderBy': orderBy
-                        }),
-                      );
-                    },
-                    tooltip: 'مشاركة النتائج برابط',
-                  ),
-                ],
-                title: SearchFilters(parentIndex,
-                    textStyle: Theme.of(context).textTheme.headline6.copyWith(
-                        color: Theme.of(context)
-                            .primaryTextTheme
-                            .headline6
-                            .color)),
+          return Scaffold(
+            appBar: AppBar(
+              actions: <Widget>[
+                IconButton(
+                  icon: Icon(Icons.share),
+                  onPressed: () async {
+                    await Share.share(
+                      await shareQuery({
+                        'parentIndex': parentIndex.toString(),
+                        'childIndex': childIndex.toString(),
+                        'operatorIndex': operatorIndex.toString(),
+                        'queryValue': queryValue is DocumentReference
+                            ? 'D' + (queryValue as DocumentReference).path
+                            : (queryValue is Timestamp
+                                ? 'T' +
+                                    (queryValue as Timestamp)
+                                        .millisecondsSinceEpoch
+                                        .toString()
+                                : (queryValue is int
+                                    ? 'I' + queryValue.toString()
+                                    : 'S' + queryValue.toString())),
+                        'queryText': queryText,
+                        'birthDate': birthDate.toString(),
+                        'descending': descending.toString(),
+                        'orderBy': orderBy
+                      }),
+                    );
+                  },
+                  tooltip: 'مشاركة النتائج برابط',
+                ),
+              ],
+              title: SearchFilters(
+                parentIndex,
+                options: body.options,
+                searchStream: searchQuery,
+                textStyle: Theme.of(context).textTheme.headline6.copyWith(
+                    color: Theme.of(context).primaryTextTheme.headline6.color),
+                disableOrdering: true,
               ),
-              body: body,
             ),
+            body: body,
           );
         },
       ),
@@ -1303,40 +1315,47 @@ class _SearchQueryState extends State<SearchQuery> {
   }
 
   void _selectClass() async {
+    final BehaviorSubject<String> searchStream =
+        BehaviorSubject<String>.seeded('');
+    BehaviorSubject<OrderOptions> _orderOptions =
+        BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+    final _listOptions = DataObjectListOptions<Class>(
+      searchQuery: searchStream,
+      tap: (value) {
+        Navigator.of(context).pop();
+        setState(() {
+          queryValue =
+              FirebaseFirestore.instance.collection('Classes').doc(value.id);
+          queryText = value.name;
+        });
+      },
+      itemsStream: _orderOptions.flatMap(
+        (order) =>
+            Class.getAllForUser(orderBy: order.orderBy, descending: !order.asc)
+                .map(
+          (s) => s.docs.map(Class.fromDoc).toList(),
+        ),
+      ),
+    );
     await showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           content: Container(
             width: 280,
-            child: ListenableProvider<SearchString>(
-              create: (_) => SearchString(''),
-              builder: (context, child) => Column(
-                children: [
-                  SearchFilters(0,
-                      textStyle: Theme.of(context).textTheme.bodyText2),
-                  Expanded(
-                    child: DataObjectList<Class>(
-                      options: ListOptions<Class>(
-                          tap: (value) {
-                            Navigator.of(context).pop();
-                            setState(() {
-                              queryValue = FirebaseFirestore.instance
-                                  .collection('Classes')
-                                  .doc(value.id);
-                              queryText = value.name;
-                            });
-                          },
-                          documentsData: Class.getAllForUser(
-                                  orderBy:
-                                      context.read<OrderOptions>().classOrderBy,
-                                  descending:
-                                      !context.read<OrderOptions>().classASC)
-                              .map((s) => s.docs.map(Class.fromDoc).toList())),
-                    ),
+            child: Column(
+              children: [
+                SearchFilters(0,
+                    searchStream: searchStream,
+                    options: _listOptions,
+                    orderOptions: _orderOptions,
+                    textStyle: Theme.of(context).textTheme.bodyText2),
+                Expanded(
+                  child: DataObjectList<Class>(
+                    options: _listOptions,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         );

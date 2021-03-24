@@ -53,14 +53,15 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
                                 maxLines: 1, overflow: TextOverflow.ellipsis);
                           } else {
                             return LinearProgressIndicator(
-                                backgroundColor:
-                                    current.color != Colors.transparent
-                                        ? current.color
-                                        : null,
-                                valueColor: AlwaysStoppedAnimation(
-                                    current.color != Colors.transparent
-                                        ? current.color
-                                        : Theme.of(context).primaryColor));
+                              backgroundColor:
+                                  current.color != Colors.transparent
+                                      ? current.color
+                                      : null,
+                              valueColor: AlwaysStoppedAnimation(
+                                  current.color != Colors.transparent
+                                      ? current.color
+                                      : Theme.of(context).primaryColor),
+                            );
                           }
                         },
                       )

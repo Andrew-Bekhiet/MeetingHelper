@@ -7,11 +7,11 @@ import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/list_options.dart';
 import 'package:meetinghelper/models/search_filters.dart';
 import 'package:meetinghelper/models/user.dart';
-import 'package:meetinghelper/views/list.dart';
 import 'package:meetinghelper/views/services_list.dart';
 import 'package:meetinghelper/views/users_list.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:provider/provider.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../edit_page/edit_user.dart';
@@ -239,11 +239,14 @@ class _UserInfoState extends State<UserInfo> {
                       ),
                       Expanded(
                         child: ServicesList(
-                            options: ServicesListOptions(
-                                tap: classTap,
-                                documentsData: user.superAccess
-                                    ? classesByStudyYearRef()
-                                    : classesByStudyYearRefForUser(user.uid))),
+                          options: ServicesListOptions(
+                            searchQuery: Stream.value(''),
+                            tap: (c) => classTap(c, context),
+                            itemsStream: user.superAccess
+                                ? classesByStudyYearRef()
+                                : classesByStudyYearRefForUser(user.uid),
+                          ),
+                        ),
                       )
                     ],
                   ),
@@ -259,44 +262,45 @@ class _UserInfoState extends State<UserInfo> {
                 builder: (context) {
                   return FutureBuilder<List<User>>(
                     future: User.getUsers(user.allowedUsers),
-                    builder: (c, users) => users.hasData
-                        ? MultiProvider(
-                            providers: [
-                              ListenableProvider<SearchString>(
-                                create: (_) => SearchString(''),
-                              ),
-                              ListenableProvider(
-                                  create: (_) => ListOptions<User>(
-                                      documentsData: Stream.fromFuture(
-                                          User.getAllSemiManagers()),
-                                      selected: users.data))
-                            ],
-                            builder: (context, child) => AlertDialog(
-                              content: Container(
-                                width: 280,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    SearchField(
-                                        textStyle: Theme.of(context)
-                                            .textTheme
-                                            .bodyText2),
-                                    Expanded(
-                                      child: Selector<OrderOptions,
-                                          Tuple2<String, bool>>(
-                                        selector: (_, o) =>
-                                            Tuple2<String, bool>(
-                                                o.classOrderBy, o.classASC),
-                                        builder: (context, options, child) =>
-                                            UsersList(),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                    builder: (c, users) {
+                      if (users.hasData) {
+                        final BehaviorSubject<String> searchStream =
+                            BehaviorSubject<String>.seeded('');
+                        return MultiProvider(
+                          providers: [
+                            Provider(
+                              create: (_) => DataObjectListOptions<User>(
+                                searchQuery: searchStream,
+                                itemsStream: Stream.fromFuture(
+                                    User.getAllSemiManagers()),
+                                selected: {
+                                  for (var item in users.data) item.uid: item
+                                },
                               ),
                             ),
-                          )
-                        : Center(child: CircularProgressIndicator()),
+                          ],
+                          builder: (context, child) => AlertDialog(
+                            content: Container(
+                              width: 280,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SearchField(
+                                      searchStream: searchStream,
+                                      textStyle: Theme.of(context)
+                                          .textTheme
+                                          .bodyText2),
+                                  Expanded(
+                                    child: UsersList(),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                      return Center(child: CircularProgressIndicator());
+                    },
                   );
                 },
               ),

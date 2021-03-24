@@ -10,7 +10,6 @@ export 'package:meetinghelper/models/list_options.dart'
 import '../models/mini_models.dart';
 import '../models/models.dart';
 import '../utils/helpers.dart';
-import 'List.dart';
 
 class ServicesList extends StatefulWidget {
   final ServicesListOptions options;
@@ -30,8 +29,7 @@ class _ServicesListState extends State<ServicesList>
     super.build(context);
 
     return StreamBuilder<Map<StudyYear, List<Class>>>(
-      stream: widget.options.documentsData ??
-          classesByStudyYearRef().asBroadcastStream(),
+      stream: widget.options.objectsData,
       builder: (context, services) {
         if (services.hasError) return ErrorWidget(services.error);
         if (!services.hasData)
@@ -70,7 +68,7 @@ class _ServicesListState extends State<ServicesList>
         return Scaffold(
           extendBody: true,
           body: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12),
+            padding: EdgeInsets.symmetric(horizontal: 6),
             child: GroupListView(
               cacheExtent: 200,
               sectionsCount: groupedStudyYears.length,
@@ -98,163 +96,145 @@ class _ServicesListState extends State<ServicesList>
                     .elementAt(index.index);
                 if (services.data[element].length > 1)
                   return Padding(
-                    padding: EdgeInsets.only(right: 7),
+                    padding: const EdgeInsets.fromLTRB(3, 0, 9, 0),
                     child: ExpandablePanel(
-                        controller: _controllers[
-                                hashValues(index.index, index.section)] ??=
-                            ExpandableController(),
-                        header: Card(
-                          child: ListTile(
-                              onTap: () => _controllers[
-                                      hashValues(index.index, index.section)]
-                                  .toggle(),
-                              leading: Icon(Icons.miscellaneous_services),
-                              title: Text(element.name),
-                              trailing: widget.options.selectionMode
-                                  ? Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(Icons.arrow_drop_down),
-                                        Checkbox(
-                                          value: services.data[element]
-                                              .map((c) => widget
-                                                  .options.selected
-                                                  .contains(c))
-                                              .fold<bool>(
-                                                  true, (o, n) => o && n),
-                                          onChanged: (v) {
-                                            if (v) {
-                                              services.data[element].forEach(
-                                                  (c) => widget.options.selected
-                                                      .add(c));
-                                            } else {
-                                              services.data[element].forEach(
-                                                  (c) => widget.options.selected
-                                                      .remove(c));
-                                            }
-                                            setState(() {});
-                                          },
-                                        ),
-                                      ],
-                                    )
-                                  : Icon(Icons.arrow_drop_down)),
-                        ),
-                        expanded: Padding(
-                          padding: EdgeInsets.only(right: 7),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: services.data[element]
-                                .map(
-                                  (c) => DataObjectWidget<Class>(
-                                    c,
-                                    showSubTitle: false,
-                                    onTap: () {
-                                      if (!widget.options.selectionMode) {
-                                        widget.options.tap == null
-                                            ? dataObjectTap(c, context)
-                                            : widget.options.tap(c, context);
-                                      } else if (widget.options.selected
-                                          .contains(c)) {
-                                        setState(() {
-                                          widget.options.selected.remove(c);
-                                        });
-                                      } else {
-                                        setState(() {
-                                          widget.options.selected.add(c);
-                                        });
-                                      }
-                                    },
-                                    trailing: widget.options.selectionMode
-                                        ? Checkbox(
-                                            value: widget.options.selected
-                                                .contains(c),
-                                            onChanged: (v) {
-                                              setState(() {
-                                                if (v) {
-                                                  widget.options.selected
-                                                      .add(c);
-                                                } else {
-                                                  widget.options.selected
-                                                      .remove(c);
-                                                }
-                                              });
-                                            },
-                                          )
-                                        : null,
-                                  ),
-                                )
-                                .toList(),
+                      collapsed: Container(),
+                      controller: _controllers[
+                              hashValues(index.index, index.section)] ??=
+                          ExpandableController(),
+                      header: Card(
+                        child: ListTile(
+                          onTap: () => _controllers[
+                                  hashValues(index.index, index.section)]
+                              .toggle(),
+                          leading: Icon(Icons.miscellaneous_services),
+                          title: Text(element.name),
+                          trailing: StreamBuilder<Map<String, Class>>(
+                            stream: widget.options.selected,
+                            builder: (context, snapshot) {
+                              if (snapshot.hasData &&
+                                  widget.options.selectionModeLatest) {
+                                return Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.arrow_drop_down),
+                                    Checkbox(
+                                      value: services.data[element]
+                                          .map((c) =>
+                                              snapshot.data.containsKey(c.id))
+                                          .fold<bool>(true, (o, n) => o && n),
+                                      onChanged: (v) {
+                                        if (v) {
+                                          services.data[element].forEach(
+                                            (c) => widget.options.select(c),
+                                          );
+                                        } else {
+                                          services.data[element].forEach(
+                                            (c) => widget.options.deselect(c),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                );
+                              }
+                              return Icon(Icons.arrow_drop_down);
+                            },
                           ),
                         ),
-                        theme: ExpandableThemeData(
-                            tapHeaderToExpand: false,
-                            useInkWell: true,
-                            hasIcon: false)),
+                      ),
+                      expanded: Padding(
+                        padding: const EdgeInsets.fromLTRB(3, 0, 9, 0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: services.data[element]
+                              .map(
+                                (c) => DataObjectWidget<Class>(
+                                  c,
+                                  showSubTitle: false,
+                                  onTap: () {
+                                    if (!widget.options.selectionModeLatest) {
+                                      widget.options.tap == null
+                                          ? dataObjectTap(c, context)
+                                          : widget.options.tap(c);
+                                    } else {
+                                      widget.options.toggleSelected(c);
+                                    }
+                                  },
+                                  trailing: StreamBuilder<Map<String, Class>>(
+                                    stream: widget.options.selected,
+                                    builder: (context, snapshot) {
+                                      if (snapshot.hasData &&
+                                          widget.options.selectionModeLatest) {
+                                        return Checkbox(
+                                          value:
+                                              snapshot.data.containsKey(c.id),
+                                          onChanged: (v) {
+                                            if (v) {
+                                              widget.options.select(c);
+                                            } else {
+                                              widget.options.deselect(c);
+                                            }
+                                          },
+                                        );
+                                      }
+                                      return Container(width: 1, height: 1);
+                                    },
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      ),
+                      theme: ExpandableThemeData(
+                          tapHeaderToExpand: false,
+                          useInkWell: true,
+                          hasIcon: false),
+                    ),
                   );
                 else
                   return Padding(
-                    padding: EdgeInsets.only(right: 7),
+                    padding: const EdgeInsets.fromLTRB(3, 0, 9, 0),
                     child: DataObjectWidget<Class>(
                       services.data[element][0],
                       showSubTitle: false,
-                      trailing: widget.options.selectionMode
-                          ? Checkbox(
-                              value: widget.options.selected
-                                  .contains(services.data[element][0]),
+                      trailing: StreamBuilder<Map<String, Class>>(
+                        stream: widget.options.selected,
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData &&
+                              widget.options.selectionModeLatest) {
+                            return Checkbox(
+                              value: snapshot.data
+                                  .containsKey(services.data[element][0].id),
                               onChanged: (v) {
-                                setState(() {
-                                  if (v) {
-                                    widget.options.selected
-                                        .add(services.data[element][0]);
-                                  } else {
-                                    widget.options.selected
-                                        .remove(services.data[element][0]);
-                                  }
-                                });
+                                if (v) {
+                                  widget.options
+                                      .select(services.data[element][0]);
+                                } else {
+                                  widget.options
+                                      .deselect(services.data[element][0]);
+                                }
                               },
-                            )
-                          : null,
+                            );
+                          }
+                          return Container(width: 1, height: 1);
+                        },
+                      ),
                       onTap: () {
-                        if (!widget.options.selectionMode) {
+                        if (!widget.options.selectionModeLatest) {
                           widget.options.tap == null
                               ? dataObjectTap(
                                   services.data[element][0], context)
-                              : widget.options
-                                  .tap(services.data[element][0], context);
-                        } else if (widget.options.selected
-                            .contains(services.data[element][0])) {
-                          setState(() {
-                            widget.options.selected
-                                .remove(services.data[element][0]);
-                          });
+                              : widget.options.tap(services.data[element][0]);
                         } else {
-                          setState(() {
-                            widget.options.selected
-                                .add(services.data[element][0]);
-                          });
+                          widget.options
+                              .toggleSelected(services.data[element][0]);
                         }
                       },
                     ),
                   );
               },
             ),
-          ),
-          floatingActionButtonLocation: widget.options.hasNotch
-              ? FloatingActionButtonLocation.endDocked
-              : null,
-          floatingActionButton: widget.options.floatingActionButton,
-          bottomNavigationBar: BottomAppBar(
-            color: Theme.of(context).primaryColor,
-            shape: widget.options.hasNotch
-                ? widget.options.doubleActionButton
-                    ? const DoubleCircularNotchedButton()
-                    : const CircularNotchedRectangle()
-                : null,
-            child: Text((services.data?.length ?? 0).toString() + ' خدمة',
-                textAlign: TextAlign.center,
-                strutStyle:
-                    StrutStyle(height: IconTheme.of(context).size / 7.5),
-                style: Theme.of(context).primaryTextTheme.bodyText1),
           ),
         );
       },
