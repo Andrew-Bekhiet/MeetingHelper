@@ -4,7 +4,7 @@ description: null
 # The following line prevents the package from being accidentally published to
 # pub.dev using `pub publish`. This is preferred for private packages.
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
-version: 4.0.1+4
+version: 5.0.0+5
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
@@ -16,7 +16,10 @@ dependencies:
     sdk: flutter
   android_alarm_manager_plus: ^1.0.0
   animations: ^2.0.0
-  battery_optimization: ^0.1.0
+  battery_optimization:
+    git:
+      url: git://github.com/ChangJoo-Park/battery_optimization.git
+      ref: master
   cached_network_image: ^3.0.0-nullsafety
   cloud_firestore: ^1.0.1
   cloud_functions: ^1.0.0
@@ -25,8 +28,11 @@ dependencies:
   cupertino_icons: ^1.0.2
   datetime_picker_formfield: ^2.0.0
   device_info_plus: ^1.0.0
-  expandable: ^4.1.4
-  feature_discovery: ^0.13.0+2
+  expandable: ^5.0.1
+  feature_discovery:
+    git:
+      url: git://github.com/nilsreichardt/feature_discovery
+      ref: migrate-null-safety
   file_picker: ^3.0.0-nullsafety.4
   firebase_analytics: ^7.1.1
   firebase_auth: ^1.0.1
@@ -39,7 +45,7 @@ dependencies:
   firebase_remote_config: ^0.9.0-dev.0
   firebase_storage: ^8.0.0
   flutter_colorpicker: ^0.4.0-nullsafety.0
-  flutter_contacts: ^0.3.3
+  flutter_contacts: ^0.3.3+1
   flutter_local_notifications: ^5.0.0-nullsafety.0
   flutter_riverpod: ^0.13.1
   flutter_secure_storage: ^4.1.0
@@ -67,7 +73,10 @@ dependencies:
   spreadsheet_decoder: ^2.0.0
   syncfusion_flutter_charts: ^18.4.48
   timeago: ^3.0.2
-  tinycolor: ^1.0.3
+  tinycolor:
+    git:
+      url: git://github.com/lslv1243/tinycolor.git
+      ref: master
   tuple: ^2.0.0-nullsafety.0
   url_launcher: ^6.0.2
   version: ^2.0.0-nullsafety
