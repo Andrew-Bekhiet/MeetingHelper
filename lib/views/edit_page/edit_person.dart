@@ -10,14 +10,13 @@ import 'package:icon_shadow/icon_shadow.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:meetinghelper/models/user.dart';
-import 'package:meetinghelper/views/list.dart';
-import 'package:meetinghelper/models/list_options.dart';
 import 'package:meetinghelper/models/order_options.dart';
+import 'package:meetinghelper/models/user.dart';
+import 'package:meetinghelper/utils/helpers.dart';
+import 'package:meetinghelper/models/list_options.dart';
 import 'package:meetinghelper/models/search_filters.dart';
-import 'package:meetinghelper/models/search_string.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:provider/provider.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:tinycolor/tinycolor.dart';
 
 import '../../views/mini_lists/colors_list.dart';
@@ -33,30 +32,6 @@ class EditPerson extends StatefulWidget {
 }
 
 class _EditPersonState extends State<EditPerson> {
-  List<FocusNode> foci = [
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-  ];
-
   Map<String, dynamic> old;
   String changedImage;
   bool deletePhoto = false;
@@ -156,14 +131,18 @@ class _EditPersonState extends State<EditPerson> {
                     opacity: constraints.biggest.height > kToolbarHeight * 1.7
                         ? 0
                         : 1,
-                    child: Text(person.name,
-                        style: TextStyle(
-                          fontSize: 16.0,
-                        )),
+                    child: Text(
+                      person.name,
+                      style: TextStyle(
+                        fontSize: 16.0,
+                      ),
+                    ),
                   ),
                   background: changedImage == null
                       ? person.photo()
-                      : Image.file(File(changedImage)),
+                      : Image.file(
+                          File(changedImage),
+                        ),
                 ),
               ),
             ),
@@ -182,16 +161,17 @@ class _EditPersonState extends State<EditPerson> {
                     padding: EdgeInsets.symmetric(vertical: 4.0),
                     child: TextFormField(
                       decoration: InputDecoration(
-                          labelText: 'الاسم',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
-                          )),
-                      focusNode: foci[0],
+                        labelText: 'الاسم',
+                        border: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Theme.of(context).primaryColor),
+                        ),
+                      ),
                       textInputAction: TextInputAction.next,
                       initialValue: person.name,
                       onChanged: _nameChanged,
-                      onFieldSubmitted: (_) => foci[1].requestFocus(),
+                      onFieldSubmitted: (_) =>
+                          FocusScope.of(context).nextFocus(),
                       validator: (value) {
                         if (value.isEmpty) {
                           return 'هذا الحقل مطلوب';
@@ -204,19 +184,18 @@ class _EditPersonState extends State<EditPerson> {
                     padding: EdgeInsets.symmetric(vertical: 4.0),
                     child: TextFormField(
                       decoration: InputDecoration(
-                          labelText: 'موبايل (شخصي)',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
-                          )),
-                      focusNode: foci[1],
+                        labelText: 'موبايل (شخصي)',
+                        border: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Theme.of(context).primaryColor),
+                        ),
+                      ),
                       keyboardType: TextInputType.phone,
                       textInputAction: TextInputAction.next,
                       initialValue: person.phone,
                       onChanged: _phoneChanged,
-                      onFieldSubmitted: (_) {
-                        foci[2].requestFocus();
-                      },
+                      onFieldSubmitted: (_) =>
+                          FocusScope.of(context).nextFocus(),
                       validator: (value) {
                         return null;
                       },
@@ -226,19 +205,18 @@ class _EditPersonState extends State<EditPerson> {
                     padding: EdgeInsets.symmetric(vertical: 4.0),
                     child: TextFormField(
                       decoration: InputDecoration(
-                          labelText: 'موبايل الأب',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
-                          )),
-                      focusNode: foci[2],
+                        labelText: 'موبايل الأب',
+                        border: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Theme.of(context).primaryColor),
+                        ),
+                      ),
                       keyboardType: TextInputType.phone,
                       textInputAction: TextInputAction.next,
                       initialValue: person.fatherPhone,
                       onChanged: _fatherPhoneChanged,
-                      onFieldSubmitted: (_) {
-                        foci[3].requestFocus();
-                      },
+                      onFieldSubmitted: (_) =>
+                          FocusScope.of(context).nextFocus(),
                       validator: (value) {
                         return null;
                       },
@@ -248,19 +226,18 @@ class _EditPersonState extends State<EditPerson> {
                     padding: EdgeInsets.symmetric(vertical: 4.0),
                     child: TextFormField(
                       decoration: InputDecoration(
-                          labelText: 'موبايل الأم',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
-                          )),
-                      focusNode: foci[3],
+                        labelText: 'موبايل الأم',
+                        border: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Theme.of(context).primaryColor),
+                        ),
+                      ),
                       keyboardType: TextInputType.phone,
                       textInputAction: TextInputAction.next,
                       initialValue: person.motherPhone,
                       onChanged: _motherPhoneChanged,
-                      onFieldSubmitted: (_) {
-                        foci[4].requestFocus();
-                      },
+                      onFieldSubmitted: (_) =>
+                          FocusScope.of(context).nextFocus(),
                       validator: (value) {
                         return null;
                       },
@@ -282,20 +259,21 @@ class _EditPersonState extends State<EditPerson> {
                                 var rslt = await showDialog(
                                   context: context,
                                   builder: (context) => AlertDialog(
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context, name.text),
-                                          child: Text('حفظ'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context, 'delete'),
-                                          child: Text('حذف'),
-                                        ),
-                                      ],
-                                      title: Text('اسم الهاتف'),
-                                      content: TextField(controller: name)),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, name.text),
+                                        child: Text('حفظ'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, 'delete'),
+                                        child: Text('حذف'),
+                                      ),
+                                    ],
+                                    title: Text('اسم الهاتف'),
+                                    content: TextField(controller: name),
+                                  ),
                                 );
                                 if (rslt == 'delete') {
                                   person.phones.remove(e.key);
@@ -331,15 +309,16 @@ class _EditPersonState extends State<EditPerson> {
                       if (await showDialog(
                             context: context,
                             builder: (context) => AlertDialog(
-                                actions: [
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.pop(context, name.text),
-                                    child: Text('حفظ'),
-                                  )
-                                ],
-                                title: Text('اسم الهاتف'),
-                                content: TextField(controller: name)),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, name.text),
+                                  child: Text('حفظ'),
+                                )
+                              ],
+                              title: Text('اسم الهاتف'),
+                              content: TextField(controller: name),
+                            ),
                           ) !=
                           null) setState(() => person.phones[name.text] = '');
                     },
@@ -354,21 +333,20 @@ class _EditPersonState extends State<EditPerson> {
                         child: Container(
                           padding: EdgeInsets.symmetric(vertical: 4.0),
                           child: Focus(
-                            focusNode: foci[4],
                             child: GestureDetector(
-                              onTap: () async => person.birthDate =
-                                  await _selectDate(
-                                      'تاريخ الميلاد',
-                                      person.birthDate?.toDate() ??
-                                          DateTime.now()),
+                              onTap: () async =>
+                                  person.birthDate = await _selectDate(
+                                'تاريخ الميلاد',
+                                person.birthDate?.toDate() ?? DateTime.now(),
+                              ),
                               child: InputDecorator(
                                 decoration: InputDecoration(
-                                    labelText: 'تاريخ الميلاد',
-                                    border: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color:
-                                              Theme.of(context).primaryColor),
-                                    )),
+                                  labelText: 'تاريخ الميلاد',
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Theme.of(context).primaryColor),
+                                  ),
+                                ),
                                 child: person.birthDate != null
                                     ? Text(DateFormat('yyyy/M/d')
                                         .format(person.birthDate.toDate()))
@@ -381,11 +359,12 @@ class _EditPersonState extends State<EditPerson> {
                       Flexible(
                         flex: 2,
                         child: TextButton.icon(
-                            icon: Icon(Icons.close),
-                            onPressed: () => setState(() {
-                                  person.birthDate = null;
-                                }),
-                            label: Text('حذف التاريخ')),
+                          icon: Icon(Icons.close),
+                          onPressed: () => setState(() {
+                            person.birthDate = null;
+                          }),
+                          label: Text('حذف التاريخ'),
+                        ),
                       ),
                     ],
                   ),
@@ -394,18 +373,17 @@ class _EditPersonState extends State<EditPerson> {
                     child: TextFormField(
                       maxLines: null,
                       decoration: InputDecoration(
-                          labelText: 'العنوان',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
-                          )),
-                      focusNode: foci[5],
+                        labelText: 'العنوان',
+                        border: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Theme.of(context).primaryColor),
+                        ),
+                      ),
                       textInputAction: TextInputAction.newline,
                       initialValue: person.address,
                       onChanged: _addressChanged,
-                      onFieldSubmitted: (_) {
-                        foci[6].requestFocus();
-                      },
+                      onFieldSubmitted: (_) =>
+                          FocusScope.of(context).nextFocus(),
                       validator: (value) {
                         return null;
                       },
@@ -454,52 +432,48 @@ class _EditPersonState extends State<EditPerson> {
                   Row(
                     children: <Widget>[
                       Expanded(
-                        child: Focus(
-                          focusNode: foci[6],
-                          child: FutureBuilder<QuerySnapshot>(
-                            future: School.getAllForUser(),
-                            builder: (context, data) {
-                              if (data.hasData) {
-                                return Container(
-                                  padding: EdgeInsets.symmetric(vertical: 4.0),
-                                  child: DropdownButtonFormField(
-                                    value: person.school?.path,
-                                    items: data.data.docs
-                                        .map(
-                                          (item) => DropdownMenuItem(
-                                            value: item.reference.path,
-                                            child: Text(item.data()['Name']),
+                        child: FutureBuilder<QuerySnapshot>(
+                          future: School.getAllForUser(),
+                          builder: (context, data) {
+                            if (data.hasData) {
+                              return Container(
+                                padding: EdgeInsets.symmetric(vertical: 4.0),
+                                child: DropdownButtonFormField(
+                                  value: person.school?.path,
+                                  items: data.data.docs
+                                      .map(
+                                        (item) => DropdownMenuItem(
+                                          value: item.reference.path,
+                                          child: Text(item.data()['Name']),
+                                        ),
+                                      )
+                                      .toList()
+                                        ..insert(
+                                          0,
+                                          DropdownMenuItem(
+                                            value: null,
+                                            child: Text(''),
                                           ),
-                                        )
-                                        .toList()
-                                          ..insert(
-                                            0,
-                                            DropdownMenuItem(
-                                              value: null,
-                                              child: Text(''),
-                                            ),
-                                          ),
-                                    onChanged: (value) {
-                                      person.school = value != null
-                                          ? FirebaseFirestore.instance
-                                              .doc(value)
-                                          : null;
-                                      foci[7].requestFocus();
-                                    },
-                                    decoration: InputDecoration(
-                                        labelText: 'المدرسة',
-                                        border: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Theme.of(context)
-                                                  .primaryColor),
-                                        )),
+                                        ),
+                                  onChanged: (value) {
+                                    person.school = value != null
+                                        ? FirebaseFirestore.instance.doc(value)
+                                        : null;
+                                    FocusScope.of(context).nextFocus();
+                                  },
+                                  decoration: InputDecoration(
+                                    labelText: 'المدرسة',
+                                    border: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color:
+                                              Theme.of(context).primaryColor),
+                                    ),
                                   ),
-                                );
-                              } else {
-                                return Container();
-                              }
-                            },
-                          ),
+                                ),
+                              );
+                            }
+                            return Container(width: 1, height: 1);
+                          },
                         ),
                       ),
                       TextButton.icon(
@@ -519,76 +493,14 @@ class _EditPersonState extends State<EditPerson> {
                     mainAxisSize: MainAxisSize.max,
                     children: <Widget>[
                       Expanded(
-                        child: Focus(
-                          focusNode: foci[7],
-                          child: FutureBuilder<QuerySnapshot>(
-                            future: Church.getAllForUser(),
-                            builder: (context, data) {
-                              if (data.hasData) {
-                                return Container(
-                                  padding: EdgeInsets.symmetric(vertical: 4.0),
-                                  child: DropdownButtonFormField(
-                                    value: person.church?.path,
-                                    items: data.data.docs
-                                        .map(
-                                          (item) => DropdownMenuItem(
-                                            value: item.reference.path,
-                                            child: Text(item.data()['Name']),
-                                          ),
-                                        )
-                                        .toList()
-                                          ..insert(
-                                            0,
-                                            DropdownMenuItem(
-                                              value: null,
-                                              child: Text(''),
-                                            ),
-                                          ),
-                                    onChanged: (value) {
-                                      person.church = value != null
-                                          ? FirebaseFirestore.instance
-                                              .doc(value)
-                                          : null;
-                                      foci[8].requestFocus();
-                                    },
-                                    decoration: InputDecoration(
-                                        labelText: 'الكنيسة',
-                                        border: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Theme.of(context)
-                                                  .primaryColor),
-                                        )),
-                                  ),
-                                );
-                              } else {
-                                return Container();
-                              }
-                            },
-                          ),
-                        ),
-                      ),
-                      TextButton.icon(
-                        icon: Icon(Icons.add),
-                        label: Text('اضافة'),
-                        onPressed: () async {
-                          await Navigator.of(context)
-                              .pushNamed('Settings/Churches');
-                          setState(() {});
-                        },
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Focus(
-                          focusNode: foci[10],
-                          child: FutureBuilder<QuerySnapshot>(
-                            future: Father.getAllForUser(),
-                            builder: (context, data) {
-                              if (data.hasData) {
-                                return DropdownButtonFormField(
-                                  value: person.cFather?.path,
+                        child: FutureBuilder<QuerySnapshot>(
+                          future: Church.getAllForUser(),
+                          builder: (context, data) {
+                            if (data.hasData) {
+                              return Container(
+                                padding: EdgeInsets.symmetric(vertical: 4.0),
+                                child: DropdownButtonFormField(
+                                  value: person.church?.path,
                                   items: data.data.docs
                                       .map(
                                         (item) => DropdownMenuItem(
@@ -605,25 +517,81 @@ class _EditPersonState extends State<EditPerson> {
                                           ),
                                         ),
                                   onChanged: (value) {
-                                    person.cFather = value != null
+                                    person.church = value != null
                                         ? FirebaseFirestore.instance.doc(value)
                                         : null;
-                                    foci[11].requestFocus();
-                                    _selectClass();
+                                    FocusScope.of(context).nextFocus();
                                   },
                                   decoration: InputDecoration(
-                                      labelText: 'أب الاعتراف',
-                                      border: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color:
-                                                Theme.of(context).primaryColor),
-                                      )),
-                                );
-                              } else {
-                                return Container();
-                              }
-                            },
-                          ),
+                                    labelText: 'الكنيسة',
+                                    border: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color:
+                                              Theme.of(context).primaryColor),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            } else {
+                              return Container(width: 1, height: 1);
+                            }
+                          },
+                        ),
+                      ),
+                      TextButton.icon(
+                        icon: Icon(Icons.add),
+                        label: Text('اضافة'),
+                        onPressed: () async {
+                          await Navigator.of(context)
+                              .pushNamed('Settings/Churches');
+                          setState(() {});
+                        },
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: FutureBuilder<QuerySnapshot>(
+                          future: Father.getAllForUser(),
+                          builder: (context, data) {
+                            if (data.hasData) {
+                              return DropdownButtonFormField(
+                                value: person.cFather?.path,
+                                items: data.data.docs
+                                    .map(
+                                      (item) => DropdownMenuItem(
+                                        value: item.reference.path,
+                                        child: Text(item.data()['Name']),
+                                      ),
+                                    )
+                                    .toList()
+                                      ..insert(
+                                        0,
+                                        DropdownMenuItem(
+                                          value: null,
+                                          child: Text(''),
+                                        ),
+                                      ),
+                                onChanged: (value) {
+                                  person.cFather = value != null
+                                      ? FirebaseFirestore.instance.doc(value)
+                                      : null;
+                                  FocusScope.of(context).nextFocus();
+                                  _selectClass();
+                                },
+                                decoration: InputDecoration(
+                                  labelText: 'أب الاعتراف',
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Theme.of(context).primaryColor),
+                                  ),
+                                ),
+                              );
+                            } else {
+                              return Container(width: 1, height: 1);
+                            }
+                          },
                         ),
                       ),
                       TextButton.icon(
@@ -638,33 +606,34 @@ class _EditPersonState extends State<EditPerson> {
                     ],
                   ),
                   Focus(
-                    focusNode: foci[11],
                     child: GestureDetector(
                       onTap: _selectClass,
                       child: Container(
                         padding: EdgeInsets.symmetric(vertical: 4.0),
                         child: InputDecorator(
                           decoration: InputDecoration(
-                              labelText: 'داخل فصل',
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Theme.of(context).primaryColor),
-                              )),
+                            labelText: 'داخل فصل',
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).primaryColor),
+                            ),
+                          ),
                           child: FutureBuilder(
-                              future: person.classId == null
-                                  ? null
-                                  : person.getClassName(),
-                              builder: (con, data) {
-                                if (data.connectionState ==
-                                    ConnectionState.done) {
-                                  return Text(data.data);
-                                } else if (data.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return LinearProgressIndicator();
-                                } else {
-                                  return Text('');
-                                }
-                              }),
+                            future: person.classId == null
+                                ? null
+                                : person.getClassName(),
+                            builder: (con, data) {
+                              if (data.connectionState ==
+                                  ConnectionState.done) {
+                                return Text(data.data);
+                              } else if (data.connectionState ==
+                                  ConnectionState.waiting) {
+                                return LinearProgressIndicator();
+                              } else {
+                                return Text('');
+                              }
+                            },
+                          ),
                         ),
                       ),
                     ),
@@ -679,21 +648,20 @@ class _EditPersonState extends State<EditPerson> {
                         child: Container(
                           padding: EdgeInsets.symmetric(vertical: 4.0),
                           child: Focus(
-                            focusNode: foci[12],
                             child: GestureDetector(
-                              onTap: () async => person.lastTanawol =
-                                  await _selectDate(
-                                      'تاريخ أخر تناول',
-                                      person.lastTanawol?.toDate() ??
-                                          DateTime.now()),
+                              onTap: () async =>
+                                  person.lastTanawol = await _selectDate(
+                                'تاريخ أخر تناول',
+                                person.lastTanawol?.toDate() ?? DateTime.now(),
+                              ),
                               child: InputDecorator(
                                 decoration: InputDecoration(
-                                    labelText: 'تاريخ أخر تناول',
-                                    border: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color:
-                                              Theme.of(context).primaryColor),
-                                    )),
+                                  labelText: 'تاريخ أخر تناول',
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Theme.of(context).primaryColor),
+                                  ),
+                                ),
                                 child: person.lastTanawol != null
                                     ? Text(DateFormat('yyyy/M/d')
                                         .format(person.lastTanawol.toDate()))
@@ -715,21 +683,21 @@ class _EditPersonState extends State<EditPerson> {
                         child: Container(
                           padding: EdgeInsets.symmetric(vertical: 4.0),
                           child: Focus(
-                            focusNode: foci[13],
                             child: GestureDetector(
-                              onTap: () async => person.lastConfession =
-                                  await _selectDate(
-                                      'تاريخ أخر اعتراف',
-                                      person.lastConfession?.toDate() ??
-                                          DateTime.now()),
+                              onTap: () async =>
+                                  person.lastConfession = await _selectDate(
+                                'تاريخ أخر اعتراف',
+                                person.lastConfession?.toDate() ??
+                                    DateTime.now(),
+                              ),
                               child: InputDecorator(
                                 decoration: InputDecoration(
-                                    labelText: 'تاريخ أخر اعتراف',
-                                    border: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color:
-                                              Theme.of(context).primaryColor),
-                                    )),
+                                  labelText: 'تاريخ أخر اعتراف',
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Theme.of(context).primaryColor),
+                                  ),
+                                ),
                                 child: person.lastConfession != null
                                     ? Text(DateFormat('yyyy/M/d')
                                         .format(person.lastConfession.toDate()))
@@ -751,21 +719,20 @@ class _EditPersonState extends State<EditPerson> {
                         child: Container(
                           padding: EdgeInsets.symmetric(vertical: 4.0),
                           child: Focus(
-                            focusNode: foci[14],
                             child: GestureDetector(
-                              onTap: () async => person.lastKodas =
-                                  await _selectDate(
-                                      'تاريخ حضور أخر قداس',
-                                      person.lastKodas?.toDate() ??
-                                          DateTime.now()),
+                              onTap: () async =>
+                                  person.lastKodas = await _selectDate(
+                                'تاريخ حضور أخر قداس',
+                                person.lastKodas?.toDate() ?? DateTime.now(),
+                              ),
                               child: InputDecorator(
                                 decoration: InputDecoration(
-                                    labelText: 'تاريخ حضور أخر قداس',
-                                    border: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color:
-                                              Theme.of(context).primaryColor),
-                                    )),
+                                  labelText: 'تاريخ حضور أخر قداس',
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Theme.of(context).primaryColor),
+                                  ),
+                                ),
                                 child: person.lastKodas != null
                                     ? Text(DateFormat('yyyy/M/d')
                                         .format(person.lastKodas.toDate()))
@@ -787,21 +754,20 @@ class _EditPersonState extends State<EditPerson> {
                         child: Container(
                           padding: EdgeInsets.symmetric(vertical: 4.0),
                           child: Focus(
-                            focusNode: foci[15],
                             child: GestureDetector(
-                              onTap: () async => person.lastMeeting =
-                                  await _selectDate(
-                                      'تاريخ حضور أخر اجتماع',
-                                      person.lastMeeting?.toDate() ??
-                                          DateTime.now()),
+                              onTap: () async =>
+                                  person.lastMeeting = await _selectDate(
+                                'تاريخ حضور أخر اجتماع',
+                                person.lastMeeting?.toDate() ?? DateTime.now(),
+                              ),
                               child: InputDecorator(
                                 decoration: InputDecoration(
-                                    labelText: 'تاريخ حضور أخر اجتماع',
-                                    border: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color:
-                                              Theme.of(context).primaryColor),
-                                    )),
+                                  labelText: 'تاريخ حضور أخر اجتماع',
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Theme.of(context).primaryColor),
+                                  ),
+                                ),
                                 child: person.lastMeeting != null
                                     ? Text(DateFormat('yyyy/M/d')
                                         .format(person.lastMeeting.toDate()))
@@ -816,18 +782,19 @@ class _EditPersonState extends State<EditPerson> {
                   Container(
                     padding: EdgeInsets.symmetric(vertical: 4.0),
                     child: Focus(
-                      focusNode: foci[16],
                       child: GestureDetector(
                         onTap: () async => person.lastVisit = await _selectDate(
-                            'تاريخ أخر زيارة',
-                            person.lastVisit?.toDate() ?? DateTime.now()),
+                          'تاريخ أخر زيارة',
+                          person.lastVisit?.toDate() ?? DateTime.now(),
+                        ),
                         child: InputDecorator(
                           decoration: InputDecoration(
-                              labelText: 'تاريخ أخر زيارة',
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Theme.of(context).primaryColor),
-                              )),
+                            labelText: 'تاريخ أخر زيارة',
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).primaryColor),
+                            ),
+                          ),
                           child: person.lastVisit != null
                               ? Text(DateFormat('yyyy/M/d')
                                   .format(person.lastVisit.toDate()))
@@ -841,15 +808,17 @@ class _EditPersonState extends State<EditPerson> {
                     child: Focus(
                       child: GestureDetector(
                         onTap: () async => person.lastCall = await _selectDate(
-                            'تاريخ أخر مكالمة',
-                            person.lastCall?.toDate() ?? DateTime.now()),
+                          'تاريخ أخر مكالمة',
+                          person.lastCall?.toDate() ?? DateTime.now(),
+                        ),
                         child: InputDecorator(
                           decoration: InputDecoration(
-                              labelText: 'تاريخ أخر مكالمة',
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Theme.of(context).primaryColor),
-                              )),
+                            labelText: 'تاريخ أخر مكالمة',
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).primaryColor),
+                            ),
+                          ),
                           child: person.lastCall != null
                               ? Text(DateFormat('yyyy/M/d')
                                   .format(person.lastCall.toDate()))
@@ -862,12 +831,12 @@ class _EditPersonState extends State<EditPerson> {
                     padding: EdgeInsets.symmetric(vertical: 4.0),
                     child: TextFormField(
                       decoration: InputDecoration(
-                          labelText: 'ملاحظات',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
-                          )),
-                      focusNode: foci[17],
+                        labelText: 'ملاحظات',
+                        border: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Theme.of(context).primaryColor),
+                        ),
+                      ),
                       textInputAction: TextInputAction.newline,
                       initialValue: person.notes,
                       onChanged: _notesChanged,
@@ -878,15 +847,15 @@ class _EditPersonState extends State<EditPerson> {
                     ),
                   ),
                   ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        primary:
-                            Theme.of(context).brightness == Brightness.light
-                                ? TinyColor(person.color).lighten().color
-                                : TinyColor(person.color).darken().color,
-                      ),
-                      onPressed: selectColor,
-                      icon: Icon(Icons.color_lens),
-                      label: Text('اللون')),
+                    style: ElevatedButton.styleFrom(
+                      primary: Theme.of(context).brightness == Brightness.light
+                          ? TinyColor(person.color).lighten().color
+                          : TinyColor(person.color).darken().color,
+                    ),
+                    onPressed: selectColor,
+                    icon: Icon(Icons.color_lens),
+                    label: Text('اللون'),
+                  ),
                 ],
               ),
             ),
@@ -1067,57 +1036,80 @@ class _EditPersonState extends State<EditPerson> {
       await FirebaseCrashlytics.instance.recordError(err, stkTrace);
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(err.toString()),
+        content: Text(
+          err.toString(),
+        ),
         duration: Duration(seconds: 7),
       ));
     }
   }
 
   void _selectClass() {
+    final BehaviorSubject<String> searchStream =
+        BehaviorSubject<String>.seeded('');
+    final options = ServicesListOptions(
+      tap: (class$) {
+        Navigator.pop(context);
+        person.classId = class$.ref;
+        setState(() {});
+        FocusScope.of(context).nextFocus();
+      },
+      searchQuery: searchStream,
+      itemsStream: classesByStudyYearRef(),
+    );
     showDialog(
       context: context,
       builder: (context) {
         return Dialog(
-          child: ListenableProvider<SearchString>(
-            create: (_) => SearchString(''),
-            builder: (context, child) => Column(
+          child: Scaffold(
+            extendBody: true,
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.endDocked,
+            body: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 SearchFilters(0,
+                    options: options,
+                    searchStream: searchStream,
+                    orderOptions: BehaviorSubject<OrderOptions>.seeded(
+                      OrderOptions(),
+                    ),
                     textStyle: Theme.of(context).textTheme.bodyText2),
                 Expanded(
-                  child:
-                      Selector2<OrderOptions, User, Tuple3<String, bool, User>>(
-                    selector: (_, o, u) => Tuple3<String, bool, User>(
-                        o.personOrderBy, o.personASC, u),
-                    builder: (context, options, child) => ServicesList(
-                      options: ServicesListOptions(
-                        tap: (class$, context) {
-                          Navigator.pop(context);
-                          person.classId = class$.ref;
-                          setState(() {});
-                          foci[13].requestFocus();
-                        },
-                        floatingActionButton: options.item3.write
-                            ? FloatingActionButton(
-                                heroTag: null,
-                                onPressed: () async {
-                                  Navigator.of(context).pop();
-                                  person.classId = (await Navigator.of(context)
-                                              .pushNamed('Data/EditClass'))
-                                          as DocumentReference ??
-                                      person.classId;
-                                  setState(() {});
-                                },
-                                child: Icon(Icons.group_add),
-                              )
-                            : null,
-                      ),
-                    ),
+                  child: ServicesList(
+                    options: options,
                   ),
                 ),
               ],
             ),
+            bottomNavigationBar: BottomAppBar(
+              color: Theme.of(context).primaryColor,
+              shape: CircularNotchedRectangle(),
+              child: StreamBuilder<Map>(
+                stream: options.objectsData,
+                builder: (context, snapshot) {
+                  return Text((snapshot.data?.length ?? 0).toString() + ' خدمة',
+                      textAlign: TextAlign.center,
+                      strutStyle:
+                          StrutStyle(height: IconTheme.of(context).size / 7.5),
+                      style: Theme.of(context).primaryTextTheme.bodyText1);
+                },
+              ),
+            ),
+            floatingActionButton: User.instance.write
+                ? FloatingActionButton(
+                    heroTag: null,
+                    onPressed: () async {
+                      Navigator.of(context).pop();
+                      person.classId = (await Navigator.of(context)
+                                  .pushNamed('Data/EditClass'))
+                              as DocumentReference ??
+                          person.classId;
+                      setState(() {});
+                    },
+                    child: Icon(Icons.group_add),
+                  )
+                : null,
           ),
         );
       },
