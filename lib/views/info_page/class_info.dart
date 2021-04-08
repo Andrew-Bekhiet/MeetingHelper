@@ -18,21 +18,29 @@ import '../../utils/helpers.dart';
 import '../data_map.dart';
 import '../list.dart';
 
-class ClassInfo extends StatelessWidget {
+class ClassInfo extends StatefulWidget {
   final Class class$;
-  ClassInfo({Key key, this.class$}) : super(key: key);
+  const ClassInfo({Key key, this.class$}) : super(key: key);
 
+  @override
+  _ClassInfoState createState() => _ClassInfoState();
+}
+
+class _ClassInfoState extends State<ClassInfo> {
   final BehaviorSubject<String> _searchStream =
       BehaviorSubject<String>.seeded('');
+
   final BehaviorSubject<OrderOptions> _orderOptions =
       BehaviorSubject<OrderOptions>.seeded(OrderOptions());
 
   void addTap(BuildContext context) {
-    Navigator.of(context).pushNamed('Data/EditPerson', arguments: class$.ref);
+    Navigator.of(context)
+        .pushNamed('Data/EditPerson', arguments: widget.class$.ref);
   }
 
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FeatureDiscovery.discoverFeatures(context, [
         if (User.instance.write) 'Edit',
@@ -43,11 +51,15 @@ class ClassInfo extends StatelessWidget {
         if (User.instance.write) 'Add'
       ]);
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final _listOptions = DataObjectListOptions<Person>(
       searchQuery: _searchStream,
       tap: (p) => personTap(p, context),
       itemsStream: _orderOptions.switchMap(
-        (order) => class$
+        (order) => widget.class$
             .getMembersLive(orderBy: order.orderBy, descending: !order.asc)
             .map(
               (s) => s.docs.map(Person.fromDoc).toList(),
@@ -57,8 +69,8 @@ class ClassInfo extends StatelessWidget {
     return Selector<User, bool>(
       selector: (_, user) => user.write,
       builder: (context, permission, _) => StreamBuilder<Class>(
-        initialData: class$,
-        stream: class$.ref.snapshots().map(Class.fromDoc),
+        initialData: widget.class$,
+        stream: widget.class$.ref.snapshots().map(Class.fromDoc),
         builder: (context, data) {
           Class class$ = data.data;
           if (class$ == null)
@@ -346,61 +358,64 @@ class ClassInfo extends StatelessWidget {
                               return LinearProgressIndicator();
                             }),
                       ),
-                      ElevatedButton.icon(
-                        icon: Icon(Icons.map),
-                        onPressed: () => showMap(context, class$),
-                        label: Text('إظهار المخدومين على الخريطة'),
-                      ),
-                      ElevatedButton.icon(
-                        icon: DescribedFeatureOverlay(
-                          featureId: 'Class.Analytics',
-                          tapTarget: const Icon(Icons.analytics_outlined),
-                          title: Text('عرض تحليل لبيانات سجلات الحضور'),
-                          description: Column(
-                            children: <Widget>[
-                              Text(
-                                  'الأن يمكنك عرض تحليل لبيانات حضور مخدومين الفصل خلال فترة معينة من هنا'),
-                              OutlinedButton.icon(
-                                icon: Icon(Icons.forward),
-                                label: Text(
-                                  'التالي',
-                                  style: TextStyle(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodyText2
-                                        .color,
-                                  ),
-                                ),
-                                onPressed: () {
-                                  FeatureDiscovery.completeCurrentStep(context);
-                                },
-                              ),
-                              OutlinedButton(
-                                onPressed: () =>
-                                    FeatureDiscovery.dismissAll(context),
-                                child: Text(
-                                  'تخطي',
-                                  style: TextStyle(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodyText2
-                                        .color,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          backgroundColor: Theme.of(context).accentColor,
-                          targetColor: Colors.transparent,
-                          textColor: Theme.of(context)
-                              .primaryTextTheme
-                              .bodyText1
-                              .color,
-                          child: const Icon(Icons.analytics_outlined),
+                      if (!class$.ref.path.startsWith('Deleted'))
+                        ElevatedButton.icon(
+                          icon: Icon(Icons.map),
+                          onPressed: () => showMap(context, class$),
+                          label: Text('إظهار المخدومين على الخريطة'),
                         ),
-                        label: Text('احصائيات الحضور'),
-                        onPressed: () => _showAnalytics(context, class$),
-                      ),
+                      if (!class$.ref.path.startsWith('Deleted'))
+                        ElevatedButton.icon(
+                          icon: DescribedFeatureOverlay(
+                            featureId: 'Class.Analytics',
+                            tapTarget: const Icon(Icons.analytics_outlined),
+                            title: Text('عرض تحليل لبيانات سجلات الحضور'),
+                            description: Column(
+                              children: <Widget>[
+                                Text(
+                                    'الأن يمكنك عرض تحليل لبيانات حضور مخدومين الفصل خلال فترة معينة من هنا'),
+                                OutlinedButton.icon(
+                                  icon: Icon(Icons.forward),
+                                  label: Text(
+                                    'التالي',
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodyText2
+                                          .color,
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    FeatureDiscovery.completeCurrentStep(
+                                        context);
+                                  },
+                                ),
+                                OutlinedButton(
+                                  onPressed: () =>
+                                      FeatureDiscovery.dismissAll(context),
+                                  child: Text(
+                                    'تخطي',
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodyText2
+                                          .color,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            backgroundColor: Theme.of(context).accentColor,
+                            targetColor: Colors.transparent,
+                            textColor: Theme.of(context)
+                                .primaryTextTheme
+                                .bodyText1
+                                .color,
+                            child: const Icon(Icons.analytics_outlined),
+                          ),
+                          label: Text('احصائيات الحضور'),
+                          onPressed: () => _showAnalytics(context, class$),
+                        ),
                       Divider(thickness: 1),
                       EditHistoryProperty(
                         'أخر تحديث للبيانات:',

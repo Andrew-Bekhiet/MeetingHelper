@@ -21,27 +21,35 @@ import '../../models/models.dart';
 import '../../models/user.dart';
 import '../../utils/helpers.dart';
 
-class PersonInfo extends StatelessWidget {
+class PersonInfo extends StatefulWidget {
   final Person person;
   const PersonInfo({Key key, this.person}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  _PersonInfoState createState() => _PersonInfoState();
+}
+
+class _PersonInfoState extends State<PersonInfo> {
+  @override
+  void initState() {
+    super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await Future.delayed(Duration(milliseconds: 300));
       FeatureDiscovery.discoverFeatures(context, [
         if (User.instance.write) 'Person.Edit',
         'Person.Share',
-        'Person.MoreOptions',
         if (User.instance.write) 'Person.LastVisit'
       ]);
     });
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Selector<User, bool>(
       selector: (_, user) => user.write,
       builder: (c, permission, data) => StreamBuilder<Person>(
-        initialData: person,
-        stream: person.ref.snapshots().map(Person.fromDoc),
+        initialData: widget.person,
+        stream: widget.person.ref.snapshots().map(Person.fromDoc),
         builder: (context, data) {
           Person person = data.data;
           if (person == null)
@@ -223,73 +231,17 @@ class PersonInfo extends StatelessWidget {
                               },
                               tooltip: 'مشاركة برابط',
                             ),
-                            DescribedFeatureOverlay(
-                              barrierDismissible: false,
-                              contentLocation: ContentLocation.below,
-                              featureId: 'Person.MoreOptions',
-                              overflowMode: OverflowMode.extendBackground,
-                              tapTarget: Icon(
-                                Icons.more_vert,
-                              ),
-                              title: Text('المزيد من الخيارات'),
-                              description: Column(
-                                children: <Widget>[
-                                  Text(
-                                      'يمكنك ايجاد المزيد من الخيارات من هنا مثل:'
-                                      ' اضافة المخدوم لجهات الاتصال'
-                                      '\nنسخ رقم الهاتف في لوحة'
-                                      ' الاتصل (اجراء مكالمة هاتفية)'
-                                      '\nارسال رسالة\nارسال رسالة'
-                                      ' عن طريق واتساب\nارسال اشعار'
-                                      ' للمستخدمين عن المخدوم'),
-                                  OutlinedButton.icon(
-                                    icon: Icon(Icons.forward),
-                                    label: Text(
-                                      'التالي',
-                                      style: TextStyle(
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .bodyText2
-                                            .color,
-                                      ),
-                                    ),
-                                    onPressed: () =>
-                                        FeatureDiscovery.completeCurrentStep(
-                                            context),
-                                  ),
-                                  OutlinedButton(
-                                    onPressed: () =>
-                                        FeatureDiscovery.dismissAll(context),
-                                    child: Text(
-                                      'تخطي',
-                                      style: TextStyle(
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .bodyText2
-                                            .color,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              backgroundColor: Theme.of(context).accentColor,
-                              targetColor: Colors.transparent,
-                              textColor: Theme.of(context)
-                                  .primaryTextTheme
-                                  .bodyText1
-                                  .color,
-                              child: PopupMenuButton(
-                                onSelected: (item) async {
-                                  await sendNotification(context, person);
-                                },
-                                itemBuilder: (BuildContext context) {
-                                  return [
-                                    PopupMenuItem(
-                                        child: Text(
-                                            'ارسال إشعار للمستخدمين عن الشخص'))
-                                  ];
-                                },
-                              ),
+                            PopupMenuButton(
+                              onSelected: (item) async {
+                                await sendNotification(context, person);
+                              },
+                              itemBuilder: (BuildContext context) {
+                                return [
+                                  PopupMenuItem(
+                                      child: Text(
+                                          'ارسال إشعار للمستخدمين عن الشخص'))
+                                ];
+                              },
                             ),
                           ],
                     expandedHeight: 250.0,
@@ -372,7 +324,8 @@ class PersonInfo extends StatelessWidget {
                         ),
                       ),
                       CopiableProperty('العنوان:', person.address),
-                      if (person.location != null)
+                      if (person.location != null &&
+                          !person.ref.path.startsWith('Deleted'))
                         ElevatedButton.icon(
                           icon: Icon(Icons.map),
                           onPressed: () => Navigator.of(context).push(
@@ -388,37 +341,41 @@ class PersonInfo extends StatelessWidget {
                       ListTile(
                         title: Text('المدرسة:'),
                         subtitle: FutureBuilder(
-                            future: person.getSchoolName(),
-                            builder: (context, data) {
-                              if (data.hasData) return Text(data.data);
-                              return LinearProgressIndicator();
-                            }),
+                          future: person.getSchoolName(),
+                          builder: (context, data) {
+                            if (data.hasData) return Text(data.data);
+                            return LinearProgressIndicator();
+                          },
+                        ),
                       ),
                       ListTile(
                         title: Text('الكنيسة:'),
                         subtitle: FutureBuilder(
-                            future: person.getChurchName(),
-                            builder: (context, data) {
-                              if (data.hasData) return Text(data.data);
-                              return LinearProgressIndicator();
-                            }),
+                          future: person.getChurchName(),
+                          builder: (context, data) {
+                            if (data.hasData) return Text(data.data);
+                            return LinearProgressIndicator();
+                          },
+                        ),
                       ),
                       ListTile(
                         title: Text('اب الاعتراف:'),
                         subtitle: FutureBuilder(
-                            future: person.getCFatherName(),
-                            builder: (context, data) {
-                              if (data.hasData) return Text(data.data);
-                              return LinearProgressIndicator();
-                            }),
+                          future: person.getCFatherName(),
+                          builder: (context, data) {
+                            if (data.hasData) return Text(data.data);
+                            return LinearProgressIndicator();
+                          },
+                        ),
                       ),
                       CopiableProperty('ملاحظات', person.notes),
                       Divider(thickness: 1),
-                      ElevatedButton.icon(
-                        icon: Icon(Icons.analytics),
-                        label: Text('احصائيات الحضور'),
-                        onPressed: () => _showAnalytics(context, person),
-                      ),
+                      if (!person.ref.path.startsWith('Deleted'))
+                        ElevatedButton.icon(
+                          icon: Icon(Icons.analytics),
+                          label: Text('احصائيات الحضور'),
+                          onPressed: () => _showAnalytics(context, person),
+                        ),
                       DayHistoryProperty('تاريخ أخر حضور اجتماع:',
                           person.lastMeeting, person.id, 'Meeting'),
                       DayHistoryProperty('تاريخ أخر حضور قداس:',
@@ -439,25 +396,27 @@ class PersonInfo extends StatelessWidget {
                         person.lastEdit,
                         person.ref.collection('EditHistory'),
                       ),
-                      ListTile(
-                        title: Text('داخل فصل:'),
-                        subtitle: person.classId != null &&
-                                person.classId.parent.id != 'null'
-                            ? FutureBuilder<Class>(
-                                future: Class.fromId(person.classId.id),
-                                builder: (context, _class) => _class.hasData
-                                    ? DataObjectWidget<Class>(_class.data,
-                                        isDense: true)
-                                    : LinearProgressIndicator(),
-                              )
-                            : Text('غير موجودة'),
-                      ),
+                      if (!person.ref.path.startsWith('Deleted'))
+                        ListTile(
+                          title: Text('داخل فصل:'),
+                          subtitle: person.classId != null &&
+                                  person.classId.parent.id != 'null'
+                              ? FutureBuilder<Class>(
+                                  future: Class.fromId(person.classId.id),
+                                  builder: (context, _class) => _class.hasData
+                                      ? DataObjectWidget<Class>(_class.data,
+                                          isDense: true)
+                                      : LinearProgressIndicator(),
+                                )
+                              : Text('غير موجودة'),
+                        ),
                     ],
                   ),
                 ),
               ),
             ),
-            floatingActionButton: permission
+            floatingActionButton: permission &&
+                    !person.ref.path.startsWith('Deleted')
                 ? FloatingActionButton(
                     tooltip: 'تسجيل أخر زيارة اليوم',
                     onPressed: () => recordLastVisit(context, person),
@@ -579,7 +538,7 @@ class PersonInfo extends StatelessWidget {
         ),
       );
       if (recordLastCall == true) {
-        await person.ref.update(
+        await widget.person.ref.update(
             {'LastEdit': User.instance.uid, 'LastCall': Timestamp.now()});
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
