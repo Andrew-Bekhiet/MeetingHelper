@@ -22,6 +22,7 @@ import 'package:meetinghelper/views/day.dart';
 import 'package:meetinghelper/views/edit_page/edit_invitation.dart';
 import 'package:meetinghelper/views/exports.dart';
 import 'package:meetinghelper/views/invitations_page.dart';
+import 'package:meetinghelper/views/trash.dart';
 import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart';
 
@@ -186,6 +187,7 @@ class AppState extends State<App> {
             else
               return Day(record: ServantsHistoryDay());
           },
+          'Trash': (context) => Trash(),
           'History': (context) => History(),
           'ExportOps': (context) => Exports(),
           'ServantsHistory': (context) => ServantsHistory(),

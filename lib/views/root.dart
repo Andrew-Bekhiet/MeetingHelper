@@ -893,6 +893,65 @@ class _RootState extends State<Root>
                 Navigator.of(context).pushNamed('Search');
               },
             ),
+            Selector<User, bool>(
+              selector: (_, user) =>
+                  user.manageUsers || user.manageAllowedUsers,
+              builder: (context, permission, _) {
+                if (!permission)
+                  return Container(
+                    width: 0,
+                    height: 0,
+                  );
+                return ListTile(
+                  leading: DescribedFeatureOverlay(
+                    backgroundDismissible: false,
+                    barrierDismissible: false,
+                    featureId: 'ManageDeleted',
+                    tapTarget: Icon(Icons.delete_outline),
+                    contentLocation: ContentLocation.below,
+                    title: Text('سلة المحذوفات'),
+                    description: Column(
+                      children: <Widget>[
+                        Text(
+                            'يمكنك الأن استرجاع المحذوفات خلال مدة شهر من حذفها من هنا'),
+                        OutlinedButton.icon(
+                          icon: Icon(Icons.forward),
+                          label: Text(
+                            'التالي',
+                            style: TextStyle(
+                              color:
+                                  Theme.of(context).textTheme.bodyText2.color,
+                            ),
+                          ),
+                          onPressed: () =>
+                              FeatureDiscovery.completeCurrentStep(context),
+                        ),
+                        OutlinedButton(
+                          onPressed: () => FeatureDiscovery.dismissAll(context),
+                          child: Text(
+                            'تخطي',
+                            style: TextStyle(
+                              color:
+                                  Theme.of(context).textTheme.bodyText2.color,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    backgroundColor: Theme.of(context).accentColor,
+                    targetColor: Colors.transparent,
+                    textColor:
+                        Theme.of(context).primaryTextTheme.bodyText1.color,
+                    child: Icon(Icons.delete_outline),
+                  ),
+                  onTap: () {
+                    mainScfld.currentState.openEndDrawer();
+                    Navigator.pushNamed(context, 'Trash');
+                  },
+                  title: Text('سلة المحذوفات'),
+                );
+              },
+            ),
             ListTile(
               key: _map,
               leading: DescribedFeatureOverlay(

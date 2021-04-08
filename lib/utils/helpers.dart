@@ -779,6 +779,52 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
   }
 }
 
+Future<void> recoverDoc(BuildContext context, String path) async {
+  bool nested = false;
+  bool keepBackup = true;
+  if (await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text('استرجاع'),
+            ),
+          ],
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Checkbox(
+                    value: nested,
+                    onChanged: (v) => nested = v,
+                  ),
+                  Text('استرجع ايضا العناصر بداخل هذا العنصر'),
+                ],
+              ),
+              Row(
+                children: [
+                  Checkbox(
+                    value: keepBackup,
+                    onChanged: (v) => keepBackup = v,
+                  ),
+                  Text('ابقاء البيانات المحذوفة'),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ) ==
+      true) {
+    await FirebaseFunctions.instance.httpsCallable('recoverDoc').call({
+      'deletedPath': path,
+      'keepBackup': keepBackup,
+      'nested': nested,
+    });
+  }
+}
+
 Future<String> shareClass(Class _class) async => await shareClassRaw(_class.id);
 
 Future<String> shareClassRaw(String id) async {

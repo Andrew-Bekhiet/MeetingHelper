@@ -77,200 +77,226 @@ class ClassInfo extends StatelessWidget {
                           ? TinyColor(class$.color).lighten().color
                           : TinyColor(class$.color).darken().color)
                       : null,
-                  actions: <Widget>[
-                    Selector<User, bool>(
-                      selector: (_, user) => user.write,
-                      builder: (c, permission, data) => permission
-                          ? IconButton(
-                              icon: DescribedFeatureOverlay(
-                                barrierDismissible: false,
-                                contentLocation: ContentLocation.below,
-                                featureId: 'Edit',
-                                tapTarget: Icon(
-                                  Icons.edit,
-                                  color: IconTheme.of(context).color,
-                                ),
-                                title: Text('تعديل'),
-                                description: Column(
-                                  children: <Widget>[
-                                    Text('يمكنك تعديل البيانات من هنا'),
-                                    OutlinedButton.icon(
-                                      icon: Icon(Icons.forward),
-                                      label: Text(
-                                        'التالي',
-                                        style: TextStyle(
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .bodyText2
-                                              .color,
+                  actions: class$.ref.path.startsWith('Deleted')
+                      ? <Widget>[
+                          if (permission)
+                            IconButton(
+                              icon: Icon(Icons.restore),
+                              tooltip: 'استعادة',
+                              onPressed: () {
+                                recoverDoc(context, class$.ref.path);
+                              },
+                            )
+                        ]
+                      : <Widget>[
+                          Selector<User, bool>(
+                            selector: (_, user) => user.write,
+                            builder: (c, permission, data) => permission
+                                ? IconButton(
+                                    icon: DescribedFeatureOverlay(
+                                      barrierDismissible: false,
+                                      contentLocation: ContentLocation.below,
+                                      featureId: 'Edit',
+                                      tapTarget: Icon(
+                                        Icons.edit,
+                                        color: IconTheme.of(context).color,
+                                      ),
+                                      title: Text('تعديل'),
+                                      description: Column(
+                                        children: <Widget>[
+                                          Text('يمكنك تعديل البيانات من هنا'),
+                                          OutlinedButton.icon(
+                                            icon: Icon(Icons.forward),
+                                            label: Text(
+                                              'التالي',
+                                              style: TextStyle(
+                                                color: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyText2
+                                                    .color,
+                                              ),
+                                            ),
+                                            onPressed: () => FeatureDiscovery
+                                                .completeCurrentStep(context),
+                                          ),
+                                          OutlinedButton(
+                                            onPressed: () =>
+                                                FeatureDiscovery.dismissAll(
+                                                    context),
+                                            child: Text(
+                                              'تخطي',
+                                              style: TextStyle(
+                                                color: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyText2
+                                                    .color,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      backgroundColor:
+                                          Theme.of(context).accentColor,
+                                      targetColor: Colors.transparent,
+                                      textColor: Theme.of(context)
+                                          .primaryTextTheme
+                                          .bodyText1
+                                          .color,
+                                      child: Builder(
+                                        builder: (context) => IconShadowWidget(
+                                          Icon(
+                                            Icons.edit,
+                                            color: IconTheme.of(context).color,
+                                          ),
                                         ),
                                       ),
-                                      onPressed: () =>
-                                          FeatureDiscovery.completeCurrentStep(
-                                              context),
                                     ),
-                                    OutlinedButton(
-                                      onPressed: () =>
-                                          FeatureDiscovery.dismissAll(context),
-                                      child: Text(
-                                        'تخطي',
-                                        style: TextStyle(
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .bodyText2
-                                              .color,
-                                        ),
+                                    onPressed: () async {
+                                      dynamic result =
+                                          await Navigator.of(context).pushNamed(
+                                              'Data/EditClass',
+                                              arguments: class$);
+                                      if (result is DocumentReference) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text('تم الحفظ بنجاح'),
+                                          ),
+                                        );
+                                      } else if (result == 'deleted')
+                                        Navigator.of(context).pop();
+                                    },
+                                    tooltip: 'تعديل',
+                                  )
+                                : Container(),
+                          ),
+                          IconButton(
+                            icon: DescribedFeatureOverlay(
+                              barrierDismissible: false,
+                              contentLocation: ContentLocation.below,
+                              featureId: 'Share',
+                              tapTarget: Icon(
+                                Icons.share,
+                              ),
+                              title: Text('مشاركة البيانات'),
+                              description: Column(
+                                children: <Widget>[
+                                  Text(
+                                      'يمكنك مشاركة البيانات بلينك يفتح البيانات مباشرة داخل البرنامج'),
+                                  OutlinedButton.icon(
+                                    icon: Icon(Icons.forward),
+                                    label: Text(
+                                      'التالي',
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .bodyText2
+                                            .color,
                                       ),
                                     ),
-                                  ],
-                                ),
-                                backgroundColor: Theme.of(context).accentColor,
-                                targetColor: Colors.transparent,
-                                textColor: Theme.of(context)
-                                    .primaryTextTheme
-                                    .bodyText1
-                                    .color,
-                                child: Builder(
-                                  builder: (context) => IconShadowWidget(
-                                    Icon(
-                                      Icons.edit,
-                                      color: IconTheme.of(context).color,
+                                    onPressed: () =>
+                                        FeatureDiscovery.completeCurrentStep(
+                                            context),
+                                  ),
+                                  OutlinedButton(
+                                    onPressed: () =>
+                                        FeatureDiscovery.dismissAll(context),
+                                    child: Text(
+                                      'تخطي',
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .bodyText2
+                                            .color,
+                                      ),
                                     ),
+                                  ),
+                                ],
+                              ),
+                              backgroundColor: Theme.of(context).accentColor,
+                              targetColor: Colors.transparent,
+                              textColor: Theme.of(context)
+                                  .primaryTextTheme
+                                  .bodyText1
+                                  .color,
+                              child: Builder(
+                                builder: (context) => IconShadowWidget(
+                                  Icon(
+                                    Icons.share,
+                                    color: IconTheme.of(context).color,
                                   ),
                                 ),
                               ),
-                              onPressed: () async {
-                                dynamic result = await Navigator.of(context)
-                                    .pushNamed('Data/EditClass',
-                                        arguments: class$);
-                                if (result is DocumentReference) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('تم الحفظ بنجاح'),
+                            ),
+                            onPressed: () async {
+                              // Navigator.of(context).pop();
+                              await Share.share(await shareClass(class$));
+                            },
+                            tooltip: 'مشاركة برابط',
+                          ),
+                          DescribedFeatureOverlay(
+                            barrierDismissible: false,
+                            contentLocation: ContentLocation.below,
+                            featureId: 'MoreOptions',
+                            tapTarget: Icon(
+                              Icons.more_vert,
+                            ),
+                            title: Text('المزيد من الخيارات'),
+                            description: Column(
+                              children: <Widget>[
+                                Text(
+                                    'يمكنك ايجاد المزيد من الخيارات من هنا مثل: اشعار المستخدمين عن الفصل'),
+                                OutlinedButton.icon(
+                                  icon: Icon(Icons.forward),
+                                  label: Text(
+                                    'التالي',
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodyText2
+                                          .color,
                                     ),
-                                  );
-                                } else if (result == 'deleted')
-                                  Navigator.of(context).pop();
+                                  ),
+                                  onPressed: () =>
+                                      FeatureDiscovery.completeCurrentStep(
+                                          context),
+                                ),
+                                OutlinedButton(
+                                  onPressed: () =>
+                                      FeatureDiscovery.dismissAll(context),
+                                  child: Text(
+                                    'تخطي',
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodyText2
+                                          .color,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            backgroundColor: Theme.of(context).accentColor,
+                            targetColor: Colors.transparent,
+                            textColor: Theme.of(context)
+                                .primaryTextTheme
+                                .bodyText1
+                                .color,
+                            child: PopupMenuButton(
+                              onSelected: (_) =>
+                                  sendNotification(context, class$),
+                              itemBuilder: (context) {
+                                return [
+                                  PopupMenuItem(
+                                    value: '',
+                                    child:
+                                        Text('ارسال إشعار للمستخدمين عن الفصل'),
+                                  ),
+                                ];
                               },
-                              tooltip: 'تعديل',
-                            )
-                          : Container(),
-                    ),
-                    IconButton(
-                      icon: DescribedFeatureOverlay(
-                        barrierDismissible: false,
-                        contentLocation: ContentLocation.below,
-                        featureId: 'Share',
-                        tapTarget: Icon(
-                          Icons.share,
-                        ),
-                        title: Text('مشاركة البيانات'),
-                        description: Column(
-                          children: <Widget>[
-                            Text(
-                                'يمكنك مشاركة البيانات بلينك يفتح البيانات مباشرة داخل البرنامج'),
-                            OutlinedButton.icon(
-                              icon: Icon(Icons.forward),
-                              label: Text(
-                                'التالي',
-                                style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyText2
-                                      .color,
-                                ),
-                              ),
-                              onPressed: () =>
-                                  FeatureDiscovery.completeCurrentStep(context),
-                            ),
-                            OutlinedButton(
-                              onPressed: () =>
-                                  FeatureDiscovery.dismissAll(context),
-                              child: Text(
-                                'تخطي',
-                                style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyText2
-                                      .color,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        backgroundColor: Theme.of(context).accentColor,
-                        targetColor: Colors.transparent,
-                        textColor:
-                            Theme.of(context).primaryTextTheme.bodyText1.color,
-                        child: Builder(
-                          builder: (context) => IconShadowWidget(
-                            Icon(
-                              Icons.share,
-                              color: IconTheme.of(context).color,
-                            ),
-                          ),
-                        ),
-                      ),
-                      onPressed: () async {
-                        // Navigator.of(context).pop();
-                        await Share.share(await shareClass(class$));
-                      },
-                      tooltip: 'مشاركة برابط',
-                    ),
-                    DescribedFeatureOverlay(
-                      barrierDismissible: false,
-                      contentLocation: ContentLocation.below,
-                      featureId: 'MoreOptions',
-                      tapTarget: Icon(
-                        Icons.more_vert,
-                      ),
-                      title: Text('المزيد من الخيارات'),
-                      description: Column(
-                        children: <Widget>[
-                          Text(
-                              'يمكنك ايجاد المزيد من الخيارات من هنا مثل: اشعار المستخدمين عن الفصل'),
-                          OutlinedButton.icon(
-                            icon: Icon(Icons.forward),
-                            label: Text(
-                              'التالي',
-                              style: TextStyle(
-                                color:
-                                    Theme.of(context).textTheme.bodyText2.color,
-                              ),
-                            ),
-                            onPressed: () =>
-                                FeatureDiscovery.completeCurrentStep(context),
-                          ),
-                          OutlinedButton(
-                            onPressed: () =>
-                                FeatureDiscovery.dismissAll(context),
-                            child: Text(
-                              'تخطي',
-                              style: TextStyle(
-                                color:
-                                    Theme.of(context).textTheme.bodyText2.color,
-                              ),
                             ),
                           ),
                         ],
-                      ),
-                      backgroundColor: Theme.of(context).accentColor,
-                      targetColor: Colors.transparent,
-                      textColor:
-                          Theme.of(context).primaryTextTheme.bodyText1.color,
-                      child: PopupMenuButton(
-                        onSelected: (_) => sendNotification(context, class$),
-                        itemBuilder: (context) {
-                          return [
-                            PopupMenuItem(
-                              value: '',
-                              child: Text('ارسال إشعار للمستخدمين عن الفصل'),
-                            ),
-                          ];
-                        },
-                      ),
-                    ),
-                  ],
                   expandedHeight: 250.0,
                   floating: false,
                   stretch: true,
@@ -383,7 +409,9 @@ class ClassInfo extends StatelessWidget {
                 ),
               ],
               body: SafeArea(
-                child: DataObjectList<Person>(options: _listOptions),
+                child: class$.ref.path.startsWith('Deleted')
+                    ? Text('يجب استعادة الفصل لرؤية المخدومين بداخله')
+                    : DataObjectList<Person>(options: _listOptions),
               ),
             ),
             bottomNavigationBar: BottomAppBar(
@@ -404,7 +432,8 @@ class ClassInfo extends StatelessWidget {
             ),
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.endDocked,
-            floatingActionButton: permission
+            floatingActionButton: permission &&
+                    !class$.ref.path.startsWith('Deleted')
                 ? FloatingActionButton(
                     onPressed: () => addTap(context),
                     child: DescribedFeatureOverlay(
