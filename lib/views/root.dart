@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:app_settings/app_settings.dart';
 import 'package:battery_optimization/battery_optimization.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
@@ -1318,7 +1319,8 @@ class _RootState extends State<Root>
             TextButton(
               onPressed: () async {
                 Navigator.pop(context);
-                await BatteryOptimization.openBatteryOptimizationSettings();
+                await AppSettings.openBatteryOptimizationSettings();
+                ;
               },
               child: Text('الغاء حفظ الطاقة للبرنامج'),
             ),
