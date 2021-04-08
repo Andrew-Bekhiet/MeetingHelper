@@ -317,19 +317,19 @@ class PersonInfo extends StatelessWidget {
                         'موبايل:',
                         person.phone,
                         (n) => _phoneCall(context, n),
-                        (n) => _contactAdd(context, n),
+                        (n) => _contactAdd(context, n, person),
                       ),
                       PhoneNumberProperty(
                         'موبايل (الأب):',
                         person.fatherPhone,
                         (n) => _phoneCall(context, n),
-                        (n) => _contactAdd(context, n),
+                        (n) => _contactAdd(context, n, person),
                       ),
                       PhoneNumberProperty(
                         'موبايل (الأم):',
                         person.motherPhone,
                         (n) => _phoneCall(context, n),
-                        (n) => _contactAdd(context, n),
+                        (n) => _contactAdd(context, n, person),
                       ),
                       if (person.phones != null)
                         ...person.phones.entries
@@ -338,7 +338,7 @@ class PersonInfo extends StatelessWidget {
                                 e.key,
                                 e.value,
                                 (n) => _phoneCall(context, n),
-                                (n) => _contactAdd(context, n),
+                                (n) => _contactAdd(context, n, person),
                               ),
                             )
                             .toList(),
@@ -584,7 +584,8 @@ class PersonInfo extends StatelessWidget {
     Navigator.pushNamed(context, 'Analytics', arguments: person);
   }
 
-  Future<void> _contactAdd(BuildContext context, String phone) async {
+  Future<void> _contactAdd(
+      BuildContext context, String phone, Person person) async {
     if ((await Permission.contacts.request()).isGranted) {
       TextEditingController _name = TextEditingController(text: person.name);
       if (await showDialog(
@@ -608,9 +609,12 @@ class PersonInfo extends StatelessWidget {
             ),
           ) ==
           true) {
-        final c = Contact()
-          ..name.first = _name.text
-          ..phones = [Phone(phone)];
+        final c = Contact(
+            photo: person.hasPhoto
+                ? await person.photoRef.getData(100 * 1024 * 1024)
+                : null,
+            phones: [Phone(phone)])
+          ..name.first = _name.text;
         await c.insert();
       }
     }
