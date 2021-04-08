@@ -20,7 +20,9 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:meetinghelper/models/data_object_widget.dart';
 import 'package:meetinghelper/models/list_options.dart';
+import 'package:meetinghelper/models/search_filters.dart';
 import 'package:meetinghelper/views/lists/lists.dart';
 import 'package:meetinghelper/views/services_list.dart';
 import 'package:photo_view/photo_view.dart';
@@ -642,30 +644,50 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
       return MultiProvider(
         providers: [
           Provider(
-              create: (_) => DataObjectListOptions<User>(
-                  selectionMode: true,
-                  searchQuery: search,
-                  itemsStream: Stream.fromFuture(User.getAllUsersLive())
-                      .map((s) => s.docs.map(User.fromDoc).toList()))),
+            create: (_) => DataObjectListOptions<User>(
+                itemBuilder: (current,
+                        {onLongPress, onTap, subtitle, trailing}) =>
+                    DataObjectWidget(
+                      current,
+                      onTap: () => onTap(current),
+                      trailing: trailing,
+                      showSubTitle: false,
+                    ),
+                selectionMode: true,
+                searchQuery: search,
+                itemsStream: Stream.fromFuture(User.getAllUsersLive())
+                    .map((s) => s.docs.map(User.fromDoc).toList())),
+          ),
         ],
-        builder: (context, child) => AlertDialog(
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(
-                    context,
-                    context
-                        .read<DataObjectListOptions<User>>()
-                        .selectedLatest
-                        .values
-                        .toList());
-              },
-              child: Text('تم'),
-            )
-          ],
-          content: Container(
-            width: 280,
-            child: UsersList(),
+        builder: (context, child) => Scaffold(
+          appBar: AppBar(
+            title: Text('اختيار مستخدمين'),
+            actions: [
+              IconButton(
+                onPressed: () {
+                  Navigator.pop(
+                      context,
+                      context
+                          .read<DataObjectListOptions<User>>()
+                          .selectedLatest
+                          .values
+                          .toList());
+                },
+                icon: Icon(Icons.done),
+                tooltip: 'تم',
+              ),
+            ],
+          ),
+          body: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SearchField(
+                  searchStream: search,
+                  textStyle: Theme.of(context).textTheme.bodyText2),
+              Expanded(
+                child: UsersList(),
+              ),
+            ],
           ),
         ),
       );
