@@ -160,7 +160,7 @@ class AppState extends State<App> {
           '/': buildLoadAppWidget,
           'Login': (context) => LoginScreen(),
           'Data/EditClass': (context) =>
-              EditClass(classO: ModalRoute.of(context).settings.arguments),
+              EditClass(class$: ModalRoute.of(context).settings.arguments),
           'Data/EditPerson': (context) {
             if (ModalRoute.of(context).settings.arguments is Person)
               return EditPerson(

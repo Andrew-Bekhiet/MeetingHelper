@@ -462,9 +462,9 @@ class _EditInvitationState extends State<EditInvitation> {
           content: Text('جار الحفظ...'),
           duration: Duration(seconds: 15),
         ));
-        if (widget.invitation.id == '') {
-          widget.invitation.id =
-              FirebaseFirestore.instance.collection('Invitations').doc().id;
+        if (widget.invitation.id == 'null') {
+          widget.invitation.ref =
+              FirebaseFirestore.instance.collection('Invitations').doc();
           widget.invitation.generatedBy = User.instance.uid;
           await widget.invitation.ref.set({
             ...widget.invitation.getMap(),

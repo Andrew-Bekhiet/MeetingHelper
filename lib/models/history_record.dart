@@ -17,16 +17,16 @@ class HistoryDay extends DataObject with ChangeNotifier {
   HistoryDay()
       : day = tranucateToDay(),
         notes = '',
-        super(FirebaseFirestore.instance.collection('History').doc().id, null,
+        super(FirebaseFirestore.instance.collection('History').doc(), null,
             null) {
     color = Colors.transparent;
     _initListener();
   }
 
-  HistoryDay._createFromData(Map<String, dynamic> data, String id)
+  HistoryDay._createFromData(Map<String, dynamic> data, DocumentReference ref)
       : day = data['Day'],
         notes = data['Notes'],
-        super.createFromData(data, id) {
+        super.createFromData(data, ref) {
     color = Colors.transparent;
     _initListener();
   }
@@ -73,7 +73,7 @@ class HistoryDay extends DataObject with ChangeNotifier {
   }
 
   static HistoryDay fromDoc(DocumentSnapshot data) =>
-      HistoryDay._createFromData(data.data(), data.id);
+      HistoryDay._createFromData(data.data(), data.reference);
 
   static Future<HistoryDay> fromId(String id) async => HistoryDay.fromDoc(
       await FirebaseFirestore.instance.doc('History/$id').get());
@@ -104,17 +104,18 @@ class HistoryDay extends DataObject with ChangeNotifier {
 
 class ServantsHistoryDay extends HistoryDay {
   ServantsHistoryDay() {
-    id = FirebaseFirestore.instance.collection('ServantsHistory').doc().id;
+    ref = FirebaseFirestore.instance.collection('ServantsHistory').doc();
     day = tranucateToDay();
     notes = '';
     _initListener();
   }
 
   static ServantsHistoryDay fromDoc(DocumentSnapshot data) =>
-      ServantsHistoryDay._createFromData(data.data(), data.id);
+      ServantsHistoryDay._createFromData(data.data(), data.reference);
 
-  ServantsHistoryDay._createFromData(Map<String, dynamic> data, String id)
-      : super._createFromData(data, id);
+  ServantsHistoryDay._createFromData(
+      Map<String, dynamic> data, DocumentReference ref)
+      : super._createFromData(data, ref);
 
   @override
   DocumentReference get ref =>

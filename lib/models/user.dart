@@ -28,9 +28,11 @@ class User extends DataObject
 
   String get uid => _uid;
 
+  @override
+  String get id => uid;
+
   set uid(String uid) {
     _uid = uid;
-    id = uid;
     if (!_initialized.isCompleted) _initialized.complete(uid != null);
   }
 
@@ -153,8 +155,10 @@ class User extends DataObject
       this.servingStudyYear,
       this.servingStudyGender,
       List<String> allowedUsers,
-      {this.email})
-      : super(_uid, name, null) {
+      {this.email,
+      DocumentReference ref})
+      : super(ref ?? FirebaseFirestore.instance.collection('Users').doc(_uid),
+            name, null) {
     hasPhoto = true;
     defaultIcon = Icons.account_circle;
     this.manageAllowedUsers = manageAllowedUsers ?? false;
@@ -332,7 +336,8 @@ class User extends DataObject
   }
 
   User._createFromData(this._uid, Map<String, dynamic> data)
-      : super.createFromData(data, _uid) {
+      : super.createFromData(
+            data, FirebaseFirestore.instance.collection('Users').doc(_uid)) {
     name = data['Name'] ?? data['name'];
     uid = data['uid'] ?? _uid;
     password = data['password'];

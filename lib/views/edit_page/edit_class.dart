@@ -314,7 +314,7 @@ class _EditClassState extends State<EditClass> {
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          if (class$.id.isNotEmpty)
+          if (class$.id != 'null')
             FloatingActionButton(
               mini: true,
               tooltip: 'حذف',
@@ -354,10 +354,7 @@ class _EditClassState extends State<EditClass> {
                     .child('ClassesPhotos/${class$.id}')
                     .delete();
               }
-              await FirebaseFirestore.instance
-                  .collection('Classes')
-                  .doc(class$.id)
-                  .delete();
+              await class$.ref.delete();
               Navigator.of(context).pop();
               Navigator.of(context).pop('deleted');
             },
@@ -394,9 +391,9 @@ class _EditClassState extends State<EditClass> {
             duration: Duration(minutes: 20),
           ),
         );
-        var update = class$.id != '';
-        if (class$.id == '') {
-          class$.id = FirebaseFirestore.instance.collection('Classes').doc().id;
+        var update = class$.id != 'null';
+        if (!update) {
+          class$.ref = FirebaseFirestore.instance.collection('Classes').doc();
         }
         if (changedImage != null) {
           await FirebaseStorage.instance
@@ -414,16 +411,10 @@ class _EditClassState extends State<EditClass> {
         class$.lastEdit = auth.FirebaseAuth.instance.currentUser.uid;
 
         if (update) {
-          await FirebaseFirestore.instance
-              .collection('Classes')
-              .doc(class$.id)
-              .update(class$.getMap()
-                ..removeWhere((key, value) => old[key] == value));
+          await class$.ref.update(
+              class$.getMap()..removeWhere((key, value) => old[key] == value));
         } else {
-          await FirebaseFirestore.instance
-              .collection('Classes')
-              .doc(class$.id)
-              .set(class$.getMap());
+          await class$.ref.set(class$.getMap());
         }
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         Navigator.of(context).pop(class$.ref);

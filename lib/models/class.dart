@@ -19,17 +19,31 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
   List<String> allowedUsers;
   String lastEdit;
 
-  Class(String id, String name, this.allowedUsers, this.studyYear, this.gender,
+  Class(
+      {DocumentReference ref,
+      String id,
+      String name,
+      List<String> allowedUsers,
+      this.studyYear,
+      this.gender,
       bool hasPhoto,
-      {color = Colors.transparent, this.lastEdit})
-      : super(id, name, color) {
-    this.hasPhoto = hasPhoto;
+      color = Colors.transparent,
+      this.lastEdit})
+      : super(
+            ref ??
+                FirebaseFirestore.instance
+                    .collection('Classes')
+                    .doc(id ?? 'null'),
+            name,
+            color) {
+    this.allowedUsers = allowedUsers ?? [];
+    this.hasPhoto = hasPhoto ?? false;
     lastEdit ??= auth.FirebaseAuth.instance.currentUser.uid;
     defaultIcon = const IconData(0xf233, fontFamily: 'MaterialIconsR');
   }
 
-  Class.createFromData(Map<dynamic, dynamic> data, String id)
-      : super.createFromData(data, id) {
+  Class.createFromData(Map<dynamic, dynamic> data, DocumentReference ref)
+      : super.createFromData(data, ref) {
     studyYear = data['StudyYear'];
     gender = data['Gender'];
 
@@ -166,12 +180,15 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
   }
 
   static Class empty() {
-    return Class('', '', [auth.FirebaseAuth.instance.currentUser.uid], null,
-        false, false);
+    return Class(
+        name: '',
+        allowedUsers: [auth.FirebaseAuth.instance.currentUser.uid],
+        gender: false,
+        hasPhoto: false);
   }
 
   static Class fromDoc(DocumentSnapshot data) =>
-      data.exists ? Class.createFromData(data.data(), data.id) : null;
+      data.exists ? Class.createFromData(data.data(), data.reference) : null;
 
   static Future<Class> fromId(String id) async =>
       Class.fromDoc(await FirebaseFirestore.instance.doc('Classes/$id').get());

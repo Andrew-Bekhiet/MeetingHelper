@@ -865,7 +865,7 @@ class _EditPersonState extends State<EditPerson> {
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          if (person.id.isNotEmpty)
+          if (person.id != 'null')
             FloatingActionButton(
               mini: true,
               tooltip: 'حذف',
@@ -938,10 +938,7 @@ class _EditPersonState extends State<EditPerson> {
                           .child('PersonsPhotos/${person.id}')
                           .delete();
                     }
-                    await FirebaseFirestore.instance
-                        .collection('Persons')
-                        .doc(person.id)
-                        .delete();
+                    await person.ref.delete();
                     Navigator.of(context).pop();
                     Navigator.of(context).pop('deleted');
                   },
@@ -986,9 +983,9 @@ class _EditPersonState extends State<EditPerson> {
             duration: Duration(minutes: 1),
           ),
         );
-        var update = person.id != '';
-        if (person.id == '') {
-          person.id = FirebaseFirestore.instance.collection('Persons').doc().id;
+        var update = person.id != 'null';
+        if (!update) {
+          person.ref = FirebaseFirestore.instance.collection('Persons').doc();
         }
         if (changedImage != null) {
           await FirebaseStorage.instance
@@ -1006,16 +1003,10 @@ class _EditPersonState extends State<EditPerson> {
         person.lastEdit = auth.FirebaseAuth.instance.currentUser.uid;
 
         if (update) {
-          await FirebaseFirestore.instance
-              .collection('Persons')
-              .doc(person.id)
-              .update(person.getMap()
-                ..removeWhere((key, value) => old[key] == value));
+          await person.ref.update(
+              person.getMap()..removeWhere((key, value) => old[key] == value));
         } else {
-          await FirebaseFirestore.instance
-              .collection('Persons')
-              .doc(person.id)
-              .set(person.getMap());
+          await person.ref.set(person.getMap());
         }
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         Navigator.of(context).pop(person.ref);

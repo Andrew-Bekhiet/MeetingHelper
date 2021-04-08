@@ -353,18 +353,18 @@ Stream<Map<DocumentReference, Tuple2<Class, List<User>>>> usersByClassRef(
     Map<User, Class> usersWithClasses = {
       for (var u in users)
         u: Class(
-            u.servingStudyYear != null && u.servingStudyGender != null
-                ? u.servingStudyYear + '-' + u.servingStudyGender.toString()
-                : 'unknown',
-            u.servingStudyYear != null && u.servingStudyGender != null
-                ? studyYears[u.servingStudyYear].name +
-                    ' - ' +
-                    (u.servingStudyGender ? 'بنين' : 'بنات')
-                : 'غير محدد',
-            [],
-            studyYears[u.servingStudyYear]?.ref,
-            u.servingStudyGender,
-            false)
+          ref: FirebaseFirestore.instance.collection('Classes').doc(
+              u.servingStudyYear != null && u.servingStudyGender != null
+                  ? u.servingStudyYear + '-' + u.servingStudyGender.toString()
+                  : 'unknown'),
+          name: u.servingStudyYear != null && u.servingStudyGender != null
+              ? studyYears[u.servingStudyYear].name +
+                  ' - ' +
+                  (u.servingStudyGender ? 'بنين' : 'بنات')
+              : 'غير محدد',
+          studyYear: studyYears[u.servingStudyYear]?.ref,
+          gender: u.servingStudyGender,
+        )
     };
 
     yield {
