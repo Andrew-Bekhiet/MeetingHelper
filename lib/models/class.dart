@@ -61,9 +61,6 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
       FirebaseStorage.instance.ref().child('ClassesPhotos/$id');
 
   @override
-  DocumentReference get ref => FirebaseFirestore.instance.doc('Classes/$id');
-
-  @override
   Future<List<Person>> getChildren(
       [String orderBy = 'Name', bool tranucate = false]) async {
     return await getPersonMembersList(orderBy, tranucate);

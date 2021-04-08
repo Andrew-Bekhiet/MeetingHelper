@@ -126,9 +126,6 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
   Reference get photoRef =>
       FirebaseStorage.instance.ref().child('PersonsPhotos/$id');
 
-  @override
-  DocumentReference get ref => FirebaseFirestore.instance.doc('Persons/$id');
-
   Future<String> getCFatherName() async {
     var tmp = (await cFather?.get(dataSource))?.data;
     if (tmp == null) return '';

@@ -731,10 +731,6 @@ class User extends DataObject
   }
 
   @override
-  DocumentReference get ref =>
-      FirebaseFirestore.instance.collection('Users').doc(uid);
-
-  @override
   Reference get photoRef =>
       FirebaseStorage.instance.ref().child('UsersPhotos/$uid');
 

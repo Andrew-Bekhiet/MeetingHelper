@@ -70,10 +70,6 @@ class Invitation extends DataObject {
         DateFormat('yyyy/M/d', 'ar-EG').format(expiryDate.toDate());
   }
 
-  @override
-  DocumentReference get ref =>
-      FirebaseFirestore.instance.collection('Invitations').doc(id);
-
   Invitation.empty()
       : link = '',
         super(FirebaseFirestore.instance.collection('Invitations').doc(), '',

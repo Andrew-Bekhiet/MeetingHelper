@@ -48,10 +48,6 @@ class HistoryDay extends DataObject with ChangeNotifier {
       };
 
   @override
-  DocumentReference get ref =>
-      FirebaseFirestore.instance.collection('History').doc(id);
-
-  @override
   bool operator ==(Object other) =>
       (other is HistoryDay && other.hashCode == hashCode);
 
@@ -116,10 +112,6 @@ class ServantsHistoryDay extends HistoryDay {
   ServantsHistoryDay._createFromData(
       Map<String, dynamic> data, DocumentReference ref)
       : super._createFromData(data, ref);
-
-  @override
-  DocumentReference get ref =>
-      FirebaseFirestore.instance.collection('ServantsHistory').doc(id);
 
   static Future<Stream<QuerySnapshot>> getAllForUser(
       {String orderBy = 'Day', bool descending = false}) async {
@@ -189,18 +181,3 @@ class HistoryRecord {
       (other is HistoryRecord && other.hashCode == hashCode) ||
       (other is DataObject && other.id == id);
 }
-/* 
-class MeetingRecord extends HistoryRecord {
-  @override
-  DocumentReference get ref => parent.meeting.doc(id);
-}
-
-class KodasRecord extends HistoryRecord {
-  @override
-  DocumentReference get ref => parent.kodas.doc(id);
-}
-
-class TanawolRecord extends HistoryRecord {
-  @override
-  DocumentReference get ref => parent.tanawol.doc(id);
-} */
