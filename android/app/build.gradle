@@ -43,7 +43,7 @@ android {
 
     compileSdkVersion 30
     ndkVersion "22.0.7026061"
-
+    buildToolsVersion '30.0.3'
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
@@ -80,6 +80,7 @@ android {
             defaultConfig.minSdkVersion 25
             signingConfig signingConfigs.debug
             useProguard false
+            multiDexEnabled true
         }
         profile{
             defaultConfig.minSdkVersion 26
@@ -95,7 +96,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    buildToolsVersion '30.0.1'
 }
 
 flutter {
