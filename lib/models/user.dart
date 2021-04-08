@@ -435,6 +435,9 @@ class User extends DataObject
     return 'غير مُنشط';
   }
 
+  @override
+  Widget photo([bool circle = false]) => getPhoto(circle);
+
   Widget getPhoto([bool showCircle = true, bool showActiveStatus = true]) {
     return AspectRatio(
       aspectRatio: 1,
