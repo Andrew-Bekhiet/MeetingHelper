@@ -481,6 +481,7 @@ class _EditClassState extends State<EditClass> {
                         Provider(
                           create: (_) => DataObjectListOptions<User>(
                               searchQuery: searchStream,
+                              selectionMode: true,
                               itemsStream:
                                   Stream.fromFuture(User.getAllUsersLive()).map(
                                       (s) => s.docs.map(User.fromDoc).toList()),
