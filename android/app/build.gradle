@@ -80,7 +80,6 @@ android {
             defaultConfig.minSdkVersion 25
             signingConfig signingConfigs.debug
             useProguard false
-            minifyEnabled true
         }
         profile{
             defaultConfig.minSdkVersion 26
@@ -99,29 +98,10 @@ android {
     buildToolsVersion '30.0.1'
 }
 
-configurations {
-    all*.exclude group: 'com.google.guava', module: 'listenablefuture'
-}
-
 flutter {
     source '../..'
 }
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'com.google.android.gms:play-services-basement:17.4.0'
-    
-    androidTestImplementation 'androidx.test:runner:1.2.0'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-
-    implementation 'com.google.firebase:firebase-analytics:18.0.0'
-    implementation 'com.google.firebase:firebase-auth:20.0.0'
-    implementation 'com.google.firebase:firebase-crashlytics:17.2.2'
-    implementation 'com.google.firebase:firebase-firestore-ktx:21.4.3'
-    implementation 'com.google.firebase:firebase-firestore:21.4.3'
-    implementation 'com.google.firebase:firebase-functions:19.1.0'
-    implementation 'com.google.firebase:firebase-inappmessaging-display:19.1.2'
-    implementation 'com.google.firebase:firebase-inappmessaging:19.0.7'
-    implementation 'com.google.firebase:firebase-messaging:21.0.0'
-    implementation 'com.google.firebase:firebase-perf:19.0.9'
 }
