@@ -229,7 +229,7 @@ class _HistoryDayAnalyticsPageState extends State<HistoryDayAnalyticsPage> {
                       var rslt = await selectClasses(context, classes);
                       if (rslt != null && rslt.isNotEmpty)
                         setState(() => classes = rslt);
-                      else
+                      else if (rslt.isNotEmpty)
                         await showDialog(
                             context: context,
                             builder: (context) => AlertDialog(
@@ -535,7 +535,7 @@ class _GeneralAnalyticsPageState extends State<GeneralAnalyticsPage> {
                                     await selectClasses(context, classes);
                                 if (rslt != null && rslt.isNotEmpty)
                                   setState(() => classes = rslt);
-                                else
+                                else if (rslt.isNotEmpty)
                                   await showDialog(
                                       context: context,
                                       builder: (context) => AlertDialog(
