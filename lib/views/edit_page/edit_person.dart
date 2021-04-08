@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_storage/firebase_storage.dart' show FirebaseStorage;
@@ -923,35 +924,51 @@ class _EditPersonState extends State<EditPerson> {
     person.address = value;
   }
 
-  void _delete() {
-    showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-              title: Text(person.name),
-              content: Text('هل أنت متأكد من حذف ${person.name}؟'),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () async {
-                    if (person.hasPhoto) {
-                      await FirebaseStorage.instance
-                          .ref()
-                          .child('PersonsPhotos/${person.id}')
-                          .delete();
-                    }
-                    await person.ref.delete();
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop('deleted');
-                  },
-                  child: Text('نعم'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('تراجع'),
-                ),
-              ],
-            ));
+  void _delete() async {
+    if (await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(person.name),
+            content: Text('هل أنت متأكد من حذف ${person.name}؟'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+                child: Text('نعم'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('تراجع'),
+              ),
+            ],
+          ),
+        ) ==
+        true) {
+      if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
+        if (person.hasPhoto) {
+          await FirebaseStorage.instance
+              .ref()
+              .child('PersonPhotos/${person.id}')
+              .delete();
+        }
+        await person.ref.delete();
+      } else {
+        if (person.hasPhoto) {
+          // ignore: unawaited_futures
+          FirebaseStorage.instance
+              .ref()
+              .child('PersonPhotos/${person.id}')
+              .delete();
+        }
+        // ignore: unawaited_futures
+        person.ref.delete();
+
+        Navigator.pop(context, 'deleted');
+      }
+    }
   }
 
   void _fatherPhoneChanged(String value) {
@@ -1002,11 +1019,29 @@ class _EditPersonState extends State<EditPerson> {
 
         person.lastEdit = auth.FirebaseAuth.instance.currentUser.uid;
 
-        if (update) {
+        if (update &&
+            await Connectivity().checkConnectivity() !=
+                ConnectivityResult.none) {
           await person.ref.update(
-              person.getMap()..removeWhere((key, value) => old[key] == value));
+            person.getMap()..removeWhere((key, value) => old[key] == value),
+          );
+        } else if (update) {
+          //Intentionally unawaited because of no internet connection
+          // ignore: unawaited_futures
+          person.ref.update(
+            person.getMap()..removeWhere((key, value) => old[key] == value),
+          );
+        } else if (await Connectivity().checkConnectivity() !=
+            ConnectivityResult.none) {
+          await person.ref.set(
+            person.getMap(),
+          );
         } else {
-          await person.ref.set(person.getMap());
+          //Intentionally unawaited because of no internet connection
+          // ignore: unawaited_futures
+          person.ref.set(
+            person.getMap(),
+          );
         }
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         Navigator.of(context).pop(person.ref);

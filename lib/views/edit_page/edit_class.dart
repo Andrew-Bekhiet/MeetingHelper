@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
@@ -333,42 +334,57 @@ class _EditClassState extends State<EditClass> {
     );
   }
 
-  void delete() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(class$.name),
-        content: Text('هل أنت متأكد من حذف ${class$.name} وكل ما به أشخاص؟'),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () async {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('جار حذف الفصل وما بداخلها من بيانات...'),
-                  duration: Duration(minutes: 20),
-                ),
-              );
-              if (class$.hasPhoto) {
-                await FirebaseStorage.instance
-                    .ref()
-                    .child('ClassesPhotos/${class$.id}')
-                    .delete();
-              }
-              await class$.ref.delete();
-              Navigator.of(context).pop();
-              Navigator.of(context).pop('deleted');
-            },
-            child: Text('نعم'),
+  void delete() async {
+    if (await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(class$.name),
+            content:
+                Text('هل أنت متأكد من حذف ${class$.name} وكل ما به أشخاص؟'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+                child: Text('نعم'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('تراجع'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text('تراجع'),
-          ),
-        ],
-      ),
-    );
+        ) ==
+        true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('جار حذف الفصل وما بداخلها من بيانات...'),
+          duration: Duration(minutes: 20),
+        ),
+      );
+      if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
+        if (class$.hasPhoto) {
+          await FirebaseStorage.instance
+              .ref()
+              .child('ClassesPhotos/${class$.id}')
+              .delete();
+        }
+        await class$.ref.delete();
+      } else {
+        if (class$.hasPhoto) {
+          // ignore: unawaited_futures
+          FirebaseStorage.instance
+              .ref()
+              .child('ClassesPhotos/${class$.id}')
+              .delete();
+        }
+        // ignore: unawaited_futures
+        class$.ref.delete();
+      }
+      Navigator.of(context).pop('deleted');
+    }
   }
 
   @override
@@ -410,11 +426,29 @@ class _EditClassState extends State<EditClass> {
 
         class$.lastEdit = auth.FirebaseAuth.instance.currentUser.uid;
 
-        if (update) {
+        if (update &&
+            await Connectivity().checkConnectivity() !=
+                ConnectivityResult.none) {
           await class$.ref.update(
-              class$.getMap()..removeWhere((key, value) => old[key] == value));
+            class$.getMap()..removeWhere((key, value) => old[key] == value),
+          );
+        } else if (update) {
+          //Intentionally unawaited because of no internet connection
+          // ignore: unawaited_futures
+          class$.ref.update(
+            class$.getMap()..removeWhere((key, value) => old[key] == value),
+          );
+        } else if (await Connectivity().checkConnectivity() !=
+            ConnectivityResult.none) {
+          await class$.ref.set(
+            class$.getMap(),
+          );
         } else {
-          await class$.ref.set(class$.getMap());
+          //Intentionally unawaited because of no internet connection
+          // ignore: unawaited_futures
+          class$.ref.set(
+            class$.getMap(),
+          );
         }
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         Navigator.of(context).pop(class$.ref);

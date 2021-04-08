@@ -379,60 +379,52 @@ class _EditInvitationState extends State<EditInvitation> {
     );
   }
 
-  void deleteInvitation() {
-    showDialog(
-      context: context,
-      builder: (innerContext) => AlertDialog(
-        content: Text('هل تريد حذف هذه الدعوة؟'),
-        actions: <Widget>[
-          TextButton(
-            style: Theme.of(innerContext).textButtonTheme.style.copyWith(
-                foregroundColor:
-                    MaterialStateProperty.resolveWith((state) => Colors.red)),
-            onPressed: () async {
-              try {
-                ScaffoldMessenger.of(innerContext).showSnackBar(
-                  SnackBar(
-                    content: LinearProgressIndicator(),
-                    duration: Duration(seconds: 15),
-                  ),
-                );
-                Navigator.of(innerContext).pop();
-                await widget.invitation.ref.delete();
-                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                Navigator.of(context).pop('deleted');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('تم بنجاح'),
-                    duration: Duration(seconds: 15),
-                  ),
-                );
-              } catch (err, stkTrace) {
-                await FirebaseCrashlytics.instance
-                    .setCustomKey('LastErrorIn', 'UserPState.delete');
-                await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      err.toString(),
-                    ),
-                    duration: Duration(seconds: 7),
-                  ),
-                );
-              }
-            },
-            child: Text('حذف'),
+  void deleteInvitation() async {
+    if (await showDialog(
+          context: context,
+          builder: (innerContext) => AlertDialog(
+            content: Text('هل تريد حذف هذه الدعوة؟'),
+            actions: <Widget>[
+              TextButton(
+                style: Theme.of(innerContext).textButtonTheme.style.copyWith(
+                    foregroundColor: MaterialStateProperty.resolveWith(
+                        (state) => Colors.red)),
+                onPressed: () {
+                  Navigator.of(innerContext).pop(true);
+                },
+                child: Text('حذف'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('تراجع'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text('تراجع'),
-          ),
-        ],
-      ),
-    );
+        ) ==
+        true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: LinearProgressIndicator(),
+          duration: Duration(seconds: 15),
+        ),
+      );
+      if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
+        await widget.invitation.ref.delete();
+      } else {
+        // ignore: unawaited_futures
+        widget.invitation.ref.delete();
+      }
+      Navigator.of(context).pop('deleted');
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('تم بنجاح'),
+          duration: Duration(seconds: 15),
+        ),
+      );
+    }
   }
 
   @override
@@ -466,15 +458,30 @@ class _EditInvitationState extends State<EditInvitation> {
           widget.invitation.ref =
               FirebaseFirestore.instance.collection('Invitations').doc();
           widget.invitation.generatedBy = User.instance.uid;
-          await widget.invitation.ref.set({
-            ...widget.invitation.getMap(),
-            'GeneratedOn': FieldValue.serverTimestamp()
-          });
+          if (await Connectivity().checkConnectivity() !=
+              ConnectivityResult.none) {
+            await widget.invitation.ref.set({
+              ...widget.invitation.getMap(),
+              'GeneratedOn': FieldValue.serverTimestamp()
+            });
+          } else {
+            // ignore: unawaited_futures
+            widget.invitation.ref.set({
+              ...widget.invitation.getMap(),
+              'GeneratedOn': FieldValue.serverTimestamp()
+            });
+          }
         } else {
           var update = widget.invitation.getMap()
             ..removeWhere((key, value) => old[key] == value);
           if (update.isNotEmpty) {
-            await widget.invitation.update(old: update);
+            if (await Connectivity().checkConnectivity() !=
+                ConnectivityResult.none) {
+              await widget.invitation.update(old: update);
+            } else {
+              // ignore: unawaited_futures
+              widget.invitation.update(old: update);
+            }
           }
         }
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
