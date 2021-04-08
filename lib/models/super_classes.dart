@@ -192,60 +192,18 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                           ),
                         ),
                       ),
-                      child: !(widget.object is User)
-                          ? CachedNetworkImage(
-                              memCacheHeight:
-                                  (constrains.maxHeight * 4).toInt(),
-                              imageRenderMethodForWeb:
-                                  ImageRenderMethodForWeb.HtmlImage,
-                              imageUrl: data.data,
-                              progressIndicatorBuilder:
-                                  (context, url, progress) => AspectRatio(
-                                aspectRatio: 1,
-                                child: CircularProgressIndicator(
-                                    value: progress.progress),
-                              ),
-                            )
-                          : StreamBuilder(
-                              stream: FirebaseDatabase.instance
-                                  .reference()
-                                  .child(
-                                      'Users/${(widget.object as User).uid}/lastSeen')
-                                  .onValue,
-                              builder: (context, activity) {
-                                if (activity.data?.snapshot?.value == 'Active')
-                                  return Stack(
-                                    children: [
-                                      Positioned.fill(
-                                        child: CircleAvatar(
-                                          backgroundImage:
-                                              CachedNetworkImageProvider(
-                                                  data.data),
-                                        ),
-                                      ),
-                                      Align(
-                                        alignment: Alignment.bottomLeft,
-                                        child: Container(
-                                          height: 15,
-                                          width: 15,
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(30),
-                                            border:
-                                                Border.all(color: Colors.white),
-                                            color: Colors.greenAccent,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                else
-                                  return CircleAvatar(
-                                    backgroundImage:
-                                        CachedNetworkImageProvider(data.data),
-                                  );
-                              },
-                            ),
+                      child: CachedNetworkImage(
+                        memCacheHeight: (constrains.maxHeight * 4).toInt(),
+                        imageRenderMethodForWeb:
+                            ImageRenderMethodForWeb.HtmlImage,
+                        imageUrl: data.data,
+                        progressIndicatorBuilder: (context, url, progress) =>
+                            AspectRatio(
+                          aspectRatio: 1,
+                          child: CircularProgressIndicator(
+                              value: progress.progress),
+                        ),
+                      ),
                     ),
                   );
                   return widget.wrapPhotoInCircle
