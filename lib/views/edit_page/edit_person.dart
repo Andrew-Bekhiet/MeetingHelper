@@ -856,7 +856,7 @@ class _EditPersonState extends State<EditPerson> {
                     icon: Icon(Icons.color_lens),
                     label: Text('اللون'),
                   ),
-                ],
+                ].map((w) => Focus(child: w)).toList(),
               ),
             ),
           ),

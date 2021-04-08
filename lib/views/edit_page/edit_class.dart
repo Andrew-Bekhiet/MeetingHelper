@@ -33,14 +33,6 @@ class EditClass extends StatefulWidget {
 }
 
 class _EditClassState extends State<EditClass> {
-  List<FocusNode> focuses = [
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode()
-  ];
-
   Map<String, dynamic> old;
   String changedImage;
   bool deletePhoto = false;
@@ -170,9 +162,9 @@ class _EditClassState extends State<EditClass> {
                             borderSide: BorderSide(
                                 color: Theme.of(context).primaryColor),
                           )),
-                      focusNode: focuses[0],
                       textInputAction: TextInputAction.next,
-                      onFieldSubmitted: (_) => focuses[1].requestFocus(),
+                      onFieldSubmitted: (_) =>
+                          FocusScope.of(context).nextFocus(),
                       initialValue: class$.name,
                       onChanged: nameChanged,
                       validator: (value) {
@@ -183,93 +175,87 @@ class _EditClassState extends State<EditClass> {
                       },
                     ),
                   ),
-                  Focus(
-                    focusNode: focuses[1],
-                    child: FutureBuilder<QuerySnapshot>(
-                      future: StudyYear.getAllForUser(),
-                      builder: (conext, data) {
-                        if (data.hasData) {
-                          return Container(
-                            padding: EdgeInsets.symmetric(vertical: 4.0),
-                            child: DropdownButtonFormField(
-                              validator: (v) {
-                                if (v == null) {
-                                  return 'هذا الحقل مطلوب';
-                                } else {
-                                  return null;
-                                }
-                              },
-                              value: class$.studyYear?.path,
-                              items: data.data.docs
-                                  .map(
-                                    (item) => DropdownMenuItem(
-                                      value: item.reference.path,
-                                      child: Text(item.data()['Name']),
+                  FutureBuilder<QuerySnapshot>(
+                    future: StudyYear.getAllForUser(),
+                    builder: (conext, data) {
+                      if (data.hasData) {
+                        return Container(
+                          padding: EdgeInsets.symmetric(vertical: 4.0),
+                          child: DropdownButtonFormField(
+                            validator: (v) {
+                              if (v == null) {
+                                return 'هذا الحقل مطلوب';
+                              } else {
+                                return null;
+                              }
+                            },
+                            value: class$.studyYear?.path,
+                            items: data.data.docs
+                                .map(
+                                  (item) => DropdownMenuItem(
+                                    value: item.reference.path,
+                                    child: Text(item.data()['Name']),
+                                  ),
+                                )
+                                .toList()
+                                  ..insert(
+                                    0,
+                                    DropdownMenuItem(
+                                      value: null,
+                                      child: Text(''),
                                     ),
-                                  )
-                                  .toList()
-                                    ..insert(
-                                      0,
-                                      DropdownMenuItem(
-                                        value: null,
-                                        child: Text(''),
-                                      ),
-                                    ),
-                              onChanged: (value) {
-                                setState(() {});
-                                class$.studyYear = value != null
-                                    ? FirebaseFirestore.instance.doc(value)
-                                    : null;
-                                focuses[2].requestFocus();
-                              },
-                              decoration: InputDecoration(
-                                  labelText: 'السنة الدراسية',
-                                  border: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Theme.of(context).primaryColor),
-                                  )),
-                            ),
-                          );
-                        } else {
-                          return Container(width: 1, height: 1);
-                        }
-                      },
-                    ),
+                                  ),
+                            onChanged: (value) {
+                              setState(() {});
+                              class$.studyYear = value != null
+                                  ? FirebaseFirestore.instance.doc(value)
+                                  : null;
+                              FocusScope.of(context).nextFocus();
+                            },
+                            decoration: InputDecoration(
+                                labelText: 'السنة الدراسية',
+                                border: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Theme.of(context).primaryColor),
+                                )),
+                          ),
+                        );
+                      } else {
+                        return Container(width: 1, height: 1);
+                      }
+                    },
                   ),
-                  Focus(
-                    focusNode: focuses[2],
-                    child: DropdownButtonFormField(
-                      validator: (v) {
-                        if (v == null) {
-                          return 'هذا الحقل مطلوب';
-                        } else {
-                          return null;
-                        }
-                      },
-                      value: class$.gender,
-                      items: [null, true, false]
-                          .map(
-                            (item) => DropdownMenuItem(
-                              value: item,
-                              child: Text(item == null
-                                  ? ''
-                                  : item
-                                      ? 'بنين'
-                                      : 'بنات'),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {});
-                        class$.gender = value;
-                      },
-                      decoration: InputDecoration(
-                          labelText: 'نوع الفصل',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
-                          )),
-                    ),
+                  DropdownButtonFormField(
+                    validator: (v) {
+                      if (v == null) {
+                        return 'هذا الحقل مطلوب';
+                      } else {
+                        return null;
+                      }
+                    },
+                    value: class$.gender,
+                    items: [null, true, false]
+                        .map(
+                          (item) => DropdownMenuItem(
+                            value: item,
+                            child: Text(item == null
+                                ? ''
+                                : item
+                                    ? 'بنين'
+                                    : 'بنات'),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {});
+                      class$.gender = value;
+                    },
+                    decoration: InputDecoration(
+                        labelText: 'نوع الفصل',
+                        border: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Theme.of(context).primaryColor),
+                        )),
                   ),
                   ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
@@ -305,7 +291,7 @@ class _EditClassState extends State<EditClass> {
                       return Container(width: 1, height: 1);
                     },
                   ),
-                ],
+                ].map((w) => Focus(child: w)).toList(),
               ),
             ),
           ),
