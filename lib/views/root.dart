@@ -71,26 +71,11 @@ class _RootState extends State<Root>
     }
   }
 
+  ServicesListOptions _servicesOptions;
+  DataObjectListOptions<Person> _personsOptions;
+
   @override
   Widget build(BuildContext context) {
-    var _servicesOptions = ServicesListOptions(
-      searchQuery: _searchQuery,
-      itemsStream: classesByStudyYearRef(),
-      tap: (c) => classTap(c, context),
-    );
-    var _personsOptions = DataObjectListOptions<Person>(
-      searchQuery: _searchQuery,
-      tap: (p) => personTap(p, context),
-      //Listen to Ordering options and combine it
-      //with the Data Stream from Firestore
-      itemsStream: _personsOrder.switchMap(
-        (order) =>
-            Person.getAllForUser(orderBy: order.orderBy, descending: !order.asc)
-                .map(
-          (s) => s.docs.map(Person.fromDoc).toList(),
-        ),
-      ),
-    );
     return Scaffold(
       key: mainScfld,
       appBar: AppBar(
@@ -395,8 +380,14 @@ class _RootState extends State<Root>
       body: TabBarView(
         controller: _tabController,
         children: [
-          ServicesList(options: _servicesOptions),
-          DataObjectList<Person>(options: _personsOptions),
+          ServicesList(
+            key: PageStorageKey('mainClassesList'),
+            options: _servicesOptions,
+          ),
+          DataObjectList<Person>(
+            key: PageStorageKey('mainPersonsList'),
+            options: _personsOptions,
+          ),
         ],
       ),
       drawer: Drawer(
@@ -1356,6 +1347,24 @@ class _RootState extends State<Root>
   void initState() {
     super.initState();
     initializeDateFormatting('ar_EG', null);
+    _servicesOptions = ServicesListOptions(
+      searchQuery: _searchQuery,
+      itemsStream: classesByStudyYearRef(),
+      tap: (c) => classTap(c, context),
+    );
+    _personsOptions = DataObjectListOptions<Person>(
+      searchQuery: _searchQuery,
+      tap: (p) => personTap(p, context),
+      //Listen to Ordering options and combine it
+      //with the Data Stream from Firestore
+      itemsStream: _personsOrder.switchMap(
+        (order) =>
+            Person.getAllForUser(orderBy: order.orderBy, descending: !order.asc)
+                .map(
+          (s) => s.docs.map(Person.fromDoc).toList(),
+        ),
+      ),
+    );
     _tabController = TabController(vsync: this, length: 2);
     WidgetsBinding.instance.addObserver(this);
     _keepAlive(true);
