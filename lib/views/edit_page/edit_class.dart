@@ -24,9 +24,9 @@ import '../mini_lists/colors_list.dart';
 import '../users_list.dart';
 
 class EditClass extends StatefulWidget {
-  final Class classO;
+  final Class class$;
 
-  EditClass({Key key, @required this.classO}) : super(key: key);
+  EditClass({Key key, @required this.class$}) : super(key: key);
   @override
   _EditClassState createState() => _EditClassState();
 }
@@ -45,7 +45,7 @@ class _EditClassState extends State<EditClass> {
   bool deletePhoto = false;
   GlobalKey<FormState> form = GlobalKey<FormState>();
 
-  Class classO;
+  Class class$;
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +93,7 @@ class _EditClassState extends State<EditClass> {
                       if (source == 'delete') {
                         changedImage = null;
                         deletePhoto = true;
-                        classO.hasPhoto = false;
+                        class$.hasPhoto = false;
                         setState(() {});
                         return;
                       }
@@ -122,10 +122,10 @@ class _EditClassState extends State<EditClass> {
                       setState(() {});
                     })
               ],
-              backgroundColor: classO.color != Colors.transparent
+              backgroundColor: class$.color != Colors.transparent
                   ? (Theme.of(context).brightness == Brightness.light
-                      ? TinyColor(classO.color).lighten().color
-                      : TinyColor(classO.color).darken().color)
+                      ? TinyColor(class$.color).lighten().color
+                      : TinyColor(class$.color).darken().color)
                   : null,
               //title: Text(widget.me.name),
               expandedHeight: 250.0,
@@ -138,13 +138,13 @@ class _EditClassState extends State<EditClass> {
                     opacity: constraints.biggest.height > kToolbarHeight * 1.7
                         ? 0
                         : 1,
-                    child: Text(classO.name,
+                    child: Text(class$.name,
                         style: TextStyle(
                           fontSize: 16.0,
                         )),
                   ),
                   background: changedImage == null || deletePhoto
-                      ? classO.photo(false)
+                      ? class$.photo(false)
                       : PhotoView(imageProvider: FileImage(File(changedImage))),
                 ),
               ),
@@ -172,7 +172,7 @@ class _EditClassState extends State<EditClass> {
                       focusNode: focuses[0],
                       textInputAction: TextInputAction.next,
                       onFieldSubmitted: (_) => focuses[1].requestFocus(),
-                      initialValue: classO.name,
+                      initialValue: class$.name,
                       onChanged: nameChanged,
                       validator: (value) {
                         if (value.isEmpty) {
@@ -198,7 +198,7 @@ class _EditClassState extends State<EditClass> {
                                   return null;
                                 }
                               },
-                              value: classO.studyYear?.path,
+                              value: class$.studyYear?.path,
                               items: data.data.docs
                                   .map(
                                     (item) => DropdownMenuItem(
@@ -216,7 +216,7 @@ class _EditClassState extends State<EditClass> {
                                     ),
                               onChanged: (value) {
                                 setState(() {});
-                                classO.studyYear = value != null
+                                class$.studyYear = value != null
                                     ? FirebaseFirestore.instance.doc(value)
                                     : null;
                                 focuses[2].requestFocus();
@@ -245,7 +245,7 @@ class _EditClassState extends State<EditClass> {
                           return null;
                         }
                       },
-                      value: classO.gender,
+                      value: class$.gender,
                       items: [null, true, false]
                           .map(
                             (item) => DropdownMenuItem(
@@ -260,7 +260,7 @@ class _EditClassState extends State<EditClass> {
                           .toList(),
                       onChanged: (value) {
                         setState(() {});
-                        classO.gender = value;
+                        class$.gender = value;
                       },
                       decoration: InputDecoration(
                           labelText: 'نوع الفصل',
@@ -274,8 +274,8 @@ class _EditClassState extends State<EditClass> {
                       style: ElevatedButton.styleFrom(
                         primary:
                             Theme.of(context).brightness == Brightness.light
-                                ? TinyColor(classO.color).lighten().color
-                                : TinyColor(classO.color).darken().color,
+                                ? TinyColor(class$.color).lighten().color
+                                : TinyColor(class$.color).darken().color,
                       ),
                       onPressed: selectColor,
                       icon: Icon(Icons.color_lens),
@@ -289,8 +289,8 @@ class _EditClassState extends State<EditClass> {
                           style: ElevatedButton.styleFrom(
                             primary:
                                 Theme.of(context).brightness == Brightness.light
-                                    ? TinyColor(classO.color).lighten().color
-                                    : TinyColor(classO.color).darken().color,
+                                    ? TinyColor(class$.color).lighten().color
+                                    : TinyColor(class$.color).darken().color,
                           ),
                           icon: Icon(Icons.visibility),
                           onPressed: showUsers,
@@ -314,7 +314,7 @@ class _EditClassState extends State<EditClass> {
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          if (classO.id.isNotEmpty)
+          if (class$.id.isNotEmpty)
             FloatingActionButton(
               mini: true,
               tooltip: 'حذف',
@@ -337,8 +337,8 @@ class _EditClassState extends State<EditClass> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(classO.name),
-        content: Text('هل أنت متأكد من حذف ${classO.name} وكل ما به أشخاص؟'),
+        title: Text(class$.name),
+        content: Text('هل أنت متأكد من حذف ${class$.name} وكل ما به أشخاص؟'),
         actions: <Widget>[
           TextButton(
             onPressed: () async {
@@ -348,15 +348,15 @@ class _EditClassState extends State<EditClass> {
                   duration: Duration(minutes: 20),
                 ),
               );
-              if (classO.hasPhoto) {
+              if (class$.hasPhoto) {
                 await FirebaseStorage.instance
                     .ref()
-                    .child('ClassesPhotos/${classO.id}')
+                    .child('ClassesPhotos/${class$.id}')
                     .delete();
               }
               await FirebaseFirestore.instance
                   .collection('Classes')
-                  .doc(classO.id)
+                  .doc(class$.id)
                   .delete();
               Navigator.of(context).pop();
               Navigator.of(context).pop('deleted');
@@ -377,12 +377,12 @@ class _EditClassState extends State<EditClass> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    classO = widget.classO ?? Class.empty();
-    old = classO.getMap();
+    class$ ??= widget.class$ ?? Class.empty();
+    old ??= class$.getMap();
   }
 
   void nameChanged(String value) {
-    classO.name = value;
+    class$.name = value;
   }
 
   Future save() async {
@@ -394,39 +394,39 @@ class _EditClassState extends State<EditClass> {
             duration: Duration(minutes: 20),
           ),
         );
-        var update = classO.id != '';
-        if (classO.id == '') {
-          classO.id = FirebaseFirestore.instance.collection('Classes').doc().id;
+        var update = class$.id != '';
+        if (class$.id == '') {
+          class$.id = FirebaseFirestore.instance.collection('Classes').doc().id;
         }
         if (changedImage != null) {
           await FirebaseStorage.instance
               .ref()
-              .child('ClassesPhotos/${classO.id}')
+              .child('ClassesPhotos/${class$.id}')
               .putFile(File(changedImage));
-          classO.hasPhoto = true;
+          class$.hasPhoto = true;
         } else if (deletePhoto) {
           await FirebaseStorage.instance
               .ref()
-              .child('ClassesPhotos/${classO.id}')
+              .child('ClassesPhotos/${class$.id}')
               .delete();
         }
 
-        classO.lastEdit = auth.FirebaseAuth.instance.currentUser.uid;
+        class$.lastEdit = auth.FirebaseAuth.instance.currentUser.uid;
 
         if (update) {
           await FirebaseFirestore.instance
               .collection('Classes')
-              .doc(classO.id)
-              .update(classO.getMap()
+              .doc(class$.id)
+              .update(class$.getMap()
                 ..removeWhere((key, value) => old[key] == value));
         } else {
           await FirebaseFirestore.instance
               .collection('Classes')
-              .doc(classO.id)
-              .set(classO.getMap());
+              .doc(class$.id)
+              .set(class$.getMap());
         }
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        Navigator.of(context).pop(classO.ref);
+        Navigator.of(context).pop(class$.ref);
       }
     } catch (err, stkTrace) {
       await FirebaseCrashlytics.instance
@@ -449,18 +449,18 @@ class _EditClassState extends State<EditClass> {
             onPressed: () {
               Navigator.of(context).pop();
               setState(() {
-                classO.color = Colors.transparent;
+                class$.color = Colors.transparent;
               });
             },
             child: Text('بلا لون'),
           ),
         ],
         content: ColorsList(
-          selectedColor: classO.color,
+          selectedColor: class$.color,
           onSelect: (color) {
             Navigator.of(context).pop();
             setState(() {
-              classO.color = color;
+              class$.color = color;
             });
           },
         ),
@@ -470,11 +470,11 @@ class _EditClassState extends State<EditClass> {
 
   void showUsers() async {
     BehaviorSubject<String> searchStream = BehaviorSubject<String>.seeded('');
-    classO.allowedUsers = await showDialog(
+    class$.allowedUsers = await showDialog(
           context: context,
           builder: (context) {
             return FutureBuilder<List<User>>(
-              future: User.getUsers(classO.allowedUsers),
+              future: User.getUsers(class$.allowedUsers),
               builder: (c, users) => users.hasData
                   ? MultiProvider(
                       providers: [
@@ -527,6 +527,6 @@ class _EditClassState extends State<EditClass> {
             );
           },
         ) ??
-        classO.allowedUsers;
+        class$.allowedUsers;
   }
 }
