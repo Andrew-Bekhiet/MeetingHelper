@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:meetinghelper/models/super_classes.dart';
 
 import '../utils/helpers.dart';
 import '../models/user.dart';
@@ -33,7 +34,10 @@ class Notification extends StatelessWidget {
                     ? snapshot.data.getPhoto()
                     : snapshot.data is MessageIcon
                         ? snapshot.data
-                        : snapshot.data.photo()
+                        : DataObjectPhoto(
+                            snapshot.data,
+                            heroTag: snapshot.data,
+                          )
                 : CircularProgressIndicator(),
             title: Text(title),
             subtitle: Text(

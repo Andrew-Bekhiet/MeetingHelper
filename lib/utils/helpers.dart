@@ -791,37 +791,50 @@ Future<void> recoverDoc(BuildContext context, String path) async {
               child: Text('استرجاع'),
             ),
           ],
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Checkbox(
-                    value: nested,
-                    onChanged: (v) => nested = v,
-                  ),
-                  Text('استرجع ايضا العناصر بداخل هذا العنصر'),
-                ],
-              ),
-              Row(
-                children: [
-                  Checkbox(
-                    value: keepBackup,
-                    onChanged: (v) => keepBackup = v,
-                  ),
-                  Text('ابقاء البيانات المحذوفة'),
-                ],
-              ),
-            ],
-          ),
+          content: StatefulBuilder(builder: (context, setState) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Checkbox(
+                      value: nested,
+                      onChanged: (v) => setState(() => nested = v),
+                    ),
+                    Text(
+                      'استرجع ايضا العناصر بداخل هذا العنصر',
+                      textScaleFactor: 0.9,
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: keepBackup,
+                      onChanged: (v) => setState(() => keepBackup = v),
+                    ),
+                    Text('ابقاء البيانات المحذوفة'),
+                  ],
+                ),
+              ],
+            );
+          }),
         ),
       ) ==
       true) {
-    await FirebaseFunctions.instance.httpsCallable('recoverDoc').call({
-      'deletedPath': path,
-      'keepBackup': keepBackup,
-      'nested': nested,
-    });
+    try {
+      await FirebaseFunctions.instance.httpsCallable('recoverDoc').call({
+        'deletedPath': path,
+        'keepBackup': keepBackup,
+        'nested': nested,
+      });
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('تم الاسترجاع بنجاح')));
+    } catch (err, stcTrace) {
+      await FirebaseCrashlytics.instance
+          .setCustomKey('LastErrorIn', 'helpers.recoverDoc');
+      await FirebaseCrashlytics.instance.recordError(err, stcTrace);
+    }
   }
 }
 
