@@ -47,7 +47,7 @@ class ClassInfo extends StatelessWidget {
     final _listOptions = DataObjectListOptions<Person>(
       searchQuery: _searchStream,
       tap: (p) => personTap(p, context),
-      itemsStream: _orderOptions.flatMap(
+      itemsStream: _orderOptions.switchMap(
         (order) => class$
             .getMembersLive(orderBy: order.orderBy, descending: !order.asc)
             .map(

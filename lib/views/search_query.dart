@@ -1329,7 +1329,7 @@ class _SearchQueryState extends State<SearchQuery> {
           queryText = value.name;
         });
       },
-      itemsStream: _orderOptions.flatMap(
+      itemsStream: _orderOptions.switchMap(
         (order) =>
             Class.getAllForUser(orderBy: order.orderBy, descending: !order.asc)
                 .map(

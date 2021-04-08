@@ -83,7 +83,7 @@ class _RootState extends State<Root>
       tap: (p) => personTap(p, context),
       //Listen to Ordering options and combine it
       //with the Data Stream from Firestore
-      itemsStream: _personsOrder.flatMap(
+      itemsStream: _personsOrder.switchMap(
         (order) =>
             Person.getAllForUser(orderBy: order.orderBy, descending: !order.asc)
                 .map(
