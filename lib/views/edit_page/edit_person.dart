@@ -27,6 +27,7 @@ import '../services_list.dart';
 class EditPerson extends StatefulWidget {
   final Person person;
   EditPerson({Key key, @required this.person}) : super(key: key);
+
   @override
   _EditPersonState createState() => _EditPersonState();
 }
@@ -35,15 +36,13 @@ class _EditPersonState extends State<EditPerson> {
   Map<String, dynamic> old;
   String changedImage;
   bool deletePhoto = false;
+
   GlobalKey<FormState> form = GlobalKey<FormState>();
 
   Person person;
+
   @override
   Widget build(BuildContext context) {
-    if (ModalRoute.of(context).settings.arguments != null &&
-        person.classId == null) {
-      person.classId = ModalRoute.of(context).settings.arguments;
-    }
     return Scaffold(
       body: NestedScrollView(
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
@@ -888,8 +887,8 @@ class _EditPersonState extends State<EditPerson> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    person = widget.person ?? Person();
-    old = person.getMap();
+    person ??= widget.person ?? Person();
+    old ??= person.getMap();
   }
 
   void selectColor() async {
