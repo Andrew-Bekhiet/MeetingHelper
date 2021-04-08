@@ -60,7 +60,6 @@ dependencies:
   group_list_view: ^1.1.1
   hive: ^2.0.2
   hive_flutter: ^1.0.0-nullsafety.0
-  icon_shadow: ^1.0.1
   image_cropper: ^1.4.0
   image_picker: ^0.7.4
   local_auth: ^1.1.3

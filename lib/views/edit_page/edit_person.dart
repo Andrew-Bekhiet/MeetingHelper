@@ -7,7 +7,6 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_storage/firebase_storage.dart' show FirebaseStorage;
 import 'package:flutter/material.dart';
-import 'package:icon_shadow/icon_shadow.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -52,11 +51,17 @@ class _EditPersonState extends State<EditPerson> {
               actions: <Widget>[
                 IconButton(
                     icon: Builder(
-                      builder: (context) => IconShadowWidget(
-                        Icon(
-                          Icons.photo_camera,
-                          color: Theme.of(context).iconTheme.color,
-                        ),
+                      builder: (context) => Stack(
+                        children: <Widget>[
+                          Positioned(
+                            left: 1.0,
+                            top: 2.0,
+                            child:
+                                Icon(Icons.photo_camera, color: Colors.black54),
+                          ),
+                          Icon(Icons.photo_camera,
+                              color: IconTheme.of(context).color),
+                        ],
                       ),
                     ),
                     onPressed: () async {

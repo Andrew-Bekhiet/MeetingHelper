@@ -7,7 +7,6 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:icon_shadow/icon_shadow.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
@@ -126,11 +125,17 @@ class PersonInfo extends StatelessWidget {
                                       .bodyText1
                                       .color,
                                   child: Builder(
-                                    builder: (context) => IconShadowWidget(
-                                      Icon(
-                                        Icons.edit,
-                                        color: IconTheme.of(context).color,
-                                      ),
+                                    builder: (context) => Stack(
+                                      children: <Widget>[
+                                        Positioned(
+                                          left: 1.0,
+                                          top: 2.0,
+                                          child: Icon(Icons.edit,
+                                              color: Colors.black54),
+                                        ),
+                                        Icon(Icons.edit,
+                                            color: IconTheme.of(context).color),
+                                      ],
                                     ),
                                   ),
                                 ),
@@ -199,11 +204,17 @@ class PersonInfo extends StatelessWidget {
                                     .bodyText1
                                     .color,
                                 child: Builder(
-                                  builder: (context) => IconShadowWidget(
-                                    Icon(
-                                      Icons.share,
-                                      color: IconTheme.of(context).color,
-                                    ),
+                                  builder: (context) => Stack(
+                                    children: <Widget>[
+                                      Positioned(
+                                        left: 1.0,
+                                        top: 2.0,
+                                        child: Icon(Icons.share,
+                                            color: Colors.black54),
+                                      ),
+                                      Icon(Icons.share,
+                                          color: IconTheme.of(context).color),
+                                    ],
                                   ),
                                 ),
                               ),
