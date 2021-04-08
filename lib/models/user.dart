@@ -43,6 +43,7 @@ class User extends DataObject
   bool servingStudyGender;
 
   bool superAccess;
+  bool manageDeleted;
   bool write;
   bool secretary;
 
@@ -57,7 +58,6 @@ class User extends DataObject
   bool kodasNotify;
   bool meetingNotify;
 
-  bool approveLocations;
   bool approved;
 
   int lastConfession;
@@ -91,6 +91,7 @@ class User extends DataObject
       String password,
       bool manageUsers,
       bool manageAllowedUsers,
+      bool manageDeleted,
       bool superAccess,
       bool write,
       bool secretary,
@@ -117,6 +118,7 @@ class User extends DataObject
         manageUsers,
         manageAllowedUsers,
         superAccess,
+        manageDeleted,
         write,
         secretary,
         exportClasses,
@@ -141,6 +143,7 @@ class User extends DataObject
       this.manageUsers,
       bool manageAllowedUsers,
       this.superAccess,
+      this.manageDeleted,
       this.write,
       this.secretary,
       this.exportClasses,
@@ -219,6 +222,7 @@ class User extends DataObject
             manageAllowedUsers =
                 idTokenClaims['manageAllowedUsers'].toString() == 'true';
             superAccess = idTokenClaims['superAccess'].toString() == 'true';
+            manageDeleted = idTokenClaims['manageDeleted'].toString() == 'true';
             write = idTokenClaims['write'].toString() == 'true';
             secretary = idTokenClaims['secretary'].toString() == 'true';
             exportClasses = idTokenClaims['exportClasses'].toString() == 'true';
@@ -229,8 +233,6 @@ class User extends DataObject
             tanawolNotify = idTokenClaims['tanawolNotify'].toString() == 'true';
             kodasNotify = idTokenClaims['kodasNotify'].toString() == 'true';
             meetingNotify = idTokenClaims['meetingNotify'].toString() == 'true';
-            approveLocations =
-                idTokenClaims['approveLocations'].toString() == 'true';
             approved = idTokenClaims['approved'].toString() == 'true';
             lastConfession = idTokenClaims['lastConfession'] != null
                 ? int.parse(idTokenClaims['lastConfession'].toString())
@@ -290,6 +292,7 @@ class User extends DataObject
           manageAllowedUsers =
               idTokenClaims['manageAllowedUsers'].toString() == 'true';
           superAccess = idTokenClaims['superAccess'].toString() == 'true';
+          manageDeleted = idTokenClaims['manageDeleted'].toString() == 'true';
           write = idTokenClaims['write'].toString() == 'true';
           secretary = idTokenClaims['secretary'].toString() == 'true';
           exportClasses = idTokenClaims['exportClasses'].toString() == 'true';
@@ -299,8 +302,6 @@ class User extends DataObject
           tanawolNotify = idTokenClaims['tanawolNotify'].toString() == 'true';
           kodasNotify = idTokenClaims['kodasNotify'].toString() == 'true';
           meetingNotify = idTokenClaims['meetingNotify'].toString() == 'true';
-          approveLocations =
-              idTokenClaims['approveLocations'].toString() == 'true';
           approved = idTokenClaims['approved'].toString() == 'true';
           lastConfession = idTokenClaims['lastConfession'] != null
               ? int.parse(idTokenClaims['lastConfession'].toString())
@@ -345,6 +346,7 @@ class User extends DataObject
     manageAllowedUsers = data['manageAllowedUsers'];
     allowedUsers = data['allowedUsers']?.cast<String>();
     superAccess = data['superAccess'];
+    manageDeleted = data['manageDeleted'];
     write = data['write'];
     secretary = data['secretary'];
     exportClasses = data['exportClasses'];
@@ -368,25 +370,28 @@ class User extends DataObject
 
   @override
   int get hashCode => hashValues(
-      uid,
-      name,
-      password,
-      manageUsers,
-      manageAllowedUsers,
-      superAccess,
-      write,
-      secretary,
-      exportClasses,
-      birthdayNotify,
-      confessionsNotify,
-      tanawolNotify,
-      kodasNotify,
-      meetingNotify,
-      approved,
-      lastConfession,
-      lastTanawol,
-      servingStudyYear,
-      servingStudyGender,
+      email,
+      hashValues(
+          uid,
+          name,
+          password,
+          manageUsers,
+          manageAllowedUsers,
+          superAccess,
+          manageDeleted,
+          write,
+          secretary,
+          exportClasses,
+          birthdayNotify,
+          confessionsNotify,
+          tanawolNotify,
+          kodasNotify,
+          meetingNotify,
+          approved,
+          lastConfession,
+          lastTanawol,
+          servingStudyYear,
+          servingStudyGender),
       email);
 
   DocumentReference get servingStudyYearRef => servingStudyYear == null
@@ -421,9 +426,9 @@ class User extends DataObject
       if (manageUsers ?? false) permissions += 'تعديل المستخدمين،';
       if (manageAllowedUsers ?? false) permissions += 'تعديل مستخدمين محددين،';
       if (superAccess ?? false) permissions += 'رؤية جميع البيانات،';
+      if (manageDeleted ?? false) permissions += 'استرجاع المحئوفات،';
       if (secretary ?? false) permissions += 'تسجيل حضور الخدام،';
       if (exportClasses ?? false) permissions += 'تصدير فصل،';
-      if (approveLocations ?? false) permissions += 'تأكيد المواقع،';
       if (birthdayNotify ?? false) permissions += 'اشعار أعياد الميلاد،';
       if (confessionsNotify ?? false) permissions += 'اشعار الاعتراف،';
       if (tanawolNotify ?? false) permissions += 'اشعار التناول،';
@@ -436,7 +441,7 @@ class User extends DataObject
   }
 
   @override
-  Widget photo([bool circle = false]) => getPhoto(circle);
+  Widget photo([bool b = false]) => getPhoto();
 
   Widget getPhoto([bool showCircle = true, bool showActiveStatus = true]) {
     return AspectRatio(
@@ -549,19 +554,19 @@ class User extends DataObject
   Map<String, dynamic> getUpdateMap() {
     return {
       'name': name,
-      'manageUsers': manageUsers,
-      'manageAllowedUsers': manageAllowedUsers,
-      'superAccess': superAccess,
-      'write': write,
-      'secretary': secretary,
-      'exportClasses': exportClasses,
-      'approveLocations': approveLocations,
-      'birthdayNotify': birthdayNotify,
-      'confessionsNotify': confessionsNotify,
-      'tanawolNotify': tanawolNotify,
-      'kodasNotify': kodasNotify,
-      'meetingNotify': meetingNotify,
-      'approved': approved,
+      'manageUsers': manageUsers ?? false,
+      'manageAllowedUsers': manageAllowedUsers ?? false,
+      'superAccess': superAccess ?? false,
+      'manageDeleted': manageDeleted ?? false,
+      'write': write ?? false,
+      'secretary': secretary ?? false,
+      'exportClasses': exportClasses ?? false,
+      'birthdayNotify': birthdayNotify ?? false,
+      'confessionsNotify': confessionsNotify ?? false,
+      'tanawolNotify': tanawolNotify ?? false,
+      'kodasNotify': kodasNotify ?? false,
+      'meetingNotify': meetingNotify ?? false,
+      'approved': approved ?? false,
       'lastConfession': lastConfession,
       'lastTanawol': lastTanawol,
       'servingStudyYear': servingStudyYear,
@@ -677,6 +682,7 @@ class User extends DataObject
             manageUsers: u['manageUsers'],
             manageAllowedUsers: u['manageAllowedUsers'],
             superAccess: u['superAccess'],
+            manageDeleted: u['manageDeleted'],
             write: u['write'],
             secretary: u['secretary'],
             exportClasses: u['exportClasses'],

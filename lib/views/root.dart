@@ -894,8 +894,7 @@ class _RootState extends State<Root>
               },
             ),
             Selector<User, bool>(
-              selector: (_, user) =>
-                  user.manageUsers || user.manageAllowedUsers,
+              selector: (_, user) => user.manageDeleted,
               builder: (context, permission, _) {
                 if (!permission)
                   return Container(
@@ -1436,9 +1435,11 @@ class _RootState extends State<Root>
       'History',
       if (User.instance.secretary) 'ServantsHistory',
       'Analytics',
-      'AdvancedSearch',
       'DataMap',
-      'Settings'
+      'AdvancedSearch',
+      if (User.instance.manageDeleted)
+        'ManageDeleted'
+            'Settings'
     ]);
   }
 

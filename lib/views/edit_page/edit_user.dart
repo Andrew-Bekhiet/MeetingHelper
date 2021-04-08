@@ -277,6 +277,17 @@ class _EditUserState extends State<EditUser> {
                 ),
                 ListTile(
                   trailing: Checkbox(
+                    value: widget.user.manageDeleted ?? false,
+                    onChanged: (v) =>
+                        setState(() => widget.user.manageDeleted = v),
+                  ),
+                  leading: Icon(Icons.delete_outlined),
+                  title: Text('استرجاع المحذوفات'),
+                  onTap: () => setState(() => widget.user.manageDeleted =
+                      !(widget.user.manageDeleted ?? false)),
+                ),
+                ListTile(
+                  trailing: Checkbox(
                     value: widget.user.secretary,
                     onChanged: (v) => setState(() => widget.user.secretary = v),
                   ),

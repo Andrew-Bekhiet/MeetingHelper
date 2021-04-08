@@ -238,6 +238,11 @@ class _MyAccountState extends State<MyAccount> {
                         const IconData(0xef56, fontFamily: 'MaterialIconsR')),
                     title: Text('رؤية جميع البيانات'),
                   ),
+                if (user.manageDeleted == true)
+                  ListTile(
+                    leading: Icon(Icons.delete_outlined),
+                    title: Text('استرجاع المحذوفات'),
+                  ),
                 if (user.secretary == true)
                   ListTile(
                     leading: Icon(Icons.shield),

@@ -83,11 +83,9 @@ class InvitationInfo extends StatelessWidget {
                         Positioned(
                           left: 1.0,
                           top: 2.0,
-                          child:
-                              Icon(Icons.share, color: Colors.black54),
+                          child: Icon(Icons.share, color: Colors.black54),
                         ),
-                        Icon(Icons.share,
-                            color: IconTheme.of(context).color),
+                        Icon(Icons.share, color: IconTheme.of(context).color),
                       ],
                     ),
                   ),
@@ -214,6 +212,11 @@ class InvitationInfo extends StatelessWidget {
                             leading: Icon(const IconData(0xef56,
                                 fontFamily: 'MaterialIconsR')),
                             title: Text('رؤية جميع البيانات'),
+                          ),
+                        if (invitation.permissions['manageDeleted'] == true)
+                          ListTile(
+                            leading: Icon(Icons.delete_outline),
+                            title: Text('استرجاع المحذوفات'),
                           ),
                         if (invitation.permissions['secretary'] == true)
                           ListTile(
