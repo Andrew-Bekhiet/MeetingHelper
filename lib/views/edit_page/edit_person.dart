@@ -338,7 +338,7 @@ class _EditPersonState extends State<EditPerson> {
                         child: Container(
                           padding: EdgeInsets.symmetric(vertical: 4.0),
                           child: Focus(
-                            child: GestureDetector(
+                            child: InkWell(
                               onTap: () async =>
                                   person.birthDate = await _selectDate(
                                 'تاريخ الميلاد',
@@ -956,7 +956,7 @@ class _EditPersonState extends State<EditPerson> {
         if (person.hasPhoto) {
           await FirebaseStorage.instance
               .ref()
-              .child('PersonPhotos/${person.id}')
+              .child('PersonsPhotos/${person.id}')
               .delete();
         }
         await person.ref.delete();
@@ -965,7 +965,7 @@ class _EditPersonState extends State<EditPerson> {
           // ignore: unawaited_futures
           FirebaseStorage.instance
               .ref()
-              .child('PersonPhotos/${person.id}')
+              .child('PersonsPhotos/${person.id}')
               .delete();
         }
         // ignore: unawaited_futures
