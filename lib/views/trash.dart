@@ -1,9 +1,9 @@
 import 'package:meetinghelper/models/list_options.dart';
 import 'package:meetinghelper/models/models.dart';
+import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:meetinghelper/views/lists/lists.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../models/super_classes.dart';
@@ -86,22 +86,38 @@ class _TrashDayScreenState extends State<TrashDayScreen>
 
   @override
   Widget build(BuildContext context) {
-    var _servicesOptions = ServicesListOptions(
+    var _classesOptions = DataObjectListOptions<Class>(
       searchQuery: _searchQuery,
-      itemsStream: classesByStudyYearRef(),
       tap: (c) => classTap(c, context),
+      itemsStream: (User.instance.superAccess
+              ? widget.day.ref.collection('Classes').snapshots()
+              : FirebaseFirestore.instance
+                  .collection('Classes')
+                  .where('Allowed', arrayContains: User.instance.uid)
+                  .snapshots())
+          .map(
+        (s) => s.docs.map(Class.fromDoc).toList(),
+      ),
     );
     var _personsOptions = DataObjectListOptions<Person>(
       searchQuery: _searchQuery,
       tap: (p) => personTap(p, context),
-      //Listen to Ordering options and combine it
-      //with the Data Stream from Firestore
-      itemsStream: _personsOrder.switchMap(
-        (order) =>
-            Person.getAllForUser(orderBy: order.orderBy, descending: !order.asc)
-                .map(
-          (s) => s.docs.map(Person.fromDoc).toList(),
-        ),
+      itemsStream: (User.instance.superAccess
+              ? widget.day.ref.collection('Persons').snapshots()
+              : FirebaseFirestore.instance
+                  .collection('Classes')
+                  .where('Allowed', arrayContains: User.instance.uid)
+                  .snapshots()
+                  .switchMap(
+                    (classes) => widget.day.ref
+                        .collection('Persons')
+                        .where('ClassId',
+                            whereIn:
+                                classes.docs.map((e) => e.reference).toList())
+                        .snapshots(),
+                  ))
+          .map(
+        (s) => s.docs.map(Person.fromDoc).toList(),
       ),
     );
     return Scaffold(
@@ -199,13 +215,6 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                     },
                   ),
           ),
-          IconButton(
-            icon: Icon(Icons.notifications),
-            tooltip: 'الإشعارات',
-            onPressed: () {
-              Navigator.of(context).pushNamed('Notifications');
-            },
-          ),
         ],
         bottom: TabBar(
           controller: _tabController,
@@ -264,7 +273,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
           animation: _tabController,
           builder: (context, _) => StreamBuilder(
             stream: _tabController.index == 0
-                ? _servicesOptions.objectsData
+                ? _classesOptions.objectsData
                 : _personsOptions.objectsData,
             builder: (context, snapshot) {
               return Text(
@@ -283,7 +292,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          ServicesList(options: _servicesOptions),
+          DataObjectList<Class>(options: _classesOptions),
           DataObjectList<Person>(options: _personsOptions),
         ],
       ),
@@ -293,7 +302,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(vsync: this, length: 4);
+    _tabController = TabController(vsync: this, length: 2);
     WidgetsBinding.instance.addObserver(this);
   }
 
