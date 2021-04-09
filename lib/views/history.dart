@@ -173,6 +173,7 @@ class _HistoryState extends State<History> {
                                 (DateTime.now().millisecondsSinceEpoch %
                                     86400000),
                           ))
+                      .limit(1)
                       .get(dataSource))
                   .docs;
               mainScfld.currentState.openEndDrawer();

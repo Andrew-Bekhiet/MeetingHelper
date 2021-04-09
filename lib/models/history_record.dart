@@ -17,7 +17,11 @@ class HistoryDay extends DataObject with ChangeNotifier {
   HistoryDay()
       : day = tranucateToDay(),
         notes = '',
-        super(FirebaseFirestore.instance.collection('History').doc(), null,
+        super(
+            FirebaseFirestore.instance
+                .collection('History')
+                .doc(DateTime.now().toIso8601String().split('T')[0]),
+            null,
             null) {
     color = Colors.transparent;
     _initListener();
@@ -100,7 +104,9 @@ class HistoryDay extends DataObject with ChangeNotifier {
 
 class ServantsHistoryDay extends HistoryDay {
   ServantsHistoryDay() {
-    ref = FirebaseFirestore.instance.collection('ServantsHistory').doc();
+    ref = FirebaseFirestore.instance
+        .collection('ServantsHistory')
+        .doc(DateTime.now().toIso8601String().split('T')[0]);
     day = tranucateToDay();
     notes = '';
     _initListener();

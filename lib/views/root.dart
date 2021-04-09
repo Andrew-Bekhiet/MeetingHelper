@@ -586,6 +586,7 @@ class _RootState extends State<Root>
                                     (DateTime.now().millisecondsSinceEpoch %
                                         86400000),
                               ))
+                          .limit(1)
                           .get(dataSource))
                       .docs;
                   mainScfld.currentState.openEndDrawer();
@@ -1446,9 +1447,8 @@ class _RootState extends State<Root>
       'Analytics',
       'DataMap',
       'AdvancedSearch',
-      if (User.instance.manageDeleted)
-        'ManageDeleted'
-            'Settings'
+      if (User.instance.manageDeleted) 'ManageDeleted',
+      'Settings'
     ]);
   }
 
