@@ -257,7 +257,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
   String _getPluralStringType() {
     if (T == HistoryDay || T == ServantsHistoryDay) return 'سجلات';
     if (T == Class) return 'فصول';
-    if (T == Person) return 'أشخاص';
+    if (T == Person) return 'مخدومين';
     if (T == Invitation) return 'دعوات';
     throw UnimplementedError();
   }
@@ -344,7 +344,7 @@ class _CheckListState<T extends DataObject>
                           .item2
                           .length
                           .toString() +
-                      ' شخص داخل الفصل'),
+                      ' مخدوم داخل الفصل'),
                 );
               },
             );
@@ -571,7 +571,7 @@ class _CheckListState<T extends DataObject>
   String _getPluralStringType() {
     if (T == HistoryDay || T == ServantsHistoryDay) return 'سجلات';
     if (T == Class) return 'فصول';
-    if (T == Person) return 'أشخاص';
+    if (T == Person) return 'مخدومين';
     if (T == Invitation) return 'دعوات';
     if (T == User) return 'مستخدمين';
     throw UnimplementedError();

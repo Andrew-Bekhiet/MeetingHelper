@@ -242,6 +242,6 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
         'StudyYear': 'سنة الدراسة',
         'Gender': 'نوع الفصل',
         'Color': 'اللون',
-        'Allowed': 'الأشخاص المسموح لهم بالرؤية والتعديل'
+        'Allowed': 'المخدومين المسموح لهم بالرؤية والتعديل'
       };
 }

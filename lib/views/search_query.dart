@@ -72,7 +72,7 @@ class _SearchQueryState extends State<SearchQuery> {
           1,
           'Name',
         ),
-        child: Text('اسم الشخص'),
+        child: Text('اسم المخدوم'),
       ),
       DropdownMenuItem(
         value: MapEntry(
@@ -677,7 +677,7 @@ class _SearchQueryState extends State<SearchQuery> {
                 DropdownButton(
                   items: <DropdownMenuItem>[
                     DropdownMenuItem(value: 0, child: Text('الفصول')),
-                    DropdownMenuItem(value: 1, child: Text('الأشخاص')),
+                    DropdownMenuItem(value: 1, child: Text('المخدومين')),
                   ],
                   value: parentIndex,
                   onChanged: parentChanged,

@@ -423,7 +423,7 @@ class _ClassInfoState extends State<ClassInfo> {
                         class$.ref.collection('EditHistory'),
                         discoverFeature: true,
                       ),
-                      Text('الأشخاص بالفصل:'),
+                      Text('المخدومين بالفصل:'),
                       SearchFilters(
                         1,
                         searchStream: _searchStream,
@@ -448,7 +448,7 @@ class _ClassInfoState extends State<ClassInfo> {
                 stream: _listOptions.objectsData,
                 builder: (context, snapshot) {
                   return Text(
-                    (snapshot.data?.length ?? 0).toString() + ' شخص',
+                    (snapshot.data?.length ?? 0).toString() + ' مخدوم',
                     textAlign: TextAlign.center,
                     strutStyle:
                         StrutStyle(height: IconTheme.of(context).size / 7.5),
@@ -476,11 +476,11 @@ class _ClassInfoState extends State<ClassInfo> {
                       contentLocation: ContentLocation.above,
                       featureId: 'Add',
                       tapTarget: Icon(Icons.person_add),
-                      title: Text('اضافة شخص داخل الفصل'),
+                      title: Text('اضافة مخدوم داخل الفصل'),
                       description: Column(
                         children: [
                           Text(
-                              'يمكنك اضافة شخص داخل الفصل بسرعة وسهولة من هنا'),
+                              'يمكنك اضافة مخدوم داخل الفصل بسرعة وسهولة من هنا'),
                           OutlinedButton(
                             onPressed: () =>
                                 FeatureDiscovery.completeCurrentStep(context),

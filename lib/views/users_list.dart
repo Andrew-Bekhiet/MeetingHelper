@@ -70,7 +70,7 @@ class _UsersListState extends State<UsersList> {
                           .item2
                           .length
                           .toString() +
-                      ' شخص داخل الفصل'),
+                      ' مخدوم داخل الفصل'),
                 );
               },
               itemBuilder: (context, i) {

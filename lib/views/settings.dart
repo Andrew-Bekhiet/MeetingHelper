@@ -145,7 +145,7 @@ class SettingsState extends State<Settings> {
                         header: Text('بيانات إضافية',
                             style: TextStyle(fontSize: 24)),
                         collapsed: Text(
-                            'الكنائس، الأباء الكهنة، الوظائف، السنوات الدراسية، أنواع الخدمات، أنواع الأشخاص',
+                            'الكنائس، الأباء الكهنة، الوظائف، السنوات الدراسية، أنواع الخدمات، أنواع المخدومين',
                             overflow: TextOverflow.ellipsis),
                         expanded: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -177,7 +177,7 @@ class SettingsState extends State<Settings> {
                         header: Text('مظهر البيانات',
                             style: TextStyle(fontSize: 24)),
                         collapsed: Text(
-                            'السطر الثاني للفصل، السطر الثاني للشخص',
+                            'السطر الثاني للفصل، السطر الثاني للمخدوم',
                             overflow: TextOverflow.ellipsis),
                         expanded: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -195,7 +195,7 @@ class SettingsState extends State<Settings> {
                                           (element) => element.value == 'Color')
                                       ..add(DropdownMenuItem(
                                         value: 'Members',
-                                        child: Text('الأشخاص بالفصل'),
+                                        child: Text('المخدومين بالفصل'),
                                       ))
                                       ..insert(
                                           0,
@@ -240,7 +240,7 @@ class SettingsState extends State<Settings> {
                                   await settings.put('PersonSecondLine', value);
                                 },
                                 decoration: InputDecoration(
-                                    labelText: 'السطر الثاني للشخص:',
+                                    labelText: 'السطر الثاني للمخدوم:',
                                     border: OutlineInputBorder(
                                       borderSide: BorderSide(
                                           color:

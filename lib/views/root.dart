@@ -266,13 +266,13 @@ class _RootState extends State<Root>
               ),
             ),
             Tab(
-              text: 'الأشخاص',
+              text: 'المخدومين',
               icon: DescribedFeatureOverlay(
                 barrierDismissible: false,
                 contentLocation: ContentLocation.below,
                 featureId: 'Persons',
                 tapTarget: const Icon(Icons.person),
-                title: Text('المخدومين /الأشخاص'),
+                title: Text('المخدومين /المخدومين'),
                 description: Column(
                   children: <Widget>[
                     Text('هنا تجد قائمة بكل المخدومين بالبرنامج'),
@@ -367,7 +367,7 @@ class _RootState extends State<Root>
               return Text(
                 (snapshot.data?.length ?? 0).toString() +
                     ' ' +
-                    (_tabController.index == 0 ? 'خدمة' : 'شخص'),
+                    (_tabController.index == 0 ? 'خدمة' : 'مخدوم'),
                 textAlign: TextAlign.center,
                 strutStyle:
                     StrutStyle(height: IconTheme.of(context).size / 7.5),
@@ -848,7 +848,7 @@ class _RootState extends State<Root>
                 description: Column(
                   children: <Widget>[
                     Text(
-                        'يمكن عمل بحث مفصل عن البيانات بالبرنامج بالخصائص المطلوبة\nمثال: عرض كل الأشخاص الذين يصادف عيد ميلادهم اليوم\nعرض كل الأشخاص داخل منطقة معينة'),
+                        'يمكن عمل بحث مفصل عن البيانات بالبرنامج بالخصائص المطلوبة\nمثال: عرض كل المخدومين الذين يصادف عيد ميلادهم اليوم\nعرض كل المخدومين داخل منطقة معينة'),
                     OutlinedButton.icon(
                       icon: Icon(Icons.forward),
                       label: Text(

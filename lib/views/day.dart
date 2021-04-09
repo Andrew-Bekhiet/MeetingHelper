@@ -224,7 +224,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                                     !dayOptions.showSubtitlesInGroups.value);
                                 Navigator.pop(context);
                               },
-                              child: Text('اظهار عدد الأشخاص داخل كل فصل'),
+                              child: Text('اظهار عدد المخدومين داخل كل فصل'),
                             ),
                           ],
                         ),
@@ -356,13 +356,13 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                 builder: (context, snapshot) {
                   return Text(
                     (snapshot.data?.item2 ?? 0).toString() +
-                        ' شخص حاضر و' +
+                        ' مخدوم حاضر و' +
                         ((snapshot.data?.item1 ?? 0) -
                                 (snapshot.data?.item2 ?? 0))
                             .toString() +
-                        ' شخص غائب من اجمالي ' +
+                        ' مخدوم غائب من اجمالي ' +
                         (snapshot.data?.item1 ?? 0).toString() +
-                        ' شخص',
+                        ' مخدوم',
                     textAlign: TextAlign.center,
                     textScaleFactor: 0.99,
                     strutStyle:

@@ -331,7 +331,7 @@ class _EditClassState extends State<EditClass> {
           builder: (context) => AlertDialog(
             title: Text(class$.name),
             content:
-                Text('هل أنت متأكد من حذف ${class$.name} وكل ما به أشخاص؟'),
+                Text('هل أنت متأكد من حذف ${class$.name} وكل ما به مخدومين؟'),
             actions: <Widget>[
               TextButton(
                 onPressed: () {

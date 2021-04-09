@@ -224,7 +224,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
               icon: const Icon(Icons.miscellaneous_services),
             ),
             Tab(
-              text: 'الأشخاص',
+              text: 'المخدومين',
               icon: const Icon(Icons.person),
             ),
           ],
@@ -279,7 +279,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
               return Text(
                 (snapshot.data?.length ?? 0).toString() +
                     ' ' +
-                    (_tabController.index == 0 ? 'خدمة' : 'شخص'),
+                    (_tabController.index == 0 ? 'خدمة' : 'مخدوم'),
                 textAlign: TextAlign.center,
                 strutStyle:
                     StrutStyle(height: IconTheme.of(context).size / 7.5),

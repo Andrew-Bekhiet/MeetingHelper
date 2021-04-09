@@ -55,7 +55,7 @@ class _PersonInfoState extends State<PersonInfo> {
           if (person == null)
             return Scaffold(
               body: Center(
-                child: Text('تم حذف الشخص'),
+                child: Text('تم حذف المخدوم'),
               ),
             );
           return Scaffold(
@@ -239,7 +239,7 @@ class _PersonInfoState extends State<PersonInfo> {
                                 return [
                                   PopupMenuItem(
                                       child: Text(
-                                          'ارسال إشعار للمستخدمين عن الشخص'))
+                                          'ارسال إشعار للمستخدمين عن المخدوم'))
                                 ];
                               },
                             ),
