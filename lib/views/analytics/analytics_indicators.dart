@@ -10,6 +10,7 @@ import 'package:meetinghelper/utils/helpers.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:tuple/tuple.dart';
 
 class AttendanceChart extends StatelessWidget {
   final List<Class> classes;
@@ -305,7 +306,7 @@ class PersonAttendanceIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot>(
+    return StreamBuilder<List<QueryDocumentSnapshot>>(
       stream: _getHistoryForUser(),
       builder: (context, history) {
         if (history.hasError) return ErrorWidget(history.error);
@@ -316,16 +317,19 @@ class PersonAttendanceIndicator extends StatelessWidget {
           attendanceLabel: attendanceLabel,
           absenseLabel: absenseLabel,
           total: total,
-          attends: history.data.size,
+          attends: history.data.length,
         );
       },
     );
   }
 
-  Stream<QuerySnapshot> _getHistoryForUser() async* {
-    await for (var u in User.instance.stream) {
-      if (u.superAccess) {
-        await for (var s in FirebaseFirestore.instance
+  Stream<List<QueryDocumentSnapshot>> _getHistoryForUser() {
+    return Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
+        User.instance.stream,
+        Class.getAllForUser().map((s) => s.docs.map(Class.fromDoc).toList()),
+        (a, b) => Tuple2<User, List<Class>>(a, b)).switchMap((u) {
+      if (u.item1.superAccess) {
+        return FirebaseFirestore.instance
             .collectionGroup(collectionGroup)
             .where('ID', isEqualTo: id)
             .where(
@@ -337,32 +341,27 @@ class PersonAttendanceIndicator extends StatelessWidget {
                 isGreaterThanOrEqualTo:
                     Timestamp.fromDate(range.start.subtract(Duration(days: 1))))
             .orderBy('Time', descending: true)
-            .snapshots()) yield s;
+            .snapshots()
+            .map((s) => s.docs);
       } else {
-        await for (var s in FirebaseFirestore.instance
-            .collectionGroup(collectionGroup)
-            .where('ClassId',
-                whereIn: (await FirebaseFirestore.instance
-                        .collection('Classes')
-                        .where('Allowed',
-                            arrayContains:
-                                auth.FirebaseAuth.instance.currentUser.uid)
-                        .get(dataSource))
-                    .docs
-                    .map((e) => e.reference)
-                    .toList())
-            .where('ID', isEqualTo: id)
-            .where(
-              'Time',
-              isLessThanOrEqualTo:
-                  Timestamp.fromDate(range.end.add(Duration(days: 1))),
-            )
-            .where('Time',
-                isGreaterThanOrEqualTo:
-                    Timestamp.fromDate(range.start.subtract(Duration(days: 1))))
-            .orderBy('Time', descending: true)
-            .snapshots()) yield s;
+        return Rx.combineLatestList<QuerySnapshot>(u.item2
+                .map((c) => FirebaseFirestore.instance
+                    .collectionGroup(collectionGroup)
+                    .where('ClassId', isEqualTo: c.ref)
+                    .where('ID', isEqualTo: id)
+                    .where(
+                      'Time',
+                      isLessThanOrEqualTo:
+                          Timestamp.fromDate(range.end.add(Duration(days: 1))),
+                    )
+                    .where('Time',
+                        isGreaterThanOrEqualTo: Timestamp.fromDate(
+                            range.start.subtract(Duration(days: 1))))
+                    .orderBy('Time', descending: true)
+                    .snapshots())
+                .toList())
+            .map((s) => s.expand((n) => n.docs).toList());
       }
-    }
+    });
   }
 }

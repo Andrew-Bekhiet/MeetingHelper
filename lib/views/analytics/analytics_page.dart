@@ -15,14 +15,6 @@ import 'package:meetinghelper/utils/helpers.dart';
 
 import 'analytics_indicators.dart';
 
-class ClassAnalyticsPage extends StatefulWidget {
-  final Class class$;
-  ClassAnalyticsPage({Key key, this.class$}) : super(key: key);
-
-  @override
-  _ClassAnalyticsPageState createState() => _ClassAnalyticsPageState();
-}
-
 class HistoryDayAnalyticsPage extends StatefulWidget {
   final HistoryDay day;
   HistoryDayAnalyticsPage({Key key, this.day}) : super(key: key);
@@ -32,11 +24,12 @@ class HistoryDayAnalyticsPage extends StatefulWidget {
       _HistoryDayAnalyticsPageState();
 }
 
-class GeneralAnalyticsPage extends StatefulWidget {
-  GeneralAnalyticsPage({Key key}) : super(key: key);
+class AnalyticsPage extends StatefulWidget {
+  final List<Class> classes;
+  AnalyticsPage({Key key, this.classes}) : super(key: key);
 
   @override
-  _GeneralAnalyticsPageState createState() => _GeneralAnalyticsPageState();
+  _AnalyticsPageState createState() => _AnalyticsPageState();
 }
 
 class PersonAnalyticsPage extends StatefulWidget {
@@ -45,141 +38,6 @@ class PersonAnalyticsPage extends StatefulWidget {
 
   @override
   _PersonAnalyticsPageState createState() => _PersonAnalyticsPageState();
-}
-
-class _ClassAnalyticsPageState extends State<ClassAnalyticsPage> {
-  DateTimeRange range = DateTimeRange(
-      start: DateTime.now().subtract(Duration(days: 30)), end: DateTime.now());
-  DateTime minAvaliable = DateTime.now().subtract(Duration(days: 30));
-  final _screenKey = GlobalKey();
-
-  @override
-  Widget build(BuildContext context) {
-    return RepaintBoundary(
-      key: _screenKey,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text('الاحصائيات'),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.mobile_screen_share),
-              onPressed: () => takeScreenshot(_screenKey),
-              tooltip: 'حفظ كصورة',
-            ),
-          ],
-        ),
-        body: FutureBuilder(
-          future: _setRangeStart(),
-          builder: (context, _) {
-            if (_.connectionState == ConnectionState.done) {
-              return StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('History')
-                    .orderBy('Day')
-                    .where(
-                      'Day',
-                      isLessThanOrEqualTo:
-                          Timestamp.fromDate(range.end.add(Duration(days: 1))),
-                    )
-                    .where('Day',
-                        isGreaterThanOrEqualTo: Timestamp.fromDate(
-                            range.start.subtract(Duration(days: 1))))
-                    .snapshots(),
-                builder: (context, daysData) {
-                  if (daysData.hasError) return ErrorWidget(daysData.error);
-                  if (daysData.connectionState == ConnectionState.waiting)
-                    return const Center(child: CircularProgressIndicator());
-                  if (daysData.data.docs.isEmpty)
-                    return const Center(child: Text('لا يوجد سجل'));
-                  var days = daysData.data.docs
-                      .map((o) => HistoryDay.fromDoc(o))
-                      .toList();
-
-                  return ListView(
-                    children: [
-                      ListTile(
-                        title: Text(
-                            'احصائيات الحضور من ' +
-                                DateFormat.yMMMEd('ar_EG').format(range.start) +
-                                ' الى ' +
-                                DateFormat.yMMMEd('ar_EG').format(range.end),
-                            style: Theme.of(context).textTheme.bodyText1),
-                        trailing: IconButton(
-                          icon: Icon(Icons.date_range),
-                          tooltip: 'اختيار نطاق السجل',
-                          onPressed: () async {
-                            var rslt = await showDateRangePicker(
-                              builder: (context, dialog) => Theme(
-                                data: Theme.of(context).copyWith(
-                                  textTheme:
-                                      Theme.of(context).textTheme.copyWith(
-                                            overline: TextStyle(
-                                              fontSize: 0,
-                                            ),
-                                          ),
-                                ),
-                                child: dialog,
-                              ),
-                              helpText: null,
-                              context: context,
-                              confirmText: 'حفظ',
-                              saveText: 'حفظ',
-                              initialDateRange: range,
-                              firstDate: minAvaliable,
-                              lastDate: DateTime.now(),
-                            );
-                            if (rslt != null) {
-                              range = rslt;
-                              setState(() {});
-                            }
-                          },
-                        ),
-                      ),
-                      AttendanceChart(
-                        title: 'حضور الاجتماع',
-                        classes: [widget.class$],
-                        range: range,
-                        days: days,
-                        collectionGroup: 'Meeting',
-                      ),
-                      AttendanceChart(
-                        title: 'حضور القداس',
-                        classes: [widget.class$],
-                        range: range,
-                        days: days,
-                        collectionGroup: 'Kodas',
-                      ),
-                      AttendanceChart(
-                        title: 'التناول',
-                        classes: [widget.class$],
-                        range: range,
-                        days: days,
-                        collectionGroup: 'Tanawol',
-                      ),
-                    ],
-                  );
-                },
-              );
-            } else {
-              return const Center(child: CircularProgressIndicator());
-            }
-          },
-        ),
-      ),
-    );
-  }
-
-  Future<void> _setRangeStart() async {
-    minAvaliable = ((await FirebaseFirestore.instance
-                .collection('History')
-                .orderBy('Day')
-                .limit(1)
-                .get(dataSource))
-            .docs[0]
-            .data()['Day'] as Timestamp)
-        .toDate();
-    range = DateTimeRange(start: minAvaliable, end: DateTime.now());
-  }
 }
 
 class _HistoryDayAnalyticsPageState extends State<HistoryDayAnalyticsPage> {
@@ -272,6 +130,7 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
       start: DateTime.now().subtract(Duration(days: 30)), end: DateTime.now());
   DateTime minAvaliable = DateTime.now().subtract(Duration(days: 30));
   final _screenKey = GlobalKey();
+  bool minAvaliableSet = false;
 
   @override
   Widget build(BuildContext context) {
@@ -391,6 +250,7 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
   }
 
   Future<void> _setRangeStart() async {
+    if (minAvaliableSet) return;
     minAvaliable = ((await FirebaseFirestore.instance
                 .collection('History')
                 .orderBy('Day')
@@ -399,18 +259,22 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
             .docs[0]
             .data()['Day'] as Timestamp)
         .toDate();
+    minAvaliableSet = true;
+
     range = DateTimeRange(start: minAvaliable, end: DateTime.now());
   }
 }
 
-class _GeneralAnalyticsPageState extends State<GeneralAnalyticsPage> {
+class _AnalyticsPageState extends State<AnalyticsPage> {
   List<Class> classes;
   DateTimeRange range = DateTimeRange(
       start: DateTime.now().subtract(Duration(days: 30)), end: DateTime.now());
   DateTime minAvaliable = DateTime.now().subtract(Duration(days: 30));
   final _screenKey = GlobalKey();
+  bool minAvaliableSet = false;
 
   Future<void> _setRangeStart() async {
+    if (minAvaliableSet) return;
     minAvaliable = ((await FirebaseFirestore.instance
                 .collection('History')
                 .orderBy('Day')
@@ -419,6 +283,8 @@ class _GeneralAnalyticsPageState extends State<GeneralAnalyticsPage> {
             .docs[0]
             .data()['Day'] as Timestamp)
         .toDate();
+    minAvaliableSet = true;
+
     range = DateTimeRange(start: minAvaliable, end: DateTime.now());
   }
 
@@ -441,14 +307,16 @@ class _GeneralAnalyticsPageState extends State<GeneralAnalyticsPage> {
           future: _setRangeStart(),
           builder: (context, _) {
             if (_.connectionState == ConnectionState.done) {
-              return StreamBuilder<QuerySnapshot>(
-                stream: Class.getAllForUser(),
+              return StreamBuilder<List<Class>>(
+                initialData: widget.classes,
+                stream: Class.getAllForUser().map(
+                  (s) => s.docs.map((c) => Class.fromDoc(c)).toList(),
+                ),
                 builder: (context, snapshot) {
                   if (snapshot.hasError) return ErrorWidget(snapshot.error);
                   if (!snapshot.hasData)
                     return const Center(child: CircularProgressIndicator());
-                  classes ??=
-                      snapshot.data.docs.map((c) => Class.fromDoc(c)).toList();
+                  classes ??= snapshot.data;
                   return StreamBuilder<QuerySnapshot>(
                     stream: FirebaseFirestore.instance
                         .collection('History')

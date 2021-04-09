@@ -234,13 +234,13 @@ class AppState extends State<App> {
               return PersonAnalyticsPage(
                   person: ModalRoute.of(context).settings.arguments);
             else if (ModalRoute.of(context).settings.arguments is Class)
-              return ClassAnalyticsPage(
-                  class$: ModalRoute.of(context).settings.arguments);
+              return AnalyticsPage(
+                  classes: [ModalRoute.of(context).settings.arguments]);
             else if (ModalRoute.of(context).settings.arguments is HistoryDay)
               return HistoryDayAnalyticsPage(
                   day: ModalRoute.of(context).settings.arguments);
             else
-              return GeneralAnalyticsPage();
+              return AnalyticsPage();
           },
         },
         localizationsDelegates: [
