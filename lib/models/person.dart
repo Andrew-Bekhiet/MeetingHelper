@@ -14,6 +14,8 @@ import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/views/map_view.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
+import 'package:rxdart/rxdart.dart';
+import 'package:tuple/tuple.dart';
 
 import 'user.dart';
 
@@ -303,35 +305,36 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
     return rslt;
   }
 
-  static Stream<QuerySnapshot> getAllForUser({
+  static Stream<List<Person>> getAllForUser({
     String orderBy = 'Name',
     bool descending = false,
-  }) async* {
-    await for (var u in User.instance.stream) {
-      if (u.superAccess) {
-        await for (var s in FirebaseFirestore.instance
+  }) {
+    return Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
+        User.instance.stream,
+        Class.getAllForUser(),
+        (a, b) => Tuple2<User, List<Class>>(a, b)).switchMap((u) {
+      if (u.item1.superAccess) {
+        return FirebaseFirestore.instance
             .collection('Persons')
             .orderBy(orderBy, descending: descending)
-            .snapshots()) {
-          yield s;
-        }
-      } else {
-        await for (var s in FirebaseFirestore.instance
+            .snapshots()
+            .map((p) => p.docs.map(fromDoc).toList());
+      } else if (u.item2.length <= 10) {
+        return FirebaseFirestore.instance
             .collection('Persons')
-            .where('ClassId',
-                whereIn: (await FirebaseFirestore.instance
-                        .collection('Classes')
-                        .where('Allowed', arrayContains: u.uid)
-                        .get(dataSource))
-                    .docs
-                    .map((e) => e.reference)
-                    .toList())
+            .where('ClassId', whereIn: u.item2.map((e) => e.ref).toList())
             .orderBy(orderBy, descending: descending)
-            .snapshots()) {
-          yield s;
-        }
+            .snapshots()
+            .map((p) => p.docs.map(fromDoc).toList());
       }
-    }
+      return Rx.combineLatestList<QuerySnapshot>(u.item2.map((c) =>
+              FirebaseFirestore.instance
+                  .collection('Persons')
+                  .where('ClassId', isEqualTo: c.ref)
+                  .orderBy(orderBy, descending: descending)
+                  .snapshots()))
+          .map((s) => s.expand((n) => n.docs).map(fromDoc).toList());
+    });
   }
 
   static Future<List<Person>> getAllPersonsForUser({

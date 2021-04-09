@@ -38,8 +38,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                       .inDays ==
                   0;
               return CheckListOptions(
-                  itemsStream: Person.getAllForUser(orderBy: 'Name')
-                      .map((s) => s.docs.map(Person.fromDoc).toList()),
+                  itemsStream: Person.getAllForUser(orderBy: 'Name'),
                   searchQuery: _searchQuery,
                   day: widget.record,
                   dayOptions: HistoryDayOptions(

@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:rxdart/rxdart.dart';
 
 import 'models.dart';
 import 'user.dart';
@@ -107,7 +108,7 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
         .docs);
   }
 
-  Stream<QuerySnapshot> getMembersLive(
+  Stream<List<Person>> getMembersLive(
       {bool descending = false, String orderBy = 'Name'}) {
     return getClassMembersLive(ref, orderBy, descending);
     // return FirebaseFirestore.instance
@@ -198,33 +199,36 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
     return rslt;
   }
 
-  static Stream<QuerySnapshot> getAllForUser({
+  static Stream<List<Class>> getAllForUser({
     String orderBy = 'Name',
     bool descending = false,
-  }) async* {
-    await for (var u in User.instance.stream) {
+  }) {
+    return User.instance.stream.switchMap((u) {
       if (u.superAccess) {
-        await for (var s in FirebaseFirestore.instance
+        return FirebaseFirestore.instance
             .collection('Classes')
             .orderBy(orderBy, descending: descending)
-            .snapshots()) yield s;
+            .snapshots()
+            .map((c) => c.docs.map(fromDoc));
       } else {
-        await for (var s in FirebaseFirestore.instance
+        return FirebaseFirestore.instance
             .collection('Classes')
             .where('Allowed', arrayContains: u.uid)
             .orderBy(orderBy, descending: descending)
-            .snapshots()) yield s;
+            .snapshots()
+            .map((c) => c.docs.map(fromDoc));
       }
-    }
+    });
   }
 
-  static Stream<QuerySnapshot> getClassMembersLive(DocumentReference id,
+  static Stream<List<Person>> getClassMembersLive(DocumentReference id,
       [String orderBy = 'Name', bool descending = false]) {
     return FirebaseFirestore.instance
         .collection('Persons')
         .where('ClassId', isEqualTo: id)
         .orderBy(orderBy, descending: descending)
-        .snapshots();
+        .snapshots()
+        .map((p) => p.docs.map(Person.fromDoc));
   }
 
   static Map<String, dynamic> getEmptyExportMap() => {

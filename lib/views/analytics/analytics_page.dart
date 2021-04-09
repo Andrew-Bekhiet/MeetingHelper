@@ -58,14 +58,13 @@ class _HistoryDayAnalyticsPageState extends State<HistoryDayAnalyticsPage> {
             ),
           ],
         ),
-        body: StreamBuilder<QuerySnapshot>(
+        body: StreamBuilder<List<Class>>(
           stream: Class.getAllForUser(),
           builder: (context, snapshot) {
             if (snapshot.hasError) return ErrorWidget(snapshot.error);
             if (!snapshot.hasData)
               return const Center(child: CircularProgressIndicator());
-            classes ??=
-                snapshot.data.docs.map((c) => Class.fromDoc(c)).toList();
+            classes ??= snapshot.data;
             return ListView(
               children: [
                 ListTile(
@@ -309,9 +308,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
             if (_.connectionState == ConnectionState.done) {
               return StreamBuilder<List<Class>>(
                 initialData: widget.classes,
-                stream: Class.getAllForUser().map(
-                  (s) => s.docs.map((c) => Class.fromDoc(c)).toList(),
-                ),
+                stream: Class.getAllForUser(),
                 builder: (context, snapshot) {
                   if (snapshot.hasError) return ErrorWidget(snapshot.error);
                   if (!snapshot.hasData)

@@ -1331,10 +1331,7 @@ class _SearchQueryState extends State<SearchQuery> {
       },
       itemsStream: _orderOptions.switchMap(
         (order) =>
-            Class.getAllForUser(orderBy: order.orderBy, descending: !order.asc)
-                .map(
-          (s) => s.docs.map(Class.fromDoc).toList(),
-        ),
+            Class.getAllForUser(orderBy: order.orderBy, descending: !order.asc),
       ),
     );
     await showDialog(

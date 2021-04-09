@@ -1,11 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/models/user.dart';
-import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:rxdart/rxdart.dart';
@@ -65,10 +63,10 @@ class AttendanceChart extends StatelessWidget {
                   history.data,
                   (d) => tranucateToDay(
                       time: (d.data()['Time'] as Timestamp).toDate()));
-          return StreamBuilder<List<QueryDocumentSnapshot>>(
-            stream: Rx.combineLatestList<QuerySnapshot>(
+          return StreamBuilder<List<Person>>(
+            stream: Rx.combineLatestList<List<Person>>(
                     classes.map((c) => c.getMembersLive()))
-                .map((p) => p.expand((o) => o.docs).toList()),
+                .map((p) => p.expand((o) => o).toList()),
             builder: (context, persons) {
               if (persons.hasError) return ErrorWidget(persons.error);
               if (!persons.hasData)
@@ -259,9 +257,9 @@ class ClassesAttendanceIndicator extends StatelessWidget {
         if (!snapshot.hasData)
           return const Center(child: CircularProgressIndicator());
         return StreamBuilder<int>(
-          stream: Rx.combineLatestList<QuerySnapshot>(
+          stream: Rx.combineLatestList<List<Person>>(
                   classes.map((c) => c.getMembersLive()).toList())
-              .map((s) => s.fold<int>(0, (o, n) => o + n.size)),
+              .map((s) => s.fold<int>(0, (o, n) => o + n.length)),
           builder: (context, persons) {
             if (persons.hasError) return ErrorWidget(persons.error);
             if (!persons.hasData)
@@ -326,7 +324,7 @@ class PersonAttendanceIndicator extends StatelessWidget {
   Stream<List<QueryDocumentSnapshot>> _getHistoryForUser() {
     return Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
         User.instance.stream,
-        Class.getAllForUser().map((s) => s.docs.map(Class.fromDoc).toList()),
+        Class.getAllForUser(),
         (a, b) => Tuple2<User, List<Class>>(a, b)).switchMap((u) {
       if (u.item1.superAccess) {
         return FirebaseFirestore.instance

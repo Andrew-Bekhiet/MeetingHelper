@@ -60,10 +60,7 @@ class _ClassInfoState extends State<ClassInfo> {
       tap: (p) => personTap(p, context),
       itemsStream: _orderOptions.switchMap(
         (order) => widget.class$
-            .getMembersLive(orderBy: order.orderBy, descending: !order.asc)
-            .map(
-              (s) => s.docs.map(Person.fromDoc).toList(),
-            ),
+            .getMembersLive(orderBy: order.orderBy, descending: !order.asc),
       ),
     );
     return Selector<User, bool>(

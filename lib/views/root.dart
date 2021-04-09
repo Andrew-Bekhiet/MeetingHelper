@@ -1359,11 +1359,8 @@ class _RootState extends State<Root>
       //Listen to Ordering options and combine it
       //with the Data Stream from Firestore
       itemsStream: _personsOrder.switchMap(
-        (order) =>
-            Person.getAllForUser(orderBy: order.orderBy, descending: !order.asc)
-                .map(
-          (s) => s.docs.map(Person.fromDoc).toList(),
-        ),
+        (order) => Person.getAllForUser(
+            orderBy: order.orderBy, descending: !order.asc),
       ),
     );
     _tabController = TabController(vsync: this, length: 2);
