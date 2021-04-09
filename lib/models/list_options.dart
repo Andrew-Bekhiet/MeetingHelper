@@ -289,10 +289,11 @@ class CheckListOptions<T extends DataObject>
                     trailing: trailing)) {
     attended = BehaviorSubject<Map<String, HistoryRecord>>()
       ..addStream(ref != null
-          ? () async* {
-              if (User.instance.superAccess ||
-                  (day is ServantsHistoryDay && User.instance.secretary)) {
-                await for (var s in ref.snapshots()) {
+          ? Rx.combineLatest2(User.instance.stream, Class.getAllForUser(),
+              (a, b) => Tuple2<User, List<Class>>(a, b)).switchMap((v) {
+              if (v.item1.superAccess ||
+                  (day is ServantsHistoryDay && v.item1.secretary)) {
+                return ref.snapshots().map<Map<String, HistoryRecord>>((s) {
                   Map<String, HistoryRecord> snapshotMap =
                       Map<String, HistoryRecord>.fromIterable(
                     s.docs,
@@ -306,20 +307,14 @@ class CheckListOptions<T extends DataObject>
                     },
                     value: (d) => HistoryRecord.fromDoc(day, d),
                   );
-                  yield snapshotMap;
-                }
-              } else {
-                await for (var s in ref
+                  return snapshotMap;
+                });
+              } else if (v.item2.length <= 10) {
+                return ref
                     .where('ClassId',
-                        whereIn: (await FirebaseFirestore.instance
-                                .collection('Classes')
-                                .where('Allowed',
-                                    arrayContains: User.instance.uid)
-                                .get(dataSource))
-                            .docs
-                            .map((e) => e.reference)
-                            .toList())
-                    .snapshots()) {
+                        whereIn: v.item2.map((e) => e.ref).toList())
+                    .snapshots()
+                    .map((s) {
                   Map<String, HistoryRecord> snapshotMap =
                       Map<String, HistoryRecord>.fromIterable(
                     s.docs,
@@ -333,10 +328,29 @@ class CheckListOptions<T extends DataObject>
                     },
                     value: (d) => HistoryRecord.fromDoc(day, d),
                   );
-                  yield snapshotMap;
-                }
+                  return snapshotMap;
+                });
               }
-            }()
+              return Rx.combineLatestList<QuerySnapshot>(v.item2.map((c) =>
+                      ref.where('ClassId', isEqualTo: c.ref).snapshots()))
+                  .map((s) => s.expand((n) => n.docs))
+                  .map((s) {
+                Map<String, HistoryRecord> snapshotMap =
+                    Map<String, HistoryRecord>.fromIterable(
+                  s,
+                  key: (d) {
+                    if (originalObjectsData.value != null)
+                      _selected.add({
+                        d.id: originalObjectsData.value
+                            .singleWhere((e) => e.id == d.id)
+                      });
+                    return d.id;
+                  },
+                  value: (d) => HistoryRecord.fromDoc(day, d),
+                );
+                return snapshotMap;
+              });
+            })
           : Stream.value({}));
 
     ///Listens to [dayOptions.showTrueonly] then the [_searchQuery]

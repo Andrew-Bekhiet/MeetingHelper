@@ -75,64 +75,79 @@ Future<void> changeTheme(
       ));
 }
 
-Stream<Map<StudyYear, List<Class>>> classesByStudyYearRef() async* {
-  await for (var sys in FirebaseFirestore.instance
+Stream<Map<StudyYear, List<Class>>> classesByStudyYearRef() {
+  return FirebaseFirestore.instance
       .collection('StudyYears')
       .orderBy('Grade')
-      .snapshots()) {
-    Map<DocumentReference, StudyYear> studyYears = {
-      for (var sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
-    };
-    await for (var cs in (User.instance.superAccess
-        ? FirebaseFirestore.instance
-            .collection('Classes')
-            .orderBy('StudyYear')
-            .orderBy('Gender')
-            .snapshots()
-        : FirebaseFirestore.instance
-            .collection('Classes')
-            .where('Allowed',
-                arrayContains: auth.FirebaseAuth.instance.currentUser.uid)
-            .orderBy('StudyYear')
-            .orderBy('Gender')
-            .snapshots())) {
-      var classes = cs.docs.map((c) => Class.fromDoc(c)).toList();
-      mergeSort<Class>(classes, compare: (c, c2) {
-        if (c.studyYear == c2.studyYear) return c.gender.compareTo(c2.gender);
-        return studyYears[c.studyYear]
-            .grade
-            .compareTo(studyYears[c2.studyYear].grade);
-      });
-      yield groupBy<Class, StudyYear>(classes, (c) => studyYears[c.studyYear]);
-    }
-  }
+      .snapshots()
+      .switchMap<Map<StudyYear, List<Class>>>(
+    (sys) {
+      Map<DocumentReference, StudyYear> studyYears = {
+        for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
+      };
+      return (User.instance.superAccess
+              ? FirebaseFirestore.instance
+                  .collection('Classes')
+                  .orderBy('StudyYear')
+                  .orderBy('Gender')
+                  .snapshots()
+              : FirebaseFirestore.instance
+                  .collection('Classes')
+                  .where('Allowed',
+                      arrayContains: auth.FirebaseAuth.instance.currentUser.uid)
+                  .orderBy('StudyYear')
+                  .orderBy('Gender')
+                  .snapshots())
+          .map(
+        (cs) {
+          final classes = cs.docs.map((c) => Class.fromDoc(c)).toList();
+          mergeSort<Class>(classes, compare: (c, c2) {
+            if (c.studyYear == c2.studyYear)
+              return c.gender.compareTo(c2.gender);
+            return studyYears[c.studyYear]
+                .grade
+                .compareTo(studyYears[c2.studyYear].grade);
+          });
+          return groupBy<Class, StudyYear>(
+              classes, (c) => studyYears[c.studyYear]);
+        },
+      );
+    },
+  );
 }
 
-Stream<Map<StudyYear, List<Class>>> classesByStudyYearRefForUser(
-    String uid) async* {
-  await for (var sys in FirebaseFirestore.instance
+Stream<Map<StudyYear, List<Class>>> classesByStudyYearRefForUser(String uid) {
+  return FirebaseFirestore.instance
       .collection('StudyYears')
       .orderBy('Grade')
-      .snapshots()) {
-    Map<DocumentReference, StudyYear> studyYears = {
-      for (var sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
-    };
-    await for (var cs in FirebaseFirestore.instance
-        .collection('Classes')
-        .where('Allowed', arrayContains: uid)
-        .orderBy('StudyYear')
-        .orderBy('Gender')
-        .snapshots()) {
-      var classes = cs.docs.map((c) => Class.fromDoc(c)).toList();
-      mergeSort<Class>(classes, compare: (c, c2) {
-        if (c.studyYear == c2.studyYear) return c.gender.compareTo(c2.gender);
-        return studyYears[c.studyYear]
-            .grade
-            .compareTo(studyYears[c2.studyYear].grade);
-      });
-      yield groupBy<Class, StudyYear>(classes, (c) => studyYears[c.studyYear]);
-    }
-  }
+      .snapshots()
+      .switchMap(
+    (sys) {
+      Map<DocumentReference, StudyYear> studyYears = {
+        for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
+      };
+      return FirebaseFirestore.instance
+          .collection('Classes')
+          .where('Allowed', arrayContains: uid)
+          .orderBy('StudyYear')
+          .orderBy('Gender')
+          .snapshots()
+          .map(
+        (cs) {
+          final classes = cs.docs.map((c) => Class.fromDoc(c)).toList();
+          mergeSort<Class>(classes, compare: (c, c2) {
+            if (c.studyYear == c2.studyYear)
+              return c.gender.compareTo(c2.gender);
+            return studyYears[c.studyYear]
+                .grade
+                .compareTo(studyYears[c2.studyYear].grade);
+          });
+          return groupBy<Class, StudyYear>(
+              classes, (c) => studyYears[c.studyYear]);
+        },
+      );
+    },
+  );
 }
 
 void classTap(Class _class, BuildContext context) {
@@ -327,83 +342,89 @@ Future onNotificationClicked(String payload) {
 }
 
 Stream<Map<DocumentReference, Tuple2<Class, List<User>>>> usersByClassRef(
-    [List<User> users]) async* {
-  await for (var sys in FirebaseFirestore.instance
+    [List<User> users]) {
+  return FirebaseFirestore.instance
       .collection('StudyYears')
       .orderBy('Grade')
-      .snapshots()) {
-    Map<String, StudyYear> studyYears = {
-      for (var sy in sys.docs) sy.reference.id: StudyYear.fromDoc(sy)
-    };
-    mergeSort<User>(
-      users,
-      compare: (u, u2) {
-        if (u.servingStudyYear == null && u2.servingStudyYear == null) return 0;
-        if (u.servingStudyYear == null) return 1;
-        if (u2.servingStudyYear == null) return -1;
-        if (u.servingStudyYear == u2.servingStudyYear) {
-          if (u.servingStudyGender == u2.servingStudyGender)
-            return u.name.compareTo(u2.name);
-          return u.servingStudyGender?.compareTo(u.servingStudyGender) ?? 1;
-        }
-        return studyYears[u.servingStudyYear]
-            .grade
-            .compareTo(studyYears[u2.servingStudyYear].grade);
-      },
-    );
+      .snapshots()
+      .map(
+    (sys) {
+      Map<String, StudyYear> studyYears = {
+        for (final sy in sys.docs) sy.reference.id: StudyYear.fromDoc(sy)
+      };
+      mergeSort<User>(
+        users,
+        compare: (u, u2) {
+          if (u.servingStudyYear == null && u2.servingStudyYear == null)
+            return 0;
+          if (u.servingStudyYear == null) return 1;
+          if (u2.servingStudyYear == null) return -1;
+          if (u.servingStudyYear == u2.servingStudyYear) {
+            if (u.servingStudyGender == u2.servingStudyGender)
+              return u.name.compareTo(u2.name);
+            return u.servingStudyGender?.compareTo(u.servingStudyGender) ?? 1;
+          }
+          return studyYears[u.servingStudyYear]
+              .grade
+              .compareTo(studyYears[u2.servingStudyYear].grade);
+        },
+      );
 
-    Map<User, Class> usersWithClasses = {
-      for (var u in users)
-        u: Class(
-          ref: FirebaseFirestore.instance.collection('Classes').doc(
-              u.servingStudyYear != null && u.servingStudyGender != null
-                  ? u.servingStudyYear + '-' + u.servingStudyGender.toString()
-                  : 'unknown'),
-          name: u.servingStudyYear != null && u.servingStudyGender != null
-              ? studyYears[u.servingStudyYear].name +
-                  ' - ' +
-                  (u.servingStudyGender ? 'بنين' : 'بنات')
-              : 'غير محدد',
-          studyYear: studyYears[u.servingStudyYear]?.ref,
-          gender: u.servingStudyGender,
-        )
-    };
+      Map<User, Class> usersWithClasses = {
+        for (final u in users)
+          u: Class(
+            ref: FirebaseFirestore.instance.collection('Classes').doc(
+                u.servingStudyYear != null && u.servingStudyGender != null
+                    ? u.servingStudyYear + '-' + u.servingStudyGender.toString()
+                    : 'unknown'),
+            name: u.servingStudyYear != null && u.servingStudyGender != null
+                ? studyYears[u.servingStudyYear].name +
+                    ' - ' +
+                    (u.servingStudyGender ? 'بنين' : 'بنات')
+                : 'غير محدد',
+            studyYear: studyYears[u.servingStudyYear]?.ref,
+            gender: u.servingStudyGender,
+          )
+      };
 
-    yield {
-      for (var e
-          in groupBy<User, Class>(users, (user) => usersWithClasses[user])
-              .entries)
-        e.key.ref: Tuple2(e.key, e.value)
-    };
-  }
+      return {
+        for (final e
+            in groupBy<User, Class>(users, (user) => usersWithClasses[user])
+                .entries)
+          e.key.ref: Tuple2(e.key, e.value)
+      };
+    },
+  );
 }
 
 Stream<Map<DocumentReference, Tuple2<Class, List<Person>>>> personsByClassRef(
-    [List<Person> persons]) async* {
-  await for (var sys in FirebaseFirestore.instance
+    [List<Person> persons]) {
+  return FirebaseFirestore.instance
       .collection('StudyYears')
       .orderBy('Grade')
-      .snapshots()) {
+      .snapshots()
+      .switchMap((sys) {
     Map<DocumentReference, StudyYear> studyYears = {
-      for (var sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
+      for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
     };
     if (persons != null) {
-      await for (var cs in (User.instance.superAccess
-          ? FirebaseFirestore.instance
-              .collection('Classes')
-              .orderBy('StudyYear')
-              .orderBy('Gender')
-              .snapshots()
-          : FirebaseFirestore.instance
-              .collection('Classes')
-              .where('Allowed',
-                  arrayContains: auth.FirebaseAuth.instance.currentUser.uid)
-              .orderBy('StudyYear')
-              .orderBy('Gender')
-              .snapshots())) {
+      return (User.instance.superAccess
+              ? FirebaseFirestore.instance
+                  .collection('Classes')
+                  .orderBy('StudyYear')
+                  .orderBy('Gender')
+                  .snapshots()
+              : FirebaseFirestore.instance
+                  .collection('Classes')
+                  .where('Allowed',
+                      arrayContains: auth.FirebaseAuth.instance.currentUser.uid)
+                  .orderBy('StudyYear')
+                  .orderBy('Gender')
+                  .snapshots())
+          .map((cs) {
         Map<DocumentReference, List<Person>> personsByClassRef =
             groupBy(persons, (p) => p.classId);
-        var classes = cs.docs
+        final classes = cs.docs
             .map((c) => Class.fromDoc(c))
             .where((c) => personsByClassRef[c.ref] != null)
             .toList();
@@ -413,32 +434,31 @@ Stream<Map<DocumentReference, Tuple2<Class, List<Person>>>> personsByClassRef(
               .grade
               .compareTo(studyYears[c2.studyYear].grade);
         });
-        yield {
-          for (var c in classes)
+        return {
+          for (final c in classes)
             c.ref: Tuple2<Class, List<Person>>(c, personsByClassRef[c.ref])
         };
-      }
+      });
     } else {
-      await for (var persons in FirebaseFirestore.instance
-          .collection('Persons')
-          .orderBy('Name')
-          .snapshots()) {
-        await for (var cs in (User.instance.superAccess
-            ? FirebaseFirestore.instance
-                .collection('Classes')
-                .orderBy('StudyYear')
-                .orderBy('Gender')
-                .snapshots()
-            : FirebaseFirestore.instance
-                .collection('Classes')
-                .where('Allowed',
-                    arrayContains: auth.FirebaseAuth.instance.currentUser.uid)
-                .orderBy('StudyYear')
-                .orderBy('Gender')
-                .snapshots())) {
-          Map<DocumentReference, List<Person>> personsByClassRef = groupBy(
-              persons.docs.map((p) => Person.fromDoc(p)), (p) => p.classId);
-          var classes = cs.docs
+      return Person.getAllForUser().switchMap((persons) {
+        return (User.instance.superAccess
+                ? FirebaseFirestore.instance
+                    .collection('Classes')
+                    .orderBy('StudyYear')
+                    .orderBy('Gender')
+                    .snapshots()
+                : FirebaseFirestore.instance
+                    .collection('Classes')
+                    .where('Allowed',
+                        arrayContains:
+                            auth.FirebaseAuth.instance.currentUser.uid)
+                    .orderBy('StudyYear')
+                    .orderBy('Gender')
+                    .snapshots())
+            .map((cs) {
+          Map<DocumentReference, List<Person>> personsByClassRef =
+              groupBy(persons, (p) => p.classId);
+          final classes = cs.docs
               .map((c) => Class.fromDoc(c))
               .where((c) => personsByClassRef[c.ref] != null)
               .toList();
@@ -449,14 +469,14 @@ Stream<Map<DocumentReference, Tuple2<Class, List<Person>>>> personsByClassRef(
                 .grade
                 .compareTo(studyYears[c2.studyYear].grade);
           });
-          yield {
-            for (var c in classes)
+          return {
+            for (final c in classes)
               c.ref: Tuple2<Class, List<Person>>(c, personsByClassRef[c.ref])
           };
-        }
-      }
+        });
+      });
     }
-  }
+  });
 }
 
 void personTap(Person person, BuildContext context) {
@@ -465,7 +485,7 @@ void personTap(Person person, BuildContext context) {
 
 Future<void> processClickedNotification(BuildContext context,
     [String payload]) async {
-  var notificationDetails =
+  final notificationDetails =
       await FlutterLocalNotificationsPlugin().getNotificationAppLaunchDetails();
 
   if (notificationDetails.didNotificationLaunchApp) {
@@ -475,7 +495,7 @@ Future<void> processClickedNotification(BuildContext context,
         await Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) {
-              var now = DateTime.now().millisecondsSinceEpoch;
+              final now = DateTime.now().millisecondsSinceEpoch;
               return SearchQuery(query: {
                 'parentIndex': '1',
                 'childIndex': '2',
@@ -497,7 +517,7 @@ Future<void> processClickedNotification(BuildContext context,
         await Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) {
-              var now = DateTime.now().millisecondsSinceEpoch;
+              final now = DateTime.now().millisecondsSinceEpoch;
               return SearchQuery(query: {
                 'parentIndex': '1',
                 'childIndex': '9',
@@ -521,7 +541,7 @@ Future<void> processClickedNotification(BuildContext context,
         await Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) {
-              var now = DateTime.now().millisecondsSinceEpoch;
+              final now = DateTime.now().millisecondsSinceEpoch;
               return SearchQuery(query: {
                 'parentIndex': '1',
                 'childIndex': '8',
@@ -545,7 +565,7 @@ Future<void> processClickedNotification(BuildContext context,
         await Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) {
-              var now = DateTime.now().millisecondsSinceEpoch;
+              final now = DateTime.now().millisecondsSinceEpoch;
               return SearchQuery(query: {
                 'parentIndex': '1',
                 'childIndex': '10',
@@ -569,7 +589,7 @@ Future<void> processClickedNotification(BuildContext context,
         await Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) {
-              var now = DateTime.now().millisecondsSinceEpoch;
+              final now = DateTime.now().millisecondsSinceEpoch;
               return SearchQuery(query: {
                 'parentIndex': '1',
                 'childIndex': '11',
@@ -693,8 +713,8 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
       );
     },
   );
-  var title = TextEditingController();
-  var content = TextEditingController();
+  final title = TextEditingController();
+  final content = TextEditingController();
   if (users != null &&
       await showDialog(
             context: context,
@@ -923,8 +943,8 @@ void showBirthDayNotification() async {
   await Firebase.initializeApp();
   if (auth.FirebaseAuth.instance.currentUser == null) return;
   await User.instance.initialized;
-  var user = User.instance;
-  var source = GetOptions(
+  final user = User.instance;
+  final source = GetOptions(
       source:
           (await Connectivity().checkConnectivity()) == ConnectivityResult.none
               ? Source.cache
@@ -993,7 +1013,7 @@ void showBirthDayNotification() async {
 
 Future<List<Class>> selectClasses(
     BuildContext context, List<Class> classes) async {
-  var _options = ServicesListOptions(
+  final _options = ServicesListOptions(
       itemsStream: classesByStudyYearRef(),
       selectionMode: true,
       selected: classes,
@@ -1025,8 +1045,8 @@ void showConfessionNotification() async {
   await Firebase.initializeApp();
   if (auth.FirebaseAuth.instance.currentUser == null) return;
   await User.instance.initialized;
-  var user = User.instance;
-  var source = GetOptions(
+  final user = User.instance;
+  final source = GetOptions(
       source:
           (await Connectivity().checkConnectivity()) == ConnectivityResult.none
               ? Source.cache
@@ -1110,7 +1130,7 @@ Future<void> showErrorUpdateDataDialog(
               shape: StadiumBorder(side: BorderSide(color: primaries[13])),
             ),
             onPressed: () async {
-              var user = User.instance;
+              final user = User.instance;
               await Navigator.of(context)
                   .pushNamed('UpdateUserDataError', arguments: user);
               if (user.lastTanawol != null &&
@@ -1146,8 +1166,8 @@ void showKodasNotification() async {
   await Firebase.initializeApp();
   if (auth.FirebaseAuth.instance.currentUser == null) return;
   await User.instance.initialized;
-  var user = User.instance;
-  var source = GetOptions(
+  final user = User.instance;
+  final source = GetOptions(
       source:
           (await Connectivity().checkConnectivity()) == ConnectivityResult.none
               ? Source.cache
@@ -1196,8 +1216,8 @@ void showMeetingNotification() async {
   await Firebase.initializeApp();
   if (auth.FirebaseAuth.instance.currentUser == null) return;
   await User.instance.initialized;
-  var user = User.instance;
-  var source = GetOptions(
+  final user = User.instance;
+  final source = GetOptions(
       source:
           (await Connectivity().checkConnectivity()) == ConnectivityResult.none
               ? Source.cache
@@ -1244,11 +1264,11 @@ void showMeetingNotification() async {
 
 Future<void> showMessage(
     BuildContext context, no.Notification notification) async {
-  var attachement = await getLinkObject(
+  final attachement = await getLinkObject(
     Uri.parse(notification.attachement),
   );
   String scndLine = await attachement.getSecondLine() ?? '';
-  var user = notification.from != ''
+  final user = notification.from != ''
       ? await FirebaseFirestore.instance
           .doc('Users/${notification.from}')
           .get(dataSource)
@@ -1312,7 +1332,7 @@ Future<void> showMessage(
 
 Future<void> showPendingMessage([BuildContext context]) async {
   context ??= mainScfld.currentContext;
-  var pendingMessage = await FirebaseMessaging.instance.getInitialMessage();
+  final pendingMessage = await FirebaseMessaging.instance.getInitialMessage();
   if (pendingMessage != null) {
     // ignore: unawaited_futures
     Navigator.of(context).pushNamed('Notifications');
@@ -1330,8 +1350,8 @@ void showTanawolNotification() async {
   await Firebase.initializeApp();
   if (auth.FirebaseAuth.instance.currentUser == null) return;
   await User.instance.initialized;
-  var user = User.instance;
-  var source = GetOptions(
+  final user = User.instance;
+  final source = GetOptions(
       source:
           (await Connectivity().checkConnectivity()) == ConnectivityResult.none
               ? Source.cache
