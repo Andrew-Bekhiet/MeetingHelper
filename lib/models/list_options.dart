@@ -295,19 +295,19 @@ class CheckListOptions<T extends DataObject>
               if (v.item1.superAccess ||
                   (day is ServantsHistoryDay && v.item1.secretary)) {
                 return ref.snapshots().map<Map<String, HistoryRecord>>((s) {
+                  Map<String, T> tempSelected = {};
                   Map<String, HistoryRecord> snapshotMap =
                       Map<String, HistoryRecord>.fromIterable(
                     s.docs,
                     key: (d) {
                       if (originalObjectsData.value != null)
-                        _selected.add({
-                          d.id: originalObjectsData.value
-                              .singleWhere((e) => e.id == d.id)
-                        });
+                        tempSelected[d.id] = originalObjectsData.value
+                            .singleWhere((e) => e.id == d.id);
                       return d.id;
                     },
                     value: (d) => HistoryRecord.fromDoc(day, d),
                   );
+                  _selected.add(tempSelected);
                   return snapshotMap;
                 });
               } else if (v.item2.length <= 10) {
@@ -316,19 +316,19 @@ class CheckListOptions<T extends DataObject>
                         whereIn: v.item2.map((e) => e.ref).toList())
                     .snapshots()
                     .map((s) {
+                  Map<String, T> tempSelected = {};
                   Map<String, HistoryRecord> snapshotMap =
                       Map<String, HistoryRecord>.fromIterable(
                     s.docs,
                     key: (d) {
                       if (originalObjectsData.value != null)
-                        _selected.add({
-                          d.id: originalObjectsData.value
-                              .singleWhere((e) => e.id == d.id)
-                        });
+                        tempSelected[d.id] = originalObjectsData.value
+                            .singleWhere((e) => e.id == d.id);
                       return d.id;
                     },
                     value: (d) => HistoryRecord.fromDoc(day, d),
                   );
+                  _selected.add(tempSelected);
                   return snapshotMap;
                 });
               }
@@ -337,19 +337,19 @@ class CheckListOptions<T extends DataObject>
                       .where('ClassId', whereIn: c.map((e) => e.ref).toList())
                       .snapshots())).map((s) => s.expand((n) => n.docs)).map(
                   (s) {
+                Map<String, T> tempSelected = {};
                 Map<String, HistoryRecord> snapshotMap =
                     Map<String, HistoryRecord>.fromIterable(
                   s,
                   key: (d) {
                     if (originalObjectsData.value != null)
-                      _selected.add({
-                        d.id: originalObjectsData.value
-                            .singleWhere((e) => e.id == d.id)
-                      });
+                      tempSelected[d.id] = originalObjectsData.value
+                          .singleWhere((e) => e.id == d.id);
                     return d.id;
                   },
                   value: (d) => HistoryRecord.fromDoc(day, d),
                 );
+                _selected.add(tempSelected);
                 return snapshotMap;
               });
             })
