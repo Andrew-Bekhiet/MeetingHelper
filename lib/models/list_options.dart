@@ -265,11 +265,12 @@ class CheckListOptions<T extends DataObject>
     this.onLongPress,
     List<T> Function(List<T>, String) filter,
     Stream<List<T>> itemsStream,
+    Stream<Map<String, T>> itemsMapStream,
     List<T> items,
     Map<String, T> selected,
     @required Stream<String> searchQuery,
   })  : assert(dayOptions.grouped.value == false || getGroupedData != null),
-        assert(itemsStream != null || items != null),
+        assert(itemsMapStream != null || itemsStream != null || items != null),
         assert(searchQuery != null),
         _filter = (filter ??
             (o, f) =>
@@ -493,7 +494,8 @@ class CheckListOptions<T extends DataObject>
       itemBuilder: itemBuilder ?? this.itemBuilder,
       onLongPress: onLongPress ?? this.onLongPress,
       tap: tap ?? this.tap,
-      itemsStream: itemsStream ?? originalObjectsData,
+      itemsStream: itemsStream,
+      itemsMapStream: originalObjectsData,
       items: items ?? this.items,
       selected: selected ?? this.selected.value,
       searchQuery: searchQuery ?? this.searchQuery,
