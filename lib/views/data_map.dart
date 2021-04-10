@@ -102,16 +102,15 @@ class SelectedClasses extends ChangeNotifier {
 class _DataMapState extends State<DataMap> {
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot>(
+    return StreamBuilder<List<Class>>(
         stream:
-            widget.classO == null ? Class.getAllForUser() : Stream.value(null),
+            widget.classO == null ? Class.getAllForUser() : Stream.value([]),
         builder: (context, snapshot) {
           if (snapshot.hasError) return ErrorWidget.builder(snapshot.error);
           if (!snapshot.hasData && widget.classO == null)
             return const Center(child: CircularProgressIndicator());
-          var selected = SelectedClasses(widget.classO == null
-              ? snapshot.data.docs.map((d) => Class.fromDoc(d)).toList()
-              : [widget.classO]);
+          var selected = SelectedClasses(
+              widget.classO == null ? snapshot.data : [widget.classO]);
           return ListenableProvider<SelectedClasses>.value(
             value: selected,
             builder: (context, _) => Scaffold(
