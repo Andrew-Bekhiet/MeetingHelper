@@ -329,7 +329,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
             child: AnimatedBuilder(
               animation: _tabs,
               builder: (context, _) => StreamBuilder<Tuple2<int, int>>(
-                stream: Rx.combineLatest2<List, Map, Tuple2<int, int>>(
+                stream: Rx.combineLatest2<Map, Map, Tuple2<int, int>>(
                   widget.record is! ServantsHistoryDay
                       ? context
                           .read<CheckListOptions<Person>>()
@@ -350,7 +350,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                       return rslt.copyWith(type: DayListType.Tanawol).attended;
                     }
                   }(),
-                  (List a, Map b) => Tuple2<int, int>(a.length, b.length),
+                  (Map a, Map b) => Tuple2<int, int>(a.length, b.length),
                 ),
                 builder: (context, snapshot) {
                   return Text(
@@ -381,16 +381,19 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
           children: widget.record is! ServantsHistoryDay
               ? [
                   DataObjectCheckList<Person>(
+                    key: PageStorageKey('PersonsMeeting' + widget.record.id),
                     options: context
                         .read<CheckListOptions<Person>>()
                         .copyWith(type: DayListType.Meeting),
                   ),
                   DataObjectCheckList<Person>(
+                    key: PageStorageKey('PersonsKodas' + widget.record.id),
                     options: context
                         .read<CheckListOptions<Person>>()
                         .copyWith(type: DayListType.Kodas),
                   ),
                   DataObjectCheckList<Person>(
+                    key: PageStorageKey('PersonsTanawol' + widget.record.id),
                     options: context
                         .read<CheckListOptions<Person>>()
                         .copyWith(type: DayListType.Tanawol),
@@ -398,16 +401,19 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                 ]
               : [
                   DataObjectCheckList<User>(
+                    key: PageStorageKey('UsersMeeting' + widget.record.id),
                     options: context
                         .read<CheckListOptions<User>>()
                         .copyWith(type: DayListType.Meeting),
                   ),
                   DataObjectCheckList<User>(
+                    key: PageStorageKey('UsersKodas' + widget.record.id),
                     options: context
                         .read<CheckListOptions<User>>()
                         .copyWith(type: DayListType.Kodas),
                   ),
                   DataObjectCheckList<User>(
+                    key: PageStorageKey('UsersTanawol' + widget.record.id),
                     options: context
                         .read<CheckListOptions<User>>()
                         .copyWith(type: DayListType.Tanawol),

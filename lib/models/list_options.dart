@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -70,7 +71,7 @@ class DataObjectListOptions<T extends DataObject>
   @override
   List<T> get items => objectsData.value;
 
-  final BehaviorSubject<List<T>> originalObjectsData;
+  final BehaviorSubject<Map<String, T>> originalObjectsData;
 
   @override
   final BehaviorSubject<bool> _selectionMode;
@@ -134,8 +135,10 @@ class DataObjectListOptions<T extends DataObject>
         _selected = BehaviorSubject<Map<String, T>>.seeded(selected ?? {}),
         _selectionMode = BehaviorSubject<bool>.seeded(selectionMode),
         originalObjectsData = itemsStream != null
-            ? (BehaviorSubject<List<T>>()..addStream(itemsStream))
-            : BehaviorSubject<List<T>>.seeded(items),
+            ? (BehaviorSubject<Map<String, T>>()
+              ..addStream(itemsStream.map((l) => {for (final o in l) o.id: o})))
+            : BehaviorSubject<Map<String, T>>.seeded(
+                {for (final o in items) o.id: o}),
         itemBuilder = itemBuilder ??
             ((i,
                     {void Function(T) onLongPress,
@@ -151,11 +154,12 @@ class DataObjectListOptions<T extends DataObject>
     _objectsData = (showNull
         ? BehaviorSubject<List<T>>.seeded([empty])
         : BehaviorSubject<List<T>>())
-      ..addStream(Rx.combineLatest2<String, List<T>, List<T>>(
+      ..addStream(Rx.combineLatest2<String, Map<String, T>, List<T>>(
           _searchQuery,
           originalObjectsData,
-          (search, items) =>
-              search.isNotEmpty ? _filter(items, search) : items));
+          (search, items) => search.isNotEmpty
+              ? _filter(items.values.toList(), search)
+              : items));
   }
 
   @override
@@ -206,7 +210,7 @@ class CheckListOptions<T extends DataObject>
   List<T> get items => objectsData.value;
 
   @override
-  final BehaviorSubject<List<T>> originalObjectsData;
+  final BehaviorSubject<Map<String, T>> originalObjectsData;
 
   @override
   final BehaviorSubject<bool> _selectionMode;
@@ -274,8 +278,10 @@ class CheckListOptions<T extends DataObject>
         _selected = BehaviorSubject<Map<String, T>>.seeded(selected ?? {}),
         _selectionMode = BehaviorSubject<bool>.seeded(true),
         originalObjectsData = itemsStream != null
-            ? (BehaviorSubject<List<T>>()..addStream(itemsStream))
-            : BehaviorSubject<List<T>>.seeded(items),
+            ? (BehaviorSubject<Map<String, T>>()
+              ..addStream(itemsStream.map((l) => {for (final o in l) o.id: o})))
+            : BehaviorSubject<Map<String, T>>.seeded(
+                {for (final o in items) o.id: o}),
         itemBuilder = itemBuilder ??
             ((i,
                     {void Function(T) onLongPress,
@@ -301,8 +307,7 @@ class CheckListOptions<T extends DataObject>
                     s.docs,
                     key: (d) {
                       if (originalObjectsData.value != null)
-                        tempSelected[d.id] = originalObjectsData.value
-                            .singleWhere((e) => e.id == d.id);
+                        tempSelected[d.id] = originalObjectsData.value[d.id];
                       return d.id;
                     },
                     value: (d) => HistoryRecord.fromDoc(day, d),
@@ -322,8 +327,7 @@ class CheckListOptions<T extends DataObject>
                     s.docs,
                     key: (d) {
                       if (originalObjectsData.value != null)
-                        tempSelected[d.id] = originalObjectsData.value
-                            .singleWhere((e) => e.id == d.id);
+                        tempSelected[d.id] = originalObjectsData.value[d.id];
                       return d.id;
                     },
                     value: (d) => HistoryRecord.fromDoc(day, d),
@@ -343,8 +347,7 @@ class CheckListOptions<T extends DataObject>
                   s,
                   key: (d) {
                     if (originalObjectsData.value != null)
-                      tempSelected[d.id] = originalObjectsData.value
-                          .singleWhere((e) => e.id == d.id);
+                      tempSelected[d.id] = originalObjectsData.value[d.id];
                     return d.id;
                   },
                   value: (d) => HistoryRecord.fromDoc(day, d),
@@ -359,26 +362,26 @@ class CheckListOptions<T extends DataObject>
     ///to filter the [_objectsData] by the [attended] Persons
     _objectsData = BehaviorSubject<List<T>>()
       ..addStream(
-        Rx.combineLatest4<bool, String, List<T>, Map<String, HistoryRecord>,
-            List<T>>(
+        Rx.combineLatest4<bool, String, Map<String, T>,
+            Map<String, HistoryRecord>, List<T>>(
           dayOptions.showOnly,
           _searchQuery,
           originalObjectsData,
           attended,
           (showOnly, search, objects, attended) {
             if (search.isNotEmpty) {
-              if (showOnly == null) return _filter(objects, search);
+              if (showOnly == null)
+                return _filter(objects.values.toList(), search);
               if (showOnly == true) {
                 return _filter(
-                    objects
-                        .where(
-                          (i) => attended.containsKey(i.id),
-                        )
+                    attended
+                        .map((k, v) => MapEntry(k, objects[k]))
+                        .values
                         .toList(),
                     search);
               } else
                 return _filter(
-                    objects
+                    objects.values
                         .where(
                           (i) => !attended.containsKey(i.id),
                         )
@@ -387,15 +390,14 @@ class CheckListOptions<T extends DataObject>
             }
 
             if (showOnly == null)
-              return objects;
+              return objects.values.toList();
             else if (showOnly == true) {
-              return objects.where(
-                (i) {
-                  return attended.containsKey(i.id);
-                },
-              ).toList();
+              return attended
+                  .map((k, v) => MapEntry(k, objects[k]))
+                  .values
+                  .toList();
             } else {
-              return objects
+              return objects.values
                   .where(
                     (i) => !attended.containsKey(i.id),
                   )
