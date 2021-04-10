@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -327,46 +326,14 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
             .snapshots()
             .map((p) => p.docs.map(fromDoc).toList());
       }
-      return Rx.combineLatestList<QuerySnapshot>(u.item2.map((c) =>
+      return Rx.combineLatestList<QuerySnapshot>(u.item2.split(10).map((c) =>
               FirebaseFirestore.instance
                   .collection('Persons')
-                  .where('ClassId', isEqualTo: c.ref)
+                  .where('ClassId', whereIn: c.map((e) => e.ref).toList())
                   .orderBy(orderBy, descending: descending)
                   .snapshots()))
           .map((s) => s.expand((n) => n.docs).map(fromDoc).toList());
     });
-  }
-
-  static Future<List<Person>> getAllPersonsForUser({
-    String orderBy = 'Name',
-    bool descending = false,
-  }) async {
-    if (User.instance.superAccess) {
-      return (await FirebaseFirestore.instance
-              .collection('Persons')
-              .orderBy(orderBy, descending: descending)
-              .get(dataSource))
-          .docs
-          .map((e) => Person.fromDoc(e))
-          .toList();
-    }
-    return (await FirebaseFirestore.instance
-            .collection('Persons')
-            .where('ClassId',
-                whereIn: (await FirebaseFirestore.instance
-                        .collection('Classes')
-                        .where('Allowed',
-                            arrayContains:
-                                auth.FirebaseAuth.instance.currentUser.uid)
-                        .get(dataSource))
-                    .docs
-                    .map((e) => e.reference)
-                    .toList())
-            .orderBy(orderBy, descending: descending)
-            .get(dataSource))
-        .docs
-        .map((e) => Person.fromDoc(e))
-        .toList();
   }
 
   static Map<String, dynamic> getEmptyExportMap() => {

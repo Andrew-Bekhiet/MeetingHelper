@@ -6,6 +6,7 @@ import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/helpers.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tuple/tuple.dart';
 
@@ -331,10 +332,11 @@ class CheckListOptions<T extends DataObject>
                   return snapshotMap;
                 });
               }
-              return Rx.combineLatestList<QuerySnapshot>(v.item2.map((c) =>
-                      ref.where('ClassId', isEqualTo: c.ref).snapshots()))
-                  .map((s) => s.expand((n) => n.docs))
-                  .map((s) {
+              return Rx.combineLatestList<QuerySnapshot>(v.item2.split(10).map(
+                  (c) => ref
+                      .where('ClassId', whereIn: c.map((e) => e.ref).toList())
+                      .snapshots())).map((s) => s.expand((n) => n.docs)).map(
+                  (s) {
                 Map<String, HistoryRecord> snapshotMap =
                     Map<String, HistoryRecord>.fromIterable(
                   s,

@@ -102,23 +102,30 @@ class _TrashDayScreenState extends State<TrashDayScreen>
     var _personsOptions = DataObjectListOptions<Person>(
       searchQuery: _searchQuery,
       tap: (p) => personTap(p, context),
-      itemsStream: (User.instance.superAccess
-              ? widget.day.ref.collection('Persons').snapshots()
-              : FirebaseFirestore.instance
-                  .collection('Classes')
-                  .where('Allowed', arrayContains: User.instance.uid)
-                  .snapshots()
-                  .switchMap(
-                    (classes) => widget.day.ref
-                        .collection('Persons')
-                        .where('ClassId',
-                            whereIn:
-                                classes.docs.map((e) => e.reference).toList())
-                        .snapshots(),
-                  ))
-          .map(
-        (s) => s.docs.map(Person.fromDoc).toList(),
-      ),
+      itemsStream:
+          Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
+              User.instance.stream,
+              Class.getAllForUser(),
+              (a, b) => Tuple2<User, List<Class>>(a, b)).switchMap((u) {
+        if (u.item1.superAccess) {
+          return widget.day.ref
+              .collection('Persons')
+              .snapshots()
+              .map((p) => p.docs.map(Person.fromDoc).toList());
+        } else if (u.item2.length <= 10) {
+          return widget.day.ref
+              .collection('Persons')
+              .where('ClassId', whereIn: u.item2.map((e) => e.ref).toList())
+              .snapshots()
+              .map((p) => p.docs.map(Person.fromDoc).toList());
+        }
+        return Rx.combineLatestList<QuerySnapshot>(u.item2.split(10).map((c) =>
+                widget.day.ref
+                    .collection('Persons')
+                    .where('ClassId', whereIn: c.map((e) => e.ref).toList())
+                    .snapshots()))
+            .map((s) => s.expand((n) => n.docs).map(Person.fromDoc).toList());
+      }),
     );
     return Scaffold(
       appBar: AppBar(

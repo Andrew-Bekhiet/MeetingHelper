@@ -111,11 +111,6 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
   Stream<List<Person>> getMembersLive(
       {bool descending = false, String orderBy = 'Name'}) {
     return getClassMembersLive(ref, orderBy, descending);
-    // return FirebaseFirestore.instance
-    //     .collection('Streets')
-    //     .where('ClassId',
-    //         isEqualTo: FirebaseFirestore.instance.collection('Classes').doc(id))
-    //     .snapshots();
   }
 
   @override
@@ -209,14 +204,14 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
             .collection('Classes')
             .orderBy(orderBy, descending: descending)
             .snapshots()
-            .map((c) => c.docs.map(fromDoc));
+            .map((c) => c.docs.map(fromDoc).toList());
       } else {
         return FirebaseFirestore.instance
             .collection('Classes')
             .where('Allowed', arrayContains: u.uid)
             .orderBy(orderBy, descending: descending)
             .snapshots()
-            .map((c) => c.docs.map(fromDoc));
+            .map((c) => c.docs.map(fromDoc).toList());
       }
     });
   }
@@ -228,7 +223,7 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
         .where('ClassId', isEqualTo: id)
         .orderBy(orderBy, descending: descending)
         .snapshots()
-        .map((p) => p.docs.map(Person.fromDoc));
+        .map((p) => p.docs.map(Person.fromDoc).toList());
   }
 
   static Map<String, dynamic> getEmptyExportMap() => {

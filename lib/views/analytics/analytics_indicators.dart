@@ -32,9 +32,10 @@ class AttendanceChart extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 18.0),
       child: StreamBuilder<List<QueryDocumentSnapshot>>(
         stream: Rx.combineLatestList<QuerySnapshot>(classes
+                .split(10)
                 .map((c) => FirebaseFirestore.instance
                     .collectionGroup(collectionGroup)
-                    .where('ClassId', isEqualTo: c.ref)
+                    .where('ClassId', whereIn: c.map((e) => e.ref).toList())
                     .where(
                       'Time',
                       isLessThanOrEqualTo:
@@ -248,8 +249,10 @@ class ClassesAttendanceIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     return StreamBuilder<int>(
       stream: Rx.combineLatestList<QuerySnapshot>(classes
-              .map((c) =>
-                  collection.where('ClassId', isEqualTo: c.ref).snapshots())
+              .split(10)
+              .map((c) => collection
+                  .where('ClassId', whereIn: c.map((e) => e.ref).toList())
+                  .snapshots())
               .toList())
           .map((s) => s.fold<int>(0, (o, n) => o + n.size)),
       builder: (context, snapshot) {
@@ -343,9 +346,10 @@ class PersonAttendanceIndicator extends StatelessWidget {
             .map((s) => s.docs);
       } else {
         return Rx.combineLatestList<QuerySnapshot>(u.item2
+                .split(10)
                 .map((c) => FirebaseFirestore.instance
                     .collectionGroup(collectionGroup)
-                    .where('ClassId', isEqualTo: c.ref)
+                    .where('ClassId', whereIn: c.map((e) => e.ref).toList())
                     .where('ID', isEqualTo: id)
                     .where(
                       'Time',

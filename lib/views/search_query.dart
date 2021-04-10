@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -12,7 +11,7 @@ import '../models/models.dart';
 import '../models/order_options.dart';
 import '../models/search_filters.dart';
 import '../models/user.dart';
-import '../utils/Helpers.dart';
+import '../utils/helpers.dart';
 import '../utils/globals.dart';
 import 'list.dart';
 import 'mini_lists/colors_list.dart';
@@ -909,46 +908,27 @@ class _SearchQueryState extends State<SearchQuery> {
 
   void execute() async {
     DataObjectList body;
-    String userId = auth.FirebaseAuth.instance.currentUser.uid;
-    bool isAdmin = User.instance.superAccess;
     Query classes = FirebaseFirestore.instance.collection('Classes');
-    Query streets = FirebaseFirestore.instance.collection('Streets');
-    Query families = FirebaseFirestore.instance.collection('Families');
     Query persons = FirebaseFirestore.instance.collection('Persons');
-    var searchQuery = BehaviorSubject<String>.seeded('');
-    if (!isAdmin) {
-      classes = classes.where('Allowed', arrayContains: userId);
-      streets = streets.where('ClassId',
-          whereIn: (await FirebaseFirestore.instance
-                  .collection('Classes')
-                  .where('Allowed', arrayContains: userId)
-                  .get())
-              .docs
-              .map((e) => e.reference)
-              .toList());
-      families = families.where('ClassId',
-          whereIn: (await FirebaseFirestore.instance
-                  .collection('Classes')
-                  .where('Allowed', arrayContains: userId)
-                  .get())
-              .docs
-              .map((e) => e.reference)
-              .toList());
-      persons = persons.where('ClassId',
-          whereIn: (await FirebaseFirestore.instance
-                  .collection('Classes')
-                  .where('Allowed', arrayContains: userId)
-                  .get())
-              .docs
-              .map((e) => e.reference)
-              .toList());
+
+    var resultsSearch = BehaviorSubject<String>.seeded('');
+    bool fewClasses = true;
+    if (!User.instance.superAccess) {
+      final allowed =
+          (await Class.getAllForUser().first).map((e) => e.ref).toList();
+      classes = classes.where('Allowed', arrayContains: User.instance.uid);
+      if (allowed.length <= 10) {
+        persons = persons.where('ClassId', whereIn: allowed);
+      } else {
+        fewClasses = false;
+      }
     }
     switch (operatorIndex) {
       case 0:
         if (parentIndex == 0) {
           body = DataObjectList<Class>(
             options: DataObjectListOptions<Class>(
-              searchQuery: searchQuery,
+              searchQuery: resultsSearch,
               tap: (c) => classTap(c, context),
               itemsStream: classes
                   .where(childItems[parentIndex][childIndex].value.value,
@@ -962,39 +942,85 @@ class _SearchQueryState extends State<SearchQuery> {
         }
         if (!birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
-              options: DataObjectListOptions<Person>(
-            searchQuery: searchQuery,
-            tap: (p) => personTap(p, context),
-            itemsStream: persons
-                .where('BirthDay',
-                    isGreaterThanOrEqualTo: queryValue != null
-                        ? Timestamp.fromDate(
-                            DateTime(1970, queryValue.toDate().month,
-                                queryValue.toDate().day),
-                          )
-                        : null)
-                .where('BirthDay',
-                    isLessThan: queryValue != null
-                        ? Timestamp.fromDate(
-                            DateTime(1970, queryValue.toDate().month,
-                                queryValue.toDate().day + 1),
-                          )
-                        : null)
-                .snapshots()
-                .map((s) => s.docs.map(Person.fromDoc).toList()),
-          ));
+            options: DataObjectListOptions<Person>(
+              searchQuery: resultsSearch,
+              tap: (p) => personTap(p, context),
+              itemsStream: fewClasses
+                  ? persons
+                      .where('BirthDay',
+                          isGreaterThanOrEqualTo: queryValue != null
+                              ? Timestamp.fromDate(
+                                  DateTime(1970, queryValue.toDate().month,
+                                      queryValue.toDate().day),
+                                )
+                              : null)
+                      .where('BirthDay',
+                          isLessThan: queryValue != null
+                              ? Timestamp.fromDate(
+                                  DateTime(1970, queryValue.toDate().month,
+                                      queryValue.toDate().day + 1),
+                                )
+                              : null)
+                      .snapshots()
+                      .map((s) => s.docs.map(Person.fromDoc).toList())
+                  : Class.getAllForUser().switchMap(
+                      (cs) => Rx.combineLatestList(cs.split(10).map((c) =>
+                          persons
+                              .where('ClassId',
+                                  whereIn: c.map((c) => c.ref).toList())
+                              .where('BirthDay',
+                                  isGreaterThanOrEqualTo: queryValue != null
+                                      ? Timestamp.fromDate(
+                                          DateTime(
+                                              1970,
+                                              queryValue.toDate().month,
+                                              queryValue.toDate().day),
+                                        )
+                                      : null)
+                              .where('BirthDay',
+                                  isLessThan: queryValue != null
+                                      ? Timestamp.fromDate(
+                                          DateTime(
+                                              1970,
+                                              queryValue.toDate().month,
+                                              queryValue.toDate().day + 1),
+                                        )
+                                      : null)
+                              .snapshots())).map(
+                        (s) => s.expand(
+                          (e) => e.docs.map(Person.fromDoc).toList(),
+                        ),
+                      ),
+                    ),
+            ),
+          );
           break;
         }
         body = DataObjectList<Person>(
           options: DataObjectListOptions<Person>(
-            searchQuery: searchQuery,
+            searchQuery: resultsSearch,
             tap: (p) => personTap(p, context),
-            itemsStream: persons
-                .where(childItems[parentIndex][childIndex].value.value,
-                    isEqualTo: queryValue,
-                    isNull: queryValue == null ? true : null)
-                .snapshots()
-                .map((s) => s.docs.map(Person.fromDoc).toList()),
+            itemsStream: fewClasses
+                ? persons
+                    .where(childItems[parentIndex][childIndex].value.value,
+                        isEqualTo: queryValue,
+                        isNull: queryValue == null ? true : null)
+                    .snapshots()
+                : Class.getAllForUser()
+                    .switchMap((cs) => Rx.combineLatestList(cs.split(10).map(
+                        (c) => persons
+                            .where('ClassId',
+                                whereIn: c.map((c) => c.ref).toList())
+                            .where(
+                                childItems[parentIndex][childIndex].value.value,
+                                isEqualTo: queryValue,
+                                isNull: queryValue == null ? true : null)
+                            .snapshots())))
+                    .map(
+                      (s) => s.expand(
+                        (e) => e.docs.map(Person.fromDoc).toList(),
+                      ),
+                    ),
           ),
         );
         break;
@@ -1002,7 +1028,7 @@ class _SearchQueryState extends State<SearchQuery> {
         if (parentIndex == 0) {
           body = DataObjectList<Class>(
             options: DataObjectListOptions<Class>(
-              searchQuery: searchQuery,
+              searchQuery: resultsSearch,
               tap: (c) => classTap(c, context),
               itemsStream: classes
                   .where(childItems[parentIndex][childIndex].value.value,
@@ -1016,31 +1042,71 @@ class _SearchQueryState extends State<SearchQuery> {
         if (!birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
             options: DataObjectListOptions<Person>(
-              searchQuery: searchQuery,
+              searchQuery: resultsSearch,
               tap: (p) => personTap(p, context),
-              itemsStream: persons
-                  .where('BirthDay',
-                      arrayContains: queryValue != null
-                          ? Timestamp.fromDate(DateTime(
-                              1970,
-                              queryValue.toDate().month,
-                              queryValue.toDate().day))
-                          : null)
-                  .snapshots()
-                  .map((s) => s.docs.map(Person.fromDoc).toList()),
+              itemsStream: fewClasses
+                  ? persons
+                      .where('BirthDay',
+                          arrayContains: queryValue != null
+                              ? Timestamp.fromDate(DateTime(
+                                  1970,
+                                  queryValue.toDate().month,
+                                  queryValue.toDate().day))
+                              : null)
+                      .snapshots()
+                      .map((s) => s.docs.map(Person.fromDoc).toList())
+                  : Class.getAllForUser().switchMap(
+                      (cs) => Rx.combineLatestList(cs.split(10).map((c) =>
+                          persons
+                              .where('ClassId',
+                                  whereIn: c.map((c) => c.ref).toList())
+                              .where('BirthDay',
+                                  arrayContains: queryValue != null
+                                      ? Timestamp.fromDate(DateTime(
+                                          1970,
+                                          queryValue.toDate().month,
+                                          queryValue.toDate().day))
+                                      : null)
+                              .snapshots())).map(
+                        (s) => s.expand(
+                          (e) => e.docs.map(Person.fromDoc).toList(),
+                        ),
+                      ),
+                    ),
             ),
           );
           break;
         }
         body = DataObjectList<Person>(
           options: DataObjectListOptions<Person>(
-            searchQuery: searchQuery,
+            searchQuery: resultsSearch,
             tap: (p) => personTap(p, context),
-            itemsStream: persons
-                .where(childItems[parentIndex][childIndex].value.value,
-                    arrayContains: queryValue)
-                .snapshots()
-                .map((s) => s.docs.map(Person.fromDoc).toList()),
+            itemsStream: fewClasses
+                ? persons
+                    .where(childItems[parentIndex][childIndex].value.value,
+                        arrayContains: queryValue)
+                    .snapshots()
+                    .map((s) => s.docs.map(Person.fromDoc).toList())
+                : Class.getAllForUser().switchMap(
+                    (cs) => Rx.combineLatestList(
+                      cs
+                          .split(10)
+                          .map((c) => persons
+                              .where('ClassId',
+                                  whereIn: c.map((c) => c.ref).toList())
+                              .where(
+                                  childItems[parentIndex][childIndex]
+                                      .value
+                                      .value,
+                                  arrayContains: queryValue)
+                              .snapshots())
+                          .map(
+                            (s) => s.expand(
+                              (e) => e.docs.map(Person.fromDoc).toList(),
+                            ),
+                          ),
+                    ),
+                  ),
           ),
         );
         break;
@@ -1048,7 +1114,7 @@ class _SearchQueryState extends State<SearchQuery> {
         if (parentIndex == 0) {
           body = DataObjectList<Class>(
             options: DataObjectListOptions<Class>(
-                searchQuery: searchQuery,
+                searchQuery: resultsSearch,
                 tap: (c) => classTap(c, context),
                 itemsStream: classes
                     .where(childItems[parentIndex][childIndex].value.value,
@@ -1061,31 +1127,69 @@ class _SearchQueryState extends State<SearchQuery> {
         if (!birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
             options: DataObjectListOptions<Person>(
-              searchQuery: searchQuery,
+              searchQuery: resultsSearch,
               tap: (p) => personTap(p, context),
-              itemsStream: persons
-                  .where('BirthDay',
-                      isGreaterThanOrEqualTo: queryValue != null
-                          ? Timestamp.fromDate(DateTime(
-                              1970,
-                              queryValue.toDate().month,
-                              queryValue.toDate().day))
-                          : null)
-                  .snapshots()
-                  .map((s) => s.docs.map(Person.fromDoc).toList()),
+              itemsStream: fewClasses
+                  ? persons
+                      .where('BirthDay',
+                          isGreaterThanOrEqualTo: queryValue != null
+                              ? Timestamp.fromDate(DateTime(
+                                  1970,
+                                  queryValue.toDate().month,
+                                  queryValue.toDate().day))
+                              : null)
+                      .snapshots()
+                      .map((s) => s.docs.map(Person.fromDoc).toList())
+                  : Class.getAllForUser()
+                      .switchMap((cs) => Rx.combineLatestList(cs.split(10).map(
+                          (c) => persons
+                              .where('ClassId',
+                                  whereIn: c.map((c) => c.ref).toList())
+                              .where('BirthDay',
+                                  isGreaterThanOrEqualTo: queryValue != null
+                                      ? Timestamp.fromDate(
+                                          DateTime(1970, queryValue.toDate().month, queryValue.toDate().day))
+                                      : null)
+                              .snapshots())))
+                      .map(
+                        (s) => s.expand(
+                          (e) => e.docs.map(Person.fromDoc).toList(),
+                        ),
+                      ),
             ),
           );
           break;
         }
         body = DataObjectList<Person>(
           options: DataObjectListOptions<Person>(
-            searchQuery: searchQuery,
+            searchQuery: resultsSearch,
             tap: (p) => personTap(p, context),
-            itemsStream: persons
-                .where(childItems[parentIndex][childIndex].value.value,
-                    isGreaterThanOrEqualTo: queryValue)
-                .snapshots()
-                .map((s) => s.docs.map(Person.fromDoc).toList()),
+            itemsStream: fewClasses
+                ? persons
+                    .where(childItems[parentIndex][childIndex].value.value,
+                        isGreaterThanOrEqualTo: queryValue)
+                    .snapshots()
+                    .map((s) => s.docs.map(Person.fromDoc).toList())
+                : Class.getAllForUser().switchMap(
+                    (cs) => Rx.combineLatestList(
+                      cs
+                          .split(10)
+                          .map((c) => persons
+                              .where('ClassId',
+                                  whereIn: c.map((c) => c.ref).toList())
+                              .where(
+                                  childItems[parentIndex][childIndex]
+                                      .value
+                                      .value,
+                                  isGreaterThanOrEqualTo: queryValue)
+                              .snapshots())
+                          .map(
+                            (s) => s.expand(
+                              (e) => e.docs.map(Person.fromDoc).toList(),
+                            ),
+                          ),
+                    ),
+                  ),
           ),
         );
         break;
@@ -1093,7 +1197,7 @@ class _SearchQueryState extends State<SearchQuery> {
         if (parentIndex == 0) {
           body = DataObjectList<Class>(
             options: DataObjectListOptions<Class>(
-              searchQuery: searchQuery,
+              searchQuery: resultsSearch,
               tap: (c) => classTap(c, context),
               itemsStream: classes
                   .where(childItems[parentIndex][childIndex].value.value,
@@ -1107,31 +1211,71 @@ class _SearchQueryState extends State<SearchQuery> {
         if (!birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
             options: DataObjectListOptions<Person>(
-              searchQuery: searchQuery,
+              searchQuery: resultsSearch,
               tap: (p) => personTap(p, context),
-              itemsStream: persons
-                  .where('BirthDay',
-                      isLessThanOrEqualTo: queryValue != null
-                          ? Timestamp.fromDate(DateTime(
-                              1970,
-                              queryValue.toDate().month,
-                              queryValue.toDate().day))
-                          : null)
-                  .snapshots()
-                  .map((s) => s.docs.map(Person.fromDoc).toList()),
+              itemsStream: fewClasses
+                  ? persons
+                      .where('BirthDay',
+                          isLessThanOrEqualTo: queryValue != null
+                              ? Timestamp.fromDate(DateTime(
+                                  1970,
+                                  queryValue.toDate().month,
+                                  queryValue.toDate().day))
+                              : null)
+                      .snapshots()
+                      .map((s) => s.docs.map(Person.fromDoc).toList())
+                  : Class.getAllForUser().switchMap(
+                      (cs) => Rx.combineLatestList(cs.split(10).map((c) =>
+                          persons
+                              .where('ClassId',
+                                  whereIn: c.map((c) => c.ref).toList())
+                              .where('BirthDay',
+                                  isLessThanOrEqualTo: queryValue != null
+                                      ? Timestamp.fromDate(DateTime(
+                                          1970,
+                                          queryValue.toDate().month,
+                                          queryValue.toDate().day))
+                                      : null)
+                              .snapshots())).map(
+                        (s) => s.expand(
+                          (e) => e.docs.map(Person.fromDoc).toList(),
+                        ),
+                      ),
+                    ),
             ),
           );
           break;
         }
         body = DataObjectList<Person>(
           options: DataObjectListOptions<Person>(
-            searchQuery: searchQuery,
+            searchQuery: resultsSearch,
             tap: (p) => personTap(p, context),
-            itemsStream: persons
-                .where(childItems[parentIndex][childIndex].value.value,
-                    isLessThanOrEqualTo: queryValue)
-                .snapshots()
-                .map((s) => s.docs.map(Person.fromDoc).toList()),
+            itemsStream: fewClasses
+                ? persons
+                    .where(childItems[parentIndex][childIndex].value.value,
+                        isLessThanOrEqualTo: queryValue)
+                    .snapshots()
+                    .map((s) => s.docs.map(Person.fromDoc).toList())
+                : Class.getAllForUser().switchMap(
+                    (cs) => Rx.combineLatestList(
+                      cs
+                          .split(10)
+                          .map((c) => persons
+                              .where('ClassId',
+                                  whereIn: c.map((c) => c.ref).toList())
+                              .where(
+                                  childItems[parentIndex][childIndex]
+                                      .value
+                                      .value,
+                                  isLessThanOrEqualTo: queryValue)
+                              .snapshots())
+                          .map(
+                            (s) => s.expand(
+                              (e) => e.docs.map(Person.fromDoc).toList(),
+                            ),
+                          ),
+                    ),
+                  ),
           ),
         );
         break;
@@ -1173,7 +1317,7 @@ class _SearchQueryState extends State<SearchQuery> {
               title: SearchFilters(
                 parentIndex,
                 options: body.options,
-                searchStream: searchQuery,
+                searchStream: resultsSearch,
                 textStyle: Theme.of(context).textTheme.headline6.copyWith(
                     color: Theme.of(context).primaryTextTheme.headline6.color),
                 disableOrdering: true,
