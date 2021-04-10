@@ -159,7 +159,7 @@ class DataObjectListOptions<T extends DataObject>
           originalObjectsData,
           (search, items) => search.isNotEmpty
               ? _filter(items.values.toList(), search)
-              : items));
+              : items.values.toList()));
   }
 
   @override
@@ -278,11 +278,13 @@ class CheckListOptions<T extends DataObject>
         _searchQuery = BehaviorSubject<String>()..addStream(searchQuery),
         _selected = BehaviorSubject<Map<String, T>>.seeded(selected ?? {}),
         _selectionMode = BehaviorSubject<bool>.seeded(true),
-        originalObjectsData = itemsStream != null
-            ? (BehaviorSubject<Map<String, T>>()
-              ..addStream(itemsStream.map((l) => {for (final o in l) o.id: o})))
-            : BehaviorSubject<Map<String, T>>.seeded(
-                {for (final o in items) o.id: o}),
+        originalObjectsData = itemsMapStream ??
+            (itemsStream != null
+                ? (BehaviorSubject<Map<String, T>>()
+                  ..addStream(
+                      itemsStream.map((l) => {for (final o in l) o.id: o})))
+                : BehaviorSubject<Map<String, T>>.seeded(
+                    {for (final o in items) o.id: o})),
         itemBuilder = itemBuilder ??
             ((i,
                     {void Function(T) onLongPress,
