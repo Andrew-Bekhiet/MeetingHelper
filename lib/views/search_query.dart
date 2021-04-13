@@ -987,9 +987,12 @@ class _SearchQueryState extends State<SearchQuery> {
                                         )
                                       : null)
                               .snapshots())).map(
-                        (s) => s.expand(
-                          (e) => e.docs.map(Person.fromDoc).toList(),
-                        ),
+                        (s) => s
+                            .expand(
+                              (e) => e.docs,
+                            )
+                            .map(Person.fromDoc)
+                            .toList(),
                       ),
                     ),
             ),
@@ -1017,9 +1020,12 @@ class _SearchQueryState extends State<SearchQuery> {
                                 isNull: queryValue == null ? true : null)
                             .snapshots())))
                     .map(
-                      (s) => s.expand(
-                        (e) => e.docs.map(Person.fromDoc).toList(),
-                      ),
+                      (s) => s
+                          .expand(
+                            (e) => e.docs,
+                          )
+                          .map(Person.fromDoc)
+                          .toList(),
                     ),
           ),
         );
@@ -1068,9 +1074,12 @@ class _SearchQueryState extends State<SearchQuery> {
                                           queryValue.toDate().day))
                                       : null)
                               .snapshots())).map(
-                        (s) => s.expand(
-                          (e) => e.docs.map(Person.fromDoc).toList(),
-                        ),
+                        (s) => s
+                            .expand(
+                              (e) => e.docs,
+                            )
+                            .map(Person.fromDoc)
+                            .toList(),
                       ),
                     ),
             ),
@@ -1088,23 +1097,17 @@ class _SearchQueryState extends State<SearchQuery> {
                     .snapshots()
                     .map((s) => s.docs.map(Person.fromDoc).toList())
                 : Class.getAllForUser().switchMap(
-                    (cs) => Rx.combineLatestList(
-                      cs
-                          .split(10)
-                          .map((c) => persons
-                              .where('ClassId',
-                                  whereIn: c.map((c) => c.ref).toList())
-                              .where(
-                                  childItems[parentIndex][childIndex]
-                                      .value
-                                      .value,
-                                  arrayContains: queryValue)
-                              .snapshots())
-                          .map(
-                            (s) => s.expand(
-                              (e) => e.docs.map(Person.fromDoc).toList(),
-                            ),
-                          ),
+                    (cs) => Rx.combineLatestList(cs.split(10).map((c) => persons
+                        .where('ClassId', whereIn: c.map((c) => c.ref).toList())
+                        .where(childItems[parentIndex][childIndex].value.value,
+                            arrayContains: queryValue)
+                        .snapshots())).map(
+                      (s) => s
+                          .expand(
+                            (e) => e.docs,
+                          )
+                          .map(Person.fromDoc)
+                          .toList(),
                     ),
                   ),
           ),
@@ -1152,9 +1155,12 @@ class _SearchQueryState extends State<SearchQuery> {
                                       : null)
                               .snapshots())))
                       .map(
-                        (s) => s.expand(
-                          (e) => e.docs.map(Person.fromDoc).toList(),
-                        ),
+                        (s) => s
+                            .expand(
+                              (e) => e.docs,
+                            )
+                            .map(Person.fromDoc)
+                            .toList(),
                       ),
             ),
           );
@@ -1171,23 +1177,17 @@ class _SearchQueryState extends State<SearchQuery> {
                     .snapshots()
                     .map((s) => s.docs.map(Person.fromDoc).toList())
                 : Class.getAllForUser().switchMap(
-                    (cs) => Rx.combineLatestList(
-                      cs
-                          .split(10)
-                          .map((c) => persons
-                              .where('ClassId',
-                                  whereIn: c.map((c) => c.ref).toList())
-                              .where(
-                                  childItems[parentIndex][childIndex]
-                                      .value
-                                      .value,
-                                  isGreaterThanOrEqualTo: queryValue)
-                              .snapshots())
-                          .map(
-                            (s) => s.expand(
-                              (e) => e.docs.map(Person.fromDoc).toList(),
-                            ),
-                          ),
+                    (cs) => Rx.combineLatestList(cs.split(10).map((c) => persons
+                        .where('ClassId', whereIn: c.map((c) => c.ref).toList())
+                        .where(childItems[parentIndex][childIndex].value.value,
+                            isGreaterThanOrEqualTo: queryValue)
+                        .snapshots())).map(
+                      (s) => s
+                          .expand(
+                            (e) => e.docs,
+                          )
+                          .map(Person.fromDoc)
+                          .toList(),
                     ),
                   ),
           ),
@@ -1237,9 +1237,12 @@ class _SearchQueryState extends State<SearchQuery> {
                                           queryValue.toDate().day))
                                       : null)
                               .snapshots())).map(
-                        (s) => s.expand(
-                          (e) => e.docs.map(Person.fromDoc).toList(),
-                        ),
+                        (s) => s
+                            .expand(
+                              (e) => e.docs,
+                            )
+                            .map(Person.fromDoc)
+                            .toList(),
                       ),
                     ),
             ),
@@ -1257,23 +1260,17 @@ class _SearchQueryState extends State<SearchQuery> {
                     .snapshots()
                     .map((s) => s.docs.map(Person.fromDoc).toList())
                 : Class.getAllForUser().switchMap(
-                    (cs) => Rx.combineLatestList(
-                      cs
-                          .split(10)
-                          .map((c) => persons
-                              .where('ClassId',
-                                  whereIn: c.map((c) => c.ref).toList())
-                              .where(
-                                  childItems[parentIndex][childIndex]
-                                      .value
-                                      .value,
-                                  isLessThanOrEqualTo: queryValue)
-                              .snapshots())
-                          .map(
-                            (s) => s.expand(
-                              (e) => e.docs.map(Person.fromDoc).toList(),
-                            ),
-                          ),
+                    (cs) => Rx.combineLatestList(cs.split(10).map((c) => persons
+                        .where('ClassId', whereIn: c.map((c) => c.ref).toList())
+                        .where(childItems[parentIndex][childIndex].value.value,
+                            isLessThanOrEqualTo: queryValue)
+                        .snapshots())).map(
+                      (s) => s
+                          .expand(
+                            (e) => e.docs,
+                          )
+                          .map(Person.fromDoc)
+                          .toList(),
                     ),
                   ),
           ),
