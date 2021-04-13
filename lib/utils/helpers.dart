@@ -85,32 +85,35 @@ Stream<Map<StudyYear, List<Class>>> classesByStudyYearRef() {
       Map<DocumentReference, StudyYear> studyYears = {
         for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
       };
-      return (User.instance.superAccess
-              ? FirebaseFirestore.instance
-                  .collection('Classes')
-                  .orderBy('StudyYear')
-                  .orderBy('Gender')
-                  .snapshots()
-              : FirebaseFirestore.instance
-                  .collection('Classes')
-                  .where('Allowed',
-                      arrayContains: auth.FirebaseAuth.instance.currentUser.uid)
-                  .orderBy('StudyYear')
-                  .orderBy('Gender')
-                  .snapshots())
-          .map(
-        (cs) {
-          final classes = cs.docs.map((c) => Class.fromDoc(c)).toList();
-          mergeSort<Class>(classes, compare: (c, c2) {
-            if (c.studyYear == c2.studyYear)
-              return c.gender.compareTo(c2.gender);
-            return studyYears[c.studyYear]
-                .grade
-                .compareTo(studyYears[c2.studyYear].grade);
-          });
-          return groupBy<Class, StudyYear>(
-              classes, (c) => studyYears[c.studyYear]);
-        },
+      return User.instance.stream.switchMap(
+        (user) => (user.superAccess
+                ? FirebaseFirestore.instance
+                    .collection('Classes')
+                    .orderBy('StudyYear')
+                    .orderBy('Gender')
+                    .snapshots()
+                : FirebaseFirestore.instance
+                    .collection('Classes')
+                    .where('Allowed',
+                        arrayContains:
+                            auth.FirebaseAuth.instance.currentUser.uid)
+                    .orderBy('StudyYear')
+                    .orderBy('Gender')
+                    .snapshots())
+            .map(
+          (cs) {
+            final classes = cs.docs.map((c) => Class.fromDoc(c)).toList();
+            mergeSort<Class>(classes, compare: (c, c2) {
+              if (c.studyYear == c2.studyYear)
+                return c.gender.compareTo(c2.gender);
+              return studyYears[c.studyYear]
+                  .grade
+                  .compareTo(studyYears[c2.studyYear].grade);
+            });
+            return groupBy<Class, StudyYear>(
+                classes, (c) => studyYears[c.studyYear]);
+          },
+        ),
       );
     },
   );
@@ -404,40 +407,8 @@ Stream<Map<DocumentReference, Tuple2<Class, List<Person>>>> personsByClassRef(
       for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
     };
     if (persons != null) {
-      return (User.instance.superAccess
-              ? FirebaseFirestore.instance
-                  .collection('Classes')
-                  .orderBy('StudyYear')
-                  .orderBy('Gender')
-                  .snapshots()
-              : FirebaseFirestore.instance
-                  .collection('Classes')
-                  .where('Allowed',
-                      arrayContains: auth.FirebaseAuth.instance.currentUser.uid)
-                  .orderBy('StudyYear')
-                  .orderBy('Gender')
-                  .snapshots())
-          .map((cs) {
-        Map<DocumentReference, List<Person>> personsByClassRef =
-            groupBy(persons, (p) => p.classId);
-        final classes = cs.docs
-            .map((c) => Class.fromDoc(c))
-            .where((c) => personsByClassRef[c.ref] != null)
-            .toList();
-        mergeSort<Class>(classes, compare: (c, c2) {
-          if (c.studyYear == c2.studyYear) return c.gender.compareTo(c2.gender);
-          return studyYears[c.studyYear]
-              .grade
-              .compareTo(studyYears[c2.studyYear].grade);
-        });
-        return {
-          for (final c in classes)
-            c.ref: Tuple2<Class, List<Person>>(c, personsByClassRef[c.ref])
-        };
-      });
-    } else {
-      return Person.getAllForUser().switchMap((persons) {
-        return (User.instance.superAccess
+      return User.instance.stream.switchMap(
+        (user) => (user.superAccess
                 ? FirebaseFirestore.instance
                     .collection('Classes')
                     .orderBy('StudyYear')
@@ -451,26 +422,71 @@ Stream<Map<DocumentReference, Tuple2<Class, List<Person>>>> personsByClassRef(
                     .orderBy('StudyYear')
                     .orderBy('Gender')
                     .snapshots())
-            .map((cs) {
-          Map<DocumentReference, List<Person>> personsByClassRef =
-              groupBy(persons, (p) => p.classId);
-          final classes = cs.docs
-              .map((c) => Class.fromDoc(c))
-              .where((c) => personsByClassRef[c.ref] != null)
-              .toList();
-          mergeSort<Class>(classes, compare: (c, c2) {
-            if (c.studyYear == c2.studyYear)
-              return c.gender.compareTo(c2.gender);
-            return studyYears[c.studyYear]
-                .grade
-                .compareTo(studyYears[c2.studyYear].grade);
-          });
-          return {
-            for (final c in classes)
-              c.ref: Tuple2<Class, List<Person>>(c, personsByClassRef[c.ref])
-          };
-        });
-      });
+            .map(
+          (cs) {
+            Map<DocumentReference, List<Person>> personsByClassRef =
+                groupBy(persons, (p) => p.classId);
+            final classes = cs.docs
+                .map((c) => Class.fromDoc(c))
+                .where((c) => personsByClassRef[c.ref] != null)
+                .toList();
+            mergeSort<Class>(classes, compare: (c, c2) {
+              if (c.studyYear == c2.studyYear)
+                return c.gender.compareTo(c2.gender);
+              return studyYears[c.studyYear]
+                  .grade
+                  .compareTo(studyYears[c2.studyYear].grade);
+            });
+            return {
+              for (final c in classes)
+                c.ref: Tuple2<Class, List<Person>>(c, personsByClassRef[c.ref])
+            };
+          },
+        ),
+      );
+    } else {
+      return Person.getAllForUser().switchMap(
+        (persons) {
+          return User.instance.stream.switchMap(
+            (user) => (user.superAccess
+                    ? FirebaseFirestore.instance
+                        .collection('Classes')
+                        .orderBy('StudyYear')
+                        .orderBy('Gender')
+                        .snapshots()
+                    : FirebaseFirestore.instance
+                        .collection('Classes')
+                        .where('Allowed',
+                            arrayContains:
+                                auth.FirebaseAuth.instance.currentUser.uid)
+                        .orderBy('StudyYear')
+                        .orderBy('Gender')
+                        .snapshots())
+                .map(
+              (cs) {
+                Map<DocumentReference, List<Person>> personsByClassRef =
+                    groupBy(persons, (p) => p.classId);
+                final classes = cs.docs
+                    .map((c) => Class.fromDoc(c))
+                    .where((c) => personsByClassRef[c.ref] != null)
+                    .toList();
+                mergeSort<Class>(classes, compare: (c, c2) {
+                  if (c.studyYear == c2.studyYear)
+                    return c.gender.compareTo(c2.gender);
+                  return studyYears[c.studyYear]
+                      .grade
+                      .compareTo(studyYears[c2.studyYear].grade);
+                });
+                return {
+                  for (final c in classes)
+                    c.ref:
+                        Tuple2<Class, List<Person>>(c, personsByClassRef[c.ref])
+                };
+              },
+            ),
+          );
+        },
+      );
     }
   });
 }

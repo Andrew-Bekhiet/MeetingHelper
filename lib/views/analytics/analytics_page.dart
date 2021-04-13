@@ -309,7 +309,8 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
                     isLessThan:
                         Timestamp.fromDate(range.end.add(Duration(days: 1))),
                   )
-                  .where('Day', isGreaterThan: Timestamp.fromDate(range.start))
+                  .where('Day',
+                      isGreaterThanOrEqualTo: Timestamp.fromDate(range.start))
                   .snapshots(),
               builder: (context, data) {
                 if (data.hasError) return ErrorWidget(data.error);
@@ -523,7 +524,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                             ? FirebaseFirestore.instance
                                 .collection(widget.historyColection)
                                 .where('Day',
-                                    isGreaterThan: Timestamp.fromDate(day))
+                                    isGreaterThanOrEqualTo:
+                                        Timestamp.fromDate(day))
                                 .where(
                                   'Day',
                                   isLessThan: Timestamp.fromDate(
@@ -534,7 +536,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                 .collection(widget.historyColection)
                                 .orderBy('Day')
                                 .where('Day',
-                                    isGreaterThan:
+                                    isGreaterThanOrEqualTo:
                                         Timestamp.fromDate(range.start))
                                 .where(
                                   'Day',

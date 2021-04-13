@@ -37,7 +37,8 @@ class AttendanceChart extends StatelessWidget {
               .map((c) => FirebaseFirestore.instance
                   .collectionGroup(collectionGroup)
                   .where('ClassId', whereIn: c.map((e) => e.ref).toList())
-                  .where('Time', isGreaterThan: Timestamp.fromDate(range.start))
+                  .where('Time',
+                      isGreaterThanOrEqualTo: Timestamp.fromDate(range.start))
                   .where(
                     'Time',
                     isLessThan:
@@ -338,7 +339,8 @@ class PersonAttendanceIndicator extends StatelessWidget {
         return FirebaseFirestore.instance
             .collectionGroup(collectionGroup)
             .where('ID', isEqualTo: id)
-            .where('Time', isGreaterThan: Timestamp.fromDate(range.start))
+            .where('Time',
+                isGreaterThanOrEqualTo: Timestamp.fromDate(range.start))
             .where(
               'Time',
               isLessThan: Timestamp.fromDate(range.end.add(Duration(days: 1))),
@@ -359,7 +361,7 @@ class PersonAttendanceIndicator extends StatelessWidget {
                           Timestamp.fromDate(range.end.add(Duration(days: 1))),
                     )
                     .where('Time',
-                        isGreaterThan: Timestamp.fromDate(range.start))
+                        isGreaterThanOrEqualTo: Timestamp.fromDate(range.start))
                     .orderBy('Time', descending: true)
                     .snapshots())
                 .toList())
