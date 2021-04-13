@@ -6,6 +6,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/invitation.dart';
+import 'package:meetinghelper/utils/globals.dart';
 
 import '../../models/mini_models.dart';
 import '../../models/user.dart';
@@ -404,13 +405,13 @@ class _EditInvitationState extends State<EditInvitation> {
                     foregroundColor: MaterialStateProperty.resolveWith(
                         (state) => Colors.red)),
                 onPressed: () {
-                  Navigator.of(innerContext).pop(true);
+                  navigator.currentState.pop(true);
                 },
                 child: Text('حذف'),
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  navigator.currentState.pop();
                 },
                 child: Text('تراجع'),
               ),
@@ -418,7 +419,7 @@ class _EditInvitationState extends State<EditInvitation> {
           ),
         ) ==
         true) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.currentState.showSnackBar(
         SnackBar(
           content: LinearProgressIndicator(),
           duration: Duration(seconds: 15),
@@ -430,9 +431,9 @@ class _EditInvitationState extends State<EditInvitation> {
         // ignore: unawaited_futures
         widget.invitation.ref.delete();
       }
-      Navigator.of(context).pop('deleted');
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
+      navigator.currentState.pop('deleted');
+      scaffoldMessenger.currentState.hideCurrentSnackBar();
+      scaffoldMessenger.currentState.showSnackBar(
         SnackBar(
           content: Text('تم بنجاح'),
           duration: Duration(seconds: 15),
@@ -464,7 +465,7 @@ class _EditInvitationState extends State<EditInvitation> {
           widget.invitation.expiryDate != null &&
           widget.invitation.expiryDate.toDate().difference(DateTime.now()) >=
               Duration(hours: 24)) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        scaffoldMessenger.currentState.showSnackBar(SnackBar(
           content: Text('جار الحفظ...'),
           duration: Duration(seconds: 15),
         ));
@@ -498,9 +499,9 @@ class _EditInvitationState extends State<EditInvitation> {
             }
           }
         }
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        Navigator.of(context).pop(widget.invitation.ref);
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.currentState.hideCurrentSnackBar();
+        navigator.currentState.pop(widget.invitation.ref);
+        scaffoldMessenger.currentState.showSnackBar(
           SnackBar(
             content: Text('تم الحفظ بنجاح'),
             duration: Duration(seconds: 1),
@@ -519,8 +520,8 @@ class _EditInvitationState extends State<EditInvitation> {
       await FirebaseCrashlytics.instance
           .setCustomKey('LastErrorIn', 'UserPState.save');
       await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      scaffoldMessenger.currentState.hideCurrentSnackBar();
+      scaffoldMessenger.currentState.showSnackBar(SnackBar(
         content: Text(err.toString()),
         duration: Duration(seconds: 7),
       ));

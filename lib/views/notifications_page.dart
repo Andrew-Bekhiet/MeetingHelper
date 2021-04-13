@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:meetinghelper/utils/globals.dart';
 
 import 'notification.dart' as n;
 
@@ -32,7 +33,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                     builder: (context) => AlertDialog(
                       actions: <Widget>[
                         TextButton(
-                          onPressed: () => Navigator.of(context).pop(true),
+                          onPressed: () => navigator.currentState.pop(true),
                           child: Text('نعم'),
                         )
                       ],

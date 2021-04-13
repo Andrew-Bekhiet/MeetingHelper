@@ -15,6 +15,7 @@ import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tinycolor/tinycolor.dart';
+import 'package:meetinghelper/utils/globals.dart';
 
 import '../../models/mini_models.dart';
 import '../../models/models.dart';
@@ -69,19 +70,19 @@ class _EditClassState extends State<EditClass> {
                                 actions: <Widget>[
                                   TextButton.icon(
                                     onPressed: () =>
-                                        Navigator.of(context).pop(true),
+                                        navigator.currentState.pop(true),
                                     icon: Icon(Icons.camera),
                                     label: Text('التقاط صورة من الكاميرا'),
                                   ),
                                   TextButton.icon(
                                     onPressed: () =>
-                                        Navigator.of(context).pop(false),
+                                        navigator.currentState.pop(false),
                                     icon: Icon(Icons.photo_library),
                                     label: Text('اختيار من المعرض'),
                                   ),
                                   TextButton.icon(
                                     onPressed: () =>
-                                        Navigator.of(context).pop('delete'),
+                                        navigator.currentState.pop('delete'),
                                     icon: Icon(Icons.delete),
                                     label: Text('حذف الصورة'),
                                   ),
@@ -335,13 +336,13 @@ class _EditClassState extends State<EditClass> {
             actions: <Widget>[
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop(true);
+                  navigator.currentState.pop(true);
                 },
                 child: Text('نعم'),
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  navigator.currentState.pop();
                 },
                 child: Text('تراجع'),
               ),
@@ -349,7 +350,7 @@ class _EditClassState extends State<EditClass> {
           ),
         ) ==
         true) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.currentState.showSnackBar(
         SnackBar(
           content: Text('جار حذف الفصل وما بداخلها من بيانات...'),
           duration: Duration(minutes: 20),
@@ -374,7 +375,7 @@ class _EditClassState extends State<EditClass> {
         // ignore: unawaited_futures
         class$.ref.delete();
       }
-      Navigator.of(context).pop('deleted');
+      navigator.currentState.pop('deleted');
     }
   }
 
@@ -392,7 +393,7 @@ class _EditClassState extends State<EditClass> {
   Future save() async {
     try {
       if (form.currentState.validate()) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.currentState.showSnackBar(
           SnackBar(
             content: Text('جار الحفظ...'),
             duration: Duration(minutes: 20),
@@ -441,15 +442,15 @@ class _EditClassState extends State<EditClass> {
             class$.getMap(),
           );
         }
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        Navigator.of(context).pop(class$.ref);
+        scaffoldMessenger.currentState.hideCurrentSnackBar();
+        navigator.currentState.pop(class$.ref);
       }
     } catch (err, stkTrace) {
       await FirebaseCrashlytics.instance
           .setCustomKey('LastErrorIn', 'ClassP.save');
       await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      scaffoldMessenger.currentState.hideCurrentSnackBar();
+      scaffoldMessenger.currentState.showSnackBar(SnackBar(
         content: Text(err.toString()),
         duration: Duration(seconds: 7),
       ));
@@ -463,7 +464,7 @@ class _EditClassState extends State<EditClass> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
+              navigator.currentState.pop();
               setState(() {
                 class$.color = Colors.transparent;
               });
@@ -474,7 +475,7 @@ class _EditClassState extends State<EditClass> {
         content: ColorsList(
           selectedColor: class$.color,
           onSelect: (color) {
-            Navigator.of(context).pop();
+            navigator.currentState.pop();
             setState(() {
               class$.color = color;
             });
@@ -510,14 +511,12 @@ class _EditClassState extends State<EditClass> {
                         actions: [
                           TextButton(
                             onPressed: () {
-                              Navigator.pop(
-                                  context,
-                                  context
-                                      .read<DataObjectListOptions<User>>()
-                                      .selectedLatest
-                                      .values
-                                      ?.map((f) => f.uid)
-                                      ?.toList());
+                              navigator.currentState.pop(context
+                                  .read<DataObjectListOptions<User>>()
+                                  .selectedLatest
+                                  .values
+                                  ?.map((f) => f.uid)
+                                  ?.toList());
                             },
                             child: Text('تم'),
                           )

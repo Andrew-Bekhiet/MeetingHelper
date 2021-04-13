@@ -11,6 +11,7 @@ import 'package:meetinghelper/models/search_filters.dart';
 import 'package:meetinghelper/views/users_list.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:meetinghelper/utils/globals.dart';
 
 import '../../models/mini_models.dart';
 import '../../models/user.dart';
@@ -430,14 +431,12 @@ class _EditUserState extends State<EditUser> {
                         actions: [
                           TextButton(
                             onPressed: () {
-                              Navigator.pop(
-                                  context,
-                                  context
-                                      .read<DataObjectListOptions<User>>()
-                                      .selectedLatest
-                                      .values
-                                      ?.map((f) => f.uid)
-                                      ?.toList());
+                              navigator.currentState.pop(context
+                                  .read<DataObjectListOptions<User>>()
+                                  .selectedLatest
+                                  .values
+                                  ?.map((f) => f.uid)
+                                  ?.toList());
                             },
                             child: Text('تم'),
                           )
@@ -480,19 +479,19 @@ class _EditUserState extends State<EditUser> {
                     MaterialStateProperty.resolveWith((state) => Colors.red)),
             onPressed: () async {
               try {
-                ScaffoldMessenger.of(context).showSnackBar(
+                scaffoldMessenger.currentState.showSnackBar(
                   SnackBar(
                     content: LinearProgressIndicator(),
                     duration: Duration(seconds: 15),
                   ),
                 );
-                Navigator.of(context).pop();
+                navigator.currentState.pop();
                 await FirebaseFunctions.instance
                     .httpsCallable('deleteUser')
                     .call({'affectedUser': widget.user.uid});
-                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                Navigator.of(context).pop('deleted');
-                ScaffoldMessenger.of(context).showSnackBar(
+                scaffoldMessenger.currentState.hideCurrentSnackBar();
+                navigator.currentState.pop('deleted');
+                scaffoldMessenger.currentState.showSnackBar(
                   SnackBar(
                     content: Text('تم بنجاح'),
                     duration: Duration(seconds: 15),
@@ -502,8 +501,8 @@ class _EditUserState extends State<EditUser> {
                 await FirebaseCrashlytics.instance
                     .setCustomKey('LastErrorIn', 'UserPState.delete');
                 await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                ScaffoldMessenger.of(context).showSnackBar(
+                scaffoldMessenger.currentState.hideCurrentSnackBar();
+                scaffoldMessenger.currentState.showSnackBar(
                   SnackBar(
                     content: Text(
                       err.toString(),
@@ -517,7 +516,7 @@ class _EditUserState extends State<EditUser> {
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
+              navigator.currentState.pop();
             },
             child: Text('تراجع'),
           ),
@@ -536,17 +535,17 @@ class _EditUserState extends State<EditUser> {
           TextButton(
             onPressed: () async {
               try {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                scaffoldMessenger.currentState.showSnackBar(SnackBar(
                   content: LinearProgressIndicator(),
                   duration: Duration(seconds: 15),
                 ));
-                Navigator.of(navContext).pop();
+                navigator.currentState.pop();
                 await FirebaseFunctions.instance
                     .httpsCallable('unApproveUser')
                     .call({'affectedUser': widget.user.uid});
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                navigator.currentState.pop();
+                scaffoldMessenger.currentState.hideCurrentSnackBar();
+                scaffoldMessenger.currentState.showSnackBar(SnackBar(
                   content: Text('تم بنجاح'),
                   duration: Duration(seconds: 15),
                 ));
@@ -554,8 +553,8 @@ class _EditUserState extends State<EditUser> {
                 await FirebaseCrashlytics.instance
                     .setCustomKey('LastErrorIn', 'UserPState.delete');
                 await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                scaffoldMessenger.currentState.hideCurrentSnackBar();
+                scaffoldMessenger.currentState.showSnackBar(SnackBar(
                   content: Text(err.toString()),
                   duration: Duration(seconds: 7),
                 ));
@@ -565,7 +564,7 @@ class _EditUserState extends State<EditUser> {
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(navContext).pop();
+              navigator.currentState.pop();
             },
             child: Text('تراجع'),
           ),
@@ -593,18 +592,18 @@ class _EditUserState extends State<EditUser> {
                 '؟'),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context, true),
+                onPressed: () => navigator.currentState.pop(true),
                 child: Text('نعم'),
               ),
               TextButton(
-                onPressed: () => Navigator.pop(context, false),
+                onPressed: () => navigator.currentState.pop(false),
                 child: Text('لا'),
               ),
             ],
           ),
         ) !=
         true) return;
-    ScaffoldMessenger.of(context).showSnackBar(
+    scaffoldMessenger.currentState.showSnackBar(
       SnackBar(
         content: LinearProgressIndicator(),
         duration: Duration(seconds: 15),
@@ -614,8 +613,8 @@ class _EditUserState extends State<EditUser> {
       await FirebaseFunctions.instance
           .httpsCallable('resetPassword')
           .call({'affectedUser': widget.user.uid});
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.currentState.hideCurrentSnackBar();
+      scaffoldMessenger.currentState.showSnackBar(
         SnackBar(
           content: Text('تم إعادة تعيين كلمة السر بنجاح'),
         ),
@@ -624,7 +623,7 @@ class _EditUserState extends State<EditUser> {
       await FirebaseCrashlytics.instance
           .setCustomKey('LastErrorIn', 'UserPState.resetPassword');
       await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.currentState.showSnackBar(
         SnackBar(
           content: Text(err.toString()),
         ),
@@ -642,7 +641,7 @@ class _EditUserState extends State<EditUser> {
     }
     try {
       if (form.currentState.validate()) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        scaffoldMessenger.currentState.showSnackBar(SnackBar(
           content: Text('جار الحفظ...'),
           duration: Duration(seconds: 15),
         ));
@@ -665,9 +664,9 @@ class _EditUserState extends State<EditUser> {
               .doc(widget.user.uid)
               .update({'allowedUsers': widget.user.allowedUsers});
         }
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        Navigator.of(context).pop(widget.user);
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.currentState.hideCurrentSnackBar();
+        navigator.currentState.pop(widget.user);
+        scaffoldMessenger.currentState.showSnackBar(
           SnackBar(
             content: Text('تم الحفظ بنجاح'),
             duration: Duration(seconds: 1),
@@ -678,8 +677,8 @@ class _EditUserState extends State<EditUser> {
       await FirebaseCrashlytics.instance
           .setCustomKey('LastErrorIn', 'UserPState.save');
       await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      scaffoldMessenger.currentState.hideCurrentSnackBar();
+      scaffoldMessenger.currentState.showSnackBar(SnackBar(
         content: Text(err.toString()),
         duration: Duration(seconds: 7),
       ));

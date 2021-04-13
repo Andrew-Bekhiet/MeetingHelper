@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:tinycolor/tinycolor.dart';
 import 'package:intl/intl.dart';
+import 'package:meetinghelper/utils/globals.dart';
 
 import '../../models/user.dart';
 
@@ -14,7 +15,7 @@ class InvitationInfo extends StatelessWidget {
   const InvitationInfo({Key key, this.invitation}) : super(key: key);
 
   void addTap(BuildContext context) {
-    Navigator.of(context)
+    navigator.currentState
         .pushNamed('Data/EditInvitation', arguments: invitation.ref);
   }
 
@@ -60,17 +61,17 @@ class InvitationInfo extends StatelessWidget {
                             ),
                           ),
                           onPressed: () async {
-                            dynamic result = await Navigator.of(context)
+                            dynamic result = await navigator.currentState
                                 .pushNamed('EditInvitation',
                                     arguments: invitation);
                             if (result is DocumentReference) {
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              scaffoldMessenger.currentState.showSnackBar(
                                 SnackBar(
                                   content: Text('تم الحفظ بنجاح'),
                                 ),
                               );
                             } else if (result == 'deleted')
-                              Navigator.of(context).pop();
+                              navigator.currentState.pop();
                           },
                           tooltip: 'تعديل',
                         )

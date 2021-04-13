@@ -12,6 +12,7 @@ import 'package:meetinghelper/models/list_options.dart';
 import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/models/user.dart';
+import 'package:meetinghelper/utils/globals.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
@@ -131,7 +132,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                 TextButton.icon(
                   icon: Icon(Icons.sms),
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    navigator.currentState.pop();
                     List<Person> people = _listOptions.selectedLatest.values
                         .cast<Person>()
                         .toList()
@@ -156,7 +157,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                 TextButton.icon(
                   icon: Icon(Icons.share),
                   onPressed: () async {
-                    Navigator.of(context).pop();
+                    navigator.currentState.pop();
                     await Share.share(
                       (await Future.wait(
                         _listOptions.selectedLatest.values.cast<Person>().map(
@@ -171,7 +172,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                 TextButton.icon(
                   icon: ImageIcon(AssetImage('assets/whatsapp.png')),
                   onPressed: () async {
-                    Navigator.of(context).pop();
+                    navigator.currentState.pop();
                     var con = TextEditingController();
                     String msg = await showDialog(
                       context: context,
@@ -181,7 +182,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                             icon: Icon(Icons.send),
                             label: Text('ارسال'),
                             onPressed: () {
-                              Navigator.pop(context, con.text);
+                              navigator.currentState.pop(con.text);
                             },
                           ),
                         ],
@@ -212,7 +213,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                 TextButton.icon(
                   icon: Icon(Icons.person_add),
                   onPressed: () async {
-                    Navigator.of(context).pop();
+                    navigator.currentState.pop();
                     if ((await Permission.contacts.request()).isGranted) {
                       for (Person item in _listOptions.selectedLatest.values
                           .cast<Person>()) {
@@ -540,14 +541,14 @@ class _CheckListState<T extends DataObject>
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.pop(context);
+                  navigator.currentState.pop;
                   dataObjectTap(current, context);
                 },
                 child: Text('عرض بيانات ' + current.name),
               ),
               if (_listOptions.dayOptions.enabled.value)
                 TextButton(
-                  onPressed: () => Navigator.pop(context, true),
+                  onPressed: () => navigator.currentState.pop(true),
                   child: Text('حفظ'),
                 ),
             ],

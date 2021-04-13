@@ -1,6 +1,7 @@
 import 'package:meetinghelper/models/list_options.dart';
 import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/models/user.dart';
+import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -17,8 +18,8 @@ class Trash extends StatelessWidget {
     final listOptions = DataObjectListOptions<TrashDay>(
       onLongPress: (_) {},
       tap: (day) {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => TrashDayScreen(day)));
+        navigator.currentState
+            .push(MaterialPageRoute(builder: (context) => TrashDayScreen(day)));
       },
       searchQuery: BehaviorSubject<String>.seeded(''),
       itemsStream: FirebaseFirestore.instance
@@ -150,7 +151,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                 label: Text('تحديد الكل'),
                                 onPressed: () {
                                   _personsOptions.selectAll();
-                                  Navigator.pop(context);
+                                  navigator.currentState.pop;
                                 },
                               ),
                               TextButton.icon(
@@ -158,7 +159,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                 label: Text('تحديد لا شئ'),
                                 onPressed: () {
                                   _personsOptions.selectNone();
-                                  Navigator.pop(context);
+                                  navigator.currentState.pop;
                                 },
                               ),
                               Text('ترتيب حسب:',
@@ -177,7 +178,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                               orderBy: value,
                                               asc: _personsOrder.value.asc),
                                         );
-                                        Navigator.pop(context);
+                                        navigator.currentState.pop;
                                       },
                                     ),
                                   )
@@ -192,7 +193,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                         orderBy: _personsOrder.value.orderBy,
                                         asc: value),
                                   );
-                                  Navigator.pop(context);
+                                  navigator.currentState.pop;
                                 },
                               ),
                               RadioListTile(
@@ -205,7 +206,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                         orderBy: _personsOrder.value.orderBy,
                                         asc: value),
                                   );
-                                  Navigator.pop(context);
+                                  navigator.currentState.pop;
                                 },
                               ),
                             ],

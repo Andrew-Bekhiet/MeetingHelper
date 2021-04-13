@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:tinycolor/tinycolor.dart';
+import 'package:meetinghelper/utils/globals.dart';
 
 import '../../models/user.dart';
 import '../../models/history_property.dart';
@@ -34,7 +35,7 @@ class _ClassInfoState extends State<ClassInfo> {
       BehaviorSubject<OrderOptions>.seeded(OrderOptions());
 
   void addTap(BuildContext context) {
-    Navigator.of(context)
+    navigator.currentState
         .pushNamed('Data/EditPerson', arguments: widget.class$.ref);
   }
 
@@ -167,19 +168,19 @@ class _ClassInfoState extends State<ClassInfo> {
                                       ),
                                     ),
                                     onPressed: () async {
-                                      dynamic result =
-                                          await Navigator.of(context).pushNamed(
-                                              'Data/EditClass',
+                                      dynamic result = await navigator
+                                          .currentState
+                                          .pushNamed('Data/EditClass',
                                               arguments: class$);
                                       if (result is DocumentReference) {
-                                        ScaffoldMessenger.of(context)
+                                        scaffoldMessenger.currentState
                                             .showSnackBar(
                                           SnackBar(
                                             content: Text('تم الحفظ بنجاح'),
                                           ),
                                         );
                                       } else if (result == 'deleted')
-                                        Navigator.of(context).pop();
+                                        navigator.currentState.pop();
                                     },
                                     tooltip: 'تعديل',
                                   )
@@ -250,7 +251,7 @@ class _ClassInfoState extends State<ClassInfo> {
                               ),
                             ),
                             onPressed: () async {
-                              // Navigator.of(context).pop();
+                              // navigator.currentState.pop();
                               await Share.share(await shareClass(class$));
                             },
                             tooltip: 'مشاركة برابط',
@@ -506,11 +507,11 @@ class _ClassInfoState extends State<ClassInfo> {
   }
 
   void showMap(BuildContext context, Class class$) {
-    Navigator.push(context,
-        MaterialPageRoute(builder: (context) => DataMap(classO: class$)));
+    navigator.currentState
+        .push(MaterialPageRoute(builder: (context) => DataMap(classO: class$)));
   }
 
   void _showAnalytics(BuildContext context, Class _class) {
-    Navigator.pushNamed(context, 'Analytics', arguments: _class);
+    navigator.currentState.pushNamed('Analytics', arguments: _class);
   }
 }

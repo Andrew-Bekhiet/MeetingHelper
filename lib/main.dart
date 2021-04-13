@@ -155,6 +155,8 @@ class AppState extends State<App> {
       persistenceProvider: HivePersistenceProvider(),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
+        scaffoldMessengerKey: scaffoldMessenger,
+        navigatorKey: navigator,
         title: 'خدمة مدارس الأحد',
         initialRoute: '/',
         routes: {

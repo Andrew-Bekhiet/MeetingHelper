@@ -13,6 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:tinycolor/tinycolor.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:meetinghelper/utils/globals.dart';
 
 import '../../models/copiable_property.dart';
 import '../../models/data_object_widget.dart';
@@ -148,17 +149,17 @@ class _PersonInfoState extends State<PersonInfo> {
                                   ),
                                 ),
                                 onPressed: () async {
-                                  dynamic result = await Navigator.of(context)
+                                  dynamic result = await navigator.currentState
                                       .pushNamed('Data/EditPerson',
                                           arguments: person);
                                   if (result is DocumentReference) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
+                                    scaffoldMessenger.currentState.showSnackBar(
                                       SnackBar(
                                         content: Text('تم الحفظ بنجاح'),
                                       ),
                                     );
                                   } else if (result == 'deleted')
-                                    Navigator.of(context).pop();
+                                    navigator.currentState.pop();
                                 },
                                 tooltip: 'تعديل',
                               ),
@@ -328,7 +329,7 @@ class _PersonInfoState extends State<PersonInfo> {
                           !person.ref.path.startsWith('Deleted'))
                         ElevatedButton.icon(
                           icon: Icon(Icons.map),
-                          onPressed: () => Navigator.of(context).push(
+                          onPressed: () => navigator.currentState.push(
                             MaterialPageRoute(
                               builder: (context) => Scaffold(
                                 appBar: AppBar(title: Text(person.name)),
@@ -472,11 +473,11 @@ class _PersonInfoState extends State<PersonInfo> {
               title: Text('هل تريد تسجيل أخر زيارة ل' + person.name + '؟'),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context, true),
+                  onPressed: () => navigator.currentState.pop(true),
                   child: Text('تسجيل أخر زيارة'),
                 ),
                 TextButton(
-                  onPressed: () => Navigator.pop(context, false),
+                  onPressed: () => navigator.currentState.pop(false),
                   child: Text('رجوع'),
                 ),
               ],
@@ -487,7 +488,7 @@ class _PersonInfoState extends State<PersonInfo> {
         'LastVisit': Timestamp.now(),
         'LastEdit': FirebaseAuth.instance.currentUser.uid
       });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      scaffoldMessenger.currentState.showSnackBar(SnackBar(
         content: Text('تم بنجاح'),
       ));
     } catch (err, stkTrace) {
@@ -507,12 +508,12 @@ class _PersonInfoState extends State<PersonInfo> {
           OutlinedButton.icon(
             icon: Icon(Icons.call),
             label: Text('اجراء مكالمة الأن'),
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => navigator.currentState.pop(true),
           ),
           TextButton.icon(
             icon: Icon(Icons.dialpad),
             label: Text('نسخ في لوحة الاتصال فقط'),
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => navigator.currentState.pop(false),
           ),
         ],
       ),
@@ -527,11 +528,11 @@ class _PersonInfoState extends State<PersonInfo> {
           content: Text('هل تريد تسجيل تاريخ هذه المكالمة؟'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context, true),
+              onPressed: () => navigator.currentState.pop(true),
               child: Text('نعم'),
             ),
             TextButton(
-              onPressed: () => Navigator.pop(context, false),
+              onPressed: () => navigator.currentState.pop(false),
               child: Text('لا'),
             ),
           ],
@@ -540,7 +541,7 @@ class _PersonInfoState extends State<PersonInfo> {
       if (recordLastCall == true) {
         await widget.person.ref.update(
             {'LastEdit': User.instance.uid, 'LastCall': Timestamp.now()});
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.currentState.showSnackBar(
           SnackBar(
             content: Text('تم بنجاح'),
           ),
@@ -551,7 +552,7 @@ class _PersonInfoState extends State<PersonInfo> {
   }
 
   void _showAnalytics(BuildContext context, Person person) {
-    Navigator.pushNamed(context, 'Analytics', arguments: person);
+    navigator.currentState.pushNamed('Analytics', arguments: person);
   }
 
   Future<void> _contactAdd(
@@ -573,7 +574,7 @@ class _PersonInfoState extends State<PersonInfo> {
               ),
               actions: [
                 TextButton(
-                    onPressed: () => Navigator.pop(context, true),
+                    onPressed: () => navigator.currentState.pop(true),
                     child: Text('حفظ جهة الاتصال'))
               ],
             ),

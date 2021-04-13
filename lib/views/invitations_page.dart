@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:meetinghelper/models/invitation.dart';
 import 'package:meetinghelper/models/list_options.dart';
+import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/views/list.dart';
 
 class InvitationsPage extends StatefulWidget {
@@ -21,7 +22,7 @@ class _InvitationsPageState extends State<InvitationsPage> {
           .snapshots()
           .map((s) => s.docs.map(Invitation.fromDoc).toList()),
       tap: (i) =>
-          Navigator.of(context).pushNamed('InvitationInfo', arguments: i),
+          navigator.currentState.pushNamed('InvitationInfo', arguments: i),
     );
     return Scaffold(
       appBar: AppBar(title: Text('لينكات الدعوة')),
@@ -46,7 +47,7 @@ class _InvitationsPageState extends State<InvitationsPage> {
       ),
       floatingActionButton: FloatingActionButton(
         tooltip: 'اضافة دعوة',
-        onPressed: () => Navigator.of(context).pushNamed('EditInvitation'),
+        onPressed: () => navigator.currentState.pushNamed('EditInvitation'),
         child: Icon(Icons.add_link),
       ),
     );

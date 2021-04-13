@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/list_options.dart';
 import 'package:meetinghelper/models/search_filters.dart';
 import 'package:meetinghelper/models/user.dart';
+import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/views/services_list.dart';
 import 'package:meetinghelper/views/users_list.dart';
 import 'package:meetinghelper/utils/helpers.dart';
@@ -38,13 +39,13 @@ class _UserInfoState extends State<UserInfo> {
               IconButton(
                 icon: Icon(Icons.edit),
                 onPressed: () async {
-                  user = await Navigator.of(context).push(
+                  user = await navigator.currentState.push(
                     MaterialPageRoute(
                       builder: (co) => EditUser(user: user),
                     ),
                   );
                   if (user == null) {
-                    Navigator.of(context).pop();
+                    navigator.currentState.pop();
                   } else {
                     setState(() {});
                   }

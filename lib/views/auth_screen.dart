@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:meetinghelper/utils/globals.dart';
 
 import '../models/user.dart';
 import '../utils/encryption_keys.dart';
@@ -122,12 +123,12 @@ class _AuthScreenState extends State<AuthScreen> {
       if (value) {
         if (widget.nextRoute != null) {
           // ignore: unawaited_futures
-          Navigator.of(context).pushReplacementNamed(widget.nextRoute);
+          navigator.currentState.pushReplacementNamed(widget.nextRoute);
         } else if (widget.nextWidget == null) {
-          Navigator.of(context).pop(true);
+          navigator.currentState.pop(true);
         } else {
           // ignore: unawaited_futures
-          Navigator.of(context).pushReplacement(
+          navigator.currentState.pushReplacement(
             MaterialPageRoute(builder: (con) {
               return widget.nextWidget;
             }),
@@ -149,13 +150,13 @@ class _AuthScreenState extends State<AuthScreen> {
     } else if (User.instance.password == encryptedPassword) {
       encryptedPassword = null;
       if (widget.nextWidget != null) {
-        await Navigator.of(context).pushReplacement(
+        await navigator.currentState.pushReplacement(
           MaterialPageRoute(builder: (c) => widget.nextWidget),
         );
       } else if (widget.nextRoute != null) {
-        await Navigator.of(context).pushReplacementNamed(widget.nextRoute);
+        await navigator.currentState.pushReplacementNamed(widget.nextRoute);
       } else {
-        Navigator.of(context).pop();
+        navigator.currentState.pop();
       }
     } else {
       encryptedPassword = null;

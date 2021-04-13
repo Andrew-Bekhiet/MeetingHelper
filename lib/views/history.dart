@@ -178,11 +178,11 @@ class _HistoryState extends State<History> {
                   .docs;
               mainScfld.currentState.openEndDrawer();
               if (today.isNotEmpty) {
-                await Navigator.of(context)
+                await navigator.currentState
                     .pushNamed('Day', arguments: HistoryDay.fromDoc(today[0]));
               } else if (await Connectivity().checkConnectivity() !=
                   ConnectivityResult.none) {
-                await Navigator.of(context).pushNamed('Day');
+                await navigator.currentState.pushNamed('Day');
               } else {
                 await showDialog(
                     context: context,
@@ -347,10 +347,10 @@ class _ServantsHistoryState extends State<ServantsHistory> {
                   .docs;
               mainScfld.currentState.openEndDrawer();
               if (today.isNotEmpty) {
-                await Navigator.of(context).pushNamed('ServantsDay',
+                await navigator.currentState.pushNamed('ServantsDay',
                     arguments: ServantsHistoryDay.fromDoc(today[0]));
               } else {
-                await Navigator.of(context).pushNamed('ServantsDay');
+                await navigator.currentState.pushNamed('ServantsDay');
               }
             } else {
               await showDialog(

@@ -18,6 +18,7 @@ import 'package:meetinghelper/models/search_filters.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tinycolor/tinycolor.dart';
+import 'package:meetinghelper/utils/globals.dart';
 
 import '../../views/mini_lists/colors_list.dart';
 import '../../models/mini_models.dart';
@@ -70,18 +71,19 @@ class _EditPersonState extends State<EditPerson> {
                         builder: (context) => AlertDialog(
                           actions: <Widget>[
                             TextButton.icon(
-                              onPressed: () => Navigator.of(context).pop(true),
+                              onPressed: () => navigator.currentState.pop(true),
                               icon: Icon(Icons.camera),
                               label: Text('التقاط صورة من الكاميرا'),
                             ),
                             TextButton.icon(
-                              onPressed: () => Navigator.of(context).pop(false),
+                              onPressed: () =>
+                                  navigator.currentState.pop(false),
                               icon: Icon(Icons.photo_library),
                               label: Text('اختيار من المعرض'),
                             ),
                             TextButton.icon(
                               onPressed: () =>
-                                  Navigator.of(context).pop('delete'),
+                                  navigator.currentState.pop('delete'),
                               icon: Icon(Icons.delete),
                               label: Text('حذف الصورة'),
                             ),
@@ -266,13 +268,13 @@ class _EditPersonState extends State<EditPerson> {
                                   builder: (context) => AlertDialog(
                                     actions: [
                                       TextButton(
-                                        onPressed: () =>
-                                            Navigator.pop(context, name.text),
+                                        onPressed: () => navigator.currentState
+                                            .pop(name.text),
                                         child: Text('حفظ'),
                                       ),
                                       TextButton(
-                                        onPressed: () =>
-                                            Navigator.pop(context, 'delete'),
+                                        onPressed: () => navigator.currentState
+                                            .pop('delete'),
                                         child: Text('حذف'),
                                       ),
                                     ],
@@ -317,7 +319,7 @@ class _EditPersonState extends State<EditPerson> {
                               actions: [
                                 TextButton(
                                   onPressed: () =>
-                                      Navigator.pop(context, name.text),
+                                      navigator.currentState.pop(name.text),
                                   child: Text('حفظ'),
                                 )
                               ],
@@ -402,20 +404,21 @@ class _EditPersonState extends State<EditPerson> {
                           ? GeoPoint(person.location.latitude,
                               person.location.longitude)
                           : null;
-                      var rslt = await Navigator.of(context).push(
+                      var rslt = await navigator.currentState.push(
                         MaterialPageRoute(
                           builder: (context) => Scaffold(
                             appBar: AppBar(
                               actions: <Widget>[
                                 IconButton(
                                   icon: Icon(Icons.done),
-                                  onPressed: () => Navigator.pop(context, true),
+                                  onPressed: () =>
+                                      navigator.currentState.pop(true),
                                   tooltip: 'حفظ',
                                 ),
                                 IconButton(
                                   icon: Icon(Icons.delete),
                                   onPressed: () =>
-                                      Navigator.pop(context, false),
+                                      navigator.currentState.pop(false),
                                   tooltip: 'حذف التحديد',
                                 )
                               ],
@@ -485,7 +488,7 @@ class _EditPersonState extends State<EditPerson> {
                         icon: Icon(Icons.add),
                         label: Text('اضافة'),
                         onPressed: () async {
-                          await Navigator.of(context)
+                          await navigator.currentState
                               .pushNamed('Settings/Schools');
                           setState(() {});
                         },
@@ -547,7 +550,7 @@ class _EditPersonState extends State<EditPerson> {
                         icon: Icon(Icons.add),
                         label: Text('اضافة'),
                         onPressed: () async {
-                          await Navigator.of(context)
+                          await navigator.currentState
                               .pushNamed('Settings/Churches');
                           setState(() {});
                         },
@@ -603,7 +606,7 @@ class _EditPersonState extends State<EditPerson> {
                         icon: Icon(Icons.add),
                         label: Text('اضافة'),
                         onPressed: () async {
-                          await Navigator.of(context)
+                          await navigator.currentState
                               .pushNamed('Settings/Fathers');
                           setState(() {});
                         },
@@ -904,7 +907,7 @@ class _EditPersonState extends State<EditPerson> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
+              navigator.currentState.pop();
               setState(() {
                 person.color = Colors.transparent;
               });
@@ -915,7 +918,7 @@ class _EditPersonState extends State<EditPerson> {
         content: ColorsList(
           selectedColor: person.color,
           onSelect: (color) {
-            Navigator.of(context).pop();
+            navigator.currentState.pop();
             setState(() {
               person.color = color;
             });
@@ -938,13 +941,13 @@ class _EditPersonState extends State<EditPerson> {
             actions: <Widget>[
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop(true);
+                  navigator.currentState.pop(true);
                 },
                 child: Text('نعم'),
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  navigator.currentState.pop();
                 },
                 child: Text('تراجع'),
               ),
@@ -971,7 +974,7 @@ class _EditPersonState extends State<EditPerson> {
         // ignore: unawaited_futures
         person.ref.delete();
 
-        Navigator.pop(context, 'deleted');
+        navigator.currentState.pop('deleted');
       }
     }
   }
@@ -999,7 +1002,7 @@ class _EditPersonState extends State<EditPerson> {
   Future _save() async {
     try {
       if (form.currentState.validate() && person.classId != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.currentState.showSnackBar(
           SnackBar(
             content: Text('جار الحفظ...'),
             duration: Duration(minutes: 1),
@@ -1048,8 +1051,8 @@ class _EditPersonState extends State<EditPerson> {
             person.getMap(),
           );
         }
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        Navigator.of(context).pop(person.ref);
+        scaffoldMessenger.currentState.hideCurrentSnackBar();
+        navigator.currentState.pop(person.ref);
       } else {
         await showDialog(
           context: context,
@@ -1064,8 +1067,8 @@ class _EditPersonState extends State<EditPerson> {
       await FirebaseCrashlytics.instance
           .setCustomKey('LastErrorIn', 'PersonP.save');
       await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      scaffoldMessenger.currentState.hideCurrentSnackBar();
+      scaffoldMessenger.currentState.showSnackBar(SnackBar(
         content: Text(
           err.toString(),
         ),
@@ -1079,7 +1082,7 @@ class _EditPersonState extends State<EditPerson> {
         BehaviorSubject<String>.seeded('');
     final options = ServicesListOptions(
       tap: (class$) {
-        Navigator.pop(context);
+        navigator.currentState.pop;
         person.classId = class$.ref;
         setState(() {});
         FocusScope.of(context).nextFocus();
@@ -1130,8 +1133,8 @@ class _EditPersonState extends State<EditPerson> {
                 ? FloatingActionButton(
                     heroTag: null,
                     onPressed: () async {
-                      Navigator.of(context).pop();
-                      person.classId = (await Navigator.of(context)
+                      navigator.currentState.pop();
+                      person.classId = (await navigator.currentState
                                   .pushNamed('Data/EditClass'))
                               as DocumentReference ??
                           person.classId;
@@ -1171,7 +1174,7 @@ class _EditPersonState extends State<EditPerson> {
   //                 .collection('Types')
   //                 .get(source: dataSource),
   //             tap: (type, _) {
-  //               Navigator.of(context).pop();
+  //               navigator.currentState.pop();
   //               setState(() {
   //                 widget.me.type = type.ref;
   //               });

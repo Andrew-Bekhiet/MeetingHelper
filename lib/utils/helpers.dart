@@ -154,7 +154,7 @@ Stream<Map<StudyYear, List<Class>>> classesByStudyYearRefForUser(String uid) {
 }
 
 void classTap(Class _class, BuildContext context) {
-  Navigator.of(context).pushNamed('ClassInfo', arguments: _class);
+  navigator.currentState.pushNamed('ClassInfo', arguments: _class);
 }
 
 void dataObjectTap(DataObject obj, BuildContext context) {
@@ -208,7 +208,7 @@ List<RadioListTile> getOrderingOptions(BuildContext context,
           onChanged: (value) {
             orderOptions
                 .add(OrderOptions(orderBy: value, asc: orderOptions.value.asc));
-            Navigator.pop(context);
+            navigator.currentState.pop;
           },
         ),
       )
@@ -222,7 +222,7 @@ List<RadioListTile> getOrderingOptions(BuildContext context,
               onChanged: (value) {
                 orderOptions.add(OrderOptions(
                     orderBy: orderOptions.value.orderBy, asc: value == 'true'));
-                Navigator.pop(context);
+                navigator.currentState.pop;
               },
             ),
             RadioListTile(
@@ -232,7 +232,7 @@ List<RadioListTile> getOrderingOptions(BuildContext context,
               onChanged: (value) {
                 orderOptions.add(OrderOptions(
                     orderBy: orderOptions.value.orderBy, asc: value == 'true'));
-                Navigator.pop(context);
+                navigator.currentState.pop;
               },
             ),
           ],
@@ -249,10 +249,10 @@ String getPhone(String phone, [bool whatsapp = true]) {
 
 void historyTap(HistoryDay history, BuildContext context) async {
   if (history is! ServantsHistoryDay) {
-    await Navigator.of(context).pushNamed('Day', arguments: history);
+    await navigator.currentState.pushNamed('Day', arguments: history);
   } else if (await Connectivity().checkConnectivity() !=
       ConnectivityResult.none) {
-    await Navigator.of(context).pushNamed('ServantsDay', arguments: history);
+    await navigator.currentState.pushNamed('ServantsDay', arguments: history);
   } else {
     await showDialog(
         context: context,
@@ -270,7 +270,7 @@ void import(BuildContext context) async {
     final decoder = SpreadsheetDecoder.decodeBytes(fileData);
     if (decoder.tables.containsKey('Classes') &&
         decoder.tables.containsKey('Persons')) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.currentState.showSnackBar(
         SnackBar(
           content: Text('جار رفع الملف...'),
           duration: Duration(minutes: 9),
@@ -283,8 +283,8 @@ void import(BuildContext context) async {
               fileData,
               SettableMetadata(
                   customMetadata: {'createdBy': User.instance.uid}));
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.currentState.hideCurrentSnackBar();
+      scaffoldMessenger.currentState.showSnackBar(
         SnackBar(
           content: Text('جار استيراد الملف...'),
           duration: Duration(minutes: 9),
@@ -293,19 +293,19 @@ void import(BuildContext context) async {
       await FirebaseFunctions.instance
           .httpsCallable('importFromExcel')
           .call({'fileId': filename + '.xlsx'});
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.currentState.hideCurrentSnackBar();
+      scaffoldMessenger.currentState.showSnackBar(
         SnackBar(
           content: Text('تم الاستيراد بنجاح'),
           duration: Duration(seconds: 4),
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      scaffoldMessenger.currentState.hideCurrentSnackBar();
       await showErrorDialog(context, 'ملف غير صالح');
     }
   } catch (e) {
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    scaffoldMessenger.currentState.hideCurrentSnackBar();
     await showErrorDialog(context, e.toString());
   }
 }
@@ -322,12 +322,12 @@ void onForegroundMessage(RemoteMessage message, [BuildContext context]) async {
   bool opened = Hive.isBoxOpen('Notifications');
   if (!opened) await Hive.openBox<Map>('Notifications');
   await storeNotification(message);
-  ScaffoldMessenger.of(context).showSnackBar(
+  scaffoldMessenger.currentState.showSnackBar(
     SnackBar(
       content: Text(message.notification.body),
       action: SnackBarAction(
         label: 'فتح الاشعارات',
-        onPressed: () => Navigator.of(context).pushNamed('Notifications'),
+        onPressed: () => navigator.currentState.pushNamed('Notifications'),
       ),
     ),
   );
@@ -492,7 +492,7 @@ Stream<Map<DocumentReference, Tuple2<Class, List<Person>>>> personsByClassRef(
 }
 
 void personTap(Person person, BuildContext context) {
-  Navigator.of(context).pushNamed('PersonInfo', arguments: person);
+  navigator.currentState.pushNamed('PersonInfo', arguments: person);
 }
 
 Future<void> processClickedNotification(BuildContext context,
@@ -504,7 +504,7 @@ Future<void> processClickedNotification(BuildContext context,
     if ((notificationDetails.payload ?? payload) == 'Birthday') {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await Future.delayed(Duration(milliseconds: 900), () => null);
-        await Navigator.of(context).push(
+        await navigator.currentState.push(
           MaterialPageRoute(
             builder: (context) {
               final now = DateTime.now().millisecondsSinceEpoch;
@@ -526,7 +526,7 @@ Future<void> processClickedNotification(BuildContext context,
     } else if ((notificationDetails.payload ?? payload) == 'Confessions') {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await Future.delayed(Duration(milliseconds: 900), () => null);
-        await Navigator.of(context).push(
+        await navigator.currentState.push(
           MaterialPageRoute(
             builder: (context) {
               final now = DateTime.now().millisecondsSinceEpoch;
@@ -550,7 +550,7 @@ Future<void> processClickedNotification(BuildContext context,
     } else if ((notificationDetails.payload ?? payload) == 'Tanawol') {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await Future.delayed(Duration(milliseconds: 900), () => null);
-        await Navigator.of(context).push(
+        await navigator.currentState.push(
           MaterialPageRoute(
             builder: (context) {
               final now = DateTime.now().millisecondsSinceEpoch;
@@ -574,7 +574,7 @@ Future<void> processClickedNotification(BuildContext context,
     } else if ((notificationDetails.payload ?? payload) == 'Kodas') {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await Future.delayed(Duration(milliseconds: 900), () => null);
-        await Navigator.of(context).push(
+        await navigator.currentState.push(
           MaterialPageRoute(
             builder: (context) {
               final now = DateTime.now().millisecondsSinceEpoch;
@@ -598,7 +598,7 @@ Future<void> processClickedNotification(BuildContext context,
     } else if ((notificationDetails.payload ?? payload) == 'Meeting') {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await Future.delayed(Duration(milliseconds: 900), () => null);
-        await Navigator.of(context).push(
+        await navigator.currentState.push(
           MaterialPageRoute(
             builder: (context) {
               final now = DateTime.now().millisecondsSinceEpoch;
@@ -641,7 +641,7 @@ Future<void> processLink(Uri deepLink, BuildContext context) async {
                 .get()),
             context);
       } else if (deepLink.pathSegments[0] == 'viewQuery') {
-        await Navigator.of(context).push(
+        await navigator.currentState.push(
           MaterialPageRoute(
             builder: (c) => SearchQuery(
               query: deepLink.queryParameters,
@@ -697,13 +697,11 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
             actions: [
               IconButton(
                 onPressed: () {
-                  Navigator.pop(
-                      context,
-                      context
-                          .read<DataObjectListOptions<User>>()
-                          .selectedLatest
-                          .values
-                          .toList());
+                  navigator.currentState.pop(context
+                      .read<DataObjectListOptions<User>>()
+                      .selectedLatest
+                      .values
+                      .toList());
                 },
                 icon: Icon(Icons.done),
                 tooltip: 'تم',
@@ -735,12 +733,12 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
                 actions: <Widget>[
                   TextButton.icon(
                     icon: Icon(Icons.send),
-                    onPressed: () => Navigator.of(context).pop(true),
+                    onPressed: () => navigator.currentState.pop(true),
                     label: Text('ارسال'),
                   ),
                   TextButton.icon(
                     icon: Icon(Icons.cancel),
-                    onPressed: () => Navigator.of(context).pop(false),
+                    onPressed: () => navigator.currentState.pop(false),
                     label: Text('الغاء الأمر'),
                   ),
                 ],
@@ -819,7 +817,7 @@ Future<void> recoverDoc(BuildContext context, String path) async {
         builder: (context) => AlertDialog(
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context, true),
+              onPressed: () => navigator.currentState.pop(true),
               child: Text('استرجاع'),
             ),
           ],
@@ -862,7 +860,7 @@ Future<void> recoverDoc(BuildContext context, String path) async {
         'keepBackup': keepBackup,
         'nested': nested,
       });
-      ScaffoldMessenger.of(context)
+      scaffoldMessenger.currentState
           .showSnackBar(SnackBar(content: Text('تم الاسترجاع بنجاح')));
     } catch (err, stcTrace) {
       await FirebaseCrashlytics.instance
@@ -1048,8 +1046,7 @@ Future<List<Class>> selectClasses(
       selectionMode: true,
       selected: classes,
       searchQuery: Stream.value(''));
-  if (await Navigator.push(
-        context,
+  if (await navigator.currentState.push(
         MaterialPageRoute(
           builder: (context) => Scaffold(
             appBar: AppBar(
@@ -1057,7 +1054,7 @@ Future<List<Class>> selectClasses(
               actions: [
                 IconButton(
                     icon: Icon(Icons.done),
-                    onPressed: () => Navigator.pop(context, true),
+                    onPressed: () => navigator.currentState.pop(true),
                     tooltip: 'تم')
               ],
             ),
@@ -1144,7 +1141,7 @@ Future<void> showErrorDialog(BuildContext context, String message,
       actions: <Widget>[
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop();
+            navigator.currentState.pop();
           },
           child: Text('حسنًا'),
         ),
@@ -1173,7 +1170,7 @@ Future<void> showErrorUpdateDataDialog(
             ),
             onPressed: () async {
               final user = User.instance;
-              await Navigator.of(context)
+              await navigator.currentState
                   .pushNamed('UpdateUserDataError', arguments: user);
               if (user.lastTanawol != null &&
                   user.lastConfession != null &&
@@ -1181,18 +1178,18 @@ Future<void> showErrorUpdateDataDialog(
                           DateTime.now().millisecondsSinceEpoch &&
                       (user.lastConfession + 5184000000) >
                           DateTime.now().millisecondsSinceEpoch)) {
-                Navigator.pop(context);
+                navigator.currentState.pop;
                 if (pushApp)
                   // ignore: unawaited_futures
-                  Navigator.pushReplacement(
-                      context, MaterialPageRoute(builder: (context) => App()));
+                  navigator.currentState.pushReplacement(
+                      MaterialPageRoute(builder: (context) => App()));
               }
             },
             icon: Icon(Icons.update),
             label: Text('تحديث بيانات التناول والاعتراف'),
           ),
           TextButton.icon(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => navigator.currentState.pop,
             icon: Icon(Icons.close),
             label: Text('تم'),
           ),
@@ -1401,7 +1398,7 @@ Future<void> showPendingMessage([BuildContext context]) async {
   final pendingMessage = await FirebaseMessaging.instance.getInitialMessage();
   if (pendingMessage != null) {
     // ignore: unawaited_futures
-    Navigator.of(context).pushNamed('Notifications');
+    navigator.currentState.pushNamed('Notifications');
     if (pendingMessage.data['type'] == 'Message')
       await showMessage(
         context,
@@ -1495,7 +1492,7 @@ Timestamp tranucateToDay({DateTime time}) {
 
 void userTap(User user, BuildContext context) async {
   if (user.approved) {
-    await Navigator.of(context).pushNamed('UserInfo', arguments: user);
+    await navigator.currentState.pushNamed('UserInfo', arguments: user);
   } else {
     dynamic rslt = await showDialog(
         context: context,
@@ -1504,17 +1501,17 @@ void userTap(User user, BuildContext context) async {
                 TextButton.icon(
                   icon: Icon(Icons.done),
                   label: Text('نعم'),
-                  onPressed: () => Navigator.of(context).pop(true),
+                  onPressed: () => navigator.currentState.pop(true),
                 ),
                 TextButton.icon(
                   icon: Icon(Icons.close),
                   label: Text('لا'),
-                  onPressed: () => Navigator.of(context).pop(false),
+                  onPressed: () => navigator.currentState.pop(false),
                 ),
                 TextButton.icon(
                   icon: Icon(Icons.close),
                   label: Text('حذف المستخدم'),
-                  onPressed: () => Navigator.of(context).pop('delete'),
+                  onPressed: () => navigator.currentState.pop('delete'),
                 ),
               ],
               title: Text('${user.name} غير مُنشط هل تريد تنشيطه؟'),
@@ -1529,7 +1526,7 @@ void userTap(User user, BuildContext context) async {
               ),
             ));
     if (rslt == true) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.currentState.showSnackBar(
         SnackBar(
           content: LinearProgressIndicator(),
           duration: Duration(seconds: 15),
@@ -1543,8 +1540,8 @@ void userTap(User user, BuildContext context) async {
         // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
         user.notifyListeners();
         userTap(user, context);
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.currentState.hideCurrentSnackBar();
+        scaffoldMessenger.currentState.showSnackBar(
           SnackBar(
             content: Text('تم بنجاح'),
             duration: Duration(seconds: 15),
@@ -1556,7 +1553,7 @@ void userTap(User user, BuildContext context) async {
         await FirebaseCrashlytics.instance.recordError(err, stkTrace);
       }
     } else if (rslt == 'delete') {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.currentState.showSnackBar(
         SnackBar(
           content: LinearProgressIndicator(),
           duration: Duration(seconds: 15),
@@ -1566,8 +1563,8 @@ void userTap(User user, BuildContext context) async {
         await FirebaseFunctions.instance
             .httpsCallable('deleteUser')
             .call({'affectedUser': user.uid});
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.currentState.hideCurrentSnackBar();
+        scaffoldMessenger.currentState.showSnackBar(
           SnackBar(
             content: Text('تم بنجاح'),
             duration: Duration(seconds: 15),

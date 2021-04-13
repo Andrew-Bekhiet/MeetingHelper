@@ -57,7 +57,7 @@ class SettingsState extends State<Settings> {
                 builder: (context) {
                   _save = () {
                     Form.of(context).save();
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    scaffoldMessenger.currentState.showSnackBar(SnackBar(
                       content: Text('تم الحفظ'),
                     ));
                   };
@@ -87,7 +87,7 @@ class SettingsState extends State<Settings> {
                                       selectedColor: color,
                                       colors: primaries,
                                       onSelect: (color) {
-                                        Navigator.of(context).pop();
+                                        navigator.currentState.pop();
                                         setState(() {
                                           this.color = color;
                                         });
@@ -151,19 +151,19 @@ class SettingsState extends State<Settings> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: <Widget>[
                             ElevatedButton(
-                                onPressed: () => Navigator.of(context)
+                                onPressed: () => navigator.currentState
                                     .pushNamed('Settings/Churches'),
                                 child: Text('الكنائس')),
                             ElevatedButton(
-                                onPressed: () => Navigator.of(context)
+                                onPressed: () => navigator.currentState
                                     .pushNamed('Settings/Fathers'),
                                 child: Text('الأباء الكهنة')),
                             ElevatedButton(
-                                onPressed: () => Navigator.of(context)
+                                onPressed: () => navigator.currentState
                                     .pushNamed('Settings/StudyYears'),
                                 child: Text('السنوات الدراسية')),
                             ElevatedButton(
-                                onPressed: () => Navigator.of(context)
+                                onPressed: () => navigator.currentState
                                     .pushNamed('Settings/Schools'),
                                 child: Text('المدارس')),
                           ],
@@ -336,17 +336,17 @@ class SettingsState extends State<Settings> {
             title: Text('هل تريد الخروج دون الحفظ؟'),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
+                onPressed: () => navigator.currentState.pop(true),
                 child: Text('الخروج دون حفظ'),
               ),
               TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
+                onPressed: () => navigator.currentState.pop(false),
                 child: Text('رجوع'),
               ),
               TextButton(
                 onPressed: () async {
                   _save();
-                  Navigator.of(context).pop(true);
+                  navigator.currentState.pop(true);
                 },
                 child: Text('الخروج مع حفظ'),
               ),

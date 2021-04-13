@@ -62,11 +62,11 @@ class Updates {
                         .getString('DownloadLink')
                         .replaceFirst('https://', 'https:'));
                   } else {
-                    Navigator.of(context).pop();
+                    navigator.currentState.pop();
                     await Clipboard.setData(ClipboardData(
                         text: (await UpdateHelper.setupRemoteConfig())
                             .getString('DownloadLink')));
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    scaffoldMessenger.currentState.showSnackBar(
                       SnackBar(
                         content: Text(
                             'حدث خطأ أثناء فتح رابط التحديث وتم نقله الى الحافظة'),
@@ -94,7 +94,7 @@ class Updates {
             actions: <Widget>[
               TextButton(
                 onPressed: () async {
-                  Navigator.of(context).pop();
+                  navigator.currentState.pop();
                   if (await canLaunch((await UpdateHelper.setupRemoteConfig())
                       .getString('DownloadLink')
                       .replaceFirst('https://', 'https:'))) {
@@ -102,11 +102,11 @@ class Updates {
                         .getString('DownloadLink')
                         .replaceFirst('https://', 'https:'));
                   } else {
-                    Navigator.of(context).pop();
+                    navigator.currentState.pop();
                     await Clipboard.setData(ClipboardData(
                         text: (await UpdateHelper.setupRemoteConfig())
                             .getString('DownloadLink')));
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    scaffoldMessenger.currentState.showSnackBar(
                       SnackBar(
                         content: Text(
                             'حدث خطأ أثناء فتح رابط التحديث وتم نقله الى الحافظة'),
@@ -119,7 +119,7 @@ class Updates {
               if (canCancel)
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    navigator.currentState.pop();
                   },
                   child: Text('لا'),
                 ),

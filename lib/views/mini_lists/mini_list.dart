@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:meetinghelper/utils/globals.dart';
 
 class MiniList extends StatefulWidget {
   final CollectionReference parent;
@@ -45,7 +46,7 @@ class _MiniListState extends State<MiniList> {
                   icon: Icon(Icons.notifications),
                   tooltip: 'الإشعارات',
                   onPressed: () {
-                    Navigator.of(context).pushNamed('Notifications');
+                    navigator.currentState.pushNamed('Notifications');
                   },
                 ),
               ],
@@ -150,7 +151,7 @@ class _MiniListState extends State<MiniList> {
                                   icon: Icon(Icons.save),
                                   label: Text('حفظ'),
                                   onPressed: () =>
-                                      Navigator.pop(context, name.text)),
+                                      navigator.currentState.pop(name.text)),
                             ],
                             title: TextField(
                               controller: name,

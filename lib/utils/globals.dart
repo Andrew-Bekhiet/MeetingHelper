@@ -66,13 +66,13 @@ DynamicLinkParametersOptions dynamicLinkParametersOptions =
 
 FlutterSecureStorage flutterSecureStorage = FlutterSecureStorage();
 
-bool historyOrder = false;
-String historyOrderBy = 'Day';
-
 IosParameters iosParameters =
     IosParameters(bundleId: 'com.AndroidQuartz.meetinghelper');
 
 GlobalKey<ScaffoldState> mainScfld = GlobalKey<ScaffoldState>();
+GlobalKey<ScaffoldMessengerState> scaffoldMessenger =
+    GlobalKey<ScaffoldMessengerState>();
+GlobalKey<NavigatorState> navigator = GlobalKey<NavigatorState>();
 
 List<Color> primaries = <Color>[
   Colors.red,

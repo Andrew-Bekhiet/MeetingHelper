@@ -10,6 +10,7 @@ import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/encryption_keys.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:provider/provider.dart';
+import 'package:meetinghelper/utils/globals.dart';
 
 class UserRegistration extends StatefulWidget {
   const UserRegistration({Key key}) : super(key: key);
@@ -270,10 +271,10 @@ class _UserRegistrationState extends State<UserRegistration> {
                     await Hive.box('Settings')
                         .put('FCM_Token_Registered', false);
                     // ignore: unawaited_futures
-                    Navigator.of(context).pushReplacement(
+                    navigator.currentState.pushReplacement(
                       MaterialPageRoute(
                         builder: (context) {
-                          Navigator.of(context)
+                          navigator.currentState
                               .popUntil((route) => route.isFirst);
                           return App();
                         },
@@ -347,7 +348,7 @@ class _UserRegistrationState extends State<UserRegistration> {
               return Text(
                   (snapshot.error as FirebaseFunctionsException).message);
             } else if (snapshot.connectionState == ConnectionState.done) {
-              Navigator.pop(context);
+              navigator.currentState.pop;
             }
             return Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -381,7 +382,7 @@ class _UserRegistrationState extends State<UserRegistration> {
   void _submit(String password, String _userName) async {
     if (!_formKey.currentState.validate()) return;
     // ignore: unawaited_futures
-    ScaffoldMessenger.of(context).showSnackBar(
+    scaffoldMessenger.currentState.showSnackBar(
       SnackBar(
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -401,7 +402,7 @@ class _UserRegistrationState extends State<UserRegistration> {
         'fcmToken': await FirebaseMessaging.instance.getToken(),
       });
       await Hive.box('Settings').put('FCM_Token_Registered', true);
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      scaffoldMessenger.currentState.hideCurrentSnackBar();
     } catch (err, stkTrace) {
       await FirebaseCrashlytics.instance
           .setCustomKey('LastErrorIn', 'UserRgisteration._submit');

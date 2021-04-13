@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meetinghelper/utils/globals.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../utils/helpers.dart';
@@ -28,7 +29,7 @@ class FilterButton extends StatelessWidget {
                 label: Text('تحديد الكل'),
                 onPressed: () {
                   controller.selectAll();
-                  Navigator.pop(context);
+                  navigator.currentState.pop();
                 },
               ),
               TextButton.icon(
@@ -36,7 +37,7 @@ class FilterButton extends StatelessWidget {
                 label: Text('تحديد لا شئ'),
                 onPressed: () {
                   controller.selectNone();
-                  Navigator.pop(context);
+                  navigator.currentState.pop();
                 },
               ),
               if (!disableOrdering)

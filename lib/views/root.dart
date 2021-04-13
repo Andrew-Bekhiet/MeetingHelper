@@ -65,9 +65,9 @@ class _RootState extends State<Root>
 
   void addTap() {
     if (_tabController.index == 0) {
-      Navigator.of(context).pushNamed('Data/EditClass');
+      navigator.currentState.pushNamed('Data/EditClass');
     } else if (_tabController.index == 1) {
-      Navigator.of(context).pushNamed('Data/EditPerson');
+      navigator.currentState.pushNamed('Data/EditPerson');
     }
   }
 
@@ -100,7 +100,7 @@ class _RootState extends State<Root>
                                 label: Text('تحديد الكل'),
                                 onPressed: () {
                                   _personsOptions.selectAll();
-                                  Navigator.pop(context);
+                                  navigator.currentState.pop;
                                 },
                               ),
                               TextButton.icon(
@@ -108,7 +108,7 @@ class _RootState extends State<Root>
                                 label: Text('تحديد لا شئ'),
                                 onPressed: () {
                                   _personsOptions.selectNone();
-                                  Navigator.pop(context);
+                                  navigator.currentState.pop;
                                 },
                               ),
                               Text('ترتيب حسب:',
@@ -127,7 +127,7 @@ class _RootState extends State<Root>
                                               orderBy: value,
                                               asc: _personsOrder.value.asc),
                                         );
-                                        Navigator.pop(context);
+                                        navigator.currentState.pop;
                                       },
                                     ),
                                   )
@@ -142,7 +142,7 @@ class _RootState extends State<Root>
                                         orderBy: _personsOrder.value.orderBy,
                                         asc: value),
                                   );
-                                  Navigator.pop(context);
+                                  navigator.currentState.pop;
                                 },
                               ),
                               RadioListTile(
@@ -155,7 +155,7 @@ class _RootState extends State<Root>
                                         orderBy: _personsOrder.value.orderBy,
                                         asc: value),
                                   );
-                                  Navigator.pop(context);
+                                  navigator.currentState.pop;
                                 },
                               ),
                             ],
@@ -218,7 +218,7 @@ class _RootState extends State<Root>
             icon: Icon(Icons.notifications),
             tooltip: 'الإشعارات',
             onPressed: () {
-              Navigator.of(context).pushNamed('Notifications');
+              navigator.currentState.pushNamed('Notifications');
             },
           ),
         ],
@@ -456,7 +456,7 @@ class _RootState extends State<Root>
               title: Text('حسابي'),
               onTap: () {
                 mainScfld.currentState.openEndDrawer();
-                Navigator.pushNamed(context, 'MyAccount');
+                navigator.currentState.pop('MyAccount');
               },
             ),
             Selector<User, bool>(
@@ -515,8 +515,7 @@ class _RootState extends State<Root>
                       if (await Connectivity().checkConnectivity() !=
                           ConnectivityResult.none) {
                         // ignore: unawaited_futures
-                        Navigator.push(
-                          context,
+                        navigator.currentState.push(
                           MaterialPageRoute(
                             builder: (context) => AuthScreen(
                               nextRoute: 'ManageUsers',
@@ -589,10 +588,10 @@ class _RootState extends State<Root>
                     .docs;
                 mainScfld.currentState.openEndDrawer();
                 if (today.isNotEmpty) {
-                  await Navigator.of(context).pushNamed('Day',
+                  await navigator.currentState.pushNamed('Day',
                       arguments: HistoryDay.fromDoc(today[0]));
                 } else {
-                  await Navigator.of(context).pushNamed('Day');
+                  await navigator.currentState.pushNamed('Day');
                 }
               },
             ),
@@ -662,10 +661,10 @@ class _RootState extends State<Root>
                                 .get(dataSource))
                             .docs;
                         if (today.isNotEmpty) {
-                          await Navigator.of(context).pushNamed('ServantsDay',
+                          await navigator.currentState.pushNamed('ServantsDay',
                               arguments: ServantsHistoryDay.fromDoc(today[0]));
                         } else {
-                          await Navigator.of(context).pushNamed('ServantsDay');
+                          await navigator.currentState.pushNamed('ServantsDay');
                         }
                       },
                     )
@@ -713,7 +712,7 @@ class _RootState extends State<Root>
               title: Text('السجل'),
               onTap: () {
                 mainScfld.currentState.openEndDrawer();
-                Navigator.of(context).pushNamed('History');
+                navigator.currentState.pushNamed('History');
               },
             ),
             Selector<User, bool>(
@@ -767,7 +766,7 @@ class _RootState extends State<Root>
                       title: Text('سجل الخدام'),
                       onTap: () {
                         mainScfld.currentState.openEndDrawer();
-                        Navigator.of(context).pushNamed('ServantsHistory');
+                        navigator.currentState.pushNamed('ServantsHistory');
                       },
                     )
                   : Container(),
@@ -816,7 +815,7 @@ class _RootState extends State<Root>
               title: Text('تحليل سجل المخدومين'),
               onTap: () {
                 mainScfld.currentState.openEndDrawer();
-                Navigator.of(context).pushNamed('Analytics',
+                navigator.currentState.pushNamed('Analytics',
                     arguments: {'HistoryCollection': 'History'});
               },
             ),
@@ -863,7 +862,7 @@ class _RootState extends State<Root>
               title: Text('تحليل بيانات سجل الخدام'),
               onTap: () {
                 mainScfld.currentState.openEndDrawer();
-                Navigator.of(context).pushNamed('Analytics',
+                navigator.currentState.pushNamed('Analytics',
                     arguments: {'HistoryCollection': 'ServantsHistory'});
               },
             ),
@@ -921,7 +920,7 @@ class _RootState extends State<Root>
                       title: Text('تحليل بيانات الخدمة'),
                       onTap: () {
                         mainScfld.currentState.openEndDrawer();
-                        Navigator.of(context).pushNamed('ActivityAnalysis');
+                        navigator.currentState.pushNamed('ActivityAnalysis');
                       },
                     )
                   : Container(),
@@ -971,7 +970,7 @@ class _RootState extends State<Root>
               title: Text('بحث مفصل'),
               onTap: () {
                 mainScfld.currentState.openEndDrawer();
-                Navigator.of(context).pushNamed('Search');
+                navigator.currentState.pushNamed('Search');
               },
             ),
             Selector<User, bool>(
@@ -1026,7 +1025,7 @@ class _RootState extends State<Root>
                   ),
                   onTap: () {
                     mainScfld.currentState.openEndDrawer();
-                    Navigator.pushNamed(context, 'Trash');
+                    navigator.currentState.pop('Trash');
                   },
                   title: Text('سلة المحذوفات'),
                 );
@@ -1075,7 +1074,7 @@ class _RootState extends State<Root>
               title: Text('عرض خريطة الافتقاد'),
               onTap: () {
                 mainScfld.currentState.openEndDrawer();
-                Navigator.of(context).pushNamed('DataMap');
+                navigator.currentState.pushNamed('DataMap');
               },
             ),
             Divider(),
@@ -1118,7 +1117,7 @@ class _RootState extends State<Root>
               title: Text('الإعدادات'),
               onTap: () {
                 mainScfld.currentState.openEndDrawer();
-                Navigator.of(context).pushNamed('Settings');
+                navigator.currentState.pushNamed('Settings');
               },
             ),
             Divider(),
@@ -1152,8 +1151,8 @@ class _RootState extends State<Root>
                                     child: ServicesList(
                                       options: ServicesListOptions(
                                         searchQuery: Stream.value(''),
-                                        tap: (_class) => Navigator.pop(
-                                          context,
+                                        tap: (_class) =>
+                                            navigator.currentState.pop(
                                           _class,
                                         ),
                                       ),
@@ -1164,7 +1163,7 @@ class _RootState extends State<Root>
                             ),
                           );
                           if (rslt != null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            scaffoldMessenger.currentState.showSnackBar(
                               SnackBar(
                                 content: Column(
                                   mainAxisSize: MainAxisSize.min,
@@ -1192,9 +1191,9 @@ class _RootState extends State<Root>
                               await FirebaseStorage.instance
                                   .ref(filename)
                                   .writeToFile(file);
-                              ScaffoldMessenger.of(context)
+                              scaffoldMessenger.currentState
                                   .hideCurrentSnackBar();
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              scaffoldMessenger.currentState.showSnackBar(
                                 SnackBar(
                                   content: Text('تم تصدير البيانات ينجاح'),
                                   action: SnackBarAction(
@@ -1206,9 +1205,9 @@ class _RootState extends State<Root>
                                 ),
                               );
                             } on Exception catch (e, st) {
-                              ScaffoldMessenger.of(context)
+                              scaffoldMessenger.currentState
                                   .hideCurrentSnackBar();
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              scaffoldMessenger.currentState.showSnackBar(
                                 SnackBar(content: Text('فشل تصدير البيانات')),
                               );
                               await FirebaseCrashlytics.instance.setCustomKey(
@@ -1231,7 +1230,7 @@ class _RootState extends State<Root>
                         title: Text('تصدير جميع البيانات'),
                         onTap: () async {
                           mainScfld.currentState.openEndDrawer();
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          scaffoldMessenger.currentState.showSnackBar(
                             SnackBar(
                               content: Column(
                                 mainAxisSize: MainAxisSize.min,
@@ -1260,8 +1259,9 @@ class _RootState extends State<Root>
                             await FirebaseStorage.instance
                                 .ref(filename)
                                 .writeToFile(file);
-                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            scaffoldMessenger.currentState
+                                .hideCurrentSnackBar();
+                            scaffoldMessenger.currentState.showSnackBar(
                               SnackBar(
                                 content: Text('تم تصدير البيانات ينجاح'),
                                 action: SnackBarAction(
@@ -1273,8 +1273,9 @@ class _RootState extends State<Root>
                               ),
                             );
                           } on Exception catch (e, st) {
-                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            scaffoldMessenger.currentState
+                                .hideCurrentSnackBar();
+                            scaffoldMessenger.currentState.showSnackBar(
                               SnackBar(content: Text('فشل تصدير البيانات')),
                             );
                             await FirebaseCrashlytics.instance
@@ -1292,7 +1293,7 @@ class _RootState extends State<Root>
               builder: (context, user, _) => ListTile(
                 leading: Icon(Icons.list_alt),
                 title: Text('عمليات التصدير السابقة'),
-                onTap: () => Navigator.pushNamed(context, 'ExportOps'),
+                onTap: () => navigator.currentState.pop('ExportOps'),
               ),
             ),
             Divider(),
@@ -1301,7 +1302,7 @@ class _RootState extends State<Root>
               title: Text('تحديث البرنامج'),
               onTap: () {
                 mainScfld.currentState.openEndDrawer();
-                Navigator.of(context).pushNamed('Update');
+                navigator.currentState.pushNamed('Update');
               },
             ),
             ListTile(
@@ -1373,10 +1374,10 @@ class _RootState extends State<Root>
                 var user = User.instance;
                 await Hive.box('Settings').put('FCM_Token_Registered', false);
                 // ignore: unawaited_futures
-                Navigator.of(context).pushReplacement(
+                navigator.currentState.pushReplacement(
                   MaterialPageRoute(
                     builder: (context) {
-                      Navigator.of(context).popUntil((route) => route.isFirst);
+                      navigator.currentState.popUntil((route) => route.isFirst);
                       return App();
                     },
                   ),
@@ -1396,7 +1397,7 @@ class _RootState extends State<Root>
       case AppLifecycleState.resumed:
         if (_timeout && !_pushed) {
           _pushed = true;
-          Navigator.of(context)
+          navigator.currentState
               .push(
             MaterialPageRoute(
               builder: (context) => WillPopScope(
@@ -1472,7 +1473,7 @@ class _RootState extends State<Root>
           actions: [
             TextButton(
               onPressed: () async {
-                Navigator.pop(context);
+                navigator.currentState.pop;
                 await AppSettings.openBatteryOptimizationSettings();
                 ;
               },
@@ -1481,7 +1482,7 @@ class _RootState extends State<Root>
             TextButton(
               onPressed: () async {
                 await Hive.box('Settings').put('ShowBatteryDialog', false);
-                Navigator.pop(context);
+                navigator.currentState.pop;
               },
               child: Text('عدم الاظهار مجددًا'),
             ),

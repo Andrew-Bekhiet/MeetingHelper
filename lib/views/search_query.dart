@@ -593,7 +593,7 @@ class _SearchQueryState extends State<SearchQuery> {
                   actions: [
                     TextButton(
                       onPressed: () {
-                        Navigator.of(context).pop();
+                        navigator.currentState.pop();
                         setState(() {
                           queryValue = Colors.transparent.value;
                         });
@@ -606,7 +606,7 @@ class _SearchQueryState extends State<SearchQuery> {
                         ? queryValue
                         : Colors.transparent.value),
                     onSelect: (color) {
-                      Navigator.of(context).pop();
+                      navigator.currentState.pop();
                       setState(() {
                         queryValue = color.value;
                       });
@@ -1277,7 +1277,7 @@ class _SearchQueryState extends State<SearchQuery> {
         );
         break;
     }
-    await Navigator.of(context).push(
+    await navigator.currentState.push(
       MaterialPageRoute(
         builder: (context) {
           return Scaffold(
@@ -1463,7 +1463,7 @@ class _SearchQueryState extends State<SearchQuery> {
     final _listOptions = DataObjectListOptions<Class>(
       searchQuery: searchStream,
       tap: (value) {
-        Navigator.of(context).pop();
+        navigator.currentState.pop();
         setState(() {
           queryValue =
               FirebaseFirestore.instance.collection('Classes').doc(value.id);
@@ -1524,7 +1524,7 @@ class _SearchQueryState extends State<SearchQuery> {
   //               .collection('Types')
   //               .get(source: dataSource),
   //           tap: (type, _) {
-  //             Navigator.of(context).pop();
+  //             navigator.currentState.pop();
   //             setState(() {
   //               queryValue = type.ref;
   //               queryText = type.name;

@@ -215,7 +215,7 @@ class _LoginScreenState extends State<LoginScreen> {
               //     ],
               //   ),
               //   onPressed: () async {
-              //     await Navigator.of(context).push(MaterialPageRoute(
+              //     await navigator.currentState.push(MaterialPageRoute(
               //       builder: (context) {
               //         var phone = TextEditingController();
               //         var otp = TextEditingController();
@@ -229,8 +229,8 @@ class _LoginScreenState extends State<LoginScreen> {
               //                   smsCode: otp.text.trim(),
               //                 ),
               //           );
-              //           Navigator.of(context).pop();
-              //           Navigator.of(context).pop();
+              //           navigator.currentState.pop();
+              //           navigator.currentState.pop();
               //         }
 
               //         void sendOTP() async {
@@ -254,7 +254,7 @@ class _LoginScreenState extends State<LoginScreen> {
               //             codeAutoRetrievalTimeout: (_) {},
               //           );
 
-              //           await Navigator.of(context).push(
+              //           await navigator.currentState.push(
               //             MaterialPageRoute(
               //               builder: (context) {
               //                 return Scaffold(

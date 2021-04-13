@@ -2,6 +2,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:meetinghelper/utils/globals.dart';
 
 import '../models/user.dart';
 import '../utils/helpers.dart';
@@ -109,7 +110,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
 
   Future save() async {
     try {
-      ScaffoldMessenger.of(context)
+      scaffoldMessenger.currentState
           .showSnackBar(SnackBar(content: Text('جار الحفظ')));
       await FirebaseFunctions.instance
           .httpsCallable('updateUserSpiritData')
@@ -117,7 +118,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
         'lastConfession': user.lastConfession,
         'lastTanawol': user.lastTanawol
       });
-      Navigator.pop(context);
+      navigator.currentState.pop;
     } catch (err, stkTrace) {
       await showErrorDialog(context, err.toString());
       await FirebaseCrashlytics.instance

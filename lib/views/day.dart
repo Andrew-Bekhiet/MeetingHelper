@@ -128,18 +128,18 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                         context: context,
                         builder: (context) => AlertDialog(actions: [
                           TextButton(
-                            onPressed: () => Navigator.pop(context, true),
+                            onPressed: () => navigator.currentState.pop(true),
                             child: Text('نعم'),
                           ),
                           TextButton(
-                            onPressed: () => Navigator.pop(context, false),
+                            onPressed: () => navigator.currentState.pop(false),
                             child: Text('لا'),
                           )
                         ], content: Text('هل أنت متأكد من الحذف؟')),
                       ) ==
                       true) {
                     await widget.record.ref.delete();
-                    Navigator.pop(context);
+                    navigator.currentState.pop;
                   }
                 },
               ),
@@ -195,14 +195,14 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                               value: dayOptions.grouped.value,
                               onChanged: (value) {
                                 dayOptions.grouped.add(value);
-                                Navigator.pop(context);
+                                navigator.currentState.pop;
                               },
                             ),
                             GestureDetector(
                               onTap: () {
                                 dayOptions.grouped
                                     .add(!dayOptions.grouped.value);
-                                Navigator.pop(context);
+                                navigator.currentState.pop;
                               },
                               child: Text('تقسيم حسب الفصول'),
                             ),
@@ -214,14 +214,14 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                               value: dayOptions.showSubtitlesInGroups.value,
                               onChanged: (value) {
                                 dayOptions.showSubtitlesInGroups.add(value);
-                                Navigator.pop(context);
+                                navigator.currentState.pop;
                               },
                             ),
                             GestureDetector(
                               onTap: () {
                                 dayOptions.showSubtitlesInGroups.add(
                                     !dayOptions.showSubtitlesInGroups.value);
-                                Navigator.pop(context);
+                                navigator.currentState.pop;
                               },
                               child: Text('اظهار عدد المخدومين داخل كل فصل'),
                             ),
@@ -243,13 +243,13 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                                         groupValue: dayOptions.showOnly.value,
                                         onChanged: (v) {
                                           dayOptions.showOnly.add(v);
-                                          Navigator.pop(context);
+                                          navigator.currentState.pop;
                                         },
                                       ),
                                       GestureDetector(
                                         onTap: () {
                                           dayOptions.showOnly.add(i);
-                                          Navigator.pop(context);
+                                          navigator.currentState.pop;
                                         },
                                         child: Text(i == null
                                             ? 'الكل'
@@ -308,7 +308,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                   child: const Icon(Icons.analytics_outlined),
                 ),
                 onPressed: () {
-                  Navigator.of(context)
+                  navigator.currentState
                       .pushNamed('Analytics', arguments: widget.record);
                 },
               ),
@@ -457,7 +457,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                 ' ثم الضغط على عرض بيانات المخدوم'),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => navigator.currentState.pop,
                 child: Text('تم'),
               )
             ],

@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:meetinghelper/utils/globals.dart';
 
 import '../models/user.dart';
 import '../utils/encryption_keys.dart';
@@ -49,18 +50,19 @@ class _MyAccountState extends State<MyAccount> {
                         builder: (context) => AlertDialog(
                           actions: <Widget>[
                             TextButton.icon(
-                              onPressed: () => Navigator.of(context).pop(true),
+                              onPressed: () => navigator.currentState.pop(true),
                               icon: Icon(Icons.camera),
                               label: Text('التقاط صورة من الكاميرا'),
                             ),
                             TextButton.icon(
-                              onPressed: () => Navigator.of(context).pop(false),
+                              onPressed: () =>
+                                  navigator.currentState.pop(false),
                               icon: Icon(Icons.photo_library),
                               label: Text('اختيار من المعرض'),
                             ),
                             TextButton.icon(
                               onPressed: () =>
-                                  Navigator.of(context).pop('delete'),
+                                  navigator.currentState.pop('delete'),
                               icon: Icon(Icons.delete),
                               label: Text('حذف الصورة'),
                             ),
@@ -78,18 +80,18 @@ class _MyAccountState extends State<MyAccount> {
                                     icon: Icon(Icons.delete),
                                     label: Text('حذف'),
                                     onPressed: () =>
-                                        Navigator.pop(context, true),
+                                        navigator.currentState.pop(true),
                                   ),
                                   TextButton(
                                     onPressed: () =>
-                                        Navigator.pop(context, false),
+                                        navigator.currentState.pop(false),
                                     child: Text('تراجع'),
                                   )
                                 ],
                               ),
                             ) ??
                             false) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          scaffoldMessenger.currentState.showSnackBar(SnackBar(
                             content: Text('جار التحميل'),
                             duration: Duration(minutes: 2),
                           ));
@@ -98,8 +100,8 @@ class _MyAccountState extends State<MyAccount> {
                               .call();
                           user.reloadImage();
                           setState(() {});
-                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          scaffoldMessenger.currentState.hideCurrentSnackBar();
+                          scaffoldMessenger.currentState.showSnackBar(SnackBar(
                             content: Text('تم بنجاح'),
                           ));
                         }
@@ -133,27 +135,28 @@ class _MyAccountState extends State<MyAccount> {
                               content: Text('هل تريد تغير الصورة؟'),
                               actions: [
                                 TextButton(
-                                  onPressed: () => Navigator.pop(context, true),
+                                  onPressed: () =>
+                                      navigator.currentState.pop(true),
                                   child: Text('تغيير'),
                                 ),
                                 TextButton(
                                   onPressed: () =>
-                                      Navigator.pop(context, false),
+                                      navigator.currentState.pop(false),
                                   child: Text('تراجع'),
                                 )
                               ],
                             ),
                           ) ??
                           false) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        scaffoldMessenger.currentState.showSnackBar(SnackBar(
                           content: Text('جار التحميل'),
                           duration: Duration(minutes: 2),
                         ));
                         await user.photoRef.putFile(finalImage);
                         user.reloadImage();
                         setState(() {});
-                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        scaffoldMessenger.currentState.hideCurrentSnackBar();
+                        scaffoldMessenger.currentState.showSnackBar(SnackBar(
                           content: Text('تم بنجاح'),
                         ));
                       }
@@ -289,7 +292,7 @@ class _MyAccountState extends State<MyAccount> {
                     title: Text('إشعار حضور الاجتماع'),
                   ),
                 ElevatedButton.icon(
-                    onPressed: () async => await Navigator.of(context)
+                    onPressed: () async => await navigator.currentState
                         .pushNamed('UpdateUserDataError', arguments: user),
                     icon: Icon(Icons.update),
                     label: Text('تحديث بيانات الاعتراف والتناول')),
@@ -318,12 +321,12 @@ class _MyAccountState extends State<MyAccount> {
               actions: <Widget>[
                 TextButton.icon(
                   icon: Icon(Icons.done),
-                  onPressed: () => Navigator.of(context).pop(true),
+                  onPressed: () => navigator.currentState.pop(true),
                   label: Text('تغيير'),
                 ),
                 TextButton.icon(
                   icon: Icon(Icons.cancel),
-                  onPressed: () => Navigator.of(context).pop(false),
+                  onPressed: () => navigator.currentState.pop(false),
                   label: Text('الغاء الأمر'),
                 ),
               ],
@@ -370,12 +373,12 @@ class _MyAccountState extends State<MyAccount> {
               actions: <Widget>[
                 TextButton.icon(
                   icon: Icon(Icons.done),
-                  onPressed: () => Navigator.of(context).pop(true),
+                  onPressed: () => navigator.currentState.pop(true),
                   label: Text('تغيير'),
                 ),
                 TextButton.icon(
                   icon: Icon(Icons.cancel),
-                  onPressed: () => Navigator.of(context).pop(false),
+                  onPressed: () => navigator.currentState.pop(false),
                   label: Text('الغاء الأمر'),
                 ),
               ],
@@ -421,13 +424,13 @@ class _MyAccountState extends State<MyAccount> {
 
   Future _submitPass() async {
     if (textFields[0].text == '' || textFields[1].text == '') {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      scaffoldMessenger.currentState.showSnackBar(SnackBar(
         content: Text('كلمة السر لا يمكن ان تكون فارغة!'),
         duration: Duration(seconds: 26),
       ));
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    scaffoldMessenger.currentState.showSnackBar(SnackBar(
       content: Text('جار تحديث كلمة السر...'),
       duration: Duration(seconds: 26),
     ));
@@ -449,22 +452,22 @@ class _MyAccountState extends State<MyAccount> {
           await showErrorDialog(context, 'حدث خطأ أثناء تحديث كلمة السر!');
           return;
         }
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        scaffoldMessenger.currentState.hideCurrentSnackBar();
+        scaffoldMessenger.currentState.showSnackBar(SnackBar(
           content: Text('تم تحديث كلمة السر بنجاح'),
           duration: Duration(seconds: 3),
         ));
         setState(() {});
       } else {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        scaffoldMessenger.currentState.hideCurrentSnackBar();
+        scaffoldMessenger.currentState.showSnackBar(SnackBar(
           content: Text('كلمة السر القديمة خاطئة'),
           duration: Duration(seconds: 3),
         ));
       }
     } else {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      scaffoldMessenger.currentState.hideCurrentSnackBar();
+      scaffoldMessenger.currentState.showSnackBar(SnackBar(
         content: Text('كلمتا السر غير متطابقتين!'),
         duration: Duration(seconds: 3),
       ));

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:meetinghelper/utils/globals.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'models/list_options.dart';
@@ -94,7 +95,7 @@ class _SchoolsPageState extends State<SchoolsPage> {
                       .doc(school.id)
                       .set(school.getMap());
                 }
-                Navigator.of(context).pop();
+                navigator.currentState.pop();
                 setState(() {
                   schoolTap(school, !editMode);
                 });
@@ -115,8 +116,8 @@ class _SchoolsPageState extends State<SchoolsPage> {
                                 .collection('Schools')
                                 .doc(school.id)
                                 .delete();
-                            Navigator.of(context).pop();
-                            Navigator.of(context).pop();
+                            navigator.currentState.pop();
+                            navigator.currentState.pop();
                             setState(() {
                               editMode = !editMode;
                             });
@@ -125,7 +126,7 @@ class _SchoolsPageState extends State<SchoolsPage> {
                         ),
                         TextButton(
                           onPressed: () {
-                            Navigator.of(context).pop();
+                            navigator.currentState.pop();
                           },
                           child: Text('تراجع'),
                         ),
@@ -210,7 +211,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                       .doc(church.id)
                       .set(church.getMap());
                 }
-                Navigator.of(context).pop();
+                navigator.currentState.pop();
                 setState(() {
                   churchTap(church, !editMode);
                 });
@@ -231,8 +232,8 @@ class _ChurchesPageState extends State<ChurchesPage> {
                                 .collection('Churches')
                                 .doc(church.id)
                                 .delete();
-                            Navigator.of(context).pop();
-                            Navigator.of(context).pop();
+                            navigator.currentState.pop();
+                            navigator.currentState.pop();
                             setState(() {
                               editMode = !editMode;
                             });
@@ -241,7 +242,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                         ),
                         TextButton(
                           onPressed: () {
-                            Navigator.of(context).pop();
+                            navigator.currentState.pop();
                           },
                           child: Text('تراجع'),
                         ),
@@ -341,7 +342,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                       .doc(father.id)
                       .set(father.getMap());
                 }
-                Navigator.of(context).pop();
+                navigator.currentState.pop();
                 setState(() {
                   fatherTap(father, !editMode);
                 });
@@ -362,8 +363,8 @@ class _ChurchesPageState extends State<ChurchesPage> {
                                 .collection('Fathers')
                                 .doc(father.id)
                                 .delete();
-                            Navigator.of(context).pop();
-                            Navigator.of(context).pop();
+                            navigator.currentState.pop();
+                            navigator.currentState.pop();
                             setState(() {
                               editMode = !editMode;
                             });
@@ -372,7 +373,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                         ),
                         TextButton(
                           onPressed: () {
-                            Navigator.of(context).pop();
+                            navigator.currentState.pop();
                           },
                           child: Text('تراجع'),
                         ),
@@ -500,7 +501,7 @@ class _FathersPageState extends State<FathersPage> {
                       .doc(church.id)
                       .set(church.getMap());
                 }
-                Navigator.of(context).pop();
+                navigator.currentState.pop();
                 setState(() {
                   churchTap(church, !editMode);
                 });
@@ -522,8 +523,8 @@ class _FathersPageState extends State<FathersPage> {
                                       .collection('Churches')
                                       .doc(church.id)
                                       .delete();
-                                  Navigator.of(context).pop();
-                                  Navigator.of(context).pop();
+                                  navigator.currentState.pop();
+                                  navigator.currentState.pop();
                                   setState(() {
                                     editMode = !editMode;
                                   });
@@ -532,7 +533,7 @@ class _FathersPageState extends State<FathersPage> {
                               ),
                               TextButton(
                                 onPressed: () {
-                                  Navigator.of(context).pop();
+                                  navigator.currentState.pop();
                                 },
                                 child: Text('تراجع'),
                               ),
@@ -631,7 +632,7 @@ class _FathersPageState extends State<FathersPage> {
                       .doc(father.id)
                       .set(father.getMap());
                 }
-                Navigator.of(context).pop();
+                navigator.currentState.pop();
                 setState(() {
                   fatherTap(father, !editMode);
                 });
@@ -653,8 +654,8 @@ class _FathersPageState extends State<FathersPage> {
                                       .collection('Fathers')
                                       .doc(father.id)
                                       .delete();
-                                  Navigator.of(context).pop();
-                                  Navigator.of(context).pop();
+                                  navigator.currentState.pop();
+                                  navigator.currentState.pop();
                                   setState(() {
                                     editMode = !editMode;
                                   });
@@ -663,7 +664,7 @@ class _FathersPageState extends State<FathersPage> {
                               ),
                               TextButton(
                                 onPressed: () {
-                                  Navigator.of(context).pop();
+                                  navigator.currentState.pop();
                                 },
                                 child: Text('تراجع'),
                               ),
@@ -790,7 +791,7 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
                       .doc(year.id)
                       .set(year.getMap());
                 }
-                Navigator.of(context).pop();
+                navigator.currentState.pop();
                 setState(() {
                   studyYearTap(year, !editMode);
                 });
@@ -811,8 +812,8 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
                                       .collection('StudyYears')
                                       .doc(year.id)
                                       .delete();
-                                  Navigator.of(context).pop();
-                                  Navigator.of(context).pop();
+                                  navigator.currentState.pop();
+                                  navigator.currentState.pop();
                                   setState(() {
                                     editMode = !editMode;
                                   });
@@ -821,7 +822,7 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
                               ),
                               TextButton(
                                 onPressed: () {
-                                  Navigator.of(context).pop();
+                                  navigator.currentState.pop();
                                 },
                                 child: Text('تراجع'),
                               ),
@@ -882,7 +883,7 @@ class _UsersPageState extends State<UsersPage> {
           IconButton(
               icon: Icon(Icons.link),
               tooltip: 'لينكات الدعوة',
-              onPressed: () => Navigator.pushNamed(context, 'Invitations')),
+              onPressed: () => navigator.currentState.pushNamed('Invitations')),
           if (!_showSearch)
             IconButton(
                 icon: Icon(Icons.search),
