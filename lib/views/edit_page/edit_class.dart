@@ -352,8 +352,8 @@ class _EditClassState extends State<EditClass> {
         true) {
       scaffoldMessenger.currentState.showSnackBar(
         SnackBar(
-          content: Text('جار حذف الفصل وما بداخلها من بيانات...'),
-          duration: Duration(minutes: 20),
+          content: Text('جار حذف الفصل وكل ما به من مخدومين...'),
+          duration: Duration(seconds: 2),
         ),
       );
       if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
