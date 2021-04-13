@@ -1,9 +1,12 @@
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:async/async.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:meetinghelper/models/user.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/rendering.dart';
@@ -15,41 +18,108 @@ import 'package:meetinghelper/utils/helpers.dart';
 
 import 'analytics_indicators.dart';
 
-class HistoryDayAnalyticsPage extends StatefulWidget {
-  final HistoryDay day;
-  HistoryDayAnalyticsPage({Key key, this.day}) : super(key: key);
-
-  @override
-  _HistoryDayAnalyticsPageState createState() =>
-      _HistoryDayAnalyticsPageState();
-}
-
 class AnalyticsPage extends StatefulWidget {
+  AnalyticsPage(
+      {Key key,
+      this.classes,
+      this.range,
+      this.historyColection = 'History',
+      this.day})
+      : super(key: key);
+
   final List<Class> classes;
-  AnalyticsPage({Key key, this.classes}) : super(key: key);
+  final HistoryDay day;
+  final String historyColection;
+  final DateTimeRange range;
 
   @override
   _AnalyticsPageState createState() => _AnalyticsPageState();
 }
 
 class PersonAnalyticsPage extends StatefulWidget {
+  PersonAnalyticsPage({Key key, this.person, this.colection = 'History'})
+      : super(key: key);
+
+  final String colection;
   final Person person;
-  PersonAnalyticsPage({Key key, this.person}) : super(key: key);
 
   @override
   _PersonAnalyticsPageState createState() => _PersonAnalyticsPageState();
 }
 
-class _HistoryDayAnalyticsPageState extends State<HistoryDayAnalyticsPage> {
+class ActivityAnalysis extends StatefulWidget {
+  ActivityAnalysis({Key key, this.classes}) : super(key: key);
+
+  final List<Class> classes;
+
+  @override
+  _ActivityAnalysisState createState() => _ActivityAnalysisState();
+}
+
+class _ActivityAnalysisState extends State<ActivityAnalysis> {
   List<Class> classes;
+  DateTime minAvaliable = DateTime.now().subtract(Duration(days: 30));
+  bool minAvaliableSet = false;
+  DateTimeRange range = DateTimeRange(
+      start: DateTime.now().subtract(Duration(days: 30)), end: DateTime.now());
+
   final _screenKey = GlobalKey();
+
+  Future<void> _setRangeStart() async {
+    if (minAvaliableSet) return;
+    if (User.instance.superAccess)
+      minAvaliable = ((await FirebaseFirestore.instance
+                  .collectionGroup('EditHistory')
+                  .orderBy('Time')
+                  .limit(1)
+                  .get(dataSource))
+              .docs
+              .first
+              .data()['Time'] as Timestamp)
+          .toDate();
+    else {
+      final allowed = await Class.getAllForUser().first;
+      if (allowed.length <= 10) {
+        minAvaliable = ((await FirebaseFirestore.instance
+                    .collectionGroup('EditHistory')
+                    .where('ClassId',
+                        whereIn: allowed.map((c) => c.ref).toList())
+                    .orderBy('Time')
+                    .limit(1)
+                    .get(dataSource))
+                .docs
+                .first
+                .data()['Time'] as Timestamp)
+            .toDate();
+      } else {
+        minAvaliable = ((await Future.wait(
+          allowed.map(
+            (c) => FirebaseFirestore.instance
+                .collectionGroup('EditHistory')
+                .where('ClassId', isEqualTo: c)
+                .orderBy('Time')
+                .limit(1)
+                .get(dataSource),
+          ),
+        ))
+                .expand((e) => e.docs)
+                .reduce((a, b) => min(
+                    (a.data()['Time'] as Timestamp).millisecondsSinceEpoch,
+                    (b.data()['Time'] as Timestamp).millisecondsSinceEpoch))
+                .data()['Time'] as Timestamp)
+            .toDate();
+      }
+    }
+    minAvaliableSet = true;
+  }
+
   @override
   Widget build(BuildContext context) {
     return RepaintBoundary(
       key: _screenKey,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('الاحصائيات'),
+          title: Text('تحليل بيانات الخدمة'),
           actions: [
             IconButton(
               icon: Icon(Icons.mobile_screen_share),
@@ -58,65 +128,127 @@ class _HistoryDayAnalyticsPageState extends State<HistoryDayAnalyticsPage> {
             ),
           ],
         ),
-        body: StreamBuilder<List<Class>>(
-          stream: Class.getAllForUser(),
-          builder: (context, snapshot) {
-            if (snapshot.hasError) return ErrorWidget(snapshot.error);
-            if (!snapshot.hasData)
+        body: FutureBuilder(
+          future: _setRangeStart(),
+          builder: (context, _) {
+            if (_.connectionState == ConnectionState.done) {
+              return StreamBuilder<List<Class>>(
+                initialData: widget.classes,
+                stream: Class.getAllForUser(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) return ErrorWidget(snapshot.error);
+                  if (!snapshot.hasData)
+                    return const Center(child: CircularProgressIndicator());
+
+                  classes ??= snapshot.data;
+                  final classesByRef = {for (final a in classes) a.ref.path: a};
+
+                  return SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        ListTile(
+                          title: Text(
+                              'احصائيات الخدمة من ' +
+                                  DateFormat.yMMMEd('ar_EG')
+                                      .format(range.start) +
+                                  ' الى ' +
+                                  DateFormat.yMMMEd('ar_EG').format(range.end),
+                              style: Theme.of(context).textTheme.bodyText1),
+                          trailing: IconButton(
+                            icon: Icon(Icons.date_range),
+                            tooltip: 'اختيار نطاق السجل',
+                            onPressed: () async {
+                              final rslt = await showDateRangePicker(
+                                builder: (context, dialog) => Theme(
+                                  data: Theme.of(context).copyWith(
+                                    textTheme:
+                                        Theme.of(context).textTheme.copyWith(
+                                              overline: TextStyle(
+                                                fontSize: 0,
+                                              ),
+                                            ),
+                                  ),
+                                  child: dialog,
+                                ),
+                                helpText: null,
+                                context: context,
+                                confirmText: 'حفظ',
+                                saveText: 'حفظ',
+                                initialDateRange:
+                                    range.start.millisecondsSinceEpoch <=
+                                            minAvaliable.millisecondsSinceEpoch
+                                        ? range
+                                        : DateTimeRange(
+                                            start: DateTime.now()
+                                                .subtract(Duration(days: 1)),
+                                            end: range.end),
+                                firstDate: minAvaliable,
+                                lastDate: DateTime.now(),
+                              );
+                              if (rslt != null) {
+                                range = rslt;
+                                setState(() {});
+                              }
+                            },
+                          ),
+                        ),
+                        ListTile(
+                          title: Text('لفصول: '),
+                          subtitle: Text(
+                            classes.map((c) => c.name).toList().join(', '),
+                            maxLines: 4,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          trailing: IconButton(
+                            icon: Icon(Icons.list_alt),
+                            tooltip: 'اختيار الفصول',
+                            onPressed: () async {
+                              final rslt =
+                                  await selectClasses(context, classes);
+                              if (rslt != null && rslt.isNotEmpty)
+                                setState(() => classes = rslt);
+                              else if (rslt.isNotEmpty)
+                                await showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    content:
+                                        Text('برجاء اختيار فصل واحد على الأقل'),
+                                  ),
+                                );
+                            },
+                          ),
+                        ),
+                        HistoryAnalysisWidget(
+                          range: range,
+                          classes: classes,
+                          classesByRef: classesByRef,
+                          collectionGroup: 'VisitHistory',
+                          title: 'خدمة الافتقاد',
+                        ),
+                        Divider(),
+                        HistoryAnalysisWidget(
+                          range: range,
+                          classes: classes,
+                          classesByRef: classesByRef,
+                          collectionGroup: 'EditHistory',
+                          title: 'تحديث البيانات',
+                        ),
+                        Divider(),
+                        HistoryAnalysisWidget(
+                          range: range,
+                          classes: classes,
+                          classesByRef: classesByRef,
+                          collectionGroup: 'CallHistory',
+                          title: 'خدمة المكالمات',
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            } else {
               return const Center(child: CircularProgressIndicator());
-            classes ??= snapshot.data;
-            return ListView(
-              children: [
-                ListTile(
-                  title: Text('احصائيات الحضور ليوم ' +
-                      DateFormat.yMMMEd('ar_EG')
-                          .format(widget.day.day.toDate())),
-                ),
-                ListTile(
-                  title: Text('لفصول: '),
-                  subtitle: Text(
-                    classes.map((c) => c.name).toList().join(', '),
-                    maxLines: 4,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  trailing: IconButton(
-                    icon: Icon(Icons.list_alt),
-                    tooltip: 'اختيار الفصول',
-                    onPressed: () async {
-                      var rslt = await selectClasses(context, classes);
-                      if (rslt != null && rslt.isNotEmpty)
-                        setState(() => classes = rslt);
-                      else if (rslt.isNotEmpty)
-                        await showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                                content: Text('برجاء اختيار فصل على الأقل')));
-                    },
-                  ),
-                ),
-                ListTile(
-                  title: Text('حضور الاجتماع'),
-                ),
-                ClassesAttendanceIndicator(
-                  classes: classes,
-                  collection: widget.day.meeting,
-                ),
-                ListTile(
-                  title: Text('حضور القداس'),
-                ),
-                ClassesAttendanceIndicator(
-                  classes: classes,
-                  collection: widget.day.kodas,
-                ),
-                ListTile(
-                  title: Text('التناول'),
-                ),
-                ClassesAttendanceIndicator(
-                  classes: classes,
-                  collection: widget.day.tanawol,
-                ),
-              ],
-            );
+            }
           },
         ),
       ),
@@ -125,11 +257,28 @@ class _HistoryDayAnalyticsPageState extends State<HistoryDayAnalyticsPage> {
 }
 
 class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
+  DateTime minAvaliable = DateTime.now().subtract(Duration(days: 30));
+  bool minAvaliableSet = false;
   DateTimeRange range = DateTimeRange(
       start: DateTime.now().subtract(Duration(days: 30)), end: DateTime.now());
-  DateTime minAvaliable = DateTime.now().subtract(Duration(days: 30));
+
   final _screenKey = GlobalKey();
-  bool minAvaliableSet = false;
+
+  Future<void> _setRangeStart() async {
+    if (minAvaliableSet) return;
+    minAvaliable = ((await FirebaseFirestore.instance
+                .collection(widget.colection)
+                .orderBy('Day')
+                .limit(1)
+                .get(dataSource))
+            .docs
+            .first
+            .data()['Day'] as Timestamp)
+        .toDate();
+    minAvaliableSet = true;
+
+    range = DateTimeRange(start: minAvaliable, end: DateTime.now());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -153,16 +302,14 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
               return const Center(child: CircularProgressIndicator());
             return StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
-                  .collection('History')
+                  .collection(widget.colection)
                   .orderBy('Day')
                   .where(
                     'Day',
-                    isLessThanOrEqualTo:
+                    isLessThan:
                         Timestamp.fromDate(range.end.add(Duration(days: 1))),
                   )
-                  .where('Day',
-                      isGreaterThanOrEqualTo: Timestamp.fromDate(
-                          range.start.subtract(Duration(days: 1))))
+                  .where('Day', isGreaterThan: Timestamp.fromDate(range.start))
                   .snapshots(),
               builder: (context, data) {
                 if (data.hasError) return ErrorWidget(data.error);
@@ -183,7 +330,7 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
                         icon: Icon(Icons.date_range),
                         tooltip: 'اختيار نطاق السجل',
                         onPressed: () async {
-                          var rslt = await showDateRangePicker(
+                          final rslt = await showDateRangePicker(
                             builder: (context, dialog) => Theme(
                               data: Theme.of(context).copyWith(
                                 textTheme: Theme.of(context).textTheme.copyWith(
@@ -247,44 +394,99 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
       ),
     );
   }
-
-  Future<void> _setRangeStart() async {
-    if (minAvaliableSet) return;
-    minAvaliable = ((await FirebaseFirestore.instance
-                .collection('History')
-                .orderBy('Day')
-                .limit(1)
-                .get(dataSource))
-            .docs[0]
-            .data()['Day'] as Timestamp)
-        .toDate();
-    minAvaliableSet = true;
-
-    range = DateTimeRange(start: minAvaliable, end: DateTime.now());
-  }
 }
 
 class _AnalyticsPageState extends State<AnalyticsPage> {
   List<Class> classes;
+  DateTime day = DateTime.now();
   DateTimeRange range = DateTimeRange(
       start: DateTime.now().subtract(Duration(days: 30)), end: DateTime.now());
-  DateTime minAvaliable = DateTime.now().subtract(Duration(days: 30));
+
+  bool _isOneDay = false;
+  DateTime _minAvaliable = DateTime.now().subtract(Duration(days: 30));
+  final AsyncMemoizer<void> _rangeStart = AsyncMemoizer<void>();
   final _screenKey = GlobalKey();
-  bool minAvaliableSet = false;
+  bool _sourceChanged = false;
 
   Future<void> _setRangeStart() async {
-    if (minAvaliableSet) return;
-    minAvaliable = ((await FirebaseFirestore.instance
-                .collection('History')
+    if (widget.range != null) range = widget.range;
+    _minAvaliable = ((await FirebaseFirestore.instance
+                .collection(widget.historyColection)
                 .orderBy('Day')
                 .limit(1)
                 .get(dataSource))
-            .docs[0]
+            .docs
+            .first
             .data()['Day'] as Timestamp)
         .toDate();
-    minAvaliableSet = true;
+  }
 
-    range = DateTimeRange(start: minAvaliable, end: DateTime.now());
+  Future<void> _selectRange() async {
+    final DateTimeRange rslt = await showDateRangePicker(
+      context: context,
+      builder: (context, dialog) => Theme(
+        data: Theme.of(context).copyWith(
+          textTheme: Theme.of(context).textTheme.copyWith(
+                overline: TextStyle(
+                  fontSize: 0,
+                ),
+              ),
+        ),
+        child: dialog,
+      ),
+      helpText: null,
+      confirmText: 'حفظ',
+      saveText: 'حفظ',
+      initialDateRange: range.start.millisecondsSinceEpoch <=
+                  range.end.millisecondsSinceEpoch &&
+              !_isOneDay
+          ? range
+          : DateTimeRange(start: day.subtract(Duration(days: 1)), end: day),
+      firstDate: _minAvaliable,
+      lastDate: DateTime.now(),
+    );
+    if (rslt != null) {
+      range = rslt;
+      _isOneDay = false;
+      _sourceChanged = true;
+      setState(() {});
+    }
+  }
+
+  Future<void> _selectDay() async {
+    final DateTime rslt = await showDatePicker(
+      builder: (context, dialog) => Theme(
+        data: Theme.of(context).copyWith(
+          textTheme: Theme.of(context).textTheme.copyWith(
+                overline: TextStyle(
+                  fontSize: 0,
+                ),
+              ),
+        ),
+        child: dialog,
+      ),
+      helpText: null,
+      context: context,
+      confirmText: 'حفظ',
+      initialDate: _isOneDay ? day : range.end,
+      firstDate: _minAvaliable,
+      lastDate: DateTime.now(),
+    );
+    if (rslt != null) {
+      day = rslt;
+      _isOneDay = true;
+      _sourceChanged = true;
+      setState(() {});
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.day != null) {
+      _isOneDay = true;
+      day = widget.day.day.toDate();
+    }
   }
 
   @override
@@ -303,7 +505,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
           ],
         ),
         body: FutureBuilder(
-          future: _setRangeStart(),
+          future: _rangeStart.runOnce(_setRangeStart),
           builder: (context, _) {
             if (_.connectionState == ConnectionState.done) {
               return StreamBuilder<List<Class>>(
@@ -314,123 +516,146 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                   if (!snapshot.hasData)
                     return const Center(child: CircularProgressIndicator());
                   classes ??= snapshot.data;
-                  return StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('History')
-                        .orderBy('Day')
-                        .where(
-                          'Day',
-                          isLessThanOrEqualTo: Timestamp.fromDate(
-                              range.end.add(Duration(days: 1))),
-                        )
-                        .where('Day',
-                            isGreaterThanOrEqualTo: Timestamp.fromDate(
-                                range.start.subtract(Duration(days: 1))))
-                        .snapshots(),
+
+                  return StreamBuilder<List<HistoryDay>>(
+                    initialData: [widget.day],
+                    stream: (_isOneDay
+                            ? FirebaseFirestore.instance
+                                .collection(widget.historyColection)
+                                .where('Day',
+                                    isGreaterThan: Timestamp.fromDate(day))
+                                .where(
+                                  'Day',
+                                  isLessThan: Timestamp.fromDate(
+                                      day.add(Duration(days: 1))),
+                                )
+                                .snapshots()
+                            : FirebaseFirestore.instance
+                                .collection(widget.historyColection)
+                                .orderBy('Day')
+                                .where('Day',
+                                    isGreaterThan:
+                                        Timestamp.fromDate(range.start))
+                                .where(
+                                  'Day',
+                                  isLessThan: Timestamp.fromDate(
+                                      range.end.add(Duration(days: 1))),
+                                )
+                                .snapshots())
+                        .map((s) =>
+                            s.docs.map((o) => HistoryDay.fromDoc(o)).toList()),
                     builder: (context, daysData) {
                       if (daysData.hasError) return ErrorWidget(daysData.error);
-                      if (!daysData.hasData)
+                      if (!daysData.hasData || _sourceChanged) {
+                        _sourceChanged = false;
                         return const Center(child: CircularProgressIndicator());
-                      if (daysData.data.docs.isEmpty)
-                        return const Center(child: Text('لا يوجد سجل'));
-                      var days = daysData.data.docs
-                          .map((o) => HistoryDay.fromDoc(o))
-                          .toList();
-                      return ListView(
-                        children: [
-                          ListTile(
-                            title: Text(
-                                'احصائيات الحضور من ' +
-                                    DateFormat.yMMMEd('ar_EG')
-                                        .format(range.start) +
-                                    ' الى ' +
-                                    DateFormat.yMMMEd('ar_EG')
-                                        .format(range.end),
-                                style: Theme.of(context).textTheme.bodyText1),
-                            trailing: IconButton(
-                              icon: Icon(Icons.date_range),
-                              tooltip: 'اختيار نطاق السجل',
-                              onPressed: () async {
-                                var rslt = await showDateRangePicker(
-                                  builder: (context, dialog) => Theme(
-                                    data: Theme.of(context).copyWith(
-                                      textTheme:
-                                          Theme.of(context).textTheme.copyWith(
-                                                overline: TextStyle(
-                                                  fontSize: 0,
-                                                ),
-                                              ),
-                                    ),
-                                    child: dialog,
+                      }
+
+                      final days = daysData.data;
+
+                      return SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            ListTile(
+                              title: Text(
+                                  _isOneDay
+                                      ? 'احصائيات الحضور ليوم ' +
+                                          DateFormat.yMMMEd('ar_EG').format(day)
+                                      : 'احصائيات الحضور من ' +
+                                          DateFormat.yMMMEd('ar_EG')
+                                              .format(range.start) +
+                                          ' الى ' +
+                                          DateFormat.yMMMEd('ar_EG')
+                                              .format(range.end),
+                                  style: Theme.of(context).textTheme.bodyText1),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(Icons.date_range),
+                                    tooltip: 'اختيار نطاق السجل',
+                                    onPressed: _selectRange,
                                   ),
-                                  helpText: null,
-                                  context: context,
-                                  confirmText: 'حفظ',
-                                  saveText: 'حفظ',
-                                  initialDateRange: range
-                                              .start.millisecondsSinceEpoch <=
-                                          minAvaliable.millisecondsSinceEpoch
-                                      ? range
-                                      : DateTimeRange(
-                                          start: DateTime.now()
-                                              .subtract(Duration(days: 1)),
-                                          end: range.end),
-                                  firstDate: minAvaliable,
-                                  lastDate: DateTime.now(),
-                                );
-                                if (rslt != null) {
-                                  range = rslt;
-                                  setState(() {});
-                                }
-                              },
+                                  IconButton(
+                                    icon: Icon(Icons.calendar_today_outlined),
+                                    tooltip: 'اختيار يوم واحد',
+                                    onPressed: _selectDay,
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          ListTile(
-                            title: Text('لفصول: '),
-                            subtitle: Text(
-                              classes.map((c) => c.name).toList().join(', '),
-                              maxLines: 4,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            trailing: IconButton(
-                              icon: Icon(Icons.list_alt),
-                              tooltip: 'اختيار الفصول',
-                              onPressed: () async {
-                                var rslt =
-                                    await selectClasses(context, classes);
-                                if (rslt != null && rslt.isNotEmpty)
-                                  setState(() => classes = rslt);
-                                else if (rslt.isNotEmpty)
-                                  await showDialog(
+                            ListTile(
+                              title: Text('الفصول: '),
+                              subtitle: Text(
+                                classes.map((c) => c.name).toList().join(', '),
+                                maxLines: 4,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              trailing: IconButton(
+                                icon: Icon(Icons.list_alt),
+                                tooltip: 'اختيار الفصول',
+                                onPressed: () async {
+                                  final rslt =
+                                      await selectClasses(context, classes);
+                                  if (rslt != null && rslt.isNotEmpty) {
+                                    _sourceChanged = true;
+                                    setState(() => classes = rslt);
+                                  } else if (rslt != null)
+                                    await showDialog(
                                       context: context,
                                       builder: (context) => AlertDialog(
-                                          content: Text(
-                                              'برجاء اختيار فصل على الأقل')));
-                              },
+                                        content:
+                                            Text('برجاء اختيار فصل على الأقل'),
+                                      ),
+                                    );
+                                },
+                              ),
                             ),
-                          ),
-                          AttendanceChart(
-                            title: 'حضور الاجتماع',
-                            classes: classes,
-                            range: range,
-                            days: days,
-                            collectionGroup: 'Meeting',
-                          ),
-                          AttendanceChart(
-                            title: 'حضور القداس',
-                            classes: classes,
-                            range: range,
-                            days: days,
-                            collectionGroup: 'Kodas',
-                          ),
-                          AttendanceChart(
-                            title: 'التناول',
-                            classes: classes,
-                            range: range,
-                            days: days,
-                            collectionGroup: 'Tanawol',
-                          ),
-                        ],
+                            if (_isOneDay && days.isNotEmpty) ...[
+                              ClassesAttendanceIndicator(
+                                classes: classes,
+                                collection: days.first.meeting,
+                              ),
+                              Divider(),
+                              ClassesAttendanceIndicator(
+                                classes: classes,
+                                collection: days.first.kodas,
+                              ),
+                              Divider(),
+                              ClassesAttendanceIndicator(
+                                classes: classes,
+                                collection: days.first.tanawol,
+                              ),
+                            ] else if (days.isNotEmpty) ...[
+                              AttendanceChart(
+                                title: 'حضور الاجتماع',
+                                classes: classes,
+                                range: range,
+                                days: days,
+                                collectionGroup: 'Meeting',
+                              ),
+                              Divider(),
+                              AttendanceChart(
+                                title: 'حضور القداس',
+                                classes: classes,
+                                range: range,
+                                days: days,
+                                collectionGroup: 'Kodas',
+                              ),
+                              Divider(),
+                              AttendanceChart(
+                                title: 'التناول',
+                                classes: classes,
+                                range: range,
+                                days: days,
+                                collectionGroup: 'Tanawol',
+                              ),
+                            ] else
+                              const Center(
+                                child: Text('لا يوجد سجل في المدة المحددة'),
+                              ),
+                          ],
+                        ),
                       );
                     },
                   );

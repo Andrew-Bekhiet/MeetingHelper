@@ -541,7 +541,7 @@ class _RootState extends State<Root>
                 contentLocation: ContentLocation.below,
                 featureId: 'AddHistory',
                 tapTarget: const Icon(Icons.add),
-                title: Text('اضافة / عرض كشف حضور اليوم'),
+                title: Text('اضافة / عرض كشف حضور المخدومين'),
                 description: Column(
                   children: <Widget>[
                     Text('يمكنك تسجيل كشف حضور المخدومين لليوم من هنا'),
@@ -574,33 +574,25 @@ class _RootState extends State<Root>
                 textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
                 child: const Icon(Icons.add),
               ),
-              title: Text('كشف الحضور اليوم'),
+              title: Text('كشف حضور المخدومين'),
               onTap: () async {
-                if (await Connectivity().checkConnectivity() !=
-                    ConnectivityResult.none) {
-                  var today = (await FirebaseFirestore.instance
-                          .collection('History')
-                          .where('Day',
-                              isEqualTo: Timestamp.fromMillisecondsSinceEpoch(
-                                DateTime.now().millisecondsSinceEpoch -
-                                    (DateTime.now().millisecondsSinceEpoch %
-                                        86400000),
-                              ))
-                          .limit(1)
-                          .get(dataSource))
-                      .docs;
-                  mainScfld.currentState.openEndDrawer();
-                  if (today.isNotEmpty) {
-                    await Navigator.of(context).pushNamed('Day',
-                        arguments: HistoryDay.fromDoc(today[0]));
-                  } else {
-                    await Navigator.of(context).pushNamed('Day');
-                  }
+                var today = (await FirebaseFirestore.instance
+                        .collection('History')
+                        .where('Day',
+                            isEqualTo: Timestamp.fromMillisecondsSinceEpoch(
+                              DateTime.now().millisecondsSinceEpoch -
+                                  (DateTime.now().millisecondsSinceEpoch %
+                                      86400000),
+                            ))
+                        .limit(1)
+                        .get(dataSource))
+                    .docs;
+                mainScfld.currentState.openEndDrawer();
+                if (today.isNotEmpty) {
+                  await Navigator.of(context).pushNamed('Day',
+                      arguments: HistoryDay.fromDoc(today[0]));
                 } else {
-                  await showDialog(
-                      context: context,
-                      builder: (context) =>
-                          AlertDialog(content: Text('لا يوجد اتصال انترنت')));
+                  await Navigator.of(context).pushNamed('Day');
                 }
               },
             ),
@@ -613,7 +605,7 @@ class _RootState extends State<Root>
                         contentLocation: ContentLocation.below,
                         featureId: 'AddServantsHistory',
                         tapTarget: const Icon(Icons.add),
-                        title: Text('اضافة / عرض كشف حضور اليوم للخدام'),
+                        title: Text('اضافة / عرض كشف حضور الخدام'),
                         description: Column(
                           children: <Widget>[
                             Text('يمكنك تسجيل كشف حضور الخدام لليوم من هنا'),
@@ -654,19 +646,9 @@ class _RootState extends State<Root>
                             Theme.of(context).primaryTextTheme.bodyText1.color,
                         child: const Icon(Icons.add),
                       ),
-                      title: Text('كشف حضور اليوم (سجل الخدام)'),
+                      title: Text('كشف حضور الخدام'),
                       onTap: () async {
                         mainScfld.currentState.openEndDrawer();
-                        if (await Connectivity().checkConnectivity() ==
-                            ConnectivityResult.none) {
-                          await showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              content: Text('لا يوجد اتصال انترنت'),
-                            ),
-                          );
-                          return;
-                        }
                         var today = (await FirebaseFirestore.instance
                                 .collection('ServantsHistory')
                                 .where('Day',
@@ -696,10 +678,10 @@ class _RootState extends State<Root>
                 contentLocation: ContentLocation.below,
                 featureId: 'History',
                 tapTarget: const Icon(Icons.history),
-                title: Text('عرض سجلات الحضور'),
+                title: Text('عرض كشوفات المخدومين'),
                 description: Column(
                   children: <Widget>[
-                    Text('يمكنك عرض جميع سجلات / كشوفات الحضور من هنا'),
+                    Text('يمكنك عرض جميع كشوفات الحضور من هنا'),
                     OutlinedButton.icon(
                       icon: Icon(Icons.forward),
                       label: Text(
@@ -743,11 +725,10 @@ class _RootState extends State<Root>
                         contentLocation: ContentLocation.below,
                         featureId: 'ServantsHistory',
                         tapTarget: const Icon(Icons.history),
-                        title: Text('عرض سجلات الحضور للخدام'),
+                        title: Text('عرض كشوفات الخدام'),
                         description: Column(
                           children: <Widget>[
-                            Text(
-                                'يمكنك عرض جميع سجلات / كشوفات الحضور للخدام من هنا'),
+                            Text('يمكنك عرض جميع كشوفات الحضور للخدام من هنا'),
                             OutlinedButton.icon(
                               icon: Icon(Icons.forward),
                               label: Text(
@@ -791,13 +772,14 @@ class _RootState extends State<Root>
                     )
                   : Container(),
             ),
+            Divider(),
             ListTile(
               leading: DescribedFeatureOverlay(
                 barrierDismissible: false,
                 contentLocation: ContentLocation.below,
                 featureId: 'Analytics',
                 tapTarget: const Icon(Icons.analytics_outlined),
-                title: Text('عرض تحليل لبيانات سجلات الحضور'),
+                title: Text('عرض تحليل لبيانات سجلات المخدومين'),
                 description: Column(
                   children: <Widget>[
                     Text(
@@ -831,11 +813,118 @@ class _RootState extends State<Root>
                 textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
                 child: const Icon(Icons.analytics_outlined),
               ),
-              title: Text('تحليل بيانات السجل'),
+              title: Text('تحليل سجل المخدومين'),
               onTap: () {
                 mainScfld.currentState.openEndDrawer();
-                Navigator.of(context).pushNamed('Analytics');
+                Navigator.of(context).pushNamed('Analytics',
+                    arguments: {'HistoryCollection': 'History'});
               },
+            ),
+            ListTile(
+              leading: DescribedFeatureOverlay(
+                barrierDismissible: false,
+                contentLocation: ContentLocation.below,
+                featureId: 'ServantsAnalytics',
+                tapTarget: const Icon(Icons.analytics_outlined),
+                title: Text('عرض تحليل لبيانات سجلات الحضور للخدام'),
+                description: Column(
+                  children: <Widget>[
+                    Text(
+                        'الأن يمكنك عرض تحليل لبيانات الخدام خلال فترة معينة من هنا'),
+                    OutlinedButton.icon(
+                      icon: Icon(Icons.forward),
+                      label: Text(
+                        'التالي',
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodyText2.color,
+                        ),
+                      ),
+                      onPressed: () {
+                        Scrollable.ensureVisible(_search.currentContext);
+                        FeatureDiscovery.completeCurrentStep(context);
+                      },
+                    ),
+                    OutlinedButton(
+                      onPressed: () => FeatureDiscovery.dismissAll(context),
+                      child: Text(
+                        'تخطي',
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodyText2.color,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: Theme.of(context).accentColor,
+                targetColor: Colors.transparent,
+                textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
+                child: const Icon(Icons.analytics_outlined),
+              ),
+              title: Text('تحليل بيانات سجل الخدام'),
+              onTap: () {
+                mainScfld.currentState.openEndDrawer();
+                Navigator.of(context).pushNamed('Analytics',
+                    arguments: {'HistoryCollection': 'ServantsHistory'});
+              },
+            ),
+            Consumer<User>(
+              builder: (context, user, _) => user.manageUsers ||
+                      user.manageAllowedUsers
+                  ? ListTile(
+                      leading: DescribedFeatureOverlay(
+                        backgroundDismissible: false,
+                        barrierDismissible: false,
+                        featureId: 'ActivityAnalysis',
+                        contentLocation: ContentLocation.below,
+                        tapTarget: const Icon(Icons.analytics_outlined),
+                        title: Text('تحليل بيانات الخدمة'),
+                        description: Column(
+                          children: [
+                            Text('يمكنك الأن تحليل بيانات خدمة الخدام'
+                                ' من حيث الافتقاد'
+                                ' وتحديث البيانات وبيانات المكالمات'),
+                            OutlinedButton.icon(
+                              icon: Icon(Icons.forward),
+                              label: Text(
+                                'التالي',
+                                style: TextStyle(
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodyText2
+                                      .color,
+                                ),
+                              ),
+                              onPressed: () =>
+                                  FeatureDiscovery.completeCurrentStep(context),
+                            ),
+                            OutlinedButton(
+                              onPressed: () =>
+                                  FeatureDiscovery.dismissAll(context),
+                              child: Text(
+                                'تخطي',
+                                style: TextStyle(
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodyText2
+                                      .color,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        backgroundColor: Theme.of(context).accentColor,
+                        targetColor: Colors.transparent,
+                        textColor:
+                            Theme.of(context).primaryTextTheme.bodyText1.color,
+                        child: Icon(Icons.analytics_outlined),
+                      ),
+                      title: Text('تحليل بيانات الخدمة'),
+                      onTap: () {
+                        mainScfld.currentState.openEndDrawer();
+                        Navigator.of(context).pushNamed('ActivityAnalysis');
+                      },
+                    )
+                  : Container(),
             ),
             Divider(),
             ListTile(
@@ -1442,6 +1531,8 @@ class _RootState extends State<Root>
       'History',
       if (User.instance.secretary) 'ServantsHistory',
       'Analytics',
+      if (User.instance.manageUsers || User.instance.manageAllowedUsers)
+        'ActivityAnalysis',
       'DataMap',
       'AdvancedSearch',
       if (User.instance.manageDeleted) 'ManageDeleted',

@@ -229,6 +229,7 @@ class AppState extends State<App> {
           'UpdateUserDataError': (context) => UpdateUserDataErrorPage(),
           'ManageUsers': (context) => UsersPage(),
           'Invitations': (context) => InvitationsPage(),
+          'ActivityAnalysis': (context) => ActivityAnalysis(),
           'Analytics': (context) {
             if (ModalRoute.of(context).settings.arguments is Person)
               return PersonAnalyticsPage(
@@ -237,10 +238,18 @@ class AppState extends State<App> {
               return AnalyticsPage(
                   classes: [ModalRoute.of(context).settings.arguments]);
             else if (ModalRoute.of(context).settings.arguments is HistoryDay)
-              return HistoryDayAnalyticsPage(
+              return AnalyticsPage(
                   day: ModalRoute.of(context).settings.arguments);
-            else
-              return AnalyticsPage();
+            else {
+              final Map<String, dynamic> args =
+                  ModalRoute.of(context).settings.arguments;
+              return AnalyticsPage(
+                historyColection: args['HistoryCollection'] ?? 'History',
+                classes: args['Classes'],
+                day: args['Day'],
+                range: args['Range'],
+              );
+            }
           },
         },
         localizationsDelegates: [

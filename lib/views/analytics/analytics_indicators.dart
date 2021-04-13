@@ -9,6 +9,7 @@ import 'package:percent_indicator/percent_indicator.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:tuple/tuple.dart';
+import 'package:random_color/random_color.dart';
 
 class AttendanceChart extends StatelessWidget {
   final List<Class> classes;
@@ -16,6 +17,8 @@ class AttendanceChart extends StatelessWidget {
   final String collectionGroup;
   final String title;
   final List<HistoryDay> days;
+  final rnd = RandomColor();
+  final Map<String, Color> usedColorsMap = {};
 
   AttendanceChart(
       {Key key,
@@ -28,133 +31,85 @@ class AttendanceChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 18.0),
-      child: StreamBuilder<List<QueryDocumentSnapshot>>(
-        stream: Rx.combineLatestList<QuerySnapshot>(classes
-                .split(10)
-                .map((c) => FirebaseFirestore.instance
-                    .collectionGroup(collectionGroup)
-                    .where('ClassId', whereIn: c.map((e) => e.ref).toList())
-                    .where(
-                      'Time',
-                      isLessThanOrEqualTo:
-                          Timestamp.fromDate(range.end.add(Duration(days: 1))),
-                    )
-                    .where('Time',
-                        isGreaterThanOrEqualTo: Timestamp.fromDate(
-                            range.start.subtract(Duration(days: 1))))
-                    .orderBy('Time', descending: true)
-                    .snapshots())
-                .toList())
-            .map((s) => s.expand((n) => n.docs).toList()),
-        builder: (context, history) {
-          if (history.hasError) return ErrorWidget(history.error);
-          if (!history.hasData)
-            return const Center(child: CircularProgressIndicator());
-          if (history.data.isEmpty)
-            return const Center(child: Text('لا يوجد سجل'));
-          mergeSort(history.data,
-              compare: (o, n) => (o.data()['Time'] as Timestamp)
-                  .millisecondsSinceEpoch
-                  .compareTo(
-                      (n.data()['Time'] as Timestamp).millisecondsSinceEpoch));
-          Map<Timestamp, List<QueryDocumentSnapshot>> historyMap =
-              groupBy<QueryDocumentSnapshot, Timestamp>(
-                  history.data,
-                  (d) => tranucateToDay(
-                      time: (d.data()['Time'] as Timestamp).toDate()));
-          return StreamBuilder<List<Person>>(
-            stream: Rx.combineLatestList<List<Person>>(
-                    classes.map((c) => c.getMembersLive()))
-                .map((p) => p.expand((o) => o).toList()),
-            builder: (context, persons) {
-              if (persons.hasError) return ErrorWidget(persons.error);
-              if (!persons.hasData)
-                return const Center(child: CircularProgressIndicator());
-              return Directionality(
-                textDirection: TextDirection.ltr,
-                child: SfCartesianChart(
-                  title: ChartTitle(text: title),
-                  enableAxisAnimation: true,
-                  primaryYAxis: NumericAxis(
-                      maximum: persons.data.length.toDouble(),
-                      decimalPlaces: 0),
-                  primaryXAxis: DateTimeAxis(
-                    minimum: range.start,
-                    maximum: range.end,
-                    dateFormat: intl.DateFormat('d/M/yyy', 'ar-EG'),
-                    intervalType: DateTimeIntervalType.days,
-                    labelRotation: 90,
-                    desiredIntervals: historyMap.keys.length,
+    return StreamBuilder<List<HistoryRecord>>(
+      stream: Rx.combineLatestList<QuerySnapshot>(classes
+              .split(10)
+              .map((c) => FirebaseFirestore.instance
+                  .collectionGroup(collectionGroup)
+                  .where('ClassId', whereIn: c.map((e) => e.ref).toList())
+                  .where('Time', isGreaterThan: Timestamp.fromDate(range.start))
+                  .where(
+                    'Time',
+                    isLessThan:
+                        Timestamp.fromDate(range.end.add(Duration(days: 1))),
+                  )
+                  .orderBy('Time', descending: true)
+                  .snapshots())
+              .toList())
+          .map((s) =>
+              s.expand((n) => n.docs).map(HistoryRecord.fromQueryDoc).toList()),
+      builder: (context, history) {
+        if (history.hasError) return ErrorWidget(history.error);
+        if (!history.hasData)
+          return const Center(child: CircularProgressIndicator());
+        if (history.data.isEmpty)
+          return const Center(child: Text('لا يوجد سجل'));
+        mergeSort(history.data,
+            compare: (o, n) => o.time.millisecondsSinceEpoch
+                .compareTo(n.time.millisecondsSinceEpoch));
+        Map<Timestamp, List<HistoryRecord>> historyMap =
+            groupBy<HistoryRecord, Timestamp>(
+                history.data, (d) => tranucateToDay(time: d.time.toDate()));
+
+        final Map<DocumentReference, Class> groupedClasses = {
+          for (final c in classes) c.ref: c
+        };
+
+        return history.data.isNotEmpty && classes.length > 1
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CartesianChart(
+                    data: historyMap,
+                    title: title,
+                    classes: classes,
+                    range: range,
                   ),
-                  tooltipBehavior: TooltipBehavior(
-                    enable: true,
-                    duration: 5000,
-                    tooltipPosition: TooltipPosition.pointer,
-                    builder: (data, point, series, pointIndex, seriesIndex) {
-                      return Container(
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[400],
-                          borderRadius: BorderRadius.all(Radius.circular(6.0)),
-                        ),
-                        height: 120,
-                        width: 90,
-                        padding: EdgeInsets.symmetric(horizontal: 5),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(intl.DateFormat('d/M/yyy', 'ar-EG')
-                                .format(data.key.toDate())),
-                            Text(
-                              ((data.value.length as int) /
-                                          persons.data.length *
-                                          100)
-                                      .toStringAsFixed(1)
-                                      .replaceAll('.0', '') +
-                                  '%',
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                  PieChart<Class>(
+                    total: classes.length,
+                    pointColorMapper: (_class, _) =>
+                        usedColorsMap[_class.item2?.id] ??=
+                            _class.item2?.color == null ||
+                                    _class.item2.color == Colors.transparent
+                                ? rnd.randomColor(
+                                    colorBrightness:
+                                        Theme.of(context).brightness ==
+                                                Brightness.light
+                                            ? ColorBrightness.dark
+                                            : ColorBrightness.light,
+                                  )
+                                : _class.item2.color,
+                    pieData: groupBy<HistoryRecord, DocumentReference>(
+                            history.data, (r) => r.classId)
+                        .entries
+                        .map(
+                          (e) => Tuple2<int, Class>(
+                            e.value.length,
+                            groupedClasses[e.key],
+                          ),
+                        )
+                        .toList(),
+                    nameGetter: (c) => c?.name,
                   ),
-                  zoomPanBehavior: ZoomPanBehavior(
-                    enablePinching: true,
-                    enablePanning: true,
-                    enableDoubleTapZooming: true,
-                  ),
-                  series: [
-                    StackedAreaSeries<
-                        MapEntry<Timestamp, List<QueryDocumentSnapshot>>,
-                        DateTime>(
-                      markerSettings: MarkerSettings(isVisible: true),
-                      borderGradient: LinearGradient(
-                        colors: [
-                          Colors.amber[300].withOpacity(0.5),
-                          Colors.amber[800].withOpacity(0.5)
-                        ],
-                      ),
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.amber[300].withOpacity(0.5),
-                          Colors.amber[800].withOpacity(0.5)
-                        ],
-                      ),
-                      borderWidth: 2,
-                      dataSource: historyMap.entries.toList(),
-                      xValueMapper: (item, index) => item.key.toDate(),
-                      yValueMapper: (item, index) => item.value.length,
-                      name: title,
-                    ),
-                  ],
-                ),
+                ],
+              )
+            : CartesianChart(
+                data: historyMap,
+                title: title,
+                classes: classes,
+                range: range,
               );
-            },
-          );
-        },
-      ),
+      },
     );
   }
 }
@@ -241,28 +196,35 @@ class AttendancePercent extends StatelessWidget {
 
 class ClassesAttendanceIndicator extends StatelessWidget {
   final CollectionReference collection;
-
   final List<Class> classes;
+  final rnd = RandomColor();
+  final Map<String, Color> usedColorsMap = {};
+
   ClassesAttendanceIndicator({this.collection, this.classes});
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<int>(
+    return StreamBuilder<List<Person>>(
       stream: Rx.combineLatestList<QuerySnapshot>(classes
               .split(10)
               .map((c) => collection
                   .where('ClassId', whereIn: c.map((e) => e.ref).toList())
                   .snapshots())
               .toList())
-          .map((s) => s.fold<int>(0, (o, n) => o + n.size)),
+          .map((s) => s.expand((e) => e.docs).map(Person.fromDoc).toList()),
       builder: (context, snapshot) {
         if (snapshot.hasError) return ErrorWidget(snapshot.error);
         if (!snapshot.hasData)
           return const Center(child: CircularProgressIndicator());
         return StreamBuilder<int>(
-          stream: Rx.combineLatestList<List<Person>>(
-                  classes.map((c) => c.getMembersLive()).toList())
-              .map((s) => s.fold<int>(0, (o, n) => o + n.length)),
+          stream: Rx.combineLatestList<QuerySnapshot>(classes
+                  .split(10)
+                  .map((c) => FirebaseFirestore.instance
+                      .collection('Persons')
+                      .where('ClassId', whereIn: c.map((e) => e.ref).toList())
+                      .snapshots())
+                  .toList())
+              .map((s) => s.fold<int>(0, (o, n) => o + n.size)),
           builder: (context, persons) {
             if (persons.hasError) return ErrorWidget(persons.error);
             if (!persons.hasData)
@@ -271,13 +233,56 @@ class ClassesAttendanceIndicator extends StatelessWidget {
               return const Center(
                   child: Text('لا يوجد مخدومين في الفصول المحددة'));
 
-            return AttendancePercent(
-              attendanceLabel: 'اجمالي عدد الحضور',
-              absenseLabel: 'اجمالي عدد الغياب',
-              totalLabel: 'اجمالي عدد المخدومين',
-              attends: snapshot.data,
-              total: persons.data,
-            );
+            final Map<DocumentReference, Class> groupedClasses = {
+              for (final c in classes) c.ref: c
+            };
+
+            return snapshot.data.isNotEmpty && classes.length > 1
+                ? Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AttendancePercent(
+                        attendanceLabel: 'اجمالي عدد الحضور',
+                        absenseLabel: 'اجمالي عدد الغياب',
+                        totalLabel: 'اجمالي عدد المخدومين',
+                        attends: snapshot.data.length,
+                        total: persons.data,
+                      ),
+                      PieChart<Class>(
+                        total: classes.length,
+                        pointColorMapper: (_class, _) =>
+                            usedColorsMap[_class.item2?.id] ??=
+                                _class.item2?.color == null ||
+                                        _class.item2.color == Colors.transparent
+                                    ? rnd.randomColor(
+                                        colorBrightness:
+                                            Theme.of(context).brightness ==
+                                                    Brightness.light
+                                                ? ColorBrightness.dark
+                                                : ColorBrightness.light,
+                                      )
+                                    : _class.item2.color,
+                        pieData: groupBy<Person, DocumentReference>(
+                                snapshot.data, (p) => p.classId)
+                            .entries
+                            .map(
+                              (e) => Tuple2<int, Class>(
+                                e.value.length,
+                                groupedClasses[e.key],
+                              ),
+                            )
+                            .toList(),
+                        nameGetter: (c) => c?.name,
+                      ),
+                    ],
+                  )
+                : AttendancePercent(
+                    attendanceLabel: 'اجمالي عدد الحضور',
+                    absenseLabel: 'اجمالي عدد الغياب',
+                    totalLabel: 'اجمالي عدد المخدومين',
+                    attends: snapshot.data.length,
+                    total: persons.data,
+                  );
           },
         );
       },
@@ -333,14 +338,11 @@ class PersonAttendanceIndicator extends StatelessWidget {
         return FirebaseFirestore.instance
             .collectionGroup(collectionGroup)
             .where('ID', isEqualTo: id)
+            .where('Time', isGreaterThan: Timestamp.fromDate(range.start))
             .where(
               'Time',
-              isLessThanOrEqualTo:
-                  Timestamp.fromDate(range.end.add(Duration(days: 1))),
+              isLessThan: Timestamp.fromDate(range.end.add(Duration(days: 1))),
             )
-            .where('Time',
-                isGreaterThanOrEqualTo:
-                    Timestamp.fromDate(range.start.subtract(Duration(days: 1))))
             .orderBy('Time', descending: true)
             .snapshots()
             .map((s) => s.docs);
@@ -353,12 +355,11 @@ class PersonAttendanceIndicator extends StatelessWidget {
                     .where('ID', isEqualTo: id)
                     .where(
                       'Time',
-                      isLessThanOrEqualTo:
+                      isLessThan:
                           Timestamp.fromDate(range.end.add(Duration(days: 1))),
                     )
                     .where('Time',
-                        isGreaterThanOrEqualTo: Timestamp.fromDate(
-                            range.start.subtract(Duration(days: 1))))
+                        isGreaterThan: Timestamp.fromDate(range.start))
                     .orderBy('Time', descending: true)
                     .snapshots())
                 .toList())
@@ -366,4 +367,288 @@ class PersonAttendanceIndicator extends StatelessWidget {
       }
     });
   }
+}
+
+class HistoryAnalysisWidget extends StatelessWidget {
+  HistoryAnalysisWidget({
+    Key key,
+    @required this.range,
+    @required this.classes,
+    @required this.classesByRef,
+    @required this.collectionGroup,
+    @required this.title,
+    this.showUsers = true,
+  }) : super(key: key);
+
+  final DateTimeRange range;
+  final List<Class> classes;
+  final Map<String, Class> classesByRef;
+  final String collectionGroup;
+  final String title;
+  final bool showUsers;
+
+  final rnd = RandomColor();
+  final usedColorsMap = <Tuple2<int, String>, Color>{};
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<QueryDocumentSnapshot>>(
+      stream: MinimalHistoryRecord.getAllForUser(
+          collectionGroup: collectionGroup, range: range, classes: classes),
+      builder: (context, daysData) {
+        if (daysData.hasError) return ErrorWidget(daysData.error);
+        if (!daysData.hasData)
+          return const Center(child: CircularProgressIndicator());
+        if (daysData.data.isEmpty)
+          return const Center(child: Text('لا يوجد سجل'));
+
+        List<MinimalHistoryRecord> data =
+            daysData.data.map(MinimalHistoryRecord.fromDoc).toList();
+
+        mergeSort(data,
+            compare: (o, n) => o.time.millisecondsSinceEpoch
+                .compareTo(n.time.millisecondsSinceEpoch));
+        Map<Timestamp, List<MinimalHistoryRecord>> groupedData =
+            groupBy<MinimalHistoryRecord, Timestamp>(
+                data, (d) => tranucateToDay(time: d.time.toDate()));
+
+        var list =
+            groupBy<MinimalHistoryRecord, String>(data, (s) => s.classId?.path)
+                .entries
+                .toList();
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CartesianChart(
+              title: title,
+              classes: classes,
+              range: range,
+              data: groupedData,
+              showMax: false,
+            ),
+            ListTile(
+              title: Text('تحليل ' + title + ' لكل فصل'),
+            ),
+            PieChart(
+              total: data.length,
+              pieData: list
+                  .map((e) => Tuple2<int, String>(
+                      e.value.length, classesByRef[e.key]?.name))
+                  .toList(),
+              pointColorMapper: (entry, __) => usedColorsMap[entry] ??=
+                  classesByRef[entry.item2]?.color == null ||
+                          classesByRef[entry.item2]?.color == Colors.transparent
+                      ? rnd.randomColor(
+                          colorBrightness:
+                              Theme.of(context).brightness == Brightness.light
+                                  ? ColorBrightness.dark
+                                  : ColorBrightness.light,
+                        )
+                      : classesByRef[entry.item2]?.color,
+            ),
+            if (showUsers)
+              ListTile(
+                title: Text('تحليل ' + title + ' لكل خادم'),
+              ),
+            if (showUsers)
+              FutureBuilder<QuerySnapshot>(
+                future: User.getAllUsersLive(),
+                builder: (context, usersData) {
+                  if (usersData.hasError) return ErrorWidget(usersData.error);
+                  if (!usersData.hasData)
+                    return const Center(child: CircularProgressIndicator());
+                  final usersByID = {
+                    for (var u in usersData.data.docs) u.id: User.fromDoc(u)
+                  };
+                  final pieData =
+                      groupBy<MinimalHistoryRecord, String>(data, (s) => s.by)
+                          .entries
+                          .toList();
+                  return PieChart(
+                    pointColorMapper: (entry, __) =>
+                        usedColorsMap[entry] ??= rnd.randomColor(
+                      colorBrightness:
+                          Theme.of(context).brightness == Brightness.light
+                              ? ColorBrightness.dark
+                              : ColorBrightness.light,
+                    ),
+                    total: data.length,
+                    pieData: pieData
+                        .map((e) => Tuple2<int, String>(
+                            e.value.length, usersByID[e.key]?.name))
+                        .toList(),
+                  );
+                },
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class CartesianChart<T> extends StatelessWidget {
+  final String title;
+  final DateTimeRange range;
+  final Map<Timestamp, List<T>> data;
+  final List<Class> classes;
+  final bool showMax;
+
+  CartesianChart(
+      {Key key,
+      this.classes,
+      this.range,
+      this.showMax = false,
+      @required this.data,
+      @required this.title})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18.0),
+      child: StreamBuilder<List<Person>>(
+        stream: showMax
+            ? Rx.combineLatestList<List<Person>>(
+                classes.split(10).map(
+                      (c) => FirebaseFirestore.instance
+                          .collection('Persons')
+                          .where('ClassId',
+                              whereIn: c.map((e) => e.ref).toList())
+                          .snapshots()
+                          .map(
+                            (s) => s.docs.map(Person.fromDoc).toList(),
+                          ),
+                    ),
+              ).map((p) => p.expand((o) => o).toList())
+            : Stream.value(null),
+        builder: (context, persons) {
+          if (data.isEmpty) return const Center(child: Text('لا يوجد سجل'));
+          if (persons.hasError) return ErrorWidget(persons.error);
+          if (!persons.hasData && showMax)
+            return const Center(child: CircularProgressIndicator.adaptive());
+
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: SfCartesianChart(
+              title: ChartTitle(text: title),
+              enableAxisAnimation: true,
+              primaryYAxis: NumericAxis(
+                  decimalPlaces: 0, maximum: persons.data?.length?.toDouble()),
+              primaryXAxis: DateTimeAxis(
+                minimum: range.start.subtract(Duration(hours: 4)),
+                maximum: range.end.add(Duration(hours: 4)),
+                dateFormat: intl.DateFormat('yyy/M/d', 'ar-EG'),
+                intervalType: DateTimeIntervalType.days,
+                labelRotation: 90,
+                desiredIntervals: data.keys.length > 25 ? 25 : data.keys.length,
+              ),
+              tooltipBehavior: TooltipBehavior(
+                enable: true,
+                duration: 5000,
+                tooltipPosition: TooltipPosition.pointer,
+                builder: (data, point, series, pointIndex, seriesIndex) {
+                  return Container(
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[400],
+                      borderRadius: BorderRadius.all(Radius.circular(6.0)),
+                    ),
+                    height: 120,
+                    width: 90,
+                    padding: EdgeInsets.symmetric(horizontal: 5),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(intl.DateFormat('yyy/M/d', 'ar-EG')
+                            .format(data.key.toDate())),
+                        Text(
+                          data.value.length.toString(),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              zoomPanBehavior: ZoomPanBehavior(
+                enablePinching: true,
+                enablePanning: true,
+                enableDoubleTapZooming: true,
+              ),
+              series: [
+                StackedAreaSeries<MapEntry<Timestamp, List<T>>, DateTime>(
+                  markerSettings: MarkerSettings(isVisible: true),
+                  borderGradient: LinearGradient(
+                    colors: [
+                      Colors.amber[300].withOpacity(0.5),
+                      Colors.amber[800].withOpacity(0.5)
+                    ],
+                  ),
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.amber[300].withOpacity(0.5),
+                      Colors.amber[800].withOpacity(0.5)
+                    ],
+                  ),
+                  borderWidth: 2,
+                  dataSource: data.entries.toList(),
+                  xValueMapper: (item, index) => item.key.toDate().toUtc(),
+                  yValueMapper: (item, index) => item.value.length,
+                  name: title,
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class PieChart<T> extends StatelessWidget {
+  PieChart({
+    Key key,
+    @required this.total,
+    @required this.pieData,
+    this.nameGetter,
+    this.pointColorMapper,
+  })  : assert(nameGetter != null || T == String),
+        super(key: key);
+
+  final Color Function(Tuple2<int, T>, int) pointColorMapper;
+  final int total;
+  final List<Tuple2<int, T>> pieData;
+  final String Function(T) nameGetter;
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: SfCircularChart(
+        tooltipBehavior: TooltipBehavior(enable: true),
+        legend: Legend(
+          isVisible: true,
+          position: LegendPosition.bottom,
+          overflowMode: LegendItemOverflowMode.wrap,
+          isResponsive: false,
+        ),
+        series: [
+          PieSeries<Tuple2<int, T>, String>(
+              enableTooltip: true,
+              enableSmartLabels: true,
+              dataLabelMapper: (entry, _) =>
+                  (_getName(entry.item2) ?? 'غير معروف') +
+                  ': ' +
+                  (entry.item1 / total * 100).toStringAsFixed(2) +
+                  '%',
+              pointColorMapper: pointColorMapper,
+              dataSource: pieData,
+              xValueMapper: (entry, _) => _getName(entry.item2) ?? 'غير معروف',
+              yValueMapper: (entry, _) => entry.item1),
+        ],
+      ),
+    );
+  }
+
+  String _getName(T t) => nameGetter != null ? nameGetter(t) : t?.toString();
 }

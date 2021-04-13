@@ -5,9 +5,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:meetinghelper/models/class.dart';
 import 'package:meetinghelper/models/super_classes.dart';
+import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
+import 'package:rxdart/rxdart.dart';
+import 'package:tuple/tuple.dart';
 
 class HistoryDay extends DataObject with ChangeNotifier {
   Timestamp day;
@@ -150,6 +154,10 @@ class HistoryRecord {
         recordedBy = doc.data()['RecordedBy'],
         notes = doc.data()['Notes'];
 
+  static HistoryRecord fromQueryDoc(DocumentSnapshot doc, [HistoryDay parent]) {
+    return HistoryRecord.fromDoc(parent, doc);
+  }
+
   final DayListType type;
 
   HistoryDay parent;
@@ -185,5 +193,125 @@ class HistoryRecord {
   @override
   bool operator ==(Object other) =>
       (other is HistoryRecord && other.hashCode == hashCode) ||
+      (other is DataObject && other.id == id);
+}
+
+class MinimalHistoryRecord {
+  MinimalHistoryRecord(
+      {this.ref, this.classId, this.personId, this.time, this.by});
+
+  static MinimalHistoryRecord fromDoc(DocumentSnapshot doc) {
+    return MinimalHistoryRecord(
+      ref: doc.reference,
+      classId: doc.data()['ClassId'],
+      personId: doc.data()['PersonId'],
+      time: doc.data()['Time'],
+      by: doc.data()['By'],
+    );
+  }
+
+  static Stream<List<QueryDocumentSnapshot>> getAllForUser(
+      {@required String collectionGroup,
+      DateTimeRange range,
+      List<Class> classes}) {
+    return Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
+        User.instance.stream,
+        Class.getAllForUser(),
+        (a, b) => Tuple2<User, List<Class>>(a, b)).switchMap((value) {
+      if (range != null && classes != null) {
+        return Rx.combineLatestList<QuerySnapshot>(classes
+                .map((a) => FirebaseFirestore.instance
+                    .collectionGroup(collectionGroup)
+                    .where('ClassId', isEqualTo: a.ref)
+                    .where(
+                      'Time',
+                      isLessThanOrEqualTo:
+                          Timestamp.fromDate(range.end.add(Duration(days: 1))),
+                    )
+                    .where('Time',
+                        isGreaterThanOrEqualTo: Timestamp.fromDate(
+                            range.start.subtract(Duration(days: 1))))
+                    .orderBy('Time', descending: true)
+                    .snapshots())
+                .toList())
+            .map((s) => s.expand((n) => n.docs).toList());
+      } else if (range != null) {
+        if (value.item1.superAccess) {
+          return FirebaseFirestore.instance
+              .collectionGroup(collectionGroup)
+              .where(
+                'Time',
+                isLessThanOrEqualTo:
+                    Timestamp.fromDate(range.end.add(Duration(days: 1))),
+              )
+              .where('Time',
+                  isGreaterThanOrEqualTo: Timestamp.fromDate(
+                      range.start.subtract(Duration(days: 1))))
+              .orderBy('Time', descending: true)
+              .snapshots()
+              .map((s) => s.docs);
+        } else {
+          return Rx.combineLatestList<QuerySnapshot>(value.item2
+                  .split(10)
+                  .map((a) => FirebaseFirestore.instance
+                      .collectionGroup(collectionGroup)
+                      .where('ClassId', whereIn: a.map((c) => c.ref).toList())
+                      .where(
+                        'Time',
+                        isLessThanOrEqualTo: Timestamp.fromDate(
+                            range.end.add(Duration(days: 1))),
+                      )
+                      .where('Time',
+                          isGreaterThanOrEqualTo: Timestamp.fromDate(
+                              range.start.subtract(Duration(days: 1))))
+                      .orderBy('Time', descending: true)
+                      .snapshots())
+                  .toList())
+              .map((s) => s.expand((n) => n.docs).toList());
+        }
+      } else if (classes != null) {
+        return Rx.combineLatestList<QuerySnapshot>(classes
+                .split(10)
+                .map((a) => FirebaseFirestore.instance
+                    .collectionGroup(collectionGroup)
+                    .where('ClassId', whereIn: a.map((c) => c.ref).toList())
+                    .orderBy('Time', descending: true)
+                    .snapshots())
+                .toList())
+            .map((s) => s.expand((n) => n.docs).toList());
+      }
+      return FirebaseFirestore.instance
+          .collectionGroup(collectionGroup)
+          .orderBy('Time', descending: true)
+          .snapshots()
+          .map((s) => s.docs.toList());
+    });
+  }
+
+  String get id => ref.id;
+
+  Timestamp time;
+  String by;
+
+  DocumentReference classId;
+  DocumentReference personId;
+  DocumentReference ref;
+
+  Map<String, dynamic> getMap() {
+    return {
+      'ID': id,
+      'Time': time,
+      'RecordedBy': by,
+      'ClassId': classId,
+      'PersonId': personId
+    };
+  }
+
+  @override
+  int get hashCode => hashValues(id, time, by, classId, personId);
+
+  @override
+  bool operator ==(Object other) =>
+      (other is MinimalHistoryRecord && other.hashCode == hashCode) ||
       (other is DataObject && other.id == id);
 }
