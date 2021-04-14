@@ -100,7 +100,7 @@ class _RootState extends State<Root>
                                 label: Text('تحديد الكل'),
                                 onPressed: () {
                                   _personsOptions.selectAll();
-                                  navigator.currentState.pop;
+                                  navigator.currentState.pop();
                                 },
                               ),
                               TextButton.icon(
@@ -108,7 +108,7 @@ class _RootState extends State<Root>
                                 label: Text('تحديد لا شئ'),
                                 onPressed: () {
                                   _personsOptions.selectNone();
-                                  navigator.currentState.pop;
+                                  navigator.currentState.pop();
                                 },
                               ),
                               Text('ترتيب حسب:',
@@ -127,7 +127,7 @@ class _RootState extends State<Root>
                                               orderBy: value,
                                               asc: _personsOrder.value.asc),
                                         );
-                                        navigator.currentState.pop;
+                                        navigator.currentState.pop();
                                       },
                                     ),
                                   )
@@ -142,7 +142,7 @@ class _RootState extends State<Root>
                                         orderBy: _personsOrder.value.orderBy,
                                         asc: value),
                                   );
-                                  navigator.currentState.pop;
+                                  navigator.currentState.pop();
                                 },
                               ),
                               RadioListTile(
@@ -155,7 +155,7 @@ class _RootState extends State<Root>
                                         orderBy: _personsOrder.value.orderBy,
                                         asc: value),
                                   );
-                                  navigator.currentState.pop;
+                                  navigator.currentState.pop();
                                 },
                               ),
                             ],
@@ -456,7 +456,7 @@ class _RootState extends State<Root>
               title: Text('حسابي'),
               onTap: () {
                 mainScfld.currentState.openEndDrawer();
-                navigator.currentState.pop('MyAccount');
+                navigator.currentState.pushNamed('MyAccount');
               },
             ),
             Selector<User, bool>(
@@ -1025,7 +1025,7 @@ class _RootState extends State<Root>
                   ),
                   onTap: () {
                     mainScfld.currentState.openEndDrawer();
-                    navigator.currentState.pop('Trash');
+                    navigator.currentState.pushNamed('Trash');
                   },
                   title: Text('سلة المحذوفات'),
                 );
@@ -1293,7 +1293,7 @@ class _RootState extends State<Root>
               builder: (context, user, _) => ListTile(
                 leading: Icon(Icons.list_alt),
                 title: Text('عمليات التصدير السابقة'),
-                onTap: () => navigator.currentState.pop('ExportOps'),
+                onTap: () => navigator.currentState.pushNamed('ExportOps'),
               ),
             ),
             Divider(),
@@ -1473,7 +1473,7 @@ class _RootState extends State<Root>
           actions: [
             TextButton(
               onPressed: () async {
-                navigator.currentState.pop;
+                navigator.currentState.pop();
                 await AppSettings.openBatteryOptimizationSettings();
                 ;
               },
@@ -1482,7 +1482,7 @@ class _RootState extends State<Root>
             TextButton(
               onPressed: () async {
                 await Hive.box('Settings').put('ShowBatteryDialog', false);
-                navigator.currentState.pop;
+                navigator.currentState.pop();
               },
               child: Text('عدم الاظهار مجددًا'),
             ),

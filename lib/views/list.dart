@@ -541,7 +541,7 @@ class _CheckListState<T extends DataObject>
             actions: [
               TextButton(
                 onPressed: () {
-                  navigator.currentState.pop;
+                  navigator.currentState.pop();
                   dataObjectTap(current, context);
                 },
                 child: Text('عرض بيانات ' + current.name),

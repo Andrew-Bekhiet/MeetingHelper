@@ -151,7 +151,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                 label: Text('تحديد الكل'),
                                 onPressed: () {
                                   _personsOptions.selectAll();
-                                  navigator.currentState.pop;
+                                  navigator.currentState.pop();
                                 },
                               ),
                               TextButton.icon(
@@ -159,7 +159,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                 label: Text('تحديد لا شئ'),
                                 onPressed: () {
                                   _personsOptions.selectNone();
-                                  navigator.currentState.pop;
+                                  navigator.currentState.pop();
                                 },
                               ),
                               Text('ترتيب حسب:',
@@ -178,7 +178,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                               orderBy: value,
                                               asc: _personsOrder.value.asc),
                                         );
-                                        navigator.currentState.pop;
+                                        navigator.currentState.pop();
                                       },
                                     ),
                                   )
@@ -193,7 +193,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                         orderBy: _personsOrder.value.orderBy,
                                         asc: value),
                                   );
-                                  navigator.currentState.pop;
+                                  navigator.currentState.pop();
                                 },
                               ),
                               RadioListTile(
@@ -206,7 +206,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                         orderBy: _personsOrder.value.orderBy,
                                         asc: value),
                                   );
-                                  navigator.currentState.pop;
+                                  navigator.currentState.pop();
                                 },
                               ),
                             ],

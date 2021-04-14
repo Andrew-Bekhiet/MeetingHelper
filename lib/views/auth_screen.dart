@@ -156,7 +156,7 @@ class _AuthScreenState extends State<AuthScreen> {
       } else if (widget.nextRoute != null) {
         await navigator.currentState.pushReplacementNamed(widget.nextRoute);
       } else {
-        navigator.currentState.pop();
+        navigator.currentState.pop(true);
       }
     } else {
       encryptedPassword = null;
