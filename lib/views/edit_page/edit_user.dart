@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:async/async.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -7,13 +8,15 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/list_options.dart';
+import 'package:meetinghelper/models/order_options.dart';
 import 'package:meetinghelper/models/search_filters.dart';
-import 'package:meetinghelper/views/users_list.dart';
+import 'package:meetinghelper/utils/helpers.dart';
+import 'package:meetinghelper/views/lists/users_list.dart';
+import 'package:meetinghelper/views/services_list.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:meetinghelper/utils/globals.dart';
 
-import '../../models/mini_models.dart';
 import '../../models/user.dart';
 
 class EditUser extends StatefulWidget {
@@ -33,9 +36,12 @@ class _EditUserState extends State<EditUser> {
     FocusNode(),
     FocusNode()
   ];
+  AsyncCache<String> className = AsyncCache(Duration(minutes: 1));
   Map<String, dynamic> old;
 
   GlobalKey<FormState> form = GlobalKey<FormState>();
+
+  List<User> childrenUsers;
 
   @override
   Widget build(BuildContext context) {
@@ -105,86 +111,6 @@ class _EditUserState extends State<EditUser> {
                     },
                   ),
                 ),
-                FutureBuilder<QuerySnapshot>(
-                  future: StudyYear.getAllForUser(),
-                  builder: (conext, data) {
-                    if (data.hasData) {
-                      return Container(
-                        padding: EdgeInsets.symmetric(vertical: 4.0),
-                        child: DropdownButtonFormField(
-                          validator: (v) {
-                            return null;
-                          },
-                          value: widget.user.servingStudyYearRef?.path,
-                          items: data.data.docs
-                              .map(
-                                (item) => DropdownMenuItem(
-                                  value: item.reference.path,
-                                  child: Text(item.data()['Name']),
-                                ),
-                              )
-                              .toList()
-                                ..insert(
-                                  0,
-                                  DropdownMenuItem(
-                                    value: null,
-                                    child: Text(''),
-                                  ),
-                                ),
-                          onChanged: (value) {
-                            setState(() {});
-                            widget.user.servingStudyYear = value != null
-                                ? value.split('/')[1].toString()
-                                : null;
-                            foci[2].requestFocus();
-                          },
-                          decoration: InputDecoration(
-                              labelText: 'صف الخدمة',
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Theme.of(context).primaryColor),
-                              )),
-                        ),
-                      );
-                    } else {
-                      return Container(width: 1, height: 1);
-                    }
-                  },
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
-                  child: DropdownButtonFormField(
-                    validator: (v) {
-                      return null;
-                    },
-                    value: widget.user.servingStudyGender,
-                    items: [true, false]
-                        .map(
-                          (item) => DropdownMenuItem(
-                            value: item,
-                            child: Text(item ? 'بنين' : 'بنات'),
-                          ),
-                        )
-                        .toList()
-                          ..insert(
-                              0,
-                              DropdownMenuItem(
-                                value: null,
-                                child: Text(''),
-                              )),
-                    onChanged: (value) {
-                      setState(() {});
-                      widget.user.servingStudyGender = value;
-                      foci[2].requestFocus();
-                    },
-                    decoration: InputDecoration(
-                        labelText: 'نوع الخدمة',
-                        border: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Theme.of(context).primaryColor),
-                        )),
-                  ),
-                ),
                 Container(
                   padding: EdgeInsets.symmetric(vertical: 4.0),
                   child: Focus(
@@ -235,6 +161,40 @@ class _EditUserState extends State<EditUser> {
                                 widget.user.lastConfessionDate,
                               ))
                             : Text('لا يمكن التحديد'),
+                      ),
+                    ),
+                  ),
+                ),
+                Focus(
+                  child: GestureDetector(
+                    onTap: _selectClass,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(vertical: 4.0),
+                      child: InputDecorator(
+                        isEmpty: widget.user.classId == null,
+                        decoration: InputDecoration(
+                          labelText: 'داخل فصل',
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Theme.of(context).primaryColor),
+                          ),
+                        ),
+                        child: FutureBuilder(
+                          future: className.fetch(() =>
+                              widget.user.classId == null
+                                  ? null
+                                  : widget.user.getClassName()),
+                          builder: (con, data) {
+                            if (data.hasData) {
+                              return Text(data.data);
+                            } else if (data.connectionState ==
+                                ConnectionState.waiting) {
+                              return LinearProgressIndicator();
+                            } else {
+                              return Container();
+                            }
+                          },
+                        ),
                       ),
                     ),
                   ),
@@ -379,9 +339,10 @@ class _EditUserState extends State<EditUser> {
                       !(widget.user.meetingNotify ?? false)),
                 ),
                 ElevatedButton.icon(
-                  onPressed: editAllowedUsers,
+                  onPressed: editChildrenUsers,
                   icon: Icon(Icons.shield),
-                  label: Text('تعديل المستخدمين المسموح لهم بتعديل المستخدم',
+                  label: Text(
+                      'تعديل المستخدمين المسؤول عنهم ' + widget.user.name,
                       softWrap: false,
                       textScaleFactor: 0.95,
                       overflow: TextOverflow.fade),
@@ -405,64 +366,62 @@ class _EditUserState extends State<EditUser> {
     );
   }
 
-  void editAllowedUsers() async {
+  void editChildrenUsers() async {
     BehaviorSubject<String> searchStream = BehaviorSubject<String>.seeded('');
-    widget.user.allowedUsers = await showDialog(
-          context: context,
-          builder: (context) {
-            return FutureBuilder<List<User>>(
-              future: User.getUsers(widget.user.allowedUsers),
-              builder: (c, users) => users.hasData
-                  ? MultiProvider(
-                      providers: [
-                        Provider(
-                          create: (_) => DataObjectListOptions<User>(
-                            searchQuery: searchStream,
-                            selectionMode: true,
-                            itemsStream:
-                                Stream.fromFuture(User.getAllSemiManagers()),
-                            selected: {
-                              for (var item in users.data) item.uid: item
-                            },
-                          ),
-                        )
-                      ],
-                      builder: (context, child) => AlertDialog(
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              navigator.currentState.pop(context
-                                  .read<DataObjectListOptions<User>>()
-                                  .selectedLatest
-                                  .values
-                                  ?.map((f) => f.uid)
-                                  ?.toList());
-                            },
-                            child: Text('تم'),
-                          )
-                        ],
-                        content: Container(
-                          width: 280,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SearchField(
-                                  searchStream: searchStream,
-                                  textStyle:
-                                      Theme.of(context).textTheme.bodyText2),
-                              Expanded(
-                                child: UsersList(),
-                              ),
-                            ],
-                          ),
-                        ),
+    childrenUsers = await showDialog(
+      context: context,
+      builder: (context) {
+        return StreamBuilder<List<User>>(
+          stream: FirebaseFirestore.instance
+              .collection('UsersData')
+              .where('AllowedUsers', arrayContains: widget.user.uid)
+              .snapshots()
+              .map((value) => value.docs.map(User.fromDoc).toList()),
+          builder: (c, users) => users.hasData
+              ? MultiProvider(
+                  providers: [
+                    Provider(
+                      create: (_) => DataObjectListOptions<User>(
+                        searchQuery: searchStream,
+                        selectionMode: true,
+                        itemsStream: User.getAllForUser(),
+                        selected: {for (var item in users.data) item.id: item},
                       ),
                     )
-                  : Center(child: CircularProgressIndicator()),
-            );
-          },
-        ) ??
-        widget.user.allowedUsers;
+                  ],
+                  builder: (context, child) => AlertDialog(
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          navigator.currentState.pop(context
+                              .read<DataObjectListOptions<User>>()
+                              .selectedLatest
+                              .values
+                              ?.toList());
+                        },
+                        child: Text('تم'),
+                      )
+                    ],
+                    content: Container(
+                      width: 280,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SearchField(
+                              searchStream: searchStream,
+                              textStyle: Theme.of(context).textTheme.bodyText2),
+                          Expanded(
+                            child: UsersList(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+              : Center(child: CircularProgressIndicator()),
+        );
+      },
+    );
   }
 
   void deleteUser() {
@@ -543,7 +502,7 @@ class _EditUserState extends State<EditUser> {
                 await FirebaseFunctions.instance
                     .httpsCallable('unApproveUser')
                     .call({'affectedUser': widget.user.uid});
-                navigator.currentState.pop();
+                navigator.currentState.pop('deleted');
                 scaffoldMessenger.currentState.hideCurrentSnackBar();
                 scaffoldMessenger.currentState.showSnackBar(SnackBar(
                   content: Text('تم بنجاح'),
@@ -652,17 +611,43 @@ class _EditUserState extends State<EditUser> {
               {'affectedUser': widget.user.uid, 'newName': widget.user.name});
         }
         update.remove('name');
-        update.remove('allowedUsers');
+        update.remove('classId');
+
         if (update.isNotEmpty) {
           await FirebaseFunctions.instance
               .httpsCallable('updatePermissions')
               .call({'affectedUser': widget.user.uid, 'permissions': update});
         }
-        if (old['allowedUsers'] != widget.user.allowedUsers) {
+        if (childrenUsers != null) {
+          final batch = FirebaseFirestore.instance.batch();
+          final oldChildren = (await FirebaseFirestore.instance
+                  .collection('UsersData')
+                  .where('AllowedUsers', arrayContains: widget.user.uid)
+                  .get())
+              .docs
+              .map(User.fromDoc)
+              .toList();
+          for (final item in oldChildren) {
+            if (!childrenUsers.contains(item)) {
+              batch.update(item.ref, {
+                'AllowedUsers': FieldValue.arrayRemove([widget.user.uid])
+              });
+            }
+          }
+          for (final item in childrenUsers) {
+            if (!oldChildren.contains(item)) {
+              batch.update(item.ref, {
+                'AllowedUsers': FieldValue.arrayUnion([widget.user.uid])
+              });
+            }
+          }
+          await batch.commit();
+        }
+        if (old['classId'] != widget.user.classId?.path) {
           await FirebaseFirestore.instance
-              .collection('Users')
-              .doc(widget.user.uid)
-              .update({'allowedUsers': widget.user.allowedUsers});
+              .collection('UsersData')
+              .doc(widget.user.id)
+              .update({'ClassId': widget.user.classId});
         }
         scaffoldMessenger.currentState.hideCurrentSnackBar();
         navigator.currentState.pop(widget.user);
@@ -685,7 +670,7 @@ class _EditUserState extends State<EditUser> {
     }
   }
 
-  Future<int> _selectDate(String helpText, DateTime initialDate) async {
+  Future<Timestamp> _selectDate(String helpText, DateTime initialDate) async {
     DateTime picked = await showDatePicker(
       helpText: helpText,
       locale: Locale('ar', 'EG'),
@@ -696,8 +681,81 @@ class _EditUserState extends State<EditUser> {
     );
     if (picked != null && picked != initialDate) {
       setState(() {});
-      return picked.millisecondsSinceEpoch;
+      return Timestamp.fromDate(picked);
     }
-    return initialDate.millisecondsSinceEpoch;
+    return Timestamp.fromDate(initialDate);
+  }
+
+  void _selectClass() {
+    final BehaviorSubject<String> searchStream =
+        BehaviorSubject<String>.seeded('');
+    final options = ServicesListOptions(
+      tap: (class$) {
+        navigator.currentState.pop();
+        widget.user.classId = class$.ref;
+        className.invalidate();
+        setState(() {});
+        FocusScope.of(context).nextFocus();
+      },
+      searchQuery: searchStream,
+      itemsStream: classesByStudyYearRef(),
+    );
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          child: Scaffold(
+            extendBody: true,
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.endDocked,
+            body: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SearchFilters(0,
+                    options: options,
+                    searchStream: searchStream,
+                    orderOptions: BehaviorSubject<OrderOptions>.seeded(
+                      OrderOptions(),
+                    ),
+                    textStyle: Theme.of(context).textTheme.bodyText2),
+                Expanded(
+                  child: ServicesList(
+                    options: options,
+                  ),
+                ),
+              ],
+            ),
+            bottomNavigationBar: BottomAppBar(
+              color: Theme.of(context).primaryColor,
+              shape: CircularNotchedRectangle(),
+              child: StreamBuilder<Map>(
+                stream: options.objectsData,
+                builder: (context, snapshot) {
+                  return Text((snapshot.data?.length ?? 0).toString() + ' خدمة',
+                      textAlign: TextAlign.center,
+                      strutStyle:
+                          StrutStyle(height: IconTheme.of(context).size / 7.5),
+                      style: Theme.of(context).primaryTextTheme.bodyText1);
+                },
+              ),
+            ),
+            floatingActionButton: User.instance.write
+                ? FloatingActionButton(
+                    heroTag: null,
+                    onPressed: () async {
+                      navigator.currentState.pop();
+                      widget.user.classId = (await navigator.currentState
+                                  .pushNamed('Data/EditClass'))
+                              as DocumentReference ??
+                          widget.user.classId;
+                      setState(() {});
+                    },
+                    child: Icon(Icons.group_add),
+                  )
+                : null,
+          ),
+        );
+      },
+    );
   }
 }

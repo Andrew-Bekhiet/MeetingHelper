@@ -24,7 +24,9 @@ import '../../utils/helpers.dart';
 
 class PersonInfo extends StatefulWidget {
   final Person person;
-  const PersonInfo({Key key, this.person}) : super(key: key);
+  final Person Function(DocumentSnapshot) converter;
+  const PersonInfo({Key key, this.person, this.converter = Person.fromDoc})
+      : super(key: key);
 
   @override
   _PersonInfoState createState() => _PersonInfoState();
@@ -50,7 +52,7 @@ class _PersonInfoState extends State<PersonInfo> {
       selector: (_, user) => user.write,
       builder: (c, permission, data) => StreamBuilder<Person>(
         initialData: widget.person,
-        stream: widget.person.ref.snapshots().map(Person.fromDoc),
+        stream: widget.person.ref.snapshots().map(widget.converter),
         builder: (context, data) {
           Person person = data.data;
           if (person == null)
@@ -409,7 +411,7 @@ class _PersonInfoState extends State<PersonInfo> {
                                           isDense: true)
                                       : LinearProgressIndicator(),
                                 )
-                              : Text('غير موجودة'),
+                              : Text('غير موجود'),
                         ),
                     ],
                   ),

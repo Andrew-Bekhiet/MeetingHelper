@@ -17,6 +17,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:meetinghelper/views/lists/lists.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
@@ -31,6 +32,7 @@ import '../models/user.dart';
 import '../utils/globals.dart';
 import '../utils/helpers.dart';
 import 'auth_screen.dart';
+import 'edit_page/edit_person.dart';
 import 'list.dart';
 import 'services_list.dart';
 
@@ -64,15 +66,30 @@ class _RootState extends State<Root>
       BehaviorSubject<String>.seeded('');
 
   void addTap() {
-    if (_tabController.index == 0) {
+    if (_tabController.index == _tabController.length - 1) {
       navigator.currentState.pushNamed('Data/EditClass');
-    } else if (_tabController.index == 1) {
+    } else if (_tabController.index == _tabController.length - 2) {
       navigator.currentState.pushNamed('Data/EditPerson');
+    } else {
+      navigator.currentState.push(
+        MaterialPageRoute(
+          builder: (context) {
+            return EditPerson(
+              person: User(
+                name: '',
+                ref: FirebaseFirestore.instance.collection('UsersData').doc(),
+              ),
+              save: _saveUser,
+            );
+          },
+        ),
+      );
     }
   }
 
   ServicesListOptions _servicesOptions;
   DataObjectListOptions<Person> _personsOptions;
+  DataObjectListOptions<User> _usersOptions;
 
   @override
   Widget build(BuildContext context) {
@@ -225,6 +242,46 @@ class _RootState extends State<Root>
         bottom: TabBar(
           controller: _tabController,
           tabs: [
+            if (User.instance.manageUsers || User.instance.manageAllowedUsers)
+              Tab(
+                text: 'الخدام',
+                icon: DescribedFeatureOverlay(
+                  barrierDismissible: false,
+                  contentLocation: ContentLocation.below,
+                  featureId: 'Servants',
+                  tapTarget: const Icon(Icons.person),
+                  title: Text('الخدام'),
+                  description: Column(
+                    children: <Widget>[
+                      Text('في هذه الشاشة ستجد كل بيانات الخدام بالبرنامج'),
+                      OutlinedButton.icon(
+                        icon: Icon(Icons.forward),
+                        label: Text(
+                          'التالي',
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyText2.color,
+                          ),
+                        ),
+                        onPressed: () =>
+                            FeatureDiscovery.completeCurrentStep(context),
+                      ),
+                      OutlinedButton(
+                        onPressed: () => FeatureDiscovery.dismissAll(context),
+                        child: Text(
+                          'تخطي',
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyText2.color,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: Theme.of(context).accentColor,
+                  targetColor: Colors.transparent,
+                  textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
+                  child: const Icon(Icons.person),
+                ),
+              ),
             Tab(
               text: 'الخدمات',
               icon: DescribedFeatureOverlay(
@@ -272,7 +329,7 @@ class _RootState extends State<Root>
                 contentLocation: ContentLocation.below,
                 featureId: 'Persons',
                 tapTarget: const Icon(Icons.person),
-                title: Text('المخدومين /المخدومين'),
+                title: Text('المخدومين'),
                 description: Column(
                   children: <Widget>[
                     Text('هنا تجد قائمة بكل المخدومين بالبرنامج'),
@@ -351,7 +408,9 @@ class _RootState extends State<Root>
         child: AnimatedBuilder(
           animation: _tabController,
           builder: (context, _) => Icon(
-              _tabController.index == 0 ? Icons.group_add : Icons.person_add),
+              _tabController.index == _tabController.length - 2
+                  ? Icons.group_add
+                  : Icons.person_add),
         ),
       ),
       bottomNavigationBar: BottomAppBar(
@@ -360,14 +419,20 @@ class _RootState extends State<Root>
         child: AnimatedBuilder(
           animation: _tabController,
           builder: (context, _) => StreamBuilder(
-            stream: _tabController.index == 0
-                ? _servicesOptions.objectsData
-                : _personsOptions.objectsData,
+            stream: _tabController.index == _tabController.length - 1
+                ? _personsOptions.objectsData
+                : _tabController.index == _tabController.length - 2
+                    ? _servicesOptions.objectsData
+                    : _usersOptions.objectsData,
             builder: (context, snapshot) {
               return Text(
                 (snapshot.data?.length ?? 0).toString() +
                     ' ' +
-                    (_tabController.index == 0 ? 'خدمة' : 'مخدوم'),
+                    (_tabController.index == _tabController.length - 1
+                        ? 'مخدوم'
+                        : _tabController.index == _tabController.length - 2
+                            ? 'خدمة'
+                            : 'خادم'),
                 textAlign: TextAlign.center,
                 strutStyle:
                     StrutStyle(height: IconTheme.of(context).size / 7.5),
@@ -380,6 +445,11 @@ class _RootState extends State<Root>
       body: TabBarView(
         controller: _tabController,
         children: [
+          if (User.instance.manageUsers || User.instance.manageAllowedUsers)
+            UsersList(
+              key: PageStorageKey('mainUsersList'),
+              listOptions: _usersOptions,
+            ),
           ServicesList(
             key: PageStorageKey('mainClassesList'),
             options: _servicesOptions,
@@ -1438,6 +1508,11 @@ class _RootState extends State<Root>
   void initState() {
     super.initState();
     initializeDateFormatting('ar_EG', null);
+    _usersOptions = DataObjectListOptions<User>(
+      searchQuery: _searchQuery,
+      tap: (p) => personTap(p, context),
+      itemsStream: User.getAllForUser(),
+    );
     _servicesOptions = ServicesListOptions(
       searchQuery: _searchQuery,
       itemsStream: classesByStudyYearRef(),
@@ -1453,7 +1528,15 @@ class _RootState extends State<Root>
             orderBy: order.orderBy, descending: !order.asc),
       ),
     );
-    _tabController = TabController(vsync: this, length: 2);
+    _tabController = TabController(
+        vsync: this,
+        initialIndex:
+            User.instance.manageUsers || User.instance.manageAllowedUsers
+                ? 1
+                : 0,
+        length: User.instance.manageUsers || User.instance.manageAllowedUsers
+            ? 3
+            : 2);
     WidgetsBinding.instance.addObserver(this);
     _keepAlive(true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1522,7 +1605,9 @@ class _RootState extends State<Root>
     await showBatteryOptimizationDialog();
     FeatureDiscovery.discoverFeatures(context, [
       'Services',
-      'Persons',
+      'Servants',
+      if (User.instance.manageUsers || User.instance.manageAllowedUsers)
+        'Users',
       'Search',
       'MyAccount',
       if (User.instance.manageUsers || User.instance.manageAllowedUsers)
@@ -1559,5 +1644,54 @@ class _RootState extends State<Root>
 
   Future<void> _recordLastSeen() async {
     await User.instance.recordLastSeen();
+  }
+
+  Future<void> _saveUser(FormState form, Person person) async {
+    try {
+      if (form.validate() && person.classId != null) {
+        scaffoldMessenger.currentState.showSnackBar(
+          SnackBar(
+            content: Text('جار الحفظ...'),
+            duration: Duration(minutes: 1),
+          ),
+        );
+
+        person.lastEdit = User.instance.uid;
+
+        if (await Connectivity().checkConnectivity() !=
+            ConnectivityResult.none) {
+          await person.ref.set(
+            person.getMap(),
+          );
+        } else {
+          //Intentionally unawaited because of no internet connection
+          // ignore: unawaited_futures
+          person.ref.set(
+            person.getMap(),
+          );
+        }
+        scaffoldMessenger.currentState.hideCurrentSnackBar();
+        navigator.currentState.pop(person.ref);
+      } else {
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('بيانات غير كاملة'),
+            content: Text('يرجى التأكد من ملئ هذه الحقول:\nالاسم\nالفصل'),
+          ),
+        );
+      }
+    } catch (err, stkTrace) {
+      await FirebaseCrashlytics.instance
+          .setCustomKey('LastErrorIn', 'PersonP.save');
+      await FirebaseCrashlytics.instance.recordError(err, stkTrace);
+      scaffoldMessenger.currentState.hideCurrentSnackBar();
+      scaffoldMessenger.currentState.showSnackBar(SnackBar(
+        content: Text(
+          err.toString(),
+        ),
+        duration: Duration(seconds: 7),
+      ));
+    }
   }
 }

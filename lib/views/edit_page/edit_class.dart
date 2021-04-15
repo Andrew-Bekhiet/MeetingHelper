@@ -9,6 +9,7 @@ import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:meetinghelper/models/data_object_widget.dart';
 import 'package:meetinghelper/models/list_options.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
@@ -22,7 +23,7 @@ import '../../models/models.dart';
 import '../../models/search_filters.dart';
 import '../../models/user.dart';
 import '../mini_lists/colors_list.dart';
-import '../users_list.dart';
+import '../lists/users_list.dart';
 
 class EditClass extends StatefulWidget {
   final Class class$;
@@ -491,51 +492,56 @@ class _EditClassState extends State<EditClass> {
           context: context,
           builder: (context) {
             return FutureBuilder<List<User>>(
-              future: User.getUsers(class$.allowedUsers),
+              future: User.getAllForUser().first.then((value) => value
+                  .where((u) => class$.allowedUsers.contains(u.uid))
+                  .toList()),
               builder: (c, users) => users.hasData
-                  ? MultiProvider(
-                      providers: [
-                        Provider(
-                          create: (_) => DataObjectListOptions<User>(
-                              searchQuery: searchStream,
-                              selectionMode: true,
-                              itemsStream:
-                                  Stream.fromFuture(User.getAllUsersLive()).map(
-                                      (s) => s.docs.map(User.fromDoc).toList()),
-                              selected: {
-                                for (var item in users.data) item.uid: item
-                              }),
-                        )
-                      ],
-                      builder: (context, child) => AlertDialog(
+                  ? Scaffold(
+                      appBar: AppBar(
+                        title: Text('اختيار مستخدمين'),
                         actions: [
-                          TextButton(
+                          IconButton(
                             onPressed: () {
                               navigator.currentState.pop(context
                                   .read<DataObjectListOptions<User>>()
                                   .selectedLatest
                                   .values
-                                  ?.map((f) => f.uid)
-                                  ?.toList());
+                                  .toList());
                             },
-                            child: Text('تم'),
-                          )
-                        ],
-                        content: Container(
-                          width: 280,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SearchField(
-                                  searchStream: searchStream,
-                                  textStyle:
-                                      Theme.of(context).textTheme.bodyText2),
-                              Expanded(
-                                child: UsersList(),
-                              ),
-                            ],
+                            icon: Icon(Icons.done),
+                            tooltip: 'تم',
                           ),
-                        ),
+                        ],
+                      ),
+                      body: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SearchField(
+                              searchStream: searchStream,
+                              textStyle: Theme.of(context).textTheme.bodyText2),
+                          Expanded(
+                            child: UsersList(
+                              listOptions: DataObjectListOptions<User>(
+                                  itemBuilder: (current,
+                                          {onLongPress,
+                                          onTap,
+                                          subtitle,
+                                          trailing}) =>
+                                      DataObjectWidget(
+                                        current,
+                                        onTap: () => onTap(current),
+                                        trailing: trailing,
+                                        showSubTitle: false,
+                                      ),
+                                  selectionMode: true,
+                                  selected: {
+                                    for (var item in users.data) item.uid: item
+                                  },
+                                  searchQuery: searchStream,
+                                  itemsStream: User.getAllForUser()),
+                            ),
+                          ),
+                        ],
                       ),
                     )
                   : Center(child: CircularProgressIndicator()),

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
@@ -37,8 +38,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                     child: GestureDetector(
                       onTap: () async => user.lastTanawol = await _selectDate(
                         'تاريخ أخر تناول',
-                        user.lastTanawol ??
-                            DateTime.now().millisecondsSinceEpoch,
+                        user.lastTanawol ?? Timestamp.now(),
                         setState,
                       ),
                       child: InputDecorator(
@@ -50,9 +50,8 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                           ),
                         ),
                         child: user.lastTanawol != null
-                            ? Text(DateFormat('yyyy/M/d').format(
-                                DateTime.fromMillisecondsSinceEpoch(
-                                    user.lastTanawol)))
+                            ? Text(DateFormat('yyyy/M/d')
+                                .format(user.lastTanawol.toDate()))
                             : Text('(فارغ)'),
                       ),
                     ),
@@ -75,8 +74,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                       onTap: () async =>
                           user.lastConfession = await _selectDate(
                         'تاريخ أخر اعتراف',
-                        user.lastConfession ??
-                            DateTime.now().millisecondsSinceEpoch,
+                        user.lastConfession ?? Timestamp.now(),
                         setState,
                       ),
                       child: InputDecorator(
@@ -87,9 +85,8 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                                   color: Theme.of(context).primaryColor),
                             )),
                         child: user.lastConfession != null
-                            ? Text(DateFormat('yyyy/M/d').format(
-                                DateTime.fromMillisecondsSinceEpoch(
-                                    user.lastConfession)))
+                            ? Text(DateFormat('yyyy/M/d')
+                                .format(user.lastConfession.toDate()))
                             : Text('(فارغ)'),
                       ),
                     ),
@@ -118,7 +115,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
         'lastConfession': user.lastConfession,
         'lastTanawol': user.lastTanawol
       });
-      navigator.currentState.pop;
+      navigator.currentState.pop();
     } catch (err, stkTrace) {
       await showErrorDialog(context, err.toString());
       await FirebaseCrashlytics.instance
@@ -128,18 +125,18 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
     }
   }
 
-  Future<int> _selectDate(String helpText, int initialDate,
+  Future<Timestamp> _selectDate(String helpText, Timestamp initialDate,
       void Function(void Function()) setState) async {
     var picked = await showDatePicker(
         helpText: helpText,
         locale: Locale('ar', 'EG'),
         context: context,
-        initialDate: DateTime.fromMillisecondsSinceEpoch(initialDate),
+        initialDate: initialDate.toDate(),
         firstDate: DateTime(1500),
         lastDate: DateTime.now());
-    if (picked != null && picked.millisecondsSinceEpoch != initialDate) {
+    if (picked != null && picked != initialDate.toDate()) {
       setState(() {});
-      return picked.millisecondsSinceEpoch;
+      return Timestamp.fromDate(picked);
     }
     return initialDate;
   }

@@ -58,7 +58,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                       .inDays ==
                   0;
               return CheckListOptions(
-                  itemsStream: Stream.fromFuture(User.getUsersForEdit()),
+                  itemsStream: User.getAllForUser(),
                   searchQuery: _searchQuery,
                   day: widget.record,
                   dayOptions: HistoryDayOptions(
@@ -121,28 +121,30 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                   }),
                   tooltip: 'بحث',
                 ),
-              IconButton(
-                icon: Icon(Icons.delete),
-                onPressed: () async {
-                  if (await showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(actions: [
-                          TextButton(
-                            onPressed: () => navigator.currentState.pop(true),
-                            child: Text('نعم'),
-                          ),
-                          TextButton(
-                            onPressed: () => navigator.currentState.pop(false),
-                            child: Text('لا'),
-                          )
-                        ], content: Text('هل أنت متأكد من الحذف؟')),
-                      ) ==
-                      true) {
-                    await widget.record.ref.delete();
-                    navigator.currentState.pop;
-                  }
-                },
-              ),
+              if (User.instance.superAccess)
+                IconButton(
+                  icon: Icon(Icons.delete),
+                  onPressed: () async {
+                    if (await showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(actions: [
+                            TextButton(
+                              onPressed: () => navigator.currentState.pop(true),
+                              child: Text('نعم'),
+                            ),
+                            TextButton(
+                              onPressed: () =>
+                                  navigator.currentState.pop(false),
+                              child: Text('لا'),
+                            )
+                          ], content: Text('هل أنت متأكد من الحذف؟')),
+                        ) ==
+                        true) {
+                      await widget.record.ref.delete();
+                      navigator.currentState.pop();
+                    }
+                  },
+                ),
               IconButton(
                 icon: DescribedFeatureOverlay(
                   barrierDismissible: false,
@@ -195,14 +197,14 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                               value: dayOptions.grouped.value,
                               onChanged: (value) {
                                 dayOptions.grouped.add(value);
-                                navigator.currentState.pop;
+                                navigator.currentState.pop();
                               },
                             ),
                             GestureDetector(
                               onTap: () {
                                 dayOptions.grouped
                                     .add(!dayOptions.grouped.value);
-                                navigator.currentState.pop;
+                                navigator.currentState.pop();
                               },
                               child: Text('تقسيم حسب الفصول'),
                             ),
@@ -214,14 +216,14 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                               value: dayOptions.showSubtitlesInGroups.value,
                               onChanged: (value) {
                                 dayOptions.showSubtitlesInGroups.add(value);
-                                navigator.currentState.pop;
+                                navigator.currentState.pop();
                               },
                             ),
                             GestureDetector(
                               onTap: () {
                                 dayOptions.showSubtitlesInGroups.add(
                                     !dayOptions.showSubtitlesInGroups.value);
-                                navigator.currentState.pop;
+                                navigator.currentState.pop();
                               },
                               child: Text('اظهار عدد المخدومين داخل كل فصل'),
                             ),
@@ -243,13 +245,13 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                                         groupValue: dayOptions.showOnly.value,
                                         onChanged: (v) {
                                           dayOptions.showOnly.add(v);
-                                          navigator.currentState.pop;
+                                          navigator.currentState.pop();
                                         },
                                       ),
                                       GestureDetector(
                                         onTap: () {
                                           dayOptions.showOnly.add(i);
-                                          navigator.currentState.pop;
+                                          navigator.currentState.pop();
                                         },
                                         child: Text(i == null
                                             ? 'الكل'
@@ -308,8 +310,10 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                   child: const Icon(Icons.analytics_outlined),
                 ),
                 onPressed: () {
-                  navigator.currentState
-                      .pushNamed('Analytics', arguments: widget.record);
+                  navigator.currentState.pushNamed('Analytics', arguments: {
+                    'Day': widget.record,
+                    'HistoryCollection': widget.record.ref.parent.id
+                  });
                 },
               ),
             ],
@@ -457,7 +461,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                 ' ثم الضغط على عرض بيانات المخدوم'),
             actions: [
               TextButton(
-                onPressed: () => navigator.currentState.pop,
+                onPressed: () => navigator.currentState.pop(),
                 child: Text('تم'),
               )
             ],

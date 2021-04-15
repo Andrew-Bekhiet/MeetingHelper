@@ -617,16 +617,22 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                               ClassesAttendanceIndicator(
                                 classes: classes,
                                 collection: days.first.meeting,
+                                isServant: widget.historyColection ==
+                                    'ServantsHistory',
                               ),
                               Divider(),
                               ClassesAttendanceIndicator(
                                 classes: classes,
                                 collection: days.first.kodas,
+                                isServant: widget.historyColection ==
+                                    'ServantsHistory',
                               ),
                               Divider(),
                               ClassesAttendanceIndicator(
                                 classes: classes,
                                 collection: days.first.tanawol,
+                                isServant: widget.historyColection ==
+                                    'ServantsHistory',
                               ),
                             ] else if (days.isNotEmpty) ...[
                               AttendanceChart(
@@ -634,6 +640,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                 classes: classes,
                                 range: range,
                                 days: days,
+                                isServant: widget.historyColection ==
+                                    'ServantsHistory',
                                 collectionGroup: 'Meeting',
                               ),
                               Divider(),
@@ -642,6 +650,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                 classes: classes,
                                 range: range,
                                 days: days,
+                                isServant: widget.historyColection ==
+                                    'ServantsHistory',
                                 collectionGroup: 'Kodas',
                               ),
                               Divider(),
@@ -650,6 +660,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                 classes: classes,
                                 range: range,
                                 days: days,
+                                isServant: widget.historyColection ==
+                                    'ServantsHistory',
                                 collectionGroup: 'Tanawol',
                               ),
                             ] else

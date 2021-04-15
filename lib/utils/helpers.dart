@@ -43,7 +43,7 @@ import '../views/auth_screen.dart';
 import '../views/list.dart';
 import '../views/notification.dart' as no;
 import '../views/search_query.dart';
-import '../views/users_list.dart';
+import '../views/lists/users_list.dart';
 import '../utils/globals.dart';
 
 Future<void> changeTheme(
@@ -208,7 +208,7 @@ List<RadioListTile> getOrderingOptions(BuildContext context,
           onChanged: (value) {
             orderOptions
                 .add(OrderOptions(orderBy: value, asc: orderOptions.value.asc));
-            navigator.currentState.pop;
+            navigator.currentState.pop();
           },
         ),
       )
@@ -222,7 +222,7 @@ List<RadioListTile> getOrderingOptions(BuildContext context,
               onChanged: (value) {
                 orderOptions.add(OrderOptions(
                     orderBy: orderOptions.value.orderBy, asc: value == 'true'));
-                navigator.currentState.pop;
+                navigator.currentState.pop();
               },
             ),
             RadioListTile(
@@ -232,7 +232,7 @@ List<RadioListTile> getOrderingOptions(BuildContext context,
               onChanged: (value) {
                 orderOptions.add(OrderOptions(
                     orderBy: orderOptions.value.orderBy, asc: value == 'true'));
-                navigator.currentState.pop;
+                navigator.currentState.pop();
               },
             ),
           ],
@@ -341,55 +341,19 @@ Future onNotificationClicked(String payload) {
 }
 
 Stream<Map<DocumentReference, Tuple2<Class, List<User>>>> usersByClassRef(
-    [List<User> users]) {
-  return FirebaseFirestore.instance
-      .collection('StudyYears')
-      .orderBy('Grade')
-      .snapshots()
-      .map(
-    (sys) {
-      Map<String, StudyYear> studyYears = {
-        for (final sy in sys.docs) sy.reference.id: StudyYear.fromDoc(sy)
-      };
-      mergeSort<User>(
-        users,
-        compare: (u, u2) {
-          if (u.servingStudyYear == null && u2.servingStudyYear == null)
-            return 0;
-          if (u.servingStudyYear == null) return 1;
-          if (u2.servingStudyYear == null) return -1;
-          if (u.servingStudyYear == u2.servingStudyYear) {
-            if (u.servingStudyGender == u2.servingStudyGender)
-              return u.name.compareTo(u2.name);
-            return u.servingStudyGender?.compareTo(u.servingStudyGender) ?? 1;
-          }
-          return studyYears[u.servingStudyYear]
-              .grade
-              .compareTo(studyYears[u2.servingStudyYear].grade);
-        },
-      );
-
-      Map<User, Class> usersWithClasses = {
-        for (final u in users)
-          u: Class(
-            ref: FirebaseFirestore.instance.collection('Classes').doc(
-                u.servingStudyYear != null && u.servingStudyGender != null
-                    ? u.servingStudyYear + '-' + u.servingStudyGender.toString()
-                    : 'unknown'),
-            name: u.servingStudyYear != null && u.servingStudyGender != null
-                ? studyYears[u.servingStudyYear].name +
-                    ' - ' +
-                    (u.servingStudyGender ? 'بنين' : 'بنات')
-                : 'غير محدد',
-            studyYear: studyYears[u.servingStudyYear]?.ref,
-            gender: u.servingStudyGender,
-          )
+    List<User> users) {
+  return classesByStudyYearRef().map(
+    (cs) {
+      Map<DocumentReference, Class> classesByRef = {
+        for (final c in cs.values.expand((e) => e).toList()) c.ref: c
       };
 
       return {
-        for (final e
-            in groupBy<User, Class>(users, (user) => usersWithClasses[user])
-                .entries)
+        for (final e in groupBy<User, Class>(
+            users,
+            (user) =>
+                classesByRef[user.classId] ??
+                Class(name: 'غير محدد', gender: true)).entries)
           e.key.ref: Tuple2(e.key, e.value)
       };
     },
@@ -677,18 +641,24 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
         providers: [
           Provider(
             create: (_) => DataObjectListOptions<User>(
-                itemBuilder: (current,
-                        {onLongPress, onTap, subtitle, trailing}) =>
-                    DataObjectWidget(
-                      current,
-                      onTap: () => onTap(current),
-                      trailing: trailing,
-                      showSubTitle: false,
-                    ),
-                selectionMode: true,
-                searchQuery: search,
-                itemsStream: Stream.fromFuture(User.getAllUsersLive())
-                    .map((s) => s.docs.map(User.fromDoc).toList())),
+              itemBuilder: (current,
+                      {onLongPress, onTap, subtitle, trailing}) =>
+                  DataObjectWidget(
+                current,
+                onTap: () => onTap(current),
+                trailing: trailing,
+                showSubTitle: false,
+              ),
+              selectionMode: true,
+              searchQuery: search,
+              itemsStream: FirebaseFirestore.instance
+                  .collection('Users')
+                  .snapshots()
+                  .map(
+                    (s) =>
+                        s.docs.map((e) => User.fromDoc(e)..uid = e.id).toList(),
+                  ),
+            ),
           ),
         ],
         builder: (context, child) => Scaffold(
@@ -1174,11 +1144,12 @@ Future<void> showErrorUpdateDataDialog(
                   .pushNamed('UpdateUserDataError', arguments: user);
               if (user.lastTanawol != null &&
                   user.lastConfession != null &&
-                  ((user.lastTanawol + 2592000000) >
+                  ((user.lastTanawol.millisecondsSinceEpoch + 2592000000) >
                           DateTime.now().millisecondsSinceEpoch &&
-                      (user.lastConfession + 5184000000) >
+                      (user.lastConfession.millisecondsSinceEpoch +
+                              5184000000) >
                           DateTime.now().millisecondsSinceEpoch)) {
-                navigator.currentState.pop;
+                navigator.currentState.pop();
                 if (pushApp)
                   // ignore: unawaited_futures
                   navigator.currentState.pushReplacement(
@@ -1189,7 +1160,7 @@ Future<void> showErrorUpdateDataDialog(
             label: Text('تحديث بيانات التناول والاعتراف'),
           ),
           TextButton.icon(
-            onPressed: () => navigator.currentState.pop,
+            onPressed: () => navigator.currentState.pop(),
             icon: Icon(Icons.close),
             label: Text('تم'),
           ),
@@ -1511,7 +1482,7 @@ void userTap(User user, BuildContext context) async {
                 TextButton.icon(
                   icon: Icon(Icons.close),
                   label: Text('حذف المستخدم'),
-                  onPressed: () => navigator.currentState.pop('delete'),
+                  onPressed: () => navigator.currentState.pop('deleted'),
                 ),
               ],
               title: Text('${user.name} غير مُنشط هل تريد تنشيطه؟'),

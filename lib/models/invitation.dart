@@ -60,12 +60,7 @@ class Invitation extends DataObject {
 
   @override
   Future<String> getSecondLine() async {
-    if (used)
-      return 'تم الاستخدام بواسطة: ' +
-          (await User.getAllUsersLive())
-              .docs
-              .singleWhere((u) => u.id == usedBy)
-              .data()['Name'];
+    if (used) return 'تم الاستخدام بواسطة: ' + (await User.onlyName(usedBy));
     return 'ينتهي في ' +
         DateFormat('yyyy/M/d', 'ar-EG').format(expiryDate.toDate());
   }

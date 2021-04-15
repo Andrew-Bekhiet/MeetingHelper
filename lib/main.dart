@@ -20,6 +20,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:meetinghelper/admin.dart';
 import 'package:meetinghelper/views/day.dart';
 import 'package:meetinghelper/views/edit_page/edit_invitation.dart';
+import 'package:meetinghelper/views/edit_users.dart';
 import 'package:meetinghelper/views/exports.dart';
 import 'package:meetinghelper/views/invitations_page.dart';
 import 'package:meetinghelper/views/trash.dart';
@@ -197,8 +198,12 @@ class AppState extends State<App> {
           'Notifications': (context) => NotificationsPage(),
           'ClassInfo': (context) =>
               ClassInfo(class$: ModalRoute.of(context).settings.arguments),
-          'PersonInfo': (context) =>
-              PersonInfo(person: ModalRoute.of(context).settings.arguments),
+          'PersonInfo': (context) => PersonInfo(
+                person: ModalRoute.of(context).settings.arguments,
+                converter: ModalRoute.of(context).settings.arguments is User
+                    ? User.fromDoc
+                    : Person.fromDoc,
+              ),
           'UserInfo': (context) => UserInfo(),
           'InvitationInfo': (context) => InvitationInfo(
               invitation: ModalRoute.of(context).settings.arguments),
@@ -231,7 +236,9 @@ class AppState extends State<App> {
           'UpdateUserDataError': (context) => UpdateUserDataErrorPage(),
           'ManageUsers': (context) => UsersPage(),
           'Invitations': (context) => InvitationsPage(),
-          'ActivityAnalysis': (context) => ActivityAnalysis(),
+          'ActivityAnalysis': (context) => ActivityAnalysis(
+                classes: ModalRoute.of(context).settings.arguments,
+              ),
           'Analytics': (context) {
             if (ModalRoute.of(context).settings.arguments is Person)
               return PersonAnalyticsPage(

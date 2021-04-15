@@ -264,7 +264,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
   }
 }
 
-class DataObjectCheckList<T extends DataObject> extends StatefulWidget {
+class DataObjectCheckList<T extends Person> extends StatefulWidget {
   final CheckListOptions<T> options;
 
   DataObjectCheckList({Key key, this.options}) : super(key: key);
@@ -273,8 +273,7 @@ class DataObjectCheckList<T extends DataObject> extends StatefulWidget {
   _CheckListState<T> createState() => _CheckListState<T>();
 }
 
-class _CheckListState<T extends DataObject>
-    extends State<DataObjectCheckList<T>>
+class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
     with AutomaticKeepAliveClientMixin<DataObjectCheckList<T>> {
   bool _builtOnce = false;
   CheckListOptions<T> _listOptions;
@@ -429,13 +428,14 @@ class _CheckListState<T extends DataObject>
   void _showRecordDialog(T current, HistoryRecord oRecord) async {
     var record = oRecord != null
         ? HistoryRecord(
-            classId: T == Person ? (current as Person).classId : null,
+            classId: current.classId,
             id: oRecord.id,
             notes: oRecord.notes,
             parent: oRecord.parent,
             recordedBy: oRecord.recordedBy,
             time: oRecord.time,
-            type: oRecord.type)
+            type: oRecord.type,
+            isServant: T == User)
         : null;
     if (await showDialog(
           context: context,
@@ -458,15 +458,13 @@ class _CheckListState<T extends DataObject>
                                 ? (v) {
                                     if (v) {
                                       record = HistoryRecord(
-                                        classId: T == Person
-                                            ? (current as Person).classId
-                                            : null,
-                                        id: current.id,
-                                        parent: _listOptions.day,
-                                        type: _listOptions.type,
-                                        recordedBy: User.instance.uid,
-                                        time: Timestamp.now(),
-                                      );
+                                          classId: current.classId,
+                                          id: current.id,
+                                          parent: _listOptions.day,
+                                          type: _listOptions.type,
+                                          recordedBy: User.instance.uid,
+                                          time: Timestamp.now(),
+                                          isServant: T == User);
                                     } else
                                       record = null;
                                     setState(() {});

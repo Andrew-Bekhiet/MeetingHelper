@@ -195,8 +195,7 @@ class DataObjectListOptions<T extends DataObject>
   }
 }
 
-class CheckListOptions<T extends DataObject>
-    implements DataObjectListOptions<T> {
+class CheckListOptions<T extends Person> implements DataObjectListOptions<T> {
   final HistoryDay day;
   final DayListType type;
   final HistoryDayOptions dayOptions;
@@ -442,10 +441,11 @@ class CheckListOptions<T extends DataObject>
             type: type,
             parent: day,
             id: item.id,
-            classId: T == Person ? (item as Person).classId : null,
+            classId: item.classId,
             time: time ?? Timestamp.now(),
             recordedBy: User.instance.uid,
-            notes: notes)
+            notes: notes,
+            isServant: T == User)
         .set();
   }
 
@@ -460,10 +460,11 @@ class CheckListOptions<T extends DataObject>
             type: type,
             parent: day,
             id: item.id,
-            classId: T == Person ? (item as Person).classId : null,
+            classId: item.classId,
             time: time ?? Timestamp.now(),
             recordedBy: User.instance.uid,
-            notes: notes)
+            notes: notes,
+            isServant: T == User)
         .update();
   }
 

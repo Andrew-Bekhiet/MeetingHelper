@@ -27,7 +27,8 @@ import '../services_list.dart';
 
 class EditPerson extends StatefulWidget {
   final Person person;
-  EditPerson({Key key, @required this.person}) : super(key: key);
+  final Function(FormState, Person) save;
+  EditPerson({Key key, @required this.person, this.save}) : super(key: key);
 
   @override
   _EditPersonState createState() => _EditPersonState();
@@ -874,7 +875,8 @@ class _EditPersonState extends State<EditPerson> {
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          if (person.id != 'null')
+          if (person.id != 'null' &&
+              (person is! User || (person as User).uid == null))
             FloatingActionButton(
               mini: true,
               tooltip: 'حذف',
@@ -885,7 +887,12 @@ class _EditPersonState extends State<EditPerson> {
           FloatingActionButton(
             tooltip: 'حفظ',
             heroTag: 'Save',
-            onPressed: _save,
+            onPressed: () {
+              if (widget.save != null)
+                widget.save(form.currentState, person);
+              else
+                _save();
+            },
             child: Icon(Icons.save),
           ),
         ],
@@ -1058,8 +1065,7 @@ class _EditPersonState extends State<EditPerson> {
           context: context,
           builder: (context) => AlertDialog(
             title: Text('بيانات غير كاملة'),
-            content:
-                Text('يرجى التأكد من ملئ هذه الحقول:\nالاسم\nالفصل\nنوع الفرد'),
+            content: Text('يرجى التأكد من ملئ هذه الحقول:\nالاسم\nالفصل'),
           ),
         );
       }
@@ -1082,7 +1088,7 @@ class _EditPersonState extends State<EditPerson> {
         BehaviorSubject<String>.seeded('');
     final options = ServicesListOptions(
       tap: (class$) {
-        navigator.currentState.pop;
+        navigator.currentState.pop();
         person.classId = class$.ref;
         setState(() {});
         FocusScope.of(context).nextFocus();

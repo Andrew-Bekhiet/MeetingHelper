@@ -140,7 +140,8 @@ class HistoryRecord {
       this.classId,
       this.time,
       this.recordedBy,
-      this.notes});
+      this.notes,
+      this.isServant});
 
   HistoryRecord.fromDoc(this.parent, DocumentSnapshot doc)
       : id = doc.id,
@@ -150,6 +151,7 @@ class HistoryRecord {
             : (doc.reference.parent.id == 'Kodas'
                 ? DayListType.Kodas
                 : DayListType.Tanawol),
+        isServant = doc.data()['IsServant'],
         time = doc.data()['Time'],
         recordedBy = doc.data()['RecordedBy'],
         notes = doc.data()['Notes'];
@@ -166,6 +168,7 @@ class HistoryRecord {
   String recordedBy;
   String notes;
   DocumentReference classId;
+  bool isServant;
 
   DocumentReference get ref => parent.collections[type].doc(id);
 
@@ -183,7 +186,8 @@ class HistoryRecord {
       'Time': time,
       'RecordedBy': recordedBy,
       'Notes': notes,
-      'ClassId': classId
+      'ClassId': classId,
+      'IsServant': isServant,
     };
   }
 

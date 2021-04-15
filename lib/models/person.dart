@@ -82,7 +82,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
     defaultIcon = Icons.person;
   }
 
-  Person._createFromData(Map<dynamic, dynamic> data, DocumentReference ref)
+  Person.createFromData(Map<dynamic, dynamic> data, DocumentReference ref)
       : super.createFromData(data, ref) {
     classId = data['ClassId'];
 
@@ -291,7 +291,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
   }
 
   static Person fromDoc(DocumentSnapshot data) =>
-      data.exists ? Person._createFromData(data.data(), data.reference) : null;
+      data.exists ? Person.createFromData(data.data(), data.reference) : null;
 
   static Future<Person> fromId(String id) async =>
       Person.fromDoc(await FirebaseFirestore.instance.doc('Persons/$id').get());

@@ -62,15 +62,20 @@ class _UsersListState extends State<UsersList> {
                   return Container(
                       height: MediaQuery.of(context).size.height / 19);
 
+                final _class = groupedData.data.values.elementAt(i).item1;
+
                 return DataObjectWidget<Class>(
-                  groupedData.data.values.elementAt(i).item1,
+                  _class,
                   subtitle: Text('يتم عرض ' +
                       groupedData.data.values
                           .elementAt(i)
                           .item2
                           .length
                           .toString() +
-                      ' مخدوم داخل الفصل'),
+                      ' خادم داخل الفصل'),
+                  onTap: () {
+                    if (_class.id != 'null') classTap(_class, context);
+                  },
                 );
               },
               itemBuilder: (context, i) {
@@ -104,7 +109,7 @@ class _UsersListState extends State<UsersList> {
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
                           return Checkbox(
-                            value: snapshot.data.containsKey(current.id),
+                            value: snapshot.data.containsKey(current.uid),
                             onChanged: (v) {
                               if (v) {
                                 _listOptions.select(current);

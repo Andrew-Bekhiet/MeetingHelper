@@ -41,8 +41,8 @@ class _UserRegistrationState extends State<UserRegistration> {
     return Consumer<User>(
       builder: (context, user, _) {
         if (user.approved) {
-          lastTanawol ??= user.lastTanawol;
-          lastConfession ??= user.lastConfession;
+          lastTanawol ??= user.lastTanawol.millisecondsSinceEpoch;
+          lastConfession ??= user.lastConfession.millisecondsSinceEpoch;
           return Scaffold(
             resizeToAvoidBottomInset: !kIsWeb,
             appBar: AppBar(
@@ -348,7 +348,7 @@ class _UserRegistrationState extends State<UserRegistration> {
               return Text(
                   (snapshot.error as FirebaseFunctionsException).message);
             } else if (snapshot.connectionState == ConnectionState.done) {
-              navigator.currentState.pop;
+              navigator.currentState.pop();
             }
             return Row(
               crossAxisAlignment: CrossAxisAlignment.start,

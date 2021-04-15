@@ -1,16 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:rxdart/rxdart.dart';
 
-import 'models/list_options.dart';
 import 'models/mini_models.dart';
-import 'models/user.dart';
 import 'views/mini_lists/churches_list.dart';
 import 'views/mini_lists/fathers_list.dart';
 import 'views/mini_lists/schools_list.dart';
 import 'views/mini_lists/study_years_list.dart';
-import 'views/users_list.dart';
 
 class ChurchesPage extends StatefulWidget {
   ChurchesPage({Key key}) : super(key: key);
@@ -30,28 +26,10 @@ class FathersPage extends StatefulWidget {
   _FathersPageState createState() => _FathersPageState();
 }
 
-// class PersonTypesPage extends StatefulWidget {
-//   PersonTypesPage({Key key}) : super(key: key);
-//   @override
-//   _PersonTypesPageState createState() => _PersonTypesPageState();
-// }
-
-// class ServingTypesPage extends StatefulWidget {
-//   ServingTypesPage({Key key}) : super(key: key);
-//   @override
-//   _ServingTypesPageState createState() => _ServingTypesPageState();
-// }
-
 class StudyYearsPage extends StatefulWidget {
   StudyYearsPage({Key key}) : super(key: key);
   @override
   _StudyYearsPageState createState() => _StudyYearsPageState();
-}
-
-class UsersPage extends StatefulWidget {
-  UsersPage({Key key}) : super(key: key);
-  @override
-  _UsersPageState createState() => _UsersPageState();
 }
 
 class _SchoolsPageState extends State<SchoolsPage> {
@@ -861,71 +839,6 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
                   : Text(year.grade.toString()),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _UsersPageState extends State<UsersPage> {
-  bool _showSearch = false;
-  final BehaviorSubject<String> _search = BehaviorSubject<String>.seeded('');
-
-  @override
-  Widget build(BuildContext context) {
-    var _listOptions = DataObjectListOptions<User>(
-      itemsStream: Stream.fromFuture(User.getUsersForEdit()),
-      searchQuery: _search,
-    );
-    return Scaffold(
-      appBar: AppBar(
-        actions: [
-          IconButton(
-              icon: Icon(Icons.link),
-              tooltip: 'لينكات الدعوة',
-              onPressed: () => navigator.currentState.pushNamed('Invitations')),
-          if (!_showSearch)
-            IconButton(
-                icon: Icon(Icons.search),
-                onPressed: () => setState(() => _showSearch = true)),
-        ],
-        title: _showSearch
-            ? TextField(
-                decoration: InputDecoration(
-                    suffixIcon: IconButton(
-                      icon: Icon(Icons.close),
-                      onPressed: () => setState(
-                        () {
-                          _search.add('');
-                          _showSearch = false;
-                        },
-                      ),
-                    ),
-                    hintStyle: Theme.of(context).primaryTextTheme.headline6,
-                    hintText: 'بحث ...'),
-                onChanged: _search.add,
-              )
-            : Text('المستخدمون'),
-      ),
-      bottomNavigationBar: BottomAppBar(
-        color: Theme.of(context).primaryColor,
-        shape: const CircularNotchedRectangle(),
-        child: StreamBuilder(
-          stream: _listOptions.objectsData,
-          builder: (context, snapshot) {
-            return Text(
-              (snapshot.data?.length ?? 0).toString() + ' مستخدم',
-              textAlign: TextAlign.center,
-              strutStyle: StrutStyle(height: IconTheme.of(context).size / 7.5),
-              style: Theme.of(context).primaryTextTheme.bodyText1,
-            );
-          },
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: UsersList(
-          listOptions: _listOptions,
         ),
       ),
     );

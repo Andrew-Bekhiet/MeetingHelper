@@ -4,7 +4,6 @@ import 'dart:ui';
 import 'package:async/async.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_database/firebase_database.dart';
@@ -12,24 +11,28 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stream_notifiers/flutter_stream_notifiers.dart';
 import 'package:hive/hive.dart';
+import 'package:meetinghelper/models/class.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/helpers.dart';
+import 'package:meetinghelper/models/person.dart';
 
-import 'super_classes.dart';
-
-class User extends DataObject
-    with PhotoObject, ChangeNotifier, ChangeNotifierStream<User> {
+class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
   static final User instance = User._initInstance();
 
   Completer<bool> _initialized = Completer<bool>();
 
   Future<bool> get initialized => _initialized.future;
 
+  @override
+  bool get hasPhoto => uid != null;
+
+  @override
+  set hasPhoto(bool _) {}
+
   String _uid;
 
   String get uid => _uid;
-
-  @override
-  String get id => uid;
 
   set uid(String uid) {
     _uid = uid;
@@ -38,9 +41,6 @@ class User extends DataObject
 
   String email;
   String password;
-
-  String servingStudyYear;
-  bool servingStudyGender;
 
   bool superAccess;
   bool manageDeleted;
@@ -60,18 +60,12 @@ class User extends DataObject
 
   bool approved;
 
-  int lastConfession;
-  int lastTanawol;
-
-  DateTime get lastConfessionDate => lastConfession != null
-      ? DateTime.fromMillisecondsSinceEpoch(lastConfession)
-      : null;
-  DateTime get lastTanawolDate => lastTanawol != null
-      ? DateTime.fromMillisecondsSinceEpoch(lastTanawol)
-      : null;
+  DateTime get lastConfessionDate => lastConfession?.toDate();
+  DateTime get lastTanawolDate => lastTanawol?.toDate();
 
   StreamSubscription<Event> userTokenListener;
   StreamSubscription<Event> connectionListener;
+  StreamSubscription<DocumentSnapshot> personListener;
   StreamSubscription<auth.User> authListener;
 
   final AsyncCache<String> _photoUrlCache =
@@ -79,14 +73,14 @@ class User extends DataObject
 
   User._initInstance()
       : allowedUsers = [],
-        super(null, null, null) {
-    hasPhoto = true;
+        super() {
     defaultIcon = Icons.account_circle;
     _initListeners();
   }
 
   factory User(
-      {String uid,
+      {DocumentReference ref,
+      String uid,
       String name,
       String password,
       bool manageUsers,
@@ -102,42 +96,43 @@ class User extends DataObject
       bool kodasNotify,
       bool meetingNotify,
       bool approved,
-      int lastConfession,
-      int lastTanawol,
+      Timestamp lastConfession,
+      Timestamp lastTanawol,
       String servingStudyYear,
       bool servingStudyGender,
       List<String> allowedUsers,
       String email}) {
-    if (uid == null || uid == auth.FirebaseAuth.instance.currentUser.uid) {
+    if (uid == auth.FirebaseAuth.instance.currentUser.uid) {
       return instance;
     }
     return User._new(
-        uid,
-        name,
-        password,
-        manageUsers,
-        manageAllowedUsers,
-        superAccess,
-        manageDeleted,
-        write,
-        secretary,
-        exportClasses,
-        birthdayNotify,
-        confessionsNotify,
-        tanawolNotify,
-        kodasNotify,
-        meetingNotify,
-        approved,
-        lastConfession,
-        lastTanawol,
-        servingStudyYear,
-        servingStudyGender,
-        allowedUsers,
-        email: email);
+      ref: ref,
+      uid: uid,
+      name: name,
+      password: password,
+      manageUsers: manageUsers,
+      manageAllowedUsers: manageAllowedUsers,
+      superAccess: superAccess,
+      manageDeleted: manageDeleted,
+      write: write,
+      secretary: secretary,
+      exportClasses: exportClasses,
+      birthdayNotify: birthdayNotify,
+      confessionsNotify: confessionsNotify,
+      tanawolNotify: tanawolNotify,
+      kodasNotify: kodasNotify,
+      meetingNotify: meetingNotify,
+      approved: approved,
+      lastConfession: lastConfession,
+      lastTanawol: lastTanawol,
+      allowedUsers: allowedUsers,
+      email: email,
+    );
   }
 
   User._new(
-      this._uid,
+      {String uid,
+      String id,
       String name,
       this.password,
       this.manageUsers,
@@ -153,16 +148,57 @@ class User extends DataObject
       this.kodasNotify,
       this.meetingNotify,
       this.approved,
-      this.lastConfession,
-      this.lastTanawol,
-      this.servingStudyYear,
-      this.servingStudyGender,
+      Timestamp lastConfession,
+      Timestamp lastTanawol,
       List<String> allowedUsers,
-      {this.email,
-      DocumentReference ref})
-      : super(ref ?? FirebaseFirestore.instance.collection('Users').doc(_uid),
-            name, null) {
-    hasPhoto = true;
+      this.email,
+      DocumentReference ref,
+      DocumentReference classId,
+      String phone,
+      Map<String, dynamic> phones,
+      String fatherPhone,
+      String motherPhone,
+      String address,
+      GeoPoint location,
+      Timestamp birthDate,
+      Timestamp lastKodas,
+      Timestamp lastMeeting,
+      Timestamp lastCall,
+      Timestamp lastVisit,
+      String lastEdit,
+      String notes,
+      DocumentReference school,
+      DocumentReference church,
+      DocumentReference cFather,
+      Color color = Colors.transparent})
+      : _uid = uid,
+        super(
+          ref: ref ??
+              FirebaseFirestore.instance
+                  .collection('UsersData')
+                  .doc(id ?? 'null'),
+          name: name,
+          classId: classId,
+          phone: phone,
+          phones: phones,
+          fatherPhone: fatherPhone,
+          motherPhone: motherPhone,
+          address: address,
+          location: location,
+          birthDate: birthDate,
+          lastTanawol: lastTanawol,
+          lastConfession: lastConfession,
+          lastKodas: lastKodas,
+          lastMeeting: lastMeeting,
+          lastCall: lastCall,
+          lastVisit: lastVisit,
+          lastEdit: lastEdit,
+          notes: notes,
+          school: school,
+          church: church,
+          cFather: cFather,
+          color: color,
+        ) {
     defaultIcon = Icons.account_circle;
     this.manageAllowedUsers = manageAllowedUsers ?? false;
     this.allowedUsers = allowedUsers ?? [];
@@ -215,38 +251,9 @@ class User extends DataObject
               idTokenClaims = await flutterSecureStorage.readAll();
               if (idTokenClaims?.isEmpty ?? true) rethrow;
             }
-            uid = user.uid;
-            name = user.displayName;
-            password = idTokenClaims['password'];
-            manageUsers = idTokenClaims['manageUsers'].toString() == 'true';
-            manageAllowedUsers =
-                idTokenClaims['manageAllowedUsers'].toString() == 'true';
-            superAccess = idTokenClaims['superAccess'].toString() == 'true';
-            manageDeleted = idTokenClaims['manageDeleted'].toString() == 'true';
-            write = idTokenClaims['write'].toString() == 'true';
-            secretary = idTokenClaims['secretary'].toString() == 'true';
-            exportClasses = idTokenClaims['exportClasses'].toString() == 'true';
-            birthdayNotify =
-                idTokenClaims['birthdayNotify'].toString() == 'true';
-            confessionsNotify =
-                idTokenClaims['confessionsNotify'].toString() == 'true';
-            tanawolNotify = idTokenClaims['tanawolNotify'].toString() == 'true';
-            kodasNotify = idTokenClaims['kodasNotify'].toString() == 'true';
-            meetingNotify = idTokenClaims['meetingNotify'].toString() == 'true';
-            approved = idTokenClaims['approved'].toString() == 'true';
-            lastConfession = idTokenClaims['lastConfession'] != null
-                ? int.parse(idTokenClaims['lastConfession'].toString())
-                : null;
-            lastTanawol = idTokenClaims['lastTanawol'] != null
-                ? int.parse(idTokenClaims['lastTanawol'].toString())
-                : null;
-            servingStudyYear = idTokenClaims['servingStudyYear'].toString();
-            servingStudyGender =
-                idTokenClaims['servingStudyGender'].toString() == 'true';
-            email = user.email;
-
-            notifyListeners();
+            _refreshFromIdToken(user, idTokenClaims);
           });
+
           Map<dynamic, dynamic> idTokenClaims;
           try {
             var idToken;
@@ -285,35 +292,8 @@ class User extends DataObject
             idTokenClaims = await flutterSecureStorage.readAll();
             if (idTokenClaims?.isEmpty ?? true) rethrow;
           }
-          uid = user.uid;
-          name = user.displayName;
-          password = idTokenClaims['password'];
-          manageUsers = idTokenClaims['manageUsers'].toString() == 'true';
-          manageAllowedUsers =
-              idTokenClaims['manageAllowedUsers'].toString() == 'true';
-          superAccess = idTokenClaims['superAccess'].toString() == 'true';
-          manageDeleted = idTokenClaims['manageDeleted'].toString() == 'true';
-          write = idTokenClaims['write'].toString() == 'true';
-          secretary = idTokenClaims['secretary'].toString() == 'true';
-          exportClasses = idTokenClaims['exportClasses'].toString() == 'true';
-          birthdayNotify = idTokenClaims['birthdayNotify'].toString() == 'true';
-          confessionsNotify =
-              idTokenClaims['confessionsNotify'].toString() == 'true';
-          tanawolNotify = idTokenClaims['tanawolNotify'].toString() == 'true';
-          kodasNotify = idTokenClaims['kodasNotify'].toString() == 'true';
-          meetingNotify = idTokenClaims['meetingNotify'].toString() == 'true';
-          approved = idTokenClaims['approved'].toString() == 'true';
-          lastConfession = idTokenClaims['lastConfession'] != null
-              ? int.parse(idTokenClaims['lastConfession'].toString())
-              : null;
-          lastTanawol = idTokenClaims['lastTanawol'] != null
-              ? int.parse(idTokenClaims['lastTanawol'].toString())
-              : null;
-          servingStudyYear = idTokenClaims['servingStudyYear'].toString();
-          servingStudyGender =
-              idTokenClaims['servingStudyGender'].toString() == 'true';
-          email = user.email;
-          notifyListeners();
+
+          _refreshFromIdToken(user, idTokenClaims);
         } else if (uid != null) {
           if (!_initialized.isCompleted) _initialized.complete(false);
           _initialized = Completer<bool>();
@@ -325,9 +305,82 @@ class User extends DataObject
     );
   }
 
+  void _refreshFromIdToken(
+      auth.User user, Map<dynamic, dynamic> idTokenClaims) {
+    uid = user.uid;
+    name = user.displayName;
+    if (idTokenClaims['personId'] != ref.id) {
+      ref = FirebaseFirestore.instance
+          .collection('UsersData')
+          .doc(idTokenClaims['personId']);
+      personListener?.cancel();
+      personListener = ref.snapshots().listen(_refreshFromDoc);
+    }
+
+    password = idTokenClaims['password'];
+    manageUsers = idTokenClaims['manageUsers'].toString() == 'true';
+    manageAllowedUsers =
+        idTokenClaims['manageAllowedUsers'].toString() == 'true';
+    superAccess = idTokenClaims['superAccess'].toString() == 'true';
+    manageDeleted = idTokenClaims['manageDeleted'].toString() == 'true';
+    write = idTokenClaims['write'].toString() == 'true';
+    secretary = idTokenClaims['secretary'].toString() == 'true';
+    exportClasses = idTokenClaims['exportClasses'].toString() == 'true';
+    birthdayNotify = idTokenClaims['birthdayNotify'].toString() == 'true';
+    confessionsNotify = idTokenClaims['confessionsNotify'].toString() == 'true';
+    tanawolNotify = idTokenClaims['tanawolNotify'].toString() == 'true';
+    kodasNotify = idTokenClaims['kodasNotify'].toString() == 'true';
+    meetingNotify = idTokenClaims['meetingNotify'].toString() == 'true';
+    approved = idTokenClaims['approved'].toString() == 'true';
+
+    lastConfession = idTokenClaims['lastConfession'] != null
+        ? Timestamp.fromMillisecondsSinceEpoch(
+            int.parse(idTokenClaims['lastConfession'].toString()))
+        : null;
+    lastTanawol = idTokenClaims['lastTanawol'] != null
+        ? Timestamp.fromMillisecondsSinceEpoch(
+            int.parse(idTokenClaims['lastTanawol'].toString()))
+        : null;
+    email = user.email;
+
+    notifyListeners();
+  }
+
+  void _refreshFromDoc(DocumentSnapshot doc) {
+    final data = doc.data();
+    classId = data['ClassId'];
+
+    phone = data['Phone'];
+    fatherPhone = data['FatherPhone'];
+    motherPhone = data['MotherPhone'];
+    phones = data['Phones']?.cast<String, dynamic>() ?? {};
+
+    address = data['Address'];
+    location = data['Location'];
+
+    birthDate = data['BirthDate'];
+    lastKodas = data['LastKodas'];
+    lastMeeting = data['LastMeeting'];
+    lastCall = data['LastCall'];
+
+    lastVisit = data['LastVisit'];
+    lastEdit = '';
+
+    notes = data['Notes'];
+
+    school = data['School'];
+    church = data['Church'];
+    cFather = data['CFather'];
+
+    allowedUsers = data['AllowedUsers']?.cast<String>() ?? [];
+
+    notifyListeners();
+  }
+
   Future<void> signOut() async {
     await recordLastSeen();
     await userTokenListener?.cancel();
+    await personListener?.cancel();
     if (!_initialized.isCompleted) _initialized.complete(false);
     _initialized = Completer<bool>();
     uid = null;
@@ -336,32 +389,27 @@ class User extends DataObject
     await connectionListener?.cancel();
   }
 
-  User._createFromData(this._uid, Map<String, dynamic> data)
-      : super.createFromData(
-            data, FirebaseFirestore.instance.collection('Users').doc(_uid)) {
-    name = data['Name'] ?? data['name'];
-    uid = data['uid'] ?? _uid;
-    password = data['password'];
-    manageUsers = data['manageUsers'];
-    manageAllowedUsers = data['manageAllowedUsers'];
-    allowedUsers = data['allowedUsers']?.cast<String>();
-    superAccess = data['superAccess'];
-    manageDeleted = data['manageDeleted'];
-    write = data['write'];
-    secretary = data['secretary'];
-    exportClasses = data['exportClasses'];
-    birthdayNotify = data['birthdayNotify'];
-    confessionsNotify = data['confessionsNotify'];
-    tanawolNotify = data['tanawolNotify'];
-    kodasNotify = data['kodasNotify'];
-    meetingNotify = data['meetingNotify'];
-    approved = data['approved'];
-    lastConfession = data['lastConfession'];
-    lastTanawol = data['lastTanawol'];
-    servingStudyYear = data['servingStudyYear'];
-    servingStudyGender = data['servingStudyGender'];
-    email = data['email'];
-    hasPhoto = true;
+  User._createFromData(Map<String, dynamic> data, DocumentReference ref)
+      : super.createFromData(data, ref) {
+    _uid = data['UID'];
+    email = data['Email'];
+
+    final permissions = data['Permissions'] ?? {};
+    allowedUsers = data['AllowedUsers']?.cast<String>() ?? [];
+    manageUsers = permissions['ManageUsers'] ?? false;
+    manageAllowedUsers = permissions['ManageAllowedUsers'] ?? false;
+    superAccess = permissions['SuperAccess'] ?? false;
+    manageDeleted = permissions['ManageDeleted'] ?? false;
+    write = permissions['Write'] ?? false;
+    secretary = permissions['Secretary'] ?? false;
+    exportClasses = permissions['ExportClasses'] ?? false;
+    birthdayNotify = permissions['BirthdayNotify'] ?? false;
+    confessionsNotify = permissions['ConfessionsNotify'] ?? false;
+    tanawolNotify = permissions['TanawolNotify'] ?? false;
+    kodasNotify = permissions['KodasNotify'] ?? false;
+    meetingNotify = permissions['MeetingNotify'] ?? false;
+    approved = permissions['Approved'] ?? false;
+
     defaultIcon = Icons.account_circle;
   }
 
@@ -369,9 +417,9 @@ class User extends DataObject
   Color get color => Colors.transparent;
 
   @override
-  int get hashCode => hashValues(
-      email,
+  int get hashCode =>
       hashValues(
+          email,
           uid,
           name,
           password,
@@ -389,14 +437,8 @@ class User extends DataObject
           meetingNotify,
           approved,
           lastConfession,
-          lastTanawol,
-          servingStudyYear,
-          servingStudyGender),
-      email);
-
-  DocumentReference get servingStudyYearRef => servingStudyYear == null
-      ? null
-      : FirebaseFirestore.instance.doc('StudyYears/$servingStudyYear');
+          lastTanawol) ^
+      super.hashCode;
 
   @override
   bool operator ==(other) {
@@ -407,6 +449,7 @@ class User extends DataObject
   Future dispose() async {
     await recordLastSeen();
     await userTokenListener?.cancel();
+    await personListener?.cancel();
     await connectionListener?.cancel();
     await authListener?.cancel();
     await super.dispose();
@@ -441,7 +484,7 @@ class User extends DataObject
   }
 
   @override
-  Widget photo([bool b = false]) => getPhoto();
+  Widget photo([bool b = false]) => getPhoto(b);
 
   Widget getPhoto([bool showCircle = true, bool showActiveStatus = true]) {
     return AspectRatio(
@@ -545,15 +588,10 @@ class User extends DataObject
   @override
   Future<String> getSecondLine() async => getPermissions();
 
-  Future<String> getStudyYearName() async {
-    var tmp = (await servingStudyYearRef?.get(dataSource))?.data();
-    if (tmp == null) return '';
-    return tmp['Name'] ?? 'لا يوجد';
-  }
-
   Map<String, dynamic> getUpdateMap() {
     return {
       'name': name,
+      'classId': classId?.path,
       'manageUsers': manageUsers ?? false,
       'manageAllowedUsers': manageAllowedUsers ?? false,
       'superAccess': superAccess ?? false,
@@ -567,97 +605,24 @@ class User extends DataObject
       'kodasNotify': kodasNotify ?? false,
       'meetingNotify': meetingNotify ?? false,
       'approved': approved ?? false,
-      'lastConfession': lastConfession,
-      'lastTanawol': lastTanawol,
-      'servingStudyYear': servingStudyYear,
-      'servingStudyGender': servingStudyGender,
-      'allowedUsers': allowedUsers ?? [],
+      'lastConfession': lastConfession?.millisecondsSinceEpoch,
+      'lastTanawol': lastTanawol?.millisecondsSinceEpoch,
     };
   }
 
+  @override
+  Map<String, dynamic> getMap() =>
+      {...super.getMap(), 'AllowedUsers': allowedUsers};
+
   static User fromDoc(DocumentSnapshot data) =>
-      User._createFromData(data.id, data.data());
+      User._createFromData(data.data(), data.reference);
 
   static Future<User> fromID(String uid) async {
-    return (await User.getUsersForEdit()).singleWhere((u) => u.uid == uid);
-  }
-
-  static Future<QuerySnapshot> getAllUsersLive() {
-    return FirebaseFirestore.instance
+    return fromDoc((await FirebaseFirestore.instance
         .collection('Users')
-        .orderBy('Name')
-        .get(dataSource);
+        .doc(uid)
+        .get(dataSource)));
   }
-
-  /* static Future<User> getCurrentUser(
-      {bool checkForForceRefresh = true, bool fromCache = false}) async {
-    auth.User currentUser = auth.FirebaseAuth.instance.currentUser;
-    if (currentUser?.uid == null) return User._initInstance();
-
-    Map<dynamic, dynamic> idTokenClaims;
-    try {
-      if (await Connectivity().checkConnectivity() != ConnectivityResult.none &&
-          !fromCache) {
-        var idToken = await currentUser.getIdTokenResult();
-        if ((checkForForceRefresh &&
-                (await FirebaseDatabase.instance
-                            .reference()
-                            .child('Users/${currentUser.uid}/forceRefresh')
-                            .once())
-                        .value ==
-                    true) ||
-            (await flutterSecureStorage.readAll()).isEmpty) {
-          idToken = await currentUser.getIdTokenResult(true);
-          for (var item in idToken.claims.entries) {
-            await flutterSecureStorage.write(
-                key: item.key, value: item.value?.toString());
-          }
-          await FirebaseDatabase.instance
-              .reference()
-              .child('Users/${currentUser.uid}/forceRefresh')
-              .set(false);
-        }
-        idTokenClaims = idToken.claims;
-      } else {
-        idTokenClaims = await flutterSecureStorage.readAll();
-        if (idTokenClaims?.isEmpty ?? true)
-          throw Exception("Couldn't find User cache");
-      }
-    } on Exception {
-      idTokenClaims = await flutterSecureStorage.readAll();
-      if (idTokenClaims?.isEmpty ?? true) rethrow;
-    }
-    instance
-      ..uid = currentUser.uid
-      ..name = currentUser.displayName
-      ..password = idTokenClaims['password']
-      ..manageUsers = idTokenClaims['manageUsers'].toString() == 'true'
-      ..superAccess = idTokenClaims['superAccess'].toString() == 'true'
-      ..write = idTokenClaims['write'].toString() == 'true'
-      ..secretary = idTokenClaims['secretary'].toString() == 'true'
-      ..exportClasses = idTokenClaims['exportClasses'].toString() == 'true'
-      ..birthdayNotify = idTokenClaims['birthdayNotify'].toString() == 'true'
-      ..confessionsNotify =
-          idTokenClaims['confessionsNotify'].toString() == 'true'
-      ..tanawolNotify = idTokenClaims['tanawolNotify'].toString() == 'true'
-      ..kodasNotify = idTokenClaims['kodasNotify'].toString() == 'true'
-      ..meetingNotify = idTokenClaims['meetingNotify'].toString() == 'true'
-      ..approveLocations =
-          idTokenClaims['approveLocations'].toString() == 'true'
-      ..approved = idTokenClaims['approved'].toString() == 'true'
-      ..lastConfession = idTokenClaims['lastConfession'] != null
-          ? int.parse(idTokenClaims['lastConfession'].toString())
-          : null
-      ..lastTanawol = idTokenClaims['lastTanawol'] != null
-          ? int.parse(idTokenClaims['lastTanawol'].toString())
-          : null
-      ..servingStudyYear = idTokenClaims['servingStudyYear'].toString()
-      ..servingStudyGender =
-          idTokenClaims['servingStudyGender'].toString() == 'true'
-      ..email = currentUser.email;
-    instance.notifyListeners();
-    return instance;
-  } */
 
   static Future<List<User>> getUsers(List<String> users) async {
     return (await Future.wait(users.map((s) => FirebaseFirestore.instance
@@ -668,38 +633,59 @@ class User extends DataObject
         .toList();
   }
 
-  static Future<List<User>> getUsersForEdit() async {
-    final users = {
-      for (var u in (await User.getAllUsersLive()).docs)
-        u.id: (u.data()['allowedUsers'] as List)?.cast<String>()
-    };
-    return (await FirebaseFunctions.instance.httpsCallable('getUsers').call())
-        .data
-        .map((u) => User(
-            uid: u['uid'],
-            name: u['name'],
-            password: u['password'],
-            manageUsers: u['manageUsers'],
-            manageAllowedUsers: u['manageAllowedUsers'],
-            superAccess: u['superAccess'],
-            manageDeleted: u['manageDeleted'],
-            write: u['write'],
-            secretary: u['secretary'],
-            exportClasses: u['exportClasses'],
-            birthdayNotify: u['birthdayNotify'],
-            confessionsNotify: u['confessionsNotify'],
-            tanawolNotify: u['tanawolNotify'],
-            kodasNotify: u['kodasNotify'],
-            meetingNotify: u['meetingNotify'],
-            approved: u['approved'],
-            lastConfession: u['lastConfession'],
-            lastTanawol: u['lastTanawol'],
-            servingStudyYear: u['servingStudyYear'],
-            servingStudyGender: u['servingStudyGender'],
-            email: u['email'],
-            allowedUsers: users[u['uid']]))
-        .toList()
-        ?.cast<User>();
+  static Stream<List<User>> getAllForUser() {
+    return User.instance.stream.switchMap((u) {
+      if (!u.manageUsers && !u.manageAllowedUsers && !u.secretary)
+        return FirebaseFirestore.instance
+            .collection('Users')
+            .orderBy('Name')
+            .snapshots()
+            .map((p) => p.docs.map(fromDoc).toList());
+      if (u.manageUsers || u.secretary) {
+        if (!u.superAccess) {
+          return Class.getAllForUser().switchMap(
+            (cs) => Rx.combineLatestList<QuerySnapshot>(cs.split(10).map((c) =>
+                    FirebaseFirestore.instance
+                        .collection('UsersData')
+                        .where('ClassId', whereIn: c.map((c) => c.ref).toList())
+                        .orderBy('Name')
+                        .snapshots()))
+                .map((s) => s.expand((n) => n.docs).map(fromDoc).toList()),
+          );
+        }
+        return FirebaseFirestore.instance
+            .collection('UsersData')
+            .orderBy('Name')
+            .snapshots()
+            .map((p) => p.docs.map(fromDoc).toList());
+      } else {
+        if (!u.superAccess) {
+          return Class.getAllForUser().switchMap(
+            (cs) => Rx.combineLatestList<QuerySnapshot>(cs.split(10).map((c) =>
+                    FirebaseFirestore.instance
+                        .collection('UsersData')
+                        .where('AllowedUsers', arrayContains: u.uid)
+                        .where('ClassId', whereIn: c.map((c) => c.ref).toList())
+                        .orderBy('Name')
+                        .snapshots()))
+                .map((s) => s.expand((n) => n.docs).map(fromDoc).toList()),
+          );
+        }
+        return FirebaseFirestore.instance
+            .collection('UsersData')
+            .where('AllowedUsers', arrayContains: u.uid)
+            .orderBy('Name')
+            .snapshots()
+            .map((p) => p.docs.map(fromDoc).toList());
+      }
+    });
+  }
+
+  Stream<List<User>> getNamesOnly() {
+    return FirebaseFirestore.instance
+        .collection('Users')
+        .snapshots()
+        .map((s) => s.docs.map(User.fromDoc).toList());
   }
 
   Future<void> recordActive() async {
@@ -721,19 +707,10 @@ class User extends DataObject
   Future<bool> userDataUpToDate() async {
     return lastTanawol != null &&
         lastConfession != null &&
-        ((lastTanawol + 2592000000) >= DateTime.now().millisecondsSinceEpoch &&
-            (lastConfession + 5184000000) >=
+        ((lastTanawol.millisecondsSinceEpoch + 2592000000) >=
+                DateTime.now().millisecondsSinceEpoch &&
+            (lastConfession.millisecondsSinceEpoch + 5184000000) >=
                 DateTime.now().millisecondsSinceEpoch);
-  }
-
-  @override
-  Map<String, dynamic> getHumanReadableMap() {
-    throw UnimplementedError();
-  }
-
-  @override
-  Map<String, dynamic> getMap() {
-    return getUpdateMap();
   }
 
   @override
@@ -744,10 +721,37 @@ class User extends DataObject
     _photoUrlCache.invalidate();
   }
 
-  static Future<List<User>> getAllSemiManagers() async {
-    return (await getUsersForEdit())
-        .where((u) => u.manageAllowedUsers == true)
-        .toList();
+  static Stream<List<User>> getAllSemiManagers() {
+    return User.instance.stream.switchMap((u) {
+      if (u.manageUsers || u.secretary) {
+        if (!u.superAccess) {
+          return Class.getAllForUser().switchMap(
+            (cs) => Rx.combineLatestList<QuerySnapshot>(cs.split(10).map((c) =>
+                FirebaseFirestore.instance
+                    .collection('UsersData')
+                    .where('ClassId', whereIn: c.map((c) => c.ref).toList())
+                    .where('Permissions.ManageAllowedUsers', isEqualTo: true)
+                    .orderBy('Name')
+                    .snapshots())).map(
+                (s) => s.expand((n) => n.docs).map(fromDoc).toList()),
+          );
+        }
+        return FirebaseFirestore.instance
+            .collection('UsersData')
+            .where('Permissions.ManageAllowedUsers', isEqualTo: true)
+            .orderBy('Name')
+            .snapshots()
+            .map((p) => p.docs.map(fromDoc).toList());
+      } else {
+        return FirebaseFirestore.instance
+            .collection('UsersData')
+            .where('AllowedUsers', arrayContains: u.uid)
+            .where('Permissions.ManageAllowedUsers', isEqualTo: true)
+            .orderBy('Name')
+            .snapshots()
+            .map((p) => p.docs.map(fromDoc).toList());
+      }
+    });
   }
 
   static Future<String> onlyName(String id) async {

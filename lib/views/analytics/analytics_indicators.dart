@@ -17,6 +17,7 @@ class AttendanceChart extends StatelessWidget {
   final String collectionGroup;
   final String title;
   final List<HistoryDay> days;
+  final bool isServant;
   final rnd = RandomColor();
   final Map<String, Color> usedColorsMap = {};
 
@@ -26,6 +27,7 @@ class AttendanceChart extends StatelessWidget {
       this.range,
       this.days,
       this.collectionGroup,
+      this.isServant = false,
       @required this.title})
       : super(key: key);
 
@@ -34,18 +36,34 @@ class AttendanceChart extends StatelessWidget {
     return StreamBuilder<List<HistoryRecord>>(
       stream: Rx.combineLatestList<QuerySnapshot>(classes
               .split(10)
-              .map((c) => FirebaseFirestore.instance
-                  .collectionGroup(collectionGroup)
-                  .where('ClassId', whereIn: c.map((e) => e.ref).toList())
-                  .where('Time',
-                      isGreaterThanOrEqualTo: Timestamp.fromDate(range.start))
-                  .where(
-                    'Time',
-                    isLessThan:
-                        Timestamp.fromDate(range.end.add(Duration(days: 1))),
-                  )
-                  .orderBy('Time', descending: true)
-                  .snapshots())
+              .map((c) => isServant
+                  ? FirebaseFirestore.instance
+                      .collectionGroup(collectionGroup)
+                      .where('ClassId', whereIn: c.map((e) => e.ref).toList())
+                      .where('Time',
+                          isGreaterThanOrEqualTo:
+                              Timestamp.fromDate(range.start))
+                      .where(
+                        'Time',
+                        isLessThan: Timestamp.fromDate(
+                            range.end.add(Duration(days: 1))),
+                      )
+                      .where('IsServant', isEqualTo: isServant)
+                      .orderBy('Time', descending: true)
+                      .snapshots()
+                  : FirebaseFirestore.instance
+                      .collectionGroup(collectionGroup)
+                      .where('ClassId', whereIn: c.map((e) => e.ref).toList())
+                      .where('Time',
+                          isGreaterThanOrEqualTo:
+                              Timestamp.fromDate(range.start))
+                      .where(
+                        'Time',
+                        isLessThan: Timestamp.fromDate(
+                            range.end.add(Duration(days: 1))),
+                      )
+                      .orderBy('Time', descending: true)
+                      .snapshots())
               .toList())
           .map((s) =>
               s.expand((n) => n.docs).map(HistoryRecord.fromQueryDoc).toList()),
@@ -85,7 +103,7 @@ class AttendanceChart extends StatelessWidget {
                                 ? rnd.randomColor(
                                     colorBrightness:
                                         Theme.of(context).brightness ==
-                                                Brightness.light
+                                                Brightness.dark
                                             ? ColorBrightness.dark
                                             : ColorBrightness.light,
                                   )
@@ -200,8 +218,10 @@ class ClassesAttendanceIndicator extends StatelessWidget {
   final List<Class> classes;
   final rnd = RandomColor();
   final Map<String, Color> usedColorsMap = {};
+  final bool isServant;
 
-  ClassesAttendanceIndicator({this.collection, this.classes});
+  ClassesAttendanceIndicator(
+      {this.collection, this.classes, this.isServant = false});
 
   @override
   Widget build(BuildContext context) {
@@ -220,10 +240,17 @@ class ClassesAttendanceIndicator extends StatelessWidget {
         return StreamBuilder<int>(
           stream: Rx.combineLatestList<QuerySnapshot>(classes
                   .split(10)
-                  .map((c) => FirebaseFirestore.instance
-                      .collection('Persons')
-                      .where('ClassId', whereIn: c.map((e) => e.ref).toList())
-                      .snapshots())
+                  .map((c) => isServant
+                      ? FirebaseFirestore.instance
+                          .collection('UsersData')
+                          .where('ClassId',
+                              whereIn: c.map((e) => e.ref).toList())
+                          .snapshots()
+                      : FirebaseFirestore.instance
+                          .collection('Persons')
+                          .where('ClassId',
+                              whereIn: c.map((e) => e.ref).toList())
+                          .snapshots())
                   .toList())
               .map((s) => s.fold<int>(0, (o, n) => o + n.size)),
           builder: (context, persons) {
@@ -258,7 +285,7 @@ class ClassesAttendanceIndicator extends StatelessWidget {
                                     ? rnd.randomColor(
                                         colorBrightness:
                                             Theme.of(context).brightness ==
-                                                    Brightness.light
+                                                    Brightness.dark
                                                 ? ColorBrightness.dark
                                                 : ColorBrightness.light,
                                       )
@@ -442,7 +469,7 @@ class HistoryAnalysisWidget extends StatelessWidget {
                           classesByRef[entry.item2]?.color == Colors.transparent
                       ? rnd.randomColor(
                           colorBrightness:
-                              Theme.of(context).brightness == Brightness.light
+                              Theme.of(context).brightness == Brightness.dark
                                   ? ColorBrightness.dark
                                   : ColorBrightness.light,
                         )
@@ -453,15 +480,13 @@ class HistoryAnalysisWidget extends StatelessWidget {
                 title: Text('تحليل ' + title + ' لكل خادم'),
               ),
             if (showUsers)
-              FutureBuilder<QuerySnapshot>(
-                future: User.getAllUsersLive(),
+              FutureBuilder<List<User>>(
+                future: User.getAllForUser().first,
                 builder: (context, usersData) {
                   if (usersData.hasError) return ErrorWidget(usersData.error);
                   if (!usersData.hasData)
                     return const Center(child: CircularProgressIndicator());
-                  final usersByID = {
-                    for (var u in usersData.data.docs) u.id: User.fromDoc(u)
-                  };
+                  final usersByID = {for (var u in usersData.data) u.id: u};
                   final pieData =
                       groupBy<MinimalHistoryRecord, String>(data, (s) => s.by)
                           .entries
@@ -470,7 +495,7 @@ class HistoryAnalysisWidget extends StatelessWidget {
                     pointColorMapper: (entry, __) =>
                         usedColorsMap[entry] ??= rnd.randomColor(
                       colorBrightness:
-                          Theme.of(context).brightness == Brightness.light
+                          Theme.of(context).brightness == Brightness.dark
                               ? ColorBrightness.dark
                               : ColorBrightness.light,
                     ),
