@@ -1,0 +1,806 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "CallHistory",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Time",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Classes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "Allowed",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "Name",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Classes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "Allowed",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "StudyYear",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Classes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "Allowed",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "StudyYear",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Gender",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Classes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "StudyYear",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Gender",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "EditHistory",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Time",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "EditHistory",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Time",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Kodas",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "IsServant",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Time",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Kodas",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Time",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Kodas",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "ID",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Time",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Meeting",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "IsServant",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Time",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Meeting",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Time",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Meeting",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "ID",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Time",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Address",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Address",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "BirthDate",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "BirthDate",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "BirthDay",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "BirthDay",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "LastConfession",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "LastConfession",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "LastKodas",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "LastKodas",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "LastMeeting",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "LastMeeting",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "LastTanawol",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "LastTanawol",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "LastVisit",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "LastVisit",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Location",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Name",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Name",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Tanawol",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "IsServant",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Time",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Tanawol",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Time",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Tanawol",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "ID",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Time",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ApproveLocations",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Name",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "UsersData",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "AllowedUsers",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Name",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "UsersData",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "AllowedUsers",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "Name",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "UsersData",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "AllowedUsers",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "Permissions.ManageAllowedUsers",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "UsersData",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "AllowedUsers",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "Permissions.ManageAllowedUsers",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Name",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "UsersData",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Name",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "UsersData",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Permissions.ManageAllowedUsers",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Name",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "UsersData",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "Permissions.ManageAllowedUsers",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Name",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "VisitHistory",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Time",
+          "order": "DESCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": [
+    {
+      "collectionGroup": "Classes",
+      "fieldPath": "Allowed",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "arrayConfig": "CONTAINS",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        },
+        {
+          "arrayConfig": "CONTAINS",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "EditHistory",
+      "fieldPath": "Time",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "arrayConfig": "CONTAINS",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        },
+        {
+          "arrayConfig": "CONTAINS",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Kodas",
+      "fieldPath": "ID",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "arrayConfig": "CONTAINS",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Meeting",
+      "fieldPath": "ID",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "arrayConfig": "CONTAINS",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Persons",
+      "fieldPath": "ClassId",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "arrayConfig": "CONTAINS",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Tanawol",
+      "fieldPath": "ID",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "arrayConfig": "CONTAINS",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    }
+  ]
+}

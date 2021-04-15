@@ -1,0 +1,41 @@
+{
+  "name": "functions",
+  "scripts": {
+    "lint": "eslint \"src/**/*\"",
+    "build": "tsc",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "12"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "@google-cloud/firestore": "^4.7.1",
+    "@types/request-promise": "^4.1.46",
+    "download": "^8.0.0",
+    "firebase-admin": "^9.2.0",
+    "firebase-dynamic-links": "^1.0.1",
+    "firebase-functions": "^3.13.2",
+    "firebase-tools": "^9.3.0",
+    "googleapis": "^61.0.0",
+    "lodash": "^4.17.20",
+    "node-fetch": "^2.6.1",
+    "request": "^2.88.2",
+    "request-promise": "^4.2.6",
+    "sha3": "^2.1.2",
+    "xlsx": "^0.16.9"
+  },
+  "devDependencies": {
+    "@types/download": "^6.2.4",
+    "@types/node-fetch": "^2.5.8",
+    "@typescript-eslint/eslint-plugin": "^3.10.1",
+    "@typescript-eslint/parser": "^3.10.1",
+    "eslint": "^7.14.0",
+    "eslint-plugin-import": "^2.22.1"
+  },
+  "private": true
+}

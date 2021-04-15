@@ -1,0 +1,267 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+  
+    function checkUserRegistered(){
+        return request.auth.uid != null && request.auth.token.approved
+          && (request.auth.token.lastTanawol == null || request.auth.token.lastConfession == null
+            || ((request.auth.token.lastTanawol + 2592000000) > request.time.toMillis()
+            && (request.auth.token.lastConfession + 5184000000) > request.time.toMillis()));
+    }
+
+    function checkCanReadUser(user){
+      return checkUserRegistered()
+      && (request.auth.token.manageUsers || request.auth.token.secretary || (request.auth.token.manageAllowedUsers && request.auth.uid in get(/databases/$(database)/documents/UsersData/$(user)).data.AllowedUsers));
+    }
+
+    function checkCanEditUser(user, classId){
+      return checkUserRegistered()
+      && (request.auth.token.manageUsers || (request.auth.token.manageAllowedUsers
+      && request.auth.uid in get(/databases/$(database)/documents/UsersData/$(user)).data.AllowedUsers))
+      && (request.auth.token.superAccess || request.auth.uid in get(/databases/$(database)/documents/Classes/$(classId)).data.Allowed);
+    }
+    
+    function isTheSame(fieldName, create){
+      return create || resource.data[fieldName] == request.resource.data[fieldName] || !request.resource.data.keys().hasAny([fieldName]);
+    }
+
+    match /Classes{
+      allow list: if checkUserRegistered() && request.auth.token.superAccess;
+      allow write: if checkUserRegistered() && request.auth.token.superAccess && request.auth.token.write;
+      
+      match /null {
+        allow write: if false;
+        allow read: if checkUserRegistered();
+      }
+      
+      match /{class} {
+        allow read: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in resource.data.Allowed);
+        allow delete: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in resource.data.Allowed) && request.auth.token.write;
+        allow update: if checkUserRegistered()
+          && (request.auth.token.superAccess || request.auth.uid in resource.data.Allowed)
+          && (request.resource.data.Allowed == resource.data.Allowed || (request.auth.token.manageUsers || (request.auth.token.manageAllowedUsers && (request.resource.data.Allowed.removeAll(resource.data.Allowed).hasOnly(get(/databases/$(database)/documents/UsersData/$(request.auth.uid)).data.AllowedUsers) || resource.data.Allowed.removeAll(request.resource.data.Allowed).hasOnly(get(/databases/$(database)/documents/UsersData/$(request.auth.uid)).data.AllowedUsers)))))
+          && request.auth.token.write;
+        allow create: if checkUserRegistered()
+          && (request.resource.data.Allowed.hasOnly([request.auth.uid]) || (request.auth.token.manageUsers || (request.auth.token.manageAllowedUsers && request.resource.data.Allowed.hasOnly(get(/databases/$(database)/documents/UsersData/$(request.auth.uid)).data.AllowedUsers))))
+          && request.auth.token.write;
+
+        match /{history=**} {
+          allow read: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in (get(/databases/$(database)/documents/Classes/$(class))).data.Allowed);
+        }
+      }
+    }
+    
+    match /Persons {
+      allow list: if checkUserRegistered() && request.auth.token.superAccess;
+      allow write: if checkUserRegistered() && request.auth.token.superAccess && request.auth.token.write;
+      
+      match /null {
+        allow write: if false;
+        allow read: if checkUserRegistered();
+      }
+      
+      match /{person} {
+        allow read: if checkUserRegistered() &&
+          (request.auth.token.superAccess || request.auth.uid in get(resource.data.ClassId).data.Allowed);
+        allow delete: if checkUserRegistered() &&
+          (request.auth.token.superAccess || request.auth.uid in get(resource.data.ClassId).data.Allowed) && request.auth.token.write;
+        allow update: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in get(resource.data.ClassId).data.Allowed) && request.auth.token.write;
+        allow create: if checkUserRegistered();
+
+        match /{history=**} {
+          allow read: if checkUserRegistered() &&
+          (request.auth.token.superAccess || request.auth.uid in get(get(/databases/$(database)/documents/Persons/$(person)).data.ClassId).data.Allowed);
+        }
+      }
+    }
+
+    match /Invitations {
+      allow list: if checkUserRegistered() && (request.auth.token.manageUsers || request.auth.token.manageAllowedUsers);
+      match /{invitation} {
+        allow read: if checkUserRegistered() && (request.auth.token.manageUsers || request.auth.token.manageAllowedUsers);
+        allow create: if checkUserRegistered() && (request.auth.token.manageUsers || request.auth.token.manageAllowedUsers) && request.resource.data.GeneratedBy == request.auth.uid && request.resource.data.GeneratedOn.toMillis() == request.time.toMillis();
+        allow delete, update: if checkUserRegistered() && (request.auth.token.manageUsers || request.auth.token.manageAllowedUsers) && resource.data.GeneratedBy == request.auth.uid;
+      }
+    }
+
+    match /{path=**}/{parent}/{doc} {
+      allow read: if checkUserRegistered()
+        && (parent == 'Meeting'
+          || parent == 'Kodas'
+          || parent == 'Tanawol'
+          || parent == 'EditHistory'
+          || parent == 'VisitHistory'
+          || parent == 'CallHistory'
+          || parent == 'ConfessionHistory')
+        && (request.auth.token.superAccess || request.auth.uid in get(resource.data.ClassId).data.Allowed);
+    }
+
+    match /UsersData {
+      allow list: if checkUserRegistered() && request.auth.token.manageUsers;
+      match /null {
+        allow write: if false;
+        allow read: if checkUserRegistered();
+      }
+      
+      match /{user} {
+        allow read: if checkCanReadUser(user, resource.data.ClassId) || (checkUserRegistered() && user == request.auth.token.personId);
+        
+        allow create: if checkCanEditUser(user, request.resource.data.ClassId)
+          && isTheSame('Permissions', true) && isTheSame('UID',true) && isTheSame('Email', true);
+        
+        allow update: if checkCanEditUser(user, resource.data.ClassId)
+          && isTheSame('Permissions', false) && isTheSame('UID',false) && isTheSame('Email', false);
+        allow delete: if checkCanEditUser(user, resource.data.ClassId) && !resource.data.keys().hasAny(['UID']);
+        match /{history=**} {
+          allow read: if checkCanReadUser(user) || (checkUserRegistered() && user == request.auth.token.personId);
+        }
+      }
+    }
+
+    match /Deleted {
+      allow list: if checkUserRegistered() && request.auth.token.manageDeleted == true;
+      allow write: if false;
+      match /{date} {
+        allow read: if checkUserRegistered() && request.auth.token.manageDeleted == true;
+        match /Classes {
+          allow list: if checkUserRegistered() && request.auth.token.superAccess && request.auth.token.manageDeleted == true;
+          match /{class}{  
+            allow write: if false;
+            allow read: if checkUserRegistered() && request.auth.token.manageDeleted == true
+              && (request.auth.token.superAccess || request.auth.uid in resource.data.Allowed);
+            match /{history=**} {
+              allow read: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in (get(/databases/$(database)/documents/Classes/$(class))).data.Allowed);
+            }
+          }
+        }
+        match /Persons {
+          allow list: if checkUserRegistered() && request.auth.token.superAccess && request.auth.token.manageDeleted == true;
+          match /{person}{
+            allow write: if false;
+            allow read: if checkUserRegistered() && request.auth.token.manageDeleted == true
+              && (request.auth.token.superAccess || resource.data.ClassId == null || request.auth.uid in get(resource.data.ClassId).data.Allowed);
+            match /{history=**} {
+              allow read: if checkUserRegistered() &&
+              (request.auth.token.superAccess || request.auth.uid in get(get(/databases/$(database)/documents/Persons/$(person)).data.ClassId).data.Allowed);
+            }
+          }
+        }
+      }
+    }
+    
+    match /History {
+      allow list: if checkUserRegistered();
+      
+      match /{history} {
+        allow read: if checkUserRegistered();
+        allow delete: if checkUserRegistered() && request.auth.token.write;
+        allow create: if checkUserRegistered() && (request.resource.data.Day.toMillis() % 86400000 == 0)
+        	&& request.resource.data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000) && request.auth.token.write;
+        allow update: if checkUserRegistered() && resource.data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000)
+					&& (!request.resource.data.keys().hasAny(['Day']) || request.resource.data.Day == resource.data.Day) && request.auth.token.write;
+        match /{record=**} {
+          allow read: if checkUserRegistered();
+          allow delete: if checkUserRegistered()
+            && get(/databases/$(database)/documents/History/$(history)).data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000)
+            && request.auth.token.write;
+          allow update, create: if checkUserRegistered()
+            && get(/databases/$(database)/documents/History/$(history)).data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000)
+            && request.resource.data.ID == request.resource.id
+            && (request.resource.data.keys().hasAny(['ClassId']) || request.resource.data.ClassId == resource.data.ClassId)
+            && request.resource.data.Time.toMillis() - (request.resource.data.Time.toMillis() % 86400000) == request.time.toMillis() - (request.time.toMillis() % 86400000)
+            && request.auth.token.write;
+        }
+      }
+    }
+    
+    match /ServantsHistory {
+      allow list: if checkUserRegistered() && request.auth.token.secretary;
+      
+      match /{history} {
+        allow read: if checkUserRegistered() && request.auth.token.secretary;
+        allow delete: if checkUserRegistered() && request.auth.token.secretary && request.auth.token.write;
+        allow create: if checkUserRegistered() && request.auth.token.secretary && (request.resource.data.Day.toMillis() % 86400000 == 0)
+        	&& request.resource.data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000) && request.auth.token.write;
+        allow update: if checkUserRegistered() && request.auth.token.secretary && resource.data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000)
+					&& (!request.resource.data.keys().hasAny(['Day']) || request.resource.data.Day == resource.data.Day) && request.auth.token.write;
+        match /{record=**} {
+          allow read: if checkUserRegistered();
+          allow delete: if checkUserRegistered() && get(/databases/$(database)/documents/ServantsHistory/$(history)).data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000)
+            && request.auth.token.secretary && request.auth.token.write;
+          allow create, update: if checkUserRegistered() && get(/databases/$(database)/documents/ServantsHistory/$(history)).data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000)
+            && request.auth.token.secretary
+            && request.resource.data.ID == request.resource.id
+            && request.resource.data.Time.toMillis() - (request.resource.data.Time.toMillis() % 86400000) == request.time.toMillis() - (request.time.toMillis() % 86400000)
+            && request.auth.token.write;
+        }
+      }
+    }
+    
+    match /Users {
+      allow read: if checkUserRegistered();
+      allow write: if false;
+      match /null {
+        allow write: if false;
+        allow read: if checkUserRegistered();
+      }
+      match /{user=**} {
+        allow write: if checkUserRegistered() && (request.auth.token.manageUsers || request.auth.token.manageAllowedUsers);
+        allow read: if checkUserRegistered();
+      }
+    }
+    match /Fathers {
+      allow read: if checkUserRegistered();
+      allow write: if checkUserRegistered() && request.auth.token.write;
+      match /{item=**} {
+        allow read: if checkUserRegistered();
+        allow write: if checkUserRegistered() && request.auth.token.write;
+      }
+    }
+    match /Jobs {
+      allow read: if checkUserRegistered();
+      allow write: if checkUserRegistered() && request.auth.token.write;
+      match /{item=**} {
+        allow read: if checkUserRegistered();
+        allow write: if checkUserRegistered() && request.auth.token.write;
+      }
+    }
+    match /StudyYears {
+      allow read: if checkUserRegistered();
+      allow write: if checkUserRegistered() && request.auth.token.write;
+      match /{item=**} {
+        allow read: if checkUserRegistered();
+        allow write: if checkUserRegistered() && request.auth.token.write;
+      }
+    }
+    match /Schools {
+      allow read: if checkUserRegistered();
+      allow write: if checkUserRegistered() && request.auth.token.write;
+      match /{item=**} {
+        allow read: if checkUserRegistered();
+        allow write: if checkUserRegistered() && request.auth.token.write;
+      }
+    }
+    match /Churches {
+      allow read: if checkUserRegistered();
+      allow write: if checkUserRegistered() && request.auth.token.write;
+      match /{item=**} {
+        allow read: if checkUserRegistered();
+        allow write: if checkUserRegistered() && request.auth.token.write;
+      }
+    }
+    match /States {
+      allow read: if checkUserRegistered();
+      allow write: if checkUserRegistered() && request.auth.token.admin;
+      match /{state=**} {
+        allow read: if checkUserRegistered();
+        allow write: if checkUserRegistered() && request.auth.token.admin;
+      }
+    }
+    // match /ServingTypes {
+    //   allow read, write: if checkUserRegistered();
+    //   match /{sType=**} {
+    //     allow read, write: if checkUserRegistered();
+    //   }
+    // }
+  }
+}
