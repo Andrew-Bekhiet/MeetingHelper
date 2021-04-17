@@ -66,9 +66,9 @@ class _RootState extends State<Root>
       BehaviorSubject<String>.seeded('');
 
   void addTap() {
-    if (_tabController.index == _tabController.length - 1) {
+    if (_tabController.index == _tabController.length - 2) {
       navigator.currentState.pushNamed('Data/EditClass');
-    } else if (_tabController.index == _tabController.length - 2) {
+    } else if (_tabController.index == _tabController.length - 1) {
       navigator.currentState.pushNamed('Data/EditPerson');
     } else {
       navigator.currentState.push(

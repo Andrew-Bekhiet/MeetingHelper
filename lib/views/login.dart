@@ -11,7 +11,7 @@ import 'package:hive/hive.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/user.dart';
-import '../utils/Helpers.dart';
+import '../utils/helpers.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key key}) : super(key: key);

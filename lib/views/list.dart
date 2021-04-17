@@ -570,9 +570,9 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
   String _getPluralStringType() {
     if (T == HistoryDay || T == ServantsHistoryDay) return 'سجلات';
     if (T == Class) return 'فصول';
+    if (T == User) return 'مستخدمين';
     if (T == Person) return 'مخدومين';
     if (T == Invitation) return 'دعوات';
-    if (T == User) return 'مستخدمين';
     throw UnimplementedError();
   }
 }

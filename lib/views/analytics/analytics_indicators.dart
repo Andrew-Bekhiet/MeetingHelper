@@ -481,12 +481,12 @@ class HistoryAnalysisWidget extends StatelessWidget {
               ),
             if (showUsers)
               FutureBuilder<List<User>>(
-                future: User.getAllForUser().first,
+                future: User.getAllNames().first,
                 builder: (context, usersData) {
                   if (usersData.hasError) return ErrorWidget(usersData.error);
                   if (!usersData.hasData)
                     return const Center(child: CircularProgressIndicator());
-                  final usersByID = {for (var u in usersData.data) u.id: u};
+                  final usersByID = {for (var u in usersData.data) u.refId: u};
                   final pieData =
                       groupBy<MinimalHistoryRecord, String>(data, (s) => s.by)
                           .entries

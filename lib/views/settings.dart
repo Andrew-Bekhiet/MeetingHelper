@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../models/notification_setting.dart';
 import '../models/user.dart';
-import '../utils/Helpers.dart';
+import '../utils/helpers.dart';
 import '../utils/globals.dart';
 import 'mini_lists/colors_list.dart';
 
