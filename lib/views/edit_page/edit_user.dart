@@ -646,7 +646,7 @@ class _EditUserState extends State<EditUser> {
         if (old['classId'] != widget.user.classId?.path) {
           await FirebaseFirestore.instance
               .collection('UsersData')
-              .doc(widget.user.id)
+              .doc(widget.user.refId)
               .update({'ClassId': widget.user.classId});
         }
         scaffoldMessenger.currentState.hideCurrentSnackBar();

@@ -11,10 +11,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stream_notifiers/flutter_stream_notifiers.dart';
 import 'package:hive/hive.dart';
-import 'package:meetinghelper/models/class.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/models/person.dart';
 
 class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
@@ -38,6 +36,11 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
     _uid = uid;
     if (!_initialized.isCompleted) _initialized.complete(uid != null);
   }
+
+  @override
+  String get id => uid;
+
+  String get refId => ref.id;
 
   String email;
   String password;
@@ -642,35 +645,12 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
             .snapshots()
             .map((p) => p.docs.map(fromDoc).toList());
       if (u.manageUsers || u.secretary) {
-        if (!u.superAccess) {
-          return Class.getAllForUser().switchMap(
-            (cs) => Rx.combineLatestList<QuerySnapshot>(cs.split(10).map((c) =>
-                    FirebaseFirestore.instance
-                        .collection('UsersData')
-                        .where('ClassId', whereIn: c.map((c) => c.ref).toList())
-                        .orderBy('Name')
-                        .snapshots()))
-                .map((s) => s.expand((n) => n.docs).map(fromDoc).toList()),
-          );
-        }
         return FirebaseFirestore.instance
             .collection('UsersData')
             .orderBy('Name')
             .snapshots()
             .map((p) => p.docs.map(fromDoc).toList());
       } else {
-        if (!u.superAccess) {
-          return Class.getAllForUser().switchMap(
-            (cs) => Rx.combineLatestList<QuerySnapshot>(cs.split(10).map((c) =>
-                    FirebaseFirestore.instance
-                        .collection('UsersData')
-                        .where('AllowedUsers', arrayContains: u.uid)
-                        .where('ClassId', whereIn: c.map((c) => c.ref).toList())
-                        .orderBy('Name')
-                        .snapshots()))
-                .map((s) => s.expand((n) => n.docs).map(fromDoc).toList()),
-          );
-        }
         return FirebaseFirestore.instance
             .collection('UsersData')
             .where('AllowedUsers', arrayContains: u.uid)
@@ -679,6 +659,14 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
             .map((p) => p.docs.map(fromDoc).toList());
       }
     });
+  }
+
+  static Stream<List<User>> getAllNames() {
+    return FirebaseFirestore.instance
+        .collection('Users')
+        .orderBy('Name')
+        .snapshots()
+        .map((p) => p.docs.map(fromDoc).toList());
   }
 
   Stream<List<User>> getNamesOnly() {
@@ -724,18 +712,6 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
   static Stream<List<User>> getAllSemiManagers() {
     return User.instance.stream.switchMap((u) {
       if (u.manageUsers || u.secretary) {
-        if (!u.superAccess) {
-          return Class.getAllForUser().switchMap(
-            (cs) => Rx.combineLatestList<QuerySnapshot>(cs.split(10).map((c) =>
-                FirebaseFirestore.instance
-                    .collection('UsersData')
-                    .where('ClassId', whereIn: c.map((c) => c.ref).toList())
-                    .where('Permissions.ManageAllowedUsers', isEqualTo: true)
-                    .orderBy('Name')
-                    .snapshots())).map(
-                (s) => s.expand((n) => n.docs).map(fromDoc).toList()),
-          );
-        }
         return FirebaseFirestore.instance
             .collection('UsersData')
             .where('Permissions.ManageAllowedUsers', isEqualTo: true)

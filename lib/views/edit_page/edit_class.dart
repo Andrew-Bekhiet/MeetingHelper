@@ -495,56 +495,51 @@ class _EditClassState extends State<EditClass> {
               future: User.getAllForUser().first.then((value) => value
                   .where((u) => class$.allowedUsers.contains(u.uid))
                   .toList()),
-              builder: (c, users) => users.hasData
-                  ? Scaffold(
-                      appBar: AppBar(
-                        title: Text('اختيار مستخدمين'),
-                        actions: [
-                          IconButton(
-                            onPressed: () {
-                              navigator.currentState.pop(context
-                                  .read<DataObjectListOptions<User>>()
-                                  .selectedLatest
-                                  .values
-                                  .toList());
-                            },
-                            icon: Icon(Icons.done),
-                            tooltip: 'تم',
-                          ),
-                        ],
+              builder: (c, users) {
+                if (!users.hasData)
+                  return const Center(child: CircularProgressIndicator());
+                final options = DataObjectListOptions<User>(
+                    itemBuilder: (current,
+                            {onLongPress, onTap, subtitle, trailing}) =>
+                        DataObjectWidget(
+                          current,
+                          onTap: () => onTap(current),
+                          trailing: trailing,
+                          showSubTitle: false,
+                        ),
+                    selectionMode: true,
+                    selected: {for (var item in users.data) item.id: item},
+                    searchQuery: searchStream,
+                    itemsStream: User.getAllForUser());
+                return Scaffold(
+                  appBar: AppBar(
+                    title: Text('اختيار مستخدمين'),
+                    actions: [
+                      IconButton(
+                        onPressed: () {
+                          navigator.currentState
+                              .pop(options.selectedLatest.keys.toList());
+                        },
+                        icon: Icon(Icons.done),
+                        tooltip: 'تم',
                       ),
-                      body: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SearchField(
-                              searchStream: searchStream,
-                              textStyle: Theme.of(context).textTheme.bodyText2),
-                          Expanded(
-                            child: UsersList(
-                              listOptions: DataObjectListOptions<User>(
-                                  itemBuilder: (current,
-                                          {onLongPress,
-                                          onTap,
-                                          subtitle,
-                                          trailing}) =>
-                                      DataObjectWidget(
-                                        current,
-                                        onTap: () => onTap(current),
-                                        trailing: trailing,
-                                        showSubTitle: false,
-                                      ),
-                                  selectionMode: true,
-                                  selected: {
-                                    for (var item in users.data) item.uid: item
-                                  },
-                                  searchQuery: searchStream,
-                                  itemsStream: User.getAllForUser()),
-                            ),
-                          ),
-                        ],
+                    ],
+                  ),
+                  body: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SearchField(
+                          searchStream: searchStream,
+                          textStyle: Theme.of(context).textTheme.bodyText2),
+                      Expanded(
+                        child: UsersList(
+                          listOptions: options,
+                        ),
                       ),
-                    )
-                  : Center(child: CircularProgressIndicator()),
+                    ],
+                  ),
+                );
+              },
             );
           },
         ) ??
