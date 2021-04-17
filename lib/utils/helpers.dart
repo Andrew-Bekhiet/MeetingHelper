@@ -250,14 +250,8 @@ String getPhone(String phone, [bool whatsapp = true]) {
 void historyTap(HistoryDay history, BuildContext context) async {
   if (history is! ServantsHistoryDay) {
     await navigator.currentState.pushNamed('Day', arguments: history);
-  } else if (await Connectivity().checkConnectivity() !=
-      ConnectivityResult.none) {
-    await navigator.currentState.pushNamed('ServantsDay', arguments: history);
   } else {
-    await showDialog(
-        context: context,
-        builder: (context) =>
-            AlertDialog(content: Text('لا يوجد اتصال انترنت')));
+    await navigator.currentState.pushNamed('ServantsDay', arguments: history);
   }
 }
 
@@ -342,20 +336,76 @@ Future onNotificationClicked(String payload) {
 
 Stream<Map<DocumentReference, Tuple2<Class, List<User>>>> usersByClassRef(
     List<User> users) {
-  return classesByStudyYearRef().map(
-    (cs) {
-      Map<DocumentReference, Class> classesByRef = {
-        for (final c in cs.values.expand((e) => e).toList()) c.ref: c
+  return FirebaseFirestore.instance
+      .collection('StudyYears')
+      .orderBy('Grade')
+      .snapshots()
+      .switchMap(
+    (sys) {
+      Map<DocumentReference, StudyYear> studyYears = {
+        for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
       };
+      studyYears[FirebaseFirestore.instance
+          .collection('StudyYears')
+          .doc('Unknown')] = StudyYear('unknown', 'غير معروفة', 10000000);
+      return User.instance.stream.switchMap(
+        (user) => (user.superAccess
+                ? FirebaseFirestore.instance
+                    .collection('Classes')
+                    .orderBy('StudyYear')
+                    .orderBy('Gender')
+                    .snapshots()
+                : FirebaseFirestore.instance
+                    .collection('Classes')
+                    .where('Allowed',
+                        arrayContains:
+                            auth.FirebaseAuth.instance.currentUser.uid)
+                    .orderBy('StudyYear')
+                    .orderBy('Gender')
+                    .snapshots())
+            .map(
+          (cs) {
+            final classesByRef = {
+              for (final c in cs.docs.map((c) => Class.fromDoc(c)).toList())
+                c.ref: c
+            };
 
-      return {
-        for (final e in groupBy<User, Class>(
-            users,
-            (user) =>
-                classesByRef[user.classId] ??
-                Class(name: 'غير محدد', gender: true)).entries)
-          e.key.ref: Tuple2(e.key, e.value)
-      };
+            final rslt = {
+              for (final e in groupBy<User, Class>(
+                  users,
+                  (user) => user.classId == null
+                      ? Class(
+                          name: 'غير محدد',
+                          gender: true,
+                          color: Colors.redAccent)
+                      : classesByRef[user.classId] ??
+                          Class(
+                              name: '{لا يمكن قراءة اسم الفصل}',
+                              gender: true,
+                              color: Colors.redAccent,
+                              id: 'Unknown')).entries)
+                e.key.ref: Tuple2(e.key, e.value)
+            }.entries.toList();
+
+            mergeSort<MapEntry<DocumentReference, Tuple2<Class, List<User>>>>(
+                rslt, compare: (c, c2) {
+              if (c.value.item1.name == 'غير محدد' ||
+                  c.value.item1.name == '{لا يمكن قراءة اسم الفصل}') return 1;
+              if (c2.value.item1.name == 'غير محدد' ||
+                  c2.value.item1.name == '{لا يمكن قراءة اسم الفصل}') return -1;
+
+              if (studyYears[c.value.item1.studyYear] ==
+                  studyYears[c2.value.item1.studyYear])
+                return c.value.item1.gender.compareTo(c2.value.item1.gender);
+              return studyYears[c.value.item1.studyYear]
+                  .grade
+                  .compareTo(studyYears[c2.value.item1.studyYear].grade);
+            });
+
+            return {for (final e in rslt) e.key: e.value};
+          },
+        ),
+      );
     },
   );
 }
@@ -930,7 +980,7 @@ void showBirthDayNotification() async {
               ? Source.cache
               : Source.serverAndCache);
   final classes = await Class.getAllForUser().first;
-  List<Person> persons;
+  List<String> persons;
   if (user.superAccess) {
     persons = (await FirebaseFirestore.instance
             .collection('Persons')
@@ -949,7 +999,8 @@ void showBirthDayNotification() async {
             .limit(20)
             .get(source))
         .docs
-        .map((e) => e.data()['Name']);
+        .map((e) => e.data()['Name'])
+        .toList();
   } else if (classes.length <= 10) {
     persons = (await FirebaseFirestore.instance
             .collection('Persons')
@@ -969,7 +1020,8 @@ void showBirthDayNotification() async {
             .limit(20)
             .get(source))
         .docs
-        .map((e) => e.data()['Name']);
+        .map((e) => e.data()['Name'])
+        .toList();
   } else {
     persons = (await Future.wait(
             classes.split(10).map((cs) => FirebaseFirestore.instance
@@ -1049,7 +1101,7 @@ void showConfessionNotification() async {
               ? Source.cache
               : Source.serverAndCache);
   final classes = await Class.getAllForUser().first;
-  List<Person> persons;
+  List<String> persons;
   if (user.superAccess) {
     persons = (await FirebaseFirestore.instance
             .collection('Persons')
@@ -1059,7 +1111,8 @@ void showConfessionNotification() async {
             .limit(20)
             .get(source))
         .docs
-        .map((e) => e.data()['Name']);
+        .map((e) => e.data()['Name'])
+        .toList();
   } else if (classes.length <= 10) {
     persons = (await FirebaseFirestore.instance
             .collection('Persons')
@@ -1070,7 +1123,8 @@ void showConfessionNotification() async {
             .limit(20)
             .get(source))
         .docs
-        .map((e) => e.data()['Name']);
+        .map((e) => e.data()['Name'])
+        .toList();
   } else {
     persons = (await Future.wait(classes.split(10).map((cs) => FirebaseFirestore
             .instance
@@ -1183,7 +1237,7 @@ void showKodasNotification() async {
               ? Source.cache
               : Source.serverAndCache);
   final classes = await Class.getAllForUser().first;
-  List<Person> persons;
+  List<String> persons;
   if (user.superAccess) {
     persons = (await FirebaseFirestore.instance
             .collection('Persons')
@@ -1193,7 +1247,8 @@ void showKodasNotification() async {
             .limit(20)
             .get(source))
         .docs
-        .map((e) => e.data()['Name']);
+        .map((e) => e.data()['Name'])
+        .toList();
   } else if (classes.length <= 10) {
     persons = (await FirebaseFirestore.instance
             .collection('Persons')
@@ -1204,7 +1259,8 @@ void showKodasNotification() async {
             .limit(20)
             .get(source))
         .docs
-        .map((e) => e.data()['Name']);
+        .map((e) => e.data()['Name'])
+        .toList();
   } else {
     persons = (await Future.wait(classes.split(10).map((cs) => FirebaseFirestore
             .instance
@@ -1245,7 +1301,7 @@ void showMeetingNotification() async {
               ? Source.cache
               : Source.serverAndCache);
   final classes = await Class.getAllForUser().first;
-  List<Person> persons;
+  List<String> persons;
   if (user.superAccess) {
     persons = (await FirebaseFirestore.instance
             .collection('Persons')
@@ -1255,7 +1311,8 @@ void showMeetingNotification() async {
             .limit(20)
             .get(source))
         .docs
-        .map((e) => e.data()['Name']);
+        .map((e) => e.data()['Name'])
+        .toList();
   } else if (classes.length <= 10) {
     persons = (await FirebaseFirestore.instance
             .collection('Persons')
@@ -1266,7 +1323,8 @@ void showMeetingNotification() async {
             .limit(20)
             .get(source))
         .docs
-        .map((e) => e.data()['Name']);
+        .map((e) => e.data()['Name'])
+        .toList();
   } else {
     persons = (await Future.wait(classes.split(10).map((cs) => FirebaseFirestore
             .instance
@@ -1391,7 +1449,7 @@ void showTanawolNotification() async {
               ? Source.cache
               : Source.serverAndCache);
   final classes = await Class.getAllForUser().first;
-  List<Person> persons;
+  List<String> persons;
   if (user.superAccess) {
     persons = (await FirebaseFirestore.instance
             .collection('Persons')
@@ -1401,7 +1459,8 @@ void showTanawolNotification() async {
             .limit(20)
             .get(source))
         .docs
-        .map((e) => e.data()['Name']);
+        .map((e) => e.data()['Name'])
+        .toList();
   } else if (classes.length <= 10) {
     persons = (await FirebaseFirestore.instance
             .collection('Persons')
@@ -1412,7 +1471,8 @@ void showTanawolNotification() async {
             .limit(20)
             .get(source))
         .docs
-        .map((e) => e.data()['Name']);
+        .map((e) => e.data()['Name'])
+        .toList();
   } else {
     persons = (await Future.wait(classes.split(10).map((cs) => FirebaseFirestore
             .instance
