@@ -79,6 +79,7 @@ class _RootState extends State<Root>
                 name: '',
                 ref: FirebaseFirestore.instance.collection('UsersData').doc(),
               ),
+              showMotherAndFatherPhones: false,
               save: _saveUser,
             );
           },

@@ -28,7 +28,13 @@ import '../services_list.dart';
 class EditPerson extends StatefulWidget {
   final Person person;
   final Function(FormState, Person) save;
-  EditPerson({Key key, @required this.person, this.save}) : super(key: key);
+  final bool showMotherAndFatherPhones;
+  EditPerson(
+      {Key key,
+      @required this.person,
+      this.save,
+      this.showMotherAndFatherPhones = true})
+      : super(key: key);
 
   @override
   _EditPersonState createState() => _EditPersonState();
@@ -209,48 +215,50 @@ class _EditPersonState extends State<EditPerson> {
                       },
                     ),
                   ),
-                  Container(
-                    padding: EdgeInsets.symmetric(vertical: 4.0),
-                    child: TextFormField(
-                      decoration: InputDecoration(
-                        labelText: 'موبايل الأب',
-                        border: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Theme.of(context).primaryColor),
+                  if (widget.showMotherAndFatherPhones)
+                    Container(
+                      padding: EdgeInsets.symmetric(vertical: 4.0),
+                      child: TextFormField(
+                        decoration: InputDecoration(
+                          labelText: 'موبايل الأب',
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Theme.of(context).primaryColor),
+                          ),
                         ),
+                        keyboardType: TextInputType.phone,
+                        textInputAction: TextInputAction.next,
+                        initialValue: person.fatherPhone,
+                        onChanged: _fatherPhoneChanged,
+                        onFieldSubmitted: (_) =>
+                            FocusScope.of(context).nextFocus(),
+                        validator: (value) {
+                          return null;
+                        },
                       ),
-                      keyboardType: TextInputType.phone,
-                      textInputAction: TextInputAction.next,
-                      initialValue: person.fatherPhone,
-                      onChanged: _fatherPhoneChanged,
-                      onFieldSubmitted: (_) =>
-                          FocusScope.of(context).nextFocus(),
-                      validator: (value) {
-                        return null;
-                      },
                     ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.symmetric(vertical: 4.0),
-                    child: TextFormField(
-                      decoration: InputDecoration(
-                        labelText: 'موبايل الأم',
-                        border: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Theme.of(context).primaryColor),
+                  if (widget.showMotherAndFatherPhones)
+                    Container(
+                      padding: EdgeInsets.symmetric(vertical: 4.0),
+                      child: TextFormField(
+                        decoration: InputDecoration(
+                          labelText: 'موبايل الأم',
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Theme.of(context).primaryColor),
+                          ),
                         ),
+                        keyboardType: TextInputType.phone,
+                        textInputAction: TextInputAction.next,
+                        initialValue: person.motherPhone,
+                        onChanged: _motherPhoneChanged,
+                        onFieldSubmitted: (_) =>
+                            FocusScope.of(context).nextFocus(),
+                        validator: (value) {
+                          return null;
+                        },
                       ),
-                      keyboardType: TextInputType.phone,
-                      textInputAction: TextInputAction.next,
-                      initialValue: person.motherPhone,
-                      onChanged: _motherPhoneChanged,
-                      onFieldSubmitted: (_) =>
-                          FocusScope.of(context).nextFocus(),
-                      validator: (value) {
-                        return null;
-                      },
                     ),
-                  ),
                   if (person.phones.isNotEmpty)
                     ...person.phones.entries.map(
                       (e) => Container(

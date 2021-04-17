@@ -199,11 +199,12 @@ class AppState extends State<App> {
           'ClassInfo': (context) =>
               ClassInfo(class$: ModalRoute.of(context).settings.arguments),
           'PersonInfo': (context) => PersonInfo(
-                person: ModalRoute.of(context).settings.arguments,
-                converter: ModalRoute.of(context).settings.arguments is User
-                    ? User.fromDoc
-                    : Person.fromDoc,
-              ),
+              person: ModalRoute.of(context).settings.arguments,
+              converter: ModalRoute.of(context).settings.arguments is User
+                  ? User.fromDoc
+                  : Person.fromDoc,
+              showMotherAndFatherPhones:
+                  ModalRoute.of(context).settings.arguments is! User),
           'UserInfo': (context) => UserInfo(),
           'InvitationInfo': (context) => InvitationInfo(
               invitation: ModalRoute.of(context).settings.arguments),

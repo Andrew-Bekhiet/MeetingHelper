@@ -25,7 +25,12 @@ import '../../utils/helpers.dart';
 class PersonInfo extends StatefulWidget {
   final Person person;
   final Person Function(DocumentSnapshot) converter;
-  const PersonInfo({Key key, this.person, this.converter = Person.fromDoc})
+  final bool showMotherAndFatherPhones;
+  const PersonInfo(
+      {Key key,
+      this.person,
+      this.converter = Person.fromDoc,
+      this.showMotherAndFatherPhones = true})
       : super(key: key);
 
   @override
@@ -285,18 +290,20 @@ class _PersonInfoState extends State<PersonInfo> {
                         (n) => _phoneCall(context, n),
                         (n) => _contactAdd(context, n, person),
                       ),
-                      PhoneNumberProperty(
-                        'موبايل (الأب):',
-                        person.fatherPhone,
-                        (n) => _phoneCall(context, n),
-                        (n) => _contactAdd(context, n, person),
-                      ),
-                      PhoneNumberProperty(
-                        'موبايل (الأم):',
-                        person.motherPhone,
-                        (n) => _phoneCall(context, n),
-                        (n) => _contactAdd(context, n, person),
-                      ),
+                      if (widget.showMotherAndFatherPhones)
+                        PhoneNumberProperty(
+                          'موبايل (الأب):',
+                          person.fatherPhone,
+                          (n) => _phoneCall(context, n),
+                          (n) => _contactAdd(context, n, person),
+                        ),
+                      if (widget.showMotherAndFatherPhones)
+                        PhoneNumberProperty(
+                          'موبايل (الأم):',
+                          person.motherPhone,
+                          (n) => _phoneCall(context, n),
+                          (n) => _contactAdd(context, n, person),
+                        ),
                       if (person.phones != null)
                         ...person.phones.entries
                             .map(
