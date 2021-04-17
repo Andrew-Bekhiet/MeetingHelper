@@ -1,7 +1,11 @@
 import * as functions from "firebase-functions";
 
 import { auth, firestore } from "firebase-admin";
-import { Timestamp, FieldValue } from "@google-cloud/firestore";
+import {
+  Timestamp,
+  FieldValue,
+  DocumentReference,
+} from "@google-cloud/firestore";
 import * as tools from "firebase-tools";
 import { FirebaseDynamicLinks } from "firebase-dynamic-links";
 
@@ -127,57 +131,44 @@ export const onPersonUpdated = functions.firestore
       batch.update(change.after.data().ClassId, {
         LastEdit: change.after.data().LastEdit,
         LastEditTime: FieldValue.serverTimestamp(),
-        ClassId: change.after.data().ClassId,
-        PersonId: change.after.ref,
       });
       await batch.commit();
 
-      if (change.after.data().ClassId !== change.before?.data()?.ClassId) {
+      if (
+        getChangeType(change) === "update" &&
+        !(change.after.data().ClassId as DocumentReference).isEqual(
+          change.before.data().ClassId
+        )
+      ) {
         let pendingChanges = firestore().batch();
 
         let batchCount = 0;
 
-        let snapshot = await firestore().collectionGroup("Meeting").get();
-        for (let i = 0, l = snapshot.docs.length; i < l; i++, batchCount++) {
-          if (batchCount % 500 === 0) {
-            await pendingChanges.commit();
-            pendingChanges = firestore().batch();
-          }
-          if (snapshot.docs[i].ref.parent.parent.parent.id === "History") {
-            pendingChanges.update(snapshot.docs[i].ref, {
-              ClassId: change.after.data()["ClassId"],
-            });
-            console.log("done: " + snapshot.docs[i].id);
-          }
-        }
-
-        snapshot = await firestore().collectionGroup("Kodas").get();
-        for (let i = 0, l = snapshot.docs.length; i < l; i++, batchCount++) {
-          if (batchCount % 500 === 0) {
-            await pendingChanges.commit();
-            pendingChanges = firestore().batch();
-          }
-          if (snapshot.docs[i].ref.parent.parent.parent.id === "History") {
-            pendingChanges.update(snapshot.docs[i].ref, {
-              ClassId: change.after.data()["ClassId"],
-            });
-            console.log("done: " + snapshot.docs[i].id);
+        let snapshot: firestore.QuerySnapshot<firestore.DocumentData>;
+        for (const collection of ["Meeting", "Tanawol", "Kodas"]) {
+          snapshot = await firestore()
+            .collectionGroup(collection)
+            .where("ID", "==", change.after.id)
+            .get();
+          for (let i = 0, l = snapshot.docs.length; i < l; i++, batchCount++) {
+            if (batchCount % 500 === 0) {
+              await pendingChanges.commit();
+              pendingChanges = firestore().batch();
+            }
+            if (snapshot.docs[i].ref.parent.parent.parent.id === "History") {
+              pendingChanges.update(snapshot.docs[i].ref, {
+                ClassId: change.after.data()["ClassId"],
+              });
+              console.log(
+                "Update Person " +
+                  change.after.ref.path +
+                  " ClassId in record " +
+                  snapshot.docs[i].id
+              );
+            }
           }
         }
 
-        snapshot = await firestore().collectionGroup("Tanawol").get();
-        for (let i = 0, l = snapshot.docs.length; i < l; i++, batchCount++) {
-          if (batchCount % 500 === 0) {
-            await pendingChanges.commit();
-            pendingChanges = firestore().batch();
-          }
-          if (snapshot.docs[i].ref.parent.parent.parent.id === "History") {
-            pendingChanges.update(snapshot.docs[i].ref, {
-              ClassId: change.after.data()["ClassId"],
-            });
-            console.log("done: " + snapshot.docs[i].id);
-          }
-        }
         await pendingChanges.commit();
       }
       return "OK";
@@ -211,7 +202,12 @@ export const onUserUpdated = functions.firestore
       }
 
       const batch = firestore().batch();
-      if (change.after.data().ClassId !== change.before?.data()?.ClassId) {
+      if (
+        getChangeType(change) === "update" &&
+        !(change.after.data().ClassId as DocumentReference).isEqual(
+          change.before.data().ClassId
+        )
+      ) {
         batch.update(
           firestore().collection("Users").doc(change.after.data().UID),
           { ClassId: change.after.data().ClassId }
@@ -265,78 +261,46 @@ export const onUserUpdated = functions.firestore
       batch.update(change.after.data().ClassId, {
         LastEdit: change.after.data().LastEdit,
         LastEditTime: FieldValue.serverTimestamp(),
-        ClassId: change.after.data().ClassId,
-        PersonId: change.after.ref,
       });
       await batch.commit();
 
-      if (change.after.data().ClassId !== change.before?.data()?.ClassId) {
+      if (
+        getChangeType(change) === "update" &&
+        !(change.after.data().ClassId as DocumentReference).isEqual(
+          change.before.data().ClassId
+        )
+      ) {
         let pendingChanges = firestore().batch();
 
         let batchCount = 0;
 
-        let snapshot = await firestore().collectionGroup("Meeting").get();
-        for (let i = 0, l = snapshot.docs.length; i < l; i++, batchCount++) {
-          if (batchCount % 500 === 0) {
-            await pendingChanges.commit();
-            pendingChanges = firestore().batch();
-          }
-          if (
-            snapshot.docs[i].ref.parent.parent.parent.id === "ServantsHistory"
-          ) {
-            const user = await auth().getUser(snapshot.docs[i].id);
-            const classId = await firestore()
-              .collection("UsersData")
-              .doc(user.customClaims.personId)
-              .get();
-            pendingChanges.update(snapshot.docs[i].ref, {
-              ClassId: classId.data()["ClassId"],
-            });
-            console.log("done: " + snapshot.docs[i].id);
-          }
-        }
-
-        snapshot = await firestore().collectionGroup("Kodas").get();
-        for (let i = 0, l = snapshot.docs.length; i < l; i++, batchCount++) {
-          if (batchCount % 500 === 0) {
-            await pendingChanges.commit();
-            pendingChanges = firestore().batch();
-          }
-          if (
-            snapshot.docs[i].ref.parent.parent.parent.id === "ServantsHistory"
-          ) {
-            const user = await auth().getUser(snapshot.docs[i].id);
-            const classId = await firestore()
-              .collection("UsersData")
-              .doc(user.customClaims.personId)
-              .get();
-            pendingChanges.update(snapshot.docs[i].ref, {
-              ClassId: classId.data()["ClassId"],
-            });
-            console.log("done: " + snapshot.docs[i].id);
+        let snapshot: firestore.QuerySnapshot<firestore.DocumentData>;
+        for (const collection of ["Meeting", "Tanawol", "Kodas"]) {
+          snapshot = await firestore()
+            .collectionGroup(collection)
+            .where("ID", "==", change.after.id)
+            .get();
+          for (let i = 0, l = snapshot.docs.length; i < l; i++, batchCount++) {
+            if (batchCount % 500 === 0) {
+              await pendingChanges.commit();
+              pendingChanges = firestore().batch();
+            }
+            if (
+              snapshot.docs[i].ref.parent.parent.parent.id === "ServantsHistory"
+            ) {
+              pendingChanges.update(snapshot.docs[i].ref, {
+                ClassId: change.after.data()["ClassId"],
+              });
+              console.log(
+                "Update User " +
+                  change.after.ref.path +
+                  " ClassId in record " +
+                  snapshot.docs[i].id
+              );
+            }
           }
         }
 
-        snapshot = await firestore().collectionGroup("Tanawol").get();
-        for (let i = 0, l = snapshot.docs.length; i < l; i++, batchCount++) {
-          if (batchCount % 500 === 0) {
-            await pendingChanges.commit();
-            pendingChanges = firestore().batch();
-          }
-          if (
-            snapshot.docs[i].ref.parent.parent.parent.id === "ServantsHistory"
-          ) {
-            const user = await auth().getUser(snapshot.docs[i].id);
-            const classId = await firestore()
-              .collection("UsersData")
-              .doc(user.customClaims.personId)
-              .get();
-            pendingChanges.update(snapshot.docs[i].ref, {
-              ClassId: classId.data()["ClassId"],
-            });
-            console.log("done: " + snapshot.docs[i].id);
-          }
-        }
         await pendingChanges.commit();
       }
       return "OK";
@@ -365,6 +329,20 @@ export const onHistoryRecordWrite = functions.firestore
   .document("History/{day}/{type}/{doc}")
   .onWrite(async (change, context) => {
     if (getChangeType(change) !== "delete") {
+      if (
+        getChangeType(change) === "update" &&
+        !(change.after.data().ClassId as DocumentReference).isEqual(
+          change.before.data().ClassId
+        )
+      ) {
+        console.log(
+          "Skipped: ClassId changed from " +
+            (change.before.data().ClassId as DocumentReference).path +
+            " to " +
+            (change.after.data().ClassId as DocumentReference).path
+        );
+        return "OK";
+      }
       const data = { LastEdit: change.after.data().RecordedBy };
       data["Last" + context.params.type] = change.after.data().Time;
       return await firestore()
@@ -406,9 +384,24 @@ export const onServantsHistoryRecordWrite = functions.firestore
   .document("ServantsHistory/{day}/{type}/{doc}")
   .onWrite(async (change, context) => {
     const currentUser = await auth().getUser(
-      change.after.id ?? change.before.id
+      change.after?.id ?? change.before.id
     );
     if (getChangeType(change) !== "delete") {
+      if (
+        getChangeType(change) === "update" &&
+        !(change.after.data().ClassId as DocumentReference).isEqual(
+          change.before.data().ClassId
+        )
+      )
+         {
+           console.log(
+             "Skipped: ClassId changed from " +
+               (change.before.data().ClassId as DocumentReference).path +
+               " to " +
+               (change.after.data().ClassId as DocumentReference).path
+           );
+           return "OK";
+         }
       const data = { LastEdit: change.after.data().RecordedBy };
       data["Last" + context.params.type] = change.after.data().Time;
       return await firestore()
