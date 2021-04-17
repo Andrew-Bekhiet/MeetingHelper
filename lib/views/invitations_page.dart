@@ -6,7 +6,7 @@ import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/views/list.dart';
 
 class InvitationsPage extends StatefulWidget {
-  InvitationsPage({Key key}) : super(key: key);
+  InvitationsPage({Key? key}) : super(key: key);
 
   @override
   _InvitationsPageState createState() => _InvitationsPageState();
@@ -21,8 +21,8 @@ class _InvitationsPageState extends State<InvitationsPage> {
           .collection('Invitations')
           .snapshots()
           .map((s) => s.docs.map(Invitation.fromDoc).toList()),
-      tap: (i) =>
-          navigator.currentState.pushNamed('InvitationInfo', arguments: i),
+      tap: (dynamic i) =>
+          navigator.currentState!.pushNamed('InvitationInfo', arguments: i),
     );
     return Scaffold(
       appBar: AppBar(title: Text('لينكات الدعوة')),
@@ -34,20 +34,20 @@ class _InvitationsPageState extends State<InvitationsPage> {
       bottomNavigationBar: BottomAppBar(
         color: Theme.of(context).primaryColor,
         shape: CircularNotchedRectangle(),
-        child: StreamBuilder<List<Invitation>>(
+        child: StreamBuilder<List<Invitation?>>(
           stream: options.objectsData,
           builder: (context, snapshot) {
             return Text((snapshot.data?.length ?? 0).toString() + ' دعوة',
                 textAlign: TextAlign.center,
                 strutStyle:
-                    StrutStyle(height: IconTheme.of(context).size / 7.5),
+                    StrutStyle(height: IconTheme.of(context).size! / 7.5),
                 style: Theme.of(context).primaryTextTheme.bodyText1);
           },
         ),
       ),
       floatingActionButton: FloatingActionButton(
         tooltip: 'اضافة دعوة',
-        onPressed: () => navigator.currentState.pushNamed('EditInvitation'),
+        onPressed: () => navigator.currentState!.pushNamed('EditInvitation'),
         child: Icon(Icons.add_link),
       ),
     );

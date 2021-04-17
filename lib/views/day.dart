@@ -14,14 +14,14 @@ import 'package:rxdart/rxdart.dart';
 class Day extends StatefulWidget {
   final HistoryDay record;
 
-  Day({@required this.record}) : assert(record != null);
+  Day({required this.record}) : assert(record != null);
 
   @override
   State<Day> createState() => _DayState();
 }
 
 class _DayState extends State<Day> with SingleTickerProviderStateMixin {
-  TabController _tabs;
+  TabController? _tabs;
   bool _showSearch = false;
   final FocusNode _searchFocus = FocusNode();
   final BehaviorSubject<String> _searchQuery =
@@ -34,7 +34,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
           Provider<CheckListOptions<Person>>(
             create: (_) {
               bool isSameDay = DateTime.now()
-                      .difference(widget.record.day.toDate())
+                      .difference(widget.record.day!.toDate())
                       .inDays ==
                   0;
               return CheckListOptions(
@@ -54,7 +54,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
           Provider<CheckListOptions<User>>(
             create: (_) {
               bool isSameDay = DateTime.now()
-                      .difference(widget.record.day.toDate())
+                      .difference(widget.record.day!.toDate())
                       .inDays ==
                   0;
               return CheckListOptions(
@@ -77,15 +77,15 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
             title: _showSearch
                 ? TextField(
                     focusNode: _searchFocus,
-                    style: Theme.of(context).textTheme.headline6.copyWith(
+                    style: Theme.of(context).textTheme.headline6!.copyWith(
                         color:
-                            Theme.of(context).primaryTextTheme.headline6.color),
+                            Theme.of(context).primaryTextTheme.headline6!.color),
                     decoration: InputDecoration(
                         suffixIcon: IconButton(
                           icon: Icon(Icons.close,
                               color: Theme.of(context)
                                   .primaryTextTheme
-                                  .headline6
+                                  .headline6!
                                   .color),
                           onPressed: () => setState(
                             () {
@@ -96,16 +96,16 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                         ),
                         hintStyle: Theme.of(context)
                             .textTheme
-                            .headline6
+                            .headline6!
                             .copyWith(
                                 color: Theme.of(context)
                                     .primaryTextTheme
-                                    .headline6
+                                    .headline6!
                                     .color),
                         icon: Icon(Icons.search,
                             color: Theme.of(context)
                                 .primaryTextTheme
-                                .headline6
+                                .headline6!
                                 .color),
                         hintText: 'بحث ...'),
                     onChanged: _searchQuery.add,
@@ -121,7 +121,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                   }),
                   tooltip: 'بحث',
                 ),
-              if (User.instance.superAccess)
+              if (User.instance.superAccess!)
                 IconButton(
                   icon: Icon(Icons.delete),
                   onPressed: () async {
@@ -129,19 +129,19 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                           context: context,
                           builder: (context) => AlertDialog(actions: [
                             TextButton(
-                              onPressed: () => navigator.currentState.pop(true),
+                              onPressed: () => navigator.currentState!.pop(true),
                               child: Text('نعم'),
                             ),
                             TextButton(
                               onPressed: () =>
-                                  navigator.currentState.pop(false),
+                                  navigator.currentState!.pop(false),
                               child: Text('لا'),
                             )
                           ], content: Text('هل أنت متأكد من الحذف؟')),
                         ) ==
                         true) {
-                      await widget.record.ref.delete();
-                      navigator.currentState.pop();
+                      await widget.record.ref!.delete();
+                      navigator.currentState!.pop();
                     }
                   },
                 ),
@@ -160,7 +160,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                         label: Text(
                           'التالي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2.color,
+                            color: Theme.of(context).textTheme.bodyText2!.color,
                           ),
                         ),
                         onPressed: () =>
@@ -171,7 +171,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                         child: Text(
                           'تخطي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2.color,
+                            color: Theme.of(context).textTheme.bodyText2!.color,
                           ),
                         ),
                       ),
@@ -179,7 +179,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                   ),
                   backgroundColor: Theme.of(context).accentColor,
                   targetColor: Theme.of(context).primaryColor,
-                  textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
+                  textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
                   child: Icon(Icons.library_add_check_outlined),
                 ),
                 onPressed: () {
@@ -197,14 +197,14 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                               value: dayOptions.grouped.value,
                               onChanged: (value) {
                                 dayOptions.grouped.add(value);
-                                navigator.currentState.pop();
+                                navigator.currentState!.pop();
                               },
                             ),
                             GestureDetector(
                               onTap: () {
                                 dayOptions.grouped
-                                    .add(!dayOptions.grouped.value);
-                                navigator.currentState.pop();
+                                    .add(!dayOptions.grouped.value!);
+                                navigator.currentState!.pop();
                               },
                               child: Text('تقسيم حسب الفصول'),
                             ),
@@ -216,14 +216,14 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                               value: dayOptions.showSubtitlesInGroups.value,
                               onChanged: (value) {
                                 dayOptions.showSubtitlesInGroups.add(value);
-                                navigator.currentState.pop();
+                                navigator.currentState!.pop();
                               },
                             ),
                             GestureDetector(
                               onTap: () {
                                 dayOptions.showSubtitlesInGroups.add(
-                                    !dayOptions.showSubtitlesInGroups.value);
-                                navigator.currentState.pop();
+                                    !dayOptions.showSubtitlesInGroups.value!);
+                                navigator.currentState!.pop();
                               },
                               child: Text('اظهار عدد المخدومين داخل كل فصل'),
                             ),
@@ -240,18 +240,18 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                                 .map(
                                   (i) => Row(
                                     children: [
-                                      Radio<bool>(
+                                      Radio<bool?>(
                                         value: i,
                                         groupValue: dayOptions.showOnly.value,
                                         onChanged: (v) {
                                           dayOptions.showOnly.add(v);
-                                          navigator.currentState.pop();
+                                          navigator.currentState!.pop();
                                         },
                                       ),
                                       GestureDetector(
                                         onTap: () {
                                           dayOptions.showOnly.add(i);
-                                          navigator.currentState.pop();
+                                          navigator.currentState!.pop();
                                         },
                                         child: Text(i == null
                                             ? 'الكل'
@@ -286,7 +286,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                         label: Text(
                           'التالي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2.color,
+                            color: Theme.of(context).textTheme.bodyText2!.color,
                           ),
                         ),
                         onPressed: () {
@@ -298,7 +298,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                         child: Text(
                           'تخطي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2.color,
+                            color: Theme.of(context).textTheme.bodyText2!.color,
                           ),
                         ),
                       ),
@@ -306,13 +306,13 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                   ),
                   backgroundColor: Theme.of(context).accentColor,
                   targetColor: Colors.transparent,
-                  textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
+                  textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
                   child: const Icon(Icons.analytics_outlined),
                 ),
                 onPressed: () {
-                  navigator.currentState.pushNamed('Analytics', arguments: {
+                  navigator.currentState!.pushNamed('Analytics', arguments: {
                     'Day': widget.record,
-                    'HistoryCollection': widget.record.ref.parent.id
+                    'HistoryCollection': widget.record.ref!.parent.id
                   });
                 },
               ),
@@ -331,7 +331,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
             color: Theme.of(context).primaryColor,
             shape: const CircularNotchedRectangle(),
             child: AnimatedBuilder(
-              animation: _tabs,
+              animation: _tabs!,
               builder: (context, _) => StreamBuilder<Tuple2<int, int>>(
                 stream: Rx.combineLatest2<Map, Map, Tuple2<int, int>>(
                   widget.record is! ServantsHistoryDay
@@ -345,15 +345,15 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                     var rslt = widget.record is! ServantsHistoryDay
                         ? context.read<CheckListOptions<Person>>()
                         : context.read<CheckListOptions<User>>();
-                    if (_tabs.index == 0) {
+                    if (_tabs!.index == 0) {
                       return rslt.copyWith(type: DayListType.Meeting).attended;
-                    } else if (_tabs.index == 1) {
+                    } else if (_tabs!.index == 1) {
                       return rslt.copyWith(type: DayListType.Kodas).attended;
                     } else {
                       //if (_tabs.index == 2) {
                       return rslt.copyWith(type: DayListType.Tanawol).attended;
                     }
-                  }(),
+                  }()!,
                   (Map a, Map b) => Tuple2<int, int>(a.length, b.length),
                 ),
                 builder: (context, snapshot) {
@@ -369,7 +369,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                     textAlign: TextAlign.center,
                     textScaleFactor: 0.99,
                     strutStyle:
-                        StrutStyle(height: IconTheme.of(context).size / 7.5),
+                        StrutStyle(height: IconTheme.of(context).size! / 7.5),
                     style: Theme.of(context).primaryTextTheme.bodyText1,
                   );
                 },
@@ -385,19 +385,19 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
           children: widget.record is! ServantsHistoryDay
               ? [
                   DataObjectCheckList<Person>(
-                    key: PageStorageKey('PersonsMeeting' + widget.record.id),
+                    key: PageStorageKey('PersonsMeeting' + widget.record.id!),
                     options: context
                         .read<CheckListOptions<Person>>()
                         .copyWith(type: DayListType.Meeting),
                   ),
                   DataObjectCheckList<Person>(
-                    key: PageStorageKey('PersonsKodas' + widget.record.id),
+                    key: PageStorageKey('PersonsKodas' + widget.record.id!),
                     options: context
                         .read<CheckListOptions<Person>>()
                         .copyWith(type: DayListType.Kodas),
                   ),
                   DataObjectCheckList<Person>(
-                    key: PageStorageKey('PersonsTanawol' + widget.record.id),
+                    key: PageStorageKey('PersonsTanawol' + widget.record.id!),
                     options: context
                         .read<CheckListOptions<Person>>()
                         .copyWith(type: DayListType.Tanawol),
@@ -405,19 +405,19 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                 ]
               : [
                   DataObjectCheckList<User>(
-                    key: PageStorageKey('UsersMeeting' + widget.record.id),
+                    key: PageStorageKey('UsersMeeting' + widget.record.id!),
                     options: context
                         .read<CheckListOptions<User>>()
                         .copyWith(type: DayListType.Meeting),
                   ),
                   DataObjectCheckList<User>(
-                    key: PageStorageKey('UsersKodas' + widget.record.id),
+                    key: PageStorageKey('UsersKodas' + widget.record.id!),
                     options: context
                         .read<CheckListOptions<User>>()
                         .copyWith(type: DayListType.Kodas),
                   ),
                   DataObjectCheckList<User>(
-                    key: PageStorageKey('UsersTanawol' + widget.record.id),
+                    key: PageStorageKey('UsersTanawol' + widget.record.id!),
                     options: context
                         .read<CheckListOptions<User>>()
                         .copyWith(type: DayListType.Tanawol),
@@ -432,14 +432,14 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     _tabs = TabController(length: 3, vsync: this);
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      if (DateTime.now().difference(widget.record.day.toDate()).inDays != 0)
+    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) async {
+      if (DateTime.now().difference(widget.record.day!.toDate()).inDays != 0)
         return;
       try {
-        if ((await widget.record.ref.get(dataSource)).exists) {
-          await widget.record.ref.update(widget.record.getMap());
+        if ((await widget.record.ref!.get(dataSource)).exists) {
+          await widget.record.ref!.update(widget.record.getMap());
         } else {
-          await widget.record.ref.set(widget.record.getMap());
+          await widget.record.ref!.set(widget.record.getMap());
         }
       } catch (err, stkTrace) {
         await FirebaseCrashlytics.instance.recordError(err, stkTrace);
@@ -461,7 +461,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                 ' ثم الضغط على عرض بيانات المخدوم'),
             actions: [
               TextButton(
-                onPressed: () => navigator.currentState.pop(),
+                onPressed: () => navigator.currentState!.pop(),
                 child: Text('تم'),
               )
             ],

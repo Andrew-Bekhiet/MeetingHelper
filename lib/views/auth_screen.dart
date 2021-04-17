@@ -16,9 +16,9 @@ var authKey = GlobalKey<ScaffoldState>();
 final LocalAuthentication _localAuthentication = LocalAuthentication();
 
 class AuthScreen extends StatefulWidget {
-  final Widget nextWidget;
-  final String nextRoute;
-  const AuthScreen({Key key, this.nextWidget, this.nextRoute})
+  final Widget? nextWidget;
+  final String? nextRoute;
+  const AuthScreen({Key? key, this.nextWidget, this.nextRoute})
       : super(key: key);
   @override
   _AuthScreenState createState() => _AuthScreenState();
@@ -38,7 +38,7 @@ class _AuthScreenState extends State<AuthScreen> {
     return FutureBuilder<bool>(
       future: _localAuthentication.canCheckBiometrics,
       builder: (context, future) {
-        bool canCheckBio = false;
+        bool? canCheckBio = false;
         if (future.hasData) canCheckBio = future.data;
         return Scaffold(
           key: authKey,
@@ -72,11 +72,11 @@ class _AuthScreenState extends State<AuthScreen> {
                 textInputAction: TextInputAction.done,
                 obscureText: obscurePassword,
                 autocorrect: false,
-                autofocus: future.hasData && !future.data,
+                autofocus: future.hasData && !future.data!,
                 controller: _passwordText,
                 focusNode: _passwordFocus,
                 validator: (value) {
-                  if (value.isEmpty) {
+                  if (value!.isEmpty) {
                     return 'هذا الحقل مطلوب';
                   }
                   return null;
@@ -87,7 +87,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 onPressed: () => _submit(_passwordText.text),
                 child: Text('تسجيل الدخول'),
               ),
-              if (canCheckBio)
+              if (canCheckBio!)
                 OutlinedButton.icon(
                   icon: Icon(Icons.fingerprint),
                   label: Text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'),
@@ -123,14 +123,14 @@ class _AuthScreenState extends State<AuthScreen> {
       if (value) {
         if (widget.nextRoute != null) {
           // ignore: unawaited_futures
-          navigator.currentState.pushReplacementNamed(widget.nextRoute);
+          navigator.currentState!.pushReplacementNamed(widget.nextRoute!);
         } else if (widget.nextWidget == null) {
-          navigator.currentState.pop(true);
+          navigator.currentState!.pop(true);
         } else {
           // ignore: unawaited_futures
-          navigator.currentState.pushReplacement(
+          navigator.currentState!.pushReplacement(
             MaterialPageRoute(builder: (con) {
-              return widget.nextWidget;
+              return widget.nextWidget!;
             }),
           );
         }
@@ -142,7 +142,7 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Future _submit(String password) async {
-    String encryptedPassword = Encryption.encPswd(password);
+    String? encryptedPassword = Encryption.encPswd(password);
     if (password.isEmpty) {
       encryptedPassword = null;
       await showErrorDialog(context, 'كلمة سر فارغة!');
@@ -150,13 +150,13 @@ class _AuthScreenState extends State<AuthScreen> {
     } else if (User.instance.password == encryptedPassword) {
       encryptedPassword = null;
       if (widget.nextWidget != null) {
-        await navigator.currentState.pushReplacement(
-          MaterialPageRoute(builder: (c) => widget.nextWidget),
+        await navigator.currentState!.pushReplacement(
+          MaterialPageRoute(builder: (c) => widget.nextWidget!),
         );
       } else if (widget.nextRoute != null) {
-        await navigator.currentState.pushReplacementNamed(widget.nextRoute);
+        await navigator.currentState!.pushReplacementNamed(widget.nextRoute!);
       } else {
-        navigator.currentState.pop(true);
+        navigator.currentState!.pop(true);
       }
     } else {
       encryptedPassword = null;

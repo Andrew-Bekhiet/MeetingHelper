@@ -14,7 +14,7 @@ import '../models/user.dart';
 import '../utils/helpers.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key key}) : super(key: key);
+  const LoginScreen({Key? key}) : super(key: key);
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -45,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: ElevatedButton.styleFrom(
                     primary: Colors.white, shape: btnShape),
                 onPressed: () async {
-                  GoogleSignInAccount googleUser =
+                  GoogleSignInAccount? googleUser =
                       await GoogleSignIn().signIn();
                   if (googleUser != null) {
                     GoogleSignInAuthentication googleAuth =
@@ -164,7 +164,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       text: 'بتسجيل دخولك فإنك توافق على ',
                     ),
                     TextSpan(
-                      style: Theme.of(context).textTheme.bodyText2.copyWith(
+                      style: Theme.of(context).textTheme.bodyText2!.copyWith(
                             color: Colors.blue,
                           ),
                       text: 'شروط الاستخدام',
@@ -182,7 +182,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       text: ' و',
                     ),
                     TextSpan(
-                      style: Theme.of(context).textTheme.bodyText2.copyWith(
+                      style: Theme.of(context).textTheme.bodyText2!.copyWith(
                             color: Colors.blue,
                           ),
                       text: 'سياسة الخصوصية',
@@ -361,11 +361,11 @@ class _LoginScreenState extends State<LoginScreen> {
       settings.get('ClassSecondLine') ??
           await settings.put('ClassSecondLine', 'Gender');
 
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
+      WidgetsBinding.instance!.addPostFrameCallback((_) async {
         if (user.getNotificationsPermissions().values.toList().any((e) => e)) {
           var notificationsSettings =
               Hive.box<Map<dynamic, dynamic>>('NotificationsSettings');
-          if (user.birthdayNotify) {
+          if (user.birthdayNotify!) {
             if (notificationsSettings.get('BirthDayTime') == null) {
               await notificationsSettings.put(
                   'BirthDayTime', <String, int>{'Hours': 11, 'Minutes': 0});
@@ -379,7 +379,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 rescheduleOnReboot: true);
           }
 
-          if (user.kodasNotify) {
+          if (user.kodasNotify!) {
             if (notificationsSettings.get('KodasTime') == null) {
               await notificationsSettings.put('KodasTime',
                   <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
@@ -391,7 +391,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     DateTime.now().day, 11),
                 rescheduleOnReboot: true);
           }
-          if (user.meetingNotify) {
+          if (user.meetingNotify!) {
             if (notificationsSettings.get('MeetingTime') == null) {
               await notificationsSettings.put('MeetingTime',
                   <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
@@ -403,7 +403,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     DateTime.now().day, 11),
                 rescheduleOnReboot: true);
           }
-          if (user.confessionsNotify) {
+          if (user.confessionsNotify!) {
             if (notificationsSettings.get('ConfessionTime') == null) {
               await notificationsSettings.put('ConfessionTime',
                   <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
@@ -415,7 +415,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     DateTime.now().day, 11),
                 rescheduleOnReboot: true);
           }
-          if (user.tanawolNotify) {
+          if (user.tanawolNotify!) {
             if (notificationsSettings.get('TanawolTime') == null) {
               await notificationsSettings.put('TanawolTime',
                   <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});

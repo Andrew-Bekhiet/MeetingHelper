@@ -8,17 +8,17 @@ import 'package:tinycolor/tinycolor.dart';
 class DataObjectWidget<T extends DataObject> extends StatelessWidget {
   final T current;
 
-  final void Function() onLongPress;
-  final void Function() onTap;
-  final Widget trailing;
-  final Widget photo;
-  final Widget subtitle;
-  final Widget title;
+  final void Function()? onLongPress;
+  final void Function()? onTap;
+  final Widget? trailing;
+  final Widget? photo;
+  final Widget? subtitle;
+  final Widget? title;
   final bool wrapInCard;
   final bool isDense;
   final bool showSubTitle;
 
-  final _memoizer = AsyncMemoizer<String>();
+  final _memoizer = AsyncMemoizer<String?>();
 
   DataObjectWidget(this.current,
       {this.isDense = false,
@@ -42,7 +42,7 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
       title: title ?? Text(current.name),
       subtitle: showSubTitle
           ? subtitle ??
-              FutureBuilder(
+              FutureBuilder<String?>(
                 future: _memoizer
                     .runOnce(() async => await current.getSecondLine()),
                 builder: (cont, subT) {
@@ -51,13 +51,9 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
                         maxLines: 1, overflow: TextOverflow.ellipsis);
                   } else {
                     return LinearProgressIndicator(
-                      backgroundColor: current.color != Colors.transparent
-                          ? current.color
-                          : null,
+                      backgroundColor: current.color,
                       valueColor: AlwaysStoppedAnimation(
-                          current.color != Colors.transparent
-                              ? current.color
-                              : Theme.of(context).primaryColor),
+                          current.color ?? Theme.of(context).primaryColor),
                     );
                   }
                 },
@@ -76,17 +72,18 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
         : tile;
   }
 
-  Color _getColor(BuildContext context) {
-    if (current.color == Colors.transparent) return null;
-    if (current.color.brightness > 170 &&
+  Color? _getColor(BuildContext context) {
+    if (current.color == null || current.color == Colors.transparent)
+      return null;
+    if (current.color!.brightness > 170 &&
         Theme.of(context).brightness == Brightness.dark) {
       //refers to the contrasted text theme color
-      return current.color
-          .darken(((265 - current.color.brightness) / 255 * 100).toInt());
-    } else if (current.color.brightness < 85 &&
+      return current.color!
+          .darken(((265 - current.color!.brightness) / 255 * 100).toInt());
+    } else if (current.color!.brightness < 85 &&
         Theme.of(context).brightness == Brightness.light) {
-      return current.color
-          .lighten(((265 - current.color.brightness) / 255 * 100).toInt());
+      return current.color!
+          .lighten(((265 - current.color!.brightness) / 255 * 100).toInt());
     }
     return current.color;
   }

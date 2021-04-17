@@ -11,16 +11,16 @@ import 'package:rxdart/rxdart.dart';
 import 'package:tuple/tuple.dart';
 
 class UsersList extends StatefulWidget {
-  final DataObjectListOptions<User> listOptions;
+  final DataObjectListOptions<User>? listOptions;
 
-  const UsersList({Key key, this.listOptions}) : super(key: key);
+  const UsersList({Key? key, this.listOptions}) : super(key: key);
 
   @override
   _UsersListState createState() => _UsersListState();
 }
 
 class _UsersListState extends State<UsersList> {
-  DataObjectListOptions<User> _listOptions;
+  late DataObjectListOptions<User> _listOptions;
 
   @override
   void didChangeDependencies() {
@@ -31,38 +31,38 @@ class _UsersListState extends State<UsersList> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<User>>(
+    return StreamBuilder<List<User?>>(
       stream: _listOptions.objectsData,
       builder: (context, options) {
-        if (options.hasError) return Center(child: ErrorWidget(options.error));
+        if (options.hasError) return Center(child: ErrorWidget(options.error!));
         if (!options.hasData)
           return const Center(child: CircularProgressIndicator());
 
-        final List<User> _data = options.data;
+        final List<User?> _data = options.data!;
         if (_data.isEmpty) return const Center(child: Text('لا يوجد مستخدمين'));
 
         return StreamBuilder<Map<DocumentReference, Tuple2<Class, List<User>>>>(
           stream: usersByClassRef(_data),
           builder: (context, groupedData) {
-            if (groupedData.hasError) return ErrorWidget(groupedData.error);
+            if (groupedData.hasError) return ErrorWidget(groupedData.error!);
             if (!groupedData.hasData)
               return const Center(child: CircularProgressIndicator());
 
             return GroupListView(
               padding: EdgeInsets.symmetric(horizontal: 4),
-              sectionsCount: groupedData.data.length + 1,
+              sectionsCount: groupedData.data!.length + 1,
               countOfItemInSection: (i) {
-                if (i == groupedData.data.length) return 0;
+                if (i == groupedData.data!.length) return 0;
 
-                return groupedData.data.values.elementAt(i).item2.length;
+                return groupedData.data!.values.elementAt(i).item2.length;
               },
               cacheExtent: 500,
               groupHeaderBuilder: (context, i) {
-                if (i == groupedData.data.length)
+                if (i == groupedData.data!.length)
                   return Container(
                       height: MediaQuery.of(context).size.height / 19);
 
-                final _class = groupedData.data.values.elementAt(i).item1;
+                final _class = groupedData.data!.values.elementAt(i).item1;
 
                 return DataObjectWidget<Class>(
                   _class,
@@ -75,7 +75,7 @@ class _UsersListState extends State<UsersList> {
                 );
               },
               itemBuilder: (context, i) {
-                User current = groupedData.data.values
+                User current = groupedData.data!.values
                     .elementAt(i.section)
                     .item2
                     .elementAt(i.index);
@@ -86,28 +86,28 @@ class _UsersListState extends State<UsersList> {
                     onLongPress: _listOptions.onLongPress ??
                         (u) {
                           _listOptions.selectionMode
-                              .add(!_listOptions.selectionModeLatest);
-                          if (_listOptions.selectionModeLatest)
+                              .add(!_listOptions.selectionModeLatest!);
+                          if (_listOptions.selectionModeLatest!)
                             _listOptions.select(current);
                         },
                     onTap: (User current) {
-                      if (!_listOptions.selectionModeLatest) {
+                      if (!_listOptions.selectionModeLatest!) {
                         _listOptions.tap == null
                             ? dataObjectTap(current, context)
-                            : _listOptions.tap(current);
+                            : _listOptions.tap!(current);
                       } else {
                         _listOptions.toggleSelected(current);
                       }
                     },
-                    trailing: StreamBuilder<Map<String, User>>(
+                    trailing: StreamBuilder<Map<String, User>?>(
                       stream: Rx.combineLatest2(_listOptions.selected,
-                          _listOptions.selectionMode, (a, b) => b ? a : null),
+                          _listOptions.selectionMode, (dynamic a, dynamic b) => b ? a : null),
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
                           return Checkbox(
-                            value: snapshot.data.containsKey(current.uid),
+                            value: snapshot.data!.containsKey(current.uid),
                             onChanged: (v) {
-                              if (v) {
+                              if (v!) {
                                 _listOptions.select(current);
                               } else {
                                 _listOptions.deselect(current);

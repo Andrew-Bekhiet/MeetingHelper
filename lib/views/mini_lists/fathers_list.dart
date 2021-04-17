@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:meetinghelper/models/mini_models.dart';
 
 class FathersEditList extends StatefulWidget {
-  final Future<QuerySnapshot> list;
+  final Future<QuerySnapshot>? list;
 
-  final Function(Father) tap;
+  final Function(Father)? tap;
   FathersEditList({this.list, this.tap});
 
   @override
@@ -15,10 +15,10 @@ class FathersEditList extends StatefulWidget {
 }
 
 class FathersList extends StatefulWidget {
-  final Future<Stream<QuerySnapshot>> list;
+  final Future<Stream<QuerySnapshot>>? list;
 
-  final Function(List<Father>) finished;
-  final Stream<Father> original;
+  final Function(List<Father>)? finished;
+  final Stream<Father>? original;
   FathersList({this.list, this.finished, this.original});
 
   @override
@@ -42,28 +42,28 @@ class InnerListState extends State<_InnerFathersList> {
           onRefresh: () {
             setState(() {});
             return null;
-          },
+          } as Future<void> Function(),
           child: StreamBuilder<QuerySnapshot>(
             stream: widget.data,
             builder: (context, fathers) {
               if (!fathers.hasData) return CircularProgressIndicator();
               return ListView.builder(
-                  itemCount: fathers.data.docs.length,
+                  itemCount: fathers.data!.docs.length,
                   itemBuilder: (context, i) {
-                    Father current = Father.fromDoc(fathers.data.docs[i]);
-                    return current.name.contains(filter)
+                    Father current = Father.fromDoc(fathers.data!.docs[i]);
+                    return current.name!.contains(filter)
                         ? Card(
                             child: ListTile(
                               onTap: () {
-                                widget.result
-                                        .map((f) => f.id)
+                                widget.result!
+                                        .map((f) => f!.id)
                                         .contains(current.id)
-                                    ? widget.result
-                                        .removeWhere((x) => x.id == current.id)
-                                    : widget.result.add(current);
+                                    ? widget.result!
+                                        .removeWhere((x) => x!.id == current.id)
+                                    : widget.result!.add(current);
                                 setState(() {});
                               },
-                              title: Text(current.name),
+                              title: Text(current.name!),
                               subtitle: FutureBuilder(
                                   future: current.getChurchName(),
                                   builder: (con, name) {
@@ -72,14 +72,14 @@ class InnerListState extends State<_InnerFathersList> {
                                         : LinearProgressIndicator();
                                   }),
                               leading: Checkbox(
-                                value: widget.result
-                                    .map((f) => f.id)
+                                value: widget.result!
+                                    .map((f) => f!.id)
                                     .contains(current.id),
                                 onChanged: (x) {
-                                  !x
-                                      ? widget.result.removeWhere(
-                                          (x) => x.id == current.id)
-                                      : widget.result.add(current);
+                                  !x!
+                                      ? widget.result!.removeWhere(
+                                          (x) => x!.id == current.id)
+                                      : widget.result!.add(current);
                                   setState(() {});
                                 },
                               ),
@@ -96,11 +96,11 @@ class InnerListState extends State<_InnerFathersList> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           TextButton(
-            onPressed: () => widget.finished(widget.result),
+            onPressed: () => widget.finished!(widget.result),
             child: Text('تم'),
           ),
           TextButton(
-            onPressed: () => widget.finished(null),
+            onPressed: () => widget.finished!(null),
             child: Text('إلغاء الأمر'),
           ),
         ],
@@ -130,17 +130,17 @@ class _FathersEditListState extends State<FathersEditList> {
                 child: RefreshIndicator(
                   onRefresh: () {
                     setState(() {});
-                    return widget.list;
+                    return widget.list.then((value) => value!);
                   },
                   child: ListView.builder(
-                    itemCount: data.data.docs.length,
+                    itemCount: data.data!.docs.length,
                     itemBuilder: (context, i) {
-                      Father current = Father.fromDoc(data.data.docs[i]);
-                      return current.name.contains(filter)
+                      Father current = Father.fromDoc(data.data!.docs[i]);
+                      return current.name!.contains(filter)
                           ? Card(
                               child: ListTile(
-                                onTap: () => widget.tap(current),
-                                title: Text(current.name),
+                                onTap: () => widget.tap!(current),
+                                title: Text(current.name!),
                                 subtitle: FutureBuilder(
                                     future: current.getChurchName(),
                                     builder: (con, name) {
@@ -166,7 +166,7 @@ class _FathersEditListState extends State<FathersEditList> {
 }
 
 class _FathersListState extends State<FathersList> {
-  List<Father> result;
+  List<Father?>? result;
 
   @override
   Widget build(BuildContext c) {
@@ -180,7 +180,7 @@ class _FathersListState extends State<FathersList> {
                   if (result == null && data.hasData) {
                     result = [data.data];
                   } else if (data.hasData) {
-                    result.add(data.data);
+                    result!.add(data.data);
                   } else {
                     result = [];
                   }
@@ -195,10 +195,10 @@ class _FathersListState extends State<FathersList> {
 }
 
 class _InnerFathersList extends StatefulWidget {
-  final Stream<QuerySnapshot> data;
-  final List<Father> result;
-  final Function(List<Father>) finished;
-  final Future<Stream<QuerySnapshot>> list;
+  final Stream<QuerySnapshot>? data;
+  final List<Father?>? result;
+  final Function(List<Father?>?)? finished;
+  final Future<Stream<QuerySnapshot>>? list;
   _InnerFathersList(this.data, this.result, this.list, this.finished);
   @override
   State<StatefulWidget> createState() => InnerListState();

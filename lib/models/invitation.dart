@@ -6,17 +6,20 @@ import 'package:meetinghelper/models/user.dart';
 
 class Invitation extends DataObject {
   Invitation({
-    DocumentReference ref,
-    String title,
+    required DocumentReference ref,
+    required String title,
     this.link,
     this.usedBy,
-    this.generatedBy,
+    required this.generatedBy,
     this.permissions,
-    this.generatedOn,
-    this.expiryDate,
+    required this.generatedOn,
+    required this.expiryDate,
   }) : super(ref, title, null);
 
-  static Invitation fromDoc(DocumentSnapshot doc) =>
+  static Invitation? fromDoc(DocumentSnapshot doc) =>
+      doc.exists ? Invitation.createFromData(doc.data()!, doc.reference) : null;
+
+  static Invitation fromQueryDoc(QueryDocumentSnapshot doc) =>
       Invitation.createFromData(doc.data(), doc.reference);
 
   Invitation.createFromData(Map<String, dynamic> data, DocumentReference ref)
@@ -32,12 +35,12 @@ class Invitation extends DataObject {
 
   String get title => name;
 
-  final String link;
-  String usedBy;
-  String generatedBy;
-  Map<String, dynamic> permissions;
-  Timestamp generatedOn;
-  Timestamp expiryDate;
+  final String? link;
+  String? usedBy;
+  late String generatedBy;
+  Map<String, dynamic>? permissions;
+  late Timestamp generatedOn;
+  late Timestamp expiryDate;
 
   bool get used => usedBy != null;
 
@@ -60,7 +63,8 @@ class Invitation extends DataObject {
 
   @override
   Future<String> getSecondLine() async {
-    if (used) return 'تم الاستخدام بواسطة: ' + (await User.onlyName(usedBy));
+    if (used)
+      return 'تم الاستخدام بواسطة: ' + (await User.onlyName(usedBy) ?? '');
     return 'ينتهي في ' +
         DateFormat('yyyy/M/d', 'ar-EG').format(expiryDate.toDate());
   }

@@ -15,9 +15,9 @@ import 'package:tuple/tuple.dart';
 
 class HistoryDay extends DataObject with ChangeNotifier {
   Timestamp day;
-  String notes;
+  String? notes;
 
-  StreamSubscription<DocumentSnapshot> _realTimeListener;
+  late StreamSubscription<DocumentSnapshot> _realTimeListener;
   HistoryDay()
       : day = tranucateToDay(),
         notes = '',
@@ -25,9 +25,8 @@ class HistoryDay extends DataObject with ChangeNotifier {
             FirebaseFirestore.instance
                 .collection('History')
                 .doc(DateTime.now().toIso8601String().split('T')[0]),
-            null,
+            '',
             null) {
-    color = Colors.transparent;
     _initListener();
   }
 
@@ -35,7 +34,6 @@ class HistoryDay extends DataObject with ChangeNotifier {
       : day = data['Day'],
         notes = data['Notes'],
         super.createFromData(data, ref) {
-    color = Colors.transparent;
     _initListener();
   }
 
@@ -56,7 +54,7 @@ class HistoryDay extends DataObject with ChangeNotifier {
       };
 
   @override
-  bool operator ==(Object other) =>
+  bool operator ==(dynamic other) =>
       (other is HistoryDay && other.hashCode == hashCode);
 
   @override
@@ -71,15 +69,19 @@ class HistoryDay extends DataObject with ChangeNotifier {
   void _initListener() {
     _realTimeListener = ref.snapshots().listen((event) {
       if (!event.exists || event.data() == null) return;
-      notes = event.data()['Notes'];
+      notes = event.data()?['Notes'];
       notifyListeners();
     });
   }
 
-  static HistoryDay fromDoc(DocumentSnapshot data) =>
+  static HistoryDay? fromDoc(DocumentSnapshot data) => data.exists
+      ? HistoryDay._createFromData(data.data()!, data.reference)
+      : null;
+
+  static HistoryDay fromQueryDoc(QueryDocumentSnapshot data) =>
       HistoryDay._createFromData(data.data(), data.reference);
 
-  static Future<HistoryDay> fromId(String id) async => HistoryDay.fromDoc(
+  static Future<HistoryDay?> fromId(String id) async => HistoryDay.fromDoc(
       await FirebaseFirestore.instance.doc('History/$id').get());
 
   static Future<Stream<QuerySnapshot>> getAllForUser(
@@ -116,7 +118,11 @@ class ServantsHistoryDay extends HistoryDay {
     _initListener();
   }
 
-  static ServantsHistoryDay fromDoc(DocumentSnapshot data) =>
+  static ServantsHistoryDay? fromDoc(DocumentSnapshot data) => data.exists
+      ? ServantsHistoryDay._createFromData(data.data()!, data.reference)
+      : null;
+
+  static ServantsHistoryDay fromQueryDoc(QueryDocumentSnapshot data) =>
       ServantsHistoryDay._createFromData(data.data(), data.reference);
 
   ServantsHistoryDay._createFromData(
@@ -134,50 +140,54 @@ class ServantsHistoryDay extends HistoryDay {
 
 class HistoryRecord {
   HistoryRecord(
-      {this.type,
+      {required this.type,
       this.parent,
-      this.id,
-      this.classId,
-      this.time,
-      this.recordedBy,
+      required this.id,
+      required this.classId,
+      required this.time,
+      required this.recordedBy,
       this.notes,
-      this.isServant});
+      this.isServant = false});
 
-  HistoryRecord.fromDoc(this.parent, DocumentSnapshot doc)
+  static HistoryRecord? fromDoc(HistoryDay? parent, DocumentSnapshot doc) =>
+      doc.exists ? HistoryRecord._fromDoc(parent, doc) : null;
+
+  HistoryRecord._fromDoc(this.parent, DocumentSnapshot doc)
       : id = doc.id,
-        classId = doc.data()['ClassId'],
+        classId = doc.data()!['ClassId'],
         type = doc.reference.parent.id == 'Meeting'
             ? DayListType.Meeting
             : (doc.reference.parent.id == 'Kodas'
                 ? DayListType.Kodas
                 : DayListType.Tanawol),
-        isServant = doc.data()['IsServant'],
-        time = doc.data()['Time'],
-        recordedBy = doc.data()['RecordedBy'],
-        notes = doc.data()['Notes'];
+        isServant = doc.data()!['IsServant'],
+        time = doc.data()!['Time'],
+        recordedBy = doc.data()!['RecordedBy'],
+        notes = doc.data()!['Notes'];
 
-  static HistoryRecord fromQueryDoc(DocumentSnapshot doc, [HistoryDay parent]) {
-    return HistoryRecord.fromDoc(parent, doc);
+  static HistoryRecord fromQueryDoc(QueryDocumentSnapshot doc,
+      [HistoryDay? parent]) {
+    return HistoryRecord.fromDoc(parent, doc)!;
   }
 
   final DayListType type;
 
-  HistoryDay parent;
+  HistoryDay? parent;
   String id;
   Timestamp time;
   String recordedBy;
-  String notes;
+  String? notes;
   DocumentReference classId;
   bool isServant;
 
-  DocumentReference get ref => parent.collections[type].doc(id);
+  DocumentReference? get ref => parent?.collections[type]?.doc(id);
 
   Future<void> set() async {
-    return await ref.set(getMap());
+    return await ref?.set(getMap());
   }
 
   Future<void> update() async {
-    return await ref.update(getMap());
+    return await ref?.update(getMap());
   }
 
   Map<String, dynamic> getMap() {
@@ -202,9 +212,24 @@ class HistoryRecord {
 
 class MinimalHistoryRecord {
   MinimalHistoryRecord(
-      {this.ref, this.classId, this.personId, this.time, this.by});
+      {required this.ref,
+      this.classId,
+      this.personId,
+      required this.time,
+      required this.by});
 
-  static MinimalHistoryRecord fromDoc(DocumentSnapshot doc) {
+  static MinimalHistoryRecord? fromDoc(DocumentSnapshot doc) {
+    if (!doc.exists) return null;
+    return MinimalHistoryRecord(
+      ref: doc.reference,
+      classId: doc.data()!['ClassId'],
+      personId: doc.data()!['PersonId'],
+      time: doc.data()!['Time'],
+      by: doc.data()!['By'],
+    );
+  }
+
+  static MinimalHistoryRecord fromQueryDoc(QueryDocumentSnapshot doc) {
     return MinimalHistoryRecord(
       ref: doc.reference,
       classId: doc.data()['ClassId'],
@@ -215,9 +240,9 @@ class MinimalHistoryRecord {
   }
 
   static Stream<List<QueryDocumentSnapshot>> getAllForUser(
-      {@required String collectionGroup,
-      DateTimeRange range,
-      List<Class> classes}) {
+      {required String collectionGroup,
+      DateTimeRange? range,
+      List<Class>? classes}) {
     return Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
         User.instance.stream,
         Class.getAllForUser(),
@@ -297,8 +322,8 @@ class MinimalHistoryRecord {
   Timestamp time;
   String by;
 
-  DocumentReference classId;
-  DocumentReference personId;
+  DocumentReference? classId;
+  DocumentReference? personId;
   DocumentReference ref;
 
   Map<String, dynamic> getMap() {

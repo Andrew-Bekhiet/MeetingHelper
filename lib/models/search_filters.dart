@@ -7,12 +7,12 @@ import 'list_options.dart';
 import 'order_options.dart';
 
 class FilterButton extends StatelessWidget {
-  final int index;
-  final BaseListOptions controller;
-  final BehaviorSubject<OrderOptions> orderOptions;
+  final int? index;
+  final BaseListOptions? controller;
+  final BehaviorSubject<OrderOptions>? orderOptions;
   final bool disableOrdering;
   const FilterButton(this.index, this.controller, this.orderOptions,
-      {Key key, this.disableOrdering = false})
+      {Key? key, this.disableOrdering = false})
       : super(key: key);
 
   @override
@@ -28,23 +28,23 @@ class FilterButton extends StatelessWidget {
                 icon: Icon(Icons.select_all),
                 label: Text('تحديد الكل'),
                 onPressed: () {
-                  controller.selectAll();
-                  navigator.currentState.pop();
+                  controller!.selectAll();
+                  navigator.currentState!.pop();
                 },
               ),
               TextButton.icon(
                 icon: Icon(Icons.select_all),
                 label: Text('تحديد لا شئ'),
                 onPressed: () {
-                  controller.selectNone();
-                  navigator.currentState.pop();
+                  controller!.selectNone();
+                  navigator.currentState!.pop();
                 },
               ),
               if (!disableOrdering)
                 Text('ترتيب حسب:',
                     style: TextStyle(fontWeight: FontWeight.bold)),
               if (!disableOrdering)
-                ...getOrderingOptions(context, orderOptions, index)
+                ...getOrderingOptions(context, orderOptions!, index)
             ],
           ),
         );
@@ -54,9 +54,9 @@ class FilterButton extends StatelessWidget {
 }
 
 class SearchField extends StatelessWidget {
-  SearchField({Key key, @required this.textStyle, @required this.searchStream})
+  SearchField({Key? key, required this.textStyle, required this.searchStream})
       : super(key: key);
-  final TextStyle textStyle;
+  final TextStyle? textStyle;
   final TextEditingController _textController = TextEditingController();
   final BehaviorSubject<String> searchStream;
 
@@ -67,14 +67,14 @@ class SearchField extends StatelessWidget {
       controller: _textController,
       decoration: InputDecoration(
           suffixIcon: IconButton(
-            icon: Icon(Icons.close, color: textStyle.color),
+            icon: Icon(Icons.close, color: textStyle!.color),
             onPressed: () {
               _textController.text = '';
               searchStream.add('');
             },
           ),
           hintStyle: textStyle,
-          icon: Icon(Icons.search, color: textStyle.color),
+          icon: Icon(Icons.search, color: textStyle!.color),
           hintText: 'بحث ...'),
       onChanged: (_) => searchStream.add(_),
     );
@@ -82,17 +82,17 @@ class SearchField extends StatelessWidget {
 }
 
 class SearchFilters extends StatelessWidget {
-  final int index;
-  final TextStyle textStyle;
-  final BaseListOptions options;
-  final BehaviorSubject<OrderOptions> orderOptions;
+  final int? index;
+  final TextStyle? textStyle;
+  final BaseListOptions? options;
+  final BehaviorSubject<OrderOptions>? orderOptions;
   final BehaviorSubject<String> searchStream;
   final bool disableOrdering;
   const SearchFilters(this.index,
-      {Key key,
-      @required this.textStyle,
-      @required this.options,
-      @required this.searchStream,
+      {Key? key,
+      required this.textStyle,
+      required this.options,
+      required this.searchStream,
       this.disableOrdering = false,
       this.orderOptions})
       : super(key: key);
@@ -105,8 +105,8 @@ class SearchFilters extends StatelessWidget {
           child: SearchField(
             searchStream: searchStream,
             textStyle: textStyle ??
-                Theme.of(context).textTheme.headline6.copyWith(
-                    color: Theme.of(context).primaryTextTheme.headline6.color),
+                Theme.of(context).textTheme.headline6!.copyWith(
+                    color: Theme.of(context).primaryTextTheme.headline6!.color),
           ),
         ),
         FilterButton(

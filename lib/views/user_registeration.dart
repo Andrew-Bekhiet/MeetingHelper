@@ -13,7 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:meetinghelper/utils/globals.dart';
 
 class UserRegistration extends StatefulWidget {
-  const UserRegistration({Key key}) : super(key: key);
+  const UserRegistration({Key? key}) : super(key: key);
 
   @override
   _UserRegistrationState createState() => _UserRegistrationState();
@@ -31,8 +31,8 @@ class _UserRegistrationState extends State<UserRegistration> {
 
   final GlobalKey<FormState> _formKey = GlobalKey();
 
-  int lastTanawol;
-  int lastConfession;
+  int? lastTanawol;
+  int? lastConfession;
   bool obscurePassword1 = true;
   bool obscurePassword2 = true;
 
@@ -40,9 +40,9 @@ class _UserRegistrationState extends State<UserRegistration> {
   Widget build(BuildContext context) {
     return Consumer<User>(
       builder: (context, user, _) {
-        if (user.approved) {
-          lastTanawol ??= user.lastTanawol.millisecondsSinceEpoch;
-          lastConfession ??= user.lastConfession.millisecondsSinceEpoch;
+        if (user.approved!) {
+          lastTanawol ??= user.lastTanawol!.millisecondsSinceEpoch;
+          lastConfession ??= user.lastConfession!.millisecondsSinceEpoch;
           return Scaffold(
             resizeToAvoidBottomInset: !kIsWeb,
             appBar: AppBar(
@@ -69,9 +69,9 @@ class _UserRegistrationState extends State<UserRegistration> {
                     ),
                     textInputAction: TextInputAction.next,
                     autofocus: true,
-                    controller: _userName..text = user.name,
+                    controller: _userName..text = user.name!,
                     validator: (value) {
-                      if (value.isEmpty) {
+                      if (value!.isEmpty) {
                         return 'لا يمكن أن يكون اسمك فارغًا';
                       }
                       return null;
@@ -107,7 +107,7 @@ class _UserRegistrationState extends State<UserRegistration> {
                     controller: _passwordText,
                     focusNode: _passwordFocus,
                     validator: (value) {
-                      if (value.isEmpty || value.characters.length < 9) {
+                      if (value!.isEmpty || value.characters.length < 9) {
                         return 'يرجى كتابة كلمة سر قوية تتكون من أكثر من 10 أحرف وتحتوي على رموز وأرقام';
                       }
                       return null;
@@ -141,7 +141,7 @@ class _UserRegistrationState extends State<UserRegistration> {
                     controller: _passwordText2,
                     focusNode: _passwordFocus2,
                     validator: (value) {
-                      if (value.isEmpty || value != _passwordText2.text) {
+                      if (value!.isEmpty || value != _passwordText2.text) {
                         return 'كلمتا السر غير متطابقتين';
                       }
                       return null;
@@ -185,7 +185,7 @@ class _UserRegistrationState extends State<UserRegistration> {
                                     child: lastTanawol != null
                                         ? Text(DateFormat('yyyy/M/d').format(
                                             DateTime.fromMillisecondsSinceEpoch(
-                                                lastTanawol)))
+                                                lastTanawol!)))
                                         : Text('(فارغ)'),
                                   ),
                                 ),
@@ -195,7 +195,7 @@ class _UserRegistrationState extends State<UserRegistration> {
                         ],
                       );
                     },
-                    validator: (_) => lastTanawol == null
+                    validator: (dynamic _) => lastTanawol == null
                         ? 'يجب تحديد تاريخ أخر تناول'
                         : null,
                   ),
@@ -234,7 +234,7 @@ class _UserRegistrationState extends State<UserRegistration> {
                                     child: lastConfession != null
                                         ? Text(DateFormat('yyyy/M/d').format(
                                             DateTime.fromMillisecondsSinceEpoch(
-                                                lastConfession)))
+                                                lastConfession!)))
                                         : Text('(فارغ)'),
                                   ),
                                 ),
@@ -244,7 +244,7 @@ class _UserRegistrationState extends State<UserRegistration> {
                         ],
                       );
                     },
-                    validator: (_) => lastConfession == null
+                    validator: (dynamic _) => lastConfession == null
                         ? 'يجب تحديد تاريخ أخر اعتراف'
                         : null,
                   ),
@@ -271,10 +271,10 @@ class _UserRegistrationState extends State<UserRegistration> {
                     await Hive.box('Settings')
                         .put('FCM_Token_Registered', false);
                     // ignore: unawaited_futures
-                    navigator.currentState.pushReplacement(
+                    navigator.currentState!.pushReplacement(
                       MaterialPageRoute(
                         builder: (context) {
-                          navigator.currentState
+                          navigator.currentState!
                               .popUntil((route) => route.isFirst);
                           return App();
                         },
@@ -316,7 +316,7 @@ class _UserRegistrationState extends State<UserRegistration> {
                 controller: _linkController,
                 onFieldSubmitted: _registerUser,
                 validator: (value) {
-                  if (value.isEmpty) {
+                  if (value!.isEmpty) {
                     return 'برجاء ادخال لينك الدخول لتفعيل حسابك';
                   }
                   return null;
@@ -346,9 +346,9 @@ class _UserRegistrationState extends State<UserRegistration> {
           builder: (context, snapshot) {
             if (snapshot.hasError) {
               return Text(
-                  (snapshot.error as FirebaseFunctionsException).message);
+                  (snapshot.error as FirebaseFunctionsException).message!);
             } else if (snapshot.connectionState == ConnectionState.done) {
-              navigator.currentState.pop();
+              navigator.currentState!.pop();
             }
             return Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -380,9 +380,9 @@ class _UserRegistrationState extends State<UserRegistration> {
   }
 
   void _submit(String password, String _userName) async {
-    if (!_formKey.currentState.validate()) return;
+    if (!_formKey.currentState!.validate()) return;
     // ignore: unawaited_futures
-    scaffoldMessenger.currentState.showSnackBar(
+    scaffoldMessenger.currentState!.showSnackBar(
       SnackBar(
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -402,7 +402,7 @@ class _UserRegistrationState extends State<UserRegistration> {
         'fcmToken': await FirebaseMessaging.instance.getToken(),
       });
       await Hive.box('Settings').put('FCM_Token_Registered', true);
-      scaffoldMessenger.currentState.hideCurrentSnackBar();
+      scaffoldMessenger.currentState!.hideCurrentSnackBar();
     } catch (err, stkTrace) {
       await FirebaseCrashlytics.instance
           .setCustomKey('LastErrorIn', 'UserRgisteration._submit');
