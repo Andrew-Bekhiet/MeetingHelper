@@ -66,15 +66,11 @@ class _UsersListState extends State<UsersList> {
 
                 return DataObjectWidget<Class>(
                   _class,
-                  subtitle: Text('يتم عرض ' +
-                      groupedData.data.values
-                          .elementAt(i)
-                          .item2
-                          .length
-                          .toString() +
-                      ' خادم داخل الفصل'),
+                  showSubTitle: false,
+                  wrapInCard: false,
                   onTap: () {
-                    if (_class.id != 'null') classTap(_class, context);
+                    if (_class.id != 'null' && _class.id != 'unknown')
+                      classTap(_class, context);
                   },
                 );
               },

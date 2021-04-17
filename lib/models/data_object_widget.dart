@@ -34,6 +34,7 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Widget tile = ListTile(
+      tileColor: wrapInCard ? null : _getColor(context),
       dense: isDense,
       onLongPress: onLongPress,
       onTap: onTap ?? () => dataObjectTap(current, context),
