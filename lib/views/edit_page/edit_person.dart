@@ -198,7 +198,7 @@ class _EditPersonState extends State<EditPerson> {
                     padding: EdgeInsets.symmetric(vertical: 4.0),
                     child: TextFormField(
                       decoration: InputDecoration(
-                        labelText: 'موبايل (مخدومي)',
+                        labelText: 'موبايل (شخصي)',
                         border: OutlineInputBorder(
                           borderSide:
                               BorderSide(color: Theme.of(context).primaryColor),

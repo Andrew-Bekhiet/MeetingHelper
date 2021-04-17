@@ -364,7 +364,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
 
   static Map<String, dynamic> getHumanReadableMap2() => {
         'Name': 'الاسم',
-        'Phone': 'موبايل (مخدومي)',
+        'Phone': 'موبايل (شخصي)',
         'FatherPhone': 'موبايل الأب',
         'MotherPhone': 'موبايل الأم',
         'Address': 'العنوان',
