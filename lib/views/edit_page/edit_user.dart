@@ -21,7 +21,7 @@ import '../../models/user.dart';
 
 class EditUser extends StatefulWidget {
   final User user;
-  EditUser({Key? key, required this.user}) : super(key: key);
+  EditUser({Key key, @required this.user}) : super(key: key);
   @override
   _EditUserState createState() => _EditUserState();
 }
@@ -37,11 +37,11 @@ class _EditUserState extends State<EditUser> {
     FocusNode()
   ];
   AsyncCache<String> className = AsyncCache(Duration(minutes: 1));
-  late Map<String, dynamic> old;
+  Map<String, dynamic> old;
 
   GlobalKey<FormState> form = GlobalKey<FormState>();
 
-  List<User>? childrenUsers;
+  List<User> childrenUsers;
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +72,7 @@ class _EditUserState extends State<EditUser> {
                     opacity: constraints.biggest.height > kToolbarHeight * 1.7
                         ? 0
                         : 1,
-                    child: Text(widget.user.name!,
+                    child: Text(widget.user.name,
                         style: TextStyle(
                           fontSize: 16.0,
                         )),
@@ -104,7 +104,7 @@ class _EditUserState extends State<EditUser> {
                     initialValue: widget.user.name,
                     onChanged: nameChanged,
                     validator: (value) {
-                      if (value!.isEmpty) {
+                      if (value.isEmpty) {
                         return 'هذا الحقل مطلوب';
                       }
                       return null;
@@ -131,7 +131,7 @@ class _EditUserState extends State<EditUser> {
                         ),
                         child: widget.user.lastTanawolDate != null
                             ? Text(DateFormat('yyyy/M/d').format(
-                                widget.user.lastTanawolDate!,
+                                widget.user.lastTanawolDate,
                               ))
                             : Text('لا يمكن التحديد'),
                       ),
@@ -158,7 +158,7 @@ class _EditUserState extends State<EditUser> {
                         ),
                         child: widget.user.lastConfessionDate != null
                             ? Text(DateFormat('yyyy/M/d').format(
-                                widget.user.lastConfessionDate!,
+                                widget.user.lastConfessionDate,
                               ))
                             : Text('لا يمكن التحديد'),
                       ),
@@ -199,7 +199,7 @@ class _EditUserState extends State<EditUser> {
                     ),
                   ),
                 ),
-                if (User.instance.manageUsers!)
+                if (User.instance.manageUsers)
                   ListTile(
                     trailing: Checkbox(
                       value: widget.user.manageUsers,
@@ -210,7 +210,7 @@ class _EditUserState extends State<EditUser> {
                         const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
                     title: Text('إدارة المستخدمين'),
                     onTap: () => setState(() =>
-                        widget.user.manageUsers = !widget.user.manageUsers!),
+                        widget.user.manageUsers = !widget.user.manageUsers),
                   ),
                 ListTile(
                   trailing: Checkbox(
@@ -222,7 +222,7 @@ class _EditUserState extends State<EditUser> {
                       const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
                   title: Text('إدارة مستخدمين محددين'),
                   onTap: () => setState(() => widget.user.manageAllowedUsers =
-                      !widget.user.manageAllowedUsers!),
+                      !widget.user.manageAllowedUsers),
                 ),
                 ListTile(
                   trailing: Checkbox(
@@ -234,7 +234,7 @@ class _EditUserState extends State<EditUser> {
                       const IconData(0xef56, fontFamily: 'MaterialIconsR')),
                   title: Text('رؤية جميع البيانات'),
                   onTap: () => setState(
-                      () => widget.user.superAccess = !widget.user.superAccess!),
+                      () => widget.user.superAccess = !widget.user.superAccess),
                 ),
                 ListTile(
                   trailing: Checkbox(
@@ -255,7 +255,7 @@ class _EditUserState extends State<EditUser> {
                   leading: Icon(Icons.shield),
                   title: Text('تسجيل حضور الخدام'),
                   onTap: () => setState(
-                      () => widget.user.secretary = !widget.user.secretary!),
+                      () => widget.user.secretary = !widget.user.secretary),
                 ),
                 ListTile(
                   trailing: Checkbox(
@@ -265,7 +265,7 @@ class _EditUserState extends State<EditUser> {
                   leading: Icon(Icons.edit),
                   title: Text('تعديل البيانات'),
                   onTap: () =>
-                      setState(() => widget.user.write = !widget.user.write!),
+                      setState(() => widget.user.write = !widget.user.write),
                 ),
                 ListTile(
                   trailing: Checkbox(
@@ -276,7 +276,7 @@ class _EditUserState extends State<EditUser> {
                   leading: Icon(Icons.cloud_download),
                   title: Text('تصدير فصل لملف إكسل'),
                   onTap: () => setState(() =>
-                      widget.user.exportClasses = !widget.user.exportClasses!),
+                      widget.user.exportClasses = !widget.user.exportClasses),
                 ),
                 ListTile(
                   trailing: Checkbox(
@@ -288,7 +288,7 @@ class _EditUserState extends State<EditUser> {
                       const IconData(0xe7e9, fontFamily: 'MaterialIconsR')),
                   title: Text('إشعار أعياد الميلاد'),
                   onTap: () => setState(() =>
-                      widget.user.birthdayNotify = !widget.user.birthdayNotify!),
+                      widget.user.birthdayNotify = !widget.user.birthdayNotify),
                 ),
                 ListTile(
                   trailing: Checkbox(
@@ -342,7 +342,7 @@ class _EditUserState extends State<EditUser> {
                   onPressed: editChildrenUsers,
                   icon: Icon(Icons.shield),
                   label: Text(
-                      'تعديل المستخدمين المسؤول عنهم ' + widget.user.name!,
+                      'تعديل المستخدمين المسؤول عنهم ' + widget.user.name,
                       softWrap: false,
                       textScaleFactor: 0.95,
                       overflow: TextOverflow.fade),
@@ -385,7 +385,7 @@ class _EditUserState extends State<EditUser> {
                         searchQuery: searchStream,
                         selectionMode: true,
                         itemsStream: User.getAllForUser(),
-                        selected: {for (var item in users.data!) item.id: item},
+                        selected: {for (var item in users.data) item.id: item},
                       ),
                     )
                   ],
@@ -393,9 +393,9 @@ class _EditUserState extends State<EditUser> {
                     actions: [
                       TextButton(
                         onPressed: () {
-                          navigator.currentState!.pop(context
+                          navigator.currentState.pop(context
                               .read<DataObjectListOptions<User>>()
-                              .selectedLatest!
+                              .selectedLatest
                               .values
                               ?.toList());
                         },
@@ -430,27 +430,27 @@ class _EditUserState extends State<EditUser> {
       builder: (context) => AlertDialog(
         title: Text('حذف حساب ${widget.user.name}'),
         content:
-            Text('هل أنت متأكد من حذف حساب ' + widget.user.name! + ' نهائيًا؟'),
+            Text('هل أنت متأكد من حذف حساب ' + widget.user.name + ' نهائيًا؟'),
         actions: <Widget>[
           TextButton(
-            style: Theme.of(context).textButtonTheme.style!.copyWith(
+            style: Theme.of(context).textButtonTheme.style.copyWith(
                 foregroundColor:
                     MaterialStateProperty.resolveWith((state) => Colors.red)),
             onPressed: () async {
               try {
-                scaffoldMessenger.currentState!.showSnackBar(
+                scaffoldMessenger.currentState.showSnackBar(
                   SnackBar(
                     content: LinearProgressIndicator(),
                     duration: Duration(seconds: 15),
                   ),
                 );
-                navigator.currentState!.pop();
+                navigator.currentState.pop();
                 await FirebaseFunctions.instance
                     .httpsCallable('deleteUser')
                     .call({'affectedUser': widget.user.uid});
-                scaffoldMessenger.currentState!.hideCurrentSnackBar();
-                navigator.currentState!.pop('deleted');
-                scaffoldMessenger.currentState!.showSnackBar(
+                scaffoldMessenger.currentState.hideCurrentSnackBar();
+                navigator.currentState.pop('deleted');
+                scaffoldMessenger.currentState.showSnackBar(
                   SnackBar(
                     content: Text('تم بنجاح'),
                     duration: Duration(seconds: 15),
@@ -460,8 +460,8 @@ class _EditUserState extends State<EditUser> {
                 await FirebaseCrashlytics.instance
                     .setCustomKey('LastErrorIn', 'UserPState.delete');
                 await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-                scaffoldMessenger.currentState!.hideCurrentSnackBar();
-                scaffoldMessenger.currentState!.showSnackBar(
+                scaffoldMessenger.currentState.hideCurrentSnackBar();
+                scaffoldMessenger.currentState.showSnackBar(
                   SnackBar(
                     content: Text(
                       err.toString(),
@@ -475,7 +475,7 @@ class _EditUserState extends State<EditUser> {
           ),
           TextButton(
             onPressed: () {
-              navigator.currentState!.pop();
+              navigator.currentState.pop();
             },
             child: Text('تراجع'),
           ),
@@ -494,17 +494,17 @@ class _EditUserState extends State<EditUser> {
           TextButton(
             onPressed: () async {
               try {
-                scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+                scaffoldMessenger.currentState.showSnackBar(SnackBar(
                   content: LinearProgressIndicator(),
                   duration: Duration(seconds: 15),
                 ));
-                navigator.currentState!.pop();
+                navigator.currentState.pop();
                 await FirebaseFunctions.instance
                     .httpsCallable('unApproveUser')
                     .call({'affectedUser': widget.user.uid});
-                navigator.currentState!.pop('deleted');
-                scaffoldMessenger.currentState!.hideCurrentSnackBar();
-                scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+                navigator.currentState.pop('deleted');
+                scaffoldMessenger.currentState.hideCurrentSnackBar();
+                scaffoldMessenger.currentState.showSnackBar(SnackBar(
                   content: Text('تم بنجاح'),
                   duration: Duration(seconds: 15),
                 ));
@@ -512,8 +512,8 @@ class _EditUserState extends State<EditUser> {
                 await FirebaseCrashlytics.instance
                     .setCustomKey('LastErrorIn', 'UserPState.delete');
                 await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-                scaffoldMessenger.currentState!.hideCurrentSnackBar();
-                scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+                scaffoldMessenger.currentState.hideCurrentSnackBar();
+                scaffoldMessenger.currentState.showSnackBar(SnackBar(
                   content: Text(err.toString()),
                   duration: Duration(seconds: 7),
                 ));
@@ -523,7 +523,7 @@ class _EditUserState extends State<EditUser> {
           ),
           TextButton(
             onPressed: () {
-              navigator.currentState!.pop();
+              navigator.currentState.pop();
             },
             child: Text('تراجع'),
           ),
@@ -547,22 +547,22 @@ class _EditUserState extends State<EditUser> {
           context: context,
           builder: (context) => AlertDialog(
             title: Text('هل أنت متأكد من إعادة تعيين كلمة السر ل' +
-                widget.user.name! +
+                widget.user.name +
                 '؟'),
             actions: [
               TextButton(
-                onPressed: () => navigator.currentState!.pop(true),
+                onPressed: () => navigator.currentState.pop(true),
                 child: Text('نعم'),
               ),
               TextButton(
-                onPressed: () => navigator.currentState!.pop(false),
+                onPressed: () => navigator.currentState.pop(false),
                 child: Text('لا'),
               ),
             ],
           ),
         ) !=
         true) return;
-    scaffoldMessenger.currentState!.showSnackBar(
+    scaffoldMessenger.currentState.showSnackBar(
       SnackBar(
         content: LinearProgressIndicator(),
         duration: Duration(seconds: 15),
@@ -572,8 +572,8 @@ class _EditUserState extends State<EditUser> {
       await FirebaseFunctions.instance
           .httpsCallable('resetPassword')
           .call({'affectedUser': widget.user.uid});
-      scaffoldMessenger.currentState!.hideCurrentSnackBar();
-      scaffoldMessenger.currentState!.showSnackBar(
+      scaffoldMessenger.currentState.hideCurrentSnackBar();
+      scaffoldMessenger.currentState.showSnackBar(
         SnackBar(
           content: Text('تم إعادة تعيين كلمة السر بنجاح'),
         ),
@@ -582,7 +582,7 @@ class _EditUserState extends State<EditUser> {
       await FirebaseCrashlytics.instance
           .setCustomKey('LastErrorIn', 'UserPState.resetPassword');
       await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-      scaffoldMessenger.currentState!.showSnackBar(
+      scaffoldMessenger.currentState.showSnackBar(
         SnackBar(
           content: Text(err.toString()),
         ),
@@ -599,8 +599,8 @@ class _EditUserState extends State<EditUser> {
       return;
     }
     try {
-      if (form.currentState!.validate()) {
-        scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+      if (form.currentState.validate()) {
+        scaffoldMessenger.currentState.showSnackBar(SnackBar(
           content: Text('جار الحفظ...'),
           duration: Duration(seconds: 15),
         ));
@@ -628,15 +628,15 @@ class _EditUserState extends State<EditUser> {
               .map(User.fromDoc)
               .toList();
           for (final item in oldChildren) {
-            if (!childrenUsers!.contains(item)) {
-              batch.update(item.ref!, {
+            if (!childrenUsers.contains(item)) {
+              batch.update(item.ref, {
                 'AllowedUsers': FieldValue.arrayRemove([widget.user.uid])
               });
             }
           }
-          for (final item in childrenUsers!) {
+          for (final item in childrenUsers) {
             if (!oldChildren.contains(item)) {
-              batch.update(item.ref!, {
+              batch.update(item.ref, {
                 'AllowedUsers': FieldValue.arrayUnion([widget.user.uid])
               });
             }
@@ -649,9 +649,9 @@ class _EditUserState extends State<EditUser> {
               .doc(widget.user.refId)
               .update({'ClassId': widget.user.classId});
         }
-        scaffoldMessenger.currentState!.hideCurrentSnackBar();
-        navigator.currentState!.pop(widget.user);
-        scaffoldMessenger.currentState!.showSnackBar(
+        scaffoldMessenger.currentState.hideCurrentSnackBar();
+        navigator.currentState.pop(widget.user);
+        scaffoldMessenger.currentState.showSnackBar(
           SnackBar(
             content: Text('تم الحفظ بنجاح'),
             duration: Duration(seconds: 1),
@@ -662,8 +662,8 @@ class _EditUserState extends State<EditUser> {
       await FirebaseCrashlytics.instance
           .setCustomKey('LastErrorIn', 'UserPState.save');
       await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-      scaffoldMessenger.currentState!.hideCurrentSnackBar();
-      scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+      scaffoldMessenger.currentState.hideCurrentSnackBar();
+      scaffoldMessenger.currentState.showSnackBar(SnackBar(
         content: Text(err.toString()),
         duration: Duration(seconds: 7),
       ));
@@ -671,7 +671,7 @@ class _EditUserState extends State<EditUser> {
   }
 
   Future<Timestamp> _selectDate(String helpText, DateTime initialDate) async {
-    DateTime? picked = await showDatePicker(
+    DateTime picked = await showDatePicker(
       helpText: helpText,
       locale: Locale('ar', 'EG'),
       context: context,
@@ -691,7 +691,7 @@ class _EditUserState extends State<EditUser> {
         BehaviorSubject<String>.seeded('');
     final options = ServicesListOptions(
       tap: (class$) {
-        navigator.currentState!.pop();
+        navigator.currentState.pop();
         widget.user.classId = class$.ref;
         className.invalidate();
         setState(() {});
@@ -728,25 +728,25 @@ class _EditUserState extends State<EditUser> {
             bottomNavigationBar: BottomAppBar(
               color: Theme.of(context).primaryColor,
               shape: CircularNotchedRectangle(),
-              child: StreamBuilder<Map?>(
+              child: StreamBuilder<Map>(
                 stream: options.objectsData,
                 builder: (context, snapshot) {
                   return Text((snapshot.data?.length ?? 0).toString() + ' خدمة',
                       textAlign: TextAlign.center,
                       strutStyle:
-                          StrutStyle(height: IconTheme.of(context).size! / 7.5),
+                          StrutStyle(height: IconTheme.of(context).size / 7.5),
                       style: Theme.of(context).primaryTextTheme.bodyText1);
                 },
               ),
             ),
-            floatingActionButton: User.instance.write!
+            floatingActionButton: User.instance.write
                 ? FloatingActionButton(
                     heroTag: null,
                     onPressed: () async {
-                      navigator.currentState!.pop();
-                      widget.user.classId = (await navigator.currentState!
+                      navigator.currentState.pop();
+                      widget.user.classId = (await navigator.currentState
                                   .pushNamed('Data/EditClass'))
-                              as DocumentReference? ??
+                              as DocumentReference ??
                           widget.user.classId;
                       setState(() {});
                     },

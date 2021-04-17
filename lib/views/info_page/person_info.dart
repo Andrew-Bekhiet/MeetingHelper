@@ -23,9 +23,9 @@ import '../../models/user.dart';
 import '../../utils/helpers.dart';
 
 class PersonInfo extends StatefulWidget {
-  final Person? person;
-  final Person? Function(DocumentSnapshot) converter;
-  const PersonInfo({Key? key, this.person, this.converter = Person.fromDoc})
+  final Person person;
+  final Person Function(DocumentSnapshot) converter;
+  const PersonInfo({Key key, this.person, this.converter = Person.fromDoc})
       : super(key: key);
 
   @override
@@ -36,25 +36,25 @@ class _PersonInfoState extends State<PersonInfo> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance!.addPostFrameCallback((_) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       await Future.delayed(Duration(milliseconds: 300));
       FeatureDiscovery.discoverFeatures(context, [
-        if (User.instance.write!) 'Person.Edit',
+        if (User.instance.write) 'Person.Edit',
         'Person.Share',
-        if (User.instance.write!) 'Person.LastVisit'
+        if (User.instance.write) 'Person.LastVisit'
       ]);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Selector<User, bool?>(
+    return Selector<User, bool>(
       selector: (_, user) => user.write,
-      builder: (c, permission, data) => StreamBuilder<Person?>(
+      builder: (c, permission, data) => StreamBuilder<Person>(
         initialData: widget.person,
-        stream: widget.person!.ref!.snapshots().map(widget.converter),
+        stream: widget.person.ref.snapshots().map(widget.converter),
         builder: (context, data) {
-          Person? person = data.data;
+          Person person = data.data;
           if (person == null)
             return Scaffold(
               body: Center(
@@ -69,22 +69,22 @@ class _PersonInfoState extends State<PersonInfo> {
                   SliverAppBar(
                     backgroundColor: person.color != Colors.transparent
                         ? (Theme.of(context).brightness == Brightness.light
-                            ? TinyColor(person.color!).lighten().color
-                            : TinyColor(person.color!).darken().color)
+                            ? TinyColor(person.color).lighten().color
+                            : TinyColor(person.color).darken().color)
                         : null,
-                    actions: person.ref!.path.startsWith('Deleted')
+                    actions: person.ref.path.startsWith('Deleted')
                         ? <Widget>[
-                            if (permission!)
+                            if (permission)
                               IconButton(
                                 icon: Icon(Icons.restore),
                                 tooltip: 'استعادة',
                                 onPressed: () {
-                                  recoverDoc(context, person.ref!.path);
+                                  recoverDoc(context, person.ref.path);
                                 },
                               )
                           ]
                         : <Widget>[
-                            if (permission!)
+                            if (permission)
                               IconButton(
                                 icon: DescribedFeatureOverlay(
                                   barrierDismissible: false,
@@ -105,7 +105,7 @@ class _PersonInfoState extends State<PersonInfo> {
                                           style: TextStyle(
                                             color: Theme.of(context)
                                                 .textTheme
-                                                .bodyText2!
+                                                .bodyText2
                                                 .color,
                                           ),
                                         ),
@@ -121,7 +121,7 @@ class _PersonInfoState extends State<PersonInfo> {
                                           style: TextStyle(
                                             color: Theme.of(context)
                                                 .textTheme
-                                                .bodyText2!
+                                                .bodyText2
                                                 .color,
                                           ),
                                         ),
@@ -133,8 +133,8 @@ class _PersonInfoState extends State<PersonInfo> {
                                   targetColor: Colors.transparent,
                                   textColor: Theme.of(context)
                                       .primaryTextTheme
-                                      .bodyText1!
-                                      .color!,
+                                      .bodyText1
+                                      .color,
                                   child: Builder(
                                     builder: (context) => Stack(
                                       children: <Widget>[
@@ -151,17 +151,17 @@ class _PersonInfoState extends State<PersonInfo> {
                                   ),
                                 ),
                                 onPressed: () async {
-                                  dynamic result = await navigator.currentState!
+                                  dynamic result = await navigator.currentState
                                       .pushNamed('Data/EditPerson',
                                           arguments: person);
                                   if (result is DocumentReference) {
-                                    scaffoldMessenger.currentState!.showSnackBar(
+                                    scaffoldMessenger.currentState.showSnackBar(
                                       SnackBar(
                                         content: Text('تم الحفظ بنجاح'),
                                       ),
                                     );
                                   } else if (result == 'deleted')
-                                    navigator.currentState!.pop();
+                                    navigator.currentState.pop();
                                 },
                                 tooltip: 'تعديل',
                               ),
@@ -185,7 +185,7 @@ class _PersonInfoState extends State<PersonInfo> {
                                         style: TextStyle(
                                           color: Theme.of(context)
                                               .textTheme
-                                              .bodyText2!
+                                              .bodyText2
                                               .color,
                                         ),
                                       ),
@@ -201,7 +201,7 @@ class _PersonInfoState extends State<PersonInfo> {
                                         style: TextStyle(
                                           color: Theme.of(context)
                                               .textTheme
-                                              .bodyText2!
+                                              .bodyText2
                                               .color,
                                         ),
                                       ),
@@ -212,8 +212,8 @@ class _PersonInfoState extends State<PersonInfo> {
                                 targetColor: Colors.transparent,
                                 textColor: Theme.of(context)
                                     .primaryTextTheme
-                                    .bodyText1!
-                                    .color!,
+                                    .bodyText1
+                                    .color,
                                 child: Builder(
                                   builder: (context) => Stack(
                                     children: <Widget>[
@@ -235,7 +235,7 @@ class _PersonInfoState extends State<PersonInfo> {
                               tooltip: 'مشاركة برابط',
                             ),
                             PopupMenuButton(
-                              onSelected: (dynamic item) async {
+                              onSelected: (item) async {
                                 await sendNotification(context, person);
                               },
                               itemBuilder: (BuildContext context) {
@@ -259,7 +259,7 @@ class _PersonInfoState extends State<PersonInfo> {
                                   ? 0
                                   : 1,
                           child: Text(
-                            person.name!,
+                            person.name,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -276,7 +276,7 @@ class _PersonInfoState extends State<PersonInfo> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       ListTile(
-                        title: Text(person.name!,
+                        title: Text(person.name,
                             style: Theme.of(context).textTheme.headline6),
                       ),
                       PhoneNumberProperty(
@@ -298,7 +298,7 @@ class _PersonInfoState extends State<PersonInfo> {
                         (n) => _contactAdd(context, n, person),
                       ),
                       if (person.phones != null)
-                        ...person.phones!.entries
+                        ...person.phones.entries
                             .map(
                               (e) => PhoneNumberProperty(
                                 e.key,
@@ -319,7 +319,7 @@ class _PersonInfoState extends State<PersonInfo> {
                             Text(
                                 person.birthDate != null
                                     ? DateFormat('yyyy/M/d').format(
-                                        person.birthDate!.toDate(),
+                                        person.birthDate.toDate(),
                                       )
                                     : '',
                                 style: Theme.of(context).textTheme.overline),
@@ -328,13 +328,13 @@ class _PersonInfoState extends State<PersonInfo> {
                       ),
                       CopiableProperty('العنوان:', person.address),
                       if (person.location != null &&
-                          !person.ref!.path.startsWith('Deleted'))
+                          !person.ref.path.startsWith('Deleted'))
                         ElevatedButton.icon(
                           icon: Icon(Icons.map),
-                          onPressed: () => navigator.currentState!.push(
+                          onPressed: () => navigator.currentState.push(
                             MaterialPageRoute(
                               builder: (context) => Scaffold(
-                                appBar: AppBar(title: Text(person.name!)),
+                                appBar: AppBar(title: Text(person.name)),
                                 body: person.getMapView(),
                               ),
                             ),
@@ -373,7 +373,7 @@ class _PersonInfoState extends State<PersonInfo> {
                       ),
                       CopiableProperty('ملاحظات', person.notes),
                       Divider(thickness: 1),
-                      if (!person.ref!.path.startsWith('Deleted'))
+                      if (!person.ref.path.startsWith('Deleted'))
                         ElevatedButton.icon(
                           icon: Icon(Icons.analytics),
                           label: Text('احصائيات الحضور'),
@@ -388,26 +388,26 @@ class _PersonInfoState extends State<PersonInfo> {
                       TimeHistoryProperty(
                           'تاريخ أخر اعتراف:',
                           person.lastConfession,
-                          person.ref!.collection('ConfessionHistory')),
+                          person.ref.collection('ConfessionHistory')),
                       Divider(thickness: 1),
                       HistoryProperty('تاريخ أخر زيارة:', person.lastVisit,
-                          person.ref!.collection('VisitHistory')),
+                          person.ref.collection('VisitHistory')),
                       HistoryProperty('تاريخ أخر مكالمة:', person.lastCall,
-                          person.ref!.collection('CallHistory')),
+                          person.ref.collection('CallHistory')),
                       EditHistoryProperty(
                         'أخر تحديث للبيانات:',
                         person.lastEdit,
-                        person.ref!.collection('EditHistory'),
+                        person.ref.collection('EditHistory'),
                       ),
-                      if (!person.ref!.path.startsWith('Deleted'))
+                      if (!person.ref.path.startsWith('Deleted'))
                         ListTile(
                           title: Text('داخل فصل:'),
                           subtitle: person.classId != null &&
-                                  person.classId!.parent.id != 'null'
-                              ? FutureBuilder<Class?>(
-                                  future: Class.fromId(person.classId!.id),
+                                  person.classId.parent.id != 'null'
+                              ? FutureBuilder<Class>(
+                                  future: Class.fromId(person.classId.id),
                                   builder: (context, _class) => _class.hasData
-                                      ? DataObjectWidget<Class?>(_class.data,
+                                      ? DataObjectWidget<Class>(_class.data,
                                           isDense: true)
                                       : LinearProgressIndicator(),
                                 )
@@ -418,8 +418,8 @@ class _PersonInfoState extends State<PersonInfo> {
                 ),
               ),
             ),
-            floatingActionButton: permission! &&
-                    !person.ref!.path.startsWith('Deleted')
+            floatingActionButton: permission &&
+                    !person.ref.path.startsWith('Deleted')
                 ? FloatingActionButton(
                     tooltip: 'تسجيل أخر زيارة اليوم',
                     onPressed: () => recordLastVisit(context, person),
@@ -447,7 +447,7 @@ class _PersonInfoState extends State<PersonInfo> {
                               'تخطي',
                               style: TextStyle(
                                 color:
-                                    Theme.of(context).textTheme.bodyText2!.color,
+                                    Theme.of(context).textTheme.bodyText2.color,
                               ),
                             ),
                           ),
@@ -456,7 +456,7 @@ class _PersonInfoState extends State<PersonInfo> {
                       backgroundColor: Theme.of(context).accentColor,
                       targetColor: Theme.of(context).primaryColor,
                       textColor:
-                          Theme.of(context).primaryTextTheme.bodyText1!.color!,
+                          Theme.of(context).primaryTextTheme.bodyText1.color,
                       child: Icon(Icons.update),
                     ),
                   )
@@ -472,25 +472,25 @@ class _PersonInfoState extends State<PersonInfo> {
       if (await showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: Text('هل تريد تسجيل أخر زيارة ل' + person.name! + '؟'),
+              title: Text('هل تريد تسجيل أخر زيارة ل' + person.name + '؟'),
               actions: [
                 TextButton(
-                  onPressed: () => navigator.currentState!.pop(true),
+                  onPressed: () => navigator.currentState.pop(true),
                   child: Text('تسجيل أخر زيارة'),
                 ),
                 TextButton(
-                  onPressed: () => navigator.currentState!.pop(false),
+                  onPressed: () => navigator.currentState.pop(false),
                   child: Text('رجوع'),
                 ),
               ],
             ),
           ) !=
           true) return;
-      await person.ref!.update({
+      await person.ref.update({
         'LastVisit': Timestamp.now(),
-        'LastEdit': FirebaseAuth.instance.currentUser!.uid
+        'LastEdit': FirebaseAuth.instance.currentUser.uid
       });
-      scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+      scaffoldMessenger.currentState.showSnackBar(SnackBar(
         content: Text('تم بنجاح'),
       ));
     } catch (err, stkTrace) {
@@ -510,12 +510,12 @@ class _PersonInfoState extends State<PersonInfo> {
           OutlinedButton.icon(
             icon: Icon(Icons.call),
             label: Text('اجراء مكالمة الأن'),
-            onPressed: () => navigator.currentState!.pop(true),
+            onPressed: () => navigator.currentState.pop(true),
           ),
           TextButton.icon(
             icon: Icon(Icons.dialpad),
             label: Text('نسخ في لوحة الاتصال فقط'),
-            onPressed: () => navigator.currentState!.pop(false),
+            onPressed: () => navigator.currentState.pop(false),
           ),
         ],
       ),
@@ -530,20 +530,20 @@ class _PersonInfoState extends State<PersonInfo> {
           content: Text('هل تريد تسجيل تاريخ هذه المكالمة؟'),
           actions: [
             TextButton(
-              onPressed: () => navigator.currentState!.pop(true),
+              onPressed: () => navigator.currentState.pop(true),
               child: Text('نعم'),
             ),
             TextButton(
-              onPressed: () => navigator.currentState!.pop(false),
+              onPressed: () => navigator.currentState.pop(false),
               child: Text('لا'),
             ),
           ],
         ),
       );
       if (recordLastCall == true) {
-        await widget.person!.ref!.update(
+        await widget.person.ref.update(
             {'LastEdit': User.instance.uid, 'LastCall': Timestamp.now()});
-        scaffoldMessenger.currentState!.showSnackBar(
+        scaffoldMessenger.currentState.showSnackBar(
           SnackBar(
             content: Text('تم بنجاح'),
           ),
@@ -554,7 +554,7 @@ class _PersonInfoState extends State<PersonInfo> {
   }
 
   void _showAnalytics(BuildContext context, Person person) {
-    navigator.currentState!.pushNamed('Analytics', arguments: person);
+    navigator.currentState.pushNamed('Analytics', arguments: person);
   }
 
   Future<void> _contactAdd(
@@ -576,14 +576,14 @@ class _PersonInfoState extends State<PersonInfo> {
               ),
               actions: [
                 TextButton(
-                    onPressed: () => navigator.currentState!.pop(true),
+                    onPressed: () => navigator.currentState.pop(true),
                     child: Text('حفظ جهة الاتصال'))
               ],
             ),
           ) ==
           true) {
         final c = Contact(
-            photo: person.hasPhoto!
+            photo: person.hasPhoto
                 ? await person.photoRef.getData(100 * 1024 * 1024)
                 : null,
             phones: [Phone(phone)])

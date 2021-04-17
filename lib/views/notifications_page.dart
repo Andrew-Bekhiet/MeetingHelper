@@ -5,7 +5,7 @@ import 'package:meetinghelper/utils/globals.dart';
 import 'notification.dart' as n;
 
 class NotificationsPage extends StatefulWidget {
-  NotificationsPage({Key? key}) : super(key: key);
+  NotificationsPage({Key key}) : super(key: key);
 
   @override
   _NotificationsPageState createState() => _NotificationsPageState();
@@ -25,7 +25,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
             Hive.box<Map<dynamic, dynamic>>('Notifications')
                 .getAt(Hive.box<Map<dynamic, dynamic>>('Notifications').length -
                     i -
-                    1)!
+                    1)
                 .cast<String, dynamic>(),
             () async {
               if (await showDialog(
@@ -33,7 +33,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                     builder: (context) => AlertDialog(
                       actions: <Widget>[
                         TextButton(
-                          onPressed: () => navigator.currentState!.pop(true),
+                          onPressed: () => navigator.currentState.pop(true),
                           child: Text('نعم'),
                         )
                       ],

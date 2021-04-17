@@ -14,7 +14,7 @@ import '../utils/encryption_keys.dart';
 import '../utils/helpers.dart';
 
 class MyAccount extends StatefulWidget {
-  MyAccount({Key? key}) : super(key: key);
+  MyAccount({Key key}) : super(key: key);
 
   @override
   _MyAccountState createState() => _MyAccountState();
@@ -50,19 +50,19 @@ class _MyAccountState extends State<MyAccount> {
                         builder: (context) => AlertDialog(
                           actions: <Widget>[
                             TextButton.icon(
-                              onPressed: () => navigator.currentState!.pop(true),
+                              onPressed: () => navigator.currentState.pop(true),
                               icon: Icon(Icons.camera),
                               label: Text('التقاط صورة من الكاميرا'),
                             ),
                             TextButton.icon(
                               onPressed: () =>
-                                  navigator.currentState!.pop(false),
+                                  navigator.currentState.pop(false),
                               icon: Icon(Icons.photo_library),
                               label: Text('اختيار من المعرض'),
                             ),
                             TextButton.icon(
                               onPressed: () =>
-                                  navigator.currentState!.pop('delete'),
+                                  navigator.currentState.pop('delete'),
                               icon: Icon(Icons.delete),
                               label: Text('حذف الصورة'),
                             ),
@@ -80,18 +80,18 @@ class _MyAccountState extends State<MyAccount> {
                                     icon: Icon(Icons.delete),
                                     label: Text('حذف'),
                                     onPressed: () =>
-                                        navigator.currentState!.pop(true),
+                                        navigator.currentState.pop(true),
                                   ),
                                   TextButton(
                                     onPressed: () =>
-                                        navigator.currentState!.pop(false),
+                                        navigator.currentState.pop(false),
                                     child: Text('تراجع'),
                                   )
                                 ],
                               ),
                             ) ??
                             false) {
-                          scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+                          scaffoldMessenger.currentState.showSnackBar(SnackBar(
                             content: Text('جار التحميل'),
                             duration: Duration(minutes: 2),
                           ));
@@ -100,8 +100,8 @@ class _MyAccountState extends State<MyAccount> {
                               .call();
                           user.reloadImage();
                           setState(() {});
-                          scaffoldMessenger.currentState!.hideCurrentSnackBar();
-                          scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+                          scaffoldMessenger.currentState.hideCurrentSnackBar();
+                          scaffoldMessenger.currentState.showSnackBar(SnackBar(
                             content: Text('تم بنجاح'),
                           ));
                         }
@@ -125,7 +125,7 @@ class _MyAccountState extends State<MyAccount> {
                               toolbarColor: Theme.of(context).primaryColor,
                               toolbarWidgetColor: Theme.of(context)
                                   .primaryTextTheme
-                                  .headline6!
+                                  .headline6
                                   .color,
                               initAspectRatio: CropAspectRatioPreset.square,
                               lockAspectRatio: false)));
@@ -136,27 +136,27 @@ class _MyAccountState extends State<MyAccount> {
                               actions: [
                                 TextButton(
                                   onPressed: () =>
-                                      navigator.currentState!.pop(true),
+                                      navigator.currentState.pop(true),
                                   child: Text('تغيير'),
                                 ),
                                 TextButton(
                                   onPressed: () =>
-                                      navigator.currentState!.pop(false),
+                                      navigator.currentState.pop(false),
                                   child: Text('تراجع'),
                                 )
                               ],
                             ),
                           ) ??
                           false) {
-                        scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+                        scaffoldMessenger.currentState.showSnackBar(SnackBar(
                           content: Text('جار التحميل'),
                           duration: Duration(minutes: 2),
                         ));
-                        await user.photoRef.putFile(finalImage!);
+                        await user.photoRef.putFile(finalImage);
                         user.reloadImage();
                         setState(() {});
-                        scaffoldMessenger.currentState!.hideCurrentSnackBar();
-                        scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+                        scaffoldMessenger.currentState.hideCurrentSnackBar();
+                        scaffoldMessenger.currentState.showSnackBar(SnackBar(
                           content: Text('تم بنجاح'),
                         ));
                       }
@@ -174,7 +174,7 @@ class _MyAccountState extends State<MyAccount> {
                       opacity: constraints.biggest.height > kToolbarHeight * 1.7
                           ? 0
                           : 1,
-                      child: Text(user.name!),
+                      child: Text(user.name),
                     ),
                     background: user.getPhoto(false, false),
                   ),
@@ -183,7 +183,7 @@ class _MyAccountState extends State<MyAccount> {
             ],
             body: ListView(
               children: <Widget>[
-                Text(user.name!, style: Theme.of(context).textTheme.headline6),
+                Text(user.name, style: Theme.of(context).textTheme.headline6),
                 ListTile(
                   title: Text('البريد الاكتروني:'),
                   subtitle: Text(user.email ?? ''),
@@ -194,12 +194,12 @@ class _MyAccountState extends State<MyAccount> {
                     children: <Widget>[
                       Expanded(
                         child: Text(toDurationString(
-                            Timestamp.fromDate(user.lastTanawolDate!))),
+                            Timestamp.fromDate(user.lastTanawolDate))),
                       ),
                       Text(
                           user.lastTanawolDate != null
                               ? DateFormat('yyyy/M/d')
-                                  .format(user.lastTanawolDate!)
+                                  .format(user.lastTanawolDate)
                               : '',
                           style: Theme.of(context).textTheme.overline),
                     ],
@@ -211,12 +211,12 @@ class _MyAccountState extends State<MyAccount> {
                     children: <Widget>[
                       Expanded(
                         child: Text(toDurationString(
-                            Timestamp.fromDate(user.lastConfessionDate!))),
+                            Timestamp.fromDate(user.lastConfessionDate))),
                       ),
                       Text(
                           user.lastConfessionDate != null
                               ? DateFormat('yyyy/M/d')
-                                  .format(user.lastConfessionDate!)
+                                  .format(user.lastConfessionDate)
                               : '',
                           style: Theme.of(context).textTheme.overline),
                     ],
@@ -292,7 +292,7 @@ class _MyAccountState extends State<MyAccount> {
                     title: Text('إشعار حضور الاجتماع'),
                   ),
                 ElevatedButton.icon(
-                    onPressed: () async => await navigator.currentState!
+                    onPressed: () async => await navigator.currentState
                         .pushNamed('UpdateUserDataError', arguments: user),
                     icon: Icon(Icons.update),
                     label: Text('تحديث بيانات الاعتراف والتناول')),
@@ -312,7 +312,7 @@ class _MyAccountState extends State<MyAccount> {
     );
   }
 
-  void changeName(String? oldName, String? uid) async {
+  void changeName(String oldName, String uid) async {
     var name = TextEditingController(text: oldName);
     if (await showDialog(
           context: context,
@@ -321,12 +321,12 @@ class _MyAccountState extends State<MyAccount> {
               actions: <Widget>[
                 TextButton.icon(
                   icon: Icon(Icons.done),
-                  onPressed: () => navigator.currentState!.pop(true),
+                  onPressed: () => navigator.currentState.pop(true),
                   label: Text('تغيير'),
                 ),
                 TextButton.icon(
                   icon: Icon(Icons.cancel),
-                  onPressed: () => navigator.currentState!.pop(false),
+                  onPressed: () => navigator.currentState.pop(false),
                   label: Text('الغاء الأمر'),
                 ),
               ],
@@ -345,7 +345,7 @@ class _MyAccountState extends State<MyAccount> {
                       controller: name,
                       textInputAction: TextInputAction.done,
                       validator: (value) {
-                        if (value!.isEmpty) {
+                        if (value.isEmpty) {
                           return 'هذا الحقل مطلوب';
                         }
                         return null;
@@ -373,12 +373,12 @@ class _MyAccountState extends State<MyAccount> {
               actions: <Widget>[
                 TextButton.icon(
                   icon: Icon(Icons.done),
-                  onPressed: () => navigator.currentState!.pop(true),
+                  onPressed: () => navigator.currentState.pop(true),
                   label: Text('تغيير'),
                 ),
                 TextButton.icon(
                   icon: Icon(Icons.cancel),
-                  onPressed: () => navigator.currentState!.pop(false),
+                  onPressed: () => navigator.currentState.pop(false),
                   label: Text('الغاء الأمر'),
                 ),
               ],
@@ -424,13 +424,13 @@ class _MyAccountState extends State<MyAccount> {
 
   Future _submitPass() async {
     if (textFields[0].text == '' || textFields[1].text == '') {
-      scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+      scaffoldMessenger.currentState.showSnackBar(SnackBar(
         content: Text('كلمة السر لا يمكن ان تكون فارغة!'),
         duration: Duration(seconds: 26),
       ));
       return;
     }
-    scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+    scaffoldMessenger.currentState.showSnackBar(SnackBar(
       content: Text('جار تحديث كلمة السر...'),
       duration: Duration(seconds: 26),
     ));
@@ -452,22 +452,22 @@ class _MyAccountState extends State<MyAccount> {
           await showErrorDialog(context, 'حدث خطأ أثناء تحديث كلمة السر!');
           return;
         }
-        scaffoldMessenger.currentState!.hideCurrentSnackBar();
-        scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+        scaffoldMessenger.currentState.hideCurrentSnackBar();
+        scaffoldMessenger.currentState.showSnackBar(SnackBar(
           content: Text('تم تحديث كلمة السر بنجاح'),
           duration: Duration(seconds: 3),
         ));
         setState(() {});
       } else {
-        scaffoldMessenger.currentState!.hideCurrentSnackBar();
-        scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+        scaffoldMessenger.currentState.hideCurrentSnackBar();
+        scaffoldMessenger.currentState.showSnackBar(SnackBar(
           content: Text('كلمة السر القديمة خاطئة'),
           duration: Duration(seconds: 3),
         ));
       }
     } else {
-      scaffoldMessenger.currentState!.hideCurrentSnackBar();
-      scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+      scaffoldMessenger.currentState.hideCurrentSnackBar();
+      scaffoldMessenger.currentState.showSnackBar(SnackBar(
         content: Text('كلمتا السر غير متطابقتين!'),
         duration: Duration(seconds: 3),
       ));

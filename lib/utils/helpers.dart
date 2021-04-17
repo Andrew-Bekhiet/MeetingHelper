@@ -47,12 +47,12 @@ import '../views/lists/users_list.dart';
 import '../utils/globals.dart';
 
 Future<void> changeTheme(
-    {int? primary,
-    int? accent,
-    Brightness? brightness,
-    required BuildContext context}) async {
+    {int primary,
+    int accent,
+    Brightness brightness,
+    @required BuildContext context}) async {
   primary = primary ?? Hive.box('Settings').get('PrimaryColorIndex');
-  bool? darkTheme = Hive.box('Settings').get('DarkTheme');
+  bool darkTheme = Hive.box('Settings').get('DarkTheme');
   brightness = brightness ??
       (darkTheme != null
           ? (darkTheme ? Brightness.dark : Brightness.light)
@@ -69,7 +69,7 @@ Future<void> changeTheme(
             style: ElevatedButton.styleFrom(primary: primaries[primary ?? 13])),
         brightness: darkTheme != null
             ? (darkTheme ? Brightness.dark : Brightness.light)
-            : WidgetsBinding.instance!.window.platformBrightness,
+            : WidgetsBinding.instance.window.platformBrightness,
         accentColor: accents[accent ?? 13],
         primaryColor: primaries[primary ?? 13],
       ));
@@ -86,7 +86,7 @@ Stream<Map<StudyYear, List<Class>>> classesByStudyYearRef() {
         for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
       };
       return User.instance.stream.switchMap(
-        ((user) => (user.superAccess!
+        (user) => (user.superAccess
                 ? FirebaseFirestore.instance
                     .collection('Classes')
                     .orderBy('StudyYear')
@@ -96,30 +96,30 @@ Stream<Map<StudyYear, List<Class>>> classesByStudyYearRef() {
                     .collection('Classes')
                     .where('Allowed',
                         arrayContains:
-                            auth.FirebaseAuth.instance.currentUser!.uid)
+                            auth.FirebaseAuth.instance.currentUser.uid)
                     .orderBy('StudyYear')
                     .orderBy('Gender')
                     .snapshots())
             .map(
           (cs) {
             final classes = cs.docs.map((c) => Class.fromDoc(c)).toList();
-            mergeSort<Class?>(classes, compare: (c, c2) {
-              if (c!.studyYear == c2!.studyYear)
+            mergeSort<Class>(classes, compare: (c, c2) {
+              if (c.studyYear == c2.studyYear)
                 return c.gender.compareTo(c2.gender);
-              return studyYears[c.studyYear!]!
-                  .grade!
-                  .compareTo(studyYears[c2.studyYear!]!.grade!);
+              return studyYears[c.studyYear]
+                  .grade
+                  .compareTo(studyYears[c2.studyYear].grade);
             });
-            return groupBy<Class?, StudyYear?>(
-                classes, (c) => studyYears[c!.studyYear!]) as Map<StudyYear, List<Class>>;
-          } as Map<StudyYear, List<Class>> Function(QuerySnapshot),
-        )) as Stream<Map<StudyYear, List<Class>>> Function(User),
+            return groupBy<Class, StudyYear>(
+                classes, (c) => studyYears[c.studyYear]);
+          },
+        ),
       );
     },
   );
 }
 
-Stream<Map<StudyYear, List<Class>>> classesByStudyYearRefForUser(String? uid) {
+Stream<Map<StudyYear, List<Class>>> classesByStudyYearRefForUser(String uid) {
   return FirebaseFirestore.instance
       .collection('StudyYears')
       .orderBy('Grade')
@@ -138,26 +138,26 @@ Stream<Map<StudyYear, List<Class>>> classesByStudyYearRefForUser(String? uid) {
           .map(
         (cs) {
           final classes = cs.docs.map((c) => Class.fromDoc(c)).toList();
-          mergeSort<Class?>(classes, compare: (c, c2) {
-            if (c!.studyYear == c2!.studyYear)
+          mergeSort<Class>(classes, compare: (c, c2) {
+            if (c.studyYear == c2.studyYear)
               return c.gender.compareTo(c2.gender);
-            return studyYears[c.studyYear!]!
-                .grade!
-                .compareTo(studyYears[c2.studyYear!]!.grade!);
+            return studyYears[c.studyYear]
+                .grade
+                .compareTo(studyYears[c2.studyYear].grade);
           });
-          return groupBy<Class?, StudyYear?>(
-              classes, (c) => studyYears[c!.studyYear!]) as Map<StudyYear, List<Class>>;
-        } as Map<StudyYear, List<Class>> Function(QuerySnapshot),
+          return groupBy<Class, StudyYear>(
+              classes, (c) => studyYears[c.studyYear]);
+        },
       );
-    } as Stream<Map<StudyYear, List<Class>>> Function(QuerySnapshot),
+    },
   );
 }
 
-void classTap(Class? _class, BuildContext context) {
-  navigator.currentState!.pushNamed('ClassInfo', arguments: _class);
+void classTap(Class _class, BuildContext context) {
+  navigator.currentState.pushNamed('ClassInfo', arguments: _class);
 }
 
-void dataObjectTap(DataObject? obj, BuildContext context) {
+void dataObjectTap(DataObject obj, BuildContext context) {
   if (obj is Class)
     classTap(obj, context);
   else if (obj is Person)
@@ -195,7 +195,7 @@ Future<dynamic> getLinkObject(Uri deepLink) async {
 }
 
 List<RadioListTile> getOrderingOptions(BuildContext context,
-    BehaviorSubject<OrderOptions> orderOptions, int? index) {
+    BehaviorSubject<OrderOptions> orderOptions, int index) {
   return (index == 0
           ? Class.getHumanReadableMap2()
           : Person.getHumanReadableMap2())
@@ -203,12 +203,12 @@ List<RadioListTile> getOrderingOptions(BuildContext context,
       .map(
         (e) => RadioListTile(
           value: e.key,
-          groupValue: orderOptions.value!.orderBy,
+          groupValue: orderOptions.value.orderBy,
           title: Text(e.value),
-          onChanged: (dynamic value) {
+          onChanged: (value) {
             orderOptions
-                .add(OrderOptions(orderBy: value, asc: orderOptions.value!.asc));
-            navigator.currentState!.pop();
+                .add(OrderOptions(orderBy: value, asc: orderOptions.value.asc));
+            navigator.currentState.pop();
           },
         ),
       )
@@ -217,22 +217,22 @@ List<RadioListTile> getOrderingOptions(BuildContext context,
           [
             RadioListTile(
               value: 'true',
-              groupValue: orderOptions.value!.asc.toString(),
+              groupValue: orderOptions.value.asc.toString(),
               title: Text('تصاعدي'),
               onChanged: (value) {
                 orderOptions.add(OrderOptions(
-                    orderBy: orderOptions.value!.orderBy, asc: value == 'true'));
-                navigator.currentState!.pop();
+                    orderBy: orderOptions.value.orderBy, asc: value == 'true'));
+                navigator.currentState.pop();
               },
             ),
             RadioListTile(
               value: 'false',
-              groupValue: orderOptions.value!.asc.toString(),
+              groupValue: orderOptions.value.asc.toString(),
               title: Text('تنازلي'),
               onChanged: (value) {
                 orderOptions.add(OrderOptions(
-                    orderBy: orderOptions.value!.orderBy, asc: value == 'true'));
-                navigator.currentState!.pop();
+                    orderBy: orderOptions.value.orderBy, asc: value == 'true'));
+                navigator.currentState.pop();
               },
             ),
           ],
@@ -247,11 +247,11 @@ String getPhone(String phone, [bool whatsapp = true]) {
   return phone.trim();
 }
 
-void historyTap(HistoryDay? history, BuildContext context) async {
+void historyTap(HistoryDay history, BuildContext context) async {
   if (history is! ServantsHistoryDay) {
-    await navigator.currentState!.pushNamed('Day', arguments: history);
+    await navigator.currentState.pushNamed('Day', arguments: history);
   } else {
-    await navigator.currentState!.pushNamed('ServantsDay', arguments: history);
+    await navigator.currentState.pushNamed('ServantsDay', arguments: history);
   }
 }
 
@@ -260,11 +260,11 @@ void import(BuildContext context) async {
     final picked = await FilePicker.platform.pickFiles(
         allowedExtensions: ['xlsx'], withData: true, type: FileType.custom);
     if (picked == null) return;
-    final fileData = picked.files[0].bytes!;
+    final fileData = picked.files[0].bytes;
     final decoder = SpreadsheetDecoder.decodeBytes(fileData);
     if (decoder.tables.containsKey('Classes') &&
         decoder.tables.containsKey('Persons')) {
-      scaffoldMessenger.currentState!.showSnackBar(
+      scaffoldMessenger.currentState.showSnackBar(
         SnackBar(
           content: Text('جار رفع الملف...'),
           duration: Duration(minutes: 9),
@@ -276,9 +276,9 @@ void import(BuildContext context) async {
           .putData(
               fileData,
               SettableMetadata(
-                  customMetadata: {'createdBy': User.instance.uid!}));
-      scaffoldMessenger.currentState!.hideCurrentSnackBar();
-      scaffoldMessenger.currentState!.showSnackBar(
+                  customMetadata: {'createdBy': User.instance.uid}));
+      scaffoldMessenger.currentState.hideCurrentSnackBar();
+      scaffoldMessenger.currentState.showSnackBar(
         SnackBar(
           content: Text('جار استيراد الملف...'),
           duration: Duration(minutes: 9),
@@ -287,19 +287,19 @@ void import(BuildContext context) async {
       await FirebaseFunctions.instance
           .httpsCallable('importFromExcel')
           .call({'fileId': filename + '.xlsx'});
-      scaffoldMessenger.currentState!.hideCurrentSnackBar();
-      scaffoldMessenger.currentState!.showSnackBar(
+      scaffoldMessenger.currentState.hideCurrentSnackBar();
+      scaffoldMessenger.currentState.showSnackBar(
         SnackBar(
           content: Text('تم الاستيراد بنجاح'),
           duration: Duration(seconds: 4),
         ),
       );
     } else {
-      scaffoldMessenger.currentState!.hideCurrentSnackBar();
+      scaffoldMessenger.currentState.hideCurrentSnackBar();
       await showErrorDialog(context, 'ملف غير صالح');
     }
   } catch (e) {
-    scaffoldMessenger.currentState!.hideCurrentSnackBar();
+    scaffoldMessenger.currentState.hideCurrentSnackBar();
     await showErrorDialog(context, e.toString());
   }
 }
@@ -311,31 +311,31 @@ Future<void> onBackgroundMessage(RemoteMessage message) async {
   await Hive.close();
 }
 
-void onForegroundMessage(RemoteMessage message, [BuildContext? context]) async {
+void onForegroundMessage(RemoteMessage message, [BuildContext context]) async {
   context ??= mainScfld.currentContext;
   bool opened = Hive.isBoxOpen('Notifications');
   if (!opened) await Hive.openBox<Map>('Notifications');
   await storeNotification(message);
-  scaffoldMessenger.currentState!.showSnackBar(
+  scaffoldMessenger.currentState.showSnackBar(
     SnackBar(
-      content: Text(message.notification!.body!),
+      content: Text(message.notification.body),
       action: SnackBarAction(
         label: 'فتح الاشعارات',
-        onPressed: () => navigator.currentState!.pushNamed('Notifications'),
+        onPressed: () => navigator.currentState.pushNamed('Notifications'),
       ),
     ),
   );
 }
 
-Future? onNotificationClicked(String? payload) {
-  if (WidgetsBinding.instance!.renderViewElement != null) {
+Future onNotificationClicked(String payload) {
+  if (WidgetsBinding.instance.renderViewElement != null) {
     processClickedNotification(mainScfld.currentContext, payload);
   }
   return null;
 }
 
 Stream<Map<DocumentReference, Tuple2<Class, List<User>>>> usersByClassRef(
-    List<User?> users) {
+    List<User> users) {
   return FirebaseFirestore.instance
       .collection('StudyYears')
       .orderBy('Grade')
@@ -349,7 +349,7 @@ Stream<Map<DocumentReference, Tuple2<Class, List<User>>>> usersByClassRef(
           .collection('StudyYears')
           .doc('Unknown')] = StudyYear('unknown', 'غير معروفة', 10000000);
       return User.instance.stream.switchMap(
-        ((user) => (user.superAccess!
+        (user) => (user.superAccess
                 ? FirebaseFirestore.instance
                     .collection('Classes')
                     .orderBy('StudyYear')
@@ -359,7 +359,7 @@ Stream<Map<DocumentReference, Tuple2<Class, List<User>>>> usersByClassRef(
                     .collection('Classes')
                     .where('Allowed',
                         arrayContains:
-                            auth.FirebaseAuth.instance.currentUser!.uid)
+                            auth.FirebaseAuth.instance.currentUser.uid)
                     .orderBy('StudyYear')
                     .orderBy('Gender')
                     .snapshots())
@@ -367,13 +367,13 @@ Stream<Map<DocumentReference, Tuple2<Class, List<User>>>> usersByClassRef(
           (cs) {
             final classesByRef = {
               for (final c in cs.docs.map((c) => Class.fromDoc(c)).toList())
-                c!.ref: c
+                c.ref: c
             };
 
             final rslt = {
-              for (final e in groupBy<User?, Class>(
+              for (final e in groupBy<User, Class>(
                   users,
-                  (user) => user!.classId == null
+                  (user) => user.classId == null
                       ? Class(
                           name: 'غير محدد',
                           gender: true,
@@ -387,31 +387,31 @@ Stream<Map<DocumentReference, Tuple2<Class, List<User>>>> usersByClassRef(
                 e.key.ref: Tuple2(e.key, e.value)
             }.entries.toList();
 
-            mergeSort<MapEntry<DocumentReference?, Tuple2<Class, List<User?>>>>(
+            mergeSort<MapEntry<DocumentReference, Tuple2<Class, List<User>>>>(
                 rslt, compare: (c, c2) {
               if (c.value.item1.name == 'غير محدد' ||
                   c.value.item1.name == '{لا يمكن قراءة اسم الفصل}') return 1;
               if (c2.value.item1.name == 'غير محدد' ||
                   c2.value.item1.name == '{لا يمكن قراءة اسم الفصل}') return -1;
 
-              if (studyYears[c.value.item1.studyYear!] ==
-                  studyYears[c2.value.item1.studyYear!])
+              if (studyYears[c.value.item1.studyYear] ==
+                  studyYears[c2.value.item1.studyYear])
                 return c.value.item1.gender.compareTo(c2.value.item1.gender);
-              return studyYears[c.value.item1.studyYear!]!
-                  .grade!
-                  .compareTo(studyYears[c2.value.item1.studyYear!]!.grade!);
+              return studyYears[c.value.item1.studyYear]
+                  .grade
+                  .compareTo(studyYears[c2.value.item1.studyYear].grade);
             });
 
-            return {for (final e in rslt) e.key!: e.value as Tuple2<Class, List<User>>};
-          } as Map<DocumentReference, Tuple2<Class, List<User>>> Function(QuerySnapshot),
-        )) as Stream<Map<DocumentReference, Tuple2<Class, List<User>>>> Function(User),
+            return {for (final e in rslt) e.key: e.value};
+          },
+        ),
       );
     },
   );
 }
 
 Stream<Map<DocumentReference, Tuple2<Class, List<Person>>>> personsByClassRef(
-    [List<Person>? persons]) {
+    [List<Person> persons]) {
   return FirebaseFirestore.instance
       .collection('StudyYears')
       .orderBy('Grade')
@@ -422,7 +422,7 @@ Stream<Map<DocumentReference, Tuple2<Class, List<Person>>>> personsByClassRef(
     };
     if (persons != null) {
       return User.instance.stream.switchMap(
-        ((user) => (user.superAccess!
+        (user) => (user.superAccess
                 ? FirebaseFirestore.instance
                     .collection('Classes')
                     .orderBy('StudyYear')
@@ -432,37 +432,37 @@ Stream<Map<DocumentReference, Tuple2<Class, List<Person>>>> personsByClassRef(
                     .collection('Classes')
                     .where('Allowed',
                         arrayContains:
-                            auth.FirebaseAuth.instance.currentUser!.uid)
+                            auth.FirebaseAuth.instance.currentUser.uid)
                     .orderBy('StudyYear')
                     .orderBy('Gender')
                     .snapshots())
             .map(
           (cs) {
-            Map<DocumentReference?, List<Person>> personsByClassRef =
+            Map<DocumentReference, List<Person>> personsByClassRef =
                 groupBy(persons, (p) => p.classId);
             final classes = cs.docs
                 .map((c) => Class.fromDoc(c))
-                .where((c) => personsByClassRef[c!.ref] != null)
+                .where((c) => personsByClassRef[c.ref] != null)
                 .toList();
-            mergeSort<Class?>(classes, compare: (c, c2) {
-              if (c!.studyYear == c2!.studyYear)
+            mergeSort<Class>(classes, compare: (c, c2) {
+              if (c.studyYear == c2.studyYear)
                 return c.gender.compareTo(c2.gender);
-              return studyYears[c.studyYear!]!
-                  .grade!
-                  .compareTo(studyYears[c2.studyYear!]!.grade!);
+              return studyYears[c.studyYear]
+                  .grade
+                  .compareTo(studyYears[c2.studyYear].grade);
             });
             return {
               for (final c in classes)
-                c!.ref!: Tuple2<Class?, List<Person>?>(c, personsByClassRef[c.ref]) as Tuple2<Class, List<Person>>
+                c.ref: Tuple2<Class, List<Person>>(c, personsByClassRef[c.ref])
             };
-          } as Map<DocumentReference, Tuple2<Class, List<Person>>> Function(QuerySnapshot),
-        )) as Stream<Map<DocumentReference, Tuple2<Class, List<Person>>>> Function(User),
+          },
+        ),
       );
     } else {
       return Person.getAllForUser().switchMap(
         (persons) {
           return User.instance.stream.switchMap(
-            ((user) => (user.superAccess!
+            (user) => (user.superAccess
                     ? FirebaseFirestore.instance
                         .collection('Classes')
                         .orderBy('StudyYear')
@@ -472,32 +472,32 @@ Stream<Map<DocumentReference, Tuple2<Class, List<Person>>>> personsByClassRef(
                         .collection('Classes')
                         .where('Allowed',
                             arrayContains:
-                                auth.FirebaseAuth.instance.currentUser!.uid)
+                                auth.FirebaseAuth.instance.currentUser.uid)
                         .orderBy('StudyYear')
                         .orderBy('Gender')
                         .snapshots())
                 .map(
               (cs) {
-                Map<DocumentReference?, List<Person>> personsByClassRef =
+                Map<DocumentReference, List<Person>> personsByClassRef =
                     groupBy(persons, (p) => p.classId);
                 final classes = cs.docs
                     .map((c) => Class.fromDoc(c))
-                    .where((c) => personsByClassRef[c!.ref] != null)
+                    .where((c) => personsByClassRef[c.ref] != null)
                     .toList();
-                mergeSort<Class?>(classes, compare: (c, c2) {
-                  if (c!.studyYear == c2!.studyYear)
+                mergeSort<Class>(classes, compare: (c, c2) {
+                  if (c.studyYear == c2.studyYear)
                     return c.gender.compareTo(c2.gender);
-                  return studyYears[c.studyYear!]!
-                      .grade!
-                      .compareTo(studyYears[c2.studyYear!]!.grade!);
+                  return studyYears[c.studyYear]
+                      .grade
+                      .compareTo(studyYears[c2.studyYear].grade);
                 });
                 return {
                   for (final c in classes)
-                    c!.ref!:
-                        Tuple2<Class?, List<Person>?>(c, personsByClassRef[c.ref]) as Tuple2<Class, List<Person>>
+                    c.ref:
+                        Tuple2<Class, List<Person>>(c, personsByClassRef[c.ref])
                 };
-              } as Map<DocumentReference, Tuple2<Class, List<Person>>> Function(QuerySnapshot),
-            )) as Stream<Map<DocumentReference, Tuple2<Class, List<Person>>>> Function(User),
+              },
+            ),
           );
         },
       );
@@ -505,20 +505,20 @@ Stream<Map<DocumentReference, Tuple2<Class, List<Person>>>> personsByClassRef(
   });
 }
 
-void personTap(Person? person, BuildContext context) {
-  navigator.currentState!.pushNamed('PersonInfo', arguments: person);
+void personTap(Person person, BuildContext context) {
+  navigator.currentState.pushNamed('PersonInfo', arguments: person);
 }
 
-Future<void> processClickedNotification(BuildContext? context,
-    [String? payload]) async {
+Future<void> processClickedNotification(BuildContext context,
+    [String payload]) async {
   final notificationDetails =
-      await (FlutterLocalNotificationsPlugin().getNotificationAppLaunchDetails() as FutureOr<NotificationAppLaunchDetails>);
+      await FlutterLocalNotificationsPlugin().getNotificationAppLaunchDetails();
 
   if (notificationDetails.didNotificationLaunchApp) {
     if ((notificationDetails.payload ?? payload) == 'Birthday') {
-      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
         await Future.delayed(Duration(milliseconds: 900), () => null);
-        await navigator.currentState!.push(
+        await navigator.currentState.push(
           MaterialPageRoute(
             builder: (context) {
               final now = DateTime.now().millisecondsSinceEpoch;
@@ -538,9 +538,9 @@ Future<void> processClickedNotification(BuildContext? context,
         );
       });
     } else if ((notificationDetails.payload ?? payload) == 'Confessions') {
-      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
         await Future.delayed(Duration(milliseconds: 900), () => null);
-        await navigator.currentState!.push(
+        await navigator.currentState.push(
           MaterialPageRoute(
             builder: (context) {
               final now = DateTime.now().millisecondsSinceEpoch;
@@ -562,9 +562,9 @@ Future<void> processClickedNotification(BuildContext? context,
         );
       });
     } else if ((notificationDetails.payload ?? payload) == 'Tanawol') {
-      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
         await Future.delayed(Duration(milliseconds: 900), () => null);
-        await navigator.currentState!.push(
+        await navigator.currentState.push(
           MaterialPageRoute(
             builder: (context) {
               final now = DateTime.now().millisecondsSinceEpoch;
@@ -586,9 +586,9 @@ Future<void> processClickedNotification(BuildContext? context,
         );
       });
     } else if ((notificationDetails.payload ?? payload) == 'Kodas') {
-      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
         await Future.delayed(Duration(milliseconds: 900), () => null);
-        await navigator.currentState!.push(
+        await navigator.currentState.push(
           MaterialPageRoute(
             builder: (context) {
               final now = DateTime.now().millisecondsSinceEpoch;
@@ -610,9 +610,9 @@ Future<void> processClickedNotification(BuildContext? context,
         );
       });
     } else if ((notificationDetails.payload ?? payload) == 'Meeting') {
-      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
         await Future.delayed(Duration(milliseconds: 900), () => null);
-        await navigator.currentState!.push(
+        await navigator.currentState.push(
           MaterialPageRoute(
             builder: (context) {
               final now = DateTime.now().millisecondsSinceEpoch;
@@ -655,7 +655,7 @@ Future<void> processLink(Uri deepLink, BuildContext context) async {
                 .get()),
             context);
       } else if (deepLink.pathSegments[0] == 'viewQuery') {
-        await navigator.currentState!.push(
+        await navigator.currentState.push(
           MaterialPageRoute(
             builder: (c) => SearchQuery(
               query: deepLink.queryParameters,
@@ -663,7 +663,7 @@ Future<void> processLink(Uri deepLink, BuildContext context) async {
           ),
         );
       } else if (deepLink.pathSegments[0] == 'viewUser') {
-        if (User.instance.manageUsers!) {
+        if (User.instance.manageUsers) {
           userTap(await User.fromID(deepLink.queryParameters['UID']), context);
         } else {
           await showErrorDialog(
@@ -684,7 +684,7 @@ Future<void> processLink(Uri deepLink, BuildContext context) async {
 
 Future<void> sendNotification(BuildContext context, dynamic attachement) async {
   BehaviorSubject<String> search = BehaviorSubject<String>.seeded('');
-  List<User>? users = await showDialog(
+  List<User> users = await showDialog(
     context: context,
     builder: (context) {
       return MultiProvider(
@@ -695,7 +695,7 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
                       {onLongPress, onTap, subtitle, trailing}) =>
                   DataObjectWidget(
                 current,
-                onTap: () => onTap!(current),
+                onTap: () => onTap(current),
                 trailing: trailing,
                 showSubTitle: false,
               ),
@@ -717,9 +717,9 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
             actions: [
               IconButton(
                 onPressed: () {
-                  navigator.currentState!.pop(context
+                  navigator.currentState.pop(context
                       .read<DataObjectListOptions<User>>()
-                      .selectedLatest!
+                      .selectedLatest
                       .values
                       .toList());
                 },
@@ -753,12 +753,12 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
                 actions: <Widget>[
                   TextButton.icon(
                     icon: Icon(Icons.send),
-                    onPressed: () => navigator.currentState!.pop(true),
+                    onPressed: () => navigator.currentState.pop(true),
                     label: Text('ارسال'),
                   ),
                   TextButton.icon(
                     icon: Icon(Icons.cancel),
-                    onPressed: () => navigator.currentState!.pop(false),
+                    onPressed: () => navigator.currentState.pop(false),
                     label: Text('الغاء الأمر'),
                   ),
                 ],
@@ -780,7 +780,7 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
                           controller: title,
                           textInputAction: TextInputAction.next,
                           validator: (value) {
-                            if (value!.isEmpty) {
+                            if (value.isEmpty) {
                               return 'هذا الحقل مطلوب';
                             }
                             return null;
@@ -830,14 +830,14 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
 }
 
 Future<void> recoverDoc(BuildContext context, String path) async {
-  bool? nested = false;
-  bool? keepBackup = true;
+  bool nested = false;
+  bool keepBackup = true;
   if (await showDialog(
         context: context,
         builder: (context) => AlertDialog(
           actions: [
             TextButton(
-              onPressed: () => navigator.currentState!.pop(true),
+              onPressed: () => navigator.currentState.pop(true),
               child: Text('استرجاع'),
             ),
           ],
@@ -880,7 +880,7 @@ Future<void> recoverDoc(BuildContext context, String path) async {
         'keepBackup': keepBackup,
         'nested': nested,
       });
-      scaffoldMessenger.currentState!
+      scaffoldMessenger.currentState
           .showSnackBar(SnackBar(content: Text('تم الاسترجاع بنجاح')));
     } catch (err, stcTrace) {
       await FirebaseCrashlytics.instance
@@ -892,7 +892,7 @@ Future<void> recoverDoc(BuildContext context, String path) async {
 
 Future<String> shareClass(Class _class) async => await shareClassRaw(_class.id);
 
-Future<String> shareClassRaw(String? id) async {
+Future<String> shareClassRaw(String id) async {
   return (await DynamicLinkParameters(
     uriPrefix: uriPrefix,
     link: Uri.parse('https://meetinghelper.com/viewClass?ClassId=$id'),
@@ -904,7 +904,7 @@ Future<String> shareClassRaw(String? id) async {
       .toString();
 }
 
-Future<String> shareDataObject(DataObject? obj) async {
+Future<String> shareDataObject(DataObject obj) async {
   if (obj is HistoryDay) return await shareHistory(obj);
   if (obj is Class) return await shareClass(obj);
   if (obj is Person) return await sharePerson(obj);
@@ -914,7 +914,7 @@ Future<String> shareDataObject(DataObject? obj) async {
 Future<String> shareHistory(HistoryDay record) async =>
     await shareHistoryRaw(record.id);
 
-Future<String> shareHistoryRaw(String? id) async {
+Future<String> shareHistoryRaw(String id) async {
   return (await DynamicLinkParameters(
     uriPrefix: uriPrefix,
     link:
@@ -931,7 +931,7 @@ Future<String> sharePerson(Person person) async {
   return await sharePersonRaw(person.id);
 }
 
-Future<String> sharePersonRaw(String? id) async {
+Future<String> sharePersonRaw(String id) async {
   return (await DynamicLinkParameters(
     uriPrefix: uriPrefix,
     link: Uri.parse('https://meetinghelper.com/viewPerson?PersonId=$id'),
@@ -943,7 +943,7 @@ Future<String> sharePersonRaw(String? id) async {
       .toString();
 }
 
-Future<String> shareQuery(Map<String, String?> query) async {
+Future<String> shareQuery(Map<String, String> query) async {
   return (await DynamicLinkParameters(
     uriPrefix: uriPrefix,
     link: Uri.https('meetinghelper.com', 'viewQuery', query),
@@ -957,7 +957,7 @@ Future<String> shareQuery(Map<String, String?> query) async {
 
 Future<String> shareUser(User user) async => await shareUserRaw(user.uid);
 
-Future<String> shareUserRaw(String? uid) async {
+Future<String> shareUserRaw(String uid) async {
   return (await DynamicLinkParameters(
     uriPrefix: uriPrefix,
     link: Uri.parse('https://meetinghelper.com/viewUser?UID=$uid'),
@@ -980,8 +980,8 @@ void showBirthDayNotification() async {
               ? Source.cache
               : Source.serverAndCache);
   final classes = await Class.getAllForUser().first;
-  List<String?> persons;
-  if (user.superAccess!) {
+  List<String> persons;
+  if (user.superAccess) {
     persons = (await FirebaseFirestore.instance
             .collection('Persons')
             .where(
@@ -1000,7 +1000,7 @@ void showBirthDayNotification() async {
             .get(source))
         .docs
         .map((e) => e.data()['Name'])
-        .toList() as List<String?>;
+        .toList();
   } else if (classes.length <= 10) {
     persons = (await FirebaseFirestore.instance
             .collection('Persons')
@@ -1021,7 +1021,7 @@ void showBirthDayNotification() async {
             .get(source))
         .docs
         .map((e) => e.data()['Name'])
-        .toList() as List<String?>;
+        .toList();
   } else {
     persons = (await Future.wait(
             classes.split(10).map((cs) => FirebaseFirestore.instance
@@ -1043,7 +1043,7 @@ void showBirthDayNotification() async {
                 .limit(20)
                 .get(source))))
         .map((e) => e.docs.map((e) => e.data()['Name']))
-        .expand((e) => e) as List<String?>;
+        .expand((e) => e);
   }
   if (persons.isNotEmpty || !f.kReleaseMode)
     await FlutterLocalNotificationsPlugin().show(
@@ -1061,14 +1061,14 @@ void showBirthDayNotification() async {
         payload: 'Birthday');
 }
 
-Future<List<Class>?> selectClasses(
-    BuildContext context, List<Class?>? classes) async {
+Future<List<Class>> selectClasses(
+    BuildContext context, List<Class> classes) async {
   final _options = ServicesListOptions(
       itemsStream: classesByStudyYearRef(),
       selectionMode: true,
       selected: classes,
       searchQuery: Stream.value(''));
-  if (await navigator.currentState!.push(
+  if (await navigator.currentState.push(
         MaterialPageRoute(
           builder: (context) => Scaffold(
             appBar: AppBar(
@@ -1076,7 +1076,7 @@ Future<List<Class>?> selectClasses(
               actions: [
                 IconButton(
                     icon: Icon(Icons.done),
-                    onPressed: () => navigator.currentState!.pop(true),
+                    onPressed: () => navigator.currentState.pop(true),
                     tooltip: 'تم')
               ],
             ),
@@ -1085,7 +1085,7 @@ Future<List<Class>?> selectClasses(
         ),
       ) ==
       true) {
-    return _options.selectedLatest!.values.toList();
+    return _options.selectedLatest.values.toList();
   }
   return null;
 }
@@ -1101,8 +1101,8 @@ void showConfessionNotification() async {
               ? Source.cache
               : Source.serverAndCache);
   final classes = await Class.getAllForUser().first;
-  List<String?> persons;
-  if (user.superAccess!) {
+  List<String> persons;
+  if (user.superAccess) {
     persons = (await FirebaseFirestore.instance
             .collection('Persons')
             .where('LastConfession',
@@ -1112,7 +1112,7 @@ void showConfessionNotification() async {
             .get(source))
         .docs
         .map((e) => e.data()['Name'])
-        .toList() as List<String?>;
+        .toList();
   } else if (classes.length <= 10) {
     persons = (await FirebaseFirestore.instance
             .collection('Persons')
@@ -1124,7 +1124,7 @@ void showConfessionNotification() async {
             .get(source))
         .docs
         .map((e) => e.data()['Name'])
-        .toList() as List<String?>;
+        .toList();
   } else {
     persons = (await Future.wait(classes.split(10).map((cs) => FirebaseFirestore
             .instance
@@ -1136,7 +1136,7 @@ void showConfessionNotification() async {
             .limit(20)
             .get(source))))
         .map((e) => e.docs.map((e) => e.data()['Name']))
-        .expand((e) => e) as List<String?>;
+        .expand((e) => e);
   }
   if (persons.isNotEmpty || !f.kReleaseMode)
     await FlutterLocalNotificationsPlugin().show(
@@ -1154,18 +1154,18 @@ void showConfessionNotification() async {
         payload: 'Confessions');
 }
 
-Future<void> showErrorDialog(BuildContext context, String? message,
-    {String? title}) async {
+Future<void> showErrorDialog(BuildContext context, String message,
+    {String title}) async {
   return await showDialog(
     context: context,
     barrierDismissible: false, // user must tap button!
     builder: (BuildContext context) => AlertDialog(
       title: title != null ? Text(title) : null,
-      content: Text(message!),
+      content: Text(message),
       actions: <Widget>[
         TextButton(
           onPressed: () {
-            navigator.currentState!.pop();
+            navigator.currentState.pop();
           },
           child: Text('حسنًا'),
         ),
@@ -1175,12 +1175,12 @@ Future<void> showErrorDialog(BuildContext context, String? message,
 }
 
 Future<void> showErrorUpdateDataDialog(
-    {BuildContext? context, bool pushApp = true}) async {
+    {BuildContext context, bool pushApp = true}) async {
   if (pushApp ||
       Hive.box('Settings').get('DialogLastShown') !=
           tranucateToDay().millisecondsSinceEpoch) {
     await showDialog(
-      context: context!,
+      context: context,
       builder: (context) => AlertDialog(
         content:
             Text('الخادم مثال حى للنفس التائبة ـ يمارس التوبة فى حياته الخاصة'
@@ -1190,23 +1190,23 @@ Future<void> showErrorUpdateDataDialog(
         actions: [
           OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
-              shape: StadiumBorder(side: BorderSide(color: primaries[13]!)),
+              shape: StadiumBorder(side: BorderSide(color: primaries[13])),
             ),
             onPressed: () async {
               final user = User.instance;
-              await navigator.currentState!
+              await navigator.currentState
                   .pushNamed('UpdateUserDataError', arguments: user);
               if (user.lastTanawol != null &&
                   user.lastConfession != null &&
-                  ((user.lastTanawol!.millisecondsSinceEpoch + 2592000000) >
+                  ((user.lastTanawol.millisecondsSinceEpoch + 2592000000) >
                           DateTime.now().millisecondsSinceEpoch &&
-                      (user.lastConfession!.millisecondsSinceEpoch +
+                      (user.lastConfession.millisecondsSinceEpoch +
                               5184000000) >
                           DateTime.now().millisecondsSinceEpoch)) {
-                navigator.currentState!.pop();
+                navigator.currentState.pop();
                 if (pushApp)
                   // ignore: unawaited_futures
-                  navigator.currentState!.pushReplacement(
+                  navigator.currentState.pushReplacement(
                       MaterialPageRoute(builder: (context) => App()));
               }
             },
@@ -1214,7 +1214,7 @@ Future<void> showErrorUpdateDataDialog(
             label: Text('تحديث بيانات التناول والاعتراف'),
           ),
           TextButton.icon(
-            onPressed: () => navigator.currentState!.pop(),
+            onPressed: () => navigator.currentState.pop(),
             icon: Icon(Icons.close),
             label: Text('تم'),
           ),
@@ -1237,8 +1237,8 @@ void showKodasNotification() async {
               ? Source.cache
               : Source.serverAndCache);
   final classes = await Class.getAllForUser().first;
-  List<String?> persons;
-  if (user.superAccess!) {
+  List<String> persons;
+  if (user.superAccess) {
     persons = (await FirebaseFirestore.instance
             .collection('Persons')
             .where('LastKodas',
@@ -1248,7 +1248,7 @@ void showKodasNotification() async {
             .get(source))
         .docs
         .map((e) => e.data()['Name'])
-        .toList() as List<String?>;
+        .toList();
   } else if (classes.length <= 10) {
     persons = (await FirebaseFirestore.instance
             .collection('Persons')
@@ -1260,7 +1260,7 @@ void showKodasNotification() async {
             .get(source))
         .docs
         .map((e) => e.data()['Name'])
-        .toList() as List<String?>;
+        .toList();
   } else {
     persons = (await Future.wait(classes.split(10).map((cs) => FirebaseFirestore
             .instance
@@ -1272,7 +1272,7 @@ void showKodasNotification() async {
             .limit(20)
             .get(source))))
         .map((e) => e.docs.map((e) => e.data()['Name']))
-        .expand((e) => e) as List<String?>;
+        .expand((e) => e);
   }
   if (persons.isNotEmpty || !f.kReleaseMode)
     await FlutterLocalNotificationsPlugin().show(
@@ -1301,8 +1301,8 @@ void showMeetingNotification() async {
               ? Source.cache
               : Source.serverAndCache);
   final classes = await Class.getAllForUser().first;
-  List<String?> persons;
-  if (user.superAccess!) {
+  List<String> persons;
+  if (user.superAccess) {
     persons = (await FirebaseFirestore.instance
             .collection('Persons')
             .where('LastMeeting',
@@ -1312,7 +1312,7 @@ void showMeetingNotification() async {
             .get(source))
         .docs
         .map((e) => e.data()['Name'])
-        .toList() as List<String?>;
+        .toList();
   } else if (classes.length <= 10) {
     persons = (await FirebaseFirestore.instance
             .collection('Persons')
@@ -1324,7 +1324,7 @@ void showMeetingNotification() async {
             .get(source))
         .docs
         .map((e) => e.data()['Name'])
-        .toList() as List<String?>;
+        .toList();
   } else {
     persons = (await Future.wait(classes.split(10).map((cs) => FirebaseFirestore
             .instance
@@ -1336,7 +1336,7 @@ void showMeetingNotification() async {
             .limit(20)
             .get(source))))
         .map((e) => e.docs.map((e) => e.data()['Name']))
-        .expand((e) => e) as List<String?>;
+        .expand((e) => e);
   }
   if (persons.isNotEmpty || !f.kReleaseMode)
     await FlutterLocalNotificationsPlugin().show(
@@ -1357,7 +1357,7 @@ void showMeetingNotification() async {
 Future<void> showMessage(
     BuildContext context, no.Notification notification) async {
   final attachement = await getLinkObject(
-    Uri.parse(notification.attachement!),
+    Uri.parse(notification.attachement),
   );
   String scndLine = await attachement.getSecondLine() ?? '';
   final user = notification.from != ''
@@ -1368,14 +1368,14 @@ Future<void> showMessage(
   await showDialog(
     context: context,
     builder: (context) => AlertDialog(
-      title: Text(notification.title!),
+      title: Text(notification.title),
       content: Container(
         width: 280,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             Text(
-              notification.content!,
+              notification.content,
               style: TextStyle(fontSize: 18),
             ),
             if (user != null)
@@ -1408,7 +1408,7 @@ Future<void> showMessage(
                 (user != null
                     ? User.fromDoc(
                         user,
-                      ).name!
+                      ).name
                     : 'مسؤلو البرنامج')),
             Text(
               DateFormat('yyyy/M/d h:m a', 'ar-EG').format(
@@ -1422,19 +1422,19 @@ Future<void> showMessage(
   );
 }
 
-Future<void> showPendingMessage([BuildContext? context]) async {
+Future<void> showPendingMessage([BuildContext context]) async {
   context ??= mainScfld.currentContext;
   final pendingMessage = await FirebaseMessaging.instance.getInitialMessage();
   if (pendingMessage != null) {
     // ignore: unawaited_futures
-    navigator.currentState!.pushNamed('Notifications');
+    navigator.currentState.pushNamed('Notifications');
     if (pendingMessage.data['type'] == 'Message')
       await showMessage(
-        context!,
+        context,
         no.Notification.fromMessage(pendingMessage.data),
       );
     else
-      await processLink(Uri.parse(pendingMessage.data['attachement']), context!);
+      await processLink(Uri.parse(pendingMessage.data['attachement']), context);
   }
 }
 
@@ -1449,8 +1449,8 @@ void showTanawolNotification() async {
               ? Source.cache
               : Source.serverAndCache);
   final classes = await Class.getAllForUser().first;
-  List<String?> persons;
-  if (user.superAccess!) {
+  List<String> persons;
+  if (user.superAccess) {
     persons = (await FirebaseFirestore.instance
             .collection('Persons')
             .where('LastTanawol',
@@ -1460,7 +1460,7 @@ void showTanawolNotification() async {
             .get(source))
         .docs
         .map((e) => e.data()['Name'])
-        .toList() as List<String?>;
+        .toList();
   } else if (classes.length <= 10) {
     persons = (await FirebaseFirestore.instance
             .collection('Persons')
@@ -1472,7 +1472,7 @@ void showTanawolNotification() async {
             .get(source))
         .docs
         .map((e) => e.data()['Name'])
-        .toList() as List<String?>;
+        .toList();
   } else {
     persons = (await Future.wait(classes.split(10).map((cs) => FirebaseFirestore
             .instance
@@ -1484,7 +1484,7 @@ void showTanawolNotification() async {
             .limit(20)
             .get(source))))
         .map((e) => e.docs.map((e) => e.data()['Name']))
-        .expand((e) => e) as List<String?>;
+        .expand((e) => e);
   }
   if (persons.isNotEmpty || !f.kReleaseMode)
     await FlutterLocalNotificationsPlugin().show(
@@ -1507,13 +1507,13 @@ Future<int> storeNotification(RemoteMessage message) async {
       .add(message.data);
 }
 
-String toDurationString(Timestamp? date, {appendSince = true}) {
+String toDurationString(Timestamp date, {appendSince = true}) {
   if (date == null) return '';
   if (appendSince) return format(date.toDate(), locale: 'ar');
   return format(date.toDate(), locale: 'ar').replaceAll('منذ ', '');
 }
 
-Timestamp tranucateToDay({DateTime? time}) {
+Timestamp tranucateToDay({DateTime time}) {
   time = time ?? DateTime.now();
   return Timestamp.fromMillisecondsSinceEpoch(
     time.millisecondsSinceEpoch -
@@ -1522,8 +1522,8 @@ Timestamp tranucateToDay({DateTime? time}) {
 }
 
 void userTap(User user, BuildContext context) async {
-  if (user.approved!) {
-    await navigator.currentState!.pushNamed('UserInfo', arguments: user);
+  if (user.approved) {
+    await navigator.currentState.pushNamed('UserInfo', arguments: user);
   } else {
     dynamic rslt = await showDialog(
         context: context,
@@ -1532,17 +1532,17 @@ void userTap(User user, BuildContext context) async {
                 TextButton.icon(
                   icon: Icon(Icons.done),
                   label: Text('نعم'),
-                  onPressed: () => navigator.currentState!.pop(true),
+                  onPressed: () => navigator.currentState.pop(true),
                 ),
                 TextButton.icon(
                   icon: Icon(Icons.close),
                   label: Text('لا'),
-                  onPressed: () => navigator.currentState!.pop(false),
+                  onPressed: () => navigator.currentState.pop(false),
                 ),
                 TextButton.icon(
                   icon: Icon(Icons.close),
                   label: Text('حذف المستخدم'),
-                  onPressed: () => navigator.currentState!.pop('deleted'),
+                  onPressed: () => navigator.currentState.pop('deleted'),
                 ),
               ],
               title: Text('${user.name} غير مُنشط هل تريد تنشيطه؟'),
@@ -1557,7 +1557,7 @@ void userTap(User user, BuildContext context) async {
               ),
             ));
     if (rslt == true) {
-      scaffoldMessenger.currentState!.showSnackBar(
+      scaffoldMessenger.currentState.showSnackBar(
         SnackBar(
           content: LinearProgressIndicator(),
           duration: Duration(seconds: 15),
@@ -1571,8 +1571,8 @@ void userTap(User user, BuildContext context) async {
         // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
         user.notifyListeners();
         userTap(user, context);
-        scaffoldMessenger.currentState!.hideCurrentSnackBar();
-        scaffoldMessenger.currentState!.showSnackBar(
+        scaffoldMessenger.currentState.hideCurrentSnackBar();
+        scaffoldMessenger.currentState.showSnackBar(
           SnackBar(
             content: Text('تم بنجاح'),
             duration: Duration(seconds: 15),
@@ -1584,7 +1584,7 @@ void userTap(User user, BuildContext context) async {
         await FirebaseCrashlytics.instance.recordError(err, stkTrace);
       }
     } else if (rslt == 'delete') {
-      scaffoldMessenger.currentState!.showSnackBar(
+      scaffoldMessenger.currentState.showSnackBar(
         SnackBar(
           content: LinearProgressIndicator(),
           duration: Duration(seconds: 15),
@@ -1594,8 +1594,8 @@ void userTap(User user, BuildContext context) async {
         await FirebaseFunctions.instance
             .httpsCallable('deleteUser')
             .call({'affectedUser': user.uid});
-        scaffoldMessenger.currentState!.hideCurrentSnackBar();
-        scaffoldMessenger.currentState!.showSnackBar(
+        scaffoldMessenger.currentState.hideCurrentSnackBar();
+        scaffoldMessenger.currentState.showSnackBar(
           SnackBar(
             content: Text('تم بنجاح'),
             duration: Duration(seconds: 15),
@@ -1611,8 +1611,8 @@ void userTap(User user, BuildContext context) async {
 }
 
 class MessageIcon extends StatelessWidget {
-  final String? url;
-  MessageIcon(this.url, {Key? key}) : super(key: key);
+  final String url;
+  MessageIcon(this.url, {Key key}) : super(key: key);
 
   Color get color => Colors.transparent;
   String get name => '';
@@ -1627,9 +1627,9 @@ class MessageIcon extends StatelessWidget {
             context: context,
             builder: (context) => Dialog(
               child: Hero(
-                tag: url!,
+                tag: url,
                 child: CachedNetworkImage(
-                  imageUrl: url!,
+                  imageUrl: url,
                   imageBuilder: (context, imageProvider) => PhotoView(
                     imageProvider: imageProvider,
                     tightMode: true,
@@ -1643,7 +1643,7 @@ class MessageIcon extends StatelessWidget {
           ),
           child: CachedNetworkImage(
             memCacheHeight: 221,
-            imageUrl: url!,
+            imageUrl: url,
             progressIndicatorBuilder: (context, url, progress) =>
                 CircularProgressIndicator(value: progress.progress),
           ),
@@ -1676,8 +1676,8 @@ class QueryIcon extends StatelessWidget {
   Future<String> getSecondLine() async => '';
 }
 
-extension BoolComparison on bool? {
-  int compareTo(bool? o) {
+extension BoolComparison on bool {
+  int compareTo(bool o) {
     if (this == o) return 0;
     if (this == true) return -1;
     if (this == false) {

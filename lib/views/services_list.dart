@@ -12,8 +12,8 @@ import '../models/models.dart';
 import '../utils/helpers.dart';
 
 class ServicesList extends StatefulWidget {
-  final ServicesListOptions? options;
-  ServicesList({Key? key, this.options}) : super(key: key);
+  final ServicesListOptions options;
+  ServicesList({Key key, this.options}) : super(key: key);
   @override
   _ServicesListState createState() => _ServicesListState();
 }
@@ -28,13 +28,13 @@ class _ServicesListState extends State<ServicesList>
   Widget build(BuildContext context) {
     super.build(context);
 
-    return StreamBuilder<Map<StudyYear, List<Class>>?>(
-      stream: widget.options!.objectsData,
+    return StreamBuilder<Map<StudyYear, List<Class>>>(
+      stream: widget.options.objectsData,
       builder: (context, services) {
-        if (services.hasError) return ErrorWidget(services.error!);
+        if (services.hasError) return ErrorWidget(services.error);
         if (!services.hasData)
           return const Center(child: CircularProgressIndicator());
-        var groupedStudyYears = groupBy(services.data!.keys, (dynamic s) {
+        var groupedStudyYears = groupBy(services.data.keys, (s) {
           switch (s.grade) {
             case -1:
             case 0:
@@ -96,7 +96,7 @@ class _ServicesListState extends State<ServicesList>
             var element = groupedStudyYears.values
                 .elementAt(index.section)
                 .elementAt(index.index);
-            if (services.data![element]!.length > 1)
+            if (services.data[element].length > 1)
               return Padding(
                 padding: const EdgeInsets.fromLTRB(3, 0, 9, 0),
                 child: ExpandablePanel(
@@ -107,32 +107,32 @@ class _ServicesListState extends State<ServicesList>
                   header: Card(
                     child: ListTile(
                       onTap: () =>
-                          _controllers[hashValues(index.index, index.section)]!
+                          _controllers[hashValues(index.index, index.section)]
                               .toggle(),
                       leading: Icon(Icons.miscellaneous_services),
-                      title: Text(element.name!),
-                      trailing: StreamBuilder<Map<String?, Class?>?>(
-                        stream: widget.options!.selected,
+                      title: Text(element.name),
+                      trailing: StreamBuilder<Map<String, Class>>(
+                        stream: widget.options.selected,
                         builder: (context, snapshot) {
                           if (snapshot.hasData &&
-                              widget.options!.selectionModeLatest!) {
+                              widget.options.selectionModeLatest) {
                             return Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(Icons.arrow_drop_down),
                                 Checkbox(
-                                  value: services.data![element]!
+                                  value: services.data[element]
                                       .map((c) =>
-                                          snapshot.data!.containsKey(c.id))
+                                          snapshot.data.containsKey(c.id))
                                       .fold<bool>(true, (o, n) => o && n),
                                   onChanged: (v) {
-                                    if (v!) {
-                                      services.data![element]!.forEach(
-                                        (c) => widget.options!.select(c),
+                                    if (v) {
+                                      services.data[element].forEach(
+                                        (c) => widget.options.select(c),
                                       );
                                     } else {
-                                      services.data![element]!.forEach(
-                                        (c) => widget.options!.deselect(c),
+                                      services.data[element].forEach(
+                                        (c) => widget.options.deselect(c),
                                       );
                                     }
                                   },
@@ -149,32 +149,32 @@ class _ServicesListState extends State<ServicesList>
                     padding: const EdgeInsets.fromLTRB(3, 0, 9, 0),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: services.data![element]!
+                      children: services.data[element]
                           .map(
                             (c) => DataObjectWidget<Class>(
                               c,
                               showSubTitle: false,
                               onTap: () {
-                                if (!widget.options!.selectionModeLatest!) {
-                                  widget.options!.tap == null
+                                if (!widget.options.selectionModeLatest) {
+                                  widget.options.tap == null
                                       ? dataObjectTap(c, context)
-                                      : widget.options!.tap!(c);
+                                      : widget.options.tap(c);
                                 } else {
-                                  widget.options!.toggleSelected(c);
+                                  widget.options.toggleSelected(c);
                                 }
                               },
-                              trailing: StreamBuilder<Map<String?, Class?>?>(
-                                stream: widget.options!.selected,
+                              trailing: StreamBuilder<Map<String, Class>>(
+                                stream: widget.options.selected,
                                 builder: (context, snapshot) {
                                   if (snapshot.hasData &&
-                                      widget.options!.selectionModeLatest!) {
+                                      widget.options.selectionModeLatest) {
                                     return Checkbox(
-                                      value: snapshot.data!.containsKey(c.id),
+                                      value: snapshot.data.containsKey(c.id),
                                       onChanged: (v) {
-                                        if (v!) {
-                                          widget.options!.select(c);
+                                        if (v) {
+                                          widget.options.select(c);
                                         } else {
-                                          widget.options!.deselect(c);
+                                          widget.options.deselect(c);
                                         }
                                       },
                                     );
@@ -197,22 +197,22 @@ class _ServicesListState extends State<ServicesList>
               return Padding(
                 padding: const EdgeInsets.fromLTRB(3, 0, 9, 0),
                 child: DataObjectWidget<Class>(
-                  services.data![element]![0],
+                  services.data[element][0],
                   showSubTitle: false,
-                  trailing: StreamBuilder<Map<String?, Class?>?>(
-                    stream: widget.options!.selected,
+                  trailing: StreamBuilder<Map<String, Class>>(
+                    stream: widget.options.selected,
                     builder: (context, snapshot) {
                       if (snapshot.hasData &&
-                          widget.options!.selectionModeLatest!) {
+                          widget.options.selectionModeLatest) {
                         return Checkbox(
-                          value: snapshot.data!
-                              .containsKey(services.data![element]![0].id),
+                          value: snapshot.data
+                              .containsKey(services.data[element][0].id),
                           onChanged: (v) {
-                            if (v!) {
-                              widget.options!.select(services.data![element]![0]);
+                            if (v) {
+                              widget.options.select(services.data[element][0]);
                             } else {
-                              widget.options!
-                                  .deselect(services.data![element]![0]);
+                              widget.options
+                                  .deselect(services.data[element][0]);
                             }
                           },
                         );
@@ -221,12 +221,12 @@ class _ServicesListState extends State<ServicesList>
                     },
                   ),
                   onTap: () {
-                    if (!widget.options!.selectionModeLatest!) {
-                      widget.options!.tap == null
-                          ? dataObjectTap(services.data![element]![0], context)
-                          : widget.options!.tap!(services.data![element]![0]);
+                    if (!widget.options.selectionModeLatest) {
+                      widget.options.tap == null
+                          ? dataObjectTap(services.data[element][0], context)
+                          : widget.options.tap(services.data[element][0]);
                     } else {
-                      widget.options!.toggleSelected(services.data![element]![0]);
+                      widget.options.toggleSelected(services.data[element][0]);
                     }
                   },
                 ),

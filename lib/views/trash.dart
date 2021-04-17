@@ -11,14 +11,14 @@ import '../models/super_classes.dart';
 import 'list.dart';
 
 class Trash extends StatelessWidget {
-  const Trash({Key? key}) : super(key: key);
+  const Trash({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final listOptions = DataObjectListOptions<TrashDay>(
       onLongPress: (_) {},
       tap: (day) {
-        navigator.currentState!
+        navigator.currentState
             .push(MaterialPageRoute(builder: (context) => TrashDayScreen(day)));
       },
       searchQuery: BehaviorSubject<String>.seeded(''),
@@ -58,14 +58,14 @@ class TrashDay extends DataObject {
   }
 
   @override
-  Future<String?> getSecondLine() async {
+  Future<String> getSecondLine() async {
     return name;
   }
 }
 
 class TrashDayScreen extends StatefulWidget {
   final TrashDay day;
-  const TrashDayScreen(this.day, {Key? key}) : super(key: key);
+  const TrashDayScreen(this.day, {Key key}) : super(key: key);
 
   @override
   _TrashDayScreenState createState() => _TrashDayScreenState();
@@ -73,7 +73,7 @@ class TrashDayScreen extends StatefulWidget {
 
 class _TrashDayScreenState extends State<TrashDayScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
-  TabController? _tabController;
+  TabController _tabController;
   bool dialogsNotShown = true;
 
   final BehaviorSubject<bool> _showSearch = BehaviorSubject<bool>.seeded(false);
@@ -87,11 +87,11 @@ class _TrashDayScreenState extends State<TrashDayScreen>
 
   @override
   Widget build(BuildContext context) {
-    var _classesOptions = DataObjectListOptions<Class?>(
+    var _classesOptions = DataObjectListOptions<Class>(
       searchQuery: _searchQuery,
       tap: (c) => classTap(c, context),
-      itemsStream: (User.instance.superAccess!
-              ? widget.day.ref!.collection('Classes').snapshots()
+      itemsStream: (User.instance.superAccess
+              ? widget.day.ref.collection('Classes').snapshots()
               : FirebaseFirestore.instance
                   .collection('Classes')
                   .where('Allowed', arrayContains: User.instance.uid)
@@ -108,25 +108,25 @@ class _TrashDayScreenState extends State<TrashDayScreen>
               User.instance.stream,
               Class.getAllForUser(),
               (a, b) => Tuple2<User, List<Class>>(a, b)).switchMap((u) {
-        if (u.item1.superAccess!) {
-          return widget.day.ref!
+        if (u.item1.superAccess) {
+          return widget.day.ref
               .collection('Persons')
               .snapshots()
-              .map(((p) => p.docs.map(Person.fromDoc).toList() as List<Person>) as List<Person> Function(QuerySnapshot));
+              .map((p) => p.docs.map(Person.fromDoc).toList());
         } else if (u.item2.length <= 10) {
-          return widget.day.ref!
+          return widget.day.ref
               .collection('Persons')
               .where('ClassId', whereIn: u.item2.map((e) => e.ref).toList())
               .snapshots()
-              .map(((p) => p.docs.map(Person.fromDoc).toList() as List<Person>) as List<Person> Function(QuerySnapshot));
+              .map((p) => p.docs.map(Person.fromDoc).toList());
         }
         return Rx.combineLatestList<QuerySnapshot>(u.item2.split(10).map((c) =>
-                widget.day.ref!
+                widget.day.ref
                     .collection('Persons')
                     .where('ClassId', whereIn: c.map((e) => e.ref).toList())
                     .snapshots()))
-            .map(((s) => s.expand((n) => n.docs).map(Person.fromDoc).toList() as List<Person>) as List<Person> Function(List<QuerySnapshot>));
-      } as Stream<List<Person>> Function(Tuple2<User, List<Class>>)),
+            .map((s) => s.expand((n) => n.docs).map(Person.fromDoc).toList());
+      }),
     );
     return Scaffold(
       appBar: AppBar(
@@ -134,11 +134,11 @@ class _TrashDayScreenState extends State<TrashDayScreen>
           StreamBuilder<bool>(
             initialData: false,
             stream: _showSearch,
-            builder: (context, data) => data.data!
+            builder: (context, data) => data.data
                 ? AnimatedBuilder(
-                    animation: _tabController!,
+                    animation: _tabController,
                     builder: (context, child) =>
-                        _tabController!.index == 1 ? child! : Container(),
+                        _tabController.index == 1 ? child : Container(),
                     child: IconButton(
                       icon: Icon(Icons.filter_list),
                       onPressed: () async {
@@ -151,7 +151,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                 label: Text('تحديد الكل'),
                                 onPressed: () {
                                   _personsOptions.selectAll();
-                                  navigator.currentState!.pop();
+                                  navigator.currentState.pop();
                                 },
                               ),
                               TextButton.icon(
@@ -159,7 +159,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                 label: Text('تحديد لا شئ'),
                                 onPressed: () {
                                   _personsOptions.selectNone();
-                                  navigator.currentState!.pop();
+                                  navigator.currentState.pop();
                                 },
                               ),
                               Text('ترتيب حسب:',
@@ -170,43 +170,43 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                   .map(
                                     (e) => RadioListTile(
                                       value: e.key,
-                                      groupValue: _personsOrder.value!.orderBy,
+                                      groupValue: _personsOrder.value.orderBy,
                                       title: Text(e.value),
-                                      onChanged: (dynamic value) {
+                                      onChanged: (value) {
                                         _personsOrder.add(
                                           OrderOptions(
                                               orderBy: value,
-                                              asc: _personsOrder.value!.asc),
+                                              asc: _personsOrder.value.asc),
                                         );
-                                        navigator.currentState!.pop();
+                                        navigator.currentState.pop();
                                       },
                                     ),
                                   )
                                   .toList(),
                               RadioListTile(
                                 value: true,
-                                groupValue: _personsOrder.value!.asc,
+                                groupValue: _personsOrder.value.asc,
                                 title: Text('تصاعدي'),
-                                onChanged: (dynamic value) {
+                                onChanged: (value) {
                                   _personsOrder.add(
                                     OrderOptions(
-                                        orderBy: _personsOrder.value!.orderBy,
+                                        orderBy: _personsOrder.value.orderBy,
                                         asc: value),
                                   );
-                                  navigator.currentState!.pop();
+                                  navigator.currentState.pop();
                                 },
                               ),
                               RadioListTile(
                                 value: false,
-                                groupValue: _personsOrder.value!.asc,
+                                groupValue: _personsOrder.value.asc,
                                 title: Text('تنازلي'),
-                                onChanged: (dynamic value) {
+                                onChanged: (value) {
                                   _personsOrder.add(
                                     OrderOptions(
-                                        orderBy: _personsOrder.value!.orderBy,
+                                        orderBy: _personsOrder.value.orderBy,
                                         asc: value),
                                   );
-                                  navigator.currentState!.pop();
+                                  navigator.currentState.pop();
                                 },
                               ),
                             ],
@@ -240,33 +240,33 @@ class _TrashDayScreenState extends State<TrashDayScreen>
         title: StreamBuilder<bool>(
           initialData: _showSearch.value,
           stream: _showSearch,
-          builder: (context, data) => data.data!
+          builder: (context, data) => data.data
               ? TextField(
                   focusNode: _searchFocus,
-                  style: Theme.of(context).textTheme.headline6!.copyWith(
+                  style: Theme.of(context).textTheme.headline6.copyWith(
                       color:
-                          Theme.of(context).primaryTextTheme.headline6!.color),
+                          Theme.of(context).primaryTextTheme.headline6.color),
                   decoration: InputDecoration(
                       suffixIcon: IconButton(
                         icon: Icon(Icons.close,
                             color: Theme.of(context)
                                 .primaryTextTheme
-                                .headline6!
+                                .headline6
                                 .color),
                         onPressed: () {
                           _searchQuery.add('');
                           _showSearch.add(false);
                         },
                       ),
-                      hintStyle: Theme.of(context).textTheme.headline6!.copyWith(
+                      hintStyle: Theme.of(context).textTheme.headline6.copyWith(
                           color: Theme.of(context)
                               .primaryTextTheme
-                              .headline6!
+                              .headline6
                               .color),
                       icon: Icon(Icons.search,
                           color: Theme.of(context)
                               .primaryTextTheme
-                              .headline6!
+                              .headline6
                               .color),
                       hintText: 'بحث ...'),
                   onChanged: _searchQuery.add,
@@ -278,19 +278,19 @@ class _TrashDayScreenState extends State<TrashDayScreen>
         color: Theme.of(context).primaryColor,
         shape: CircularNotchedRectangle(),
         child: AnimatedBuilder(
-          animation: _tabController!,
+          animation: _tabController,
           builder: (context, _) => StreamBuilder(
-            stream: _tabController!.index == 0
+            stream: _tabController.index == 0
                 ? _classesOptions.objectsData
                 : _personsOptions.objectsData,
             builder: (context, snapshot) {
               return Text(
                 (snapshot.data?.length ?? 0).toString() +
                     ' ' +
-                    (_tabController!.index == 0 ? 'خدمة' : 'مخدوم'),
+                    (_tabController.index == 0 ? 'خدمة' : 'مخدوم'),
                 textAlign: TextAlign.center,
                 strutStyle:
-                    StrutStyle(height: IconTheme.of(context).size! / 7.5),
+                    StrutStyle(height: IconTheme.of(context).size / 7.5),
                 style: Theme.of(context).primaryTextTheme.bodyText1,
               );
             },
@@ -300,7 +300,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          DataObjectList<Class?>(options: _classesOptions),
+          DataObjectList<Class>(options: _classesOptions),
           DataObjectList<Person>(options: _personsOptions),
         ],
       ),
@@ -311,12 +311,12 @@ class _TrashDayScreenState extends State<TrashDayScreen>
   void initState() {
     super.initState();
     _tabController = TabController(vsync: this, length: 2);
-    WidgetsBinding.instance!.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance!.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 }

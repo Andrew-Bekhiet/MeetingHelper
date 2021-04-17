@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:meetinghelper/utils/globals.dart';
 
 class MiniList extends StatefulWidget {
-  final CollectionReference? parent;
-  final String? pageTitle;
-  final String? itemSubtitle;
-  final void Function()? onAdd;
+  final CollectionReference parent;
+  final String pageTitle;
+  final String itemSubtitle;
+  final void Function() onAdd;
   const MiniList({this.parent, this.pageTitle, this.itemSubtitle, this.onAdd});
 
   @override
@@ -14,7 +14,7 @@ class MiniList extends StatefulWidget {
 }
 
 class _MiniListState extends State<MiniList> {
-  List<QueryDocumentSnapshot>? _documentsData;
+  List<QueryDocumentSnapshot> _documentsData;
   bool _showSearch = false;
   FocusNode searchFocus = FocusNode();
 
@@ -24,13 +24,13 @@ class _MiniListState extends State<MiniList> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: widget.parent!.orderBy('Name').snapshots(),
+      stream: widget.parent.orderBy('Name').snapshots(),
       builder: (context, stream) {
-        if (stream.hasError) return Center(child: ErrorWidget(stream.error!));
+        if (stream.hasError) return Center(child: ErrorWidget(stream.error));
         if (!stream.hasData) return Center(child: CircularProgressIndicator());
         if (_documentsData == null ||
-            _documentsData!.length != stream.data!.docs.length)
-          _documentsData = stream.data!.docs;
+            _documentsData.length != stream.data.docs.length)
+          _documentsData = stream.data.docs;
         return StatefulBuilder(
           builder: (context, setState) => Scaffold(
             appBar: AppBar(
@@ -46,7 +46,7 @@ class _MiniListState extends State<MiniList> {
                   icon: Icon(Icons.notifications),
                   tooltip: 'الإشعارات',
                   onPressed: () {
-                    navigator.currentState!.pushNamed('Notifications');
+                    navigator.currentState.pushNamed('Notifications');
                   },
                 ),
               ],
@@ -58,7 +58,7 @@ class _MiniListState extends State<MiniList> {
                             icon: Icon(Icons.close,
                                 color: Theme.of(context)
                                     .primaryTextTheme
-                                    .headline6!
+                                    .headline6
                                     .color),
                             onPressed: () => setState(
                               () {
@@ -70,14 +70,14 @@ class _MiniListState extends State<MiniList> {
                           hintText: 'بحث ...'),
                       onChanged: (t) => setState(() => _filter = t),
                     )
-                  : Text(widget.pageTitle!),
+                  : Text(widget.pageTitle),
             ),
             body: Builder(
               builder: (context) {
                 if (_filter.isNotEmpty) {
                   if (_oldFilter.length < _filter.length &&
                       _filter.startsWith(_oldFilter)) {
-                    _documentsData = _documentsData!
+                    _documentsData = _documentsData
                         .where((d) => (d.data()['Name'] as String)
                             .toLowerCase()
                             .replaceAll(
@@ -93,7 +93,7 @@ class _MiniListState extends State<MiniList> {
                             .contains(_filter))
                         .toList();
                   } else {
-                    _documentsData = stream.data!.docs
+                    _documentsData = stream.data.docs
                         .where((d) => (d.data()['Name'] as String)
                             .toLowerCase()
                             .replaceAll(
@@ -110,7 +110,7 @@ class _MiniListState extends State<MiniList> {
                         .toList();
                   }
                 } else {
-                  _documentsData = stream.data!.docs;
+                  _documentsData = stream.data.docs;
                 }
                 _oldFilter = _filter;
                 return ListView.builder(
@@ -121,10 +121,10 @@ class _MiniListState extends State<MiniList> {
                   itemBuilder: (context, i) {
                     return Card(
                       child: ListTile(
-                        title: Text(_documentsData![i].data()['Name']),
+                        title: Text(_documentsData[i].data()['Name']),
                         subtitle: widget.itemSubtitle != null
                             ? Text(
-                                _documentsData![i].data()[widget.itemSubtitle!])
+                                _documentsData[i].data()[widget.itemSubtitle])
                             : null,
                         onLongPress: () async {
                           //TODO: implement deletion
@@ -151,7 +151,7 @@ class _MiniListState extends State<MiniList> {
                                   icon: Icon(Icons.save),
                                   label: Text('حفظ'),
                                   onPressed: () =>
-                                      navigator.currentState!.pop(name.text)),
+                                      navigator.currentState.pop(name.text)),
                             ],
                             title: TextField(
                               controller: name,
@@ -159,7 +159,7 @@ class _MiniListState extends State<MiniList> {
                           ),
                         ) !=
                         null)
-                      await widget.parent!.doc().set({'Name': name.text});
+                      await widget.parent.doc().set({'Name': name.text});
                   },
               child: Icon(Icons.add),
             ),

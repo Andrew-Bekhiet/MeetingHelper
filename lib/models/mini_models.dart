@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:meetinghelper/utils/globals.dart';
 
 class Church {
-  String? id;
-  String? name;
-  String? address;
+  String id;
+  String name;
+  String address;
   Church(this.id, this.name, {this.address});
   Church._createFromData(Map<String, dynamic> data, this.id) {
     name = data['Name'];
@@ -43,7 +43,7 @@ class Church {
   }
 
   static Church fromDoc(DocumentSnapshot data) =>
-      Church._createFromData(data.data()!, data.id);
+      Church._createFromData(data.data(), data.id);
 
   static Future<QuerySnapshot> getAllForUser() {
     return FirebaseFirestore.instance
@@ -54,9 +54,9 @@ class Church {
 }
 
 class School {
-  String? id;
-  String? name;
-  String? address;
+  String id;
+  String name;
+  String address;
   School(this.id, this.name, {this.address});
   School._createFromData(Map<String, dynamic> data, this.id) {
     name = data['Name'];
@@ -92,7 +92,7 @@ class School {
   }
 
   static School fromDoc(DocumentSnapshot data) =>
-      School._createFromData(data.data()!, data.id);
+      School._createFromData(data.data(), data.id);
 
   static Future<QuerySnapshot> getAllForUser() {
     return FirebaseFirestore.instance
@@ -103,9 +103,9 @@ class School {
 }
 
 class Father {
-  String? id;
-  String? name;
-  DocumentReference? churchId;
+  String id;
+  String name;
+  DocumentReference churchId;
   Father(this.id, this.name, this.churchId);
   Father._createFromData(Map<String, dynamic> data, this.id) {
     name = data['Name'];
@@ -128,9 +128,9 @@ class Father {
     return id == other.id;
   }
 
-  Future<String?> getChurchName() async {
+  Future<String> getChurchName() async {
     if (churchId == null) return '';
-    return Church.fromDoc(await churchId!.get()).name;
+    return Church.fromDoc(await churchId.get()).name;
   }
 
   Map<String, dynamic> getMap() {
@@ -138,7 +138,7 @@ class Father {
   }
 
   static Father fromDoc(DocumentSnapshot data) =>
-      Father._createFromData(data.data()!, data.id);
+      Father._createFromData(data.data(), data.id);
 
   static Future<QuerySnapshot> getAllForUser() {
     return FirebaseFirestore.instance
@@ -149,10 +149,10 @@ class Father {
 }
 
 class StudyYear {
-  String? id;
-  String? name;
-  bool? isCollegeYear;
-  int? grade;
+  String id;
+  String name;
+  bool isCollegeYear;
+  int grade;
 
   StudyYear(this.id, this.name, this.grade);
   StudyYear._createFromData(Map<String, dynamic> data, this.id) {
@@ -184,7 +184,7 @@ class StudyYear {
   }
 
   static StudyYear fromDoc(DocumentSnapshot data) =>
-      StudyYear._createFromData(data.data()!, data.id);
+      StudyYear._createFromData(data.data(), data.id);
 
   static Future<QuerySnapshot> getAllForUser() {
     return FirebaseFirestore.instance
@@ -206,12 +206,12 @@ class History {
   }
 
   static History fromDoc(DocumentSnapshot doc) {
-    return History(doc.id, doc.data()!['By'], doc.data()!['Time'], doc.reference);
+    return History(doc.id, doc.data()['By'], doc.data()['Time'], doc.reference);
   }
 
   String id;
-  String? byUser;
-  Timestamp? time;
+  String byUser;
+  Timestamp time;
 
   DocumentReference ref;
 

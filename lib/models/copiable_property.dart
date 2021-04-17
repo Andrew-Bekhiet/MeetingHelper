@@ -5,14 +5,14 @@ import 'package:url_launcher/url_launcher.dart';
 
 class CopiableProperty extends StatelessWidget {
   const CopiableProperty(this.name, this.value,
-      {Key? key, this.showError = true, this.items})
+      {Key key, this.showError = true, this.items})
       : assert(name != null),
         super(key: key);
 
   final String name;
-  final String? value;
+  final String value;
   final bool showError;
-  final List<Widget>? items;
+  final List<Widget> items;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +23,7 @@ class CopiableProperty extends StatelessWidget {
           ? Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (value != null && value!.isNotEmpty)
+                if (value != null && value.isNotEmpty)
                   IconButton(
                     icon: Icon(Icons.copy),
                     tooltip: 'نسخ',
@@ -37,10 +37,10 @@ class CopiableProperty extends StatelessWidget {
                     onPressed: null,
                     color: Colors.red,
                   ),
-                ...items!,
+                ...items,
               ],
             )
-          : value != null && value!.isNotEmpty
+          : value != null && value.isNotEmpty
               ? IconButton(
                   icon: Icon(Icons.copy),
                   tooltip: 'نسخ',
@@ -62,20 +62,20 @@ class CopiableProperty extends StatelessWidget {
 class PhoneNumberProperty extends StatelessWidget {
   const PhoneNumberProperty(
       this.name, this.value, this.phoneCall, this.contactAdd,
-      {Key? key})
+      {Key key})
       : super(key: key);
 
   final String name;
-  final String? value;
-  final void Function(String?) phoneCall;
-  final void Function(String?) contactAdd;
+  final String value;
+  final void Function(String) phoneCall;
+  final void Function(String) contactAdd;
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(name),
       subtitle: Text(value ?? ''),
-      trailing: value != null && value!.isNotEmpty
+      trailing: value != null && value.isNotEmpty
           ? Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -96,12 +96,12 @@ class PhoneNumberProperty extends StatelessWidget {
                       color: Theme.of(context).iconTheme.color),
                   tooltip: 'ارسال رسالة (واتساب)',
                   onPressed: () =>
-                      launch('whatsapp://send?phone=+' + getPhone(value!)),
+                      launch('whatsapp://send?phone=+' + getPhone(value)),
                 ),
                 IconButton(
                   icon: Icon(Icons.message),
                   tooltip: 'ارسال رسالة',
-                  onPressed: () => launch('sms://' + getPhone(value!, false)),
+                  onPressed: () => launch('sms://' + getPhone(value, false)),
                 ),
                 IconButton(
                   icon: Icon(Icons.copy),

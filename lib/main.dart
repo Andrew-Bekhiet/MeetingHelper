@@ -105,7 +105,7 @@ void main() {
                           primary: primaries[primary ?? 13])),
                   brightness: darkTheme != null
                       ? (darkTheme ? Brightness.dark : Brightness.light)
-                      : WidgetsBinding.instance!.window.platformBrightness,
+                      : WidgetsBinding.instance.window.platformBrightness,
                   accentColor: accents[accent ?? 13],
                   primaryColor: primaries[primary ?? 13],
                 ),
@@ -134,19 +134,19 @@ Future _initConfigs() async {
 
   await FlutterLocalNotificationsPlugin().initialize(
       InitializationSettings(android: AndroidInitializationSettings('warning')),
-      onSelectNotification: onNotificationClicked as Future<dynamic> Function(String?)?);
+      onSelectNotification: onNotificationClicked);
 }
 
 class App extends StatefulWidget {
-  App({Key? key}) : super(key: key);
+  App({Key key}) : super(key: key);
 
   @override
   AppState createState() => AppState();
 }
 
 class AppState extends State<App> {
-  StreamSubscription<ConnectivityResult>? connection;
-  StreamSubscription? userTokenListener;
+  StreamSubscription<ConnectivityResult> connection;
+  StreamSubscription userTokenListener;
 
   bool configureMessaging = true;
 
@@ -164,29 +164,29 @@ class AppState extends State<App> {
           '/': buildLoadAppWidget,
           'Login': (context) => LoginScreen(),
           'Data/EditClass': (context) =>
-              EditClass(class$: ModalRoute.of(context)!.settings.arguments as Class?),
+              EditClass(class$: ModalRoute.of(context).settings.arguments),
           'Data/EditPerson': (context) {
-            if (ModalRoute.of(context)!.settings.arguments is Person)
+            if (ModalRoute.of(context).settings.arguments is Person)
               return EditPerson(
-                  person: ModalRoute.of(context)!.settings.arguments as Person?);
+                  person: ModalRoute.of(context).settings.arguments);
             else {
               Person person = Person()
-                ..classId = ModalRoute.of(context)!.settings.arguments as firestore.DocumentReference?;
+                ..classId = ModalRoute.of(context).settings.arguments;
               return EditPerson(person: person);
             }
           },
           'EditInvitation': (context) => EditInvitation(
-              invitation: ModalRoute.of(context)!.settings.arguments as Invitation? ??
+              invitation: ModalRoute.of(context).settings.arguments ??
                   Invitation.empty()),
           'Day': (context) {
-            if (ModalRoute.of(context)!.settings.arguments != null)
-              return Day(record: ModalRoute.of(context)!.settings.arguments as HistoryDay);
+            if (ModalRoute.of(context).settings.arguments != null)
+              return Day(record: ModalRoute.of(context).settings.arguments);
             else
               return Day(record: HistoryDay());
           },
           'ServantsDay': (context) {
-            if (ModalRoute.of(context)!.settings.arguments != null)
-              return Day(record: ModalRoute.of(context)!.settings.arguments as HistoryDay);
+            if (ModalRoute.of(context).settings.arguments != null)
+              return Day(record: ModalRoute.of(context).settings.arguments);
             else
               return Day(record: ServantsHistoryDay());
           },
@@ -197,16 +197,16 @@ class AppState extends State<App> {
           'MyAccount': (context) => MyAccount(),
           'Notifications': (context) => NotificationsPage(),
           'ClassInfo': (context) =>
-              ClassInfo(class$: ModalRoute.of(context)!.settings.arguments as Class?),
+              ClassInfo(class$: ModalRoute.of(context).settings.arguments),
           'PersonInfo': (context) => PersonInfo(
-                person: ModalRoute.of(context)!.settings.arguments as Person?,
-                converter: ModalRoute.of(context)!.settings.arguments is User
+                person: ModalRoute.of(context).settings.arguments,
+                converter: ModalRoute.of(context).settings.arguments is User
                     ? User.fromDoc
                     : Person.fromDoc,
               ),
           'UserInfo': (context) => UserInfo(),
           'InvitationInfo': (context) => InvitationInfo(
-              invitation: ModalRoute.of(context)!.settings.arguments as Invitation?),
+              invitation: ModalRoute.of(context).settings.arguments),
           'Update': (context) => Update(),
           'Search': (context) => SearchQuery(),
           'DataMap': (context) => DataMap(),
@@ -237,21 +237,21 @@ class AppState extends State<App> {
           'ManageUsers': (context) => UsersPage(),
           'Invitations': (context) => InvitationsPage(),
           'ActivityAnalysis': (context) => ActivityAnalysis(
-                classes: ModalRoute.of(context)!.settings.arguments as List<Class>?,
+                classes: ModalRoute.of(context).settings.arguments,
               ),
           'Analytics': (context) {
-            if (ModalRoute.of(context)!.settings.arguments is Person)
+            if (ModalRoute.of(context).settings.arguments is Person)
               return PersonAnalyticsPage(
-                  person: ModalRoute.of(context)!.settings.arguments as Person?);
-            else if (ModalRoute.of(context)!.settings.arguments is Class)
+                  person: ModalRoute.of(context).settings.arguments);
+            else if (ModalRoute.of(context).settings.arguments is Class)
               return AnalyticsPage(
-                  classes: [ModalRoute.of(context)!.settings.arguments as Class?]);
-            else if (ModalRoute.of(context)!.settings.arguments is HistoryDay)
+                  classes: [ModalRoute.of(context).settings.arguments]);
+            else if (ModalRoute.of(context).settings.arguments is HistoryDay)
               return AnalyticsPage(
-                  day: ModalRoute.of(context)!.settings.arguments as HistoryDay?);
+                  day: ModalRoute.of(context).settings.arguments);
             else {
               final Map<String, dynamic> args =
-                  ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+                  ModalRoute.of(context).settings.arguments;
               return AnalyticsPage(
                 historyColection: args['HistoryCollection'] ?? 'History',
                 classes: args['Classes'],
@@ -292,7 +292,7 @@ class AppState extends State<App> {
         if (snapshot.hasError && User.instance.password != null) {
           if (snapshot.error.toString() ==
               'Exception: Error Update User Data') {
-            WidgetsBinding.instance!.addPostFrameCallback((_) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
               showErrorUpdateDataDialog(context: context);
             });
           }
@@ -306,7 +306,7 @@ class AppState extends State<App> {
           builder: (context, user, child) {
             if (user.uid == null) {
               return const LoginScreen();
-            } else if (user.approved! && user.password != null) {
+            } else if (user.approved && user.password != null) {
               return const AuthScreen(nextWidget: Root());
             } else {
               return const UserRegistration();
@@ -369,7 +369,7 @@ class AppState extends State<App> {
         dataSource =
             firestore.GetOptions(source: firestore.Source.serverAndCache);
         if (mainScfld?.currentState?.mounted ?? false)
-          ScaffoldMessenger.of(mainScfld.currentContext!).showSnackBar(SnackBar(
+          ScaffoldMessenger.of(mainScfld.currentContext).showSnackBar(SnackBar(
             backgroundColor: Colors.greenAccent,
             content: Text('تم استرجاع الاتصال بالانترنت'),
           ));
@@ -377,7 +377,7 @@ class AppState extends State<App> {
         dataSource = firestore.GetOptions(source: firestore.Source.cache);
 
         if (mainScfld?.currentState?.mounted ?? false)
-          ScaffoldMessenger.of(mainScfld.currentContext!).showSnackBar(SnackBar(
+          ScaffoldMessenger.of(mainScfld.currentContext).showSnackBar(SnackBar(
             backgroundColor: Colors.redAccent,
             content: Text('لا يوجد اتصال بالانترنت!'),
           ));
@@ -387,7 +387,7 @@ class AppState extends State<App> {
   }
 
   Future<void> loadApp(BuildContext context) async {
-    var result = await (UpdateHelper.setupRemoteConfig() as FutureOr<RemoteConfig>);
+    var result = await UpdateHelper.setupRemoteConfig();
     if (result.getString('LoadApp') == 'false') {
       await Updates.showUpdateDialog(context, canCancel: false);
       throw Exception('يجب التحديث لأخر إصدار لتشغيل البرنامج');
@@ -395,7 +395,7 @@ class AppState extends State<App> {
       if (User.instance.uid != null) {
         await configureFirebaseMessaging();
         await FirebaseCrashlytics.instance
-            .setCustomKey('UID', User.instance.uid!);
+            .setCustomKey('UID', User.instance.uid);
         if (!await User.instance.userDataUpToDate()) {
           throw Exception('Error Update User Data');
         }

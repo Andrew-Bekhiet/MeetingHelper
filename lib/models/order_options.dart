@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 @immutable
 class OrderOptions {
-  final String? orderBy;
-  final bool? asc;
+  final String orderBy;
+  final bool asc;
 
   OrderOptions({
     this.orderBy = 'Name',

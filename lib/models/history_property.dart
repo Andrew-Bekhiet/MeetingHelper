@@ -10,11 +10,12 @@ import 'mini_models.dart';
 
 class HistoryProperty extends StatelessWidget {
   const HistoryProperty(this.name, this.value, this.historyRef,
-      {Key? key, this.showTime = true})
-      : super(key: key);
+      {Key key, this.showTime = true})
+      : assert(name != null),
+        super(key: key);
 
   final String name;
-  final Timestamp? value;
+  final Timestamp value;
   final bool showTime;
   final CollectionReference historyRef;
 
@@ -32,7 +33,7 @@ class HistoryProperty extends StatelessWidget {
                   ? DateFormat(
                           showTime ? 'yyyy/M/d   h:m a' : 'yyyy/M/d', 'ar-EG')
                       .format(
-                      value!.toDate(),
+                      value.toDate(),
                     )
                   : '',
               style: Theme.of(context).textTheme.overline),
@@ -50,25 +51,25 @@ class HistoryProperty extends StatelessWidget {
                 builder: (context, history) {
                   if (!history.hasData)
                     return const Center(child: CircularProgressIndicator());
-                  if (history.hasError) return ErrorWidget(history.error!);
-                  if (history.data!.isEmpty)
+                  if (history.hasError) return ErrorWidget(history.error);
+                  if (history.data.isEmpty)
                     return const Center(child: Text('لا يوجد سجل'));
                   return ListView.builder(
-                    itemCount: history.data!.length,
+                    itemCount: history.data.length,
                     itemBuilder: (context, i) => ListTile(
                       title: FutureBuilder<DocumentSnapshot>(
                         future: FirebaseFirestore.instance
-                            .doc('Users/' + history.data![i].byUser!)
+                            .doc('Users/' + history.data[i].byUser)
                             .get(dataSource),
                         builder: (context, user) {
                           return user.hasData
-                              ? Text(user.data!.data()!['Name'])
+                              ? Text(user.data.data()['Name'])
                               : LinearProgressIndicator();
                         },
                       ),
                       subtitle: Text(DateFormat(
                               showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d', 'ar-EG')
-                          .format(history.data![i].time!.toDate())),
+                          .format(history.data[i].time.toDate())),
                     ),
                   );
                 },
@@ -83,11 +84,12 @@ class HistoryProperty extends StatelessWidget {
 
 class EditHistoryProperty extends StatelessWidget {
   const EditHistoryProperty(this.name, this.user, this.historyRef,
-      {Key? key, this.showTime = true, this.discoverFeature = false})
-      : super(key: key);
+      {Key key, this.showTime = true, this.discoverFeature = false})
+      : assert(name != null),
+        super(key: key);
 
   final String name;
-  final String? user;
+  final String user;
   final bool showTime;
   final bool discoverFeature;
   final CollectionReference historyRef;
@@ -106,25 +108,25 @@ class EditHistoryProperty extends StatelessWidget {
               builder: (context, history) {
                 if (!history.hasData)
                   return const Center(child: CircularProgressIndicator());
-                if (history.hasError) return ErrorWidget(history.error!);
-                if (history.data!.isEmpty)
+                if (history.hasError) return ErrorWidget(history.error);
+                if (history.data.isEmpty)
                   return const Center(child: Text('لا يوجد سجل'));
                 return ListView.builder(
-                  itemCount: history.data!.length,
+                  itemCount: history.data.length,
                   itemBuilder: (context, i) => ListTile(
                     title: FutureBuilder<DocumentSnapshot>(
                       future: FirebaseFirestore.instance
-                          .doc('Users/' + history.data![i].byUser!)
+                          .doc('Users/' + history.data[i].byUser)
                           .get(dataSource),
                       builder: (context, user) {
                         return user.hasData
-                            ? Text(user.data!.data()!['Name'])
+                            ? Text(user.data.data()['Name'])
                             : LinearProgressIndicator();
                       },
                     ),
                     subtitle: Text(DateFormat(
                             showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d', 'ar-EG')
-                        .format(history.data![i].time!.toDate())),
+                        .format(history.data[i].time.toDate())),
                   ),
                 );
               },
@@ -138,9 +140,7 @@ class EditHistoryProperty extends StatelessWidget {
       subtitle: user != null
           ? FutureBuilder<List>(
               future: Future.wait([
-                FirebaseFirestore.instance
-                    .doc('Users/' + user!)
-                    .get(dataSource),
+                FirebaseFirestore.instance.doc('Users/' + user).get(dataSource),
                 historyRef
                     .orderBy('Time', descending: true)
                     .limit(1)
@@ -153,11 +153,9 @@ class EditHistoryProperty extends StatelessWidget {
                         children: [
                           Flexible(
                             flex: 5,
-                            child: Text(future.data![0].data()['Name']),
+                            child: Text(future.data[0].data()['Name']),
                           ),
-                          if ((future.data![1] as QuerySnapshot)
-                              .docs
-                              .isNotEmpty)
+                          if ((future.data[1] as QuerySnapshot).docs.isNotEmpty)
                             Flexible(
                               flex: 5,
                               child: Text(
@@ -167,7 +165,7 @@ class EditHistoryProperty extends StatelessWidget {
                                               : 'yyyy/M/d',
                                           'ar-EG')
                                       .format(
-                                    (future.data![1] as QuerySnapshot)
+                                    (future.data[1] as QuerySnapshot)
                                         .docs[0]
                                         .data()['Time']
                                         .toDate(),
@@ -195,7 +193,7 @@ class EditHistoryProperty extends StatelessWidget {
                     label: Text(
                       'التالي',
                       style: TextStyle(
-                        color: Theme.of(context).textTheme.bodyText2!.color,
+                        color: Theme.of(context).textTheme.bodyText2.color,
                       ),
                     ),
                     onPressed: () =>
@@ -206,7 +204,7 @@ class EditHistoryProperty extends StatelessWidget {
                     child: Text(
                       'تخطي',
                       style: TextStyle(
-                        color: Theme.of(context).textTheme.bodyText2!.color,
+                        color: Theme.of(context).textTheme.bodyText2.color,
                       ),
                     ),
                   ),
@@ -214,7 +212,7 @@ class EditHistoryProperty extends StatelessWidget {
               ),
               backgroundColor: Theme.of(context).accentColor,
               targetColor: Colors.transparent,
-              textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
+              textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
               child: icon)
           : icon,
     );
@@ -223,11 +221,12 @@ class EditHistoryProperty extends StatelessWidget {
 
 class TimeHistoryProperty extends StatelessWidget {
   const TimeHistoryProperty(this.name, this.value, this.historyRef,
-      {Key? key, this.showTime = true})
-      : super(key: key);
+      {Key key, this.showTime = true})
+      : assert(name != null),
+        super(key: key);
 
   final String name;
-  final Timestamp? value;
+  final Timestamp value;
   final bool showTime;
   final CollectionReference historyRef;
 
@@ -245,7 +244,7 @@ class TimeHistoryProperty extends StatelessWidget {
                   ? DateFormat(
                           showTime ? 'yyyy/M/d   h:m a' : 'yyyy/M/d', 'ar-EG')
                       .format(
-                      value!.toDate(),
+                      value.toDate(),
                     )
                   : '',
               style: Theme.of(context).textTheme.overline),
@@ -263,15 +262,15 @@ class TimeHistoryProperty extends StatelessWidget {
                 builder: (context, history) {
                   if (!history.hasData)
                     return const Center(child: CircularProgressIndicator());
-                  if (history.hasError) return ErrorWidget(history.error!);
-                  if (history.data!.isEmpty)
+                  if (history.hasError) return ErrorWidget(history.error);
+                  if (history.data.isEmpty)
                     return const Center(child: Text('لا يوجد سجل'));
                   return ListView.builder(
-                    itemCount: history.data!.length,
+                    itemCount: history.data.length,
                     itemBuilder: (context, i) => ListTile(
                       title: Text(DateFormat(
                               showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d', 'ar-EG')
-                          .format(history.data![i].time!.toDate())),
+                          .format(history.data[i].time.toDate())),
                     ),
                   );
                 },
@@ -286,12 +285,13 @@ class TimeHistoryProperty extends StatelessWidget {
 
 class DayHistoryProperty extends StatelessWidget {
   const DayHistoryProperty(this.name, this.value, this.id, this.collection,
-      {Key? key})
-      : super(key: key);
+      {Key key})
+      : assert(name != null),
+        super(key: key);
 
   final String name;
-  final Timestamp? value;
-  final String? id;
+  final Timestamp value;
+  final String id;
   final String collection;
 
   @override
@@ -306,7 +306,7 @@ class DayHistoryProperty extends StatelessWidget {
           Text(
               value != null
                   ? DateFormat('yyyy/M/d   h:m a', 'ar-EG').format(
-                      value!.toDate(),
+                      value.toDate(),
                     )
                   : '',
               style: Theme.of(context).textTheme.overline),
@@ -330,37 +330,38 @@ class DayHistoryProperty extends StatelessWidget {
                     .asyncMap((s) async => await Future.wait(s.docs
                         .map((d) async => HistoryRecord.fromDoc(
                             await HistoryDay.fromId(
-                                d.reference.parent.parent!.id),
+                                d.reference.parent.parent.id),
                             d))
-                        .toList()))
-                    .map((event) => event.whereType<HistoryRecord>().toList()),
+                        .toList())),
                 builder: (context, history) {
-                  if (history.hasError) return ErrorWidget(history.error!);
+                  if (history.hasError) return ErrorWidget(history.error);
                   if (!history.hasData)
                     return const Center(child: CircularProgressIndicator());
-                  if (history.data!.isEmpty)
+                  if (history.data.isEmpty)
                     return const Center(child: Text('لا يوجد سجل'));
                   return ListView.builder(
-                    itemCount: history.data!.length,
+                    itemCount: history.data.length,
                     itemBuilder: (context, i) => Card(
                       child: ListTile(
                         onTap: () =>
-                            historyTap(history.data![i].parent, context),
+                            historyTap(history.data[i].parent, context),
                         title: Text(DateFormat('yyyy/M/d h:m a', 'ar-EG')
-                            .format(history.data![i].time.toDate())),
-                        subtitle: FutureBuilder<DocumentSnapshot>(
-                          future: FirebaseFirestore.instance
-                              .doc('Users/' + history.data![i].recordedBy)
-                              .get(dataSource),
-                          builder: (context, user) {
-                            return user.hasData
-                                ? Text(user.data!.data()!['Name'] +
-                                    (history.data![i].notes != null
-                                        ? '\n${history.data![i].notes}'
-                                        : ''))
-                                : Text(history.data![i].notes ?? '');
-                          },
-                        ),
+                            .format(history.data[i].time.toDate())),
+                        subtitle: history.data[i].recordedBy != null
+                            ? FutureBuilder<DocumentSnapshot>(
+                                future: FirebaseFirestore.instance
+                                    .doc('Users/' + history.data[i].recordedBy)
+                                    .get(dataSource),
+                                builder: (context, user) {
+                                  return user.hasData
+                                      ? Text(user.data.data()['Name'] +
+                                          (history.data[i].notes != null
+                                              ? '\n${history.data[i].notes}'
+                                              : ''))
+                                      : Text(history.data[i].notes ?? '');
+                                },
+                              )
+                            : Text(history.data[i].notes ?? ''),
                       ),
                     ),
                   );
