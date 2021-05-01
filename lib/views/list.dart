@@ -394,7 +394,32 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
                 ? dataObjectTap(current, context)
                 : _listOptions.tap(current);
           } else {
-            await _listOptions.toggleSelected(current);
+            if (!_listOptions.dayOptions.lockUnchecks.value) {
+              await _listOptions.toggleSelected(current);
+            } else if (!_listOptions.selectedLatest.containsKey(current.id) ||
+                _listOptions.dayOptions.lockUnchecks.value &&
+                    await showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            content: Text(
+                                'هل تريد إلغاء حضور ' + current.name + '؟'),
+                            actions: [
+                              TextButton(
+                                onPressed: () =>
+                                    navigator.currentState.pop(true),
+                                child: Text('تأكيد'),
+                              ),
+                              TextButton(
+                                onPressed: () =>
+                                    navigator.currentState.pop(false),
+                                child: Text('تراجع'),
+                              ),
+                            ],
+                          ),
+                        ) ==
+                        true) {
+              await _listOptions.toggleSelected(current);
+            }
           }
         },
         subtitle: attended.hasData && attended.data.containsKey(current.id)

@@ -523,18 +523,21 @@ class HistoryDayOptions {
   //true -> ASC, false -> DESC, null -> sort by name
   final BehaviorSubject<bool> enabled;
   final BehaviorSubject<bool> showSubtitlesInGroups;
+  final BehaviorSubject<bool> lockUnchecks;
 
   HistoryDayOptions(
       {bool grouped,
       bool showOnly,
-      bool sortByTimeDESC,
+      bool sortByTimeASC,
       bool enabled,
+      bool lockUnchecks,
       bool showSubtitlesInGroups})
       : enabled = BehaviorSubject<bool>.seeded(enabled ?? false),
         grouped = BehaviorSubject<bool>.seeded(grouped ?? false),
         showSubtitlesInGroups =
             BehaviorSubject<bool>.seeded(showSubtitlesInGroups ?? false),
-        sortByTimeASC = BehaviorSubject<bool>.seeded(sortByTimeDESC),
+        sortByTimeASC = BehaviorSubject<bool>.seeded(sortByTimeASC),
+        lockUnchecks = BehaviorSubject<bool>.seeded(lockUnchecks ?? true),
         showOnly = BehaviorSubject<bool>.seeded(showOnly);
 
   @override
