@@ -67,6 +67,13 @@ class _UserInfoState extends State<UserInfo> {
                     },
                     tooltip: 'مشاركة',
                   ),
+                  IconButton(
+                    icon: Icon(Icons.info),
+                    onPressed: () {
+                      personTap(user, context);
+                    },
+                    tooltip: 'بيانات المستخدم',
+                  ),
                 ],
                 expandedHeight: 250.0,
                 floating: false,

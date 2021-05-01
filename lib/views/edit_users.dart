@@ -20,7 +20,7 @@ class _UsersPageState extends State<UsersPage> {
   @override
   Widget build(BuildContext context) {
     var _listOptions = DataObjectListOptions<User>(
-      itemsStream: User.getAllForUser(),
+      itemsStream: User.getAllForUserForEdit(),
       searchQuery: _search,
       tap: (u) => userTap(u, context),
     );

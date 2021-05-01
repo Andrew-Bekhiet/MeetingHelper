@@ -661,6 +661,25 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
     });
   }
 
+  static Stream<List<User>> getAllForUserForEdit() {
+    return User.instance.stream.switchMap((u) {
+      if (u.manageUsers) {
+        return FirebaseFirestore.instance
+            .collection('UsersData')
+            .orderBy('Name')
+            .snapshots()
+            .map((p) => p.docs.map(fromDoc).toList());
+      } else {
+        return FirebaseFirestore.instance
+            .collection('UsersData')
+            .where('AllowedUsers', arrayContains: u.uid)
+            .orderBy('Name')
+            .snapshots()
+            .map((p) => p.docs.map(fromDoc).toList());
+      }
+    });
+  }
+
   static Stream<List<User>> getAllNames() {
     return FirebaseFirestore.instance
         .collection('Users')

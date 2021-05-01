@@ -4,6 +4,7 @@ import 'package:group_list_view/group_list_view.dart';
 import 'package:meetinghelper/models/class.dart';
 import 'package:meetinghelper/models/data_object_widget.dart';
 import 'package:meetinghelper/models/list_options.dart';
+import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:provider/provider.dart';
@@ -68,6 +69,11 @@ class _UsersListState extends State<UsersList> {
                   _class,
                   showSubTitle: false,
                   wrapInCard: false,
+                  photo: DataObjectPhoto(
+                    _class,
+                    heroTag: _class.name + _class.id,
+                    wrapPhotoInCircle: false,
+                  ),
                   onTap: () {
                     if (_class.id != 'null' && _class.id != 'unknown')
                       classTap(_class, context);
