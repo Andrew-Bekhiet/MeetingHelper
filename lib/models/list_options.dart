@@ -301,7 +301,10 @@ class CheckListOptions<T extends Person> implements DataObjectListOptions<T> {
               (a, b) => Tuple2<User, List<Class>>(a, b)).switchMap((v) {
               if (v.item1.superAccess ||
                   (day is ServantsHistoryDay && v.item1.secretary)) {
-                return ref.snapshots().map<Map<String, HistoryRecord>>((s) {
+                return ref
+                    .orderBy('Time')
+                    .snapshots()
+                    .map<Map<String, HistoryRecord>>((s) {
                   Map<String, T> tempSelected = {};
                   Map<String, HistoryRecord> snapshotMap =
                       Map<String, HistoryRecord>.fromIterable(
@@ -320,6 +323,7 @@ class CheckListOptions<T extends Person> implements DataObjectListOptions<T> {
                 return ref
                     .where('ClassId',
                         whereIn: v.item2.map((e) => e.ref).toList())
+                    .orderBy('Time')
                     .snapshots()
                     .map((s) {
                   Map<String, T> tempSelected = {};
@@ -340,6 +344,7 @@ class CheckListOptions<T extends Person> implements DataObjectListOptions<T> {
               return Rx.combineLatestList<QuerySnapshot>(v.item2.split(10).map(
                   (c) => ref
                       .where('ClassId', whereIn: c.map((e) => e.ref).toList())
+                      .orderBy('Time')
                       .snapshots())).map((s) => s.expand((n) => n.docs)).map(
                   (s) {
                 Map<String, T> tempSelected = {};
@@ -363,47 +368,49 @@ class CheckListOptions<T extends Person> implements DataObjectListOptions<T> {
     ///to filter the [_objectsData] by the [attended] Persons
     _objectsData = BehaviorSubject<List<T>>()
       ..addStream(
-        Rx.combineLatest4<bool, String, Map<String, T>,
+        Rx.combineLatest5<bool, bool, String, Map<String, T>,
             Map<String, HistoryRecord>, List<T>>(
           dayOptions.showOnly,
+          dayOptions.sortByTimeASC,
           _searchQuery,
           originalObjectsData,
           attended,
-          (showOnly, search, objects, attended) {
-            if (search.isNotEmpty) {
-              if (showOnly == null)
-                return _filter(objects.values.toList(), search);
-              if (showOnly == true) {
-                return _filter(
-                    attended
-                        .map((k, v) => MapEntry(k, objects[k]))
-                        .values
-                        .toList(),
-                    search);
-              } else
-                return _filter(
-                    objects.values
-                        .where(
-                          (i) => !attended.containsKey(i.id),
-                        )
-                        .toList(),
-                    search);
-            }
+          (showOnly, sortByTimeASC, search, objects, attended) {
+            List<T> rslt = objects.values.toList();
 
-            if (showOnly == null)
-              return objects.values.toList();
-            else if (showOnly == true) {
-              return attended
+            if (sortByTimeASC == true) {
+              rslt = attended
                   .map((k, v) => MapEntry(k, objects[k]))
                   .values
                   .toList();
+            } else if (sortByTimeASC == false) {
+              rslt = attended
+                  .map((k, v) => MapEntry(k, objects[k]))
+                  .values
+                  .toList()
+                  .reversed
+                  .toList();
+            } else if (showOnly == null) {
+              rslt = rslt.toList();
+            } else if (showOnly == true) {
+              rslt = objects.values
+                  .where(
+                    (i) => attended.containsKey(i.id),
+                  )
+                  .toList();
             } else {
-              return objects.values
+              rslt = rslt
                   .where(
                     (i) => !attended.containsKey(i.id),
                   )
                   .toList();
             }
+
+            if (search.isNotEmpty) {
+              return _filter(rslt, search);
+            }
+
+            return rslt;
           },
         ),
       );
@@ -512,15 +519,22 @@ class HistoryDayOptions {
   final BehaviorSubject<bool> grouped;
   //show Only absent (false) or present (true) Persons
   final BehaviorSubject<bool> showOnly;
+  final BehaviorSubject<bool> sortByTimeASC;
+  //true -> ASC, false -> DESC, null -> sort by name
   final BehaviorSubject<bool> enabled;
   final BehaviorSubject<bool> showSubtitlesInGroups;
 
   HistoryDayOptions(
-      {bool grouped, bool showOnly, bool enabled, bool showSubtitlesInGroups})
+      {bool grouped,
+      bool showOnly,
+      bool sortByTimeDESC,
+      bool enabled,
+      bool showSubtitlesInGroups})
       : enabled = BehaviorSubject<bool>.seeded(enabled ?? false),
         grouped = BehaviorSubject<bool>.seeded(grouped ?? false),
         showSubtitlesInGroups =
             BehaviorSubject<bool>.seeded(showSubtitlesInGroups ?? false),
+        sortByTimeASC = BehaviorSubject<bool>.seeded(sortByTimeDESC),
         showOnly = BehaviorSubject<bool>.seeded(showOnly);
 
   @override

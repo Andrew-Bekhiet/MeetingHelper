@@ -45,6 +45,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                     grouped: !isSameDay,
                     showOnly: isSameDay ? null : true,
                     enabled: isSameDay,
+                    sortByTimeDESC: !isSameDay,
                   ),
                   getGroupedData: personsByClassRef,
                   type: DayListType.Meeting);
@@ -65,6 +66,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                     grouped: !isSameDay,
                     showOnly: isSameDay ? null : true,
                     enabled: isSameDay,
+                    sortByTimeDESC: !isSameDay,
                   ),
                   getGroupedData: usersByClassRef,
                   type: DayListType.Meeting);
@@ -183,88 +185,166 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                   child: Icon(Icons.library_add_check_outlined),
                 ),
                 onPressed: () {
-                  var dayOptions = (widget.record is! ServantsHistoryDay
-                          ? context.read<CheckListOptions<Person>>()
-                          : context.read<CheckListOptions<User>>())
-                      .dayOptions;
                   showDialog(
                     context: context,
-                    builder: (context2) => SimpleDialog(
-                      children: [
-                        Row(
-                          children: [
-                            Checkbox(
-                              value: dayOptions.grouped.value,
-                              onChanged: (value) {
-                                dayOptions.grouped.add(value);
-                                navigator.currentState.pop();
-                              },
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                dayOptions.grouped
-                                    .add(!dayOptions.grouped.value);
-                                navigator.currentState.pop();
-                              },
-                              child: Text('تقسيم حسب الفصول'),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Checkbox(
-                              value: dayOptions.showSubtitlesInGroups.value,
-                              onChanged: (value) {
-                                dayOptions.showSubtitlesInGroups.add(value);
-                                navigator.currentState.pop();
-                              },
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                dayOptions.showSubtitlesInGroups.add(
-                                    !dayOptions.showSubtitlesInGroups.value);
-                                navigator.currentState.pop();
-                              },
-                              child: Text('اظهار عدد المخدومين داخل كل فصل'),
-                            ),
-                          ],
-                        ),
-                        Text("ملحوظة: تعمل فقط مع 'تقسيم حسب الفصول'",
-                            style: Theme.of(context).textTheme.caption),
-                        Container(height: 5),
-                        ListTile(
-                          title: Text('إظهار:'),
-                          subtitle: Wrap(
-                            direction: Axis.vertical,
-                            children: [null, true, false]
-                                .map(
-                                  (i) => Row(
-                                    children: [
-                                      Radio<bool>(
-                                        value: i,
-                                        groupValue: dayOptions.showOnly.value,
-                                        onChanged: (v) {
-                                          dayOptions.showOnly.add(v);
-                                          navigator.currentState.pop();
-                                        },
-                                      ),
-                                      GestureDetector(
-                                        onTap: () {
-                                          dayOptions.showOnly.add(i);
-                                          navigator.currentState.pop();
-                                        },
-                                        child: Text(i == null
-                                            ? 'الكل'
-                                            : i == true
-                                                ? 'الحاضرين فقط'
-                                                : 'الغائبين فقط'),
-                                      )
-                                    ],
+                    builder: (context2) => AlertDialog(
+                      insetPadding: EdgeInsets.symmetric(vertical: 24.0),
+                      content:
+                          StatefulBuilder(builder: (innerContext, setState) {
+                        var dayOptions = (widget.record is! ServantsHistoryDay
+                                ? context.read<CheckListOptions<Person>>()
+                                : context.read<CheckListOptions<User>>())
+                            .dayOptions;
+                        return Container(
+                          width: 350,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Row(
+                                children: [
+                                  Checkbox(
+                                    value: dayOptions.grouped.value,
+                                    onChanged: (value) {
+                                      dayOptions.grouped.add(value);
+                                      setState(() {});
+                                    },
                                   ),
-                                )
-                                .toList(),
+                                  GestureDetector(
+                                    onTap: () {
+                                      dayOptions.grouped
+                                          .add(!dayOptions.grouped.value);
+                                      setState(() {});
+                                    },
+                                    child: Text('تقسيم حسب الفصول'),
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  Container(width: 10),
+                                  Checkbox(
+                                    value:
+                                        dayOptions.showSubtitlesInGroups.value,
+                                    onChanged: dayOptions.grouped.value
+                                        ? (value) {
+                                            dayOptions.showSubtitlesInGroups
+                                                .add(value);
+                                            setState(() {});
+                                          }
+                                        : null,
+                                  ),
+                                  GestureDetector(
+                                    onTap: dayOptions.grouped.value
+                                        ? () {
+                                            dayOptions.showSubtitlesInGroups
+                                                .add(!dayOptions
+                                                    .showSubtitlesInGroups
+                                                    .value);
+                                            setState(() {});
+                                          }
+                                        : null,
+                                    child:
+                                        Text('اظهار عدد المخدومين داخل كل فصل'),
+                                  ),
+                                ],
+                              ),
+                              Container(height: 5),
+                              ListTile(
+                                title: Text('ترتيب حسب:'),
+                                subtitle: Wrap(
+                                  direction: Axis.vertical,
+                                  children: [null, true, false]
+                                      .map(
+                                        (i) => Row(
+                                          children: [
+                                            Radio<bool>(
+                                              value: i,
+                                              groupValue: dayOptions
+                                                  .sortByTimeASC.value,
+                                              onChanged: (v) {
+                                                dayOptions.sortByTimeASC.add(v);
+                                                setState(() {});
+                                              },
+                                            ),
+                                            GestureDetector(
+                                              onTap: () {
+                                                dayOptions.sortByTimeASC.add(i);
+                                                setState(() {});
+                                              },
+                                              child: Text(i == null
+                                                  ? 'الاسم'
+                                                  : i == true
+                                                      ? 'وقت الحضور'
+                                                      : 'وقت الحضور (المتأخر أولا)'),
+                                            )
+                                          ],
+                                        ),
+                                      )
+                                      .toList(),
+                                ),
+                              ),
+                              Container(height: 5),
+                              ListTile(
+                                enabled: dayOptions.sortByTimeASC.value == null,
+                                title: Text('إظهار:'),
+                                subtitle: Wrap(
+                                  direction: Axis.vertical,
+                                  children: [null, true, false]
+                                      .map(
+                                        (i) => Row(
+                                          children: [
+                                            Radio<bool>(
+                                              value: i,
+                                              groupValue: dayOptions
+                                                          .sortByTimeASC
+                                                          .value ==
+                                                      null
+                                                  ? dayOptions.showOnly.value
+                                                  : true,
+                                              onChanged: dayOptions
+                                                          .sortByTimeASC
+                                                          .value ==
+                                                      null
+                                                  ? (v) {
+                                                      dayOptions.showOnly
+                                                          .add(v);
+                                                      setState(() {});
+                                                    }
+                                                  : null,
+                                            ),
+                                            GestureDetector(
+                                              onTap: dayOptions.sortByTimeASC
+                                                          .value ==
+                                                      null
+                                                  ? () {
+                                                      dayOptions.showOnly
+                                                          .add(i);
+                                                      setState(() {});
+                                                    }
+                                                  : null,
+                                              child: Text(i == null
+                                                  ? 'الكل'
+                                                  : i == true
+                                                      ? 'الحاضرين فقط'
+                                                      : 'الغائبين فقط'),
+                                            )
+                                          ],
+                                        ),
+                                      )
+                                      .toList(),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
+                        );
+                      }),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            navigator.currentState.pop();
+                          },
+                          child: Text('إغلاق'),
+                        )
                       ],
                     ),
                   );
