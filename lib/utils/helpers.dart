@@ -46,33 +46,48 @@ import '../views/search_query.dart';
 import '../views/lists/users_list.dart';
 import '../utils/globals.dart';
 
-Future<void> changeTheme(
-    {int primary,
-    int accent,
-    Brightness brightness,
-    @required BuildContext context}) async {
-  primary = primary ?? Hive.box('Settings').get('PrimaryColorIndex');
+void changeTheme({Brightness brightness, @required BuildContext context}) {
   bool darkTheme = Hive.box('Settings').get('DarkTheme');
+  bool greatFeastTheme =
+      Hive.box('Settings').get('GreatFeastTheme', defaultValue: true);
+  MaterialColor color = Colors.amber;
+  Color accent = Colors.amberAccent;
+
+  final riseDay = getRiseDay();
+  if (greatFeastTheme &&
+      DateTime.now()
+          .isAfter(riseDay.subtract(Duration(days: 7, seconds: 20))) &&
+      DateTime.now().isBefore(riseDay.subtract(Duration(days: 1)))) {
+    color = black;
+    accent = blackAccent;
+    darkTheme = true;
+  } else if (greatFeastTheme &&
+      DateTime.now().isBefore(riseDay.add(Duration(days: 50, seconds: 20))) &&
+      DateTime.now().isAfter(riseDay.subtract(Duration(days: 1)))) {
+    darkTheme = false;
+  }
+
   brightness = brightness ??
       (darkTheme != null
           ? (darkTheme ? Brightness.dark : Brightness.light)
           : MediaQuery.of(context).platformBrightness);
-  context.read<ThemeNotifier>().setTheme(ThemeData(
-        floatingActionButtonTheme: FloatingActionButtonThemeData(
-            backgroundColor: Theme.of(context).primaryColor),
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        outlinedButtonTheme: OutlinedButtonThemeData(
-            style: OutlinedButton.styleFrom(primary: primaries[primary ?? 13])),
-        textButtonTheme: TextButtonThemeData(
-            style: TextButton.styleFrom(primary: primaries[primary ?? 13])),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(primary: primaries[primary ?? 13])),
-        brightness: darkTheme != null
-            ? (darkTheme ? Brightness.dark : Brightness.light)
-            : WidgetsBinding.instance.window.platformBrightness,
-        accentColor: accents[accent ?? 13],
-        primaryColor: primaries[primary ?? 13],
-      ));
+  context.read<ThemeNotifier>().theme = ThemeData(
+    colorScheme: ColorScheme.fromSwatch(
+      primarySwatch: color,
+      brightness: darkTheme != null
+          ? (darkTheme ? Brightness.dark : Brightness.light)
+          : WidgetsBinding.instance.window.platformBrightness,
+      accentColor: accent,
+    ),
+    floatingActionButtonTheme:
+        FloatingActionButtonThemeData(backgroundColor: color),
+    visualDensity: VisualDensity.adaptivePlatformDensity,
+    brightness: darkTheme != null
+        ? (darkTheme ? Brightness.dark : Brightness.light)
+        : WidgetsBinding.instance.window.platformBrightness,
+    accentColor: accent,
+    primaryColor: color,
+  );
 }
 
 Stream<Map<StudyYear, List<Class>>> classesByStudyYearRef() {
@@ -253,6 +268,17 @@ void historyTap(HistoryDay history, BuildContext context) async {
   } else {
     await navigator.currentState.pushNamed('ServantsDay', arguments: history);
   }
+}
+
+DateTime getRiseDay([int year]) {
+  year ??= DateTime.now().year;
+  int a = year % 4;
+  int b = year % 7;
+  int c = year % 19;
+  int d = (19 * c + 15) % 30;
+  int e = (2 * a + 4 * b - d + 34) % 7;
+
+  return DateTime(year, (d + e + 114) ~/ 31, ((d + e + 114) % 31) + 14);
 }
 
 void import(BuildContext context) async {

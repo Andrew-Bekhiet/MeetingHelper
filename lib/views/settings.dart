@@ -11,7 +11,6 @@ import '../models/notification_setting.dart';
 import '../models/user.dart';
 import '../utils/helpers.dart';
 import '../utils/globals.dart';
-import 'mini_lists/colors_list.dart';
 
 enum DateType {
   month,
@@ -26,8 +25,8 @@ class Settings extends StatefulWidget {
 }
 
 class SettingsState extends State<Settings> {
-  Color color;
   bool darkTheme;
+  bool greatFeastTheme;
 
   bool state;
 
@@ -77,29 +76,6 @@ class SettingsState extends State<Settings> {
                         expanded: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: <Widget>[
-                            ElevatedButton.icon(
-                              onPressed: () => showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  content: Container(
-                                    width: 280,
-                                    child: ColorsList(
-                                      selectedColor: color,
-                                      colors: primaries,
-                                      onSelect: (color) {
-                                        navigator.currentState.pop();
-                                        setState(() {
-                                          this.color = color;
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              style: ElevatedButton.styleFrom(primary: color),
-                              icon: Icon(Icons.color_lens),
-                              label: Text('اللون'),
-                            ),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: <Widget>[
@@ -123,16 +99,23 @@ class SettingsState extends State<Settings> {
                                 ),
                               ],
                             ),
-                            ElevatedButton(
+                            SwitchListTile(
+                              value: greatFeastTheme,
+                              onChanged: (v) =>
+                                  setState(() => greatFeastTheme = v),
+                              title: Text(
+                                  'تغيير لون البرنامج حسب أسبوع الآلام وفترة الخمسين'),
+                            ),
+                            ElevatedButton.icon(
                               onPressed: () async {
                                 await Hive.box('Settings')
                                     .put('DarkTheme', darkTheme);
-                                await Hive.box('Settings').put(
-                                    'PrimaryColorIndex',
-                                    primaries.indexOf(color));
-                                await changeTheme(context: context);
+                                await Hive.box('Settings')
+                                    .put('GreatFeastTheme', greatFeastTheme);
+                                changeTheme(context: context);
                               },
-                              child: Text('تغيير'),
+                              icon: Icon(Icons.done),
+                              label: Text('تغيير'),
                             ),
                           ],
                         ),
@@ -359,8 +342,9 @@ class SettingsState extends State<Settings> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    color = Theme.of(context).primaryColor;
     darkTheme = Hive.box('Settings').get('DarkTheme');
+    greatFeastTheme =
+        Hive.box('Settings').get('GreatFeastTheme', defaultValue: true);
     state = Hive.box('Settings').get('ShowPersonState', defaultValue: false);
   }
 
