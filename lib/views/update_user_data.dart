@@ -112,8 +112,8 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
       await FirebaseFunctions.instance
           .httpsCallable('updateUserSpiritData')
           .call({
-        'lastConfession': user.lastConfession,
-        'lastTanawol': user.lastTanawol
+        'lastConfession': user.lastConfession.millisecondsSinceEpoch,
+        'lastTanawol': user.lastTanawol.millisecondsSinceEpoch
       });
       navigator.currentState.pop();
     } catch (err, stkTrace) {
