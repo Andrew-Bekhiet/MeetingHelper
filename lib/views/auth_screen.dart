@@ -33,6 +33,20 @@ class _AuthScreenState extends State<AuthScreen> {
   bool obscurePassword = true;
   bool ignoreBiometrics = false;
 
+  String _getAssetImage() {
+    final riseDay = getRiseDay();
+    if (DateTime.now()
+            .isAfter(riseDay.subtract(Duration(days: 7, seconds: 20))) &&
+        DateTime.now().isBefore(riseDay.subtract(Duration(days: 1)))) {
+      return 'assets/holyweek.jpeg';
+    } else if (DateTime.now()
+            .isBefore(riseDay.add(Duration(days: 50, seconds: 20))) &&
+        DateTime.now().isAfter(riseDay.subtract(Duration(days: 1)))) {
+      return 'assets/risen.jpg';
+    }
+    return 'assets/Logo.png';
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<bool>(
@@ -50,7 +64,7 @@ class _AuthScreenState extends State<AuthScreen> {
           body: ListView(
             padding: const EdgeInsets.all(8.0),
             children: <Widget>[
-              Image.asset('assets/Logo.png', fit: BoxFit.scaleDown),
+              Image.asset(_getAssetImage(), fit: BoxFit.scaleDown),
               Divider(),
               TextFormField(
                 decoration: InputDecoration(
