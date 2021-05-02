@@ -32,14 +32,14 @@ class _UsersListState extends State<UsersList> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<User?>>(
+    return StreamBuilder<List<User>>(
       stream: _listOptions.objectsData,
       builder: (context, options) {
         if (options.hasError) return Center(child: ErrorWidget(options.error!));
         if (!options.hasData)
           return const Center(child: CircularProgressIndicator());
 
-        final List<User?> _data = options.data!;
+        final List<User> _data = options.data!;
         if (_data.isEmpty) return const Center(child: Text('لا يوجد مستخدمين'));
 
         return StreamBuilder<Map<DocumentReference, Tuple2<Class, List<User>>>>(
@@ -87,17 +87,17 @@ class _UsersListState extends State<UsersList> {
                     .elementAt(i.index);
                 return Padding(
                   padding: const EdgeInsets.fromLTRB(3, 0, 9, 0),
-                  child: _listOptions.itemBuilder(
+                  child: _listOptions.buildItem(
                     current,
-                    _listOptions.onLongPress ??
+                    onLongPress: _listOptions.onLongPress ??
                         (u) {
                           _listOptions.selectionMode
-                              .add(!_listOptions.selectionModeLatest);
-                          if (_listOptions.selectionModeLatest)
+                              .add(!_listOptions.selectionMode.requireValue);
+                          if (_listOptions.selectionMode.requireValue)
                             _listOptions.select(current);
                         },
-                    (User current) {
-                      if (!_listOptions.selectionModeLatest) {
+                    onTap: (User current) {
+                      if (!_listOptions.selectionMode.requireValue) {
                         _listOptions.tap == null
                             ? dataObjectTap(current, context)
                             : _listOptions.tap!(current);
@@ -105,7 +105,7 @@ class _UsersListState extends State<UsersList> {
                         _listOptions.toggleSelected(current);
                       }
                     },
-                    StreamBuilder<Map<String, User>?>(
+                    trailing: StreamBuilder<Map<String, User>?>(
                       stream: Rx.combineLatest2(
                           _listOptions.selected,
                           _listOptions.selectionMode,

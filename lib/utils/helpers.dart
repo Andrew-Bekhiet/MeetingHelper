@@ -86,12 +86,12 @@ void changeTheme({required BuildContext context}) {
   );
 }
 
-Stream<Map<StudyYear, List<Class>>> classesByStudyYearRef() {
+Stream<Map<StudyYear?, List<Class>>> classesByStudyYearRef() {
   return FirebaseFirestore.instance
       .collection('StudyYears')
       .orderBy('Grade')
       .snapshots()
-      .switchMap<Map<StudyYear, List<Class>>>(
+      .switchMap<Map<StudyYear?, List<Class>>>(
     (sys) {
       Map<DocumentReference, StudyYear> studyYears = {
         for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
@@ -113,17 +113,17 @@ Stream<Map<StudyYear, List<Class>>> classesByStudyYearRef() {
                         .snapshots())
                 .map(
               (cs) {
-                final classes = cs.docs.map((c) => Class.fromDoc(c)).toList();
-                mergeSort<Class?>(classes, compare: (c, c2) {
-                  if (c!.studyYear == c2!.studyYear)
+                final classes =
+                    cs.docs.map((c) => Class.fromQueryDoc(c)).toList();
+                mergeSort<Class>(classes, compare: (c, c2) {
+                  if (c.studyYear == c2.studyYear)
                     return c.gender.compareTo(c2.gender);
-                  return studyYears[c.studyYear!]!
+                  return studyYears[c.studyYear]!
                       .grade!
-                      .compareTo(studyYears[c2.studyYear!]!.grade!);
+                      .compareTo(studyYears[c2.studyYear]!.grade!);
                 });
-                return groupBy<Class?, StudyYear?>(
-                        classes, (c) => studyYears[c!.studyYear!])
-                    as Map<StudyYear, List<Class>>;
+                return groupBy<Class, StudyYear?>(
+                    classes, (c) => studyYears[c.studyYear]);
               },
             )),
       );
@@ -149,17 +149,16 @@ Stream<Map<StudyYear, List<Class>>> classesByStudyYearRefForUser(String? uid) {
           .snapshots()
           .map(
         (cs) {
-          final classes = cs.docs.map((c) => Class.fromDoc(c)).toList();
-          mergeSort<Class?>(classes, compare: (c, c2) {
-            if (c!.studyYear == c2!.studyYear)
+          final classes = cs.docs.map((c) => Class.fromQueryDoc(c)).toList();
+          mergeSort<Class>(classes, compare: (c, c2) {
+            if (c.studyYear == c2.studyYear)
               return c.gender.compareTo(c2.gender);
-            return studyYears[c.studyYear!]!
+            return studyYears[c.studyYear]!
                 .grade!
-                .compareTo(studyYears[c2.studyYear!]!.grade!);
+                .compareTo(studyYears[c2.studyYear]!.grade!);
           });
-          return groupBy<Class?, StudyYear?>(
-                  classes, (c) => studyYears[c!.studyYear!])
-              as Map<StudyYear, List<Class>>;
+          return groupBy<Class, StudyYear>(
+              classes, (c) => studyYears[c.studyYear]!);
         },
       );
     },
@@ -354,15 +353,14 @@ void onForegroundMessage(RemoteMessage message, [BuildContext? context]) async {
   );
 }
 
-Future? onNotificationClicked(String? payload) {
+Future<void> onNotificationClicked(String? payload) async {
   if (WidgetsBinding.instance!.renderViewElement != null) {
-    processClickedNotification(mainScfld.currentContext, payload);
+    await processClickedNotification(mainScfld.currentContext, payload);
   }
-  return null;
 }
 
 Stream<Map<DocumentReference, Tuple2<Class, List<User>>>> usersByClassRef(
-    List<User?> users) {
+    List<User> users) {
   return FirebaseFirestore.instance
       .collection('StudyYears')
       .orderBy('Grade')
@@ -398,9 +396,9 @@ Stream<Map<DocumentReference, Tuple2<Class, List<User>>>> usersByClassRef(
                 };
 
                 final rslt = {
-                  for (final e in groupBy<User?, Class>(
+                  for (final e in groupBy<User, Class>(
                       users,
-                      (user) => user!.classId == null
+                      (user) => user.classId == null
                           ? Class(
                               name: 'غير محدد',
                               gender: true,
@@ -416,7 +414,7 @@ Stream<Map<DocumentReference, Tuple2<Class, List<User>>>> usersByClassRef(
 
                 mergeSort<
                     MapEntry<DocumentReference?,
-                        Tuple2<Class, List<User?>>>>(rslt, compare: (c, c2) {
+                        Tuple2<Class, List<User>>>>(rslt, compare: (c, c2) {
                   if (c.value.item1.name == 'غير محدد' ||
                       c.value.item1.name == '{لا يمكن قراءة اسم الفصل}')
                     return 1;
@@ -433,10 +431,7 @@ Stream<Map<DocumentReference, Tuple2<Class, List<User>>>> usersByClassRef(
                       .compareTo(studyYears[c2.value.item1.studyYear!]!.grade!);
                 });
 
-                return {
-                  for (final e in rslt)
-                    e.key: e.value as Tuple2<Class, List<User>>
-                };
+                return {for (final e in rslt) e.key: e.value};
               },
             )),
       );
@@ -475,24 +470,22 @@ Stream<Map<DocumentReference, Tuple2<Class, List<Person>>>> personsByClassRef(
                 Map<DocumentReference?, List<Person>> personsByClassRef =
                     groupBy(persons, (p) => p.classId);
                 final classes = cs.docs
-                    .map((c) => Class.fromDoc(c))
-                    .where((c) => personsByClassRef[c!.ref] != null)
+                    .map((c) => Class.fromQueryDoc(c))
+                    .where((c) => personsByClassRef[c.ref] != null)
                     .toList();
-                mergeSort<Class?>(classes, compare: (c, c2) {
-                  if (c!.studyYear == c2!.studyYear)
+                mergeSort<Class>(classes, compare: (c, c2) {
+                  if (c.studyYear == c2.studyYear)
                     return c.gender.compareTo(c2.gender);
-                  return studyYears[c.studyYear!]!
+                  return studyYears[c.studyYear]!
                       .grade!
-                      .compareTo(studyYears[c2.studyYear!]!.grade!);
+                      .compareTo(studyYears[c2.studyYear]!.grade!);
                 });
                 return {
                   for (final c in classes)
-                    c!.ref!: Tuple2<Class?, List<Person>?>(
-                            c, personsByClassRef[c.ref])
-                        as Tuple2<Class, List<Person>>
+                    c.ref: Tuple2<Class, List<Person>>(
+                        c, personsByClassRef[c.ref]!)
                 };
-              } as Map<DocumentReference, Tuple2<Class, List<Person>>> Function(
-                  QuerySnapshot),
+              },
             )),
       );
     } else {
@@ -518,24 +511,22 @@ Stream<Map<DocumentReference, Tuple2<Class, List<Person>>>> personsByClassRef(
                     Map<DocumentReference?, List<Person>> personsByClassRef =
                         groupBy(persons, (p) => p.classId);
                     final classes = cs.docs
-                        .map((c) => Class.fromDoc(c))
-                        .where((c) => personsByClassRef[c!.ref] != null)
+                        .map((c) => Class.fromQueryDoc(c))
+                        .where((c) => personsByClassRef[c.ref] != null)
                         .toList();
-                    mergeSort<Class?>(classes, compare: (c, c2) {
-                      if (c!.studyYear == c2!.studyYear)
+                    mergeSort<Class>(classes, compare: (c, c2) {
+                      if (c.studyYear == c2.studyYear)
                         return c.gender.compareTo(c2.gender);
-                      return studyYears[c.studyYear!]!
+                      return studyYears[c.studyYear]!
                           .grade!
-                          .compareTo(studyYears[c2.studyYear!]!.grade!);
+                          .compareTo(studyYears[c2.studyYear]!.grade!);
                     });
                     return {
                       for (final c in classes)
-                        c!.ref!: Tuple2<Class?, List<Person>?>(
-                                c, personsByClassRef[c.ref])
-                            as Tuple2<Class, List<Person>>
+                        c.ref: Tuple2<Class, List<Person>>(
+                            c, personsByClassRef[c.ref]!)
                     };
-                  } as Map<DocumentReference, Tuple2<Class, List<Person>>>
-                      Function(QuerySnapshot),
+                  },
                 )),
           );
         },
@@ -551,8 +542,8 @@ void personTap(Person? person, BuildContext context) {
 Future<void> processClickedNotification(BuildContext? context,
     [String? payload]) async {
   final notificationDetails =
-      await (FlutterLocalNotificationsPlugin().getNotificationAppLaunchDetails()
-          as FutureOr<NotificationAppLaunchDetails>);
+      await FlutterLocalNotificationsPlugin().getNotificationAppLaunchDetails();
+  if (notificationDetails == null) return;
 
   if (notificationDetails.didNotificationLaunchApp) {
     if ((notificationDetails.payload ?? payload) == 'Birthday') {
@@ -763,7 +754,7 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
                   navigator.currentState!.pop(context
                       .read<DataObjectListOptions<User>>()
                       .selectedLatest
-                      .values
+                      ?.values
                       .toList());
                 },
                 icon: Icon(Icons.done),

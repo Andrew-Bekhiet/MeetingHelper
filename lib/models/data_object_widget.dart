@@ -43,8 +43,7 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
       subtitle: showSubTitle
           ? subtitle ??
               FutureBuilder<String?>(
-                future: _memoizer
-                    .runOnce(() async => await current.getSecondLine()),
+                future: _memoizer.runOnce(current.getSecondLine),
                 builder: (cont, subT) {
                   if (subT.hasData) {
                     return Text(subT.data ?? '',
@@ -52,8 +51,7 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
                   } else {
                     return LinearProgressIndicator(
                       backgroundColor: current.color,
-                      valueColor: AlwaysStoppedAnimation(
-                          current.color ?? Theme.of(context).primaryColor),
+                      valueColor: AlwaysStoppedAnimation(current.color),
                     );
                   }
                 },
@@ -73,17 +71,16 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
   }
 
   Color? _getColor(BuildContext context) {
-    if (current.color == null || current.color == Colors.transparent)
-      return null;
-    if (current.color!.brightness > 170 &&
+    if (current.color == Colors.transparent) return null;
+    if (current.color.brightness > 170 &&
         Theme.of(context).brightness == Brightness.dark) {
       //refers to the contrasted text theme color
-      return current.color!
-          .darken(((265 - current.color!.brightness) / 255 * 100).toInt());
-    } else if (current.color!.brightness < 85 &&
+      return current.color
+          .darken(((265 - current.color.brightness) / 255 * 100).toInt());
+    } else if (current.color.brightness < 85 &&
         Theme.of(context).brightness == Brightness.light) {
-      return current.color!
-          .lighten(((265 - current.color!.brightness) / 255 * 100).toInt());
+      return current.color
+          .lighten(((265 - current.color.brightness) / 255 * 100).toInt());
     }
     return current.color;
   }

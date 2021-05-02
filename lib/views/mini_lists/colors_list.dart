@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 class ColorsList extends StatelessWidget {
-  final List<Color?>? colors;
+  final List<Color>? colors;
 
   final Color? selectedColor;
   final void Function(Color)? onSelect;
@@ -20,7 +20,7 @@ class ColorsList extends StatelessWidget {
       return BlockPicker(
         pickerColor: selectedColor!,
         onColorChanged: onSelect!,
-        availableColors: colors as List<Color>,
+        availableColors: colors!,
       );
   }
 }

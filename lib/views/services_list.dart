@@ -28,7 +28,7 @@ class _ServicesListState extends State<ServicesList>
   Widget build(BuildContext context) {
     super.build(context);
 
-    return StreamBuilder<Map<StudyYear, List<Class>>?>(
+    return StreamBuilder<Map<StudyYear?, List<Class>>?>(
       stream: widget.options!.objectsData,
       builder: (context, services) {
         if (services.hasError) return ErrorWidget(services.error!);
@@ -110,7 +110,7 @@ class _ServicesListState extends State<ServicesList>
                           _controllers[hashValues(index.index, index.section)]!
                               .toggle(),
                       leading: Icon(Icons.miscellaneous_services),
-                      title: Text(element.name!),
+                      title: Text(element?.name ?? ''),
                       trailing: StreamBuilder<Map<String?, Class?>?>(
                         stream: widget.options!.selected,
                         builder: (context, snapshot) {

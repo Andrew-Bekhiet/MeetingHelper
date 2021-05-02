@@ -123,8 +123,8 @@ class _EditClassState extends State<EditClass> {
               ],
               backgroundColor: class$.color != Colors.transparent
                   ? (Theme.of(context).brightness == Brightness.light
-                      ? TinyColor(class$.color!).lighten().color
-                      : TinyColor(class$.color!).darken().color)
+                      ? TinyColor(class$.color).lighten().color
+                      : TinyColor(class$.color).darken().color)
                   : null,
               //title: Text(widget.me.name),
               expandedHeight: 250.0,
@@ -265,12 +265,14 @@ class _EditClassState extends State<EditClass> {
                         )),
                   ),
                   ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        primary:
-                            Theme.of(context).brightness == Brightness.light
-                                ? TinyColor(class$.color!).lighten().color
-                                : TinyColor(class$.color!).darken().color,
-                      ),
+                      style: class$.color != Colors.transparent
+                          ? ElevatedButton.styleFrom(
+                              primary: Theme.of(context).brightness ==
+                                      Brightness.light
+                                  ? TinyColor(class$.color).lighten().color
+                                  : TinyColor(class$.color).darken().color,
+                            )
+                          : null,
                       onPressed: selectColor,
                       icon: Icon(Icons.color_lens),
                       label: Text('اللون')),
@@ -280,12 +282,14 @@ class _EditClassState extends State<EditClass> {
                     builder: (c, permission, data) {
                       if (permission) {
                         return ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            primary:
-                                Theme.of(context).brightness == Brightness.light
-                                    ? TinyColor(class$.color!).lighten().color
-                                    : TinyColor(class$.color!).darken().color,
-                          ),
+                          style: class$.color != Colors.transparent
+                              ? ElevatedButton.styleFrom(
+                                  primary: Theme.of(context).brightness ==
+                                          Brightness.light
+                                      ? TinyColor(class$.color).lighten().color
+                                      : TinyColor(class$.color).darken().color,
+                                )
+                              : null,
                           icon: Icon(Icons.visibility),
                           onPressed: showUsers,
                           label: Text(
@@ -512,7 +516,7 @@ class _EditClassState extends State<EditClass> {
                       IconButton(
                         onPressed: () {
                           navigator.currentState!
-                              .pop(options.selectedLatest.keys.toList());
+                              .pop(options.selectedLatest?.keys.toList());
                         },
                         icon: Icon(Icons.done),
                         tooltip: 'تم',

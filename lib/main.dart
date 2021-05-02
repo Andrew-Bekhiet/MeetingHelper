@@ -149,8 +149,7 @@ Future _initConfigs() async {
 
   await FlutterLocalNotificationsPlugin().initialize(
       InitializationSettings(android: AndroidInitializationSettings('warning')),
-      onSelectNotification:
-          onNotificationClicked as Future<dynamic> Function(String?)?);
+      onSelectNotification: onNotificationClicked);
 }
 
 class App extends StatefulWidget {

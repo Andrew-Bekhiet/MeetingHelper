@@ -128,8 +128,8 @@ class _EditPersonState extends State<EditPerson> {
               ],
               backgroundColor: person.color != Colors.transparent
                   ? (Theme.of(context).brightness == Brightness.light
-                      ? TinyColor(person.color!).lighten().color
-                      : TinyColor(person.color!).darken().color)
+                      ? TinyColor(person.color).lighten().color
+                      : TinyColor(person.color).darken().color)
                   : null,
               //title: Text(widget.me.name),
               expandedHeight: 250.0,
@@ -861,11 +861,14 @@ class _EditPersonState extends State<EditPerson> {
                     ),
                   ),
                   ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      primary: Theme.of(context).brightness == Brightness.light
-                          ? TinyColor(person.color!).lighten().color
-                          : TinyColor(person.color!).darken().color,
-                    ),
+                    style: person.color != Colors.transparent
+                        ? ElevatedButton.styleFrom(
+                            primary:
+                                Theme.of(context).brightness == Brightness.light
+                                    ? TinyColor(person.color).lighten().color
+                                    : TinyColor(person.color).darken().color,
+                          )
+                        : null,
                     onPressed: selectColor,
                     icon: Icon(Icons.color_lens),
                     label: Text('اللون'),

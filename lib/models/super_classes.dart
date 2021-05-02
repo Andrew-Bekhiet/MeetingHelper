@@ -9,13 +9,15 @@ import 'package:hive/hive.dart';
 abstract class DataObject {
   DocumentReference ref;
   String name;
-  Color? color;
+  Color color;
 
-  DataObject(this.ref, this.name, this.color);
+  DataObject(this.ref, this.name, Color? color)
+      : color = color ?? Colors.transparent;
 
   DataObject.createFromData(Map<dynamic, dynamic> data, this.ref)
       : name = data['Name'] ?? '',
-        color = data['Color'] != null ? Color(data['Color']) : null;
+        color =
+            data['Color'] != null ? Color(data['Color']) : Colors.transparent;
 
   @override
   int get hashCode => hashList([id, _fullyHash(getMap().values.toList())]);

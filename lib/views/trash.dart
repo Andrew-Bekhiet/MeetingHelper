@@ -114,24 +114,23 @@ class _TrashDayScreenState extends State<TrashDayScreen>
               Class.getAllForUser(),
               (a, b) => Tuple2<User, List<Class>>(a, b)).switchMap((u) {
         if (u.item1.superAccess) {
-          return widget.day.ref.collection('Persons').snapshots().map(
-              ((p) => p.docs.map(Person.fromDoc).toList() as List<Person>));
+          return widget.day.ref
+              .collection('Persons')
+              .snapshots()
+              .map((p) => p.docs.map(Person.fromQueryDoc).toList());
         } else if (u.item2.length <= 10) {
           return widget.day.ref
               .collection('Persons')
               .where('ClassId', whereIn: u.item2.map((e) => e.ref).toList())
               .snapshots()
-              .map(
-                  ((p) => p.docs.map(Person.fromDoc).toList() as List<Person>));
+              .map((p) => p.docs.map(Person.fromQueryDoc).toList());
         }
         return Rx.combineLatestList<QuerySnapshot>(u.item2.split(10).map((c) =>
             widget.day.ref
                 .collection('Persons')
                 .where('ClassId', whereIn: c.map((e) => e.ref).toList())
-                .snapshots())).map(((s) => s
-            .expand((n) => n.docs)
-            .map(Person.fromDoc)
-            .toList() as List<Person>));
+                .snapshots())).map(
+            (s) => s.expand((n) => n.docs).map(Person.fromQueryDoc).toList());
       }),
     );
     return Scaffold(

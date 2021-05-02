@@ -100,7 +100,7 @@ class PhoneNumberProperty extends StatelessWidget {
                 IconButton(
                   icon: Icon(Icons.message),
                   tooltip: 'ارسال رسالة',
-                  onPressed: () => launch('sms://' + getPhone(value!, false)),
+                  onPressed: () => launch('sms:' + getPhone(value!, false)),
                 ),
                 IconButton(
                   icon: Icon(Icons.copy),

@@ -74,8 +74,8 @@ class _PersonInfoState extends State<PersonInfo> {
                   SliverAppBar(
                     backgroundColor: person.color != Colors.transparent
                         ? (Theme.of(context).brightness == Brightness.light
-                            ? TinyColor(person.color!).lighten().color
-                            : TinyColor(person.color!).darken().color)
+                            ? TinyColor(person.color).lighten().color
+                            : TinyColor(person.color).darken().color)
                         : null,
                     actions: person.ref.path.startsWith('Deleted')
                         ? <Widget>[

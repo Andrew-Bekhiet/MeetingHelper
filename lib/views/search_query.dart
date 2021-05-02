@@ -1008,7 +1008,8 @@ class _SearchQueryState extends State<SearchQuery> {
                     .where(childItems[parentIndex!][childIndex].value.value,
                         isEqualTo: queryValue,
                         isNull: queryValue == null ? true : null)
-                    .snapshots() as Stream<List<Person>>?
+                    .snapshots()
+                    .map((s) => s.docs.map(Person.fromQueryDoc).toList())
                 : Class.getAllForUser()
                     .switchMap((cs) => Rx.combineLatestList(cs.split(10).map(
                         (c) => persons

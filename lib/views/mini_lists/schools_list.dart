@@ -18,10 +18,9 @@ class InnerListState extends State<_InnerSchoolsList> {
           }),
       Expanded(
         child: RefreshIndicator(
-          onRefresh: () {
+          onRefresh: () async {
             setState(() {});
-            return null;
-          } as Future<void> Function(),
+          },
           child: StreamBuilder<QuerySnapshot>(
             stream: widget.data,
             builder: (context, schools) {

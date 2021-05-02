@@ -397,7 +397,7 @@ class _EditUserState extends State<EditUser> {
                           navigator.currentState!.pop(context
                               .read<DataObjectListOptions<User>>()
                               .selectedLatest
-                              .values
+                              ?.values
                               .toList());
                         },
                         child: Text('تم'),

@@ -391,7 +391,7 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
   User._createFromData(Map<String, dynamic> data, DocumentReference ref)
       : super.createFromData(data, ref) {
     _uid = data['UID'];
-    email = data['Email'];
+    email = data['Email'] ?? '';
 
     final permissions = data['Permissions'] ?? {};
     allowedUsers = data['AllowedUsers']?.cast<String>() ?? [];

@@ -170,7 +170,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
           ..removeWhere((k, v) => v.toString().isEmpty),
         'Address': address,
         'HasPhoto': hasPhoto,
-        'Color': color?.value,
+        'Color': color.value,
         'BirthDate': birthDate,
         'BirthDay': birthDay,
         'LastTanawol': lastTanawol,

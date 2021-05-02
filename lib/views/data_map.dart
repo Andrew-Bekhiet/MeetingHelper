@@ -1,9 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:provider/provider.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../models/models.dart';
 import '../utils/helpers.dart';
@@ -26,14 +28,22 @@ class MegaMap extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<SelectedClasses>(
       builder: (context, selected, _) {
-        return FutureBuilder<List<List<Person?>>>(
-          future: Future.wait(
-              selected.selected!.map((e) => e.getChildren()).toList()),
+        return FutureBuilder<List<Person>>(
+          future: Rx.combineLatestList<QuerySnapshot>(selected.selected!
+                  .split(10)
+                  .map((c) => FirebaseFirestore.instance
+                      .collection('Persons')
+                      .where('ClassId', whereIn: c.map((e) => e.ref).toList())
+                      .get()
+                      .asStream()))
+              .map((s) =>
+                  s.expand((n) => n.docs).map(Person.fromQueryDoc).toList())
+              .first,
           builder: (context, data) {
             if (data.connectionState != ConnectionState.done) {
               return Center(child: CircularProgressIndicator());
             }
-            var persons = data.data!.expand((e) => e).toList();
+            var persons = data.data!;
 
             return StatefulBuilder(
               builder: (context, setState) => GoogleMap(
@@ -42,7 +52,7 @@ class MegaMap extends StatelessWidget {
                 myLocationEnabled: true,
                 myLocationButtonEnabled: true,
                 markers: persons
-                    .where((f) => f!.location != null)
+                    .where((f) => f.location != null)
                     .map(
                       (f) => Marker(
                           onTap: () {
@@ -50,7 +60,7 @@ class MegaMap extends StatelessWidget {
                                 .hideCurrentSnackBar();
                             scaffoldMessenger.currentState!.showSnackBar(
                               SnackBar(
-                                content: Text(f!.name),
+                                content: Text(f.name),
                                 backgroundColor: f.color == Colors.transparent
                                     ? null
                                     : f.color,
@@ -61,7 +71,7 @@ class MegaMap extends StatelessWidget {
                               ),
                             );
                           },
-                          markerId: MarkerId(f!.id),
+                          markerId: MarkerId(f.id),
                           infoWindow: InfoWindow(title: f.name),
                           position: fromGeoPoint(f.location!)),
                     )

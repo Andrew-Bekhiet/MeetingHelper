@@ -165,7 +165,7 @@ class HistoryRecord {
             : (doc.reference.parent.id == 'Kodas'
                 ? DayListType.Kodas
                 : DayListType.Tanawol),
-        isServant = doc.data()!['IsServant'],
+        isServant = doc.data()!['IsServant'] ?? false,
         time = doc.data()!['Time'],
         recordedBy = doc.data()!['RecordedBy'],
         notes = doc.data()!['Notes'];
@@ -182,7 +182,7 @@ class HistoryRecord {
   Timestamp time;
   String recordedBy;
   String? notes;
-  DocumentReference classId;
+  DocumentReference? classId;
   bool isServant;
 
   DocumentReference? get ref => parent?.collections[type]?.doc(id);

@@ -97,17 +97,17 @@ class AttendanceChart extends StatelessWidget {
                   PieChart<Class>(
                     total: classes.length,
                     pointColorMapper: (_class, _) =>
-                        usedColorsMap[_class.item2.id] ??= _class.item2.color ==
-                                    null ||
-                                _class.item2.color == Colors.transparent
-                            ? rnd.randomColor(
-                                colorBrightness: Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? ColorBrightness.dark
-                                    : ColorBrightness.light,
-                              )
-                            : _class.item2.color!,
-                    pieData: groupBy<HistoryRecord, DocumentReference>(
+                        usedColorsMap[_class.item2.id] ??=
+                            _class.item2.color == Colors.transparent
+                                ? rnd.randomColor(
+                                    colorBrightness:
+                                        Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? ColorBrightness.dark
+                                            : ColorBrightness.light,
+                                  )
+                                : _class.item2.color,
+                    pieData: groupBy<HistoryRecord, DocumentReference?>(
                             history.data!, (r) => r.classId)
                         .entries
                         .map(
@@ -282,8 +282,7 @@ class ClassesAttendanceIndicator extends StatelessWidget {
                         total: classes.length,
                         pointColorMapper: (_class, _) =>
                             usedColorsMap[_class.item2.id] ??=
-                                _class.item2.color == null ||
-                                        _class.item2.color == Colors.transparent
+                                _class.item2.color == Colors.transparent
                                     ? rnd.randomColor(
                                         colorBrightness:
                                             Theme.of(context).brightness ==
@@ -291,7 +290,7 @@ class ClassesAttendanceIndicator extends StatelessWidget {
                                                 ? ColorBrightness.dark
                                                 : ColorBrightness.light,
                                       )
-                                    : _class.item2.color!,
+                                    : _class.item2.color,
                         pieData: groupBy<Person, DocumentReference>(
                                 snapshot.data!, (p) => p.classId!)
                             .entries
@@ -420,7 +419,7 @@ class HistoryAnalysisWidget extends StatelessWidget {
 
   final rnd = RandomColor();
   final Map<Tuple2<int, String?>, Color> usedColorsMap =
-      <Tuple2<int, String>, Color>{};
+      <Tuple2<int, String?>, Color>{};
 
   @override
   Widget build(BuildContext context) {
@@ -461,24 +460,23 @@ class HistoryAnalysisWidget extends StatelessWidget {
             ListTile(
               title: Text('تحليل ' + title + ' لكل فصل'),
             ),
-            PieChart(
+            PieChart<String?>(
               total: data.length,
               pieData: list
                   .map((e) => Tuple2<int, String?>(
                       e.value.length, classesByRef[e.key]?.name))
                   .toList(),
-              pointColorMapper: (entry, __) =>
-                  usedColorsMap[entry as Tuple2<int, String?>] ??=
-                      (classesByRef[entry.item2!]?.color == null ||
-                              classesByRef[entry.item2!]?.color ==
-                                  Colors.transparent
-                          ? rnd.randomColor(
-                              colorBrightness: Theme.of(context).brightness ==
-                                      Brightness.dark
+              pointColorMapper: (entry, __) => usedColorsMap[entry] ??=
+                  (classesByRef[entry.item2!]?.color == null ||
+                          classesByRef[entry.item2!]?.color ==
+                              Colors.transparent
+                      ? rnd.randomColor(
+                          colorBrightness:
+                              Theme.of(context).brightness == Brightness.dark
                                   ? ColorBrightness.dark
                                   : ColorBrightness.light,
-                            )
-                          : classesByRef[entry.item2!]?.color!)!,
+                        )
+                      : classesByRef[entry.item2!]?.color)!,
             ),
             if (showUsers)
               ListTile(
@@ -496,10 +494,9 @@ class HistoryAnalysisWidget extends StatelessWidget {
                       groupBy<MinimalHistoryRecord, String?>(data, (s) => s.by)
                           .entries
                           .toList();
-                  return PieChart(
+                  return PieChart<String?>(
                     pointColorMapper: (entry, __) =>
-                        usedColorsMap[entry as Tuple2<int, String?>] ??=
-                            rnd.randomColor(
+                        usedColorsMap[entry] ??= rnd.randomColor(
                       colorBrightness:
                           Theme.of(context).brightness == Brightness.dark
                               ? ColorBrightness.dark
@@ -645,7 +642,7 @@ class PieChart<T> extends StatelessWidget {
     required this.pieData,
     this.nameGetter,
     this.pointColorMapper,
-  })  : assert(nameGetter != null || T == String),
+  })  : assert(nameGetter != null || T == String || null is T),
         super(key: key);
 
   final Color Function(Tuple2<int, T>, int)? pointColorMapper;

@@ -5,6 +5,7 @@ import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/helpers.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tuple/tuple.dart';
 
@@ -13,11 +14,11 @@ import 'mini_models.dart';
 abstract class BaseListOptions<L, U> {
   final BehaviorSubject<L> _objectsData;
   BehaviorSubject<L> get objectsData => _objectsData;
-  L get items => _objectsData.requireValue;
+  L? get items => _objectsData.value;
 
   final BehaviorSubject<bool> _selectionMode;
   BehaviorSubject<bool> get selectionMode => _selectionMode;
-  bool get selectionModeLatest => _selectionMode.requireValue;
+  bool? get selectionModeLatest => _selectionMode.value;
 
   final BehaviorSubject<Map<String, U>?> _selected;
   BehaviorSubject<Map<String, U>?> get selected => _selected;
@@ -66,7 +67,7 @@ class DataObjectListOptions<T extends DataObject>
   @override
   BehaviorSubject<List<T>> get objectsData => _objectsData;
   @override
-  List<T> get items => objectsData.requireValue;
+  List<T>? get items => objectsData.value;
 
   final BehaviorSubject<Map<String, T>> originalObjectsData;
 
@@ -75,14 +76,14 @@ class DataObjectListOptions<T extends DataObject>
   @override
   BehaviorSubject<bool> get selectionMode => _selectionMode;
   @override
-  bool get selectionModeLatest => _selectionMode.requireValue;
+  bool? get selectionModeLatest => _selectionMode.value;
 
   @override
   final BehaviorSubject<Map<String, T>> _selected;
   @override
   BehaviorSubject<Map<String, T>> get selected => _selected;
   @override
-  Map<String, T> get selectedLatest => _selected.requireValue;
+  Map<String, T>? get selectedLatest => _selected.value;
 
   final BehaviorSubject<String> _searchQuery;
   BehaviorSubject<String> get searchQuery => _searchQuery;
@@ -99,18 +100,18 @@ class DataObjectListOptions<T extends DataObject>
   @override
   final bool showNull;
 
-  final Widget Function(T,
-      [void Function(T) onLongPress,
-      void Function(T) onTap,
-      Widget trailing,
-      Widget? subtitle]) itemBuilder;
+  final Widget Function(T, void Function(T)? onLongPress,
+      void Function(T)? onTap, Widget? trailing, Widget? subtitle) itemBuilder;
+
+  late final Widget Function(T,
+      {void Function(T)? onLongPress,
+      void Function(T)? onTap,
+      Widget? trailing,
+      Widget? subtitle}) buildItem;
 
   DataObjectListOptions({
-    Widget Function(T,
-            [void Function(T) onLongPress,
-            void Function(T) onTap,
-            Widget trailing,
-            Widget? subtitle])?
+    Widget Function(T, void Function(T)? onLongPress, void Function(T)? onTap,
+            Widget? trailing, Widget? subtitle)?
         itemBuilder,
     this.onLongPress,
     this.tap,
@@ -135,18 +136,18 @@ class DataObjectListOptions<T extends DataObject>
               ..addStream(itemsStream.map((l) => {for (final o in l) o.id: o})))
             : BehaviorSubject<Map<String, T>>.seeded(
                 {for (final o in items!) o.id: o}),
-        itemBuilder = itemBuilder ??
-            ((i,
-                    [void Function(T)? onLongPress,
-                    void Function(T)? onTap,
-                    Widget? trailing,
-                    Widget? subtitle]) =>
+        itemBuilder = (itemBuilder ??
+            (i, void Function(T)? onLongPress, void Function(T)? onTap,
+                    Widget? trailing, Widget? subtitle) =>
                 DataObjectWidget<T>(i,
                     subtitle: subtitle,
                     onLongPress:
                         onLongPress != null ? () => onLongPress(i) : null,
                     onTap: onTap != null ? () => onTap(i) : null,
                     trailing: trailing)) {
+    buildItem = (i, {onLongPress, onTap, trailing, subtitle}) {
+      return this.itemBuilder(i, onLongPress, onTap, trailing, subtitle);
+    };
     _objectsData = (showNull
         ? BehaviorSubject<List<T>>.seeded([empty!])
         : BehaviorSubject<List<T>>())
@@ -161,7 +162,7 @@ class DataObjectListOptions<T extends DataObject>
   @override
   void selectAll() {
     if (!_selectionMode.requireValue) _selectionMode.add(true);
-    _selected.add({for (var item in items) item.id: item});
+    _selected.add({for (var item in _objectsData.requireValue) item.id: item});
   }
 
   @override
@@ -202,7 +203,7 @@ class CheckListOptions<T extends Person> implements DataObjectListOptions<T> {
   @override
   BehaviorSubject<List<T>> get objectsData => _objectsData;
   @override
-  List<T> get items => objectsData.requireValue;
+  List<T>? get items => objectsData.value;
 
   @override
   final BehaviorSubject<Map<String, T>> originalObjectsData;
@@ -217,7 +218,7 @@ class CheckListOptions<T extends Person> implements DataObjectListOptions<T> {
   @override
   BehaviorSubject<Map<String, T>> get selected => _selected;
   @override
-  Map<String, T> get selectedLatest => _selected.requireValue;
+  Map<String, T>? get selectedLatest => _selected.value;
 
   @override
   final BehaviorSubject<String> _searchQuery;
@@ -239,22 +240,23 @@ class CheckListOptions<T extends Person> implements DataObjectListOptions<T> {
   bool get showNull => false;
 
   @override
-  final Widget Function(T,
-      [void Function(T) onLongPress,
-      void Function(T) onTap,
-      Widget trailing,
-      Widget? subtitle]) itemBuilder;
+  final Widget Function(T, void Function(T)? onLongPress,
+      void Function(T)? onTap, Widget? trailing, Widget? subtitle) itemBuilder;
+
+  @override
+  late final Widget Function(T,
+      {void Function(T)? onLongPress,
+      void Function(T)? onTap,
+      Widget? trailing,
+      Widget? subtitle}) buildItem;
 
   CheckListOptions({
     this.getGroupedData,
     required this.day,
     required this.type,
     required this.dayOptions,
-    Widget Function(T,
-            [void Function(T) onLongPress,
-            void Function(T) onTap,
-            Widget trailing,
-            Widget? subtitle])?
+    Widget Function(T, void Function(T)? onLongPress, void Function(T)? onTap,
+            Widget? trailing, Widget? subtitle)?
         itemBuilder,
     this.tap,
     this.onLongPress,
@@ -280,26 +282,26 @@ class CheckListOptions<T extends Person> implements DataObjectListOptions<T> {
                       itemsStream.map((l) => {for (final o in l) o.id: o})))
                 : BehaviorSubject<Map<String, T>>.seeded(
                     {for (final o in items!) o.id: o})),
-        itemBuilder = itemBuilder ??
-            ((i,
-                    [void Function(T)? onLongPress,
-                    void Function(T)? onTap,
-                    Widget? trailing,
-                    Widget? subtitle]) =>
+        itemBuilder = (itemBuilder ??
+            (i, void Function(T)? onLongPress, void Function(T)? onTap,
+                    Widget? trailing, Widget? subtitle) =>
                 DataObjectWidget<T>(i,
                     subtitle: subtitle,
                     onLongPress:
                         onLongPress != null ? () => onLongPress(i) : null,
                     onTap: onTap != null ? () => onTap(i) : null,
                     trailing: trailing)) {
+    buildItem = (i, {onLongPress, onTap, trailing, subtitle}) {
+      return this.itemBuilder(i, onLongPress, onTap, trailing, subtitle);
+    };
     attended = BehaviorSubject<Map<String, HistoryRecord>>()
       ..addStream(ref != null
           ? Rx.combineLatest2(User.instance.stream, Class.getAllForUser(),
                   (dynamic a, dynamic b) => Tuple2<User, List<Class>>(a, b))
               .switchMap((v) {
-              if (v.item1.superAccess! ||
-                  (day is ServantsHistoryDay && v.item1.secretary!)) {
-                return ref!.snapshots().map<Map<String?, HistoryRecord>>((s) {
+              if (v.item1.superAccess ||
+                  (day is ServantsHistoryDay && v.item1.secretary)) {
+                return ref!.snapshots().map<Map<String, HistoryRecord>>((s) {
                   Map<String, T> tempSelected = {};
                   Map<String, HistoryRecord> snapshotMap =
                       Map<String, HistoryRecord>.fromIterable(
@@ -359,8 +361,7 @@ class CheckListOptions<T extends Person> implements DataObjectListOptions<T> {
                 _selected.add(tempSelected);
                 return snapshotMap;
               });
-            } as Stream<Map<String, HistoryRecord>> Function(
-                  Tuple2<User, List<Class>>))
+            })
           : Stream.value({}));
 
     ///Listens to [dayOptions.showTrueonly] then the [_searchQuery]
@@ -481,11 +482,8 @@ class CheckListOptions<T extends Person> implements DataObjectListOptions<T> {
     HistoryDay? day,
     DayListType? type,
     HistoryDayOptions? dayOptions,
-    Widget Function(T?,
-            [void Function(T)? onLongPress,
-            void Function(T)? onTap,
-            Widget? trailing,
-            Widget? subtitle])?
+    Widget Function(T?, void Function(T)? onLongPress, void Function(T)? onTap,
+            Widget? trailing, Widget? subtitle)?
         itemBuilder,
     void Function(T?)? onLongPress,
     void Function(T?)? tap,
@@ -548,13 +546,13 @@ class HistoryDayOptions {
 }
 
 class ServicesListOptions
-    implements BaseListOptions<Map<StudyYear, List<Class>>, Class> {
+    implements BaseListOptions<Map<StudyYear?, List<Class>>, Class> {
   @override
-  late BehaviorSubject<Map<StudyYear, List<Class>>> _objectsData;
+  late BehaviorSubject<Map<StudyYear?, List<Class>>> _objectsData;
   @override
-  BehaviorSubject<Map<StudyYear, List<Class>>> get objectsData => _objectsData;
+  BehaviorSubject<Map<StudyYear?, List<Class>>> get objectsData => _objectsData;
   @override
-  Map<StudyYear, List<Class>> get items => _objectsData.requireValue;
+  Map<StudyYear?, List<Class>> get items => _objectsData.requireValue;
 
   final BehaviorSubject<String> _searchQuery;
   BehaviorSubject<String> get searchQuery => _searchQuery;
@@ -574,12 +572,12 @@ class ServicesListOptions
   @override
   Map<String, Class>? get selectedLatest => _selected.value;
 
-  final Map<StudyYear, List<Class>> Function(
-      Map<StudyYear, List<Class>>, String) _filter = (o, filter) {
+  final Map<StudyYear?, List<Class>> Function(
+      Map<StudyYear?, List<Class>>, String) _filter = (o, filter) {
     return {
       for (var it in o.entries.where(
         (e) =>
-            filterString(e.key.name!).contains(filterString(filter)) ||
+            filterString(e.key?.name ?? '').contains(filterString(filter)) ||
             e.value.any(
               (c) => filterString(c.name).contains(
                 filterString(filter),
@@ -605,7 +603,7 @@ class ServicesListOptions
     this.tap,
     List<Class>? selected,
     bool selectionMode = false,
-    Stream<Map<StudyYear, List<Class>>>? itemsStream,
+    Stream<Map<StudyYear?, List<Class>>>? itemsStream,
     Map<StudyYear, List<Class>>? items,
     required Stream<String> searchQuery,
   })  : assert(itemsStream != null || items != null),
@@ -614,13 +612,13 @@ class ServicesListOptions
         _selected = BehaviorSubject<Map<String, Class>>.seeded(
             {for (var item in selected ?? []) item.id: item}) {
     _objectsData = BehaviorSubject()
-      ..addStream(Rx.combineLatest2<String, Map<StudyYear, List<Class>>,
-              Map<StudyYear, List<Class>>>(
+      ..addStream(Rx.combineLatest2<String, Map<StudyYear?, List<Class>>,
+              Map<StudyYear?, List<Class>>>(
           _searchQuery,
           itemsStream != null
-              ? (BehaviorSubject<Map<StudyYear, List<Class>>>()
+              ? (BehaviorSubject<Map<StudyYear?, List<Class>>>()
                 ..addStream(itemsStream))
-              : BehaviorSubject<Map<StudyYear, List<Class>>>.seeded(items!),
+              : BehaviorSubject<Map<StudyYear?, List<Class>>>.seeded(items!),
           (search, items) =>
               search.isNotEmpty ? _filter(items, search) : items));
   }

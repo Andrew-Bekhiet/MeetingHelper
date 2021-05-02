@@ -13,6 +13,7 @@ import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/views/trash.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
@@ -74,11 +75,11 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
               return Container(height: MediaQuery.of(context).size.height / 19);
 
             final T current = _data[i];
-            return _listOptions.itemBuilder(
+            return _listOptions.buildItem(
               current,
-              _listOptions.onLongPress ?? _defaultLongPress,
-              (T current) {
-                if (!_listOptions.selectionModeLatest) {
+              onLongPress: _listOptions.onLongPress ?? _defaultLongPress,
+              onTap: (T current) {
+                if (!_listOptions.selectionMode.requireValue) {
                   _listOptions.tap == null
                       ? dataObjectTap(current, context)
                       : _listOptions.tap!(current);
@@ -86,7 +87,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                   _listOptions.toggleSelected(current);
                 }
               },
-              StreamBuilder<Map<String, T>?>(
+              trailing: StreamBuilder<Map<String, T>?>(
                 stream: Rx.combineLatest2(
                     _listOptions.selected,
                     _listOptions.selectionMode,
@@ -121,10 +122,10 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
   }
 
   void _defaultLongPress(T current) async {
-    _listOptions.selectionMode.add(!_listOptions.selectionModeLatest);
+    _listOptions.selectionMode.add(!_listOptions.selectionMode.requireValue);
 
-    if (!_listOptions.selectionModeLatest) {
-      if (_listOptions.selectedLatest.isNotEmpty) {
+    if (!_listOptions.selectionMode.requireValue) {
+      if (_listOptions.selected.requireValue.isNotEmpty) {
         if (T == Person) {
           await showDialog(
             context: context,
@@ -135,7 +136,8 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                   icon: Icon(Icons.sms),
                   onPressed: () {
                     navigator.currentState!.pop();
-                    List<Person> people = _listOptions.selectedLatest.values
+                    List<Person> people = _listOptions
+                        .selected.requireValue.values
                         .cast<Person>()
                         .toList()
                           ..removeWhere((p) =>
@@ -162,7 +164,9 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                     navigator.currentState!.pop();
                     await Share.share(
                       (await Future.wait(
-                        _listOptions.selectedLatest.values.cast<Person>().map(
+                        _listOptions.selected.requireValue.values
+                            .cast<Person>()
+                            .map(
                               (f) async => f.name + ': ' + await sharePerson(f),
                             ),
                       ))
@@ -176,7 +180,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                   onPressed: () async {
                     navigator.currentState!.pop();
                     var con = TextEditingController();
-                    String msg = await (showDialog(
+                    String? msg = await showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
                         actions: [
@@ -200,12 +204,15 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                           ),
                         ),
                       ),
-                    ) as FutureOr<String>);
-                    msg = Uri.encodeComponent(msg);
-                    for (Person person
-                        in _listOptions.selectedLatest.values.cast<Person>()) {
-                      String phone = getPhone(person.phone!);
-                      await launch('https://wa.me/$phone?text=$msg');
+                    );
+                    if (msg != null) {
+                      msg = Uri.encodeComponent(msg);
+                      for (Person person in _listOptions
+                          .selected.requireValue.values
+                          .cast<Person>()) {
+                        String phone = getPhone(person.phone!);
+                        await launch('https://wa.me/$phone?text=$msg');
+                      }
                     }
                   },
                   label: Text('ارسال رسالة واتساب للكل'),
@@ -215,7 +222,8 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                   onPressed: () async {
                     navigator.currentState!.pop();
                     if ((await Permission.contacts.request()).isGranted) {
-                      for (Person item in _listOptions.selectedLatest.values
+                      for (Person item in _listOptions
+                          .selected.requireValue.values
                           .cast<Person>()) {
                         try {
                           final c = Contact(
@@ -243,7 +251,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
           );
         } else
           await Share.share(
-            (await Future.wait(_listOptions.selectedLatest.values
+            (await Future.wait(_listOptions.selected.requireValue.values
                     .map((f) async => f.name + ': ' + await shareDataObject(f))
                     .toList()))
                 .join('\n'),
@@ -260,6 +268,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
     if (T == Class) return 'فصول';
     if (T == Person) return 'مخدومين';
     if (T == Invitation) return 'دعوات';
+    if (T == TrashDay) return 'محذوفات';
     throw UnimplementedError();
   }
 }
@@ -383,12 +392,12 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
   Widget _buildItem(T current) {
     return StreamBuilder<Map<String, HistoryRecord>>(
       stream: _listOptions.attended,
-      builder: (context, attended) => _listOptions.itemBuilder(
+      builder: (context, attended) => _listOptions.buildItem(
         current,
-        _listOptions.onLongPress ??
+        onLongPress: _listOptions.onLongPress ??
             ((o) =>
                 _showRecordDialog(o, _listOptions.attended.value![current.id])),
-        (T current) async {
+        onTap: (T current) async {
           if (!_listOptions.dayOptions.enabled.value!) {
             _listOptions.tap == null
                 ? dataObjectTap(current, context)
@@ -396,7 +405,8 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
           } else {
             if (!_listOptions.dayOptions.lockUnchecks.requireValue) {
               await _listOptions.toggleSelected(current);
-            } else if (!_listOptions.selectedLatest.containsKey(current.id) ||
+            } else if (!_listOptions.selected.requireValue
+                    .containsKey(current.id) ||
                 _listOptions.dayOptions.lockUnchecks.requireValue &&
                     await showDialog(
                           context: context,
@@ -422,11 +432,11 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
             }
           }
         },
-        attended.hasData && attended.data!.containsKey(current.id)
+        subtitle: attended.hasData && attended.data!.containsKey(current.id)
             ? Text(DateFormat('الساعة h : m د : s ث a', 'ar-EG')
                 .format(attended.data![current.id]!.time.toDate()))
-            : Container(),
-        attended.hasData
+            : null,
+        trailing: attended.hasData
             ? Checkbox(
                 value: attended.data!.containsKey(current.id),
                 onChanged: _listOptions.dayOptions.enabled.value!
@@ -578,14 +588,14 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
           ),
         ) ==
         true) {
-      if (_listOptions.selectedLatest.containsKey(current.id) &&
+      if (_listOptions.selected.requireValue.containsKey(current.id) &&
           record != null) {
         await _listOptions.modifySelected(current,
             notes: record!.notes, time: record!.time);
       } else if (record != null) {
         await _listOptions.select(current,
             notes: record?.notes, time: record?.time);
-      } else if (_listOptions.selectedLatest.containsKey(current.id) &&
+      } else if (_listOptions.selected.requireValue.containsKey(current.id) &&
           record == null) {
         await _listOptions.deselect(current);
       }

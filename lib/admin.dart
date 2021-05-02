@@ -231,7 +231,10 @@ class _ChurchesPageState extends State<ChurchesPage> {
                 child: Text('حذف'))
         ],
         title: Text(church.name!),
-        content: SingleChildScrollView(
+        scrollable: true,
+        content: Container(
+          width: 300,
+          height: 700,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -262,9 +265,8 @@ class _ChurchesPageState extends State<ChurchesPage> {
                   stream: church.getMembersLive(),
                   builder: (con, data) {
                     if (data.hasData) {
-                      return ListView.builder(
-                          physics: ClampingScrollPhysics(),
-                          shrinkWrap: true,
+                      return Expanded(
+                        child: ListView.builder(
                           itemCount: data.data!.docs.length,
                           itemBuilder: (context, i) {
                             var current = Father.fromDoc(data.data!.docs[i]);
@@ -274,7 +276,9 @@ class _ChurchesPageState extends State<ChurchesPage> {
                                 title: Text(current.name!),
                               ),
                             );
-                          });
+                          },
+                        ),
+                      );
                     } else {
                       return const Center(child: CircularProgressIndicator());
                     }
@@ -510,7 +514,10 @@ class _FathersPageState extends State<FathersPage> {
                 child: Text('حذف'))
         ],
         title: Text(church.name!),
-        content: SingleChildScrollView(
+        scrollable: true,
+        content: Container(
+          width: 300,
+          height: 700,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -537,27 +544,27 @@ class _FathersPageState extends State<FathersPage> {
                   : Text(church.address!),
               if (!editMode) Text('الأباء بالكنيسة:', style: title),
               if (!editMode)
-                StreamBuilder<QuerySnapshot>(
-                  stream: church.getMembersLive(),
-                  builder: (con, data) {
-                    if (data.hasData) {
-                      return ListView.builder(
-                          physics: ClampingScrollPhysics(),
-                          shrinkWrap: true,
-                          itemCount: data.data!.docs.length,
-                          itemBuilder: (context, i) {
-                            var current = Father.fromDoc(data.data!.docs[i]);
-                            return Card(
-                              child: ListTile(
-                                onTap: () => fatherTap(current, false),
-                                title: Text(current.name!),
-                              ),
-                            );
-                          });
-                    } else {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                  },
+                Expanded(
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream: church.getMembersLive(),
+                    builder: (con, data) {
+                      if (data.hasData) {
+                        return ListView.builder(
+                            itemCount: data.data!.docs.length,
+                            itemBuilder: (context, i) {
+                              var current = Father.fromDoc(data.data!.docs[i]);
+                              return Card(
+                                child: ListTile(
+                                  onTap: () => fatherTap(current, false),
+                                  title: Text(current.name!),
+                                ),
+                              );
+                            });
+                      } else {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                    },
+                  ),
                 )
             ],
           ),

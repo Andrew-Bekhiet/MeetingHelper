@@ -35,12 +35,12 @@ class _HistoryState extends State<History> {
       create: (_) => DataObjectListOptions<HistoryDay>(
         searchQuery: _search,
         tap: (h) => historyTap(h, context),
-        itemsStream: list as Stream<List<HistoryDay>>? ??
-            FirebaseFirestore.instance
-                .collection('History')
-                .orderBy('Day', descending: true)
-                .snapshots()
-                .map((s) => s.docs.map(HistoryDay.fromQueryDoc).toList()),
+        itemsStream: (list ??
+                FirebaseFirestore.instance
+                    .collection('History')
+                    .orderBy('Day', descending: true)
+                    .snapshots())
+            .map((s) => s.docs.map(HistoryDay.fromQueryDoc).toList()),
       ),
       builder: (context, _) {
         return Scaffold(
@@ -241,13 +241,12 @@ class _ServantsHistoryState extends State<ServantsHistory> {
       create: (_) => DataObjectListOptions<ServantsHistoryDay>(
         searchQuery: _search,
         tap: (h) => historyTap(h, context),
-        itemsStream: list as Stream<List<ServantsHistoryDay>>? ??
-            FirebaseFirestore.instance
-                .collection('ServantsHistory')
-                .orderBy('Day', descending: true)
-                .snapshots()
-                .map((s) =>
-                    s.docs.map(ServantsHistoryDay.fromQueryDoc).toList()),
+        itemsStream: (list ??
+                FirebaseFirestore.instance
+                    .collection('ServantsHistory')
+                    .orderBy('Day', descending: true)
+                    .snapshots())
+            .map((s) => s.docs.map(ServantsHistoryDay.fromQueryDoc).toList()),
       ),
       builder: (context, _) => Scaffold(
         appBar: AppBar(

@@ -83,7 +83,7 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
         'StudyYear': studyYear,
         'Gender': gender,
         'HasPhoto': hasPhoto,
-        'Color': color?.value,
+        'Color': color.value,
         'LastEdit': lastEdit,
         'Allowed': allowedUsers
       };

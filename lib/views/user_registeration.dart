@@ -41,8 +41,8 @@ class _UserRegistrationState extends State<UserRegistration> {
     return Consumer<User>(
       builder: (context, user, _) {
         if (user.approved) {
-          lastTanawol ??= user.lastTanawol!.millisecondsSinceEpoch;
-          lastConfession ??= user.lastConfession!.millisecondsSinceEpoch;
+          lastTanawol ??= user.lastTanawol?.millisecondsSinceEpoch;
+          lastConfession ??= user.lastConfession?.millisecondsSinceEpoch;
           return Scaffold(
             resizeToAvoidBottomInset: !kIsWeb,
             appBar: AppBar(

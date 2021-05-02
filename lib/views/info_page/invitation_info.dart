@@ -38,8 +38,8 @@ class InvitationInfo extends StatelessWidget {
             SliverAppBar(
               backgroundColor: invitation.color != Colors.transparent
                   ? (Theme.of(context).brightness == Brightness.light
-                      ? TinyColor(invitation.color!).lighten().color
-                      : TinyColor(invitation.color!).darken().color)
+                      ? TinyColor(invitation.color).lighten().color
+                      : TinyColor(invitation.color).darken().color)
                   : null,
               actions: <Widget>[
                 Selector<User, bool?>(

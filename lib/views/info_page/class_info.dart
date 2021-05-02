@@ -83,8 +83,8 @@ class _ClassInfoState extends State<ClassInfo> {
                 SliverAppBar(
                   backgroundColor: class$.color != Colors.transparent
                       ? (Theme.of(context).brightness == Brightness.light
-                          ? TinyColor(class$.color!).lighten().color
-                          : TinyColor(class$.color!).darken().color)
+                          ? TinyColor(class$.color).lighten().color
+                          : TinyColor(class$.color).darken().color)
                       : null,
                   actions: class$.ref.path.startsWith('Deleted')
                       ? <Widget>[
