@@ -14,15 +14,14 @@ import 'package:rxdart/rxdart.dart';
 class Day extends StatefulWidget {
   final HistoryDay record;
 
-  Day({@required this.record}) : assert(record != null);
+  Day({required this.record});
 
   @override
   State<Day> createState() => _DayState();
 }
 
 class _DayState extends State<Day> with SingleTickerProviderStateMixin {
-  TabController _tabs;
-
+  TabController? _tabs;
   bool _showSearch = false;
   final FocusNode _searchFocus = FocusNode();
   final BehaviorSubject<String> _searchQuery =
@@ -81,15 +80,17 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
             title: _showSearch
                 ? TextField(
                     focusNode: _searchFocus,
-                    style: Theme.of(context).textTheme.headline6.copyWith(
-                        color:
-                            Theme.of(context).primaryTextTheme.headline6.color),
+                    style: Theme.of(context).textTheme.headline6!.copyWith(
+                        color: Theme.of(context)
+                            .primaryTextTheme
+                            .headline6!
+                            .color),
                     decoration: InputDecoration(
                         suffixIcon: IconButton(
                           icon: Icon(Icons.close,
                               color: Theme.of(context)
                                   .primaryTextTheme
-                                  .headline6
+                                  .headline6!
                                   .color),
                           onPressed: () => setState(
                             () {
@@ -100,16 +101,16 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                         ),
                         hintStyle: Theme.of(context)
                             .textTheme
-                            .headline6
+                            .headline6!
                             .copyWith(
                                 color: Theme.of(context)
                                     .primaryTextTheme
-                                    .headline6
+                                    .headline6!
                                     .color),
                         icon: Icon(Icons.search,
                             color: Theme.of(context)
                                 .primaryTextTheme
-                                .headline6
+                                .headline6!
                                 .color),
                         hintText: 'بحث ...'),
                     onChanged: _searchQuery.add,
@@ -125,6 +126,157 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                   }),
                   tooltip: 'بحث',
                 ),
+              if (User.instance.superAccess)
+                IconButton(
+                  icon: Icon(Icons.delete),
+                  onPressed: () async {
+                    if (await showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(actions: [
+                            TextButton(
+                              onPressed: () =>
+                                  navigator.currentState!.pop(true),
+                              child: Text('نعم'),
+                            ),
+                            TextButton(
+                              onPressed: () =>
+                                  navigator.currentState!.pop(false),
+                              child: Text('لا'),
+                            )
+                          ], content: Text('هل أنت متأكد من الحذف؟')),
+                        ) ==
+                        true) {
+                      await widget.record.ref.delete();
+                      navigator.currentState!.pop();
+                    }
+                  },
+                ),
+              IconButton(
+                icon: DescribedFeatureOverlay(
+                  barrierDismissible: false,
+                  featureId: 'Sorting',
+                  tapTarget: Icon(Icons.library_add_check_outlined),
+                  title: Text('تنظيم الليستة'),
+                  description: Column(
+                    children: <Widget>[
+                      Text('يمكنك تقسيم المخدومين حسب الفصول أو'
+                          ' اظهار المخدومين الحاضرين فقط أو الغائبين فقط من هنا'),
+                      OutlinedButton.icon(
+                        icon: Icon(Icons.forward),
+                        label: Text(
+                          'التالي',
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyText2!.color,
+                          ),
+                        ),
+                        onPressed: () =>
+                            FeatureDiscovery.completeCurrentStep(context),
+                      ),
+                      OutlinedButton(
+                        onPressed: () => FeatureDiscovery.dismissAll(context),
+                        child: Text(
+                          'تخطي',
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyText2!.color,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: Theme.of(context).accentColor,
+                  targetColor: Theme.of(context).primaryColor,
+                  textColor:
+                      Theme.of(context).primaryTextTheme.bodyText1!.color!,
+                  child: Icon(Icons.library_add_check_outlined),
+                ),
+                onPressed: () {
+                  var dayOptions = (widget.record is! ServantsHistoryDay
+                          ? context.read<CheckListOptions<Person>>()
+                          : context.read<CheckListOptions<User>>())
+                      .dayOptions;
+                  showDialog(
+                    context: context,
+                    builder: (context2) => SimpleDialog(
+                      children: [
+                        Row(
+                          children: [
+                            Checkbox(
+                              value: dayOptions.grouped.value,
+                              onChanged: (value) {
+                                dayOptions.grouped.add(value!);
+                                navigator.currentState!.pop();
+                              },
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                dayOptions.grouped
+                                    .add(!dayOptions.grouped.requireValue);
+                                navigator.currentState!.pop();
+                              },
+                              child: Text('تقسيم حسب الفصول'),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Checkbox(
+                              value: dayOptions.showSubtitlesInGroups.value,
+                              onChanged: (value) {
+                                dayOptions.showSubtitlesInGroups.add(value!);
+                                navigator.currentState!.pop();
+                              },
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                dayOptions.showSubtitlesInGroups.add(!dayOptions
+                                    .showSubtitlesInGroups.requireValue);
+                                navigator.currentState!.pop();
+                              },
+                              child: Text('اظهار عدد المخدومين داخل كل فصل'),
+                            ),
+                          ],
+                        ),
+                        Text("ملحوظة: تعمل فقط مع 'تقسيم حسب الفصول'",
+                            style: Theme.of(context).textTheme.caption),
+                        Container(height: 5),
+                        ListTile(
+                          title: Text('إظهار:'),
+                          subtitle: Wrap(
+                            direction: Axis.vertical,
+                            children: [null, true, false]
+                                .map(
+                                  (i) => Row(
+                                    children: [
+                                      Radio<bool?>(
+                                        value: i,
+                                        groupValue: dayOptions.showOnly.value,
+                                        onChanged: (v) {
+                                          dayOptions.showOnly.add(v);
+                                          navigator.currentState!.pop();
+                                        },
+                                      ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          dayOptions.showOnly.add(i);
+                                          navigator.currentState!.pop();
+                                        },
+                                        child: Text(i == null
+                                            ? 'الكل'
+                                            : i == true
+                                                ? 'الحاضرين فقط'
+                                                : 'الغائبين فقط'),
+                                      )
+                                    ],
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
               IconButton(
                 tooltip: 'تحليل بيانات كشف اليوم',
                 icon: DescribedFeatureOverlay(
@@ -142,7 +294,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                         label: Text(
                           'التالي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2.color,
+                            color: Theme.of(context).textTheme.bodyText2!.color,
                           ),
                         ),
                         onPressed: () {
@@ -154,7 +306,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                         child: Text(
                           'تخطي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2.color,
+                            color: Theme.of(context).textTheme.bodyText2!.color,
                           ),
                         ),
                       ),
@@ -162,11 +314,12 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                   ),
                   backgroundColor: Theme.of(context).accentColor,
                   targetColor: Colors.transparent,
-                  textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
+                  textColor:
+                      Theme.of(context).primaryTextTheme.bodyText1!.color!,
                   child: const Icon(Icons.analytics_outlined),
                 ),
                 onPressed: () {
-                  navigator.currentState.pushNamed('Analytics', arguments: {
+                  navigator.currentState!.pushNamed('Analytics', arguments: {
                     'Day': widget.record,
                     'HistoryCollection': widget.record.ref.parent.id
                   });
@@ -187,7 +340,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                       label: Text(
                         'التالي',
                         style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText2.color,
+                          color: Theme.of(context).textTheme.bodyText2?.color,
                         ),
                       ),
                       onPressed: () =>
@@ -198,7 +351,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                       child: Text(
                         'تخطي',
                         style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText2.color,
+                          color: Theme.of(context).textTheme.bodyText2?.color,
                         ),
                       ),
                     ),
@@ -206,7 +359,9 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                 ),
                 backgroundColor: Theme.of(context).accentColor,
                 targetColor: Theme.of(context).primaryColor,
-                textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
+                textColor:
+                    Theme.of(context).primaryTextTheme.bodyText1?.color ??
+                        Colors.black,
                 child: PopupMenuButton(
                   onSelected: (v) async {
                     if (v == 'delete') {
@@ -215,19 +370,19 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                             builder: (context) => AlertDialog(actions: [
                               TextButton(
                                 onPressed: () =>
-                                    navigator.currentState.pop(true),
+                                    navigator.currentState!.pop(true),
                                 child: Text('نعم'),
                               ),
                               TextButton(
                                 onPressed: () =>
-                                    navigator.currentState.pop(false),
+                                    navigator.currentState!.pop(false),
                                 child: Text('لا'),
                               )
                             ], content: Text('هل أنت متأكد من الحذف؟')),
                           ) ==
                           true) {
                         await widget.record.ref.delete();
-                        navigator.currentState.pop();
+                        navigator.currentState!.pop();
                       }
                     } else if (v == 'sorting') {
                       await showDialog(
@@ -251,14 +406,14 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                                       Checkbox(
                                         value: dayOptions.grouped.value,
                                         onChanged: (value) {
-                                          dayOptions.grouped.add(value);
+                                          dayOptions.grouped.add(value!);
                                           setState(() {});
                                         },
                                       ),
                                       GestureDetector(
                                         onTap: () {
-                                          dayOptions.grouped
-                                              .add(!dayOptions.grouped.value);
+                                          dayOptions.grouped.add(
+                                              !dayOptions.grouped.requireValue);
                                           setState(() {});
                                         },
                                         child: Text('تقسيم حسب الفصول'),
@@ -271,21 +426,22 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                                       Checkbox(
                                         value: dayOptions
                                             .showSubtitlesInGroups.value,
-                                        onChanged: dayOptions.grouped.value
+                                        onChanged: dayOptions
+                                                .grouped.requireValue
                                             ? (value) {
                                                 dayOptions.showSubtitlesInGroups
-                                                    .add(value);
+                                                    .add(value!);
                                                 setState(() {});
                                               }
                                             : null,
                                       ),
                                       GestureDetector(
-                                        onTap: dayOptions.grouped.value
+                                        onTap: dayOptions.grouped.requireValue
                                             ? () {
                                                 dayOptions.showSubtitlesInGroups
                                                     .add(!dayOptions
                                                         .showSubtitlesInGroups
-                                                        .value);
+                                                        .requireValue);
                                                 setState(() {});
                                               }
                                             : null,
@@ -303,7 +459,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                                           .map(
                                             (i) => Row(
                                               children: [
-                                                Radio<bool>(
+                                                Radio<bool?>(
                                                   value: i,
                                                   groupValue: dayOptions
                                                       .sortByTimeASC.value,
@@ -342,7 +498,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                                           .map(
                                             (i) => Row(
                                               children: [
-                                                Radio<bool>(
+                                                Radio<bool?>(
                                                   value: i,
                                                   groupValue: dayOptions
                                                               .sortByTimeASC
@@ -392,7 +548,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                           actions: [
                             TextButton(
                               onPressed: () {
-                                navigator.currentState.pop();
+                                navigator.currentState!.pop();
                               },
                               child: Text('إغلاق'),
                             )
@@ -429,7 +585,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
             color: Theme.of(context).primaryColor,
             shape: const CircularNotchedRectangle(),
             child: AnimatedBuilder(
-              animation: _tabs,
+              animation: _tabs!,
               builder: (context, _) => StreamBuilder<Tuple2<int, int>>(
                 stream: Rx.combineLatest2<Map, Map, Tuple2<int, int>>(
                   widget.record is! ServantsHistoryDay
@@ -443,9 +599,9 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                     var rslt = widget.record is! ServantsHistoryDay
                         ? context.read<CheckListOptions<Person>>()
                         : context.read<CheckListOptions<User>>();
-                    if (_tabs.index == 0) {
+                    if (_tabs!.index == 0) {
                       return rslt.copyWith(type: DayListType.Meeting).attended;
-                    } else if (_tabs.index == 1) {
+                    } else if (_tabs!.index == 1) {
                       return rslt.copyWith(type: DayListType.Kodas).attended;
                     } else {
                       //if (_tabs.index == 2) {
@@ -455,98 +611,20 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                   (Map a, Map b) => Tuple2<int, int>(a.length, b.length),
                 ),
                 builder: (context, snapshot) {
-                  TextTheme theme = Theme.of(context).primaryTextTheme;
-                  return ExpansionTile(
-                    expandedAlignment: Alignment.centerRight,
-                    title: Text(
-                      'الحضور:' +
-                          (snapshot.data?.item2 ?? 0).toString() +
-                          ' مخدوم',
-                      style: theme.bodyText2,
-                    ),
-                    trailing:
-                        Icon(Icons.expand_more, color: theme.bodyText2.color),
-                    leading: DescribedFeatureOverlay(
-                      barrierDismissible: false,
-                      contentLocation: ContentLocation.above,
-                      featureId: 'LockUnchecks',
-                      tapTarget: const Icon(Icons.lock_open_outlined),
-                      title: Text('تثبيت الحضور'),
-                      description: Column(
-                        children: <Widget>[
-                          Text(
-                              'يقوم البرنامج تلقائيًا بطلب تأكيد لإزالة حضور مخدوم\nاذا اردت الغاء هذه الخاصية يمكنك الضغط هنا'),
-                          OutlinedButton.icon(
-                            icon: Icon(Icons.forward),
-                            label: Text(
-                              'التالي',
-                              style: TextStyle(
-                                color:
-                                    Theme.of(context).textTheme.bodyText2.color,
-                              ),
-                            ),
-                            onPressed: () {
-                              FeatureDiscovery.completeCurrentStep(context);
-                            },
-                          ),
-                          OutlinedButton(
-                            onPressed: () =>
-                                FeatureDiscovery.dismissAll(context),
-                            child: Text(
-                              'تخطي',
-                              style: TextStyle(
-                                color:
-                                    Theme.of(context).textTheme.bodyText2.color,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      backgroundColor: Theme.of(context).accentColor,
-                      targetColor: Colors.transparent,
-                      textColor:
-                          Theme.of(context).primaryTextTheme.bodyText1.color,
-                      child: StreamBuilder<bool>(
-                        initialData: (widget.record is! ServantsHistoryDay
-                                ? context.read<CheckListOptions<Person>>()
-                                : context.read<CheckListOptions<User>>())
-                            .dayOptions
-                            .lockUnchecks
-                            .value,
-                        stream: (widget.record is! ServantsHistoryDay
-                                ? context.read<CheckListOptions<Person>>()
-                                : context.read<CheckListOptions<User>>())
-                            .dayOptions
-                            .lockUnchecks,
-                        builder: (context, data) {
-                          return IconButton(
-                            icon: Icon(
-                                data.data
-                                    ? Icons.lock_open
-                                    : Icons.lock_outlined,
-                                color: theme.bodyText2.color),
-                            tooltip: 'تثبيت الحضور',
-                            onPressed: () => (widget.record
-                                        is! ServantsHistoryDay
-                                    ? context.read<CheckListOptions<Person>>()
-                                    : context.read<CheckListOptions<User>>())
-                                .dayOptions
-                                .lockUnchecks
-                                .add(!data.data),
-                          );
-                        },
-                      ),
-                    ),
-                    children: [
-                      Text('الغياب:' +
-                          ((snapshot.data?.item1 ?? 0) -
-                                  (snapshot.data?.item2 ?? 0))
-                              .toString() +
-                          ' مخدوم'),
-                      Text('اجمالي:' +
-                          (snapshot.data?.item1 ?? 0).toString() +
-                          ' مخدوم'),
-                    ],
+                  return Text(
+                    (snapshot.data?.item2 ?? 0).toString() +
+                        ' مخدوم حاضر و' +
+                        ((snapshot.data?.item1 ?? 0) -
+                                (snapshot.data?.item2 ?? 0))
+                            .toString() +
+                        ' مخدوم غائب من اجمالي ' +
+                        (snapshot.data?.item1 ?? 0).toString() +
+                        ' مخدوم',
+                    textAlign: TextAlign.center,
+                    textScaleFactor: 0.99,
+                    strutStyle:
+                        StrutStyle(height: IconTheme.of(context).size! / 7.5),
+                    style: Theme.of(context).primaryTextTheme.bodyText1,
                   );
                 },
               ),
@@ -608,7 +686,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     _tabs = TabController(length: 3, vsync: this);
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) async {
       if (DateTime.now().difference(widget.record.day.toDate()).inDays != 0)
         return;
       try {
@@ -637,7 +715,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                 ' ثم الضغط على عرض بيانات المخدوم'),
             actions: [
               TextButton(
-                onPressed: () => navigator.currentState.pop(),
+                onPressed: () => navigator.currentState!.pop(),
                 child: Text('تم'),
               )
             ],

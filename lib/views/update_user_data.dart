@@ -14,13 +14,16 @@ class UpdateUserDataErrorPage extends StatefulWidget {
 }
 
 class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
-  User user;
+  late User user;
+
+  @override
+  void initState() {
+    super.initState();
+    user = ModalRoute.of(context)!.settings.arguments as User;
+  }
 
   @override
   Widget build(BuildContext context) {
-    user == null
-        ? user = ModalRoute.of(context).settings.arguments
-        : user = user;
     return Scaffold(
       appBar: AppBar(title: Text('تحديث بيانات المستخدم')),
       body: Column(
@@ -51,7 +54,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                         ),
                         child: user.lastTanawol != null
                             ? Text(DateFormat('yyyy/M/d')
-                                .format(user.lastTanawol.toDate()))
+                                .format(user.lastTanawol!.toDate()))
                             : Text('(فارغ)'),
                       ),
                     ),
@@ -86,7 +89,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                             )),
                         child: user.lastConfession != null
                             ? Text(DateFormat('yyyy/M/d')
-                                .format(user.lastConfession.toDate()))
+                                .format(user.lastConfession!.toDate()))
                             : Text('(فارغ)'),
                       ),
                     ),
@@ -107,20 +110,25 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
 
   Future save() async {
     try {
-      scaffoldMessenger.currentState
+      if (user.lastConfession == null || user.lastTanawol == null) {
+        scaffoldMessenger.currentState!.showSnackBar(
+            SnackBar(content: Text('برجاء ادخال تاريخ أخر الاعتراف والتناول')));
+        return;
+      }
+      scaffoldMessenger.currentState!
           .showSnackBar(SnackBar(content: Text('جار الحفظ')));
       await FirebaseFunctions.instance
           .httpsCallable('updateUserSpiritData')
           .call({
-        'lastConfession': user.lastConfession.millisecondsSinceEpoch,
-        'lastTanawol': user.lastTanawol.millisecondsSinceEpoch
+        'lastConfession': user.lastConfession!.millisecondsSinceEpoch,
+        'lastTanawol': user.lastTanawol!.millisecondsSinceEpoch
       });
-      navigator.currentState.pop();
+      navigator.currentState!.pop();
     } catch (err, stkTrace) {
       await showErrorDialog(context, err.toString());
       await FirebaseCrashlytics.instance
           .setCustomKey('LastErrorIn', 'UpdateUserDataError.save');
-      await FirebaseCrashlytics.instance.setCustomKey('User', user.uid);
+      await FirebaseCrashlytics.instance.setCustomKey('User', user.uid!);
       await FirebaseCrashlytics.instance.recordError(err, stkTrace);
     }
   }

@@ -9,13 +9,13 @@ import 'package:hive/hive.dart';
 abstract class DataObject {
   DocumentReference ref;
   String name;
-  Color color;
+  Color? color;
 
   DataObject(this.ref, this.name, this.color);
 
   DataObject.createFromData(Map<dynamic, dynamic> data, this.ref)
-      : name = data['Name'],
-        color = Color(data['Color'] ?? Colors.transparent.value);
+      : name = data['Name'] ?? '',
+        color = data['Color'] != null ? Color(data['Color']) : null;
 
   @override
   int get hashCode => hashList([id, _fullyHash(getMap().values.toList())]);
@@ -33,14 +33,14 @@ abstract class DataObject {
 
   Map<String, dynamic> getHumanReadableMap();
 
-  Future<String> getSecondLine();
+  Future<String?> getSecondLine();
 
   int _fullyHash(dynamic e) {
     if (e is Map)
       return hashValues(
           _fullyHash(e.keys.toList()), _fullyHash(e.values.toList()));
     else if (e is DocumentReference)
-      return e?.path?.hashCode;
+      return e.path.hashCode;
     else if (e is List &&
         e.whereType<Map>().isEmpty &&
         e.whereType<DocumentReference>().isEmpty &&
@@ -48,19 +48,15 @@ abstract class DataObject {
       return hashList(e);
     else if (e is List) return hashList(e.map((it) => _fullyHash(it)));
 
-    return e.hashCode;
+    return e?.hashCode ?? 0;
   }
 
   Future<void> set() async {
     await ref.set(getMap());
   }
 
-  Future<void> update({Map<String, dynamic> old}) async {
-    if (old != null)
-      await ref
-          .update(getMap()..removeWhere((key, value) => old[key] == value));
-    else
-      await ref.update(getMap());
+  Future<void> update({Map<String, dynamic> old = const {}}) async {
+    await ref.update(getMap()..removeWhere((key, value) => old[key] == value));
   }
 }
 
@@ -74,33 +70,32 @@ abstract class ParentObject<T extends DataObject> {
 }
 
 abstract class ChildObject<T extends DataObject> {
-  DocumentReference get parentId;
-  Future<String> getParentName();
+  DocumentReference? get parentId;
+  Future<String?> getParentName();
 }
 
 abstract class PhotoObject {
   IconData defaultIcon = Icons.help;
-  bool hasPhoto;
+  late bool hasPhoto;
 
   final AsyncCache<String> _photoUrlCache =
       AsyncCache<String>(Duration(days: 1));
 
   Reference get photoRef;
-  // fireWeb.Reference get webPhotoRef;
 
   Widget photo([bool wrapPhotoInCircle = false]) {
     return DataObjectPhoto(this,
         wrapPhotoInCircle: wrapPhotoInCircle,
-        key: hasPhoto ? ValueKey(photoRef?.fullPath) : null);
+        key: hasPhoto ? ValueKey(photoRef.fullPath) : null);
   }
 }
 
 class DataObjectPhoto extends StatefulWidget {
   final PhotoObject object;
   final bool wrapPhotoInCircle;
-  final Object heroTag;
+  final Object? heroTag;
   const DataObjectPhoto(this.object,
-      {Key key, this.wrapPhotoInCircle, this.heroTag})
+      {Key? key, this.wrapPhotoInCircle = false, this.heroTag})
       : super(key: key);
 
   @override
@@ -142,7 +137,7 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
             child: FutureBuilder<String>(
               future: widget.object._photoUrlCache.fetch(
                 () async {
-                  String cache = Hive.box<String>('PhotosURLsCache')
+                  String? cache = Hive.box<String>('PhotosURLsCache')
                       .get(widget.object.photoRef.fullPath);
 
                   if (cache == null) {
@@ -160,7 +155,7 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
               ),
               builder: (context, data) {
                 if (data.hasError)
-                  return Center(child: ErrorWidget(data.error));
+                  return Center(child: ErrorWidget(data.error!));
                 if (!data.hasData)
                   return const AspectRatio(
                       aspectRatio: 1, child: CircularProgressIndicator());
@@ -179,7 +174,7 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                                 widget.object.photoRef.fullPath,
                             child: InteractiveViewer(
                               child: CachedNetworkImage(
-                                imageUrl: data.data,
+                                imageUrl: data.data!,
                                 progressIndicatorBuilder:
                                     (context, url, progress) => AspectRatio(
                                   aspectRatio: 1,
@@ -195,7 +190,7 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                         memCacheHeight: (constrains.maxHeight * 4).toInt(),
                         imageRenderMethodForWeb:
                             ImageRenderMethodForWeb.HtmlImage,
-                        imageUrl: data.data,
+                        imageUrl: data.data!,
                         progressIndicatorBuilder: (context, url, progress) =>
                             AspectRatio(
                           aspectRatio: 1,

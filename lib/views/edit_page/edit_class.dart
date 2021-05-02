@@ -26,19 +26,19 @@ import '../mini_lists/colors_list.dart';
 import '../lists/users_list.dart';
 
 class EditClass extends StatefulWidget {
-  final Class class$;
+  final Class? class$;
 
-  EditClass({Key key, @required this.class$}) : super(key: key);
+  EditClass({Key? key, required this.class$}) : super(key: key);
   @override
   _EditClassState createState() => _EditClassState();
 }
 
 class _EditClassState extends State<EditClass> {
-  String changedImage;
+  String? changedImage;
   bool deletePhoto = false;
   GlobalKey<FormState> form = GlobalKey<FormState>();
 
-  Class class$;
+  late Class class$;
 
   @override
   Widget build(BuildContext context) {
@@ -70,19 +70,19 @@ class _EditClassState extends State<EditClass> {
                                 actions: <Widget>[
                                   TextButton.icon(
                                     onPressed: () =>
-                                        navigator.currentState.pop(true),
+                                        navigator.currentState!.pop(true),
                                     icon: Icon(Icons.camera),
                                     label: Text('التقاط صورة من الكاميرا'),
                                   ),
                                   TextButton.icon(
                                     onPressed: () =>
-                                        navigator.currentState.pop(false),
+                                        navigator.currentState!.pop(false),
                                     icon: Icon(Icons.photo_library),
                                     label: Text('اختيار من المعرض'),
                                   ),
                                   TextButton.icon(
                                     onPressed: () =>
-                                        navigator.currentState.pop('delete'),
+                                        navigator.currentState!.pop('delete'),
                                     icon: Icon(Icons.delete),
                                     label: Text('حذف الصورة'),
                                   ),
@@ -123,8 +123,8 @@ class _EditClassState extends State<EditClass> {
               ],
               backgroundColor: class$.color != Colors.transparent
                   ? (Theme.of(context).brightness == Brightness.light
-                      ? TinyColor(class$.color).lighten().color
-                      : TinyColor(class$.color).darken().color)
+                      ? TinyColor(class$.color!).lighten().color
+                      : TinyColor(class$.color!).darken().color)
                   : null,
               //title: Text(widget.me.name),
               expandedHeight: 250.0,
@@ -144,7 +144,8 @@ class _EditClassState extends State<EditClass> {
                   ),
                   background: changedImage == null || deletePhoto
                       ? class$.photo(false)
-                      : PhotoView(imageProvider: FileImage(File(changedImage))),
+                      : PhotoView(
+                          imageProvider: FileImage(File(changedImage!))),
                 ),
               ),
             ),
@@ -174,7 +175,7 @@ class _EditClassState extends State<EditClass> {
                       initialValue: class$.name,
                       onChanged: nameChanged,
                       validator: (value) {
-                        if (value.isEmpty) {
+                        if (value!.isEmpty) {
                           return 'هذا الحقل مطلوب';
                         }
                         return null;
@@ -188,7 +189,7 @@ class _EditClassState extends State<EditClass> {
                         return Container(
                           padding: EdgeInsets.symmetric(vertical: 4.0),
                           child: DropdownButtonFormField(
-                            validator: (v) {
+                            validator: (dynamic v) {
                               if (v == null) {
                                 return 'هذا الحقل مطلوب';
                               } else {
@@ -196,7 +197,7 @@ class _EditClassState extends State<EditClass> {
                               }
                             },
                             value: class$.studyYear?.path,
-                            items: data.data.docs
+                            items: data.data!.docs
                                 .map(
                                   (item) => DropdownMenuItem(
                                     value: item.reference.path,
@@ -211,7 +212,7 @@ class _EditClassState extends State<EditClass> {
                                       child: Text(''),
                                     ),
                                   ),
-                            onChanged: (value) {
+                            onChanged: (dynamic value) {
                               setState(() {});
                               class$.studyYear = value != null
                                   ? FirebaseFirestore.instance.doc(value)
@@ -232,7 +233,7 @@ class _EditClassState extends State<EditClass> {
                     },
                   ),
                   DropdownButtonFormField(
-                    validator: (v) {
+                    validator: (dynamic v) {
                       if (v == null) {
                         return 'هذا الحقل مطلوب';
                       } else {
@@ -252,7 +253,7 @@ class _EditClassState extends State<EditClass> {
                           ),
                         )
                         .toList(),
-                    onChanged: (value) {
+                    onChanged: (dynamic value) {
                       setState(() {});
                       class$.gender = value;
                     },
@@ -267,8 +268,8 @@ class _EditClassState extends State<EditClass> {
                       style: ElevatedButton.styleFrom(
                         primary:
                             Theme.of(context).brightness == Brightness.light
-                                ? TinyColor(class$.color).lighten().color
-                                : TinyColor(class$.color).darken().color,
+                                ? TinyColor(class$.color!).lighten().color
+                                : TinyColor(class$.color!).darken().color,
                       ),
                       onPressed: selectColor,
                       icon: Icon(Icons.color_lens),
@@ -282,8 +283,8 @@ class _EditClassState extends State<EditClass> {
                           style: ElevatedButton.styleFrom(
                             primary:
                                 Theme.of(context).brightness == Brightness.light
-                                    ? TinyColor(class$.color).lighten().color
-                                    : TinyColor(class$.color).darken().color,
+                                    ? TinyColor(class$.color!).lighten().color
+                                    : TinyColor(class$.color!).darken().color,
                           ),
                           icon: Icon(Icons.visibility),
                           onPressed: showUsers,
@@ -336,13 +337,13 @@ class _EditClassState extends State<EditClass> {
             actions: <Widget>[
               TextButton(
                 onPressed: () {
-                  navigator.currentState.pop(true);
+                  navigator.currentState!.pop(true);
                 },
                 child: Text('نعم'),
               ),
               TextButton(
                 onPressed: () {
-                  navigator.currentState.pop();
+                  navigator.currentState!.pop();
                 },
                 child: Text('تراجع'),
               ),
@@ -350,7 +351,7 @@ class _EditClassState extends State<EditClass> {
           ),
         ) ==
         true) {
-      scaffoldMessenger.currentState.showSnackBar(
+      scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
           content: Text('جار حذف الفصل وكل ما به من مخدومين...'),
           duration: Duration(seconds: 2),
@@ -375,14 +376,14 @@ class _EditClassState extends State<EditClass> {
         // ignore: unawaited_futures
         class$.ref.delete();
       }
-      navigator.currentState.pop('deleted');
+      navigator.currentState!.pop('deleted');
     }
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    class$ ??= (widget.class$ ?? Class.empty()).copyWith();
+  void initState() {
+    super.initState();
+    class$ = (widget.class$ ?? Class.empty()).copyWith();
   }
 
   void nameChanged(String value) {
@@ -391,8 +392,8 @@ class _EditClassState extends State<EditClass> {
 
   Future save() async {
     try {
-      if (form.currentState.validate()) {
-        scaffoldMessenger.currentState.showSnackBar(
+      if (form.currentState!.validate()) {
+        scaffoldMessenger.currentState!.showSnackBar(
           SnackBar(
             content: Text('جار الحفظ...'),
             duration: Duration(minutes: 20),
@@ -406,7 +407,7 @@ class _EditClassState extends State<EditClass> {
           await FirebaseStorage.instance
               .ref()
               .child('ClassesPhotos/${class$.id}')
-              .putFile(File(changedImage));
+              .putFile(File(changedImage!));
           class$.hasPhoto = true;
         } else if (deletePhoto) {
           await FirebaseStorage.instance
@@ -415,16 +416,16 @@ class _EditClassState extends State<EditClass> {
               .delete();
         }
 
-        class$.lastEdit = auth.FirebaseAuth.instance.currentUser.uid;
+        class$.lastEdit = auth.FirebaseAuth.instance.currentUser!.uid;
 
         if (update &&
             await Connectivity().checkConnectivity() !=
                 ConnectivityResult.none) {
-          await class$.update(old: widget.class$.getMap());
+          await class$.update(old: widget.class$?.getMap() ?? {});
         } else if (update) {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
-          class$.update(old: widget.class$.getMap());
+          class$.update(old: widget.class$?.getMap() ?? {});
         } else if (await Connectivity().checkConnectivity() !=
             ConnectivityResult.none) {
           await class$.set();
@@ -433,15 +434,15 @@ class _EditClassState extends State<EditClass> {
           // ignore: unawaited_futures
           class$.set();
         }
-        scaffoldMessenger.currentState.hideCurrentSnackBar();
-        navigator.currentState.pop(class$.ref);
+        scaffoldMessenger.currentState!.hideCurrentSnackBar();
+        navigator.currentState!.pop(class$.ref);
       }
     } catch (err, stkTrace) {
       await FirebaseCrashlytics.instance
           .setCustomKey('LastErrorIn', 'ClassP.save');
       await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-      scaffoldMessenger.currentState.hideCurrentSnackBar();
-      scaffoldMessenger.currentState.showSnackBar(SnackBar(
+      scaffoldMessenger.currentState!.hideCurrentSnackBar();
+      scaffoldMessenger.currentState!.showSnackBar(SnackBar(
         content: Text(err.toString()),
         duration: Duration(seconds: 7),
       ));
@@ -455,7 +456,7 @@ class _EditClassState extends State<EditClass> {
         actions: [
           TextButton(
             onPressed: () {
-              navigator.currentState.pop();
+              navigator.currentState!.pop();
               setState(() {
                 class$.color = Colors.transparent;
               });
@@ -466,7 +467,7 @@ class _EditClassState extends State<EditClass> {
         content: ColorsList(
           selectedColor: class$.color,
           onSelect: (color) {
-            navigator.currentState.pop();
+            navigator.currentState!.pop();
             setState(() {
               class$.color = color;
             });
@@ -490,15 +491,18 @@ class _EditClassState extends State<EditClass> {
                   return const Center(child: CircularProgressIndicator());
                 final options = DataObjectListOptions<User>(
                     itemBuilder: (current,
-                            {onLongPress, onTap, subtitle, trailing}) =>
+                            [void Function(User)? onLongPress,
+                            void Function(User)? onTap,
+                            Widget? subtitle,
+                            trailing]) =>
                         DataObjectWidget(
                           current,
-                          onTap: () => onTap(current),
+                          onTap: () => onTap!(current),
                           trailing: trailing,
                           showSubTitle: false,
                         ),
                     selectionMode: true,
-                    selected: {for (var item in users.data) item.id: item},
+                    selected: {for (var item in users.data!) item.id: item},
                     searchQuery: searchStream,
                     itemsStream: User.getAllForUser());
                 return Scaffold(
@@ -507,7 +511,7 @@ class _EditClassState extends State<EditClass> {
                     actions: [
                       IconButton(
                         onPressed: () {
-                          navigator.currentState
+                          navigator.currentState!
                               .pop(options.selectedLatest.keys.toList());
                         },
                         icon: Icon(Icons.done),

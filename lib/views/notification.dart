@@ -6,13 +6,13 @@ import '../utils/helpers.dart';
 import '../models/user.dart';
 
 class Notification extends StatelessWidget {
-  final String type;
-  final String title;
-  final String content;
-  final String attachement;
-  final String from;
+  final String? type;
+  final String? title;
+  final String? content;
+  final String? attachement;
+  final String? from;
   final int time;
-  final void Function() longPress;
+  final void Function()? longPress;
 
   const Notification(this.type, this.title, this.content, this.attachement,
       this.time, this.from,
@@ -22,11 +22,11 @@ class Notification extends StatelessWidget {
   Widget build(BuildContext context) {
     return FutureBuilder(
       future: getLinkObject(
-        Uri.parse(attachement),
+        Uri.parse(attachement!),
       ),
       builder: (context, snapshot) {
         if (snapshot.hasError)
-          return Center(child: ErrorWidget(snapshot.error));
+          return Center(child: ErrorWidget(snapshot.error!));
         return Card(
           child: ListTile(
             leading: snapshot.hasData
@@ -39,16 +39,16 @@ class Notification extends StatelessWidget {
                             heroTag: snapshot.data,
                           )
                 : CircularProgressIndicator(),
-            title: Text(title),
+            title: Text(title!),
             subtitle: Text(
-              content,
-              overflow: content.contains('تم تغيير موقع')
+              content!,
+              overflow: content!.contains('تم تغيير موقع')
                   ? null
                   : TextOverflow.ellipsis,
-              maxLines: content.contains('تم تغيير موقع') ? null : 1,
+              maxLines: content!.contains('تم تغيير موقع') ? null : 1,
             ),
             onTap: () => (from == null
-                ? processLink(Uri.parse(attachement), context)
+                ? processLink(Uri.parse(attachement!), context)
                 : showMessage(context, this)),
             onLongPress: longPress,
           ),
@@ -58,7 +58,7 @@ class Notification extends StatelessWidget {
   }
 
   static Notification fromMessage(Map<dynamic, dynamic> message,
-          [void Function() longPress]) =>
+          [void Function()? longPress]) =>
       Notification(
           message['type'],
           message['title'],

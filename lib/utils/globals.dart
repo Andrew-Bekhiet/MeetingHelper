@@ -74,7 +74,7 @@ GlobalKey<ScaffoldMessengerState> scaffoldMessenger =
     GlobalKey<ScaffoldMessengerState>();
 GlobalKey<NavigatorState> navigator = GlobalKey<NavigatorState>();
 
-List<Color> primaries = <Color>[
+List<Color?> primaries = <Color?>[
   Colors.red,
   Colors.pink,
   Colors.purple,
@@ -96,7 +96,7 @@ List<Color> primaries = <Color>[
   Colors.grey.shade700
 ];
 
-RemoteConfig remoteConfig;
+RemoteConfig? remoteConfig;
 
 String uriPrefix = 'https://meetinghelper.page.link';
 enum DayListType { Meeting, Kodas, Tanawol }

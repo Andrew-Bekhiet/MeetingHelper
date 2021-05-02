@@ -19,16 +19,17 @@ enum DateType {
 }
 
 class Settings extends StatefulWidget {
-  Settings({Key key}) : super(key: key);
+  Settings({Key? key}) : super(key: key);
   @override
   SettingsState createState() => SettingsState();
 }
 
 class SettingsState extends State<Settings> {
-  bool darkTheme;
-  bool greatFeastTheme;
+  Color? color;
+  bool? darkTheme;
+  late bool greatFeastTheme;
 
-  bool state;
+  bool? state;
 
   GlobalKey<FormState> formKey = GlobalKey();
 
@@ -37,7 +38,7 @@ class SettingsState extends State<Settings> {
   var notificationsSettings =
       Hive.box<Map<dynamic, dynamic>>('NotificationsSettings');
 
-  void Function() _save;
+  late void Function() _save;
 
   @override
   Widget build(BuildContext context) {
@@ -55,8 +56,8 @@ class SettingsState extends State<Settings> {
               child: Builder(
                 builder: (context) {
                   _save = () {
-                    Form.of(context).save();
-                    scaffoldMessenger.currentState.showSnackBar(SnackBar(
+                    Form.of(context)!.save();
+                    scaffoldMessenger.currentState!.showSnackBar(SnackBar(
                       content: Text('تم الحفظ'),
                     ));
                   };
@@ -66,7 +67,7 @@ class SettingsState extends State<Settings> {
                       ExpandablePanel(
                         theme: ExpandableThemeData(
                             useInkWell: true,
-                            iconColor: Theme.of(context).iconTheme?.color,
+                            iconColor: Theme.of(context).iconTheme.color,
                             bodyAlignment: ExpandablePanelBodyAlignment.right),
                         header: Text(
                           'المظهر',
@@ -123,7 +124,7 @@ class SettingsState extends State<Settings> {
                       ExpandablePanel(
                         theme: ExpandableThemeData(
                             useInkWell: true,
-                            iconColor: Theme.of(context).iconTheme?.color,
+                            iconColor: Theme.of(context).iconTheme.color,
                             bodyAlignment: ExpandablePanelBodyAlignment.right),
                         header: Text('بيانات إضافية',
                             style: TextStyle(fontSize: 24)),
@@ -134,19 +135,19 @@ class SettingsState extends State<Settings> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: <Widget>[
                             ElevatedButton(
-                                onPressed: () => navigator.currentState
+                                onPressed: () => navigator.currentState!
                                     .pushNamed('Settings/Churches'),
                                 child: Text('الكنائس')),
                             ElevatedButton(
-                                onPressed: () => navigator.currentState
+                                onPressed: () => navigator.currentState!
                                     .pushNamed('Settings/Fathers'),
                                 child: Text('الأباء الكهنة')),
                             ElevatedButton(
-                                onPressed: () => navigator.currentState
+                                onPressed: () => navigator.currentState!
                                     .pushNamed('Settings/StudyYears'),
                                 child: Text('السنوات الدراسية')),
                             ElevatedButton(
-                                onPressed: () => navigator.currentState
+                                onPressed: () => navigator.currentState!
                                     .pushNamed('Settings/Schools'),
                                 child: Text('المدارس')),
                           ],
@@ -155,7 +156,7 @@ class SettingsState extends State<Settings> {
                       ExpandablePanel(
                         theme: ExpandableThemeData(
                             useInkWell: true,
-                            iconColor: Theme.of(context).iconTheme?.color,
+                            iconColor: Theme.of(context).iconTheme.color,
                             bodyAlignment: ExpandablePanelBodyAlignment.right),
                         header: Text('مظهر البيانات',
                             style: TextStyle(fontSize: 24)),
@@ -186,8 +187,8 @@ class SettingsState extends State<Settings> {
                                             value: null,
                                             child: Text(''),
                                           )),
-                                onChanged: (value) {},
-                                onSaved: (value) async {
+                                onChanged: (dynamic value) {},
+                                onSaved: (dynamic value) async {
                                   await settings.put('ClassSecondLine', value);
                                 },
                                 decoration: InputDecoration(
@@ -218,8 +219,8 @@ class SettingsState extends State<Settings> {
                                             value: null,
                                             child: Text(''),
                                           )),
-                                onChanged: (value) {},
-                                onSaved: (value) async {
+                                onChanged: (dynamic value) {},
+                                onSaved: (dynamic value) async {
                                   await settings.put('PersonSecondLine', value);
                                 },
                                 decoration: InputDecoration(
@@ -242,7 +243,7 @@ class SettingsState extends State<Settings> {
                             return ExpandablePanel(
                               theme: ExpandableThemeData(
                                   useInkWell: true,
-                                  iconColor: Theme.of(context).iconTheme?.color,
+                                  iconColor: Theme.of(context).iconTheme.color,
                                   bodyAlignment:
                                       ExpandablePanelBodyAlignment.right),
                               header: Text(
@@ -259,7 +260,7 @@ class SettingsState extends State<Settings> {
                       ExpandablePanel(
                         theme: ExpandableThemeData(
                             useInkWell: true,
-                            iconColor: Theme.of(context).iconTheme?.color,
+                            iconColor: Theme.of(context).iconTheme.color,
                             bodyAlignment: ExpandablePanelBodyAlignment.right),
                         header: Text('أخرى', style: TextStyle(fontSize: 24)),
                         collapsed: Text('إعدادات أخرى'),
@@ -283,10 +284,10 @@ class SettingsState extends State<Settings> {
                                 .toString(),
                             onSaved: (c) async {
                               await settings.put(
-                                  'cacheSize', int.parse(c) * 1024 * 1024);
+                                  'cacheSize', int.parse(c!) * 1024 * 1024);
                             },
                             validator: (value) {
-                              if (value.isEmpty) {
+                              if (value!.isEmpty) {
                                 return 'هذا الحقل مطلوب';
                               }
                               return null;
@@ -312,30 +313,30 @@ class SettingsState extends State<Settings> {
 
   Future<bool> confirmExit() async {
     return (true) ||
-        await showDialog(
+        await (showDialog(
           context: context,
           builder: (context) => AlertDialog(
             content: Text('لم يتم حفظ التعديلات الجديدة'),
             title: Text('هل تريد الخروج دون الحفظ؟'),
             actions: [
               TextButton(
-                onPressed: () => navigator.currentState.pop(true),
+                onPressed: () => navigator.currentState!.pop(true),
                 child: Text('الخروج دون حفظ'),
               ),
               TextButton(
-                onPressed: () => navigator.currentState.pop(false),
+                onPressed: () => navigator.currentState!.pop(false),
                 child: Text('رجوع'),
               ),
               TextButton(
                 onPressed: () async {
                   _save();
-                  navigator.currentState.pop(true);
+                  navigator.currentState!.pop(true);
                 },
                 child: Text('الخروج مع حفظ'),
               ),
             ],
           ),
-        );
+        ));
   }
 
   @override
@@ -352,7 +353,7 @@ class SettingsState extends State<Settings> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (notifications['birthdayNotify'])
+        if (notifications['birthdayNotify']!)
           Row(
             children: <Widget>[
               Text('التذكير بأعياد الميلاد كل يوم الساعة: '),
@@ -371,15 +372,15 @@ class SettingsState extends State<Settings> {
                     notificationsSettings.get('BirthDayTime',
                         defaultValue: <String, int>{
                           'Hours': 11
-                        }).cast<String, int>()['Hours'],
+                        })!.cast<String, int>()['Hours']!,
                     notificationsSettings.get('BirthDayTime', defaultValue: {
                       'Minutes': 0
-                    }).cast<String, int>()['Minutes'],
+                    })!.cast<String, int>()['Minutes']!,
                   ),
                   resetIcon: null,
                   onShowPicker: (context, initialValue) async {
                     var selected = await showTimePicker(
-                      initialTime: TimeOfDay.fromDateTime(initialValue),
+                      initialTime: TimeOfDay.fromDateTime(initialValue!),
                       context: context,
                     );
                     return DateTime(
@@ -394,8 +395,8 @@ class SettingsState extends State<Settings> {
                         defaultValue: {
                           'Hours': 11,
                           'Minutes': 0
-                        }).cast<String, int>();
-                    if (current['Hours'] == value.hour &&
+                        })!.cast<String, int>();
+                    if (current['Hours'] == value!.hour &&
                         current['Minutes'] == value.minute) return;
                     await notificationsSettings.put(
                       'BirthDayTime',
@@ -420,48 +421,48 @@ class SettingsState extends State<Settings> {
               ),
             ],
           ),
-        if (notifications['confessionsNotify'])
+        if (notifications['confessionsNotify']!)
           Divider(
             thickness: 2,
             height: 30,
           ),
-        if (notifications['confessionsNotify'])
+        if (notifications['confessionsNotify']!)
           NotificationSetting(
             label: 'ارسال انذار الاعتراف كل ',
             hiveKey: 'ConfessionTime',
             alarmId: 'Confessions'.hashCode,
             notificationCallback: showConfessionNotification,
           ),
-        if (notifications['tanawolNotify'])
+        if (notifications['tanawolNotify']!)
           Divider(
             thickness: 2,
             height: 30,
           ),
-        if (notifications['tanawolNotify'])
+        if (notifications['tanawolNotify']!)
           NotificationSetting(
             label: 'ارسال انذار التناول كل ',
             hiveKey: 'TtanawolTime',
             alarmId: 'Tanawol'.hashCode,
             notificationCallback: showTanawolNotification,
           ),
-        if (notifications['kodasNotify'])
+        if (notifications['kodasNotify']!)
           Divider(
             thickness: 2,
             height: 30,
           ),
-        if (notifications['kodasNotify'])
+        if (notifications['kodasNotify']!)
           NotificationSetting(
             label: 'ارسال انذار حضور القداس كل ',
             hiveKey: 'KodasTime',
             alarmId: 'Kodas'.hashCode,
             notificationCallback: showKodasNotification,
           ),
-        if (notifications['meetingNotify'])
+        if (notifications['meetingNotify']!)
           Divider(
             thickness: 2,
             height: 30,
           ),
-        if (notifications['meetingNotify'])
+        if (notifications['meetingNotify']!)
           NotificationSetting(
             label: 'ارسال انذار حضور الاجتماع كل ',
             hiveKey: 'MeetingTime',

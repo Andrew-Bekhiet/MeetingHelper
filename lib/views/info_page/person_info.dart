@@ -24,11 +24,11 @@ import '../../utils/helpers.dart';
 
 class PersonInfo extends StatefulWidget {
   final Person person;
-  final Person Function(DocumentSnapshot) converter;
+  final Person? Function(DocumentSnapshot) converter;
   final bool showMotherAndFatherPhones;
   const PersonInfo(
-      {Key key,
-      this.person,
+      {Key? key,
+      required this.person,
       this.converter = Person.fromDoc,
       this.showMotherAndFatherPhones = true})
       : super(key: key);
@@ -41,7 +41,7 @@ class _PersonInfoState extends State<PersonInfo> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
+    WidgetsBinding.instance!.addPostFrameCallback((_) async {
       await Future.delayed(Duration(milliseconds: 300));
       FeatureDiscovery.discoverFeatures(context, [
         if (User.instance.write) 'Person.Edit',
@@ -53,13 +53,13 @@ class _PersonInfoState extends State<PersonInfo> {
 
   @override
   Widget build(BuildContext context) {
-    return Selector<User, bool>(
+    return Selector<User, bool?>(
       selector: (_, user) => user.write,
-      builder: (c, permission, data) => StreamBuilder<Person>(
+      builder: (c, permission, data) => StreamBuilder<Person?>(
         initialData: widget.person,
         stream: widget.person.ref.snapshots().map(widget.converter),
         builder: (context, data) {
-          Person person = data.data;
+          Person? person = data.data;
           if (person == null)
             return Scaffold(
               body: Center(
@@ -74,12 +74,12 @@ class _PersonInfoState extends State<PersonInfo> {
                   SliverAppBar(
                     backgroundColor: person.color != Colors.transparent
                         ? (Theme.of(context).brightness == Brightness.light
-                            ? TinyColor(person.color).lighten().color
-                            : TinyColor(person.color).darken().color)
+                            ? TinyColor(person.color!).lighten().color
+                            : TinyColor(person.color!).darken().color)
                         : null,
                     actions: person.ref.path.startsWith('Deleted')
                         ? <Widget>[
-                            if (permission)
+                            if (permission!)
                               IconButton(
                                 icon: Icon(Icons.restore),
                                 tooltip: 'استعادة',
@@ -89,7 +89,7 @@ class _PersonInfoState extends State<PersonInfo> {
                               )
                           ]
                         : <Widget>[
-                            if (permission)
+                            if (permission!)
                               IconButton(
                                 icon: DescribedFeatureOverlay(
                                   barrierDismissible: false,
@@ -110,7 +110,7 @@ class _PersonInfoState extends State<PersonInfo> {
                                           style: TextStyle(
                                             color: Theme.of(context)
                                                 .textTheme
-                                                .bodyText2
+                                                .bodyText2!
                                                 .color,
                                           ),
                                         ),
@@ -126,7 +126,7 @@ class _PersonInfoState extends State<PersonInfo> {
                                           style: TextStyle(
                                             color: Theme.of(context)
                                                 .textTheme
-                                                .bodyText2
+                                                .bodyText2!
                                                 .color,
                                           ),
                                         ),
@@ -138,8 +138,8 @@ class _PersonInfoState extends State<PersonInfo> {
                                   targetColor: Colors.transparent,
                                   textColor: Theme.of(context)
                                       .primaryTextTheme
-                                      .bodyText1
-                                      .color,
+                                      .bodyText1!
+                                      .color!,
                                   child: Builder(
                                     builder: (context) => Stack(
                                       children: <Widget>[
@@ -156,17 +156,18 @@ class _PersonInfoState extends State<PersonInfo> {
                                   ),
                                 ),
                                 onPressed: () async {
-                                  dynamic result = await navigator.currentState
+                                  dynamic result = await navigator.currentState!
                                       .pushNamed('Data/EditPerson',
                                           arguments: person);
                                   if (result is DocumentReference) {
-                                    scaffoldMessenger.currentState.showSnackBar(
+                                    scaffoldMessenger.currentState!
+                                        .showSnackBar(
                                       SnackBar(
                                         content: Text('تم الحفظ بنجاح'),
                                       ),
                                     );
                                   } else if (result == 'deleted')
-                                    navigator.currentState.pop();
+                                    navigator.currentState!.pop();
                                 },
                                 tooltip: 'تعديل',
                               ),
@@ -190,7 +191,7 @@ class _PersonInfoState extends State<PersonInfo> {
                                         style: TextStyle(
                                           color: Theme.of(context)
                                               .textTheme
-                                              .bodyText2
+                                              .bodyText2!
                                               .color,
                                         ),
                                       ),
@@ -206,7 +207,7 @@ class _PersonInfoState extends State<PersonInfo> {
                                         style: TextStyle(
                                           color: Theme.of(context)
                                               .textTheme
-                                              .bodyText2
+                                              .bodyText2!
                                               .color,
                                         ),
                                       ),
@@ -217,8 +218,8 @@ class _PersonInfoState extends State<PersonInfo> {
                                 targetColor: Colors.transparent,
                                 textColor: Theme.of(context)
                                     .primaryTextTheme
-                                    .bodyText1
-                                    .color,
+                                    .bodyText1!
+                                    .color!,
                                 child: Builder(
                                   builder: (context) => Stack(
                                     children: <Widget>[
@@ -240,7 +241,7 @@ class _PersonInfoState extends State<PersonInfo> {
                               tooltip: 'مشاركة برابط',
                             ),
                             PopupMenuButton(
-                              onSelected: (item) async {
+                              onSelected: (dynamic item) async {
                                 await sendNotification(context, person);
                               },
                               itemBuilder: (BuildContext context) {
@@ -304,17 +305,16 @@ class _PersonInfoState extends State<PersonInfo> {
                           (n) => _phoneCall(context, n),
                           (n) => _contactAdd(context, n, person),
                         ),
-                      if (person.phones != null)
-                        ...person.phones.entries
-                            .map(
-                              (e) => PhoneNumberProperty(
-                                e.key,
-                                e.value,
-                                (n) => _phoneCall(context, n),
-                                (n) => _contactAdd(context, n, person),
-                              ),
-                            )
-                            .toList(),
+                      ...person.phones.entries
+                          .map(
+                            (e) => PhoneNumberProperty(
+                              e.key,
+                              e.value,
+                              (n) => _phoneCall(context, n),
+                              (n) => _contactAdd(context, n, person),
+                            ),
+                          )
+                          .toList(),
                       ListTile(
                         title: Text('السن:'),
                         subtitle: Row(
@@ -326,7 +326,7 @@ class _PersonInfoState extends State<PersonInfo> {
                             Text(
                                 person.birthDate != null
                                     ? DateFormat('yyyy/M/d').format(
-                                        person.birthDate.toDate(),
+                                        person.birthDate!.toDate(),
                                       )
                                     : '',
                                 style: Theme.of(context).textTheme.overline),
@@ -338,7 +338,7 @@ class _PersonInfoState extends State<PersonInfo> {
                           !person.ref.path.startsWith('Deleted'))
                         ElevatedButton.icon(
                           icon: Icon(Icons.map),
-                          onPressed: () => navigator.currentState.push(
+                          onPressed: () => navigator.currentState!.push(
                             MaterialPageRoute(
                               builder: (context) => Scaffold(
                                 appBar: AppBar(title: Text(person.name)),
@@ -350,30 +350,30 @@ class _PersonInfoState extends State<PersonInfo> {
                         ),
                       ListTile(
                         title: Text('المدرسة:'),
-                        subtitle: FutureBuilder(
+                        subtitle: FutureBuilder<String>(
                           future: person.getSchoolName(),
                           builder: (context, data) {
-                            if (data.hasData) return Text(data.data);
+                            if (data.hasData) return Text(data.data!);
                             return LinearProgressIndicator();
                           },
                         ),
                       ),
                       ListTile(
                         title: Text('الكنيسة:'),
-                        subtitle: FutureBuilder(
+                        subtitle: FutureBuilder<String>(
                           future: person.getChurchName(),
                           builder: (context, data) {
-                            if (data.hasData) return Text(data.data);
+                            if (data.hasData) return Text(data.data!);
                             return LinearProgressIndicator();
                           },
                         ),
                       ),
                       ListTile(
                         title: Text('اب الاعتراف:'),
-                        subtitle: FutureBuilder(
+                        subtitle: FutureBuilder<String>(
                           future: person.getCFatherName(),
                           builder: (context, data) {
-                            if (data.hasData) return Text(data.data);
+                            if (data.hasData) return Text(data.data!);
                             return LinearProgressIndicator();
                           },
                         ),
@@ -410,11 +410,11 @@ class _PersonInfoState extends State<PersonInfo> {
                         ListTile(
                           title: Text('داخل فصل:'),
                           subtitle: person.classId != null &&
-                                  person.classId.parent.id != 'null'
-                              ? FutureBuilder<Class>(
-                                  future: Class.fromId(person.classId.id),
+                                  person.classId!.parent.id != 'null'
+                              ? FutureBuilder<Class?>(
+                                  future: Class.fromId(person.classId!.id),
                                   builder: (context, _class) => _class.hasData
-                                      ? DataObjectWidget<Class>(_class.data,
+                                      ? DataObjectWidget<Class>(_class.data!,
                                           isDense: true)
                                       : LinearProgressIndicator(),
                                 )
@@ -425,7 +425,7 @@ class _PersonInfoState extends State<PersonInfo> {
                 ),
               ),
             ),
-            floatingActionButton: permission &&
+            floatingActionButton: permission! &&
                     !person.ref.path.startsWith('Deleted')
                 ? FloatingActionButton(
                     tooltip: 'تسجيل أخر زيارة اليوم',
@@ -453,8 +453,10 @@ class _PersonInfoState extends State<PersonInfo> {
                             child: Text(
                               'تخطي',
                               style: TextStyle(
-                                color:
-                                    Theme.of(context).textTheme.bodyText2.color,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyText2!
+                                    .color,
                               ),
                             ),
                           ),
@@ -463,7 +465,7 @@ class _PersonInfoState extends State<PersonInfo> {
                       backgroundColor: Theme.of(context).accentColor,
                       targetColor: Theme.of(context).primaryColor,
                       textColor:
-                          Theme.of(context).primaryTextTheme.bodyText1.color,
+                          Theme.of(context).primaryTextTheme.bodyText1!.color!,
                       child: Icon(Icons.update),
                     ),
                   )
@@ -482,11 +484,11 @@ class _PersonInfoState extends State<PersonInfo> {
               title: Text('هل تريد تسجيل أخر زيارة ل' + person.name + '؟'),
               actions: [
                 TextButton(
-                  onPressed: () => navigator.currentState.pop(true),
+                  onPressed: () => navigator.currentState!.pop(true),
                   child: Text('تسجيل أخر زيارة'),
                 ),
                 TextButton(
-                  onPressed: () => navigator.currentState.pop(false),
+                  onPressed: () => navigator.currentState!.pop(false),
                   child: Text('رجوع'),
                 ),
               ],
@@ -495,9 +497,9 @@ class _PersonInfoState extends State<PersonInfo> {
           true) return;
       await person.ref.update({
         'LastVisit': Timestamp.now(),
-        'LastEdit': FirebaseAuth.instance.currentUser.uid
+        'LastEdit': FirebaseAuth.instance.currentUser!.uid
       });
-      scaffoldMessenger.currentState.showSnackBar(SnackBar(
+      scaffoldMessenger.currentState!.showSnackBar(SnackBar(
         content: Text('تم بنجاح'),
       ));
     } catch (err, stkTrace) {
@@ -508,7 +510,7 @@ class _PersonInfoState extends State<PersonInfo> {
     }
   }
 
-  void _phoneCall(BuildContext context, String number) async {
+  void _phoneCall(BuildContext context, String? number) async {
     var result = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -517,12 +519,12 @@ class _PersonInfoState extends State<PersonInfo> {
           OutlinedButton.icon(
             icon: Icon(Icons.call),
             label: Text('اجراء مكالمة الأن'),
-            onPressed: () => navigator.currentState.pop(true),
+            onPressed: () => navigator.currentState!.pop(true),
           ),
           TextButton.icon(
             icon: Icon(Icons.dialpad),
             label: Text('نسخ في لوحة الاتصال فقط'),
-            onPressed: () => navigator.currentState.pop(false),
+            onPressed: () => navigator.currentState!.pop(false),
           ),
         ],
       ),
@@ -530,18 +532,18 @@ class _PersonInfoState extends State<PersonInfo> {
     if (result == null) return;
     if (result) {
       await Permission.phone.request();
-      await launch('tel:' + getPhone(number, false));
+      await launch('tel:' + getPhone(number ?? '', false));
       var recordLastCall = await showDialog(
         context: context,
         builder: (context) => AlertDialog(
           content: Text('هل تريد تسجيل تاريخ هذه المكالمة؟'),
           actions: [
             TextButton(
-              onPressed: () => navigator.currentState.pop(true),
+              onPressed: () => navigator.currentState!.pop(true),
               child: Text('نعم'),
             ),
             TextButton(
-              onPressed: () => navigator.currentState.pop(false),
+              onPressed: () => navigator.currentState!.pop(false),
               child: Text('لا'),
             ),
           ],
@@ -550,22 +552,22 @@ class _PersonInfoState extends State<PersonInfo> {
       if (recordLastCall == true) {
         await widget.person.ref.update(
             {'LastEdit': User.instance.uid, 'LastCall': Timestamp.now()});
-        scaffoldMessenger.currentState.showSnackBar(
+        scaffoldMessenger.currentState!.showSnackBar(
           SnackBar(
             content: Text('تم بنجاح'),
           ),
         );
       }
     } else
-      await launch('tel://' + getPhone(number, false));
+      await launch('tel://' + getPhone(number ?? '', false));
   }
 
   void _showAnalytics(BuildContext context, Person person) {
-    navigator.currentState.pushNamed('Analytics', arguments: person);
+    navigator.currentState!.pushNamed('Analytics', arguments: person);
   }
 
   Future<void> _contactAdd(
-      BuildContext context, String phone, Person person) async {
+      BuildContext context, String? phone, Person person) async {
     if ((await Permission.contacts.request()).isGranted) {
       TextEditingController _name = TextEditingController(text: person.name);
       if (await showDialog(
@@ -583,7 +585,7 @@ class _PersonInfoState extends State<PersonInfo> {
               ),
               actions: [
                 TextButton(
-                    onPressed: () => navigator.currentState.pop(true),
+                    onPressed: () => navigator.currentState!.pop(true),
                     child: Text('حفظ جهة الاتصال'))
               ],
             ),
@@ -593,7 +595,7 @@ class _PersonInfoState extends State<PersonInfo> {
             photo: person.hasPhoto
                 ? await person.photoRef.getData(100 * 1024 * 1024)
                 : null,
-            phones: [Phone(phone)])
+            phones: [Phone(phone ?? '')])
           ..name.first = _name.text;
         await c.insert();
       }

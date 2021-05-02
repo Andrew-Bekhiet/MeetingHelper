@@ -26,14 +26,11 @@ import '../../models/models.dart';
 import '../services_list.dart';
 
 class EditPerson extends StatefulWidget {
-  final Person person;
-  final Function(FormState, Person) save;
+  final Person? person;
+  final Function(FormState, Person)? save;
   final bool showMotherAndFatherPhones;
   EditPerson(
-      {Key key,
-      @required this.person,
-      this.save,
-      this.showMotherAndFatherPhones = true})
+      {Key? key, this.person, this.save, this.showMotherAndFatherPhones = true})
       : super(key: key);
 
   @override
@@ -41,12 +38,12 @@ class EditPerson extends StatefulWidget {
 }
 
 class _EditPersonState extends State<EditPerson> {
-  String changedImage;
+  String? changedImage;
   bool deletePhoto = false;
 
   GlobalKey<FormState> form = GlobalKey<FormState>();
 
-  Person person;
+  late Person person;
 
   @override
   Widget build(BuildContext context) {
@@ -77,19 +74,20 @@ class _EditPersonState extends State<EditPerson> {
                         builder: (context) => AlertDialog(
                           actions: <Widget>[
                             TextButton.icon(
-                              onPressed: () => navigator.currentState.pop(true),
+                              onPressed: () =>
+                                  navigator.currentState!.pop(true),
                               icon: Icon(Icons.camera),
                               label: Text('التقاط صورة من الكاميرا'),
                             ),
                             TextButton.icon(
                               onPressed: () =>
-                                  navigator.currentState.pop(false),
+                                  navigator.currentState!.pop(false),
                               icon: Icon(Icons.photo_library),
                               label: Text('اختيار من المعرض'),
                             ),
                             TextButton.icon(
                               onPressed: () =>
-                                  navigator.currentState.pop('delete'),
+                                  navigator.currentState!.pop('delete'),
                               icon: Icon(Icons.delete),
                               label: Text('حذف الصورة'),
                             ),
@@ -130,8 +128,8 @@ class _EditPersonState extends State<EditPerson> {
               ],
               backgroundColor: person.color != Colors.transparent
                   ? (Theme.of(context).brightness == Brightness.light
-                      ? TinyColor(person.color).lighten().color
-                      : TinyColor(person.color).darken().color)
+                      ? TinyColor(person.color!).lighten().color
+                      : TinyColor(person.color!).darken().color)
                   : null,
               //title: Text(widget.me.name),
               expandedHeight: 250.0,
@@ -154,7 +152,7 @@ class _EditPersonState extends State<EditPerson> {
                   background: changedImage == null
                       ? person.photo()
                       : Image.file(
-                          File(changedImage),
+                          File(changedImage!),
                         ),
                 ),
               ),
@@ -186,7 +184,7 @@ class _EditPersonState extends State<EditPerson> {
                       onFieldSubmitted: (_) =>
                           FocusScope.of(context).nextFocus(),
                       validator: (value) {
-                        if (value.isEmpty) {
+                        if (value!.isEmpty) {
                           return 'هذا الحقل مطلوب';
                         }
                         return null;
@@ -276,12 +274,12 @@ class _EditPersonState extends State<EditPerson> {
                                   builder: (context) => AlertDialog(
                                     actions: [
                                       TextButton(
-                                        onPressed: () => navigator.currentState
+                                        onPressed: () => navigator.currentState!
                                             .pop(name.text),
                                         child: Text('حفظ'),
                                       ),
                                       TextButton(
-                                        onPressed: () => navigator.currentState
+                                        onPressed: () => navigator.currentState!
                                             .pop('delete'),
                                         child: Text('حذف'),
                                       ),
@@ -327,7 +325,7 @@ class _EditPersonState extends State<EditPerson> {
                               actions: [
                                 TextButton(
                                   onPressed: () =>
-                                      navigator.currentState.pop(name.text),
+                                      navigator.currentState!.pop(name.text),
                                   child: Text('حفظ'),
                                 )
                               ],
@@ -364,7 +362,7 @@ class _EditPersonState extends State<EditPerson> {
                                 ),
                                 child: person.birthDate != null
                                     ? Text(DateFormat('yyyy/M/d')
-                                        .format(person.birthDate.toDate()))
+                                        .format(person.birthDate!.toDate()))
                                     : Text('(فارغ)'),
                               ),
                             ),
@@ -409,10 +407,10 @@ class _EditPersonState extends State<EditPerson> {
                     label: Text('تعديل مكان المنزل على الخريطة'),
                     onPressed: () async {
                       var oldPoint = person.location != null
-                          ? GeoPoint(person.location.latitude,
-                              person.location.longitude)
+                          ? GeoPoint(person.location!.latitude,
+                              person.location!.longitude)
                           : null;
-                      var rslt = await navigator.currentState.push(
+                      var rslt = await navigator.currentState!.push(
                         MaterialPageRoute(
                           builder: (context) => Scaffold(
                             appBar: AppBar(
@@ -420,13 +418,13 @@ class _EditPersonState extends State<EditPerson> {
                                 IconButton(
                                   icon: Icon(Icons.done),
                                   onPressed: () =>
-                                      navigator.currentState.pop(true),
+                                      navigator.currentState!.pop(true),
                                   tooltip: 'حفظ',
                                 ),
                                 IconButton(
                                   icon: Icon(Icons.delete),
                                   onPressed: () =>
-                                      navigator.currentState.pop(false),
+                                      navigator.currentState!.pop(false),
                                   tooltip: 'حذف التحديد',
                                 )
                               ],
@@ -456,7 +454,7 @@ class _EditPersonState extends State<EditPerson> {
                                 padding: EdgeInsets.symmetric(vertical: 4.0),
                                 child: DropdownButtonFormField(
                                   value: person.school?.path,
-                                  items: data.data.docs
+                                  items: data.data!.docs
                                       .map(
                                         (item) => DropdownMenuItem(
                                           value: item.reference.path,
@@ -471,7 +469,7 @@ class _EditPersonState extends State<EditPerson> {
                                             child: Text(''),
                                           ),
                                         ),
-                                  onChanged: (value) {
+                                  onChanged: (dynamic value) {
                                     person.school = value != null
                                         ? FirebaseFirestore.instance.doc(value)
                                         : null;
@@ -496,7 +494,7 @@ class _EditPersonState extends State<EditPerson> {
                         icon: Icon(Icons.add),
                         label: Text('اضافة'),
                         onPressed: () async {
-                          await navigator.currentState
+                          await navigator.currentState!
                               .pushNamed('Settings/Schools');
                           setState(() {});
                         },
@@ -517,7 +515,7 @@ class _EditPersonState extends State<EditPerson> {
                                 padding: EdgeInsets.symmetric(vertical: 4.0),
                                 child: DropdownButtonFormField(
                                   value: person.church?.path,
-                                  items: data.data.docs
+                                  items: data.data!.docs
                                       .map(
                                         (item) => DropdownMenuItem(
                                           value: item.reference.path,
@@ -532,7 +530,7 @@ class _EditPersonState extends State<EditPerson> {
                                             child: Text(''),
                                           ),
                                         ),
-                                  onChanged: (value) {
+                                  onChanged: (dynamic value) {
                                     person.church = value != null
                                         ? FirebaseFirestore.instance.doc(value)
                                         : null;
@@ -558,7 +556,7 @@ class _EditPersonState extends State<EditPerson> {
                         icon: Icon(Icons.add),
                         label: Text('اضافة'),
                         onPressed: () async {
-                          await navigator.currentState
+                          await navigator.currentState!
                               .pushNamed('Settings/Churches');
                           setState(() {});
                         },
@@ -574,7 +572,7 @@ class _EditPersonState extends State<EditPerson> {
                             if (data.hasData) {
                               return DropdownButtonFormField(
                                 value: person.cFather?.path,
-                                items: data.data.docs
+                                items: data.data!.docs
                                     .map(
                                       (item) => DropdownMenuItem(
                                         value: item.reference.path,
@@ -589,7 +587,7 @@ class _EditPersonState extends State<EditPerson> {
                                           child: Text(''),
                                         ),
                                       ),
-                                onChanged: (value) {
+                                onChanged: (dynamic value) {
                                   person.cFather = value != null
                                       ? FirebaseFirestore.instance.doc(value)
                                       : null;
@@ -614,7 +612,7 @@ class _EditPersonState extends State<EditPerson> {
                         icon: Icon(Icons.add),
                         label: Text('اضافة'),
                         onPressed: () async {
-                          await navigator.currentState
+                          await navigator.currentState!
                               .pushNamed('Settings/Fathers');
                           setState(() {});
                         },
@@ -634,14 +632,14 @@ class _EditPersonState extends State<EditPerson> {
                                   color: Theme.of(context).primaryColor),
                             ),
                           ),
-                          child: FutureBuilder(
+                          child: FutureBuilder<String>(
                             future: person.classId == null
                                 ? null
                                 : person.getClassName(),
                             builder: (con, data) {
                               if (data.connectionState ==
                                   ConnectionState.done) {
-                                return Text(data.data);
+                                return Text(data.data!);
                               } else if (data.connectionState ==
                                   ConnectionState.waiting) {
                                 return LinearProgressIndicator();
@@ -680,7 +678,7 @@ class _EditPersonState extends State<EditPerson> {
                                 ),
                                 child: person.lastTanawol != null
                                     ? Text(DateFormat('yyyy/M/d')
-                                        .format(person.lastTanawol.toDate()))
+                                        .format(person.lastTanawol!.toDate()))
                                     : Text('(فارغ)'),
                               ),
                             ),
@@ -715,8 +713,8 @@ class _EditPersonState extends State<EditPerson> {
                                   ),
                                 ),
                                 child: person.lastConfession != null
-                                    ? Text(DateFormat('yyyy/M/d')
-                                        .format(person.lastConfession.toDate()))
+                                    ? Text(DateFormat('yyyy/M/d').format(
+                                        person.lastConfession!.toDate()))
                                     : Text('(فارغ)'),
                               ),
                             ),
@@ -751,7 +749,7 @@ class _EditPersonState extends State<EditPerson> {
                                 ),
                                 child: person.lastKodas != null
                                     ? Text(DateFormat('yyyy/M/d')
-                                        .format(person.lastKodas.toDate()))
+                                        .format(person.lastKodas!.toDate()))
                                     : Text('(فارغ)'),
                               ),
                             ),
@@ -786,7 +784,7 @@ class _EditPersonState extends State<EditPerson> {
                                 ),
                                 child: person.lastMeeting != null
                                     ? Text(DateFormat('yyyy/M/d')
-                                        .format(person.lastMeeting.toDate()))
+                                        .format(person.lastMeeting!.toDate()))
                                     : Text('(فارغ)'),
                               ),
                             ),
@@ -813,7 +811,7 @@ class _EditPersonState extends State<EditPerson> {
                           ),
                           child: person.lastVisit != null
                               ? Text(DateFormat('yyyy/M/d')
-                                  .format(person.lastVisit.toDate()))
+                                  .format(person.lastVisit!.toDate()))
                               : Text('(فارغ)'),
                         ),
                       ),
@@ -837,7 +835,7 @@ class _EditPersonState extends State<EditPerson> {
                           ),
                           child: person.lastCall != null
                               ? Text(DateFormat('yyyy/M/d')
-                                  .format(person.lastCall.toDate()))
+                                  .format(person.lastCall!.toDate()))
                               : Text('(فارغ)'),
                         ),
                       ),
@@ -865,8 +863,8 @@ class _EditPersonState extends State<EditPerson> {
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       primary: Theme.of(context).brightness == Brightness.light
-                          ? TinyColor(person.color).lighten().color
-                          : TinyColor(person.color).darken().color,
+                          ? TinyColor(person.color!).lighten().color
+                          : TinyColor(person.color!).darken().color,
                     ),
                     onPressed: selectColor,
                     icon: Icon(Icons.color_lens),
@@ -896,7 +894,7 @@ class _EditPersonState extends State<EditPerson> {
             heroTag: 'Save',
             onPressed: () {
               if (widget.save != null)
-                widget.save(form.currentState, person);
+                widget.save!(form.currentState!, person);
               else
                 _save();
             },
@@ -908,9 +906,9 @@ class _EditPersonState extends State<EditPerson> {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    person ??= (widget.person ?? Person()).copyWith();
+  void initState() {
+    super.initState();
+    person = (widget.person ?? Person()).copyWith();
   }
 
   void selectColor() async {
@@ -920,7 +918,7 @@ class _EditPersonState extends State<EditPerson> {
         actions: [
           TextButton(
             onPressed: () {
-              navigator.currentState.pop();
+              navigator.currentState!.pop();
               setState(() {
                 person.color = Colors.transparent;
               });
@@ -931,7 +929,7 @@ class _EditPersonState extends State<EditPerson> {
         content: ColorsList(
           selectedColor: person.color,
           onSelect: (color) {
-            navigator.currentState.pop();
+            navigator.currentState!.pop();
             setState(() {
               person.color = color;
             });
@@ -954,13 +952,13 @@ class _EditPersonState extends State<EditPerson> {
             actions: <Widget>[
               TextButton(
                 onPressed: () {
-                  navigator.currentState.pop(true);
+                  navigator.currentState!.pop(true);
                 },
                 child: Text('نعم'),
               ),
               TextButton(
                 onPressed: () {
-                  navigator.currentState.pop();
+                  navigator.currentState!.pop();
                 },
                 child: Text('تراجع'),
               ),
@@ -969,25 +967,12 @@ class _EditPersonState extends State<EditPerson> {
         ) ==
         true) {
       if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
-        if (person.hasPhoto) {
-          await FirebaseStorage.instance
-              .ref()
-              .child('PersonsPhotos/${person.id}')
-              .delete();
-        }
         await person.ref.delete();
       } else {
-        if (person.hasPhoto) {
-          // ignore: unawaited_futures
-          FirebaseStorage.instance
-              .ref()
-              .child('PersonsPhotos/${person.id}')
-              .delete();
-        }
         // ignore: unawaited_futures
         person.ref.delete();
 
-        navigator.currentState.pop('deleted');
+        navigator.currentState!.pop('deleted');
       }
     }
   }
@@ -1014,8 +999,8 @@ class _EditPersonState extends State<EditPerson> {
 
   Future _save() async {
     try {
-      if (form.currentState.validate() && person.classId != null) {
-        scaffoldMessenger.currentState.showSnackBar(
+      if (form.currentState!.validate() && person.classId != null) {
+        scaffoldMessenger.currentState!.showSnackBar(
           SnackBar(
             content: Text('جار الحفظ...'),
             duration: Duration(minutes: 1),
@@ -1029,7 +1014,7 @@ class _EditPersonState extends State<EditPerson> {
           await FirebaseStorage.instance
               .ref()
               .child('PersonsPhotos/${person.id}')
-              .putFile(File(changedImage));
+              .putFile(File(changedImage!));
           person.hasPhoto = true;
         } else if (deletePhoto) {
           await FirebaseStorage.instance
@@ -1038,16 +1023,16 @@ class _EditPersonState extends State<EditPerson> {
               .delete();
         }
 
-        person.lastEdit = auth.FirebaseAuth.instance.currentUser.uid;
+        person.lastEdit = auth.FirebaseAuth.instance.currentUser!.uid;
 
         if (update &&
             await Connectivity().checkConnectivity() !=
                 ConnectivityResult.none) {
-          await person.update(old: widget.person.getMap());
+          await person.update(old: widget.person?.getMap() ?? {});
         } else if (update) {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
-          person.update(old: widget.person.getMap());
+          person.update(old: widget.person?.getMap() ?? {});
         } else if (await Connectivity().checkConnectivity() !=
             ConnectivityResult.none) {
           await person.set();
@@ -1056,8 +1041,8 @@ class _EditPersonState extends State<EditPerson> {
           // ignore: unawaited_futures
           person.set();
         }
-        scaffoldMessenger.currentState.hideCurrentSnackBar();
-        navigator.currentState.pop(person.ref);
+        scaffoldMessenger.currentState!.hideCurrentSnackBar();
+        navigator.currentState!.pop(person.ref);
       } else {
         await showDialog(
           context: context,
@@ -1071,8 +1056,8 @@ class _EditPersonState extends State<EditPerson> {
       await FirebaseCrashlytics.instance
           .setCustomKey('LastErrorIn', 'PersonP.save');
       await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-      scaffoldMessenger.currentState.hideCurrentSnackBar();
-      scaffoldMessenger.currentState.showSnackBar(SnackBar(
+      scaffoldMessenger.currentState!.hideCurrentSnackBar();
+      scaffoldMessenger.currentState!.showSnackBar(SnackBar(
         content: Text(
           err.toString(),
         ),
@@ -1086,7 +1071,7 @@ class _EditPersonState extends State<EditPerson> {
         BehaviorSubject<String>.seeded('');
     final options = ServicesListOptions(
       tap: (class$) {
-        navigator.currentState.pop();
+        navigator.currentState!.pop();
         person.classId = class$.ref;
         setState(() {});
         FocusScope.of(context).nextFocus();
@@ -1122,13 +1107,13 @@ class _EditPersonState extends State<EditPerson> {
             bottomNavigationBar: BottomAppBar(
               color: Theme.of(context).primaryColor,
               shape: CircularNotchedRectangle(),
-              child: StreamBuilder<Map>(
+              child: StreamBuilder<Map?>(
                 stream: options.objectsData,
                 builder: (context, snapshot) {
                   return Text((snapshot.data?.length ?? 0).toString() + ' خدمة',
                       textAlign: TextAlign.center,
                       strutStyle:
-                          StrutStyle(height: IconTheme.of(context).size / 7.5),
+                          StrutStyle(height: IconTheme.of(context).size! / 7.5),
                       style: Theme.of(context).primaryTextTheme.bodyText1);
                 },
               ),
@@ -1137,10 +1122,10 @@ class _EditPersonState extends State<EditPerson> {
                 ? FloatingActionButton(
                     heroTag: null,
                     onPressed: () async {
-                      navigator.currentState.pop();
-                      person.classId = (await navigator.currentState
+                      navigator.currentState!.pop();
+                      person.classId = (await navigator.currentState!
                                   .pushNamed('Data/EditClass'))
-                              as DocumentReference ??
+                              as DocumentReference? ??
                           person.classId;
                       setState(() {});
                     },

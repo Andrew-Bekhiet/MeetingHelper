@@ -13,11 +13,11 @@ class NotificationSetting extends StatefulWidget {
   final Function notificationCallback;
 
   NotificationSetting(
-      {Key key,
-      this.label,
-      this.hiveKey,
-      this.alarmId,
-      this.notificationCallback})
+      {Key? key,
+      required this.label,
+      required this.hiveKey,
+      required this.alarmId,
+      required this.notificationCallback})
       : super(key: key);
 
   @override
@@ -27,7 +27,7 @@ class NotificationSetting extends StatefulWidget {
 class _NotificationSettingState extends State<NotificationSetting> {
   int multiplier = 1;
   final TextEditingController period = TextEditingController();
-  TimeOfDay time;
+  late TimeOfDay time;
 
   var notificationsSettings =
       Hive.box<Map<dynamic, dynamic>>('NotificationsSettings');
@@ -52,7 +52,7 @@ class _NotificationSettingState extends State<NotificationSetting> {
               ..text = _totalDays(notificationsSettings.get(widget.hiveKey,
                       defaultValue: {
                     'Period': 7
-                  }).cast<String, int>()['Period'])
+                  })!.cast<String, int>()['Period']!)
                   .toString(),
           ),
         ),
@@ -75,14 +75,14 @@ class _NotificationSettingState extends State<NotificationSetting> {
               )
             ],
             value: _largestPossible(notificationsSettings.get(widget.hiveKey,
-                defaultValue: {'Period': 7}).cast<String, int>()['Period']),
-            onSaved: (_) => onSave(),
-            onChanged: (value) async {
-              if (value as DateType == DateType.month) {
+                defaultValue: {'Period': 7})!.cast<String, int>()['Period']!),
+            onSaved: (dynamic _) => onSave(),
+            onChanged: (dynamic value) async {
+              if (value == DateType.month) {
                 multiplier = 30;
-              } else if (value as DateType == DateType.week) {
+              } else if (value == DateType.week) {
                 multiplier = 7;
-              } else if (value as DateType == DateType.day) {
+              } else if (value == DateType.day) {
                 multiplier = 1;
               }
             },
@@ -99,14 +99,14 @@ class _NotificationSettingState extends State<NotificationSetting> {
             initialValue: DateTime(2021, 1, 1, time.hour, time.minute),
             onShowPicker: (context, initialValue) async {
               var selected = await showTimePicker(
-                initialTime: TimeOfDay.fromDateTime(initialValue),
+                initialTime: TimeOfDay.fromDateTime(initialValue!),
                 context: context,
               );
               return DateTime(2020, 1, 1, selected?.hour ?? initialValue.hour,
                   selected?.minute ?? initialValue.minute);
             },
             onChanged: (value) {
-              time = TimeOfDay(hour: value.hour, minute: value.minute);
+              time = TimeOfDay(hour: value!.hour, minute: value.minute);
             },
           ),
         ),
@@ -119,9 +119,9 @@ class _NotificationSettingState extends State<NotificationSetting> {
     super.initState();
     time = TimeOfDay(
       hour: notificationsSettings.get(widget.hiveKey,
-          defaultValue: {'Hours': 11}).cast<String, int>()['Hours'],
+          defaultValue: {'Hours': 11})!.cast<String, int>()['Hours']!,
       minute: notificationsSettings.get(widget.hiveKey,
-          defaultValue: {'Minutes': 0}).cast<String, int>()['Minutes'],
+          defaultValue: {'Minutes': 0})!.cast<String, int>()['Minutes']!,
     );
   }
 
@@ -130,7 +130,7 @@ class _NotificationSettingState extends State<NotificationSetting> {
       'Hours': 11,
       'Minutes': 0,
       'Period': 7
-    }).cast<String, int>();
+    })!.cast<String, int>();
     if (current['Period'] == int.parse(period.text) * multiplier &&
         current['Hours'] == time.hour &&
         current['Minutes'] == time.minute) return;

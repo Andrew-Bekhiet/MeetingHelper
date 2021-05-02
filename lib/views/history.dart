@@ -24,7 +24,7 @@ class ServantsHistory extends StatefulWidget {
 }
 
 class _HistoryState extends State<History> {
-  Stream<QuerySnapshot> list;
+  Stream<QuerySnapshot>? list;
   final BehaviorSubject<bool> _showSearch = BehaviorSubject<bool>.seeded(false);
   final BehaviorSubject<String> _search = BehaviorSubject<String>.seeded('');
   final FocusNode _searchFocus = FocusNode();
@@ -35,7 +35,7 @@ class _HistoryState extends State<History> {
       create: (_) => DataObjectListOptions<HistoryDay>(
         searchQuery: _search,
         tap: (h) => historyTap(h, context),
-        itemsStream: list ??
+        itemsStream: list as Stream<List<HistoryDay>>? ??
             FirebaseFirestore.instance
                 .collection('History')
                 .orderBy('Day', descending: true)
@@ -49,7 +49,7 @@ class _HistoryState extends State<History> {
               initialData: _showSearch.value,
               stream: _showSearch,
               builder: (context, snapshot) {
-                return snapshot.data
+                return snapshot.data!
                     ? TextField(
                         focusNode: _searchFocus,
                         decoration: InputDecoration(
@@ -57,7 +57,7 @@ class _HistoryState extends State<History> {
                               icon: Icon(Icons.close,
                                   color: Theme.of(context)
                                       .primaryTextTheme
-                                      .headline6
+                                      .headline6!
                                       .color),
                               onPressed: () => setState(
                                 () {
@@ -77,7 +77,7 @@ class _HistoryState extends State<History> {
                 initialData: _showSearch.value,
                 stream: _showSearch,
                 builder: (context, snapshot) {
-                  return snapshot.data
+                  return snapshot.data!
                       ? IconButton(
                           icon: Icon(Icons.search),
                           onPressed: () => setState(() {
@@ -103,7 +103,7 @@ class _HistoryState extends State<History> {
                         label: Text(
                           'التالي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2.color,
+                            color: Theme.of(context).textTheme.bodyText2!.color,
                           ),
                         ),
                         onPressed: () =>
@@ -114,7 +114,7 @@ class _HistoryState extends State<History> {
                         child: Text(
                           'تخطي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2.color,
+                            color: Theme.of(context).textTheme.bodyText2!.color,
                           ),
                         ),
                       ),
@@ -122,7 +122,7 @@ class _HistoryState extends State<History> {
                   ),
                   backgroundColor: Theme.of(context).accentColor,
                   targetColor: Theme.of(context).primaryColor,
-                  textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
+                  textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
                   child: list == null
                       ? Icon(Icons.calendar_today)
                       : Icon(Icons.clear),
@@ -130,7 +130,7 @@ class _HistoryState extends State<History> {
                 tooltip: list == null ? 'بحث بالتاريخ' : 'محو البحث',
                 onPressed: () async {
                   if (list == null) {
-                    DateTimeRange result = await showDateRangePicker(
+                    DateTimeRange? result = await showDateRangePicker(
                       context: context,
                       firstDate: DateTime(2020, 1, 1),
                       lastDate: DateTime.now(),
@@ -176,13 +176,13 @@ class _HistoryState extends State<History> {
                       .limit(1)
                       .get(dataSource))
                   .docs;
-              mainScfld.currentState.openEndDrawer();
+              mainScfld.currentState!.openEndDrawer();
               if (today.isNotEmpty) {
-                await navigator.currentState
+                await navigator.currentState!
                     .pushNamed('Day', arguments: HistoryDay.fromDoc(today[0]));
               } else if (await Connectivity().checkConnectivity() !=
                   ConnectivityResult.none) {
-                await navigator.currentState.pushNamed('Day');
+                await navigator.currentState!.pushNamed('Day');
               } else {
                 await showDialog(
                     context: context,
@@ -205,7 +205,7 @@ class _HistoryState extends State<History> {
                     (snapshot.data?.length ?? 0).toString() + ' سجل',
                     textAlign: TextAlign.center,
                     strutStyle:
-                        StrutStyle(height: IconTheme.of(context).size / 7.5),
+                        StrutStyle(height: IconTheme.of(context).size! / 7.5),
                     style: Theme.of(context).primaryTextTheme.bodyText1,
                   );
                 },
@@ -223,13 +223,13 @@ class _HistoryState extends State<History> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) =>
+    WidgetsBinding.instance!.addPostFrameCallback((_) =>
         FeatureDiscovery.discoverFeatures(context, ['SearchByDateRange']));
   }
 }
 
 class _ServantsHistoryState extends State<ServantsHistory> {
-  Stream<QuerySnapshot> list;
+  Stream<QuerySnapshot>? list;
   final BehaviorSubject<bool> _showSearch = BehaviorSubject<bool>.seeded(false);
   final BehaviorSubject<String> _search = BehaviorSubject<String>.seeded('');
   final FocusNode _searchFocus = FocusNode();
@@ -240,7 +240,7 @@ class _ServantsHistoryState extends State<ServantsHistory> {
       create: (_) => DataObjectListOptions<ServantsHistoryDay>(
         searchQuery: _search,
         tap: (h) => historyTap(h, context),
-        itemsStream: list ??
+        itemsStream: list as Stream<List<ServantsHistoryDay>>? ??
             FirebaseFirestore.instance
                 .collection('ServantsHistory')
                 .orderBy('Day', descending: true)
@@ -253,7 +253,7 @@ class _ServantsHistoryState extends State<ServantsHistory> {
             initialData: _showSearch.value,
             stream: _showSearch,
             builder: (context, snapshot) {
-              return snapshot.data
+              return snapshot.data!
                   ? TextField(
                       focusNode: _searchFocus,
                       decoration: InputDecoration(
@@ -261,7 +261,7 @@ class _ServantsHistoryState extends State<ServantsHistory> {
                             icon: Icon(Icons.close,
                                 color: Theme.of(context)
                                     .primaryTextTheme
-                                    .headline6
+                                    .headline6!
                                     .color),
                             onPressed: () => setState(
                               () {
@@ -281,7 +281,7 @@ class _ServantsHistoryState extends State<ServantsHistory> {
               initialData: _showSearch.value,
               stream: _showSearch,
               builder: (context, snapshot) {
-                return snapshot.data
+                return snapshot.data!
                     ? IconButton(
                         icon: Icon(Icons.search),
                         onPressed: () => setState(() {
@@ -298,7 +298,7 @@ class _ServantsHistoryState extends State<ServantsHistory> {
               tooltip: list == null ? 'بحث بالتاريخ' : 'محو البحث',
               onPressed: () async {
                 if (list == null) {
-                  DateTimeRange result = await showDateRangePicker(
+                  DateTimeRange? result = await showDateRangePicker(
                     context: context,
                     firstDate: DateTime(2020, 1, 1),
                     lastDate: DateTime.now(),
@@ -345,12 +345,12 @@ class _ServantsHistoryState extends State<ServantsHistory> {
                           ))
                       .get(dataSource))
                   .docs;
-              mainScfld.currentState.openEndDrawer();
+              mainScfld.currentState!.openEndDrawer();
               if (today.isNotEmpty) {
-                await navigator.currentState.pushNamed('ServantsDay',
+                await navigator.currentState!.pushNamed('ServantsDay',
                     arguments: ServantsHistoryDay.fromDoc(today[0]));
               } else {
-                await navigator.currentState.pushNamed('ServantsDay');
+                await navigator.currentState!.pushNamed('ServantsDay');
               }
             } else {
               await showDialog(
@@ -374,7 +374,7 @@ class _ServantsHistoryState extends State<ServantsHistory> {
                   (snapshot.data?.length ?? 0).toString() + ' سجل',
                   textAlign: TextAlign.center,
                   strutStyle:
-                      StrutStyle(height: IconTheme.of(context).size / 7.5),
+                      StrutStyle(height: IconTheme.of(context).size! / 7.5),
                   style: Theme.of(context).primaryTextTheme.bodyText1,
                 );
               },

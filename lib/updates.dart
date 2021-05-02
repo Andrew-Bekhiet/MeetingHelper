@@ -10,16 +10,16 @@ import 'package:version/version.dart';
 import 'utils/globals.dart';
 
 class Update extends StatefulWidget {
-  Update({Key key}) : super(key: key);
+  Update({Key? key}) : super(key: key);
   @override
   _UpdateState createState() => _UpdateState();
 }
 
 class UpdateHelper {
-  static Future<RemoteConfig> setupRemoteConfig() async {
+  static Future<RemoteConfig?> setupRemoteConfig() async {
     try {
       remoteConfig = RemoteConfig.instance;
-      await remoteConfig.setDefaults(<String, dynamic>{
+      await remoteConfig!.setDefaults(<String, dynamic>{
         'LatestVersion': (await PackageInfo.fromPlatform()).version,
         'LoadApp': 'false',
         'DownloadLink':
@@ -27,10 +27,10 @@ class UpdateHelper {
                 (await PackageInfo.fromPlatform()).version +
                 '/MeetingHelper.apk',
       });
-      await remoteConfig.setConfigSettings(RemoteConfigSettings(
+      await remoteConfig!.setConfigSettings(RemoteConfigSettings(
           fetchTimeout: const Duration(seconds: 30),
           minimumFetchInterval: const Duration(minutes: 2)));
-      await remoteConfig.fetchAndActivate();
+      await remoteConfig!.fetchAndActivate();
       // ignore: empty_catches
     } catch (err) {}
     return remoteConfig;
@@ -41,7 +41,7 @@ class Updates {
   static Future showUpdateDialog(BuildContext context,
       {bool canCancel = true}) async {
     Version latest = Version.parse(
-        (await UpdateHelper.setupRemoteConfig()).getString('LatestVersion'));
+        (await UpdateHelper.setupRemoteConfig())!.getString('LatestVersion'));
     if (latest > Version.parse((await PackageInfo.fromPlatform()).version)) {
       await showDialog(
         barrierDismissible: canCancel,
@@ -55,18 +55,18 @@ class Updates {
             actions: <Widget>[
               TextButton(
                 onPressed: () async {
-                  if (await canLaunch((await UpdateHelper.setupRemoteConfig())
+                  if (await canLaunch((await UpdateHelper.setupRemoteConfig())!
                       .getString('DownloadLink')
                       .replaceFirst('https://', 'https:'))) {
-                    await launch((await UpdateHelper.setupRemoteConfig())
+                    await launch((await UpdateHelper.setupRemoteConfig())!
                         .getString('DownloadLink')
                         .replaceFirst('https://', 'https:'));
                   } else {
-                    navigator.currentState.pop();
+                    navigator.currentState!.pop();
                     await Clipboard.setData(ClipboardData(
-                        text: (await UpdateHelper.setupRemoteConfig())
+                        text: (await UpdateHelper.setupRemoteConfig())!
                             .getString('DownloadLink')));
-                    scaffoldMessenger.currentState.showSnackBar(
+                    scaffoldMessenger.currentState!.showSnackBar(
                       SnackBar(
                         content: Text(
                             'حدث خطأ أثناء فتح رابط التحديث وتم نقله الى الحافظة'),
@@ -94,19 +94,19 @@ class Updates {
             actions: <Widget>[
               TextButton(
                 onPressed: () async {
-                  navigator.currentState.pop();
-                  if (await canLaunch((await UpdateHelper.setupRemoteConfig())
+                  navigator.currentState!.pop();
+                  if (await canLaunch((await UpdateHelper.setupRemoteConfig())!
                       .getString('DownloadLink')
                       .replaceFirst('https://', 'https:'))) {
-                    await launch((await UpdateHelper.setupRemoteConfig())
+                    await launch((await UpdateHelper.setupRemoteConfig())!
                         .getString('DownloadLink')
                         .replaceFirst('https://', 'https:'));
                   } else {
-                    navigator.currentState.pop();
+                    navigator.currentState!.pop();
                     await Clipboard.setData(ClipboardData(
-                        text: (await UpdateHelper.setupRemoteConfig())
+                        text: (await UpdateHelper.setupRemoteConfig())!
                             .getString('DownloadLink')));
-                    scaffoldMessenger.currentState.showSnackBar(
+                    scaffoldMessenger.currentState!.showSnackBar(
                       SnackBar(
                         content: Text(
                             'حدث خطأ أثناء فتح رابط التحديث وتم نقله الى الحافظة'),
@@ -119,7 +119,7 @@ class Updates {
               if (canCancel)
                 TextButton(
                   onPressed: () {
-                    navigator.currentState.pop();
+                    navigator.currentState!.pop();
                   },
                   child: Text('لا'),
                 ),
@@ -159,11 +159,11 @@ class _UpdateState extends State<Update> {
               ),
               ListTile(
                 title: Text('آخر إصدار:'),
-                subtitle: FutureBuilder<RemoteConfig>(
+                subtitle: FutureBuilder<RemoteConfig?>(
                   future: UpdateHelper.setupRemoteConfig(),
                   builder: (cont, data) {
                     if (data.hasData) {
-                      return Text(data.data.getString('LatestVersion'));
+                      return Text(data.data!.getString('LatestVersion'));
                     }
                     return LinearProgressIndicator();
                   },

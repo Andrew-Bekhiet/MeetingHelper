@@ -19,39 +19,39 @@ import 'package:tuple/tuple.dart';
 import 'user.dart';
 
 class Person extends DataObject with PhotoObject, ChildObject<Class> {
-  DocumentReference classId;
+  DocumentReference? classId;
 
-  String address;
-  GeoPoint location;
+  String? address;
+  GeoPoint? location;
 
-  String phone;
-  String fatherPhone;
-  String motherPhone;
-  Map<String, dynamic> phones;
+  String? phone;
+  String? fatherPhone;
+  String? motherPhone;
+  late Map<String, dynamic> phones;
 
-  Timestamp birthDate;
+  Timestamp? birthDate;
 
-  DocumentReference school;
-  DocumentReference church;
-  DocumentReference cFather;
+  DocumentReference? school;
+  DocumentReference? church;
+  DocumentReference? cFather;
 
-  Timestamp lastConfession;
-  Timestamp lastTanawol;
-  Timestamp lastKodas;
-  Timestamp lastMeeting;
-  Timestamp lastCall;
+  Timestamp? lastConfession;
+  Timestamp? lastTanawol;
+  Timestamp? lastKodas;
+  Timestamp? lastMeeting;
+  Timestamp? lastCall;
 
-  Timestamp lastVisit;
-  String lastEdit;
-  String notes;
+  Timestamp? lastVisit;
+  String? lastEdit;
+  String? notes;
 
   Person(
-      {String id,
-      DocumentReference ref,
+      {String? id,
+      DocumentReference? ref,
       this.classId,
       String name = '',
       this.phone = '',
-      this.phones,
+      Map<String, dynamic>? phones,
       this.fatherPhone = '',
       this.motherPhone = '',
       this.address = '',
@@ -78,7 +78,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
             name,
             color) {
     this.hasPhoto = hasPhoto;
-    phones ??= {};
+    this.phones = phones ?? {};
     defaultIcon = Icons.person;
   }
 
@@ -115,46 +115,41 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
     defaultIcon = Icons.person;
   }
 
-  Timestamp get birthDay => birthDate != null
+  Timestamp? get birthDay => birthDate != null
       ? Timestamp.fromDate(
-          DateTime(1970, birthDate.toDate().month, birthDate.toDate().day))
+          DateTime(1970, birthDate!.toDate().month, birthDate!.toDate().day))
       : null;
 
   @override
-  DocumentReference get parentId => classId;
+  DocumentReference? get parentId => classId;
 
   @override
   Reference get photoRef =>
       FirebaseStorage.instance.ref().child('PersonsPhotos/$id');
 
   Future<String> getCFatherName() async {
-    var tmp = (await cFather?.get(dataSource))?.data;
-    if (tmp == null) return '';
-    return tmp()['Name'] ?? 'لا يوجد';
+    return (await cFather?.get(dataSource))?.data()?['Name'] ?? '';
   }
 
   Future<String> getChurchName() async {
-    var tmp = (await church?.get(dataSource))?.data;
-    if (tmp == null) return '';
-    return tmp()['Name'] ?? 'لا يوجد';
+    return (await church?.get(dataSource))?.data()?['Name'] ?? '';
   }
 
   Future<String> getClassName() async {
-    var tmp = (await classId?.get(dataSource))?.data;
-    if (tmp == null) return '';
-    return tmp()['Name'] ?? 'لا يوجد';
+    return (await classId?.get(dataSource))?.data()?['Name'] ?? '';
   }
 
   @override
   Map<String, dynamic> getHumanReadableMap() => {
-        'Name': name ?? '',
+        'Name': name,
         'Phone': phone ?? '',
         'FatherPhone': fatherPhone ?? '',
         'MotherPhone': motherPhone ?? '',
         'Address': address,
         'BirthDate': toDurationString(birthDate, appendSince: false),
-        'BirthDay':
-            birthDay != null ? DateFormat('d/M').format(birthDay.toDate()) : '',
+        'BirthDay': birthDay != null
+            ? DateFormat('d/M').format(birthDay!.toDate())
+            : '',
         'LastTanawol': toDurationString(lastTanawol),
         'LastCall': toDurationString(lastCall),
         'LastConfession': toDurationString(lastConfession),
@@ -171,11 +166,11 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
         'Phone': phone,
         'FatherPhone': fatherPhone,
         'MotherPhone': motherPhone,
-        'Phones': (phones?.map((k, v) => MapEntry(k, v)) ?? {})
+        'Phones': phones.map((k, v) => MapEntry(k, v))
           ..removeWhere((k, v) => v.toString().isEmpty),
         'Address': address,
-        'HasPhoto': hasPhoto ?? false,
-        'Color': color.value,
+        'HasPhoto': hasPhoto,
+        'Color': color?.value,
         'BirthDate': birthDate,
         'BirthDay': birthDay,
         'LastTanawol': lastTanawol,
@@ -205,8 +200,8 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
                   return Center(child: CircularProgressIndicator());
                 return MapView(
                     childrenDepth: 3,
-                    initialLocation:
-                        LatLng(snapshot.data.latitude, snapshot.data.longitude),
+                    initialLocation: LatLng(snapshot.data!.latitude ?? 34,
+                        snapshot.data!.longitude ?? 50),
                     editMode: editMode,
                     person: this);
               },
@@ -230,36 +225,25 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
     return MapView(editMode: editMode, person: this, childrenDepth: 3);
   }
 
-  Future<String> getMembersString() {
-    return Future(() => phone);
-  }
+  String? getMembersString() => phone;
 
   @override
-  Future<String> getParentName() async {
-    return await getClassName();
+  Future<String> getParentName() {
+    return getClassName();
   }
 
   Future<String> getSchoolName() async {
-    var tmp = (await school?.get(dataSource))?.data;
-    if (tmp == null) return '';
-    return tmp()['Name'] ?? 'لا يوجد';
+    return (await school?.get(dataSource))?.data()?['Name'] ?? '';
   }
 
-  // Future<String> getStringType() async {
-  //   var tmp = (await type?.get(source: dataSource))?.data;
-  //   if (tmp == null) return '';
-  //   return tmp['Name'] ?? 'لا يوجد';
-  // }
-
   String getSearchString() {
-    return ((name ?? '') +
+    return (name +
             (phone ?? '') +
             (fatherPhone ?? '') +
             (motherPhone ?? '') +
             (address ?? '') +
             (birthDate?.toString() ?? '') +
             (notes ?? ''))
-        // (type ?? ''))
         .toLowerCase()
         .replaceAll(
             RegExp(
@@ -274,10 +258,10 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
   }
 
   @override
-  Future<String> getSecondLine() async {
+  Future<String?> getSecondLine() async {
     String key = Hive.box('Settings').get('PersonSecondLine', defaultValue: '');
     if (key == 'Members') {
-      return await getMembersString();
+      return getMembersString();
     } else if (key == 'ClassId') {
       return await getClassName();
     } else if (key == 'School') {
@@ -290,19 +274,14 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
     return getHumanReadableMap()[key] ?? '';
   }
 
-  static Person fromDoc(DocumentSnapshot data) =>
-      data.exists ? Person.createFromData(data.data(), data.reference) : null;
+  static Person? fromDoc(DocumentSnapshot data) =>
+      data.exists ? Person.createFromData(data.data()!, data.reference) : null;
 
-  static Future<Person> fromId(String id) async =>
+  static Person fromQueryDoc(QueryDocumentSnapshot data) =>
+      Person.createFromData(data.data(), data.reference);
+
+  static Future<Person?> fromId(String id) async =>
       Person.fromDoc(await FirebaseFirestore.instance.doc('Persons/$id').get());
-
-  static List<Person> getAll(List<DocumentSnapshot> persons) {
-    var rslt = <Person>[];
-    for (DocumentSnapshot item in persons) {
-      rslt.add(Person.fromDoc(item));
-    }
-    return rslt;
-  }
 
   static Stream<List<Person>> getAllForUser({
     String orderBy = 'Name',
@@ -311,29 +290,31 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
     return Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
         User.instance.stream,
         Class.getAllForUser(),
-        (a, b) => Tuple2<User, List<Class>>(a, b)).switchMap((u) {
-      if (u.item1.superAccess) {
-        return FirebaseFirestore.instance
-            .collection('Persons')
-            .orderBy(orderBy, descending: descending)
-            .snapshots()
-            .map((p) => p.docs.map(fromDoc).toList());
-      } else if (u.item2.length <= 10) {
-        return FirebaseFirestore.instance
-            .collection('Persons')
-            .where('ClassId', whereIn: u.item2.map((e) => e.ref).toList())
-            .orderBy(orderBy, descending: descending)
-            .snapshots()
-            .map((p) => p.docs.map(fromDoc).toList());
-      }
-      return Rx.combineLatestList<QuerySnapshot>(u.item2.split(10).map((c) =>
-              FirebaseFirestore.instance
-                  .collection('Persons')
-                  .where('ClassId', whereIn: c.map((e) => e.ref).toList())
-                  .orderBy(orderBy, descending: descending)
-                  .snapshots()))
-          .map((s) => s.expand((n) => n.docs).map(fromDoc).toList());
-    });
+        (a, b) => Tuple2<User, List<Class>>(a, b)).switchMap(
+      (u) {
+        if (u.item1.superAccess) {
+          return FirebaseFirestore.instance
+              .collection('Persons')
+              .orderBy(orderBy, descending: descending)
+              .snapshots()
+              .map((p) => p.docs.map(fromQueryDoc).toList());
+        } else if (u.item2.length <= 10) {
+          return FirebaseFirestore.instance
+              .collection('Persons')
+              .where('ClassId', whereIn: u.item2.map((e) => e.ref).toList())
+              .orderBy(orderBy, descending: descending)
+              .snapshots()
+              .map((p) => p.docs.map(fromQueryDoc).toList());
+        }
+        return Rx.combineLatestList<QuerySnapshot>(u.item2.split(10).map((c) =>
+                FirebaseFirestore.instance
+                    .collection('Persons')
+                    .where('ClassId', whereIn: c.map((e) => e.ref).toList())
+                    .orderBy(orderBy, descending: descending)
+                    .snapshots()))
+            .map((s) => s.expand((n) => n.docs).map(fromQueryDoc).toList());
+      },
+    );
   }
 
   static Map<String, dynamic> getEmptyExportMap() => {

@@ -9,25 +9,25 @@ import 'views/mini_lists/schools_list.dart';
 import 'views/mini_lists/study_years_list.dart';
 
 class ChurchesPage extends StatefulWidget {
-  ChurchesPage({Key key}) : super(key: key);
+  ChurchesPage({Key? key}) : super(key: key);
   @override
   _ChurchesPageState createState() => _ChurchesPageState();
 }
 
 class SchoolsPage extends StatefulWidget {
-  SchoolsPage({Key key}) : super(key: key);
+  SchoolsPage({Key? key}) : super(key: key);
   @override
   _SchoolsPageState createState() => _SchoolsPageState();
 }
 
 class FathersPage extends StatefulWidget {
-  FathersPage({Key key}) : super(key: key);
+  FathersPage({Key? key}) : super(key: key);
   @override
   _FathersPageState createState() => _FathersPageState();
 }
 
 class StudyYearsPage extends StatefulWidget {
-  StudyYearsPage({Key key}) : super(key: key);
+  StudyYearsPage({Key? key}) : super(key: key);
   @override
   _StudyYearsPageState createState() => _StudyYearsPageState();
 }
@@ -55,7 +55,7 @@ class _SchoolsPageState extends State<SchoolsPage> {
     var title = TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.bold,
-        color: Theme.of(context).textTheme.headline6.color,
+        color: Theme.of(context).textTheme.headline6!.color,
         locale: Locale('ar', 'EG'));
     // TextStyle subTitle = TextStyle(
     //     fontSize: 18,
@@ -73,7 +73,7 @@ class _SchoolsPageState extends State<SchoolsPage> {
                       .doc(school.id)
                       .set(school.getMap());
                 }
-                navigator.currentState.pop();
+                navigator.currentState!.pop();
                 setState(() {
                   schoolTap(school, !editMode);
                 });
@@ -85,7 +85,7 @@ class _SchoolsPageState extends State<SchoolsPage> {
                   await showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: Text(school.name),
+                      title: Text(school.name!),
                       content: Text('هل أنت متأكد من حذف ${school.name}؟'),
                       actions: <Widget>[
                         TextButton(
@@ -94,8 +94,8 @@ class _SchoolsPageState extends State<SchoolsPage> {
                                 .collection('Schools')
                                 .doc(school.id)
                                 .delete();
-                            navigator.currentState.pop();
-                            navigator.currentState.pop();
+                            navigator.currentState!.pop();
+                            navigator.currentState!.pop();
                             setState(() {
                               editMode = !editMode;
                             });
@@ -104,7 +104,7 @@ class _SchoolsPageState extends State<SchoolsPage> {
                         ),
                         TextButton(
                           onPressed: () {
-                            navigator.currentState.pop();
+                            navigator.currentState!.pop();
                           },
                           child: Text('تراجع'),
                         ),
@@ -114,7 +114,7 @@ class _SchoolsPageState extends State<SchoolsPage> {
                 },
                 child: Text('حذف'))
         ],
-        title: Text(school.name),
+        title: Text(school.name!),
         content: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -129,7 +129,7 @@ class _SchoolsPageState extends State<SchoolsPage> {
                       controller: TextEditingController(text: school.name),
                       onChanged: (v) => school.name = v,
                     )
-                  : Text(school.name),
+                  : Text(school.name!),
               DefaultTextStyle(
                 style: title,
                 child: Text('العنوان:'),
@@ -139,7 +139,7 @@ class _SchoolsPageState extends State<SchoolsPage> {
                       controller: TextEditingController(text: school.address),
                       onChanged: (v) => school.address = v,
                     )
-                  : Text(school.address),
+                  : Text(school.address!),
             ],
           ),
         ),
@@ -171,7 +171,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
     var title = TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.bold,
-        color: Theme.of(context).textTheme.headline6.color,
+        color: Theme.of(context).textTheme.headline6!.color,
         locale: Locale('ar', 'EG'));
     // TextStyle subTitle = TextStyle(
     //     fontSize: 18,
@@ -189,7 +189,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                       .doc(church.id)
                       .set(church.getMap());
                 }
-                navigator.currentState.pop();
+                navigator.currentState!.pop();
                 setState(() {
                   churchTap(church, !editMode);
                 });
@@ -201,7 +201,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                   await showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: Text(church.name),
+                      title: Text(church.name!),
                       content: Text('هل أنت متأكد من حذف ${church.name}؟'),
                       actions: <Widget>[
                         TextButton(
@@ -210,8 +210,8 @@ class _ChurchesPageState extends State<ChurchesPage> {
                                 .collection('Churches')
                                 .doc(church.id)
                                 .delete();
-                            navigator.currentState.pop();
-                            navigator.currentState.pop();
+                            navigator.currentState!.pop();
+                            navigator.currentState!.pop();
                             setState(() {
                               editMode = !editMode;
                             });
@@ -220,7 +220,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                         ),
                         TextButton(
                           onPressed: () {
-                            navigator.currentState.pop();
+                            navigator.currentState!.pop();
                           },
                           child: Text('تراجع'),
                         ),
@@ -230,7 +230,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                 },
                 child: Text('حذف'))
         ],
-        title: Text(church.name),
+        title: Text(church.name!),
         content: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -245,7 +245,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                       controller: TextEditingController(text: church.name),
                       onChanged: (v) => church.name = v,
                     )
-                  : Text(church.name),
+                  : Text(church.name!),
               DefaultTextStyle(
                 style: title,
                 child: Text('العنوان:'),
@@ -255,7 +255,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                       controller: TextEditingController(text: church.address),
                       onChanged: (v) => church.address = v,
                     )
-                  : Text(church.address),
+                  : Text(church.address!),
               if (!editMode) Text('الأباء بالكنيسة:', style: title),
               if (!editMode)
                 FutureBuilder(
@@ -271,15 +271,15 @@ class _ChurchesPageState extends State<ChurchesPage> {
                                 return ListView.builder(
                                     physics: ClampingScrollPhysics(),
                                     shrinkWrap: true,
-                                    itemCount: data.data.docs.length,
+                                    itemCount: data.data!.docs.length,
                                     itemBuilder: (context, i) {
                                       var current =
-                                          Father.fromDoc(data.data.docs[i]);
+                                          Father.fromDoc(data.data!.docs[i]);
                                       return Card(
                                         child: ListTile(
                                           onTap: () =>
                                               fatherTap(current, false),
-                                          title: Text(current.name),
+                                          title: Text(current.name!),
                                         ),
                                       );
                                     });
@@ -302,7 +302,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
     var title = TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.bold,
-        color: Theme.of(context).textTheme.headline6.color,
+        color: Theme.of(context).textTheme.headline6!.color,
         locale: Locale('ar', 'EG'));
     // TextStyle subTitle = TextStyle(
     //     fontSize: 18,
@@ -320,7 +320,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                       .doc(father.id)
                       .set(father.getMap());
                 }
-                navigator.currentState.pop();
+                navigator.currentState!.pop();
                 setState(() {
                   fatherTap(father, !editMode);
                 });
@@ -332,7 +332,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                   await showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: Text(father.name),
+                      title: Text(father.name!),
                       content: Text('هل أنت متأكد من حذف ${father.name}؟'),
                       actions: <Widget>[
                         TextButton(
@@ -341,8 +341,8 @@ class _ChurchesPageState extends State<ChurchesPage> {
                                 .collection('Fathers')
                                 .doc(father.id)
                                 .delete();
-                            navigator.currentState.pop();
-                            navigator.currentState.pop();
+                            navigator.currentState!.pop();
+                            navigator.currentState!.pop();
                             setState(() {
                               editMode = !editMode;
                             });
@@ -351,7 +351,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                         ),
                         TextButton(
                           onPressed: () {
-                            navigator.currentState.pop();
+                            navigator.currentState!.pop();
                           },
                           child: Text('تراجع'),
                         ),
@@ -361,7 +361,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                 },
                 child: Text('حذف'))
         ],
-        title: Text(father.name),
+        title: Text(father.name!),
         content: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -373,7 +373,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                       controller: TextEditingController(text: father.name),
                       onChanged: (v) => father.name = v,
                     )
-                  : Text(father.name),
+                  : Text(father.name!),
               Text('داخل كنيسة', style: title),
               editMode
                   ? FutureBuilder<QuerySnapshot>(
@@ -384,7 +384,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                             padding: EdgeInsets.symmetric(vertical: 4.0),
                             child: DropdownButtonFormField(
                               value: father.churchId?.path,
-                              items: data.data.docs
+                              items: data.data!.docs
                                   .map(
                                     (item) => DropdownMenuItem(
                                       value: item.reference.path,
@@ -399,7 +399,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                                         child: Text(''),
                                       ),
                                     ),
-                              onChanged: (value) {
+                              onChanged: (dynamic value) {
                                 father.churchId =
                                     FirebaseFirestore.instance.doc(value);
                               },
@@ -426,7 +426,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                                     title: Text(name.data),
                                     onTap: () async => churchTap(
                                         Church.fromDoc(
-                                            await father.churchId.get()),
+                                            await father.churchId!.get()),
                                         false)))
                             : LinearProgressIndicator();
                       }),
@@ -461,7 +461,7 @@ class _FathersPageState extends State<FathersPage> {
     var title = TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.bold,
-        color: Theme.of(context).textTheme.headline6.color,
+        color: Theme.of(context).textTheme.headline6!.color,
         locale: Locale('ar', 'EG'));
     // TextStyle subTitle = TextStyle(
     //     fontSize: 18,
@@ -479,7 +479,7 @@ class _FathersPageState extends State<FathersPage> {
                       .doc(church.id)
                       .set(church.getMap());
                 }
-                navigator.currentState.pop();
+                navigator.currentState!.pop();
                 setState(() {
                   churchTap(church, !editMode);
                 });
@@ -491,7 +491,7 @@ class _FathersPageState extends State<FathersPage> {
                   await showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
-                            title: Text(church.name),
+                            title: Text(church.name!),
                             content:
                                 Text('هل أنت متأكد من حذف ${church.name}؟'),
                             actions: <Widget>[
@@ -501,8 +501,8 @@ class _FathersPageState extends State<FathersPage> {
                                       .collection('Churches')
                                       .doc(church.id)
                                       .delete();
-                                  navigator.currentState.pop();
-                                  navigator.currentState.pop();
+                                  navigator.currentState!.pop();
+                                  navigator.currentState!.pop();
                                   setState(() {
                                     editMode = !editMode;
                                   });
@@ -511,7 +511,7 @@ class _FathersPageState extends State<FathersPage> {
                               ),
                               TextButton(
                                 onPressed: () {
-                                  navigator.currentState.pop();
+                                  navigator.currentState!.pop();
                                 },
                                 child: Text('تراجع'),
                               ),
@@ -520,7 +520,7 @@ class _FathersPageState extends State<FathersPage> {
                 },
                 child: Text('حذف'))
         ],
-        title: Text(church.name),
+        title: Text(church.name!),
         content: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -535,7 +535,7 @@ class _FathersPageState extends State<FathersPage> {
                       controller: TextEditingController(text: church.name),
                       onChanged: (v) => church.name = v,
                     )
-                  : Text(church.name),
+                  : Text(church.name!),
               DefaultTextStyle(
                 style: title,
                 child: Text('العنوان:'),
@@ -545,7 +545,7 @@ class _FathersPageState extends State<FathersPage> {
                       controller: TextEditingController(text: church.address),
                       onChanged: (v) => church.address = v,
                     )
-                  : Text(church.address),
+                  : Text(church.address!),
               if (!editMode) Text('الأباء بالكنيسة:', style: title),
               if (!editMode)
                 FutureBuilder(
@@ -561,15 +561,15 @@ class _FathersPageState extends State<FathersPage> {
                                 return ListView.builder(
                                     physics: ClampingScrollPhysics(),
                                     shrinkWrap: true,
-                                    itemCount: data.data.docs.length,
+                                    itemCount: data.data!.docs.length,
                                     itemBuilder: (context, i) {
                                       var current =
-                                          Father.fromDoc(data.data.docs[i]);
+                                          Father.fromDoc(data.data!.docs[i]);
                                       return Card(
                                         child: ListTile(
                                           onTap: () =>
                                               fatherTap(current, false),
-                                          title: Text(current.name),
+                                          title: Text(current.name!),
                                         ),
                                       );
                                     });
@@ -592,7 +592,7 @@ class _FathersPageState extends State<FathersPage> {
     var title = TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.bold,
-        color: Theme.of(context).textTheme.headline6.color,
+        color: Theme.of(context).textTheme.headline6!.color,
         locale: Locale('ar', 'EG'));
     // TextStyle subTitle = TextStyle(
     //     fontSize: 18,
@@ -610,7 +610,7 @@ class _FathersPageState extends State<FathersPage> {
                       .doc(father.id)
                       .set(father.getMap());
                 }
-                navigator.currentState.pop();
+                navigator.currentState!.pop();
                 setState(() {
                   fatherTap(father, !editMode);
                 });
@@ -622,7 +622,7 @@ class _FathersPageState extends State<FathersPage> {
                   await showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
-                            title: Text(father.name),
+                            title: Text(father.name!),
                             content:
                                 Text('هل أنت متأكد من حذف ${father.name}؟'),
                             actions: <Widget>[
@@ -632,8 +632,8 @@ class _FathersPageState extends State<FathersPage> {
                                       .collection('Fathers')
                                       .doc(father.id)
                                       .delete();
-                                  navigator.currentState.pop();
-                                  navigator.currentState.pop();
+                                  navigator.currentState!.pop();
+                                  navigator.currentState!.pop();
                                   setState(() {
                                     editMode = !editMode;
                                   });
@@ -642,7 +642,7 @@ class _FathersPageState extends State<FathersPage> {
                               ),
                               TextButton(
                                 onPressed: () {
-                                  navigator.currentState.pop();
+                                  navigator.currentState!.pop();
                                 },
                                 child: Text('تراجع'),
                               ),
@@ -651,7 +651,7 @@ class _FathersPageState extends State<FathersPage> {
                 },
                 child: Text('حذف'))
         ],
-        title: Text(father.name),
+        title: Text(father.name!),
         content: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -663,7 +663,7 @@ class _FathersPageState extends State<FathersPage> {
                       controller: TextEditingController(text: father.name),
                       onChanged: (v) => father.name = v,
                     )
-                  : Text(father.name),
+                  : Text(father.name!),
               Text('داخل كنيسة', style: title),
               editMode
                   ? FutureBuilder<QuerySnapshot>(
@@ -674,7 +674,7 @@ class _FathersPageState extends State<FathersPage> {
                             padding: EdgeInsets.symmetric(vertical: 4.0),
                             child: DropdownButtonFormField(
                               value: father.churchId?.path,
-                              items: data.data.docs
+                              items: data.data!.docs
                                   .map(
                                     (item) => DropdownMenuItem(
                                       value: item.reference.path,
@@ -689,7 +689,7 @@ class _FathersPageState extends State<FathersPage> {
                                         child: Text(''),
                                       ),
                                     ),
-                              onChanged: (value) {
+                              onChanged: (dynamic value) {
                                 father.churchId =
                                     FirebaseFirestore.instance.doc(value);
                               },
@@ -715,7 +715,7 @@ class _FathersPageState extends State<FathersPage> {
                                     title: Text(name.data),
                                     onTap: () async => churchTap(
                                         Church.fromDoc(
-                                            await father.churchId.get()),
+                                            await father.churchId!.get()),
                                         false)))
                             : LinearProgressIndicator();
                       },
@@ -751,7 +751,7 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
     var title = TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.bold,
-        color: Theme.of(context).textTheme.headline6.color,
+        color: Theme.of(context).textTheme.headline6!.color,
         locale: Locale('ar', 'EG'));
     // TextStyle subTitle = TextStyle(
     //     fontSize: 18,
@@ -769,7 +769,7 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
                       .doc(year.id)
                       .set(year.getMap());
                 }
-                navigator.currentState.pop();
+                navigator.currentState!.pop();
                 setState(() {
                   studyYearTap(year, !editMode);
                 });
@@ -781,7 +781,7 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
                   await showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
-                            title: Text(year.name),
+                            title: Text(year.name!),
                             content: Text('هل أنت متأكد من حذف ${year.name}؟'),
                             actions: <Widget>[
                               TextButton(
@@ -790,8 +790,8 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
                                       .collection('StudyYears')
                                       .doc(year.id)
                                       .delete();
-                                  navigator.currentState.pop();
-                                  navigator.currentState.pop();
+                                  navigator.currentState!.pop();
+                                  navigator.currentState!.pop();
                                   setState(() {
                                     editMode = !editMode;
                                   });
@@ -800,7 +800,7 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
                               ),
                               TextButton(
                                 onPressed: () {
-                                  navigator.currentState.pop();
+                                  navigator.currentState!.pop();
                                 },
                                 child: Text('تراجع'),
                               ),
@@ -809,7 +809,7 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
                 },
                 child: Text('حذف'))
         ],
-        title: Text(year.name),
+        title: Text(year.name!),
         content: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -824,7 +824,7 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
                       controller: TextEditingController(text: year.name),
                       onChanged: (v) => year.name = v,
                     )
-                  : Text(year.name),
+                  : Text(year.name!),
               DefaultTextStyle(
                 style: title,
                 child: Text('ترتيب السنة:'),

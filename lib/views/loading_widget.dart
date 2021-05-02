@@ -6,7 +6,7 @@ import '../utils/helpers.dart';
 
 class Loading extends StatelessWidget {
   final bool error;
-  final String message;
+  final String? message;
   final bool showVersionInfo;
   const Loading(
       {this.error = false, this.message, this.showVersionInfo = false})
@@ -69,7 +69,7 @@ class Loading extends StatelessWidget {
                 child: FutureBuilder<PackageInfo>(
                   future: PackageInfo.fromPlatform(),
                   builder: (context, data) => data.hasData
-                      ? Text('اصدار: ' + data.data.version,
+                      ? Text('اصدار: ' + data.data!.version,
                           style: Theme.of(context).textTheme.caption)
                       : Text(''),
                 ),

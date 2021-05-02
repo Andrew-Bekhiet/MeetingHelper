@@ -21,37 +21,37 @@ class InnerListState extends State<_InnerSchoolsList> {
             onRefresh: () {
               setState(() {});
               return null;
-            },
+            } as Future<void> Function(),
             child: StreamBuilder<QuerySnapshot>(
               stream: widget.data,
               builder: (context, schools) {
                 if (!schools.hasData) return CircularProgressIndicator();
                 return ListView.builder(
-                    itemCount: schools.data.docs.length,
+                    itemCount: schools.data!.docs.length,
                     itemBuilder: (context, i) {
-                      School current = School.fromDoc(schools.data.docs[i]);
-                      return current.name.contains(filter)
+                      School current = School.fromDoc(schools.data!.docs[i]);
+                      return current.name!.contains(filter)
                           ? Card(
                               child: ListTile(
                                 onTap: () {
-                                  widget.result
-                                          .map((f) => f.id)
+                                  widget.result!
+                                          .map((f) => f!.id)
                                           .contains(current.id)
-                                      ? widget.result.removeWhere(
-                                          (x) => x.id == current.id)
-                                      : widget.result.add(current);
+                                      ? widget.result!.removeWhere(
+                                          (x) => x!.id == current.id)
+                                      : widget.result!.add(current);
                                   setState(() {});
                                 },
-                                title: Text(current.name),
+                                title: Text(current.name!),
                                 leading: Checkbox(
-                                  value: widget.result
-                                      .map((f) => f.id)
+                                  value: widget.result!
+                                      .map((f) => f!.id)
                                       .contains(current.id),
                                   onChanged: (x) {
-                                    !x
-                                        ? widget.result.removeWhere(
-                                            (x) => x.id == current.id)
-                                        : widget.result.add(current);
+                                    !x!
+                                        ? widget.result!.removeWhere(
+                                            (x) => x!.id == current.id)
+                                        : widget.result!.add(current);
                                     setState(() {});
                                   },
                                 ),
@@ -68,11 +68,11 @@ class InnerListState extends State<_InnerSchoolsList> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           TextButton(
-            onPressed: () => widget.finished(widget.result),
+            onPressed: () => widget.finished!(widget.result),
             child: Text('تم'),
           ),
           TextButton(
-            onPressed: () => widget.finished(null),
+            onPressed: () => widget.finished!(null),
             child: Text('إلغاء الأمر'),
           ),
         ],
@@ -82,9 +82,9 @@ class InnerListState extends State<_InnerSchoolsList> {
 }
 
 class SchoolsEditList extends StatefulWidget {
-  final Future<QuerySnapshot> list;
+  final Future<QuerySnapshot>? list;
 
-  final Function(School) tap;
+  final Function(School)? tap;
   SchoolsEditList({this.list, this.tap});
 
   @override
@@ -92,10 +92,10 @@ class SchoolsEditList extends StatefulWidget {
 }
 
 class SchoolsList extends StatefulWidget {
-  final Future<Stream<QuerySnapshot>> list;
+  final Future<Stream<QuerySnapshot>>? list;
 
-  final Function(List<School>) finished;
-  final Stream<School> original;
+  final Function(List<School>)? finished;
+  final Stream<School>? original;
   SchoolsList({this.list, this.finished, this.original});
 
   @override
@@ -103,10 +103,10 @@ class SchoolsList extends StatefulWidget {
 }
 
 class _InnerSchoolsList extends StatefulWidget {
-  final Stream<QuerySnapshot> data;
-  final List<School> result;
-  final Function(List<School>) finished;
-  final Future<Stream<QuerySnapshot>> list;
+  final Stream<QuerySnapshot>? data;
+  final List<School?>? result;
+  final Function(List<School?>?)? finished;
+  final Future<Stream<QuerySnapshot>>? list;
   _InnerSchoolsList(this.data, this.result, this.list, this.finished);
   @override
   State<StatefulWidget> createState() => InnerListState();
@@ -132,18 +132,18 @@ class _SchoolsEditListState extends State<SchoolsEditList> {
               child: RefreshIndicator(
                   onRefresh: () {
                     setState(() {});
-                    return widget.list;
+                    return widget.list.then((value) => value!);
                   },
                   child: ListView.builder(
-                      itemCount: data.data.docs.length,
+                      itemCount: data.data!.docs.length,
                       itemBuilder: (context, i) {
-                        School current = School.fromDoc(data.data.docs[i]);
-                        return current.name.contains(filter)
+                        School current = School.fromDoc(data.data!.docs[i]);
+                        return current.name!.contains(filter)
                             ? Card(
                                 child: ListTile(
-                                  onTap: () => widget.tap(current),
-                                  title: Text(current.name),
-                                  subtitle: Text(current.address),
+                                  onTap: () => widget.tap!(current),
+                                  title: Text(current.name!),
+                                  subtitle: Text(current.address!),
                                 ),
                               )
                             : Container();
@@ -160,7 +160,7 @@ class _SchoolsEditListState extends State<SchoolsEditList> {
 }
 
 class _SchoolsListState extends State<SchoolsList> {
-  List<School> result;
+  List<School?>? result;
 
   @override
   Widget build(BuildContext c) {
@@ -174,7 +174,7 @@ class _SchoolsListState extends State<SchoolsList> {
                   if (result == null && data.hasData) {
                     result = [data.data];
                   } else if (data.hasData) {
-                    result.add(data.data);
+                    result!.add(data.data);
                   } else {
                     result = [];
                   }
