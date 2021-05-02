@@ -16,19 +16,19 @@ class AttendanceChart extends StatelessWidget {
   final DateTimeRange range;
   final String collectionGroup;
   final String title;
-  final List<HistoryDay>? days;
+  final List<HistoryDay> days;
   final bool isServant;
   final rnd = RandomColor();
   final Map<String, Color> usedColorsMap = {};
 
   AttendanceChart(
-      {Key? key,
-      required this.classes,
-      required this.range,
+      {Key key,
+      this.classes,
+      this.range,
       this.days,
-      required this.collectionGroup,
+      this.collectionGroup,
       this.isServant = false,
-      required this.title})
+      @required this.title})
       : super(key: key);
 
   @override
@@ -68,23 +68,23 @@ class AttendanceChart extends StatelessWidget {
           .map((s) =>
               s.expand((n) => n.docs).map(HistoryRecord.fromQueryDoc).toList()),
       builder: (context, history) {
-        if (history.hasError) return ErrorWidget(history.error!);
+        if (history.hasError) return ErrorWidget(history.error);
         if (!history.hasData)
           return const Center(child: CircularProgressIndicator());
-        if (history.data!.isEmpty)
+        if (history.data.isEmpty)
           return const Center(child: Text('لا يوجد سجل'));
-        mergeSort(history.data!,
-            compare: (dynamic o, dynamic n) => o.time.millisecondsSinceEpoch
+        mergeSort(history.data,
+            compare: (o, n) => o.time.millisecondsSinceEpoch
                 .compareTo(n.time.millisecondsSinceEpoch));
         Map<Timestamp, List<HistoryRecord>> historyMap =
             groupBy<HistoryRecord, Timestamp>(
-                history.data!, (d) => tranucateToDay(time: d.time.toDate()));
+                history.data, (d) => tranucateToDay(time: d.time.toDate()));
 
         final Map<DocumentReference, Class> groupedClasses = {
           for (final c in classes) c.ref: c
         };
 
-        return history.data!.isNotEmpty && classes.length > 1
+        return history.data.isNotEmpty && classes.length > 1
             ? Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -97,27 +97,28 @@ class AttendanceChart extends StatelessWidget {
                   PieChart<Class>(
                     total: classes.length,
                     pointColorMapper: (_class, _) =>
-                        usedColorsMap[_class.item2.id] ??= _class.item2.color ==
-                                    null ||
-                                _class.item2.color == Colors.transparent
-                            ? rnd.randomColor(
-                                colorBrightness: Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? ColorBrightness.dark
-                                    : ColorBrightness.light,
-                              )
-                            : _class.item2.color!,
+                        usedColorsMap[_class.item2?.id] ??=
+                            _class.item2?.color == null ||
+                                    _class.item2.color == Colors.transparent
+                                ? rnd.randomColor(
+                                    colorBrightness:
+                                        Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? ColorBrightness.dark
+                                            : ColorBrightness.light,
+                                  )
+                                : _class.item2.color,
                     pieData: groupBy<HistoryRecord, DocumentReference>(
-                            history.data!, (r) => r.classId)
+                            history.data, (r) => r.classId)
                         .entries
                         .map(
                           (e) => Tuple2<int, Class>(
                             e.value.length,
-                            groupedClasses[e.key]!,
+                            groupedClasses[e.key],
                           ),
                         )
                         .toList(),
-                    nameGetter: (c) => c.name,
+                    nameGetter: (c) => c?.name,
                   ),
                 ],
               )
@@ -133,22 +134,22 @@ class AttendanceChart extends StatelessWidget {
 }
 
 class AttendancePercent extends StatelessWidget {
-  final String? label;
+  final String label;
 
-  final String? attendanceLabel;
-  final String? absenseLabel;
-  final String? totalLabel;
+  final String attendanceLabel;
+  final String absenseLabel;
+  final String totalLabel;
   final int total;
   final int attends;
 
   AttendancePercent({
-    Key? key,
+    Key key,
     this.label,
     this.attendanceLabel,
     this.absenseLabel,
     this.totalLabel,
-    required this.total,
-    required this.attends,
+    this.total,
+    this.attends,
   }) : super(key: key);
 
   @override
@@ -159,7 +160,7 @@ class AttendancePercent extends StatelessWidget {
         CircularPercentIndicator(
           header: label != null
               ? ListTile(
-                  title: Text(label!),
+                  title: Text(label),
                 )
               : null,
           radius: 160.0,
@@ -171,8 +172,8 @@ class AttendancePercent extends StatelessWidget {
                   '%'),
           linearGradient: LinearGradient(
             colors: [
-              Colors.amber[300]!,
-              Colors.amber[700]!,
+              Colors.amber[300],
+              Colors.amber[700],
             ],
             stops: [0, 1],
           ),
@@ -183,7 +184,7 @@ class AttendancePercent extends StatelessWidget {
             attends.toString(),
             style: Theme.of(context)
                 .textTheme
-                .bodyText2!
+                .bodyText2
                 .copyWith(color: Colors.amber[300]),
           ),
         ),
@@ -193,7 +194,7 @@ class AttendancePercent extends StatelessWidget {
             (total - attends).toString(),
             style: Theme.of(context)
                 .textTheme
-                .bodyText2!
+                .bodyText2
                 .copyWith(color: Colors.amber[700]),
           ),
         ),
@@ -203,7 +204,7 @@ class AttendancePercent extends StatelessWidget {
             total.toString(),
             style: Theme.of(context)
                 .textTheme
-                .bodyText2!
+                .bodyText2
                 .copyWith(color: Colors.amberAccent),
           ),
         ),
@@ -220,9 +221,7 @@ class ClassesAttendanceIndicator extends StatelessWidget {
   final bool isServant;
 
   ClassesAttendanceIndicator(
-      {required this.collection,
-      required this.classes,
-      this.isServant = false});
+      {this.collection, this.classes, this.isServant = false});
 
   @override
   Widget build(BuildContext context) {
@@ -233,10 +232,9 @@ class ClassesAttendanceIndicator extends StatelessWidget {
                   .where('ClassId', whereIn: c.map((e) => e.ref).toList())
                   .snapshots())
               .toList())
-          .map(
-              (s) => s.expand((e) => e.docs).map(Person.fromQueryDoc).toList()),
+          .map((s) => s.expand((e) => e.docs).map(Person.fromDoc).toList()),
       builder: (context, snapshot) {
-        if (snapshot.hasError) return ErrorWidget(snapshot.error!);
+        if (snapshot.hasError) return ErrorWidget(snapshot.error);
         if (!snapshot.hasData)
           return const Center(child: CircularProgressIndicator());
         return StreamBuilder<int>(
@@ -256,7 +254,7 @@ class ClassesAttendanceIndicator extends StatelessWidget {
                   .toList())
               .map((s) => s.fold<int>(0, (o, n) => o + n.size)),
           builder: (context, persons) {
-            if (persons.hasError) return ErrorWidget(persons.error!);
+            if (persons.hasError) return ErrorWidget(persons.error);
             if (!persons.hasData)
               return const Center(child: CircularProgressIndicator());
             if (persons.data == 0)
@@ -267,7 +265,7 @@ class ClassesAttendanceIndicator extends StatelessWidget {
               for (final c in classes) c.ref: c
             };
 
-            return snapshot.data!.isNotEmpty && classes.length > 1
+            return snapshot.data.isNotEmpty && classes.length > 1
                 ? Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -275,14 +273,14 @@ class ClassesAttendanceIndicator extends StatelessWidget {
                         attendanceLabel: 'اجمالي عدد الحضور',
                         absenseLabel: 'اجمالي عدد الغياب',
                         totalLabel: 'اجمالي عدد المخدومين',
-                        attends: snapshot.data!.length,
-                        total: persons.data!,
+                        attends: snapshot.data.length,
+                        total: persons.data,
                       ),
                       PieChart<Class>(
                         total: classes.length,
                         pointColorMapper: (_class, _) =>
-                            usedColorsMap[_class.item2.id] ??=
-                                _class.item2.color == null ||
+                            usedColorsMap[_class.item2?.id] ??=
+                                _class.item2?.color == null ||
                                         _class.item2.color == Colors.transparent
                                     ? rnd.randomColor(
                                         colorBrightness:
@@ -291,18 +289,18 @@ class ClassesAttendanceIndicator extends StatelessWidget {
                                                 ? ColorBrightness.dark
                                                 : ColorBrightness.light,
                                       )
-                                    : _class.item2.color!,
+                                    : _class.item2.color,
                         pieData: groupBy<Person, DocumentReference>(
-                                snapshot.data!, (p) => p.classId!)
+                                snapshot.data, (p) => p.classId)
                             .entries
                             .map(
                               (e) => Tuple2<int, Class>(
                                 e.value.length,
-                                groupedClasses[e.key]!,
+                                groupedClasses[e.key],
                               ),
                             )
                             .toList(),
-                        nameGetter: (c) => c.name,
+                        nameGetter: (c) => c?.name,
                       ),
                     ],
                   )
@@ -310,8 +308,8 @@ class ClassesAttendanceIndicator extends StatelessWidget {
                     attendanceLabel: 'اجمالي عدد الحضور',
                     absenseLabel: 'اجمالي عدد الغياب',
                     totalLabel: 'اجمالي عدد المخدومين',
-                    attends: snapshot.data!.length,
-                    total: persons.data!,
+                    attends: snapshot.data.length,
+                    total: persons.data,
                   );
           },
         );
@@ -324,17 +322,17 @@ class PersonAttendanceIndicator extends StatelessWidget {
   final String id;
 
   final String collectionGroup;
-  final String? label;
-  final String? attendanceLabel;
-  final String? absenseLabel;
+  final String label;
+  final String attendanceLabel;
+  final String absenseLabel;
   final DateTimeRange range;
   final int total;
   PersonAttendanceIndicator({
-    Key? key,
-    required this.id,
-    required this.total,
-    required this.range,
-    required this.collectionGroup,
+    Key key,
+    this.id,
+    this.total,
+    this.range,
+    this.collectionGroup,
     this.label,
     this.attendanceLabel,
     this.absenseLabel,
@@ -345,7 +343,7 @@ class PersonAttendanceIndicator extends StatelessWidget {
     return StreamBuilder<List<QueryDocumentSnapshot>>(
       stream: _getHistoryForUser(),
       builder: (context, history) {
-        if (history.hasError) return ErrorWidget(history.error!);
+        if (history.hasError) return ErrorWidget(history.error);
         if (!history.hasData)
           return const Center(child: CircularProgressIndicator());
         return AttendancePercent(
@@ -353,7 +351,7 @@ class PersonAttendanceIndicator extends StatelessWidget {
           attendanceLabel: attendanceLabel,
           absenseLabel: absenseLabel,
           total: total,
-          attends: history.data!.length,
+          attends: history.data.length,
         );
       },
     );
@@ -402,12 +400,12 @@ class PersonAttendanceIndicator extends StatelessWidget {
 
 class HistoryAnalysisWidget extends StatelessWidget {
   HistoryAnalysisWidget({
-    Key? key,
-    required this.range,
-    required this.classes,
-    required this.classesByRef,
-    required this.collectionGroup,
-    required this.title,
+    Key key,
+    @required this.range,
+    @required this.classes,
+    @required this.classesByRef,
+    @required this.collectionGroup,
+    @required this.title,
     this.showUsers = true,
   }) : super(key: key);
 
@@ -419,8 +417,7 @@ class HistoryAnalysisWidget extends StatelessWidget {
   final bool showUsers;
 
   final rnd = RandomColor();
-  final Map<Tuple2<int, String?>, Color> usedColorsMap =
-      <Tuple2<int, String>, Color>{};
+  final usedColorsMap = <Tuple2<int, String>, Color>{};
 
   @override
   Widget build(BuildContext context) {
@@ -428,24 +425,24 @@ class HistoryAnalysisWidget extends StatelessWidget {
       stream: MinimalHistoryRecord.getAllForUser(
           collectionGroup: collectionGroup, range: range, classes: classes),
       builder: (context, daysData) {
-        if (daysData.hasError) return ErrorWidget(daysData.error!);
+        if (daysData.hasError) return ErrorWidget(daysData.error);
         if (!daysData.hasData)
           return const Center(child: CircularProgressIndicator());
-        if (daysData.data!.isEmpty)
+        if (daysData.data.isEmpty)
           return const Center(child: Text('لا يوجد سجل'));
 
         List<MinimalHistoryRecord> data =
-            daysData.data!.map(MinimalHistoryRecord.fromQueryDoc).toList();
+            daysData.data.map(MinimalHistoryRecord.fromDoc).toList();
 
         mergeSort(data,
-            compare: (dynamic o, dynamic n) => o.time.millisecondsSinceEpoch
+            compare: (o, n) => o.time.millisecondsSinceEpoch
                 .compareTo(n.time.millisecondsSinceEpoch));
         Map<Timestamp, List<MinimalHistoryRecord>> groupedData =
             groupBy<MinimalHistoryRecord, Timestamp>(
                 data, (d) => tranucateToDay(time: d.time.toDate()));
 
         var list =
-            groupBy<MinimalHistoryRecord, String>(data, (s) => s.classId!.path)
+            groupBy<MinimalHistoryRecord, String>(data, (s) => s.classId?.path)
                 .entries
                 .toList();
         return Column(
@@ -464,21 +461,19 @@ class HistoryAnalysisWidget extends StatelessWidget {
             PieChart(
               total: data.length,
               pieData: list
-                  .map((e) => Tuple2<int, String?>(
+                  .map((e) => Tuple2<int, String>(
                       e.value.length, classesByRef[e.key]?.name))
                   .toList(),
-              pointColorMapper: (entry, __) =>
-                  usedColorsMap[entry as Tuple2<int, String?>] ??=
-                      (classesByRef[entry.item2!]?.color == null ||
-                              classesByRef[entry.item2!]?.color ==
-                                  Colors.transparent
-                          ? rnd.randomColor(
-                              colorBrightness: Theme.of(context).brightness ==
-                                      Brightness.dark
+              pointColorMapper: (entry, __) => usedColorsMap[entry] ??=
+                  classesByRef[entry.item2]?.color == null ||
+                          classesByRef[entry.item2]?.color == Colors.transparent
+                      ? rnd.randomColor(
+                          colorBrightness:
+                              Theme.of(context).brightness == Brightness.dark
                                   ? ColorBrightness.dark
                                   : ColorBrightness.light,
-                            )
-                          : classesByRef[entry.item2!]?.color!)!,
+                        )
+                      : classesByRef[entry.item2]?.color,
             ),
             if (showUsers)
               ListTile(
@@ -488,18 +483,17 @@ class HistoryAnalysisWidget extends StatelessWidget {
               FutureBuilder<List<User>>(
                 future: User.getAllNames().first,
                 builder: (context, usersData) {
-                  if (usersData.hasError) return ErrorWidget(usersData.error!);
+                  if (usersData.hasError) return ErrorWidget(usersData.error);
                   if (!usersData.hasData)
                     return const Center(child: CircularProgressIndicator());
-                  final usersByID = {for (var u in usersData.data!) u.refId: u};
+                  final usersByID = {for (var u in usersData.data) u.refId: u};
                   final pieData =
-                      groupBy<MinimalHistoryRecord, String?>(data, (s) => s.by)
+                      groupBy<MinimalHistoryRecord, String>(data, (s) => s.by)
                           .entries
                           .toList();
                   return PieChart(
                     pointColorMapper: (entry, __) =>
-                        usedColorsMap[entry as Tuple2<int, String?>] ??=
-                            rnd.randomColor(
+                        usedColorsMap[entry] ??= rnd.randomColor(
                       colorBrightness:
                           Theme.of(context).brightness == Brightness.dark
                               ? ColorBrightness.dark
@@ -507,8 +501,8 @@ class HistoryAnalysisWidget extends StatelessWidget {
                     ),
                     total: data.length,
                     pieData: pieData
-                        .map((e) => Tuple2<int, String?>(
-                            e.value.length, usersByID[e.key!]?.name))
+                        .map((e) => Tuple2<int, String>(
+                            e.value.length, usersByID[e.key]?.name))
                         .toList(),
                   );
                 },
@@ -528,19 +522,19 @@ class CartesianChart<T> extends StatelessWidget {
   final bool showMax;
 
   CartesianChart(
-      {Key? key,
-      required this.classes,
-      required this.range,
+      {Key key,
+      this.classes,
+      this.range,
       this.showMax = false,
-      required this.data,
-      required this.title})
+      @required this.data,
+      @required this.title})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18.0),
-      child: StreamBuilder<List<Person>?>(
+      child: StreamBuilder<List<Person>>(
         stream: showMax
             ? Rx.combineLatestList<List<Person>>(
                 classes.split(10).map(
@@ -550,14 +544,14 @@ class CartesianChart<T> extends StatelessWidget {
                               whereIn: c.map((e) => e.ref).toList())
                           .snapshots()
                           .map(
-                            (s) => s.docs.map(Person.fromQueryDoc).toList(),
+                            (s) => s.docs.map(Person.fromDoc).toList(),
                           ),
                     ),
               ).map((p) => p.expand((o) => o).toList())
             : Stream.value(null),
         builder: (context, persons) {
           if (data.isEmpty) return const Center(child: Text('لا يوجد سجل'));
-          if (persons.hasError) return ErrorWidget(persons.error!);
+          if (persons.hasError) return ErrorWidget(persons.error);
           if (!persons.hasData && showMax)
             return const Center(child: CircularProgressIndicator.adaptive());
 
@@ -567,7 +561,7 @@ class CartesianChart<T> extends StatelessWidget {
               title: ChartTitle(text: title),
               enableAxisAnimation: true,
               primaryYAxis: NumericAxis(
-                  decimalPlaces: 0, maximum: persons.data?.length.toDouble()),
+                  decimalPlaces: 0, maximum: persons.data?.length?.toDouble()),
               primaryXAxis: DateTimeAxis(
                 minimum: range.start.subtract(Duration(hours: 4)),
                 maximum: range.end.add(Duration(hours: 4)),
@@ -613,14 +607,14 @@ class CartesianChart<T> extends StatelessWidget {
                   markerSettings: MarkerSettings(isVisible: true),
                   borderGradient: LinearGradient(
                     colors: [
-                      Colors.amber[300]!.withOpacity(0.5),
-                      Colors.amber[800]!.withOpacity(0.5)
+                      Colors.amber[300].withOpacity(0.5),
+                      Colors.amber[800].withOpacity(0.5)
                     ],
                   ),
                   gradient: LinearGradient(
                     colors: [
-                      Colors.amber[300]!.withOpacity(0.5),
-                      Colors.amber[800]!.withOpacity(0.5)
+                      Colors.amber[300].withOpacity(0.5),
+                      Colors.amber[800].withOpacity(0.5)
                     ],
                   ),
                   borderWidth: 2,
@@ -640,18 +634,18 @@ class CartesianChart<T> extends StatelessWidget {
 
 class PieChart<T> extends StatelessWidget {
   PieChart({
-    Key? key,
-    required this.total,
-    required this.pieData,
+    Key key,
+    @required this.total,
+    @required this.pieData,
     this.nameGetter,
     this.pointColorMapper,
   })  : assert(nameGetter != null || T == String),
         super(key: key);
 
-  final Color Function(Tuple2<int, T>, int)? pointColorMapper;
+  final Color Function(Tuple2<int, T>, int) pointColorMapper;
   final int total;
   final List<Tuple2<int, T>> pieData;
-  final String? Function(T)? nameGetter;
+  final String Function(T) nameGetter;
 
   @override
   Widget build(BuildContext context) {
@@ -683,5 +677,5 @@ class PieChart<T> extends StatelessWidget {
     );
   }
 
-  String? _getName(T t) => nameGetter != null ? nameGetter!(t) : t?.toString();
+  String _getName(T t) => nameGetter != null ? nameGetter(t) : t?.toString();
 }

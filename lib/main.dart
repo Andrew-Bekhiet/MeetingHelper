@@ -80,34 +80,49 @@ void main() {
       User user = User.instance;
       await _initConfigs();
 
-      var settings = Hive.box('Settings');
-      var primary = settings.get('PrimaryColorIndex', defaultValue: 13);
-      var accent = primary;
-      var darkTheme = settings.get('DarkTheme');
+      bool darkTheme = Hive.box('Settings').get('DarkTheme');
+      bool greatFeastTheme =
+          Hive.box('Settings').get('GreatFeastTheme', defaultValue: true);
+      MaterialColor color = Colors.amber;
+      Color accent = Colors.amberAccent;
+
+      final riseDay = getRiseDay();
+      if (greatFeastTheme &&
+          DateTime.now()
+              .isAfter(riseDay.subtract(Duration(days: 7, seconds: 20))) &&
+          DateTime.now().isBefore(riseDay.subtract(Duration(days: 1)))) {
+        color = black;
+        accent = blackAccent;
+        darkTheme = true;
+      } else if (greatFeastTheme &&
+          DateTime.now()
+              .isBefore(riseDay.add(Duration(days: 50, seconds: 20))) &&
+          DateTime.now().isAfter(riseDay.subtract(Duration(days: 1)))) {
+        darkTheme = false;
+      }
+
       runApp(
         MultiProvider(
           providers: [
             StreamProvider<User>.value(value: user.stream, initialData: user),
-            ChangeNotifierProvider<ThemeNotifier>(
+            Provider<ThemeNotifier>(
               create: (_) => ThemeNotifier(
                 ThemeData(
-                  floatingActionButtonTheme: FloatingActionButtonThemeData(
-                      backgroundColor: primaries[primary ?? 13]),
+                  colorScheme: ColorScheme.fromSwatch(
+                    primarySwatch: color,
+                    brightness: darkTheme != null
+                        ? (darkTheme ? Brightness.dark : Brightness.light)
+                        : WidgetsBinding.instance.window.platformBrightness,
+                    accentColor: accent,
+                  ),
+                  floatingActionButtonTheme:
+                      FloatingActionButtonThemeData(backgroundColor: color),
                   visualDensity: VisualDensity.adaptivePlatformDensity,
-                  outlinedButtonTheme: OutlinedButtonThemeData(
-                      style: OutlinedButton.styleFrom(
-                          primary: primaries[primary ?? 13])),
-                  textButtonTheme: TextButtonThemeData(
-                      style: TextButton.styleFrom(
-                          primary: primaries[primary ?? 13])),
-                  elevatedButtonTheme: ElevatedButtonThemeData(
-                      style: ElevatedButton.styleFrom(
-                          primary: primaries[primary ?? 13])),
                   brightness: darkTheme != null
                       ? (darkTheme ? Brightness.dark : Brightness.light)
-                      : WidgetsBinding.instance!.window.platformBrightness,
-                  accentColor: accents[accent ?? 13],
-                  primaryColor: primaries[primary ?? 13],
+                      : WidgetsBinding.instance.window.platformBrightness,
+                  accentColor: accent,
+                  primaryColor: color,
                 ),
               ),
             ),
@@ -134,19 +149,19 @@ Future _initConfigs() async {
 
   await FlutterLocalNotificationsPlugin().initialize(
       InitializationSettings(android: AndroidInitializationSettings('warning')),
-      onSelectNotification: onNotificationClicked as Future<dynamic> Function(String?)?);
+      onSelectNotification: onNotificationClicked);
 }
 
 class App extends StatefulWidget {
-  App({Key? key}) : super(key: key);
+  App({Key key}) : super(key: key);
 
   @override
   AppState createState() => AppState();
 }
 
 class AppState extends State<App> {
-  StreamSubscription<ConnectivityResult>? connection;
-  StreamSubscription? userTokenListener;
+  StreamSubscription<ConnectivityResult> connection;
+  StreamSubscription userTokenListener;
 
   bool configureMessaging = true;
 
@@ -154,128 +169,135 @@ class AppState extends State<App> {
   Widget build(BuildContext context) {
     return FeatureDiscovery.withProvider(
       persistenceProvider: HivePersistenceProvider(),
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        scaffoldMessengerKey: scaffoldMessenger,
-        navigatorKey: navigator,
-        title: 'خدمة مدارس الأحد',
-        initialRoute: '/',
-        routes: {
-          '/': buildLoadAppWidget,
-          'Login': (context) => LoginScreen(),
-          'Data/EditClass': (context) =>
-              EditClass(class$: ModalRoute.of(context)!.settings.arguments as Class?),
-          'Data/EditPerson': (context) {
-            if (ModalRoute.of(context)!.settings.arguments is Person)
-              return EditPerson(
-                  person: ModalRoute.of(context)!.settings.arguments as Person?);
-            else {
-              Person person = Person()
-                ..classId = ModalRoute.of(context)!.settings.arguments as firestore.DocumentReference?;
-              return EditPerson(person: person);
-            }
-          },
-          'EditInvitation': (context) => EditInvitation(
-              invitation: ModalRoute.of(context)!.settings.arguments as Invitation? ??
-                  Invitation.empty()),
-          'Day': (context) {
-            if (ModalRoute.of(context)!.settings.arguments != null)
-              return Day(record: ModalRoute.of(context)!.settings.arguments as HistoryDay);
-            else
-              return Day(record: HistoryDay());
-          },
-          'ServantsDay': (context) {
-            if (ModalRoute.of(context)!.settings.arguments != null)
-              return Day(record: ModalRoute.of(context)!.settings.arguments as HistoryDay);
-            else
-              return Day(record: ServantsHistoryDay());
-          },
-          'Trash': (context) => Trash(),
-          'History': (context) => History(),
-          'ExportOps': (context) => Exports(),
-          'ServantsHistory': (context) => ServantsHistory(),
-          'MyAccount': (context) => MyAccount(),
-          'Notifications': (context) => NotificationsPage(),
-          'ClassInfo': (context) =>
-              ClassInfo(class$: ModalRoute.of(context)!.settings.arguments as Class?),
-          'PersonInfo': (context) => PersonInfo(
-                person: ModalRoute.of(context)!.settings.arguments as Person?,
-                converter: ModalRoute.of(context)!.settings.arguments is User
-                    ? User.fromDoc
-                    : Person.fromDoc,
-              ),
-          'UserInfo': (context) => UserInfo(),
-          'InvitationInfo': (context) => InvitationInfo(
-              invitation: ModalRoute.of(context)!.settings.arguments as Invitation?),
-          'Update': (context) => Update(),
-          'Search': (context) => SearchQuery(),
-          'DataMap': (context) => DataMap(),
-          'Settings': (context) => s.Settings(),
-          'Settings/Churches': (context) => ChurchesPage(),
-          /*MiniList(
+      child: StreamBuilder<ThemeData>(
+        initialData: context.read<ThemeNotifier>().theme,
+        stream: context.read<ThemeNotifier>().stream,
+        builder: (context, theme) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            scaffoldMessengerKey: scaffoldMessenger,
+            navigatorKey: navigator,
+            title: 'خدمة مدارس الأحد',
+            initialRoute: '/',
+            routes: {
+              '/': buildLoadAppWidget,
+              'Login': (context) => LoginScreen(),
+              'Data/EditClass': (context) =>
+                  EditClass(class$: ModalRoute.of(context).settings.arguments),
+              'Data/EditPerson': (context) {
+                if (ModalRoute.of(context).settings.arguments is Person)
+                  return EditPerson(
+                      person: ModalRoute.of(context).settings.arguments);
+                else {
+                  Person person = Person()
+                    ..classId = ModalRoute.of(context).settings.arguments;
+                  return EditPerson(person: person);
+                }
+              },
+              'EditInvitation': (context) => EditInvitation(
+                  invitation: ModalRoute.of(context).settings.arguments ??
+                      Invitation.empty()),
+              'Day': (context) {
+                if (ModalRoute.of(context).settings.arguments != null)
+                  return Day(record: ModalRoute.of(context).settings.arguments);
+                else
+                  return Day(record: HistoryDay());
+              },
+              'ServantsDay': (context) {
+                if (ModalRoute.of(context).settings.arguments != null)
+                  return Day(record: ModalRoute.of(context).settings.arguments);
+                else
+                  return Day(record: ServantsHistoryDay());
+              },
+              'Trash': (context) => Trash(),
+              'History': (context) => History(),
+              'ExportOps': (context) => Exports(),
+              'ServantsHistory': (context) => ServantsHistory(),
+              'MyAccount': (context) => MyAccount(),
+              'Notifications': (context) => NotificationsPage(),
+              'ClassInfo': (context) =>
+                  ClassInfo(class$: ModalRoute.of(context).settings.arguments),
+              'PersonInfo': (context) => PersonInfo(
+                  person: ModalRoute.of(context).settings.arguments,
+                  converter: ModalRoute.of(context).settings.arguments is User
+                      ? User.fromDoc
+                      : Person.fromDoc,
+                  showMotherAndFatherPhones:
+                      ModalRoute.of(context).settings.arguments is! User),
+              'UserInfo': (context) => UserInfo(),
+              'InvitationInfo': (context) => InvitationInfo(
+                  invitation: ModalRoute.of(context).settings.arguments),
+              'Update': (context) => Update(),
+              'Search': (context) => SearchQuery(),
+              'DataMap': (context) => DataMap(),
+              'Settings': (context) => s.Settings(),
+              'Settings/Churches': (context) => ChurchesPage(),
+              /*MiniList(
                 parent: FirebaseFirestore.instance.collection('Churches'),
                 pageTitle: 'الكنائس',
               ),*/
-          'Settings/Fathers': (context) => FathersPage(),
-          /* MiniList(
+              'Settings/Fathers': (context) => FathersPage(),
+              /* MiniList(
                 parent: FirebaseFirestore.instance.collection('Fathers'),
                 pageTitle: 'الأباء الكهنة',
               ) */
-          'Settings/StudyYears': (context) =>
-              StudyYearsPage() /* MiniList(
+              'Settings/StudyYears': (context) =>
+                  StudyYearsPage() /* MiniList(
                 parent: FirebaseFirestore.instance.collection('StudyYears'),
                 pageTitle: 'السنوات الدراسية',
               ) */
-          ,
-          'Settings/Schools': (context) =>
-              SchoolsPage() /* MiniList(
+              ,
+              'Settings/Schools': (context) =>
+                  SchoolsPage() /* MiniList(
                 parent: FirebaseFirestore.instance.collection('Schools'),
                 pageTitle: 'المدارس',
               ) */
-          ,
-          'UpdateUserDataError': (context) => UpdateUserDataErrorPage(),
-          'ManageUsers': (context) => UsersPage(),
-          'Invitations': (context) => InvitationsPage(),
-          'ActivityAnalysis': (context) => ActivityAnalysis(
-                classes: ModalRoute.of(context)!.settings.arguments as List<Class>?,
-              ),
-          'Analytics': (context) {
-            if (ModalRoute.of(context)!.settings.arguments is Person)
-              return PersonAnalyticsPage(
-                  person: ModalRoute.of(context)!.settings.arguments as Person?);
-            else if (ModalRoute.of(context)!.settings.arguments is Class)
-              return AnalyticsPage(
-                  classes: [ModalRoute.of(context)!.settings.arguments as Class?]);
-            else if (ModalRoute.of(context)!.settings.arguments is HistoryDay)
-              return AnalyticsPage(
-                  day: ModalRoute.of(context)!.settings.arguments as HistoryDay?);
-            else {
-              final Map<String, dynamic> args =
-                  ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-              return AnalyticsPage(
-                historyColection: args['HistoryCollection'] ?? 'History',
-                classes: args['Classes'],
-                day: args['Day'],
-                range: args['Range'],
-              );
-            }
-          },
+              ,
+              'UpdateUserDataError': (context) => UpdateUserDataErrorPage(),
+              'ManageUsers': (context) => UsersPage(),
+              'Invitations': (context) => InvitationsPage(),
+              'ActivityAnalysis': (context) => ActivityAnalysis(
+                    classes: ModalRoute.of(context).settings.arguments,
+                  ),
+              'Analytics': (context) {
+                if (ModalRoute.of(context).settings.arguments is Person)
+                  return PersonAnalyticsPage(
+                      person: ModalRoute.of(context).settings.arguments);
+                else if (ModalRoute.of(context).settings.arguments is Class)
+                  return AnalyticsPage(
+                      classes: [ModalRoute.of(context).settings.arguments]);
+                else if (ModalRoute.of(context).settings.arguments
+                    is HistoryDay)
+                  return AnalyticsPage(
+                      day: ModalRoute.of(context).settings.arguments);
+                else {
+                  final Map<String, dynamic> args =
+                      ModalRoute.of(context).settings.arguments;
+                  return AnalyticsPage(
+                    historyColection: args['HistoryCollection'] ?? 'History',
+                    classes: args['Classes'],
+                    day: args['Day'],
+                    range: args['Range'],
+                  );
+                }
+              },
+            },
+            localizationsDelegates: [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: [
+              Locale('ar', 'EG'),
+            ],
+            themeMode: theme.data.brightness == Brightness.dark
+                ? ThemeMode.dark
+                : ThemeMode.light,
+            locale: Locale('ar', 'EG'),
+            theme: theme.data,
+            darkTheme: theme.data,
+          );
         },
-        localizationsDelegates: [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: [
-          Locale('ar', 'EG'),
-        ],
-        themeMode: context.watch<ThemeNotifier>().getTheme().brightness ==
-                Brightness.dark
-            ? ThemeMode.dark
-            : ThemeMode.light,
-        locale: Locale('ar', 'EG'),
-        theme: context.watch<ThemeNotifier>().getTheme(),
-        darkTheme: context.watch<ThemeNotifier>().getTheme(),
       ),
     );
   }
@@ -292,7 +314,7 @@ class AppState extends State<App> {
         if (snapshot.hasError && User.instance.password != null) {
           if (snapshot.error.toString() ==
               'Exception: Error Update User Data') {
-            WidgetsBinding.instance!.addPostFrameCallback((_) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
               showErrorUpdateDataDialog(context: context);
             });
           }
@@ -306,7 +328,7 @@ class AppState extends State<App> {
           builder: (context, user, child) {
             if (user.uid == null) {
               return const LoginScreen();
-            } else if (user.approved! && user.password != null) {
+            } else if (user.approved && user.password != null) {
               return const AuthScreen(nextWidget: Root());
             } else {
               return const UserRegistration();
@@ -369,7 +391,7 @@ class AppState extends State<App> {
         dataSource =
             firestore.GetOptions(source: firestore.Source.serverAndCache);
         if (mainScfld?.currentState?.mounted ?? false)
-          ScaffoldMessenger.of(mainScfld.currentContext!).showSnackBar(SnackBar(
+          ScaffoldMessenger.of(mainScfld.currentContext).showSnackBar(SnackBar(
             backgroundColor: Colors.greenAccent,
             content: Text('تم استرجاع الاتصال بالانترنت'),
           ));
@@ -377,7 +399,7 @@ class AppState extends State<App> {
         dataSource = firestore.GetOptions(source: firestore.Source.cache);
 
         if (mainScfld?.currentState?.mounted ?? false)
-          ScaffoldMessenger.of(mainScfld.currentContext!).showSnackBar(SnackBar(
+          ScaffoldMessenger.of(mainScfld.currentContext).showSnackBar(SnackBar(
             backgroundColor: Colors.redAccent,
             content: Text('لا يوجد اتصال بالانترنت!'),
           ));
@@ -387,7 +409,7 @@ class AppState extends State<App> {
   }
 
   Future<void> loadApp(BuildContext context) async {
-    var result = await (UpdateHelper.setupRemoteConfig() as FutureOr<RemoteConfig>);
+    var result = await UpdateHelper.setupRemoteConfig();
     if (result.getString('LoadApp') == 'false') {
       await Updates.showUpdateDialog(context, canCancel: false);
       throw Exception('يجب التحديث لأخر إصدار لتشغيل البرنامج');
@@ -395,7 +417,7 @@ class AppState extends State<App> {
       if (User.instance.uid != null) {
         await configureFirebaseMessaging();
         await FirebaseCrashlytics.instance
-            .setCustomKey('UID', User.instance.uid!);
+            .setCustomKey('UID', User.instance.uid);
         if (!await User.instance.userDataUpToDate()) {
           throw Exception('Error Update User Data');
         }

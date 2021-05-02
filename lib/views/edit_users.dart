@@ -8,7 +8,7 @@ import 'package:rxdart/rxdart.dart';
 import 'lists/users_list.dart';
 
 class UsersPage extends StatefulWidget {
-  UsersPage({Key? key}) : super(key: key);
+  UsersPage({Key key}) : super(key: key);
   @override
   _UsersPageState createState() => _UsersPageState();
 }
@@ -20,7 +20,7 @@ class _UsersPageState extends State<UsersPage> {
   @override
   Widget build(BuildContext context) {
     var _listOptions = DataObjectListOptions<User>(
-      itemsStream: User.getAllForUser(),
+      itemsStream: User.getAllForUserForEdit(),
       searchQuery: _search,
       tap: (u) => userTap(u, context),
     );
@@ -30,7 +30,7 @@ class _UsersPageState extends State<UsersPage> {
           IconButton(
               icon: Icon(Icons.link),
               tooltip: 'لينكات الدعوة',
-              onPressed: () => navigator.currentState!.pushNamed('Invitations')),
+              onPressed: () => navigator.currentState.pushNamed('Invitations')),
           if (!_showSearch)
             IconButton(
                 icon: Icon(Icons.search),
@@ -63,7 +63,7 @@ class _UsersPageState extends State<UsersPage> {
             return Text(
               (snapshot.data?.length ?? 0).toString() + ' مستخدم',
               textAlign: TextAlign.center,
-              strutStyle: StrutStyle(height: IconTheme.of(context).size! / 7.5),
+              strutStyle: StrutStyle(height: IconTheme.of(context).size / 7.5),
               style: Theme.of(context).primaryTextTheme.bodyText1,
             );
           },

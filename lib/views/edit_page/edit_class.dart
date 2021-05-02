@@ -26,20 +26,19 @@ import '../mini_lists/colors_list.dart';
 import '../lists/users_list.dart';
 
 class EditClass extends StatefulWidget {
-  final Class? class$;
+  final Class class$;
 
-  EditClass({Key? key, required this.class$}) : super(key: key);
+  EditClass({Key key, @required this.class$}) : super(key: key);
   @override
   _EditClassState createState() => _EditClassState();
 }
 
 class _EditClassState extends State<EditClass> {
-  Map<String, dynamic>? old;
-  String? changedImage;
+  String changedImage;
   bool deletePhoto = false;
   GlobalKey<FormState> form = GlobalKey<FormState>();
 
-  Class? class$;
+  Class class$;
 
   @override
   Widget build(BuildContext context) {
@@ -71,19 +70,19 @@ class _EditClassState extends State<EditClass> {
                                 actions: <Widget>[
                                   TextButton.icon(
                                     onPressed: () =>
-                                        navigator.currentState!.pop(true),
+                                        navigator.currentState.pop(true),
                                     icon: Icon(Icons.camera),
                                     label: Text('التقاط صورة من الكاميرا'),
                                   ),
                                   TextButton.icon(
                                     onPressed: () =>
-                                        navigator.currentState!.pop(false),
+                                        navigator.currentState.pop(false),
                                     icon: Icon(Icons.photo_library),
                                     label: Text('اختيار من المعرض'),
                                   ),
                                   TextButton.icon(
                                     onPressed: () =>
-                                        navigator.currentState!.pop('delete'),
+                                        navigator.currentState.pop('delete'),
                                     icon: Icon(Icons.delete),
                                     label: Text('حذف الصورة'),
                                   ),
@@ -93,7 +92,7 @@ class _EditClassState extends State<EditClass> {
                       if (source == 'delete') {
                         changedImage = null;
                         deletePhoto = true;
-                        class$!.hasPhoto = false;
+                        class$.hasPhoto = false;
                         setState(() {});
                         return;
                       }
@@ -122,10 +121,10 @@ class _EditClassState extends State<EditClass> {
                       setState(() {});
                     })
               ],
-              backgroundColor: class$!.color != Colors.transparent
+              backgroundColor: class$.color != Colors.transparent
                   ? (Theme.of(context).brightness == Brightness.light
-                      ? TinyColor(class$!.color!).lighten().color
-                      : TinyColor(class$!.color!).darken().color)
+                      ? TinyColor(class$.color).lighten().color
+                      : TinyColor(class$.color).darken().color)
                   : null,
               //title: Text(widget.me.name),
               expandedHeight: 250.0,
@@ -138,15 +137,14 @@ class _EditClassState extends State<EditClass> {
                     opacity: constraints.biggest.height > kToolbarHeight * 1.7
                         ? 0
                         : 1,
-                    child: Text(class$!.name,
+                    child: Text(class$.name,
                         style: TextStyle(
                           fontSize: 16.0,
                         )),
                   ),
                   background: changedImage == null || deletePhoto
-                      ? class$!.photo(false)
-                      : PhotoView(
-                          imageProvider: FileImage(File(changedImage!))),
+                      ? class$.photo(false)
+                      : PhotoView(imageProvider: FileImage(File(changedImage))),
                 ),
               ),
             ),
@@ -173,10 +171,10 @@ class _EditClassState extends State<EditClass> {
                       textInputAction: TextInputAction.next,
                       onFieldSubmitted: (_) =>
                           FocusScope.of(context).nextFocus(),
-                      initialValue: class$!.name,
+                      initialValue: class$.name,
                       onChanged: nameChanged,
                       validator: (value) {
-                        if (value!.isEmpty) {
+                        if (value.isEmpty) {
                           return 'هذا الحقل مطلوب';
                         }
                         return null;
@@ -190,15 +188,15 @@ class _EditClassState extends State<EditClass> {
                         return Container(
                           padding: EdgeInsets.symmetric(vertical: 4.0),
                           child: DropdownButtonFormField(
-                            validator: (dynamic v) {
+                            validator: (v) {
                               if (v == null) {
                                 return 'هذا الحقل مطلوب';
                               } else {
                                 return null;
                               }
                             },
-                            value: class$!.studyYear?.path,
-                            items: data.data!.docs
+                            value: class$.studyYear?.path,
+                            items: data.data.docs
                                 .map(
                                   (item) => DropdownMenuItem(
                                     value: item.reference.path,
@@ -213,9 +211,9 @@ class _EditClassState extends State<EditClass> {
                                       child: Text(''),
                                     ),
                                   ),
-                            onChanged: (dynamic value) {
+                            onChanged: (value) {
                               setState(() {});
-                              class$!.studyYear = value != null
+                              class$.studyYear = value != null
                                   ? FirebaseFirestore.instance.doc(value)
                                   : null;
                               FocusScope.of(context).nextFocus();
@@ -234,14 +232,14 @@ class _EditClassState extends State<EditClass> {
                     },
                   ),
                   DropdownButtonFormField(
-                    validator: (dynamic v) {
+                    validator: (v) {
                       if (v == null) {
                         return 'هذا الحقل مطلوب';
                       } else {
                         return null;
                       }
                     },
-                    value: class$!.gender,
+                    value: class$.gender,
                     items: [null, true, false]
                         .map(
                           (item) => DropdownMenuItem(
@@ -254,9 +252,9 @@ class _EditClassState extends State<EditClass> {
                           ),
                         )
                         .toList(),
-                    onChanged: (dynamic value) {
+                    onChanged: (value) {
                       setState(() {});
-                      class$!.gender = value;
+                      class$.gender = value;
                     },
                     decoration: InputDecoration(
                         labelText: 'نوع الفصل',
@@ -269,8 +267,8 @@ class _EditClassState extends State<EditClass> {
                       style: ElevatedButton.styleFrom(
                         primary:
                             Theme.of(context).brightness == Brightness.light
-                                ? TinyColor(class$!.color!).lighten().color
-                                : TinyColor(class$!.color!).darken().color,
+                                ? TinyColor(class$.color).lighten().color
+                                : TinyColor(class$.color).darken().color,
                       ),
                       onPressed: selectColor,
                       icon: Icon(Icons.color_lens),
@@ -284,8 +282,8 @@ class _EditClassState extends State<EditClass> {
                           style: ElevatedButton.styleFrom(
                             primary:
                                 Theme.of(context).brightness == Brightness.light
-                                    ? TinyColor(class$!.color!).lighten().color
-                                    : TinyColor(class$!.color!).darken().color,
+                                    ? TinyColor(class$.color).lighten().color
+                                    : TinyColor(class$.color).darken().color,
                           ),
                           icon: Icon(Icons.visibility),
                           onPressed: showUsers,
@@ -309,7 +307,7 @@ class _EditClassState extends State<EditClass> {
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          if (class$!.id != 'null')
+          if (class$.id != 'null')
             FloatingActionButton(
               mini: true,
               tooltip: 'حذف',
@@ -332,19 +330,19 @@ class _EditClassState extends State<EditClass> {
     if (await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text(class$!.name),
+            title: Text(class$.name),
             content:
-                Text('هل أنت متأكد من حذف ${class$!.name} وكل ما به مخدومين؟'),
+                Text('هل أنت متأكد من حذف ${class$.name} وكل ما به مخدومين؟'),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
-                  navigator.currentState!.pop(true);
+                  navigator.currentState.pop(true);
                 },
                 child: Text('نعم'),
               ),
               TextButton(
                 onPressed: () {
-                  navigator.currentState!.pop();
+                  navigator.currentState.pop();
                 },
                 child: Text('تراجع'),
               ),
@@ -352,107 +350,98 @@ class _EditClassState extends State<EditClass> {
           ),
         ) ==
         true) {
-      scaffoldMessenger.currentState!.showSnackBar(
+      scaffoldMessenger.currentState.showSnackBar(
         SnackBar(
           content: Text('جار حذف الفصل وكل ما به من مخدومين...'),
           duration: Duration(seconds: 2),
         ),
       );
       if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
-        if (class$!.hasPhoto) {
+        if (class$.hasPhoto) {
           await FirebaseStorage.instance
               .ref()
-              .child('ClassesPhotos/${class$!.id}')
+              .child('ClassesPhotos/${class$.id}')
               .delete();
         }
-        await class$!.ref.delete();
+        await class$.ref.delete();
       } else {
-        if (class$!.hasPhoto) {
+        if (class$.hasPhoto) {
           // ignore: unawaited_futures
           FirebaseStorage.instance
               .ref()
-              .child('ClassesPhotos/${class$!.id}')
+              .child('ClassesPhotos/${class$.id}')
               .delete();
         }
         // ignore: unawaited_futures
-        class$!.ref.delete();
+        class$.ref.delete();
       }
-      navigator.currentState!.pop('deleted');
+      navigator.currentState.pop('deleted');
     }
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    class$ ??= widget.class$ ?? Class.empty();
-    old ??= class$!.getMap();
+    class$ ??= (widget.class$ ?? Class.empty()).copyWith();
   }
 
   void nameChanged(String value) {
-    class$!.name = value;
+    class$.name = value;
   }
 
   Future save() async {
     try {
-      if (form.currentState!.validate()) {
-        scaffoldMessenger.currentState!.showSnackBar(
+      if (form.currentState.validate()) {
+        scaffoldMessenger.currentState.showSnackBar(
           SnackBar(
             content: Text('جار الحفظ...'),
             duration: Duration(minutes: 20),
           ),
         );
-        var update = class$!.id != 'null';
+        var update = class$.id != 'null';
         if (!update) {
-          class$!.ref = FirebaseFirestore.instance.collection('Classes').doc();
+          class$.ref = FirebaseFirestore.instance.collection('Classes').doc();
         }
         if (changedImage != null) {
           await FirebaseStorage.instance
               .ref()
-              .child('ClassesPhotos/${class$!.id}')
-              .putFile(File(changedImage!));
-          class$!.hasPhoto = true;
+              .child('ClassesPhotos/${class$.id}')
+              .putFile(File(changedImage));
+          class$.hasPhoto = true;
         } else if (deletePhoto) {
           await FirebaseStorage.instance
               .ref()
-              .child('ClassesPhotos/${class$!.id}')
+              .child('ClassesPhotos/${class$.id}')
               .delete();
         }
 
-        class$!.lastEdit = auth.FirebaseAuth.instance.currentUser!.uid;
+        class$.lastEdit = auth.FirebaseAuth.instance.currentUser.uid;
 
         if (update &&
             await Connectivity().checkConnectivity() !=
                 ConnectivityResult.none) {
-          await class$!.ref.update(
-            class$!.getMap()..removeWhere((key, value) => old![key] == value),
-          );
+          await class$.update(old: widget.class$.getMap());
         } else if (update) {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
-          class$!.ref.update(
-            class$!.getMap()..removeWhere((key, value) => old![key] == value),
-          );
+          class$.update(old: widget.class$.getMap());
         } else if (await Connectivity().checkConnectivity() !=
             ConnectivityResult.none) {
-          await class$!.ref.set(
-            class$!.getMap(),
-          );
+          await class$.set();
         } else {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
-          class$!.ref.set(
-            class$!.getMap(),
-          );
+          class$.set();
         }
-        scaffoldMessenger.currentState!.hideCurrentSnackBar();
-        navigator.currentState!.pop(class$!.ref);
+        scaffoldMessenger.currentState.hideCurrentSnackBar();
+        navigator.currentState.pop(class$.ref);
       }
     } catch (err, stkTrace) {
       await FirebaseCrashlytics.instance
           .setCustomKey('LastErrorIn', 'ClassP.save');
       await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-      scaffoldMessenger.currentState!.hideCurrentSnackBar();
-      scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+      scaffoldMessenger.currentState.hideCurrentSnackBar();
+      scaffoldMessenger.currentState.showSnackBar(SnackBar(
         content: Text(err.toString()),
         duration: Duration(seconds: 7),
       ));
@@ -466,20 +455,20 @@ class _EditClassState extends State<EditClass> {
         actions: [
           TextButton(
             onPressed: () {
-              navigator.currentState!.pop();
+              navigator.currentState.pop();
               setState(() {
-                class$!.color = Colors.transparent;
+                class$.color = Colors.transparent;
               });
             },
             child: Text('بلا لون'),
           ),
         ],
         content: ColorsList(
-          selectedColor: class$!.color,
+          selectedColor: class$.color,
           onSelect: (color) {
-            navigator.currentState!.pop();
+            navigator.currentState.pop();
             setState(() {
-              class$!.color = color;
+              class$.color = color;
             });
           },
         ),
@@ -489,30 +478,27 @@ class _EditClassState extends State<EditClass> {
 
   void showUsers() async {
     BehaviorSubject<String> searchStream = BehaviorSubject<String>.seeded('');
-    class$!.allowedUsers = await showDialog(
+    class$.allowedUsers = await showDialog(
           context: context,
           builder: (context) {
             return FutureBuilder<List<User>>(
               future: User.getAllForUser().first.then((value) => value
-                  .where((u) => class$!.allowedUsers.contains(u.uid))
+                  .where((u) => class$.allowedUsers.contains(u.uid))
                   .toList()),
               builder: (c, users) {
                 if (!users.hasData)
                   return const Center(child: CircularProgressIndicator());
                 final options = DataObjectListOptions<User>(
                     itemBuilder: (current,
-                            [void Function(User)? onLongPress,
-                            void Function(User)? onTap,
-                            Widget? subtitle,
-                            trailing]) =>
+                            {onLongPress, onTap, subtitle, trailing}) =>
                         DataObjectWidget(
                           current,
-                          onTap: () => onTap!(current),
+                          onTap: () => onTap(current),
                           trailing: trailing,
                           showSubTitle: false,
                         ),
                     selectionMode: true,
-                    selected: {for (var item in users.data!) item.id: item},
+                    selected: {for (var item in users.data) item.id: item},
                     searchQuery: searchStream,
                     itemsStream: User.getAllForUser());
                 return Scaffold(
@@ -521,7 +507,7 @@ class _EditClassState extends State<EditClass> {
                     actions: [
                       IconButton(
                         onPressed: () {
-                          navigator.currentState!
+                          navigator.currentState
                               .pop(options.selectedLatest.keys.toList());
                         },
                         icon: Icon(Icons.done),
@@ -547,6 +533,6 @@ class _EditClassState extends State<EditClass> {
             );
           },
         ) ??
-        class$!.allowedUsers;
+        class$.allowedUsers;
   }
 }

@@ -9,31 +9,31 @@ import '../models/models.dart';
 import '../utils/helpers.dart';
 
 class DataMap extends StatefulWidget {
-  final Class? classO;
+  final Class classO;
 
-  DataMap({this.classO, Key? key}) : super(key: key);
+  DataMap({this.classO, Key key}) : super(key: key);
   @override
   _DataMapState createState() => _DataMapState();
 }
 
 class MegaMap extends StatelessWidget {
   final LatLng center = LatLng(30.0444, 31.2357); //Cairo Location
-  final LatLng? initialLocation;
+  final LatLng initialLocation;
 
-  MegaMap({Key? key, this.initialLocation}) : super(key: key);
+  MegaMap({Key key, this.initialLocation}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Consumer<SelectedClasses>(
       builder: (context, selected, _) {
-        return FutureBuilder<List<List<Person?>>>(
+        return FutureBuilder<List<List<Person>>>(
           future: Future.wait(
-              selected.selected!.map((e) => e!.getChildren()).toList()),
+              selected.selected.map((e) => e.getChildren()).toList()),
           builder: (context, data) {
             if (data.connectionState != ConnectionState.done) {
               return Center(child: CircularProgressIndicator());
             }
-            var persons = data.data!.expand((e) => e).toList();
+            var persons = data.data.expand((e) => e).toList();
 
             return StatefulBuilder(
               builder: (context, setState) => GoogleMap(
@@ -42,15 +42,15 @@ class MegaMap extends StatelessWidget {
                 myLocationEnabled: true,
                 myLocationButtonEnabled: true,
                 markers: persons
-                    ?.where((f) => f!.location != null)
+                    ?.where((f) => f.location != null)
                     ?.map(
                       (f) => Marker(
                           onTap: () {
-                            scaffoldMessenger.currentState!
+                            scaffoldMessenger.currentState
                                 .hideCurrentSnackBar();
-                            scaffoldMessenger.currentState!.showSnackBar(
+                            scaffoldMessenger.currentState.showSnackBar(
                               SnackBar(
-                                content: Text(f!.name!),
+                                content: Text(f.name),
                                 backgroundColor: f.color == Colors.transparent
                                     ? null
                                     : f.color,
@@ -61,9 +61,9 @@ class MegaMap extends StatelessWidget {
                               ),
                             );
                           },
-                          markerId: MarkerId(f!.id!),
+                          markerId: MarkerId(f.id),
                           infoWindow: InfoWindow(title: f.name),
-                          position: fromGeoPoint(f.location!)),
+                          position: fromGeoPoint(f.location)),
                     )
                     ?.toSet(),
                 initialCameraPosition: CameraPosition(
@@ -80,17 +80,17 @@ class MegaMap extends StatelessWidget {
 }
 
 class SelectedClasses extends ChangeNotifier {
-  List<Class?>? selected = [];
+  List<Class> selected = [];
 
   SelectedClasses([this.selected]);
 
   void addClass(Class _class) {
-    selected!.add(_class);
+    selected.add(_class);
     notifyListeners();
   }
 
   void removeClass(Class _class) {
-    selected!.remove(_class);
+    selected.remove(_class);
     notifyListeners();
   }
 
@@ -107,7 +107,7 @@ class _DataMapState extends State<DataMap> {
         stream:
             widget.classO == null ? Class.getAllForUser() : Stream.value([]),
         builder: (context, snapshot) {
-          if (snapshot.hasError) return ErrorWidget.builder(snapshot.error as FlutterErrorDetails);
+          if (snapshot.hasError) return ErrorWidget.builder(snapshot.error);
           if (!snapshot.hasData && widget.classO == null)
             return const Center(child: CircularProgressIndicator());
           var selected = SelectedClasses(
@@ -134,7 +134,7 @@ class _DataMapState extends State<DataMap> {
                               'التالي',
                               style: TextStyle(
                                 color:
-                                    Theme.of(context).textTheme.bodyText2!.color,
+                                    Theme.of(context).textTheme.bodyText2.color,
                               ),
                             ),
                             onPressed: () =>
@@ -147,7 +147,7 @@ class _DataMapState extends State<DataMap> {
                               'تخطي',
                               style: TextStyle(
                                 color:
-                                    Theme.of(context).textTheme.bodyText2!.color,
+                                    Theme.of(context).textTheme.bodyText2.color,
                               ),
                             ),
                           ),
@@ -156,7 +156,7 @@ class _DataMapState extends State<DataMap> {
                       backgroundColor: Theme.of(context).accentColor,
                       targetColor: Theme.of(context).primaryColor,
                       textColor:
-                          Theme.of(context).primaryTextTheme.bodyText1!.color!,
+                          Theme.of(context).primaryTextTheme.bodyText1.color,
                       child: Icon(Icons.visibility),
                     ),
                     tooltip: 'اظهار/اخفاء فصول',
@@ -182,8 +182,8 @@ class _DataMapState extends State<DataMap> {
                       future: Location.instance.getLocation(),
                       builder: (context, snapshot) => snapshot.hasData
                           ? MegaMap(
-                              initialLocation: LatLng(snapshot.data!.latitude!,
-                                  snapshot.data!.longitude!),
+                              initialLocation: LatLng(snapshot.data.latitude,
+                                  snapshot.data.longitude),
                             )
                           : Center(child: CircularProgressIndicator()),
                     );

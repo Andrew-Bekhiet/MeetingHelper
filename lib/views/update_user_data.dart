@@ -14,12 +14,12 @@ class UpdateUserDataErrorPage extends StatefulWidget {
 }
 
 class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
-  User? user;
+  User user;
 
   @override
   Widget build(BuildContext context) {
     user == null
-        ? user = ModalRoute.of(context)!.settings.arguments as User?
+        ? user = ModalRoute.of(context).settings.arguments
         : user = user;
     return Scaffold(
       appBar: AppBar(title: Text('تحديث بيانات المستخدم')),
@@ -36,9 +36,9 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                   padding: EdgeInsets.symmetric(vertical: 4.0),
                   child: Focus(
                     child: GestureDetector(
-                      onTap: () async => user!.lastTanawol = await _selectDate(
+                      onTap: () async => user.lastTanawol = await _selectDate(
                         'تاريخ أخر تناول',
-                        user!.lastTanawol ?? Timestamp.now(),
+                        user.lastTanawol ?? Timestamp.now(),
                         setState,
                       ),
                       child: InputDecorator(
@@ -49,9 +49,9 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                                 color: Theme.of(context).primaryColor),
                           ),
                         ),
-                        child: user!.lastTanawol != null
+                        child: user.lastTanawol != null
                             ? Text(DateFormat('yyyy/M/d')
-                                .format(user!.lastTanawol!.toDate()))
+                                .format(user.lastTanawol.toDate()))
                             : Text('(فارغ)'),
                       ),
                     ),
@@ -72,9 +72,9 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                   child: Focus(
                     child: GestureDetector(
                       onTap: () async =>
-                          user!.lastConfession = await _selectDate(
+                          user.lastConfession = await _selectDate(
                         'تاريخ أخر اعتراف',
-                        user!.lastConfession ?? Timestamp.now(),
+                        user.lastConfession ?? Timestamp.now(),
                         setState,
                       ),
                       child: InputDecorator(
@@ -84,9 +84,9 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                               borderSide: BorderSide(
                                   color: Theme.of(context).primaryColor),
                             )),
-                        child: user!.lastConfession != null
+                        child: user.lastConfession != null
                             ? Text(DateFormat('yyyy/M/d')
-                                .format(user!.lastConfession!.toDate()))
+                                .format(user.lastConfession.toDate()))
                             : Text('(فارغ)'),
                       ),
                     ),
@@ -107,20 +107,20 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
 
   Future save() async {
     try {
-      scaffoldMessenger.currentState!
+      scaffoldMessenger.currentState
           .showSnackBar(SnackBar(content: Text('جار الحفظ')));
       await FirebaseFunctions.instance
           .httpsCallable('updateUserSpiritData')
           .call({
-        'lastConfession': user!.lastConfession,
-        'lastTanawol': user!.lastTanawol
+        'lastConfession': user.lastConfession.millisecondsSinceEpoch,
+        'lastTanawol': user.lastTanawol.millisecondsSinceEpoch
       });
-      navigator.currentState!.pop();
+      navigator.currentState.pop();
     } catch (err, stkTrace) {
       await showErrorDialog(context, err.toString());
       await FirebaseCrashlytics.instance
           .setCustomKey('LastErrorIn', 'UpdateUserDataError.save');
-      await FirebaseCrashlytics.instance.setCustomKey('User', user!.uid!);
+      await FirebaseCrashlytics.instance.setCustomKey('User', user.uid);
       await FirebaseCrashlytics.instance.recordError(err, stkTrace);
     }
   }

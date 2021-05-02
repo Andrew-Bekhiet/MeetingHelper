@@ -19,7 +19,7 @@ import 'package:share_plus/share_plus.dart';
 import '../edit_page/edit_user.dart';
 
 class UserInfo extends StatefulWidget {
-  UserInfo({Key? key}) : super(key: key);
+  UserInfo({Key key}) : super(key: key);
 
   @override
   _UserInfoState createState() => _UserInfoState();
@@ -30,13 +30,13 @@ class _UserInfoState extends State<UserInfo> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: StreamBuilder<User>(
-        initialData: ModalRoute.of(context)!.settings.arguments as User?,
-        stream: (ModalRoute.of(context)!.settings.arguments as User)
-            .ref!
+        initialData: ModalRoute.of(context).settings.arguments,
+        stream: (ModalRoute.of(context).settings.arguments as User)
+            .ref
             .snapshots()
             .map(User.fromDoc),
         builder: (context, data) {
-          User user = data.data!;
+          User user = data.data;
           return NestedScrollView(
             headerSliverBuilder: (context, _) => <Widget>[
               SliverAppBar(
@@ -44,19 +44,19 @@ class _UserInfoState extends State<UserInfo> {
                   IconButton(
                     icon: Icon(Icons.edit),
                     onPressed: () async {
-                      dynamic result = await navigator.currentState!.push(
+                      dynamic result = await navigator.currentState.push(
                         MaterialPageRoute(
                           builder: (co) => EditUser(user: user),
                         ),
                       );
                       if (result is DocumentReference) {
-                        scaffoldMessenger.currentState!.showSnackBar(
+                        scaffoldMessenger.currentState.showSnackBar(
                           SnackBar(
                             content: Text('تم الحفظ بنجاح'),
                           ),
                         );
                       } else if (result == 'deleted')
-                        navigator.currentState!.pop();
+                        navigator.currentState.pop();
                     },
                     tooltip: 'تعديل',
                   ),
@@ -66,6 +66,13 @@ class _UserInfoState extends State<UserInfo> {
                       await Share.share(await shareUser(user));
                     },
                     tooltip: 'مشاركة',
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.info),
+                    onPressed: () {
+                      personTap(user, context);
+                    },
+                    tooltip: 'بيانات المستخدم',
                   ),
                 ],
                 expandedHeight: 250.0,
@@ -78,7 +85,7 @@ class _UserInfoState extends State<UserInfo> {
                       opacity: constraints.biggest.height > kToolbarHeight * 1.7
                           ? 0
                           : 1,
-                      child: Text(user.name!,
+                      child: Text(user.name,
                           style: TextStyle(
                             fontSize: 16.0,
                           )),
@@ -90,7 +97,7 @@ class _UserInfoState extends State<UserInfo> {
             ],
             body: ListView(
               children: <Widget>[
-                Text(user.name!, style: Theme.of(context).textTheme.headline6),
+                Text(user.name, style: Theme.of(context).textTheme.headline6),
                 ListTile(
                   title: Text('البريد الاكتروني:'),
                   subtitle: Text(user.email ?? ''),
@@ -126,7 +133,7 @@ class _UserInfoState extends State<UserInfo> {
                       Text(
                           user.lastTanawolDate != null
                               ? DateFormat('yyyy/M/d')
-                                  .format(user.lastTanawolDate!)
+                                  .format(user.lastTanawolDate)
                               : '',
                           style: Theme.of(context).textTheme.overline),
                     ],
@@ -144,7 +151,7 @@ class _UserInfoState extends State<UserInfo> {
                       Text(
                           user.lastConfessionDate != null
                               ? DateFormat('yyyy/M/d')
-                                  .format(user.lastConfessionDate!)
+                                  .format(user.lastConfessionDate)
                               : '',
                           style: Theme.of(context).textTheme.overline),
                     ],
@@ -153,11 +160,11 @@ class _UserInfoState extends State<UserInfo> {
                 ListTile(
                   title: Text('داخل فصل:'),
                   subtitle:
-                      user.classId != null && user.classId!.parent.id != 'null'
-                          ? FutureBuilder<Class?>(
-                              future: Class.fromId(user.classId!.id),
+                      user.classId != null && user.classId.parent.id != 'null'
+                          ? FutureBuilder<Class>(
+                              future: Class.fromId(user.classId.id),
                               builder: (context, _class) => _class.hasData
-                                  ? DataObjectWidget<Class?>(_class.data,
+                                  ? DataObjectWidget<Class>(_class.data,
                                       isDense: true)
                                   : LinearProgressIndicator(),
                             )
@@ -234,7 +241,7 @@ class _UserInfoState extends State<UserInfo> {
                   ),
                 ),
                 ElevatedButton.icon(
-                  label: Text('رؤية البيانات كما يراها ' + user.name!),
+                  label: Text('رؤية البيانات كما يراها ' + user.name),
                   icon: Icon(Icons.visibility),
                   onPressed: () => showDialog(
                     context: context,
@@ -243,8 +250,8 @@ class _UserInfoState extends State<UserInfo> {
                         children: [
                           Text(
                             'يستطيع ' +
-                                user.name! +
-                                ' رؤية ${user.write! ? 'وتعديل ' : ''}الفصول التالية:',
+                                user.name +
+                                ' رؤية ${user.write ? 'وتعديل ' : ''}الفصول التالية:',
                             style: Theme.of(context).textTheme.headline6,
                           ),
                           Expanded(
@@ -252,7 +259,7 @@ class _UserInfoState extends State<UserInfo> {
                               options: ServicesListOptions(
                                 searchQuery: Stream.value(''),
                                 tap: (c) => classTap(c, context),
-                                itemsStream: user.superAccess!
+                                itemsStream: user.superAccess
                                     ? classesByStudyYearRef()
                                     : classesByStudyYearRefForUser(user.uid),
                               ),
@@ -264,10 +271,10 @@ class _UserInfoState extends State<UserInfo> {
                   ),
                 ),
                 ElevatedButton.icon(
-                  label: Text('المستخدمين المسؤول عنهم ' + user.name!,
+                  label: Text('المستخدمين المسؤول عنهم ' + user.name,
                       textScaleFactor: 0.95, overflow: TextOverflow.fade),
                   icon: Icon(Icons.shield),
-                  onPressed: () => navigator.currentState!.push(
+                  onPressed: () => navigator.currentState.push(
                     MaterialPageRoute(
                       builder: (context) {
                         final BehaviorSubject<String> searchStream =
@@ -299,7 +306,7 @@ class _UserInfoState extends State<UserInfo> {
                                       ' مستخدم',
                                   textAlign: TextAlign.center,
                                   strutStyle: StrutStyle(
-                                      height: IconTheme.of(context).size! / 7.5),
+                                      height: IconTheme.of(context).size / 7.5),
                                   style: Theme.of(context)
                                       .primaryTextTheme
                                       .bodyText1,

@@ -14,18 +14,20 @@ import 'package:rxdart/rxdart.dart';
 class Day extends StatefulWidget {
   final HistoryDay record;
 
-  Day({required this.record}) : assert(record != null);
+  Day({@required this.record}) : assert(record != null);
 
   @override
   State<Day> createState() => _DayState();
 }
 
 class _DayState extends State<Day> with SingleTickerProviderStateMixin {
-  TabController? _tabs;
+  TabController _tabs;
+
   bool _showSearch = false;
   final FocusNode _searchFocus = FocusNode();
   final BehaviorSubject<String> _searchQuery =
       BehaviorSubject<String>.seeded('');
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -34,7 +36,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
           Provider<CheckListOptions<Person>>(
             create: (_) {
               bool isSameDay = DateTime.now()
-                      .difference(widget.record.day!.toDate())
+                      .difference(widget.record.day.toDate())
                       .inDays ==
                   0;
               return CheckListOptions(
@@ -45,6 +47,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                     grouped: !isSameDay,
                     showOnly: isSameDay ? null : true,
                     enabled: isSameDay,
+                    sortByTimeASC: isSameDay ? null : true,
                   ),
                   getGroupedData: personsByClassRef,
                   type: DayListType.Meeting);
@@ -54,7 +57,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
           Provider<CheckListOptions<User>>(
             create: (_) {
               bool isSameDay = DateTime.now()
-                      .difference(widget.record.day!.toDate())
+                      .difference(widget.record.day.toDate())
                       .inDays ==
                   0;
               return CheckListOptions(
@@ -65,6 +68,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                     grouped: !isSameDay,
                     showOnly: isSameDay ? null : true,
                     enabled: isSameDay,
+                    sortByTimeASC: isSameDay ? null : true,
                   ),
                   getGroupedData: usersByClassRef,
                   type: DayListType.Meeting);
@@ -77,15 +81,15 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
             title: _showSearch
                 ? TextField(
                     focusNode: _searchFocus,
-                    style: Theme.of(context).textTheme.headline6!.copyWith(
+                    style: Theme.of(context).textTheme.headline6.copyWith(
                         color:
-                            Theme.of(context).primaryTextTheme.headline6!.color),
+                            Theme.of(context).primaryTextTheme.headline6.color),
                     decoration: InputDecoration(
                         suffixIcon: IconButton(
                           icon: Icon(Icons.close,
                               color: Theme.of(context)
                                   .primaryTextTheme
-                                  .headline6!
+                                  .headline6
                                   .color),
                           onPressed: () => setState(
                             () {
@@ -96,16 +100,16 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                         ),
                         hintStyle: Theme.of(context)
                             .textTheme
-                            .headline6!
+                            .headline6
                             .copyWith(
                                 color: Theme.of(context)
                                     .primaryTextTheme
-                                    .headline6!
+                                    .headline6
                                     .color),
                         icon: Icon(Icons.search,
                             color: Theme.of(context)
                                 .primaryTextTheme
-                                .headline6!
+                                .headline6
                                 .color),
                         hintText: 'بحث ...'),
                     onChanged: _searchQuery.add,
@@ -121,156 +125,8 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                   }),
                   tooltip: 'بحث',
                 ),
-              if (User.instance.superAccess!)
-                IconButton(
-                  icon: Icon(Icons.delete),
-                  onPressed: () async {
-                    if (await showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(actions: [
-                            TextButton(
-                              onPressed: () => navigator.currentState!.pop(true),
-                              child: Text('نعم'),
-                            ),
-                            TextButton(
-                              onPressed: () =>
-                                  navigator.currentState!.pop(false),
-                              child: Text('لا'),
-                            )
-                          ], content: Text('هل أنت متأكد من الحذف؟')),
-                        ) ==
-                        true) {
-                      await widget.record.ref!.delete();
-                      navigator.currentState!.pop();
-                    }
-                  },
-                ),
               IconButton(
-                icon: DescribedFeatureOverlay(
-                  barrierDismissible: false,
-                  featureId: 'Sorting',
-                  tapTarget: Icon(Icons.library_add_check_outlined),
-                  title: Text('تنظيم الليستة'),
-                  description: Column(
-                    children: <Widget>[
-                      Text('يمكنك تقسيم المخدومين حسب الفصول أو'
-                          ' اظهار المخدومين الحاضرين فقط أو الغائبين فقط من هنا'),
-                      OutlinedButton.icon(
-                        icon: Icon(Icons.forward),
-                        label: Text(
-                          'التالي',
-                          style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2!.color,
-                          ),
-                        ),
-                        onPressed: () =>
-                            FeatureDiscovery.completeCurrentStep(context),
-                      ),
-                      OutlinedButton(
-                        onPressed: () => FeatureDiscovery.dismissAll(context),
-                        child: Text(
-                          'تخطي',
-                          style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2!.color,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  backgroundColor: Theme.of(context).accentColor,
-                  targetColor: Theme.of(context).primaryColor,
-                  textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                  child: Icon(Icons.library_add_check_outlined),
-                ),
-                onPressed: () {
-                  var dayOptions = (widget.record is! ServantsHistoryDay
-                          ? context.read<CheckListOptions<Person>>()
-                          : context.read<CheckListOptions<User>>())
-                      .dayOptions;
-                  showDialog(
-                    context: context,
-                    builder: (context2) => SimpleDialog(
-                      children: [
-                        Row(
-                          children: [
-                            Checkbox(
-                              value: dayOptions.grouped.value,
-                              onChanged: (value) {
-                                dayOptions.grouped.add(value);
-                                navigator.currentState!.pop();
-                              },
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                dayOptions.grouped
-                                    .add(!dayOptions.grouped.value!);
-                                navigator.currentState!.pop();
-                              },
-                              child: Text('تقسيم حسب الفصول'),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Checkbox(
-                              value: dayOptions.showSubtitlesInGroups.value,
-                              onChanged: (value) {
-                                dayOptions.showSubtitlesInGroups.add(value);
-                                navigator.currentState!.pop();
-                              },
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                dayOptions.showSubtitlesInGroups.add(
-                                    !dayOptions.showSubtitlesInGroups.value!);
-                                navigator.currentState!.pop();
-                              },
-                              child: Text('اظهار عدد المخدومين داخل كل فصل'),
-                            ),
-                          ],
-                        ),
-                        Text("ملحوظة: تعمل فقط مع 'تقسيم حسب الفصول'",
-                            style: Theme.of(context).textTheme.caption),
-                        Container(height: 5),
-                        ListTile(
-                          title: Text('إظهار:'),
-                          subtitle: Wrap(
-                            direction: Axis.vertical,
-                            children: [null, true, false]
-                                .map(
-                                  (i) => Row(
-                                    children: [
-                                      Radio<bool?>(
-                                        value: i,
-                                        groupValue: dayOptions.showOnly.value,
-                                        onChanged: (v) {
-                                          dayOptions.showOnly.add(v);
-                                          navigator.currentState!.pop();
-                                        },
-                                      ),
-                                      GestureDetector(
-                                        onTap: () {
-                                          dayOptions.showOnly.add(i);
-                                          navigator.currentState!.pop();
-                                        },
-                                        child: Text(i == null
-                                            ? 'الكل'
-                                            : i == true
-                                                ? 'الحاضرين فقط'
-                                                : 'الغائبين فقط'),
-                                      )
-                                    ],
-                                  ),
-                                )
-                                .toList(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-              IconButton(
+                tooltip: 'تحليل بيانات كشف اليوم',
                 icon: DescribedFeatureOverlay(
                   barrierDismissible: false,
                   contentLocation: ContentLocation.below,
@@ -286,7 +142,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                         label: Text(
                           'التالي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2!.color,
+                            color: Theme.of(context).textTheme.bodyText2.color,
                           ),
                         ),
                         onPressed: () {
@@ -298,7 +154,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                         child: Text(
                           'تخطي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2!.color,
+                            color: Theme.of(context).textTheme.bodyText2.color,
                           ),
                         ),
                       ),
@@ -306,15 +162,257 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                   ),
                   backgroundColor: Theme.of(context).accentColor,
                   targetColor: Colors.transparent,
-                  textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
+                  textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
                   child: const Icon(Icons.analytics_outlined),
                 ),
                 onPressed: () {
-                  navigator.currentState!.pushNamed('Analytics', arguments: {
+                  navigator.currentState.pushNamed('Analytics', arguments: {
                     'Day': widget.record,
-                    'HistoryCollection': widget.record.ref!.parent.id
+                    'HistoryCollection': widget.record.ref.parent.id
                   });
                 },
+              ),
+              DescribedFeatureOverlay(
+                barrierDismissible: false,
+                featureId: 'Sorting',
+                tapTarget: Icon(Icons.library_add_check_outlined),
+                title: Text('تنظيم الليستة'),
+                description: Column(
+                  children: <Widget>[
+                    Text('يمكنك تقسيم المخدومين حسب الفصول أو'
+                        ' اظهار المخدومين الحاضرين فقط أو '
+                        'الغائبين والترتيب حسب وقت الحضور فقط من هنا'),
+                    OutlinedButton.icon(
+                      icon: Icon(Icons.forward),
+                      label: Text(
+                        'التالي',
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodyText2.color,
+                        ),
+                      ),
+                      onPressed: () =>
+                          FeatureDiscovery.completeCurrentStep(context),
+                    ),
+                    OutlinedButton(
+                      onPressed: () => FeatureDiscovery.dismissAll(context),
+                      child: Text(
+                        'تخطي',
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodyText2.color,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: Theme.of(context).accentColor,
+                targetColor: Theme.of(context).primaryColor,
+                textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
+                child: PopupMenuButton(
+                  onSelected: (v) async {
+                    if (v == 'delete') {
+                      if (await showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(actions: [
+                              TextButton(
+                                onPressed: () =>
+                                    navigator.currentState.pop(true),
+                                child: Text('نعم'),
+                              ),
+                              TextButton(
+                                onPressed: () =>
+                                    navigator.currentState.pop(false),
+                                child: Text('لا'),
+                              )
+                            ], content: Text('هل أنت متأكد من الحذف؟')),
+                          ) ==
+                          true) {
+                        await widget.record.ref.delete();
+                        navigator.currentState.pop();
+                      }
+                    } else if (v == 'sorting') {
+                      await showDialog(
+                        context: context,
+                        builder: (context2) => AlertDialog(
+                          insetPadding: EdgeInsets.symmetric(vertical: 24.0),
+                          content: StatefulBuilder(
+                              builder: (innerContext, setState) {
+                            var dayOptions = (widget.record
+                                        is! ServantsHistoryDay
+                                    ? context.read<CheckListOptions<Person>>()
+                                    : context.read<CheckListOptions<User>>())
+                                .dayOptions;
+                            return Container(
+                              width: 350,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Checkbox(
+                                        value: dayOptions.grouped.value,
+                                        onChanged: (value) {
+                                          dayOptions.grouped.add(value);
+                                          setState(() {});
+                                        },
+                                      ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          dayOptions.grouped
+                                              .add(!dayOptions.grouped.value);
+                                          setState(() {});
+                                        },
+                                        child: Text('تقسيم حسب الفصول'),
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      Container(width: 10),
+                                      Checkbox(
+                                        value: dayOptions
+                                            .showSubtitlesInGroups.value,
+                                        onChanged: dayOptions.grouped.value
+                                            ? (value) {
+                                                dayOptions.showSubtitlesInGroups
+                                                    .add(value);
+                                                setState(() {});
+                                              }
+                                            : null,
+                                      ),
+                                      GestureDetector(
+                                        onTap: dayOptions.grouped.value
+                                            ? () {
+                                                dayOptions.showSubtitlesInGroups
+                                                    .add(!dayOptions
+                                                        .showSubtitlesInGroups
+                                                        .value);
+                                                setState(() {});
+                                              }
+                                            : null,
+                                        child: Text(
+                                            'اظهار عدد المخدومين داخل كل فصل'),
+                                      ),
+                                    ],
+                                  ),
+                                  Container(height: 5),
+                                  ListTile(
+                                    title: Text('ترتيب حسب:'),
+                                    subtitle: Wrap(
+                                      direction: Axis.vertical,
+                                      children: [null, true, false]
+                                          .map(
+                                            (i) => Row(
+                                              children: [
+                                                Radio<bool>(
+                                                  value: i,
+                                                  groupValue: dayOptions
+                                                      .sortByTimeASC.value,
+                                                  onChanged: (v) {
+                                                    dayOptions.sortByTimeASC
+                                                        .add(v);
+                                                    setState(() {});
+                                                  },
+                                                ),
+                                                GestureDetector(
+                                                  onTap: () {
+                                                    dayOptions.sortByTimeASC
+                                                        .add(i);
+                                                    setState(() {});
+                                                  },
+                                                  child: Text(i == null
+                                                      ? 'الاسم'
+                                                      : i == true
+                                                          ? 'وقت الحضور'
+                                                          : 'وقت الحضور (المتأخر أولا)'),
+                                                )
+                                              ],
+                                            ),
+                                          )
+                                          .toList(),
+                                    ),
+                                  ),
+                                  Container(height: 5),
+                                  ListTile(
+                                    enabled:
+                                        dayOptions.sortByTimeASC.value == null,
+                                    title: Text('إظهار:'),
+                                    subtitle: Wrap(
+                                      direction: Axis.vertical,
+                                      children: [null, true, false]
+                                          .map(
+                                            (i) => Row(
+                                              children: [
+                                                Radio<bool>(
+                                                  value: i,
+                                                  groupValue: dayOptions
+                                                              .sortByTimeASC
+                                                              .value ==
+                                                          null
+                                                      ? dayOptions
+                                                          .showOnly.value
+                                                      : true,
+                                                  onChanged: dayOptions
+                                                              .sortByTimeASC
+                                                              .value ==
+                                                          null
+                                                      ? (v) {
+                                                          dayOptions.showOnly
+                                                              .add(v);
+                                                          setState(() {});
+                                                        }
+                                                      : null,
+                                                ),
+                                                GestureDetector(
+                                                  onTap: dayOptions
+                                                              .sortByTimeASC
+                                                              .value ==
+                                                          null
+                                                      ? () {
+                                                          dayOptions.showOnly
+                                                              .add(i);
+                                                          setState(() {});
+                                                        }
+                                                      : null,
+                                                  child: Text(i == null
+                                                      ? 'الكل'
+                                                      : i == true
+                                                          ? 'الحاضرين فقط'
+                                                          : 'الغائبين فقط'),
+                                                )
+                                              ],
+                                            ),
+                                          )
+                                          .toList(),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                navigator.currentState.pop();
+                              },
+                              child: Text('إغلاق'),
+                            )
+                          ],
+                        ),
+                      );
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'sorting',
+                      child: Text('تنظيم الليستة'),
+                    ),
+                    if (User.instance.superAccess)
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Text('حذف الكشف'),
+                      ),
+                  ],
+                ),
               ),
             ],
             bottom: TabBar(
@@ -331,7 +429,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
             color: Theme.of(context).primaryColor,
             shape: const CircularNotchedRectangle(),
             child: AnimatedBuilder(
-              animation: _tabs!,
+              animation: _tabs,
               builder: (context, _) => StreamBuilder<Tuple2<int, int>>(
                 stream: Rx.combineLatest2<Map, Map, Tuple2<int, int>>(
                   widget.record is! ServantsHistoryDay
@@ -345,32 +443,110 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                     var rslt = widget.record is! ServantsHistoryDay
                         ? context.read<CheckListOptions<Person>>()
                         : context.read<CheckListOptions<User>>();
-                    if (_tabs!.index == 0) {
+                    if (_tabs.index == 0) {
                       return rslt.copyWith(type: DayListType.Meeting).attended;
-                    } else if (_tabs!.index == 1) {
+                    } else if (_tabs.index == 1) {
                       return rslt.copyWith(type: DayListType.Kodas).attended;
                     } else {
                       //if (_tabs.index == 2) {
                       return rslt.copyWith(type: DayListType.Tanawol).attended;
                     }
-                  }()!,
+                  }(),
                   (Map a, Map b) => Tuple2<int, int>(a.length, b.length),
                 ),
                 builder: (context, snapshot) {
-                  return Text(
-                    (snapshot.data?.item2 ?? 0).toString() +
-                        ' مخدوم حاضر و' +
-                        ((snapshot.data?.item1 ?? 0) -
-                                (snapshot.data?.item2 ?? 0))
-                            .toString() +
-                        ' مخدوم غائب من اجمالي ' +
-                        (snapshot.data?.item1 ?? 0).toString() +
-                        ' مخدوم',
-                    textAlign: TextAlign.center,
-                    textScaleFactor: 0.99,
-                    strutStyle:
-                        StrutStyle(height: IconTheme.of(context).size! / 7.5),
-                    style: Theme.of(context).primaryTextTheme.bodyText1,
+                  TextTheme theme = Theme.of(context).primaryTextTheme;
+                  return ExpansionTile(
+                    expandedAlignment: Alignment.centerRight,
+                    title: Text(
+                      'الحضور:' +
+                          (snapshot.data?.item2 ?? 0).toString() +
+                          ' مخدوم',
+                      style: theme.bodyText2,
+                    ),
+                    trailing:
+                        Icon(Icons.expand_more, color: theme.bodyText2.color),
+                    leading: DescribedFeatureOverlay(
+                      barrierDismissible: false,
+                      contentLocation: ContentLocation.above,
+                      featureId: 'LockUnchecks',
+                      tapTarget: const Icon(Icons.lock_open_outlined),
+                      title: Text('تثبيت الحضور'),
+                      description: Column(
+                        children: <Widget>[
+                          Text(
+                              'يقوم البرنامج تلقائيًا بطلب تأكيد لإزالة حضور مخدوم\nاذا اردت الغاء هذه الخاصية يمكنك الضغط هنا'),
+                          OutlinedButton.icon(
+                            icon: Icon(Icons.forward),
+                            label: Text(
+                              'التالي',
+                              style: TextStyle(
+                                color:
+                                    Theme.of(context).textTheme.bodyText2.color,
+                              ),
+                            ),
+                            onPressed: () {
+                              FeatureDiscovery.completeCurrentStep(context);
+                            },
+                          ),
+                          OutlinedButton(
+                            onPressed: () =>
+                                FeatureDiscovery.dismissAll(context),
+                            child: Text(
+                              'تخطي',
+                              style: TextStyle(
+                                color:
+                                    Theme.of(context).textTheme.bodyText2.color,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      backgroundColor: Theme.of(context).accentColor,
+                      targetColor: Colors.transparent,
+                      textColor:
+                          Theme.of(context).primaryTextTheme.bodyText1.color,
+                      child: StreamBuilder<bool>(
+                        initialData: (widget.record is! ServantsHistoryDay
+                                ? context.read<CheckListOptions<Person>>()
+                                : context.read<CheckListOptions<User>>())
+                            .dayOptions
+                            .lockUnchecks
+                            .value,
+                        stream: (widget.record is! ServantsHistoryDay
+                                ? context.read<CheckListOptions<Person>>()
+                                : context.read<CheckListOptions<User>>())
+                            .dayOptions
+                            .lockUnchecks,
+                        builder: (context, data) {
+                          return IconButton(
+                            icon: Icon(
+                                data.data
+                                    ? Icons.lock_open
+                                    : Icons.lock_outlined,
+                                color: theme.bodyText2.color),
+                            tooltip: 'تثبيت الحضور',
+                            onPressed: () => (widget.record
+                                        is! ServantsHistoryDay
+                                    ? context.read<CheckListOptions<Person>>()
+                                    : context.read<CheckListOptions<User>>())
+                                .dayOptions
+                                .lockUnchecks
+                                .add(!data.data),
+                          );
+                        },
+                      ),
+                    ),
+                    children: [
+                      Text('الغياب:' +
+                          ((snapshot.data?.item1 ?? 0) -
+                                  (snapshot.data?.item2 ?? 0))
+                              .toString() +
+                          ' مخدوم'),
+                      Text('اجمالي:' +
+                          (snapshot.data?.item1 ?? 0).toString() +
+                          ' مخدوم'),
+                    ],
                   );
                 },
               ),
@@ -385,19 +561,19 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
           children: widget.record is! ServantsHistoryDay
               ? [
                   DataObjectCheckList<Person>(
-                    key: PageStorageKey('PersonsMeeting' + widget.record.id!),
+                    key: PageStorageKey('PersonsMeeting' + widget.record.id),
                     options: context
                         .read<CheckListOptions<Person>>()
                         .copyWith(type: DayListType.Meeting),
                   ),
                   DataObjectCheckList<Person>(
-                    key: PageStorageKey('PersonsKodas' + widget.record.id!),
+                    key: PageStorageKey('PersonsKodas' + widget.record.id),
                     options: context
                         .read<CheckListOptions<Person>>()
                         .copyWith(type: DayListType.Kodas),
                   ),
                   DataObjectCheckList<Person>(
-                    key: PageStorageKey('PersonsTanawol' + widget.record.id!),
+                    key: PageStorageKey('PersonsTanawol' + widget.record.id),
                     options: context
                         .read<CheckListOptions<Person>>()
                         .copyWith(type: DayListType.Tanawol),
@@ -405,19 +581,19 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                 ]
               : [
                   DataObjectCheckList<User>(
-                    key: PageStorageKey('UsersMeeting' + widget.record.id!),
+                    key: PageStorageKey('UsersMeeting' + widget.record.id),
                     options: context
                         .read<CheckListOptions<User>>()
                         .copyWith(type: DayListType.Meeting),
                   ),
                   DataObjectCheckList<User>(
-                    key: PageStorageKey('UsersKodas' + widget.record.id!),
+                    key: PageStorageKey('UsersKodas' + widget.record.id),
                     options: context
                         .read<CheckListOptions<User>>()
                         .copyWith(type: DayListType.Kodas),
                   ),
                   DataObjectCheckList<User>(
-                    key: PageStorageKey('UsersTanawol' + widget.record.id!),
+                    key: PageStorageKey('UsersTanawol' + widget.record.id),
                     options: context
                         .read<CheckListOptions<User>>()
                         .copyWith(type: DayListType.Tanawol),
@@ -432,14 +608,14 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     _tabs = TabController(length: 3, vsync: this);
-    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) async {
-      if (DateTime.now().difference(widget.record.day!.toDate()).inDays != 0)
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      if (DateTime.now().difference(widget.record.day.toDate()).inDays != 0)
         return;
       try {
-        if ((await widget.record.ref!.get(dataSource)).exists) {
-          await widget.record.ref!.update(widget.record.getMap());
+        if ((await widget.record.ref.get(dataSource)).exists) {
+          await widget.record.ref.update(widget.record.getMap());
         } else {
-          await widget.record.ref!.set(widget.record.getMap());
+          await widget.record.ref.set(widget.record.getMap());
         }
       } catch (err, stkTrace) {
         await FirebaseCrashlytics.instance.recordError(err, stkTrace);
@@ -461,16 +637,16 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                 ' ثم الضغط على عرض بيانات المخدوم'),
             actions: [
               TextButton(
-                onPressed: () => navigator.currentState!.pop(),
+                onPressed: () => navigator.currentState.pop(),
                 child: Text('تم'),
               )
             ],
           ),
         );
         await Hive.box<bool>('FeatureDiscovery').put('DayInstructions', true);
-        FeatureDiscovery.discoverFeatures(
-            context, ['Sorting', 'AnalyticsToday']);
       }
+      FeatureDiscovery.discoverFeatures(
+          context, ['Sorting', 'AnalyticsToday', 'LockUnchecks']);
     });
   }
 }

@@ -14,21 +14,21 @@ import 'models.dart';
 import 'user.dart';
 
 class Class extends DataObject with PhotoObject, ParentObject<Person> {
-  DocumentReference? studyYear;
+  DocumentReference studyYear;
   bool gender;
 
-  late List<String> allowedUsers;
-  String? lastEdit;
+  List<String> allowedUsers;
+  String lastEdit;
 
   Class(
-      {DocumentReference? ref,
-      String? id,
-      required String name,
-      List<String>? allowedUsers,
+      {DocumentReference ref,
+      String id,
+      String name,
+      List<String> allowedUsers,
       this.studyYear,
-      this.gender = true,
-      bool hasPhoto = false,
-      Color? color,
+      this.gender,
+      bool hasPhoto,
+      color = Colors.transparent,
       this.lastEdit})
       : super(
             ref ??
@@ -38,18 +38,19 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
             name,
             color) {
     this.allowedUsers = allowedUsers ?? [];
-    this.hasPhoto = hasPhoto;
-    lastEdit ??= auth.FirebaseAuth.instance.currentUser!.uid;
+    this.hasPhoto = hasPhoto ?? false;
+    lastEdit ??= auth.FirebaseAuth.instance.currentUser.uid;
     defaultIcon = const IconData(0xf233, fontFamily: 'MaterialIconsR');
   }
 
   Class.createFromData(Map<dynamic, dynamic> data, DocumentReference ref)
-      : gender = data['Gender'] ?? true,
-        super.createFromData(data, ref) {
+      : super.createFromData(data, ref) {
     studyYear = data['StudyYear'];
+    gender = data['Gender'];
+
     hasPhoto = data['HasPhoto'] ?? false;
 
-    allowedUsers = data['Allowed']?.cast<String>() ?? [];
+    allowedUsers = data['Allowed'].cast<String>();
 
     lastEdit = data['LastEdit'];
 
@@ -72,9 +73,9 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
 
   @override
   Map<String, dynamic> getHumanReadableMap() => {
-        'Name': name,
+        'Name': name ?? '',
         'StudyYear': studyYear ?? '',
-        'Gender': gender,
+        'Gender': gender ?? '',
       };
 
   @override
@@ -82,8 +83,8 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
         'Name': name,
         'StudyYear': studyYear,
         'Gender': gender,
-        'HasPhoto': hasPhoto,
-        'Color': color?.value,
+        'HasPhoto': hasPhoto ?? false,
+        'Color': color.value,
         'LastEdit': lastEdit,
         'Allowed': allowedUsers
       };
@@ -91,30 +92,25 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
   Future<List<Person>> getMembersList(
       [String orderBy = 'Name', bool tranucate = false]) async {
     if (tranucate) {
-      return (await FirebaseFirestore.instance
+      return Person.getAll((await FirebaseFirestore.instance
               .collection('Persons')
               .where('ClassId', isEqualTo: ref)
               .orderBy(orderBy)
               .limit(5)
               .get(dataSource))
-          .docs
-          .map(Person.fromQueryDoc)
-          .toList();
+          .docs);
     }
-    return (await FirebaseFirestore.instance
+    return Person.getAll((await FirebaseFirestore.instance
             .collection('Persons')
             .where('ClassId', isEqualTo: ref)
             .orderBy(orderBy)
             .get(dataSource))
-        .docs
-        .map(Person.fromQueryDoc)
-        .toList();
+        .docs);
   }
 
   Stream<List<Person>> getMembersLive(
       {bool descending = false, String orderBy = 'Name'}) {
-    return getClassMembersLive(ref, orderBy, descending)
-        .map((l) => l.map((e) => e!).toList());
+    return getClassMembersLive(ref, orderBy, descending);
   }
 
   @override
@@ -128,7 +124,7 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
   Future<List<Person>> getPersonMembersList(
       [String orderBy = 'Name', bool tranucate = false]) async {
     if (tranucate) {
-      return (await FirebaseFirestore.instance
+      return Person.getAll((await FirebaseFirestore.instance
               .collection('Persons')
               .where('ClassId',
                   isEqualTo:
@@ -136,20 +132,16 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
               .limit(5)
               .orderBy(orderBy)
               .get(dataSource))
-          .docs
-          .map(Person.fromQueryDoc)
-          .toList();
+          .docs);
     }
-    return (await FirebaseFirestore.instance
+    return Person.getAll((await FirebaseFirestore.instance
             .collection('Persons')
             .where('ClassId',
                 isEqualTo:
                     FirebaseFirestore.instance.collection('Classes').doc(id))
             .orderBy(orderBy)
             .get(dataSource))
-        .docs
-        .map(Person.fromQueryDoc)
-        .toList();
+        .docs);
   }
 
   @override
@@ -167,33 +159,40 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
         rslt.add((await FirebaseFirestore.instance
                 .doc('Users/$item')
                 .get(dataSource))
-            .data()!['Name']);
+            .data()['Name']);
       }
       return rslt.join(',');
     }
-    return getHumanReadableMap()[key];
+    return getHumanReadableMap()[key] ?? '';
   }
 
   Future<String> getStudyYearName() async {
-    return (await studyYear?.get(dataSource))?.data()?['Name'] ?? '';
+    var tmp = (await studyYear?.get(dataSource))?.data();
+    if (tmp == null) return '';
+    return tmp['Name'] ?? 'لا يوجد';
   }
 
   static Class empty() {
     return Class(
         name: '',
-        allowedUsers: [auth.FirebaseAuth.instance.currentUser!.uid],
+        allowedUsers: [auth.FirebaseAuth.instance.currentUser.uid],
         gender: false,
         hasPhoto: false);
   }
 
-  static Class? fromDoc(DocumentSnapshot data) =>
-      data.exists ? Class.createFromData(data.data()!, data.reference) : null;
+  static Class fromDoc(DocumentSnapshot data) =>
+      data.exists ? Class.createFromData(data.data(), data.reference) : null;
 
-  static Class fromQueryDoc(QueryDocumentSnapshot data) =>
-      Class.createFromData(data.data(), data.reference);
-
-  static Future<Class?> fromId(String id) async =>
+  static Future<Class> fromId(String id) async =>
       Class.fromDoc(await FirebaseFirestore.instance.doc('Classes/$id').get());
+
+  static List<Class> getAll(List<DocumentSnapshot> classes) {
+    var rslt = <Class>[];
+    for (DocumentSnapshot item in classes) {
+      rslt.add(Class.fromDoc(item));
+    }
+    return rslt;
+  }
 
   static Stream<List<Class>> getAllForUser({
     String orderBy = 'Name',
@@ -205,19 +204,19 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
             .collection('Classes')
             .orderBy(orderBy, descending: descending)
             .snapshots()
-            .map((c) => c.docs.map(fromQueryDoc).toList());
+            .map((c) => c.docs.map(fromDoc).toList());
       } else {
         return FirebaseFirestore.instance
             .collection('Classes')
             .where('Allowed', arrayContains: u.uid)
             .orderBy(orderBy, descending: descending)
             .snapshots()
-            .map((c) => c.docs.map(fromQueryDoc).toList());
+            .map((c) => c.docs.map(fromDoc).toList());
       }
     });
   }
 
-  static Stream<List<Person?>> getClassMembersLive(DocumentReference id,
+  static Stream<List<Person>> getClassMembersLive(DocumentReference id,
       [String orderBy = 'Name', bool descending = false]) {
     return FirebaseFirestore.instance
         .collection('Persons')
@@ -244,4 +243,9 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
         'Color': 'اللون',
         'Allowed': 'المخدومين المسموح لهم بالرؤية والتعديل'
       };
+
+  @override
+  Class copyWith() {
+    return Class.createFromData(getMap(), ref);
+  }
 }

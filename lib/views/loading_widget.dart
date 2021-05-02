@@ -6,11 +6,25 @@ import '../utils/helpers.dart';
 
 class Loading extends StatelessWidget {
   final bool error;
-  final String? message;
+  final String message;
   final bool showVersionInfo;
   const Loading(
       {this.error = false, this.message, this.showVersionInfo = false})
       : super(key: null);
+
+  String _getAssetImage() {
+    final riseDay = getRiseDay();
+    if (DateTime.now()
+            .isAfter(riseDay.subtract(Duration(days: 7, seconds: 20))) &&
+        DateTime.now().isBefore(riseDay.subtract(Duration(days: 1)))) {
+      return 'assets/holyweek.jpeg';
+    } else if (DateTime.now()
+            .isBefore(riseDay.add(Duration(days: 50, seconds: 20))) &&
+        DateTime.now().isAfter(riseDay.subtract(Duration(days: 1)))) {
+      return 'assets/risen.jpg';
+    }
+    return 'assets/Logo.png';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +37,7 @@ class Loading extends StatelessWidget {
           children: <Widget>[
             Expanded(
               flex: 16,
-              child: Image.asset('assets/Logo.png', fit: BoxFit.scaleDown),
+              child: Image.asset(_getAssetImage(), fit: BoxFit.scaleDown),
             ),
             Expanded(
               flex: 3,
@@ -49,13 +63,13 @@ class Loading extends StatelessWidget {
                 ],
               ),
             ),
-            if (!kIsWeb && (showVersionInfo || error))
+            if (showVersionInfo || error)
               Align(
                 alignment: Alignment.bottomRight,
                 child: FutureBuilder<PackageInfo>(
                   future: PackageInfo.fromPlatform(),
                   builder: (context, data) => data.hasData
-                      ? Text('اصدار: ' + data.data!.version,
+                      ? Text('اصدار: ' + data.data.version,
                           style: Theme.of(context).textTheme.caption)
                       : Text(''),
                 ),

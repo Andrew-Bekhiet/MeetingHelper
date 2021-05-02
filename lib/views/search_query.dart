@@ -17,25 +17,25 @@ import 'list.dart';
 import 'mini_lists/colors_list.dart';
 
 class SearchQuery extends StatefulWidget {
-  final Map<String, dynamic>? query;
+  final Map<String, dynamic> query;
 
-  SearchQuery({Key? key, this.query}) : super(key: key);
+  SearchQuery({Key key, this.query}) : super(key: key);
 
   @override
   _SearchQueryState createState() => _SearchQueryState();
 }
 
 class _SearchQueryState extends State<SearchQuery> {
-  static int? parentIndex = 0;
+  static int parentIndex = 0;
   static int childIndex = 0;
-  static int? operatorIndex = 0;
+  static int operatorIndex = 0;
 
   static dynamic queryValue = '';
-  static String? queryText = '';
+  static String queryText = '';
   static bool birthDate = false;
 
-  bool? descending = false;
-  String? orderBy = 'Name';
+  bool descending = false;
+  String orderBy = 'Name';
 
   List<DropdownMenuItem> operatorItems = <DropdownMenuItem>[
     DropdownMenuItem(value: 0, child: Text('=')),
@@ -244,7 +244,7 @@ class _SearchQueryState extends State<SearchQuery> {
                         BorderSide(color: Theme.of(context).primaryColor),
                   )),
               child: Text(queryValue != null && queryValue is DocumentReference
-                  ? queryText!
+                  ? queryText
                   : 'اختيار فصل'),
             ),
           ),
@@ -288,7 +288,7 @@ class _SearchQueryState extends State<SearchQuery> {
                           queryValue.path.startsWith('Schools/')
                       ? queryValue.path
                       : null),
-                  items: data.data!.docs
+                  items: data.data.docs
                       .map(
                         (item) => DropdownMenuItem(
                           value: item.reference.path,
@@ -303,12 +303,12 @@ class _SearchQueryState extends State<SearchQuery> {
                             child: Text(''),
                           ),
                         ),
-                  onChanged: (dynamic value) async {
+                  onChanged: (value) async {
                     queryValue = FirebaseFirestore.instance.doc(value);
                     queryText = (await FirebaseFirestore.instance
                             .doc(value)
                             .get(dataSource))
-                        .data()!['Name'];
+                        .data()['Name'];
                   },
                   decoration: InputDecoration(labelText: 'المدرسة'),
                 );
@@ -326,7 +326,7 @@ class _SearchQueryState extends State<SearchQuery> {
                           queryValue.path.startsWith('Churches/')
                       ? queryValue.path
                       : null),
-                  items: data.data!.docs
+                  items: data.data.docs
                       .map(
                         (item) => DropdownMenuItem(
                           value: item.reference.path,
@@ -341,12 +341,12 @@ class _SearchQueryState extends State<SearchQuery> {
                             child: Text(''),
                           ),
                         ),
-                  onChanged: (dynamic value) async {
+                  onChanged: (value) async {
                     queryValue = FirebaseFirestore.instance.doc(value);
                     queryText = (await FirebaseFirestore.instance
                             .doc(value)
                             .get(dataSource))
-                        .data()!['Name'];
+                        .data()['Name'];
                   },
                   decoration: InputDecoration(labelText: 'الكنيسة'),
                 );
@@ -364,7 +364,7 @@ class _SearchQueryState extends State<SearchQuery> {
                           queryValue.path.startsWith('Fathers/')
                       ? queryValue.path
                       : null),
-                  items: data.data!.docs
+                  items: data.data.docs
                       .map(
                         (item) => DropdownMenuItem(
                           value: item.reference.path,
@@ -379,12 +379,12 @@ class _SearchQueryState extends State<SearchQuery> {
                             child: Text(''),
                           ),
                         ),
-                  onChanged: (dynamic value) async {
+                  onChanged: (value) async {
                     queryValue = FirebaseFirestore.instance.doc(value);
                     queryText = (await FirebaseFirestore.instance
                             .doc(value)
                             .get(dataSource))
-                        .data()!['Name'];
+                        .data()['Name'];
                   },
                   decoration: InputDecoration(labelText: 'اب الاعتراف'),
                 );
@@ -402,7 +402,7 @@ class _SearchQueryState extends State<SearchQuery> {
                           queryValue.path.startsWith('StudyYears/')
                       ? queryValue.path
                       : null),
-                  items: data.data!.docs
+                  items: data.data.docs
                       .map(
                         (item) => DropdownMenuItem(
                           value: item.reference.path,
@@ -417,12 +417,12 @@ class _SearchQueryState extends State<SearchQuery> {
                             child: Text(''),
                           ),
                         ),
-                  onChanged: (dynamic value) async {
+                  onChanged: (value) async {
                     queryValue = FirebaseFirestore.instance.doc(value);
                     queryText = (await FirebaseFirestore.instance
                             .doc(value)
                             .get(dataSource))
-                        .data()!['Name'];
+                        .data()['Name'];
                   },
                   decoration: InputDecoration(labelText: 'سنة الدراسة'),
                 );
@@ -593,7 +593,7 @@ class _SearchQueryState extends State<SearchQuery> {
                   actions: [
                     TextButton(
                       onPressed: () {
-                        navigator.currentState!.pop();
+                        navigator.currentState.pop();
                         setState(() {
                           queryValue = Colors.transparent.value;
                         });
@@ -606,7 +606,7 @@ class _SearchQueryState extends State<SearchQuery> {
                         ? queryValue
                         : Colors.transparent.value),
                     onSelect: (color) {
-                      navigator.currentState!.pop();
+                      navigator.currentState.pop();
                       setState(() {
                         queryValue = color.value;
                       });
@@ -629,7 +629,7 @@ class _SearchQueryState extends State<SearchQuery> {
                           queryValue.path.startsWith('Colleges/')
                       ? queryValue.path
                       : null),
-                  items: data.data!.docs
+                  items: data.data.docs
                       .map(
                         (item) => DropdownMenuItem(
                           value: item.reference.path,
@@ -644,12 +644,12 @@ class _SearchQueryState extends State<SearchQuery> {
                             child: Text(''),
                           ),
                         ),
-                  onChanged: (dynamic value) async {
+                  onChanged: (value) async {
                     queryValue = FirebaseFirestore.instance.doc(value);
                     queryText = (await FirebaseFirestore.instance
                             .doc(value)
                             .get(dataSource))
-                        .data()!['Name'];
+                        .data()['Name'];
                   },
                   decoration: InputDecoration(labelText: 'الكلية'),
                 );
@@ -691,9 +691,9 @@ class _SearchQueryState extends State<SearchQuery> {
                 Expanded(
                   child: DropdownButton(
                       isExpanded: true,
-                      items: childItems[parentIndex!],
+                      items: childItems[parentIndex],
                       onChanged: childChange,
-                      value: childItems[parentIndex!][childIndex].value),
+                      value: childItems[parentIndex][childIndex].value),
                 ),
                 Expanded(
                   child: DropdownButton(
@@ -714,7 +714,7 @@ class _SearchQueryState extends State<SearchQuery> {
                     isExpanded: true,
                     value: orderBy,
                     items: getOrderByItems(),
-                    onChanged: (dynamic value) {
+                    onChanged: (value) {
                       setState(() {
                         orderBy = value;
                       });
@@ -735,7 +735,7 @@ class _SearchQueryState extends State<SearchQuery> {
                         child: Text('تنازلي'),
                       ),
                     ],
-                    onChanged: (dynamic value) {
+                    onChanged: (value) {
                       setState(() {
                         descending = value;
                       });
@@ -757,10 +757,10 @@ class _SearchQueryState extends State<SearchQuery> {
 
   void childChange(value) {
     setState(() {
-      childIndex = childItems[parentIndex!].indexOf(
-        childItems[parentIndex!].firstWhere((e) => e.value == value),
+      childIndex = childItems[parentIndex].indexOf(
+        childItems[parentIndex].firstWhere((e) => e.value == value),
       );
-      queryValue = defaultValues[getWidgetIndex()!];
+      queryValue = defaultValues[getWidgetIndex()];
       // var now = DateTime.now().millisecondsSinceEpoch;
       // switch (childIndex) {
       //   case 0:
@@ -907,13 +907,13 @@ class _SearchQueryState extends State<SearchQuery> {
   }
 
   void execute() async {
-    DataObjectList? body;
+    DataObjectList body;
     Query classes = FirebaseFirestore.instance.collection('Classes');
     Query persons = FirebaseFirestore.instance.collection('Persons');
 
     var resultsSearch = BehaviorSubject<String>.seeded('');
     bool fewClasses = true;
-    if (!User.instance.superAccess!) {
+    if (!User.instance.superAccess) {
       final allowed =
           (await Class.getAllForUser().first).map((e) => e.ref).toList();
       classes = classes.where('Allowed', arrayContains: User.instance.uid);
@@ -926,12 +926,12 @@ class _SearchQueryState extends State<SearchQuery> {
     switch (operatorIndex) {
       case 0:
         if (parentIndex == 0) {
-          body = DataObjectList<Class?>(
-            options: DataObjectListOptions<Class?>(
+          body = DataObjectList<Class>(
+            options: DataObjectListOptions<Class>(
               searchQuery: resultsSearch,
               tap: (c) => classTap(c, context),
               itemsStream: classes
-                  .where(childItems[parentIndex!][childIndex].value.value,
+                  .where(childItems[parentIndex][childIndex].value.value,
                       isEqualTo: queryValue,
                       isNull: queryValue == null ? true : null)
                   .snapshots()
@@ -941,8 +941,8 @@ class _SearchQueryState extends State<SearchQuery> {
           break;
         }
         if (!birthDate && childIndex == 2) {
-          body = DataObjectList<Person?>(
-            options: DataObjectListOptions<Person?>(
+          body = DataObjectList<Person>(
+            options: DataObjectListOptions<Person>(
               searchQuery: resultsSearch,
               tap: (p) => personTap(p, context),
               itemsStream: fewClasses
@@ -1005,39 +1005,39 @@ class _SearchQueryState extends State<SearchQuery> {
             tap: (p) => personTap(p, context),
             itemsStream: fewClasses
                 ? persons
-                    .where(childItems[parentIndex!][childIndex].value.value,
+                    .where(childItems[parentIndex][childIndex].value.value,
                         isEqualTo: queryValue,
                         isNull: queryValue == null ? true : null)
-                    .snapshots() as Stream<List<Person>>?
+                    .snapshots()
                 : Class.getAllForUser()
                     .switchMap((cs) => Rx.combineLatestList(cs.split(10).map(
                         (c) => persons
                             .where('ClassId',
                                 whereIn: c.map((c) => c.ref).toList())
                             .where(
-                                childItems[parentIndex!][childIndex].value.value,
+                                childItems[parentIndex][childIndex].value.value,
                                 isEqualTo: queryValue,
                                 isNull: queryValue == null ? true : null)
                             .snapshots())))
                     .map(
-                      ((s) => s
+                      (s) => s
                           .expand(
                             (e) => e.docs,
                           )
                           .map(Person.fromDoc)
-                          .toList() as List<Person>) as List<Person> Function(List<QuerySnapshot>),
+                          .toList(),
                     ),
           ),
         );
         break;
       case 1:
         if (parentIndex == 0) {
-          body = DataObjectList<Class?>(
-            options: DataObjectListOptions<Class?>(
+          body = DataObjectList<Class>(
+            options: DataObjectListOptions<Class>(
               searchQuery: resultsSearch,
               tap: (c) => classTap(c, context),
               itemsStream: classes
-                  .where(childItems[parentIndex!][childIndex].value.value,
+                  .where(childItems[parentIndex][childIndex].value.value,
                       arrayContains: queryValue)
                   .snapshots()
                   .map((s) => s.docs.map(Class.fromDoc).toList()),
@@ -1046,8 +1046,8 @@ class _SearchQueryState extends State<SearchQuery> {
           break;
         }
         if (!birthDate && childIndex == 2) {
-          body = DataObjectList<Person?>(
-            options: DataObjectListOptions<Person?>(
+          body = DataObjectList<Person>(
+            options: DataObjectListOptions<Person>(
               searchQuery: resultsSearch,
               tap: (p) => personTap(p, context),
               itemsStream: fewClasses
@@ -1086,20 +1086,20 @@ class _SearchQueryState extends State<SearchQuery> {
           );
           break;
         }
-        body = DataObjectList<Person?>(
-          options: DataObjectListOptions<Person?>(
+        body = DataObjectList<Person>(
+          options: DataObjectListOptions<Person>(
             searchQuery: resultsSearch,
             tap: (p) => personTap(p, context),
             itemsStream: fewClasses
                 ? persons
-                    .where(childItems[parentIndex!][childIndex].value.value,
+                    .where(childItems[parentIndex][childIndex].value.value,
                         arrayContains: queryValue)
                     .snapshots()
                     .map((s) => s.docs.map(Person.fromDoc).toList())
                 : Class.getAllForUser().switchMap(
                     (cs) => Rx.combineLatestList(cs.split(10).map((c) => persons
                         .where('ClassId', whereIn: c.map((c) => c.ref).toList())
-                        .where(childItems[parentIndex!][childIndex].value.value,
+                        .where(childItems[parentIndex][childIndex].value.value,
                             arrayContains: queryValue)
                         .snapshots())).map(
                       (s) => s
@@ -1115,12 +1115,12 @@ class _SearchQueryState extends State<SearchQuery> {
         break;
       case 2:
         if (parentIndex == 0) {
-          body = DataObjectList<Class?>(
-            options: DataObjectListOptions<Class?>(
+          body = DataObjectList<Class>(
+            options: DataObjectListOptions<Class>(
                 searchQuery: resultsSearch,
                 tap: (c) => classTap(c, context),
                 itemsStream: classes
-                    .where(childItems[parentIndex!][childIndex].value.value,
+                    .where(childItems[parentIndex][childIndex].value.value,
                         isGreaterThanOrEqualTo: queryValue)
                     .snapshots()
                     .map((s) => s.docs.map(Class.fromDoc).toList())),
@@ -1128,8 +1128,8 @@ class _SearchQueryState extends State<SearchQuery> {
           break;
         }
         if (!birthDate && childIndex == 2) {
-          body = DataObjectList<Person?>(
-            options: DataObjectListOptions<Person?>(
+          body = DataObjectList<Person>(
+            options: DataObjectListOptions<Person>(
               searchQuery: resultsSearch,
               tap: (p) => personTap(p, context),
               itemsStream: fewClasses
@@ -1166,20 +1166,20 @@ class _SearchQueryState extends State<SearchQuery> {
           );
           break;
         }
-        body = DataObjectList<Person?>(
-          options: DataObjectListOptions<Person?>(
+        body = DataObjectList<Person>(
+          options: DataObjectListOptions<Person>(
             searchQuery: resultsSearch,
             tap: (p) => personTap(p, context),
             itemsStream: fewClasses
                 ? persons
-                    .where(childItems[parentIndex!][childIndex].value.value,
+                    .where(childItems[parentIndex][childIndex].value.value,
                         isGreaterThanOrEqualTo: queryValue)
                     .snapshots()
                     .map((s) => s.docs.map(Person.fromDoc).toList())
                 : Class.getAllForUser().switchMap(
                     (cs) => Rx.combineLatestList(cs.split(10).map((c) => persons
                         .where('ClassId', whereIn: c.map((c) => c.ref).toList())
-                        .where(childItems[parentIndex!][childIndex].value.value,
+                        .where(childItems[parentIndex][childIndex].value.value,
                             isGreaterThanOrEqualTo: queryValue)
                         .snapshots())).map(
                       (s) => s
@@ -1195,12 +1195,12 @@ class _SearchQueryState extends State<SearchQuery> {
         break;
       case 3:
         if (parentIndex == 0) {
-          body = DataObjectList<Class?>(
-            options: DataObjectListOptions<Class?>(
+          body = DataObjectList<Class>(
+            options: DataObjectListOptions<Class>(
               searchQuery: resultsSearch,
               tap: (c) => classTap(c, context),
               itemsStream: classes
-                  .where(childItems[parentIndex!][childIndex].value.value,
+                  .where(childItems[parentIndex][childIndex].value.value,
                       isLessThanOrEqualTo: queryValue)
                   .snapshots()
                   .map((s) => s.docs.map(Class.fromDoc).toList()),
@@ -1209,8 +1209,8 @@ class _SearchQueryState extends State<SearchQuery> {
           break;
         }
         if (!birthDate && childIndex == 2) {
-          body = DataObjectList<Person?>(
-            options: DataObjectListOptions<Person?>(
+          body = DataObjectList<Person>(
+            options: DataObjectListOptions<Person>(
               searchQuery: resultsSearch,
               tap: (p) => personTap(p, context),
               itemsStream: fewClasses
@@ -1249,20 +1249,20 @@ class _SearchQueryState extends State<SearchQuery> {
           );
           break;
         }
-        body = DataObjectList<Person?>(
-          options: DataObjectListOptions<Person?>(
+        body = DataObjectList<Person>(
+          options: DataObjectListOptions<Person>(
             searchQuery: resultsSearch,
             tap: (p) => personTap(p, context),
             itemsStream: fewClasses
                 ? persons
-                    .where(childItems[parentIndex!][childIndex].value.value,
+                    .where(childItems[parentIndex][childIndex].value.value,
                         isLessThanOrEqualTo: queryValue)
                     .snapshots()
                     .map((s) => s.docs.map(Person.fromDoc).toList())
                 : Class.getAllForUser().switchMap(
                     (cs) => Rx.combineLatestList(cs.split(10).map((c) => persons
                         .where('ClassId', whereIn: c.map((c) => c.ref).toList())
-                        .where(childItems[parentIndex!][childIndex].value.value,
+                        .where(childItems[parentIndex][childIndex].value.value,
                             isLessThanOrEqualTo: queryValue)
                         .snapshots())).map(
                       (s) => s
@@ -1277,7 +1277,7 @@ class _SearchQueryState extends State<SearchQuery> {
         );
         break;
     }
-    await navigator.currentState!.push(
+    await navigator.currentState.push(
       MaterialPageRoute(
         builder: (context) {
           return Scaffold(
@@ -1313,10 +1313,10 @@ class _SearchQueryState extends State<SearchQuery> {
               ],
               title: SearchFilters(
                 parentIndex,
-                options: body!.options,
+                options: body.options,
                 searchStream: resultsSearch,
-                textStyle: Theme.of(context).textTheme.headline6!.copyWith(
-                    color: Theme.of(context).primaryTextTheme.headline6!.color),
+                textStyle: Theme.of(context).textTheme.headline6.copyWith(
+                    color: Theme.of(context).primaryTextTheme.headline6.color),
                 disableOrdering: true,
               ),
             ),
@@ -1327,7 +1327,7 @@ class _SearchQueryState extends State<SearchQuery> {
     );
   }
 
-  List<DropdownMenuItem<String>>? getOrderByItems() {
+  List<DropdownMenuItem<String>> getOrderByItems() {
     if (parentIndex == 0) {
       return Class.getHumanReadableMap2()
           .entries
@@ -1348,8 +1348,8 @@ class _SearchQueryState extends State<SearchQuery> {
     return null;
   }
 
-  int? getWidgetIndex() {
-    return childItems[parentIndex!][childIndex].value.key;
+  int getWidgetIndex() {
+    return childItems[parentIndex][childIndex].value.key;
     // if (parentIndex == 0) {
     //   if (childIndex == 2) {
     //     return 0;
@@ -1415,24 +1415,24 @@ class _SearchQueryState extends State<SearchQuery> {
   void initState() {
     super.initState();
     if (widget.query != null) {
-      parentIndex = int.parse(widget.query!['parentIndex']);
-      childIndex = int.parse(widget.query!['childIndex']);
-      operatorIndex = int.parse(widget.query!['operatorIndex']);
-      queryText = widget.query!['queryText'];
-      birthDate = widget.query!['birthDate'] == 'true';
-      queryValue = widget.query!['queryValue'] != null
-          ? widget.query!['queryValue'].toString().startsWith('D')
+      parentIndex = int.parse(widget.query['parentIndex']);
+      childIndex = int.parse(widget.query['childIndex']);
+      operatorIndex = int.parse(widget.query['operatorIndex']);
+      queryText = widget.query['queryText'];
+      birthDate = widget.query['birthDate'] == 'true';
+      queryValue = widget.query['queryValue'] != null
+          ? widget.query['queryValue'].toString().startsWith('D')
               ? FirebaseFirestore.instance
-                  .doc(widget.query!['queryValue'].toString().substring(1))
-              : (widget.query!['queryValue'].toString().startsWith('T')
+                  .doc(widget.query['queryValue'].toString().substring(1))
+              : (widget.query['queryValue'].toString().startsWith('T')
                   ? Timestamp.fromMillisecondsSinceEpoch(int.parse(
-                      widget.query!['queryValue'].toString().substring(1)))
-                  : (widget.query!['queryValue'].toString().startsWith('I')
+                      widget.query['queryValue'].toString().substring(1)))
+                  : (widget.query['queryValue'].toString().startsWith('I')
                       ? int.parse(
-                          widget.query!['queryValue'].toString().substring(1))
-                      : widget.query!['queryValue'].toString().substring(1)))
+                          widget.query['queryValue'].toString().substring(1))
+                      : widget.query['queryValue'].toString().substring(1)))
           : null;
-      WidgetsBinding.instance!.addPostFrameCallback((_) => execute());
+      WidgetsBinding.instance.addPostFrameCallback((_) => execute());
     }
   }
 
@@ -1463,7 +1463,7 @@ class _SearchQueryState extends State<SearchQuery> {
     final _listOptions = DataObjectListOptions<Class>(
       searchQuery: searchStream,
       tap: (value) {
-        navigator.currentState!.pop();
+        navigator.currentState.pop();
         setState(() {
           queryValue =
               FirebaseFirestore.instance.collection('Classes').doc(value.id);
@@ -1472,7 +1472,7 @@ class _SearchQueryState extends State<SearchQuery> {
       },
       itemsStream: _orderOptions.switchMap(
         (order) =>
-            Class.getAllForUser(orderBy: order.orderBy, descending: !order.asc!),
+            Class.getAllForUser(orderBy: order.orderBy, descending: !order.asc),
       ),
     );
     await showDialog(
@@ -1502,7 +1502,7 @@ class _SearchQueryState extends State<SearchQuery> {
   }
 
   void _selectDate() async {
-    DateTime? picked = await showDatePicker(
+    DateTime picked = await showDatePicker(
         context: context,
         initialDate:
             !(queryValue is Timestamp) ? DateTime.now() : queryValue.toDate(),

@@ -26,50 +26,50 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
   bool get hasPhoto => uid != null;
 
   @override
-  set hasPhoto(bool? _) {}
+  set hasPhoto(bool _) {}
 
-  String? _uid;
+  String _uid;
 
-  String? get uid => _uid;
+  String get uid => _uid;
 
-  set uid(String? uid) {
+  set uid(String uid) {
     _uid = uid;
     if (!_initialized.isCompleted) _initialized.complete(uid != null);
   }
 
   @override
-  String get id => uid!;
+  String get id => uid;
 
   String get refId => ref.id;
 
-  late String email;
-  String? password;
+  String email;
+  String password;
 
-  bool superAccess = false;
-  bool manageDeleted = false;
-  bool write = false;
-  bool secretary = false;
+  bool superAccess;
+  bool manageDeleted;
+  bool write;
+  bool secretary;
 
-  bool manageUsers = false;
-  bool manageAllowedUsers = false;
-  bool exportClasses = false;
+  bool manageUsers;
+  bool manageAllowedUsers;
+  bool exportClasses;
   List<String> allowedUsers = [];
 
-  bool birthdayNotify = false;
-  bool confessionsNotify = false;
-  bool tanawolNotify = false;
-  bool kodasNotify = false;
-  bool meetingNotify = false;
+  bool birthdayNotify;
+  bool confessionsNotify;
+  bool tanawolNotify;
+  bool kodasNotify;
+  bool meetingNotify;
 
-  bool approved = false;
+  bool approved;
 
-  DateTime? get lastConfessionDate => lastConfession?.toDate();
-  DateTime? get lastTanawolDate => lastTanawol?.toDate();
+  DateTime get lastConfessionDate => lastConfession?.toDate();
+  DateTime get lastTanawolDate => lastTanawol?.toDate();
 
-  StreamSubscription<Event>? userTokenListener;
-  StreamSubscription<Event>? connectionListener;
-  StreamSubscription<DocumentSnapshot>? personListener;
-  StreamSubscription<auth.User?>? authListener;
+  StreamSubscription<Event> userTokenListener;
+  StreamSubscription<Event> connectionListener;
+  StreamSubscription<DocumentSnapshot> personListener;
+  StreamSubscription<auth.User> authListener;
 
   final AsyncCache<String> _photoUrlCache =
       AsyncCache<String>(Duration(days: 1));
@@ -82,28 +82,30 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
   }
 
   factory User(
-      {DocumentReference? ref,
-      String? uid,
-      required String name,
-      String? password,
-      required bool manageUsers,
-      required bool manageAllowedUsers,
-      required bool manageDeleted,
-      required bool superAccess,
-      required bool write,
-      required bool secretary,
-      required bool exportClasses,
-      required bool birthdayNotify,
-      required bool confessionsNotify,
-      required bool tanawolNotify,
-      required bool kodasNotify,
-      required bool meetingNotify,
-      required bool approved,
-      Timestamp? lastConfession,
-      Timestamp? lastTanawol,
-      List<String>? allowedUsers,
-      required String email}) {
-    if (uid == auth.FirebaseAuth.instance.currentUser!.uid) {
+      {DocumentReference ref,
+      String uid,
+      String name,
+      String password,
+      bool manageUsers,
+      bool manageAllowedUsers,
+      bool manageDeleted,
+      bool superAccess,
+      bool write,
+      bool secretary,
+      bool exportClasses,
+      bool birthdayNotify,
+      bool confessionsNotify,
+      bool tanawolNotify,
+      bool kodasNotify,
+      bool meetingNotify,
+      bool approved,
+      Timestamp lastConfession,
+      Timestamp lastTanawol,
+      String servingStudyYear,
+      bool servingStudyGender,
+      List<String> allowedUsers,
+      String email}) {
+    if (uid == auth.FirebaseAuth.instance.currentUser.uid) {
       return instance;
     }
     return User._new(
@@ -132,45 +134,45 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
   }
 
   User._new(
-      {String? uid,
-      String? id,
-      required String name,
+      {String uid,
+      String id,
+      String name,
       this.password,
-      required this.manageUsers,
-      bool? manageAllowedUsers,
-      required this.superAccess,
-      required this.manageDeleted,
-      required this.write,
-      required this.secretary,
-      required this.exportClasses,
-      required this.birthdayNotify,
-      required this.confessionsNotify,
-      required this.tanawolNotify,
-      required this.kodasNotify,
-      required this.meetingNotify,
-      required this.approved,
-      Timestamp? lastConfession,
-      Timestamp? lastTanawol,
-      List<String>? allowedUsers,
-      required this.email,
-      DocumentReference? ref,
-      DocumentReference? classId,
-      String? phone,
-      Map<String, dynamic>? phones,
-      String? fatherPhone,
-      String? motherPhone,
-      String? address,
-      GeoPoint? location,
-      Timestamp? birthDate,
-      Timestamp? lastKodas,
-      Timestamp? lastMeeting,
-      Timestamp? lastCall,
-      Timestamp? lastVisit,
-      String? lastEdit,
-      String? notes,
-      DocumentReference? school,
-      DocumentReference? church,
-      DocumentReference? cFather,
+      this.manageUsers,
+      bool manageAllowedUsers,
+      this.superAccess,
+      this.manageDeleted,
+      this.write,
+      this.secretary,
+      this.exportClasses,
+      this.birthdayNotify,
+      this.confessionsNotify,
+      this.tanawolNotify,
+      this.kodasNotify,
+      this.meetingNotify,
+      this.approved,
+      Timestamp lastConfession,
+      Timestamp lastTanawol,
+      List<String> allowedUsers,
+      this.email,
+      DocumentReference ref,
+      DocumentReference classId,
+      String phone,
+      Map<String, dynamic> phones,
+      String fatherPhone,
+      String motherPhone,
+      String address,
+      GeoPoint location,
+      Timestamp birthDate,
+      Timestamp lastKodas,
+      Timestamp lastMeeting,
+      Timestamp lastCall,
+      Timestamp lastVisit,
+      String lastEdit,
+      String notes,
+      DocumentReference school,
+      DocumentReference church,
+      DocumentReference cFather,
       Color color = Colors.transparent})
       : _uid = uid,
         super(
@@ -215,12 +217,14 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
               .onValue
               .listen((e) async {
             auth.User currentUser = user;
-            if (e.snapshot.value != true) return;
+            if (currentUser?.uid == null ||
+                e.snapshot == null ||
+                e.snapshot.value != true) return;
 
-            Map<dynamic, dynamic>? idTokenClaims;
+            Map<dynamic, dynamic> idTokenClaims;
             try {
               var idToken = await currentUser.getIdTokenResult(true);
-              for (var item in idToken.claims!.entries) {
+              for (var item in idToken.claims.entries) {
                 await flutterSecureStorage.write(
                     key: item.key, value: item.value?.toString());
               }
@@ -248,14 +252,14 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
               idTokenClaims = idToken.claims;
             } on Exception {
               idTokenClaims = await flutterSecureStorage.readAll();
-              if (idTokenClaims.isEmpty) rethrow;
+              if (idTokenClaims?.isEmpty ?? true) rethrow;
             }
-            _refreshFromIdToken(user, idTokenClaims!);
+            _refreshFromIdToken(user, idTokenClaims);
           });
 
           Map<dynamic, dynamic> idTokenClaims;
           try {
-            late var idToken;
+            var idToken;
             if ((await Connectivity().checkConnectivity()) !=
                 ConnectivityResult.none) {
               idToken = await user.getIdTokenResult();
@@ -289,7 +293,7 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
                 idToken?.claims ?? await flutterSecureStorage.readAll();
           } on Exception {
             idTokenClaims = await flutterSecureStorage.readAll();
-            if (idTokenClaims.isEmpty) rethrow;
+            if (idTokenClaims?.isEmpty ?? true) rethrow;
           }
 
           _refreshFromIdToken(user, idTokenClaims);
@@ -307,7 +311,7 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
   void _refreshFromIdToken(
       auth.User user, Map<dynamic, dynamic> idTokenClaims) {
     uid = user.uid;
-    name = user.displayName ?? '';
+    name = user.displayName;
     if (idTokenClaims['personId'] != ref.id) {
       ref = FirebaseFirestore.instance
           .collection('UsersData')
@@ -340,13 +344,13 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
         ? Timestamp.fromMillisecondsSinceEpoch(
             int.parse(idTokenClaims['lastTanawol'].toString()))
         : null;
-    email = user.email!;
+    email = user.email;
 
     notifyListeners();
   }
 
   void _refreshFromDoc(DocumentSnapshot doc) {
-    final data = doc.data()!;
+    final data = doc.data();
     classId = data['ClassId'];
 
     phone = data['Phone'];
@@ -455,28 +459,28 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
   }
 
   Map<String, bool> getNotificationsPermissions() => {
-        'birthdayNotify': birthdayNotify,
-        'confessionsNotify': confessionsNotify,
-        'tanawolNotify': tanawolNotify,
-        'kodasNotify': kodasNotify,
-        'meetingNotify': meetingNotify,
+        'birthdayNotify': birthdayNotify ?? false,
+        'confessionsNotify': confessionsNotify ?? false,
+        'tanawolNotify': tanawolNotify ?? false,
+        'kodasNotify': kodasNotify ?? false,
+        'meetingNotify': meetingNotify ?? false,
       };
 
   String getPermissions() {
-    if (approved) {
+    if (approved ?? false) {
       String permissions = '';
-      if (manageUsers) permissions += 'تعديل المستخدمين،';
-      if (manageAllowedUsers) permissions += 'تعديل مستخدمين محددين،';
-      if (superAccess) permissions += 'رؤية جميع البيانات،';
-      if (manageDeleted) permissions += 'استرجاع المحئوفات،';
-      if (secretary) permissions += 'تسجيل حضور الخدام،';
-      if (exportClasses) permissions += 'تصدير فصل،';
-      if (birthdayNotify) permissions += 'اشعار أعياد الميلاد،';
-      if (confessionsNotify) permissions += 'اشعار الاعتراف،';
-      if (tanawolNotify) permissions += 'اشعار التناول،';
-      if (kodasNotify) permissions += 'اشعار القداس';
-      if (meetingNotify) permissions += 'اشعار حضور الاجتماع';
-      if (write) permissions += 'تعديل البيانات،';
+      if (manageUsers ?? false) permissions += 'تعديل المستخدمين،';
+      if (manageAllowedUsers ?? false) permissions += 'تعديل مستخدمين محددين،';
+      if (superAccess ?? false) permissions += 'رؤية جميع البيانات،';
+      if (manageDeleted ?? false) permissions += 'استرجاع المحئوفات،';
+      if (secretary ?? false) permissions += 'تسجيل حضور الخدام،';
+      if (exportClasses ?? false) permissions += 'تصدير فصل،';
+      if (birthdayNotify ?? false) permissions += 'اشعار أعياد الميلاد،';
+      if (confessionsNotify ?? false) permissions += 'اشعار الاعتراف،';
+      if (tanawolNotify ?? false) permissions += 'اشعار التناول،';
+      if (kodasNotify ?? false) permissions += 'اشعار القداس';
+      if (meetingNotify ?? false) permissions += 'اشعار حضور الاجتماع';
+      if (write ?? false) permissions += 'تعديل البيانات،';
       return permissions;
     }
     return 'غير مُنشط';
@@ -488,7 +492,7 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
   Widget getPhoto([bool showCircle = true, bool showActiveStatus = true]) {
     return AspectRatio(
       aspectRatio: 1,
-      child: StreamBuilder<Event>(
+      child: StreamBuilder(
         stream: FirebaseDatabase.instance
             .reference()
             .child('Users/$uid/lastSeen')
@@ -501,7 +505,7 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
                     child: Icon(Icons.account_circle,
                         size: MediaQuery.of(context).size.height / 16.56)),
                 if (showActiveStatus &&
-                    activity.data?.snapshot.value == 'Active')
+                    activity.data?.snapshot?.value == 'Active')
                   Align(
                     alignment: Alignment.bottomLeft,
                     child: Container(
@@ -520,7 +524,7 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
             builder: (context, setState) => FutureBuilder<String>(
               future: _photoUrlCache.fetch(
                 () async {
-                  String? cache = Hive.box<String>('PhotosURLsCache')
+                  String cache = Hive.box<String>('PhotosURLsCache')
                       .get(photoRef.fullPath);
 
                   if (cache == null) {
@@ -554,14 +558,14 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
                       child: photoUrl.hasData
                           ? showCircle
                               ? CircleAvatar(
-                                  backgroundImage: CachedNetworkImageProvider(
-                                      photoUrl.data!),
+                                  backgroundImage:
+                                      CachedNetworkImageProvider(photoUrl.data),
                                 )
-                              : CachedNetworkImage(imageUrl: photoUrl.data!)
+                              : CachedNetworkImage(imageUrl: photoUrl.data)
                           : CircularProgressIndicator(),
                     ),
                     if (showActiveStatus &&
-                        activity.data?.snapshot.value == 'Active')
+                        activity.data?.snapshot?.value == 'Active')
                       Align(
                         alignment: Alignment.bottomLeft,
                         child: Container(
@@ -591,19 +595,19 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
     return {
       'name': name,
       'classId': classId?.path,
-      'manageUsers': manageUsers,
-      'manageAllowedUsers': manageAllowedUsers,
-      'superAccess': superAccess,
-      'manageDeleted': manageDeleted,
-      'write': write,
-      'secretary': secretary,
-      'exportClasses': exportClasses,
-      'birthdayNotify': birthdayNotify,
-      'confessionsNotify': confessionsNotify,
-      'tanawolNotify': tanawolNotify,
-      'kodasNotify': kodasNotify,
-      'meetingNotify': meetingNotify,
-      'approved': approved,
+      'manageUsers': manageUsers ?? false,
+      'manageAllowedUsers': manageAllowedUsers ?? false,
+      'superAccess': superAccess ?? false,
+      'manageDeleted': manageDeleted ?? false,
+      'write': write ?? false,
+      'secretary': secretary ?? false,
+      'exportClasses': exportClasses ?? false,
+      'birthdayNotify': birthdayNotify ?? false,
+      'confessionsNotify': confessionsNotify ?? false,
+      'tanawolNotify': tanawolNotify ?? false,
+      'kodasNotify': kodasNotify ?? false,
+      'meetingNotify': meetingNotify ?? false,
+      'approved': approved ?? false,
       'lastConfession': lastConfession?.millisecondsSinceEpoch,
       'lastTanawol': lastTanawol?.millisecondsSinceEpoch,
     };
@@ -614,9 +618,9 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
       {...super.getMap(), 'AllowedUsers': allowedUsers};
 
   static User fromDoc(DocumentSnapshot data) =>
-      User._createFromData(data.data()!, data.reference);
+      User._createFromData(data.data(), data.reference);
 
-  static Future<User> fromID(String? uid) async {
+  static Future<User> fromID(String uid) async {
     return fromDoc((await FirebaseFirestore.instance
         .collection('Users')
         .doc(uid)
@@ -641,6 +645,25 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
             .snapshots()
             .map((p) => p.docs.map(fromDoc).toList());
       if (u.manageUsers || u.secretary) {
+        return FirebaseFirestore.instance
+            .collection('UsersData')
+            .orderBy('Name')
+            .snapshots()
+            .map((p) => p.docs.map(fromDoc).toList());
+      } else {
+        return FirebaseFirestore.instance
+            .collection('UsersData')
+            .where('AllowedUsers', arrayContains: u.uid)
+            .orderBy('Name')
+            .snapshots()
+            .map((p) => p.docs.map(fromDoc).toList());
+      }
+    });
+  }
+
+  static Stream<List<User>> getAllForUserForEdit() {
+    return User.instance.stream.switchMap((u) {
+      if (u.manageUsers) {
         return FirebaseFirestore.instance
             .collection('UsersData')
             .orderBy('Name')
@@ -691,9 +714,9 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
   Future<bool> userDataUpToDate() async {
     return lastTanawol != null &&
         lastConfession != null &&
-        ((lastTanawol!.millisecondsSinceEpoch + 2592000000) >=
+        ((lastTanawol.millisecondsSinceEpoch + 2592000000) >=
                 DateTime.now().millisecondsSinceEpoch &&
-            (lastConfession!.millisecondsSinceEpoch + 5184000000) >=
+            (lastConfession.millisecondsSinceEpoch + 5184000000) >=
                 DateTime.now().millisecondsSinceEpoch);
   }
 
@@ -726,11 +749,11 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
     });
   }
 
-  static Future<String?> onlyName(String? id) async {
+  static Future<String> onlyName(String id) async {
     return (await FirebaseFirestore.instance
             .collection('Users')
             .doc(id)
             .get(dataSource))
-        .data()!['Name'];
+        .data()['Name'];
   }
 }
