@@ -1006,6 +1006,7 @@ void showBirthDayNotification() async {
               ? Source.cache
               : Source.serverAndCache);
   final classes = await Class.getAllForUser().first;
+  await Future.delayed(Duration(milliseconds: 1));
   List<String> persons;
   if (user.superAccess) {
     persons = (await FirebaseFirestore.instance
@@ -1025,7 +1026,7 @@ void showBirthDayNotification() async {
             .limit(20)
             .get(source))
         .docs
-        .map((e) => e.data()['Name'])
+        .map((e) => e.data()['Name'] as String)
         .toList();
   } else if (classes.length <= 10) {
     persons = (await FirebaseFirestore.instance
@@ -1046,7 +1047,7 @@ void showBirthDayNotification() async {
             .limit(20)
             .get(source))
         .docs
-        .map((e) => e.data()['Name'])
+        .map((e) => e.data()['Name'] as String)
         .toList();
   } else {
     persons = (await Future.wait(
@@ -1068,7 +1069,7 @@ void showBirthDayNotification() async {
                 )
                 .limit(20)
                 .get(source))))
-        .map((e) => e.docs.map((e) => e.data()['Name']))
+        .map((e) => e.docs.map((e) => e.data()['Name'] as String))
         .expand((e) => e);
   }
   if (persons.isNotEmpty || !f.kReleaseMode)
@@ -1127,6 +1128,7 @@ void showConfessionNotification() async {
               ? Source.cache
               : Source.serverAndCache);
   final classes = await Class.getAllForUser().first;
+  await Future.delayed(Duration(seconds: 2));
   List<String> persons;
   if (user.superAccess) {
     persons = (await FirebaseFirestore.instance
@@ -1137,7 +1139,7 @@ void showConfessionNotification() async {
             .limit(20)
             .get(source))
         .docs
-        .map((e) => e.data()['Name'])
+        .map((e) => e.data()['Name'] as String)
         .toList();
   } else if (classes.length <= 10) {
     persons = (await FirebaseFirestore.instance
@@ -1149,7 +1151,7 @@ void showConfessionNotification() async {
             .limit(20)
             .get(source))
         .docs
-        .map((e) => e.data()['Name'])
+        .map((e) => e.data()['Name'] as String)
         .toList();
   } else {
     persons = (await Future.wait(classes.split(10).map((cs) => FirebaseFirestore
@@ -1161,7 +1163,7 @@ void showConfessionNotification() async {
                     DateTime.now().subtract(Duration(days: 7))))
             .limit(20)
             .get(source))))
-        .map((e) => e.docs.map((e) => e.data()['Name']))
+        .map((e) => e.docs.map((e) => e.data()['Name'] as String))
         .expand((e) => e);
   }
   if (persons.isNotEmpty || !f.kReleaseMode)
@@ -1263,6 +1265,7 @@ void showKodasNotification() async {
               ? Source.cache
               : Source.serverAndCache);
   final classes = await Class.getAllForUser().first;
+  await Future.delayed(Duration(seconds: 3));
   List<String> persons;
   if (user.superAccess) {
     persons = (await FirebaseFirestore.instance
@@ -1273,7 +1276,7 @@ void showKodasNotification() async {
             .limit(20)
             .get(source))
         .docs
-        .map((e) => e.data()['Name'])
+        .map((e) => e.data()['Name'] as String)
         .toList();
   } else if (classes.length <= 10) {
     persons = (await FirebaseFirestore.instance
@@ -1285,7 +1288,7 @@ void showKodasNotification() async {
             .limit(20)
             .get(source))
         .docs
-        .map((e) => e.data()['Name'])
+        .map((e) => e.data()['Name'] as String)
         .toList();
   } else {
     persons = (await Future.wait(classes.split(10).map((cs) => FirebaseFirestore
@@ -1297,7 +1300,7 @@ void showKodasNotification() async {
                     DateTime.now().subtract(Duration(days: 7))))
             .limit(20)
             .get(source))))
-        .map((e) => e.docs.map((e) => e.data()['Name']))
+        .map((e) => e.docs.map((e) => e.data()['Name'] as String))
         .expand((e) => e);
   }
   if (persons.isNotEmpty || !f.kReleaseMode)
@@ -1327,6 +1330,7 @@ void showMeetingNotification() async {
               ? Source.cache
               : Source.serverAndCache);
   final classes = await Class.getAllForUser().first;
+  await Future.delayed(Duration(seconds: 4));
   List<String> persons;
   if (user.superAccess) {
     persons = (await FirebaseFirestore.instance
@@ -1337,7 +1341,7 @@ void showMeetingNotification() async {
             .limit(20)
             .get(source))
         .docs
-        .map((e) => e.data()['Name'])
+        .map((e) => e.data()['Name'] as String)
         .toList();
   } else if (classes.length <= 10) {
     persons = (await FirebaseFirestore.instance
@@ -1349,7 +1353,7 @@ void showMeetingNotification() async {
             .limit(20)
             .get(source))
         .docs
-        .map((e) => e.data()['Name'])
+        .map((e) => e.data()['Name'] as String)
         .toList();
   } else {
     persons = (await Future.wait(classes.split(10).map((cs) => FirebaseFirestore
@@ -1361,7 +1365,7 @@ void showMeetingNotification() async {
                     DateTime.now().subtract(Duration(days: 7))))
             .limit(20)
             .get(source))))
-        .map((e) => e.docs.map((e) => e.data()['Name']))
+        .map((e) => e.docs.map((e) => e.data()['Name'] as String))
         .expand((e) => e);
   }
   if (persons.isNotEmpty || !f.kReleaseMode)
@@ -1475,6 +1479,7 @@ void showTanawolNotification() async {
               ? Source.cache
               : Source.serverAndCache);
   final classes = await Class.getAllForUser().first;
+  await Future.delayed(Duration(seconds: 5));
   List<String> persons;
   if (user.superAccess) {
     persons = (await FirebaseFirestore.instance
@@ -1485,7 +1490,7 @@ void showTanawolNotification() async {
             .limit(20)
             .get(source))
         .docs
-        .map((e) => e.data()['Name'])
+        .map((e) => e.data()['Name'] as String)
         .toList();
   } else if (classes.length <= 10) {
     persons = (await FirebaseFirestore.instance
@@ -1497,7 +1502,7 @@ void showTanawolNotification() async {
             .limit(20)
             .get(source))
         .docs
-        .map((e) => e.data()['Name'])
+        .map((e) => e.data()['Name'] as String)
         .toList();
   } else {
     persons = (await Future.wait(classes.split(10).map((cs) => FirebaseFirestore
@@ -1509,7 +1514,7 @@ void showTanawolNotification() async {
                     DateTime.now().subtract(Duration(days: 7))))
             .limit(20)
             .get(source))))
-        .map((e) => e.docs.map((e) => e.data()['Name']))
+        .map((e) => e.docs.map((e) => e.data()['Name'] as String))
         .expand((e) => e);
   }
   if (persons.isNotEmpty || !f.kReleaseMode)
