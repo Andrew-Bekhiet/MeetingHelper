@@ -380,4 +380,9 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
         'Notes': 'ملاحظات',
         'Location': 'الموقع',
       };
+
+  @override
+  Person copyWith() {
+    return Person.createFromData(getMap(), ref);
+  }
 }

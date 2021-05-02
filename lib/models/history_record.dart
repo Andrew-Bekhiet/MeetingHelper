@@ -104,6 +104,11 @@ class HistoryDay extends DataObject with ChangeNotifier {
         ? toDurationString(day)
         : 'اليوم');
   }
+
+  @override
+  HistoryDay copyWith() {
+    return HistoryDay._createFromData(getMap(), ref);
+  }
 }
 
 class ServantsHistoryDay extends HistoryDay {

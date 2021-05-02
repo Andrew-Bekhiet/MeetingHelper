@@ -243,4 +243,9 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
         'Color': 'اللون',
         'Allowed': 'المخدومين المسموح لهم بالرؤية والتعديل'
       };
+
+  @override
+  Class copyWith() {
+    return Class.createFromData(getMap(), ref);
+  }
 }

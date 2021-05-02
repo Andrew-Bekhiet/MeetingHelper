@@ -41,7 +41,6 @@ class EditPerson extends StatefulWidget {
 }
 
 class _EditPersonState extends State<EditPerson> {
-  Map<String, dynamic> old;
   String changedImage;
   bool deletePhoto = false;
 
@@ -911,8 +910,7 @@ class _EditPersonState extends State<EditPerson> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    person ??= widget.person ?? Person();
-    old ??= person.getMap();
+    person ??= (widget.person ?? Person()).copyWith();
   }
 
   void selectColor() async {
@@ -1045,26 +1043,18 @@ class _EditPersonState extends State<EditPerson> {
         if (update &&
             await Connectivity().checkConnectivity() !=
                 ConnectivityResult.none) {
-          await person.ref.update(
-            person.getMap()..removeWhere((key, value) => old[key] == value),
-          );
+          await person.update(old: widget.person.getMap());
         } else if (update) {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
-          person.ref.update(
-            person.getMap()..removeWhere((key, value) => old[key] == value),
-          );
+          person.update(old: widget.person.getMap());
         } else if (await Connectivity().checkConnectivity() !=
             ConnectivityResult.none) {
-          await person.ref.set(
-            person.getMap(),
-          );
+          await person.set();
         } else {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
-          person.ref.set(
-            person.getMap(),
-          );
+          person.set();
         }
         scaffoldMessenger.currentState.hideCurrentSnackBar();
         navigator.currentState.pop(person.ref);

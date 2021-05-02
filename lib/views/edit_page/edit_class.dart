@@ -34,7 +34,6 @@ class EditClass extends StatefulWidget {
 }
 
 class _EditClassState extends State<EditClass> {
-  Map<String, dynamic> old;
   String changedImage;
   bool deletePhoto = false;
   GlobalKey<FormState> form = GlobalKey<FormState>();
@@ -383,8 +382,7 @@ class _EditClassState extends State<EditClass> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    class$ ??= widget.class$ ?? Class.empty();
-    old ??= class$.getMap();
+    class$ ??= (widget.class$ ?? Class.empty()).copyWith();
   }
 
   void nameChanged(String value) {
@@ -422,26 +420,18 @@ class _EditClassState extends State<EditClass> {
         if (update &&
             await Connectivity().checkConnectivity() !=
                 ConnectivityResult.none) {
-          await class$.ref.update(
-            class$.getMap()..removeWhere((key, value) => old[key] == value),
-          );
+          await class$.update(old: widget.class$.getMap());
         } else if (update) {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
-          class$.ref.update(
-            class$.getMap()..removeWhere((key, value) => old[key] == value),
-          );
+          class$.update(old: widget.class$.getMap());
         } else if (await Connectivity().checkConnectivity() !=
             ConnectivityResult.none) {
-          await class$.ref.set(
-            class$.getMap(),
-          );
+          await class$.set();
         } else {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
-          class$.ref.set(
-            class$.getMap(),
-          );
+          class$.set();
         }
         scaffoldMessenger.currentState.hideCurrentSnackBar();
         navigator.currentState.pop(class$.ref);
