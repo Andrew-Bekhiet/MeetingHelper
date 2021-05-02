@@ -24,22 +24,23 @@ class Invitation extends DataObject {
 
   Invitation.createFromData(Map<String, dynamic> data, DocumentReference ref)
       : link = data['Link'],
+        usedBy = data['UsedBy'],
+        generatedBy = data['GeneratedBy'],
+        permissions = data['Permissions'],
+        generatedOn = data['GeneratedOn'],
+        expiryDate = data['ExpiryDate'],
         super.createFromData(data, ref) {
     name = data['Title'];
-    usedBy = data['UsedBy'];
-    generatedBy = data['GeneratedBy'];
-    permissions = data['Permissions'];
-    generatedOn = data['GeneratedOn'];
-    expiryDate = data['ExpiryDate'];
+    ;
   }
 
   String get title => name;
 
   final String? link;
   String? usedBy;
-  late String generatedBy;
+  String generatedBy;
   Map<String, dynamic>? permissions;
-  late Timestamp generatedOn;
+  Timestamp? generatedOn;
   late Timestamp expiryDate;
 
   bool get used => usedBy != null;
@@ -71,6 +72,7 @@ class Invitation extends DataObject {
 
   Invitation.empty()
       : link = '',
+        generatedBy = User.instance.uid!,
         super(FirebaseFirestore.instance.collection('Invitations').doc(), '',
             null) {
     name = '';

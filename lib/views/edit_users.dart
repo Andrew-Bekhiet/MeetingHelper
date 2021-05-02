@@ -30,7 +30,8 @@ class _UsersPageState extends State<UsersPage> {
           IconButton(
               icon: Icon(Icons.link),
               tooltip: 'لينكات الدعوة',
-              onPressed: () => navigator.currentState!.pushNamed('Invitations')),
+              onPressed: () =>
+                  navigator.currentState!.pushNamed('Invitations')),
           if (!_showSearch)
             IconButton(
                 icon: Icon(Icons.search),
@@ -57,7 +58,7 @@ class _UsersPageState extends State<UsersPage> {
       bottomNavigationBar: BottomAppBar(
         color: Theme.of(context).primaryColor,
         shape: const CircularNotchedRectangle(),
-        child: StreamBuilder(
+        child: StreamBuilder<List>(
           stream: _listOptions.objectsData,
           builder: (context, snapshot) {
             return Text(

@@ -89,15 +89,15 @@ class _UsersListState extends State<UsersList> {
                   padding: const EdgeInsets.fromLTRB(3, 0, 9, 0),
                   child: _listOptions.itemBuilder(
                     current,
-                    onLongPress: _listOptions.onLongPress ??
+                    _listOptions.onLongPress ??
                         (u) {
                           _listOptions.selectionMode
-                              .add(!_listOptions.selectionModeLatest!);
-                          if (_listOptions.selectionModeLatest!)
+                              .add(!_listOptions.selectionModeLatest);
+                          if (_listOptions.selectionModeLatest)
                             _listOptions.select(current);
                         },
-                    onTap: (User current) {
-                      if (!_listOptions.selectionModeLatest!) {
+                    (User current) {
+                      if (!_listOptions.selectionModeLatest) {
                         _listOptions.tap == null
                             ? dataObjectTap(current, context)
                             : _listOptions.tap!(current);
@@ -105,9 +105,11 @@ class _UsersListState extends State<UsersList> {
                         _listOptions.toggleSelected(current);
                       }
                     },
-                    trailing: StreamBuilder<Map<String, User>?>(
-                      stream: Rx.combineLatest2(_listOptions.selected,
-                          _listOptions.selectionMode, (dynamic a, dynamic b) => b ? a : null),
+                    StreamBuilder<Map<String, User>?>(
+                      stream: Rx.combineLatest2(
+                          _listOptions.selected,
+                          _listOptions.selectionMode,
+                          (dynamic a, dynamic b) => b ? a : null),
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
                           return Checkbox(

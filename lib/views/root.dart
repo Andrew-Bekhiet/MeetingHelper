@@ -77,6 +77,7 @@ class _RootState extends State<Root>
             return EditPerson(
               person: User(
                 name: '',
+                email: '',
                 ref: FirebaseFirestore.instance.collection('UsersData').doc(),
               ),
               showMotherAndFatherPhones: false,
@@ -198,8 +199,10 @@ class _RootState extends State<Root>
                             label: Text(
                               'التالي',
                               style: TextStyle(
-                                color:
-                                    Theme.of(context).textTheme.bodyText2!.color,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyText2!
+                                    .color,
                               ),
                             ),
                             onPressed: () {
@@ -213,8 +216,10 @@ class _RootState extends State<Root>
                             child: Text(
                               'تخطي',
                               style: TextStyle(
-                                color:
-                                    Theme.of(context).textTheme.bodyText2!.color,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyText2!
+                                    .color,
                               ),
                             ),
                           ),
@@ -243,7 +248,7 @@ class _RootState extends State<Root>
         bottom: TabBar(
           controller: _tabController,
           tabs: [
-            if (User.instance.manageUsers! || User.instance.manageAllowedUsers!)
+            if (User.instance.manageUsers || User.instance.manageAllowedUsers)
               Tab(
                 text: 'الخدام',
                 icon: DescribedFeatureOverlay(
@@ -279,7 +284,8 @@ class _RootState extends State<Root>
                   ),
                   backgroundColor: Theme.of(context).accentColor,
                   targetColor: Colors.transparent,
-                  textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
+                  textColor:
+                      Theme.of(context).primaryTextTheme.bodyText1!.color!,
                   child: const Icon(Icons.person),
                 ),
               ),
@@ -385,11 +391,14 @@ class _RootState extends State<Root>
                           _showSearch.add(false);
                         },
                       ),
-                      hintStyle: Theme.of(context).textTheme.headline6!.copyWith(
-                          color: Theme.of(context)
-                              .primaryTextTheme
-                              .headline6!
-                              .color),
+                      hintStyle: Theme.of(context)
+                          .textTheme
+                          .headline6!
+                          .copyWith(
+                              color: Theme.of(context)
+                                  .primaryTextTheme
+                                  .headline6!
+                                  .color),
                       icon: Icon(Icons.search,
                           color: Theme.of(context)
                               .primaryTextTheme
@@ -419,7 +428,7 @@ class _RootState extends State<Root>
         shape: CircularNotchedRectangle(),
         child: AnimatedBuilder(
           animation: _tabController!,
-          builder: (context, _) => StreamBuilder(
+          builder: (context, _) => StreamBuilder<dynamic>(
             stream: _tabController!.index == _tabController!.length - 1
                 ? _personsOptions!.objectsData
                 : _tabController!.index == _tabController!.length - 2
@@ -446,7 +455,7 @@ class _RootState extends State<Root>
       body: TabBarView(
         controller: _tabController,
         children: [
-          if (User.instance.manageUsers! || User.instance.manageAllowedUsers!)
+          if (User.instance.manageUsers || User.instance.manageAllowedUsers)
             UsersList(
               key: PageStorageKey('mainUsersList'),
               listOptions: _usersOptions,
@@ -532,7 +541,7 @@ class _RootState extends State<Root>
             ),
             Selector<User, bool>(
               selector: (_, user) =>
-                  user.manageUsers! || user.manageAllowedUsers!,
+                  user.manageUsers || user.manageAllowedUsers,
               builder: (c, permission, data) {
                 if (!permission)
                   return Container(
@@ -555,8 +564,10 @@ class _RootState extends State<Root>
                             label: Text(
                               'التالي',
                               style: TextStyle(
-                                color:
-                                    Theme.of(context).textTheme.bodyText2!.color,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyText2!
+                                    .color,
                               ),
                             ),
                             onPressed: () =>
@@ -568,8 +579,10 @@ class _RootState extends State<Root>
                             child: Text(
                               'تخطي',
                               style: TextStyle(
-                                color:
-                                    Theme.of(context).textTheme.bodyText2!.color,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyText2!
+                                    .color,
                               ),
                             ),
                           ),
@@ -712,8 +725,10 @@ class _RootState extends State<Root>
                         ),
                         backgroundColor: Theme.of(context).accentColor,
                         targetColor: Colors.transparent,
-                        textColor:
-                            Theme.of(context).primaryTextTheme.bodyText1!.color!,
+                        textColor: Theme.of(context)
+                            .primaryTextTheme
+                            .bodyText1!
+                            .color!,
                         child: const Icon(Icons.add),
                       ),
                       title: Text('كشف حضور الخدام'),
@@ -735,7 +750,8 @@ class _RootState extends State<Root>
                           await navigator.currentState!.pushNamed('ServantsDay',
                               arguments: ServantsHistoryDay.fromDoc(today[0]));
                         } else {
-                          await navigator.currentState!.pushNamed('ServantsDay');
+                          await navigator.currentState!
+                              .pushNamed('ServantsDay');
                         }
                       },
                     )
@@ -830,8 +846,10 @@ class _RootState extends State<Root>
                         ),
                         backgroundColor: Theme.of(context).accentColor,
                         targetColor: Colors.transparent,
-                        textColor:
-                            Theme.of(context).primaryTextTheme.bodyText1!.color!,
+                        textColor: Theme.of(context)
+                            .primaryTextTheme
+                            .bodyText1!
+                            .color!,
                         child: const Icon(Icons.history),
                       ),
                       title: Text('سجل الخدام'),
@@ -938,8 +956,8 @@ class _RootState extends State<Root>
               },
             ),
             Consumer<User>(
-              builder: (context, user, _) => user.manageUsers! ||
-                      user.manageAllowedUsers!
+              builder: (context, user, _) => user.manageUsers ||
+                      user.manageAllowedUsers
                   ? ListTile(
                       leading: DescribedFeatureOverlay(
                         backgroundDismissible: false,
@@ -984,8 +1002,10 @@ class _RootState extends State<Root>
                         ),
                         backgroundColor: Theme.of(context).accentColor,
                         targetColor: Colors.transparent,
-                        textColor:
-                            Theme.of(context).primaryTextTheme.bodyText1!.color!,
+                        textColor: Theme.of(context)
+                            .primaryTextTheme
+                            .bodyText1!
+                            .color!,
                         child: Icon(Icons.analytics_outlined),
                       ),
                       title: Text('تحليل بيانات الخدمة'),
@@ -1240,7 +1260,7 @@ class _RootState extends State<Root>
                                   mainAxisSize: MainAxisSize.min,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('جار تصدير ' + rslt.name! + '...'),
+                                    Text('جار تصدير ' + rslt.name + '...'),
                                     LinearProgressIndicator(),
                                   ],
                                 ),
@@ -1448,7 +1468,8 @@ class _RootState extends State<Root>
                 navigator.currentState!.pushReplacement(
                   MaterialPageRoute(
                     builder: (context) {
-                      navigator.currentState!.popUntil((route) => route.isFirst);
+                      navigator.currentState!
+                          .popUntil((route) => route.isFirst);
                       return App();
                     },
                   ),
@@ -1526,16 +1547,16 @@ class _RootState extends State<Root>
       //with the Data Stream from Firestore
       itemsStream: _personsOrder.switchMap(
         (order) => Person.getAllForUser(
-            orderBy: order.orderBy, descending: !order.asc!),
+            orderBy: order.orderBy ?? 'Name', descending: !order.asc!),
       ),
     );
     _tabController = TabController(
         vsync: this,
         initialIndex:
-            User.instance.manageUsers! || User.instance.manageAllowedUsers!
+            User.instance.manageUsers || User.instance.manageAllowedUsers
                 ? 1
                 : 0,
-        length: User.instance.manageUsers! || User.instance.manageAllowedUsers!
+        length: User.instance.manageUsers || User.instance.manageAllowedUsers
             ? 3
             : 2);
     WidgetsBinding.instance!.addObserver(this);
@@ -1547,7 +1568,8 @@ class _RootState extends State<Root>
 
   Future<void> showBatteryOptimizationDialog() async {
     if ((await DeviceInfoPlugin().androidInfo).version.sdkInt! >= 23 &&
-        !await (BatteryOptimization.isIgnoringBatteryOptimizations() as FutureOr<bool>) &&
+        !await (BatteryOptimization.isIgnoringBatteryOptimizations()
+            as FutureOr<bool>) &&
         Hive.box('Settings').get('ShowBatteryDialog', defaultValue: true)) {
       await showDialog(
         context: context,
@@ -1607,22 +1629,22 @@ class _RootState extends State<Root>
     FeatureDiscovery.discoverFeatures(context, [
       'Services',
       'Servants',
-      if (User.instance.manageUsers! || User.instance.manageAllowedUsers!)
+      if (User.instance.manageUsers || User.instance.manageAllowedUsers)
         'Users',
       'Search',
       'MyAccount',
-      if (User.instance.manageUsers! || User.instance.manageAllowedUsers!)
+      if (User.instance.manageUsers || User.instance.manageAllowedUsers)
         'ManageUsers',
       'AddHistory',
-      if (User.instance.secretary!) 'AddServantsHistory',
+      if (User.instance.secretary) 'AddServantsHistory',
       'History',
-      if (User.instance.secretary!) 'ServantsHistory',
+      if (User.instance.secretary) 'ServantsHistory',
       'Analytics',
-      if (User.instance.manageUsers! || User.instance.manageAllowedUsers!)
+      if (User.instance.manageUsers || User.instance.manageAllowedUsers)
         'ActivityAnalysis',
       'DataMap',
       'AdvancedSearch',
-      if (User.instance.manageDeleted!) 'ManageDeleted',
+      if (User.instance.manageDeleted) 'ManageDeleted',
       'Settings'
     ]);
   }
@@ -1661,13 +1683,13 @@ class _RootState extends State<Root>
 
         if (await Connectivity().checkConnectivity() !=
             ConnectivityResult.none) {
-          await person.ref!.set(
+          await person.ref.set(
             person.getMap(),
           );
         } else {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
-          person.ref!.set(
+          person.ref.set(
             person.getMap(),
           );
         }

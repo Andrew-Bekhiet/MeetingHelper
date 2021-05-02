@@ -40,7 +40,7 @@ class _UserRegistrationState extends State<UserRegistration> {
   Widget build(BuildContext context) {
     return Consumer<User>(
       builder: (context, user, _) {
-        if (user.approved!) {
+        if (user.approved) {
           lastTanawol ??= user.lastTanawol!.millisecondsSinceEpoch;
           lastConfession ??= user.lastConfession!.millisecondsSinceEpoch;
           return Scaffold(
@@ -69,7 +69,7 @@ class _UserRegistrationState extends State<UserRegistration> {
                     ),
                     textInputAction: TextInputAction.next,
                     autofocus: true,
-                    controller: _userName..text = user.name!,
+                    controller: _userName..text = user.name,
                     validator: (value) {
                       if (value!.isEmpty) {
                         return 'لا يمكن أن يكون اسمك فارغًا';

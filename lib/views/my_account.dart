@@ -50,7 +50,8 @@ class _MyAccountState extends State<MyAccount> {
                         builder: (context) => AlertDialog(
                           actions: <Widget>[
                             TextButton.icon(
-                              onPressed: () => navigator.currentState!.pop(true),
+                              onPressed: () =>
+                                  navigator.currentState!.pop(true),
                               icon: Icon(Icons.camera),
                               label: Text('التقاط صورة من الكاميرا'),
                             ),
@@ -174,7 +175,7 @@ class _MyAccountState extends State<MyAccount> {
                       opacity: constraints.biggest.height > kToolbarHeight * 1.7
                           ? 0
                           : 1,
-                      child: Text(user.name!),
+                      child: Text(user.name),
                     ),
                     background: user.getPhoto(false, false),
                   ),
@@ -183,10 +184,10 @@ class _MyAccountState extends State<MyAccount> {
             ],
             body: ListView(
               children: <Widget>[
-                Text(user.name!, style: Theme.of(context).textTheme.headline6),
+                Text(user.name, style: Theme.of(context).textTheme.headline6),
                 ListTile(
                   title: Text('البريد الاكتروني:'),
-                  subtitle: Text(user.email ?? ''),
+                  subtitle: Text(user.email),
                 ),
                 ListTile(
                   title: Text('تاريخ اخر تناول:'),

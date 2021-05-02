@@ -36,7 +36,7 @@ class _EditUserState extends State<EditUser> {
     FocusNode(),
     FocusNode()
   ];
-  AsyncCache<String> className = AsyncCache(Duration(minutes: 1));
+  AsyncCache<String?> className = AsyncCache(Duration(minutes: 1));
   late Map<String, dynamic> old;
 
   GlobalKey<FormState> form = GlobalKey<FormState>();
@@ -72,7 +72,7 @@ class _EditUserState extends State<EditUser> {
                     opacity: constraints.biggest.height > kToolbarHeight * 1.7
                         ? 0
                         : 1,
-                    child: Text(widget.user.name!,
+                    child: Text(widget.user.name,
                         style: TextStyle(
                           fontSize: 16.0,
                         )),
@@ -179,14 +179,14 @@ class _EditUserState extends State<EditUser> {
                                 color: Theme.of(context).primaryColor),
                           ),
                         ),
-                        child: FutureBuilder(
+                        child: FutureBuilder<String?>(
                           future: className.fetch(() =>
                               widget.user.classId == null
-                                  ? null
+                                  ? Future<String?>(() => null)
                                   : widget.user.getClassName()),
                           builder: (con, data) {
                             if (data.hasData) {
-                              return Text(data.data);
+                              return Text(data.data!);
                             } else if (data.connectionState ==
                                 ConnectionState.waiting) {
                               return LinearProgressIndicator();
@@ -199,150 +199,151 @@ class _EditUserState extends State<EditUser> {
                     ),
                   ),
                 ),
-                if (User.instance.manageUsers!)
+                if (User.instance.manageUsers)
                   ListTile(
                     trailing: Checkbox(
                       value: widget.user.manageUsers,
                       onChanged: (v) =>
-                          setState(() => widget.user.manageUsers = v),
+                          setState(() => widget.user.manageUsers = v!),
                     ),
                     leading: Icon(
                         const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
                     title: Text('إدارة المستخدمين'),
                     onTap: () => setState(() =>
-                        widget.user.manageUsers = !widget.user.manageUsers!),
+                        widget.user.manageUsers = !widget.user.manageUsers),
                   ),
                 ListTile(
                   trailing: Checkbox(
                     value: widget.user.manageAllowedUsers,
                     onChanged: (v) =>
-                        setState(() => widget.user.manageAllowedUsers = v),
+                        setState(() => widget.user.manageAllowedUsers = v!),
                   ),
                   leading: Icon(
                       const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
                   title: Text('إدارة مستخدمين محددين'),
                   onTap: () => setState(() => widget.user.manageAllowedUsers =
-                      !widget.user.manageAllowedUsers!),
+                      !widget.user.manageAllowedUsers),
                 ),
                 ListTile(
                   trailing: Checkbox(
                     value: widget.user.superAccess,
                     onChanged: (v) =>
-                        setState(() => widget.user.superAccess = v),
+                        setState(() => widget.user.superAccess = v!),
                   ),
                   leading: Icon(
                       const IconData(0xef56, fontFamily: 'MaterialIconsR')),
                   title: Text('رؤية جميع البيانات'),
                   onTap: () => setState(
-                      () => widget.user.superAccess = !widget.user.superAccess!),
+                      () => widget.user.superAccess = !widget.user.superAccess),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: widget.user.manageDeleted ?? false,
+                    value: widget.user.manageDeleted,
                     onChanged: (v) =>
-                        setState(() => widget.user.manageDeleted = v),
+                        setState(() => widget.user.manageDeleted = v!),
                   ),
                   leading: Icon(Icons.delete_outlined),
                   title: Text('استرجاع المحذوفات'),
-                  onTap: () => setState(() => widget.user.manageDeleted =
-                      !(widget.user.manageDeleted ?? false)),
+                  onTap: () => setState(() =>
+                      widget.user.manageDeleted = !(widget.user.manageDeleted)),
                 ),
                 ListTile(
                   trailing: Checkbox(
                     value: widget.user.secretary,
-                    onChanged: (v) => setState(() => widget.user.secretary = v),
+                    onChanged: (v) =>
+                        setState(() => widget.user.secretary = v!),
                   ),
                   leading: Icon(Icons.shield),
                   title: Text('تسجيل حضور الخدام'),
                   onTap: () => setState(
-                      () => widget.user.secretary = !widget.user.secretary!),
+                      () => widget.user.secretary = !widget.user.secretary),
                 ),
                 ListTile(
                   trailing: Checkbox(
                     value: widget.user.write,
-                    onChanged: (v) => setState(() => widget.user.write = v),
+                    onChanged: (v) => setState(() => widget.user.write = v!),
                   ),
                   leading: Icon(Icons.edit),
                   title: Text('تعديل البيانات'),
                   onTap: () =>
-                      setState(() => widget.user.write = !widget.user.write!),
+                      setState(() => widget.user.write = !widget.user.write),
                 ),
                 ListTile(
                   trailing: Checkbox(
                     value: widget.user.exportClasses,
                     onChanged: (v) =>
-                        setState(() => widget.user.exportClasses = v),
+                        setState(() => widget.user.exportClasses = v!),
                   ),
                   leading: Icon(Icons.cloud_download),
                   title: Text('تصدير فصل لملف إكسل'),
                   onTap: () => setState(() =>
-                      widget.user.exportClasses = !widget.user.exportClasses!),
+                      widget.user.exportClasses = !widget.user.exportClasses),
                 ),
                 ListTile(
                   trailing: Checkbox(
                     value: widget.user.birthdayNotify,
                     onChanged: (v) =>
-                        setState(() => widget.user.birthdayNotify = v),
+                        setState(() => widget.user.birthdayNotify = v!),
                   ),
                   leading: Icon(
                       const IconData(0xe7e9, fontFamily: 'MaterialIconsR')),
                   title: Text('إشعار أعياد الميلاد'),
                   onTap: () => setState(() =>
-                      widget.user.birthdayNotify = !widget.user.birthdayNotify!),
+                      widget.user.birthdayNotify = !widget.user.birthdayNotify),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: widget.user.confessionsNotify ?? false,
+                    value: widget.user.confessionsNotify,
                     onChanged: (v) =>
-                        setState(() => widget.user.confessionsNotify = v),
+                        setState(() => widget.user.confessionsNotify = v!),
                   ),
                   leading: Icon(
                       const IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
                   title: Text('إشعار  الاعتراف'),
                   onTap: () => setState(() => widget.user.confessionsNotify =
-                      !(widget.user.confessionsNotify ?? false)),
+                      !(widget.user.confessionsNotify)),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: widget.user.tanawolNotify ?? false,
+                    value: widget.user.tanawolNotify,
                     onChanged: (v) =>
-                        setState(() => widget.user.tanawolNotify = v),
+                        setState(() => widget.user.tanawolNotify = v!),
                   ),
                   leading: Icon(
                       const IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
                   title: Text('إشعار التناول'),
-                  onTap: () => setState(() => widget.user.tanawolNotify =
-                      !(widget.user.tanawolNotify ?? false)),
+                  onTap: () => setState(() =>
+                      widget.user.tanawolNotify = !(widget.user.tanawolNotify)),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: widget.user.kodasNotify ?? false,
+                    value: widget.user.kodasNotify,
                     onChanged: (v) =>
-                        setState(() => widget.user.kodasNotify = v),
+                        setState(() => widget.user.kodasNotify = v!),
                   ),
                   leading: Icon(
                       const IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
                   title: Text('إشعار القداس'),
-                  onTap: () => setState(() => widget.user.kodasNotify =
-                      !(widget.user.kodasNotify ?? false)),
+                  onTap: () => setState(() =>
+                      widget.user.kodasNotify = !(widget.user.kodasNotify)),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: widget.user.meetingNotify ?? false,
+                    value: widget.user.meetingNotify,
                     onChanged: (v) =>
-                        setState(() => widget.user.meetingNotify = v),
+                        setState(() => widget.user.meetingNotify = v!),
                   ),
                   leading: Icon(
                       const IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
                   title: Text('إشعار حضور الاجتماع'),
-                  onTap: () => setState(() => widget.user.meetingNotify =
-                      !(widget.user.meetingNotify ?? false)),
+                  onTap: () => setState(() =>
+                      widget.user.meetingNotify = !(widget.user.meetingNotify)),
                 ),
                 ElevatedButton.icon(
                   onPressed: editChildrenUsers,
                   icon: Icon(Icons.shield),
                   label: Text(
-                      'تعديل المستخدمين المسؤول عنهم ' + widget.user.name!,
+                      'تعديل المستخدمين المسؤول عنهم ' + widget.user.name,
                       softWrap: false,
                       textScaleFactor: 0.95,
                       overflow: TextOverflow.fade),
@@ -395,9 +396,9 @@ class _EditUserState extends State<EditUser> {
                         onPressed: () {
                           navigator.currentState!.pop(context
                               .read<DataObjectListOptions<User>>()
-                              .selectedLatest!
+                              .selectedLatest
                               .values
-                              ?.toList());
+                              .toList());
                         },
                         child: Text('تم'),
                       )
@@ -430,7 +431,7 @@ class _EditUserState extends State<EditUser> {
       builder: (context) => AlertDialog(
         title: Text('حذف حساب ${widget.user.name}'),
         content:
-            Text('هل أنت متأكد من حذف حساب ' + widget.user.name! + ' نهائيًا؟'),
+            Text('هل أنت متأكد من حذف حساب ' + widget.user.name + ' نهائيًا؟'),
         actions: <Widget>[
           TextButton(
             style: Theme.of(context).textButtonTheme.style!.copyWith(
@@ -547,7 +548,7 @@ class _EditUserState extends State<EditUser> {
           context: context,
           builder: (context) => AlertDialog(
             title: Text('هل أنت متأكد من إعادة تعيين كلمة السر ل' +
-                widget.user.name! +
+                widget.user.name +
                 '؟'),
             actions: [
               TextButton(
@@ -629,14 +630,14 @@ class _EditUserState extends State<EditUser> {
               .toList();
           for (final item in oldChildren) {
             if (!childrenUsers!.contains(item)) {
-              batch.update(item.ref!, {
+              batch.update(item.ref, {
                 'AllowedUsers': FieldValue.arrayRemove([widget.user.uid])
               });
             }
           }
           for (final item in childrenUsers!) {
             if (!oldChildren.contains(item)) {
-              batch.update(item.ref!, {
+              batch.update(item.ref, {
                 'AllowedUsers': FieldValue.arrayUnion([widget.user.uid])
               });
             }
@@ -739,7 +740,7 @@ class _EditUserState extends State<EditUser> {
                 },
               ),
             ),
-            floatingActionButton: User.instance.write!
+            floatingActionButton: User.instance.write
                 ? FloatingActionButton(
                     heroTag: null,
                     onPressed: () async {

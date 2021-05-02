@@ -147,11 +147,11 @@ class _UpdateState extends State<Update> {
             children: <Widget>[
               ListTile(
                 title: Text('الإصدار الحالي:'),
-                subtitle: FutureBuilder(
+                subtitle: FutureBuilder<PackageInfo>(
                   future: PackageInfo.fromPlatform(),
                   builder: (cont, data) {
                     if (data.hasData) {
-                      return Text(data.data.version);
+                      return Text(data.data!.version);
                     }
                     return LinearProgressIndicator();
                   },

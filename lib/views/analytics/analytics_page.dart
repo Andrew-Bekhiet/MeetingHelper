@@ -221,7 +221,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                         ),
                         HistoryAnalysisWidget(
                           range: range,
-                          classes: classes,
+                          classes: classes ?? [],
                           classesByRef: classesByRef,
                           collectionGroup: 'VisitHistory',
                           title: 'خدمة الافتقاد',
@@ -229,7 +229,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                         Divider(),
                         HistoryAnalysisWidget(
                           range: range,
-                          classes: classes,
+                          classes: classes ?? [],
                           classesByRef: classesByRef,
                           collectionGroup: 'EditHistory',
                           title: 'تحديث البيانات',
@@ -237,7 +237,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                         Divider(),
                         HistoryAnalysisWidget(
                           range: range,
-                          classes: classes,
+                          classes: classes ?? [],
                           classesByRef: classesByRef,
                           collectionGroup: 'CallHistory',
                           title: 'خدمة المكالمات',
@@ -407,7 +407,7 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
 class _AnalyticsPageState extends State<AnalyticsPage> {
   List<Class>? classes;
   DateTime day = DateTime.now();
-  DateTimeRange? range = DateTimeRange(
+  DateTimeRange range = DateTimeRange(
       start: DateTime.now().subtract(Duration(days: 30)), end: DateTime.now());
 
   bool _isOneDay = false;
@@ -417,7 +417,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   bool _sourceChanged = false;
 
   Future<void> _setRangeStart() async {
-    if (widget.range != null) range = widget.range;
+    if (widget.range != null) range = widget.range!;
     _minAvaliable = ((await FirebaseFirestore.instance
                 .collection(widget.historyColection)
                 .orderBy('Day')
@@ -445,8 +445,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
       helpText: null,
       confirmText: 'حفظ',
       saveText: 'حفظ',
-      initialDateRange: range!.start.millisecondsSinceEpoch <=
-                  range!.end.millisecondsSinceEpoch &&
+      initialDateRange: range.start.millisecondsSinceEpoch <=
+                  range.end.millisecondsSinceEpoch &&
               !_isOneDay
           ? range
           : DateTimeRange(start: day.subtract(Duration(days: 1)), end: day),
@@ -476,7 +476,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
       helpText: null,
       context: context,
       confirmText: 'حفظ',
-      initialDate: _isOneDay ? day : range!.end,
+      initialDate: _isOneDay ? day : range.end,
       firstDate: _minAvaliable,
       lastDate: DateTime.now(),
     );
@@ -525,8 +525,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                     return const Center(child: CircularProgressIndicator());
                   classes ??= snapshot.data;
 
-                  return StreamBuilder<List<HistoryDay?>>(
-                    initialData: [widget.day],
+                  return StreamBuilder<List<HistoryDay>>(
+                    initialData: widget.day != null ? [widget.day!] : null,
                     stream: (_isOneDay
                             ? FirebaseFirestore.instance
                                 .collection(widget.historyColection)
@@ -544,15 +544,16 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                 .orderBy('Day')
                                 .where('Day',
                                     isGreaterThanOrEqualTo:
-                                        Timestamp.fromDate(range!.start))
+                                        Timestamp.fromDate(range.start))
                                 .where(
                                   'Day',
                                   isLessThan: Timestamp.fromDate(
-                                      range!.end.add(Duration(days: 1))),
+                                      range.end.add(Duration(days: 1))),
                                 )
                                 .snapshots())
-                        .map((s) =>
-                            s.docs.map((o) => HistoryDay.fromDoc(o)).toList()),
+                        .map((s) => s.docs
+                            .map((o) => HistoryDay.fromQueryDoc(o))
+                            .toList()),
                     builder: (context, daysData) {
                       if (daysData.hasError)
                         return ErrorWidget(daysData.error!);
@@ -573,10 +574,10 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                           DateFormat.yMMMEd('ar_EG').format(day)
                                       : 'احصائيات الحضور من ' +
                                           DateFormat.yMMMEd('ar_EG')
-                                              .format(range!.start) +
+                                              .format(range.start) +
                                           ' الى ' +
                                           DateFormat.yMMMEd('ar_EG')
-                                              .format(range!.end),
+                                              .format(range.end),
                                   style: Theme.of(context).textTheme.bodyText1),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -623,29 +624,29 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                             ),
                             if (_isOneDay && days!.isNotEmpty) ...[
                               ClassesAttendanceIndicator(
-                                classes: classes,
-                                collection: days.first!.meeting,
+                                classes: classes ?? [],
+                                collection: days.first.meeting,
                                 isServant: widget.historyColection ==
                                     'ServantsHistory',
                               ),
                               Divider(),
                               ClassesAttendanceIndicator(
-                                classes: classes,
-                                collection: days.first!.kodas,
+                                classes: classes ?? [],
+                                collection: days.first.kodas,
                                 isServant: widget.historyColection ==
                                     'ServantsHistory',
                               ),
                               Divider(),
                               ClassesAttendanceIndicator(
-                                classes: classes,
-                                collection: days.first!.tanawol,
+                                classes: classes ?? [],
+                                collection: days.first.tanawol,
                                 isServant: widget.historyColection ==
                                     'ServantsHistory',
                               ),
                             ] else if (days!.isNotEmpty) ...[
                               AttendanceChart(
                                 title: 'حضور الاجتماع',
-                                classes: classes,
+                                classes: classes ?? [],
                                 range: range,
                                 days: days,
                                 isServant: widget.historyColection ==
@@ -655,7 +656,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                               Divider(),
                               AttendanceChart(
                                 title: 'حضور القداس',
-                                classes: classes,
+                                classes: classes ?? [],
                                 range: range,
                                 days: days,
                                 isServant: widget.historyColection ==
@@ -665,7 +666,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                               Divider(),
                               AttendanceChart(
                                 title: 'التناول',
-                                classes: classes,
+                                classes: classes ?? [],
                                 range: range,
                                 days: days,
                                 isServant: widget.historyColection ==

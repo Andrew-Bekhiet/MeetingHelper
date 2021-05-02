@@ -32,7 +32,7 @@ class _UserInfoState extends State<UserInfo> {
       body: StreamBuilder<User>(
         initialData: ModalRoute.of(context)!.settings.arguments as User?,
         stream: (ModalRoute.of(context)!.settings.arguments as User)
-            .ref!
+            .ref
             .snapshots()
             .map(User.fromDoc),
         builder: (context, data) {
@@ -85,7 +85,7 @@ class _UserInfoState extends State<UserInfo> {
                       opacity: constraints.biggest.height > kToolbarHeight * 1.7
                           ? 0
                           : 1,
-                      child: Text(user.name!,
+                      child: Text(user.name,
                           style: TextStyle(
                             fontSize: 16.0,
                           )),
@@ -97,25 +97,25 @@ class _UserInfoState extends State<UserInfo> {
             ],
             body: ListView(
               children: <Widget>[
-                Text(user.name!, style: Theme.of(context).textTheme.headline6),
+                Text(user.name, style: Theme.of(context).textTheme.headline6),
                 ListTile(
                   title: Text('البريد الاكتروني:'),
-                  subtitle: Text(user.email ?? ''),
+                  subtitle: Text(user.email),
                 ),
                 ListTile(
                   title: Text('أخر ظهور على البرنامج:'),
-                  subtitle: StreamBuilder(
+                  subtitle: StreamBuilder<Event>(
                     stream: FirebaseDatabase.instance
                         .reference()
                         .child('Users/${user.uid}/lastSeen')
                         .onValue,
                     builder: (context, activity) {
-                      if (activity.data?.snapshot?.value == 'Active') {
+                      if (activity.data?.snapshot.value == 'Active') {
                         return Text('نشط الآن');
-                      } else if (activity.data?.snapshot?.value != null) {
+                      } else if (activity.data?.snapshot.value != null) {
                         return Text(toDurationString(
                             Timestamp.fromMillisecondsSinceEpoch(
-                                activity.data.snapshot.value)));
+                                activity.data!.snapshot.value)));
                       }
                       return Text('لا يمكن التحديد');
                     },
@@ -164,7 +164,7 @@ class _UserInfoState extends State<UserInfo> {
                           ? FutureBuilder<Class?>(
                               future: Class.fromId(user.classId!.id),
                               builder: (context, _class) => _class.hasData
-                                  ? DataObjectWidget<Class?>(_class.data,
+                                  ? DataObjectWidget<Class>(_class.data!,
                                       isDense: true)
                                   : LinearProgressIndicator(),
                             )
@@ -241,7 +241,7 @@ class _UserInfoState extends State<UserInfo> {
                   ),
                 ),
                 ElevatedButton.icon(
-                  label: Text('رؤية البيانات كما يراها ' + user.name!),
+                  label: Text('رؤية البيانات كما يراها ' + user.name),
                   icon: Icon(Icons.visibility),
                   onPressed: () => showDialog(
                     context: context,
@@ -250,8 +250,8 @@ class _UserInfoState extends State<UserInfo> {
                         children: [
                           Text(
                             'يستطيع ' +
-                                user.name! +
-                                ' رؤية ${user.write! ? 'وتعديل ' : ''}الفصول التالية:',
+                                user.name +
+                                ' رؤية ${user.write ? 'وتعديل ' : ''}الفصول التالية:',
                             style: Theme.of(context).textTheme.headline6,
                           ),
                           Expanded(
@@ -259,7 +259,7 @@ class _UserInfoState extends State<UserInfo> {
                               options: ServicesListOptions(
                                 searchQuery: Stream.value(''),
                                 tap: (c) => classTap(c, context),
-                                itemsStream: user.superAccess!
+                                itemsStream: user.superAccess
                                     ? classesByStudyYearRef()
                                     : classesByStudyYearRefForUser(user.uid),
                               ),
@@ -271,7 +271,7 @@ class _UserInfoState extends State<UserInfo> {
                   ),
                 ),
                 ElevatedButton.icon(
-                  label: Text('المستخدمين المسؤول عنهم ' + user.name!,
+                  label: Text('المستخدمين المسؤول عنهم ' + user.name,
                       textScaleFactor: 0.95, overflow: TextOverflow.fade),
                   icon: Icon(Icons.shield),
                   onPressed: () => navigator.currentState!.push(
@@ -298,7 +298,7 @@ class _UserInfoState extends State<UserInfo> {
                           bottomNavigationBar: BottomAppBar(
                             color: Theme.of(context).primaryColor,
                             shape: CircularNotchedRectangle(),
-                            child: StreamBuilder(
+                            child: StreamBuilder<List>(
                               stream: listOptions.objectsData,
                               builder: (context, snapshot) {
                                 return Text(
@@ -306,7 +306,8 @@ class _UserInfoState extends State<UserInfo> {
                                       ' مستخدم',
                                   textAlign: TextAlign.center,
                                   strutStyle: StrutStyle(
-                                      height: IconTheme.of(context).size! / 7.5),
+                                      height:
+                                          IconTheme.of(context).size! / 7.5),
                                   style: Theme.of(context)
                                       .primaryTextTheme
                                       .bodyText1,

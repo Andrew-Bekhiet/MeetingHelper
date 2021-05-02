@@ -9,9 +9,9 @@ import '../models/models.dart';
 import '../utils/helpers.dart';
 
 class DataMap extends StatefulWidget {
-  final Class? classO;
+  final Class? class$;
 
-  DataMap({this.classO, Key? key}) : super(key: key);
+  DataMap({this.class$, Key? key}) : super(key: key);
   @override
   _DataMapState createState() => _DataMapState();
 }
@@ -28,7 +28,7 @@ class MegaMap extends StatelessWidget {
       builder: (context, selected, _) {
         return FutureBuilder<List<List<Person?>>>(
           future: Future.wait(
-              selected.selected!.map((e) => e!.getChildren()).toList()),
+              selected.selected!.map((e) => e.getChildren()).toList()),
           builder: (context, data) {
             if (data.connectionState != ConnectionState.done) {
               return Center(child: CircularProgressIndicator());
@@ -42,15 +42,15 @@ class MegaMap extends StatelessWidget {
                 myLocationEnabled: true,
                 myLocationButtonEnabled: true,
                 markers: persons
-                    ?.where((f) => f!.location != null)
-                    ?.map(
+                    .where((f) => f!.location != null)
+                    .map(
                       (f) => Marker(
                           onTap: () {
                             scaffoldMessenger.currentState!
                                 .hideCurrentSnackBar();
                             scaffoldMessenger.currentState!.showSnackBar(
                               SnackBar(
-                                content: Text(f!.name!),
+                                content: Text(f!.name),
                                 backgroundColor: f.color == Colors.transparent
                                     ? null
                                     : f.color,
@@ -61,11 +61,11 @@ class MegaMap extends StatelessWidget {
                               ),
                             );
                           },
-                          markerId: MarkerId(f!.id!),
+                          markerId: MarkerId(f!.id),
                           infoWindow: InfoWindow(title: f.name),
                           position: fromGeoPoint(f.location!)),
                     )
-                    ?.toSet(),
+                    .toSet(),
                 initialCameraPosition: CameraPosition(
                   zoom: 13,
                   target: initialLocation ?? center,
@@ -80,7 +80,7 @@ class MegaMap extends StatelessWidget {
 }
 
 class SelectedClasses extends ChangeNotifier {
-  List<Class?>? selected = [];
+  List<Class>? selected = [];
 
   SelectedClasses([this.selected]);
 
@@ -105,13 +105,14 @@ class _DataMapState extends State<DataMap> {
   Widget build(BuildContext context) {
     return StreamBuilder<List<Class>>(
         stream:
-            widget.classO == null ? Class.getAllForUser() : Stream.value([]),
+            widget.class$ == null ? Class.getAllForUser() : Stream.value([]),
         builder: (context, snapshot) {
-          if (snapshot.hasError) return ErrorWidget.builder(snapshot.error as FlutterErrorDetails);
-          if (!snapshot.hasData && widget.classO == null)
+          if (snapshot.hasError)
+            return ErrorWidget.builder(snapshot.error as FlutterErrorDetails);
+          if (!snapshot.hasData && widget.class$ == null)
             return const Center(child: CircularProgressIndicator());
           var selected = SelectedClasses(
-              widget.classO == null ? snapshot.data : [widget.classO]);
+              widget.class$ == null ? snapshot.data : [widget.class$!]);
           return ListenableProvider<SelectedClasses>.value(
             value: selected,
             builder: (context, _) => Scaffold(
@@ -133,8 +134,10 @@ class _DataMapState extends State<DataMap> {
                             label: Text(
                               'التالي',
                               style: TextStyle(
-                                color:
-                                    Theme.of(context).textTheme.bodyText2!.color,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyText2!
+                                    .color,
                               ),
                             ),
                             onPressed: () =>
@@ -146,8 +149,10 @@ class _DataMapState extends State<DataMap> {
                             child: Text(
                               'تخطي',
                               style: TextStyle(
-                                color:
-                                    Theme.of(context).textTheme.bodyText2!.color,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyText2!
+                                    .color,
                               ),
                             ),
                           ),

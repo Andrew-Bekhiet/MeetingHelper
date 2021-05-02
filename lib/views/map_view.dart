@@ -44,11 +44,9 @@ class _MapViewState extends State<MapView> {
       markers: {
         if (widget.person!.location != null)
           Marker(
-              markerId: MarkerId(widget.person!.id!),
+              markerId: MarkerId(widget.person!.id),
               infoWindow: InfoWindow(title: widget.person!.name),
-              position: widget.person!.location != null
-                  ? fromGeoPoint(widget.person!.location!)
-                  : null)
+              position: fromGeoPoint(widget.person!.location!))
       },
       onMapCreated: (con) => controller = con,
       initialCameraPosition: CameraPosition(

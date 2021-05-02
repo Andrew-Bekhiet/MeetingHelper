@@ -31,11 +31,11 @@ class Notification extends StatelessWidget {
           child: ListTile(
             leading: snapshot.hasData
                 ? snapshot.data is User
-                    ? snapshot.data.getPhoto()
+                    ? (snapshot.data! as User).getPhoto()
                     : snapshot.data is MessageIcon
-                        ? snapshot.data
+                        ? snapshot.data as MessageIcon
                         : DataObjectPhoto(
-                            snapshot.data,
+                            snapshot.data! as PhotoObject,
                             heroTag: snapshot.data,
                           )
                 : CircularProgressIndicator(),

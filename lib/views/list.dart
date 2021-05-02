@@ -30,7 +30,7 @@ export 'package:tuple/tuple.dart';
 ///
 ///You must provide [ListOptions<T>] in the parameter
 ///or use [Provider<ListOptions<T>>] above this widget
-class DataObjectList<T extends DataObject?> extends StatefulWidget {
+class DataObjectList<T extends DataObject> extends StatefulWidget {
   final DataObjectListOptions<T>? options;
 
   DataObjectList({Key? key, this.options}) : super(key: key);
@@ -39,10 +39,10 @@ class DataObjectList<T extends DataObject?> extends StatefulWidget {
   _ListState<T> createState() => _ListState<T>();
 }
 
-class _ListState<T extends DataObject?> extends State<DataObjectList<T>>
+class _ListState<T extends DataObject> extends State<DataObjectList<T>>
     with AutomaticKeepAliveClientMixin<DataObjectList<T>> {
   bool _builtOnce = false;
-  late DataObjectListOptions<T?> _listOptions;
+  late DataObjectListOptions<T> _listOptions;
 
   @override
   bool get wantKeepAlive => _builtOnce && ModalRoute.of(context)!.isCurrent;
@@ -53,14 +53,14 @@ class _ListState<T extends DataObject?> extends State<DataObjectList<T>>
     _builtOnce = true;
     updateKeepAlive();
 
-    return StreamBuilder<List<T?>>(
+    return StreamBuilder<List<T>>(
       stream: _listOptions.objectsData,
       builder: (context, stream) {
         if (stream.hasError) return Center(child: ErrorWidget(stream.error!));
         if (!stream.hasData)
           return const Center(child: CircularProgressIndicator());
 
-        final List<T?> _data = stream.data!;
+        final List<T> _data = stream.data!;
         if (_data.isEmpty)
           return Center(child: Text('لا يوجد ${_getPluralStringType()}'));
 
@@ -73,12 +73,12 @@ class _ListState<T extends DataObject?> extends State<DataObjectList<T>>
             if (i == _data.length)
               return Container(height: MediaQuery.of(context).size.height / 19);
 
-            final T? current = _data[i];
+            final T current = _data[i];
             return _listOptions.itemBuilder(
               current,
-              onLongPress: _listOptions.onLongPress ?? _defaultLongPress,
-              onTap: (T? current) {
-                if (!_listOptions.selectionModeLatest!) {
+              _listOptions.onLongPress ?? _defaultLongPress,
+              (T current) {
+                if (!_listOptions.selectionModeLatest) {
                   _listOptions.tap == null
                       ? dataObjectTap(current, context)
                       : _listOptions.tap!(current);
@@ -86,13 +86,15 @@ class _ListState<T extends DataObject?> extends State<DataObjectList<T>>
                   _listOptions.toggleSelected(current);
                 }
               },
-              trailing: StreamBuilder<Map<String, T>?>(
-                stream: Rx.combineLatest2(_listOptions.selected,
-                    _listOptions.selectionMode, (dynamic a, dynamic b) => b ? a : null),
+              StreamBuilder<Map<String, T>?>(
+                stream: Rx.combineLatest2(
+                    _listOptions.selected,
+                    _listOptions.selectionMode,
+                    (dynamic a, dynamic b) => b ? a : null),
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     return Checkbox(
-                      value: snapshot.data!.containsKey(current!.id),
+                      value: snapshot.data!.containsKey(current.id),
                       onChanged: (v) {
                         if (v!) {
                           _listOptions.select(current);
@@ -118,11 +120,11 @@ class _ListState<T extends DataObject?> extends State<DataObjectList<T>>
     _listOptions = widget.options ?? context.read<DataObjectListOptions<T>>();
   }
 
-  void _defaultLongPress(T? current) async {
-    _listOptions.selectionMode.add(!_listOptions.selectionModeLatest!);
+  void _defaultLongPress(T current) async {
+    _listOptions.selectionMode.add(!_listOptions.selectionModeLatest);
 
-    if (!_listOptions.selectionModeLatest!) {
-      if (_listOptions.selectedLatest!.isNotEmpty) {
+    if (!_listOptions.selectionModeLatest) {
+      if (_listOptions.selectedLatest.isNotEmpty) {
         if (T == Person) {
           await showDialog(
             context: context,
@@ -133,7 +135,7 @@ class _ListState<T extends DataObject?> extends State<DataObjectList<T>>
                   icon: Icon(Icons.sms),
                   onPressed: () {
                     navigator.currentState!.pop();
-                    List<Person> people = _listOptions.selectedLatest!.values
+                    List<Person> people = _listOptions.selectedLatest.values
                         .cast<Person>()
                         .toList()
                           ..removeWhere((p) =>
@@ -160,8 +162,8 @@ class _ListState<T extends DataObject?> extends State<DataObjectList<T>>
                     navigator.currentState!.pop();
                     await Share.share(
                       (await Future.wait(
-                        _listOptions.selectedLatest!.values.cast<Person>().map(
-                              (f) async => f.name! + ': ' + await sharePerson(f),
+                        _listOptions.selectedLatest.values.cast<Person>().map(
+                              (f) async => f.name + ': ' + await sharePerson(f),
                             ),
                       ))
                           .join('\n'),
@@ -200,12 +202,10 @@ class _ListState<T extends DataObject?> extends State<DataObjectList<T>>
                       ),
                     ) as FutureOr<String>);
                     msg = Uri.encodeComponent(msg);
-                    if (msg != null) {
-                      for (Person person in _listOptions.selectedLatest!.values
-                          .cast<Person>()) {
-                        String phone = getPhone(person.phone!);
-                        await launch('https://wa.me/$phone?text=$msg');
-                      }
+                    for (Person person
+                        in _listOptions.selectedLatest.values.cast<Person>()) {
+                      String phone = getPhone(person.phone!);
+                      await launch('https://wa.me/$phone?text=$msg');
                     }
                   },
                   label: Text('ارسال رسالة واتساب للكل'),
@@ -215,16 +215,16 @@ class _ListState<T extends DataObject?> extends State<DataObjectList<T>>
                   onPressed: () async {
                     navigator.currentState!.pop();
                     if ((await Permission.contacts.request()).isGranted) {
-                      for (Person item in _listOptions.selectedLatest!.values
+                      for (Person item in _listOptions.selectedLatest.values
                           .cast<Person>()) {
                         try {
                           final c = Contact(
-                              photo: item.hasPhoto!
+                              photo: item.hasPhoto
                                   ? await item.photoRef
                                       .getData(100 * 1024 * 1024)
                                   : null,
                               phones: [Phone(item.phone!)])
-                            ..name.first = item.name!;
+                            ..name.first = item.name;
                           await c.insert();
                         } catch (err, stkTrace) {
                           await FirebaseCrashlytics.instance.setCustomKey(
@@ -243,8 +243,8 @@ class _ListState<T extends DataObject?> extends State<DataObjectList<T>>
           );
         } else
           await Share.share(
-            (await Future.wait(_listOptions.selectedLatest!.values
-                    .map((f) async => f!.name! + ': ' + await shareDataObject(f))
+            (await Future.wait(_listOptions.selectedLatest.values
+                    .map((f) async => f.name + ': ' + await shareDataObject(f))
                     .toList()))
                 .join('\n'),
           );
@@ -276,7 +276,7 @@ class DataObjectCheckList<T extends Person> extends StatefulWidget {
 class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
     with AutomaticKeepAliveClientMixin<DataObjectCheckList<T>> {
   bool _builtOnce = false;
-  late CheckListOptions<T?> _listOptions;
+  late CheckListOptions<T> _listOptions;
 
   @override
   bool get wantKeepAlive => _builtOnce && ModalRoute.of(context)!.isCurrent;
@@ -287,18 +287,18 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
     _builtOnce = true;
     updateKeepAlive();
 
-    return StreamBuilder<Tuple2<List<T?>, bool?>>(
-      stream: Rx.combineLatest2<List<T?>, bool?, Tuple2<List<T?>, bool?>>(
-        _listOptions.objectsData!,
+    return StreamBuilder<Tuple2<List<T>, bool?>>(
+      stream: Rx.combineLatest2<List<T>, bool?, Tuple2<List<T>, bool?>>(
+        _listOptions.objectsData,
         _listOptions.dayOptions.grouped,
-        (a, b) => Tuple2<List<T?>, bool?>(a, b),
+        (a, b) => Tuple2<List<T>, bool?>(a, b),
       ),
       builder: (context, options) {
         if (options.hasError) return Center(child: ErrorWidget(options.error!));
         if (!options.hasData)
           return const Center(child: CircularProgressIndicator());
 
-        final List<T?> _data = options.data!.item1;
+        final List<T> _data = options.data!.item1;
         if (_data.isEmpty)
           return Center(child: Text('لا يوجد ${_getPluralStringType()}'));
 
@@ -311,8 +311,8 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
     );
   }
 
-  Widget buildGroupedListView(List<T?> _data) {
-    return StreamBuilder<Map<DocumentReference, Tuple2<Class, List<T?>>>>(
+  Widget buildGroupedListView(List<T> _data) {
+    return StreamBuilder<Map<DocumentReference, Tuple2<Class, List<T>>>>(
       stream: _listOptions.getGroupedData!(_data),
       builder: (context, groupedData) {
         if (groupedData.hasError) return ErrorWidget(groupedData.error!);
@@ -350,7 +350,7 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
             );
           },
           itemBuilder: (context, i) {
-            T? current = groupedData.data!.values
+            T current = groupedData.data!.values
                 .elementAt(i.section)
                 .item2
                 .elementAt(i.index);
@@ -364,7 +364,7 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
     );
   }
 
-  Widget buildListView(List<T?> _data) {
+  Widget buildListView(List<T> _data) {
     return ListView.builder(
       padding: EdgeInsets.symmetric(horizontal: 6),
       addAutomaticKeepAlives: _data.length < 500,
@@ -374,30 +374,30 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
         if (i == _data.length)
           return Container(height: MediaQuery.of(context).size.height / 19);
 
-        final T? current = _data[i];
+        final T current = _data[i];
         return _buildItem(current);
       },
     );
   }
 
-  Widget _buildItem(T? current) {
+  Widget _buildItem(T current) {
     return StreamBuilder<Map<String, HistoryRecord>>(
       stream: _listOptions.attended,
       builder: (context, attended) => _listOptions.itemBuilder(
         current,
-        onLongPress: _listOptions.onLongPress ??
+        _listOptions.onLongPress ??
             ((o) =>
-                _showRecordDialog(o, _listOptions.attended!.value![current!.id!])),
-        onTap: (T? current) async {
+                _showRecordDialog(o, _listOptions.attended.value![current.id])),
+        (T current) async {
           if (!_listOptions.dayOptions.enabled.value!) {
             _listOptions.tap == null
                 ? dataObjectTap(current, context)
                 : _listOptions.tap!(current);
           } else {
-            if (!_listOptions.dayOptions.lockUnchecks.value) {
+            if (!_listOptions.dayOptions.lockUnchecks.requireValue) {
               await _listOptions.toggleSelected(current);
             } else if (!_listOptions.selectedLatest.containsKey(current.id) ||
-                _listOptions.dayOptions.lockUnchecks.value &&
+                _listOptions.dayOptions.lockUnchecks.requireValue &&
                     await showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
@@ -406,12 +406,12 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
                             actions: [
                               TextButton(
                                 onPressed: () =>
-                                    navigator.currentState.pop(true),
+                                    navigator.currentState!.pop(true),
                                 child: Text('تأكيد'),
                               ),
                               TextButton(
                                 onPressed: () =>
-                                    navigator.currentState.pop(false),
+                                    navigator.currentState!.pop(false),
                                 child: Text('تراجع'),
                               ),
                             ],
@@ -422,13 +422,13 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
             }
           }
         },
-        subtitle: attended.hasData && attended.data!.containsKey(current!.id)
+        attended.hasData && attended.data!.containsKey(current.id)
             ? Text(DateFormat('الساعة h : m د : s ث a', 'ar-EG')
-                .format(attended.data![current.id!]!.time!.toDate()))
-            : null,
-        trailing: attended.hasData
+                .format(attended.data![current.id]!.time.toDate()))
+            : Container(),
+        attended.hasData
             ? Checkbox(
-                value: attended.data!.containsKey(current!.id),
+                value: attended.data!.containsKey(current.id),
                 onChanged: _listOptions.dayOptions.enabled.value!
                     ? (v) {
                         if (v!) {
@@ -450,10 +450,10 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
     _listOptions = widget.options ?? context.read<CheckListOptions<T>>();
   }
 
-  void _showRecordDialog(T? current, HistoryRecord? oRecord) async {
+  void _showRecordDialog(T current, HistoryRecord? oRecord) async {
     var record = oRecord != null
         ? HistoryRecord(
-            classId: current!.classId,
+            classId: current.classId!,
             id: oRecord.id,
             notes: oRecord.notes,
             parent: oRecord.parent,
@@ -465,7 +465,7 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
     if (await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text(current!.name!),
+            title: Text(current.name),
             content: StreamBuilder<bool>(
               initialData: _listOptions.dayOptions.enabled.value,
               stream: _listOptions.dayOptions.enabled,
@@ -479,15 +479,15 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
                         children: <Widget>[
                           Checkbox(
                             value: record != null,
-                            onChanged: enabled?.data ?? false
+                            onChanged: enabled.data ?? false
                                 ? (v) {
                                     if (v!) {
                                       record = HistoryRecord(
-                                          classId: current.classId,
+                                          classId: current.classId!,
                                           id: current.id,
                                           parent: _listOptions.day,
                                           type: _listOptions.type,
-                                          recordedBy: User.instance.uid,
+                                          recordedBy: User.instance.uid!,
                                           time: Timestamp.now(),
                                           isServant: T == User);
                                     } else
@@ -508,10 +508,10 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
                               format:
                                   DateFormat('الساعة h : m د : s ث a', 'ar-EG'),
                               initialValue:
-                                  record?.time?.toDate() ?? DateTime.now(),
+                                  record?.time.toDate() ?? DateTime.now(),
                               resetIcon: null,
                               enabled:
-                                  record != null && (enabled?.data ?? false),
+                                  record != null && (enabled.data ?? false),
                               onShowPicker: (context, initialValue) async {
                                 var selected = await showTimePicker(
                                   initialTime:
@@ -549,7 +549,7 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
                         ),
                         textInputAction: TextInputAction.done,
                         initialValue: record?.notes ?? '',
-                        enabled: record != null && (enabled?.data ?? false),
+                        enabled: record != null && (enabled.data ?? false),
                         onChanged: (n) => setState(() => record!.notes = n),
                         maxLines: null,
                         validator: (value) {
@@ -567,7 +567,7 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
                   navigator.currentState!.pop();
                   dataObjectTap(current, context);
                 },
-                child: Text('عرض بيانات ' + current.name!),
+                child: Text('عرض بيانات ' + current.name),
               ),
               if (_listOptions.dayOptions.enabled.value!)
                 TextButton(
@@ -578,14 +578,14 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
           ),
         ) ==
         true) {
-      if (_listOptions.selectedLatest!.containsKey(current!.id) &&
+      if (_listOptions.selectedLatest.containsKey(current.id) &&
           record != null) {
         await _listOptions.modifySelected(current,
             notes: record!.notes, time: record!.time);
       } else if (record != null) {
         await _listOptions.select(current,
             notes: record?.notes, time: record?.time);
-      } else if (_listOptions.selectedLatest!.containsKey(current.id) &&
+      } else if (_listOptions.selectedLatest.containsKey(current.id) &&
           record == null) {
         await _listOptions.deselect(current);
       }

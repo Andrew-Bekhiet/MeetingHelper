@@ -913,7 +913,7 @@ class _SearchQueryState extends State<SearchQuery> {
 
     var resultsSearch = BehaviorSubject<String>.seeded('');
     bool fewClasses = true;
-    if (!User.instance.superAccess!) {
+    if (!User.instance.superAccess) {
       final allowed =
           (await Class.getAllForUser().first).map((e) => e.ref).toList();
       classes = classes.where('Allowed', arrayContains: User.instance.uid);
@@ -926,8 +926,8 @@ class _SearchQueryState extends State<SearchQuery> {
     switch (operatorIndex) {
       case 0:
         if (parentIndex == 0) {
-          body = DataObjectList<Class?>(
-            options: DataObjectListOptions<Class?>(
+          body = DataObjectList<Class>(
+            options: DataObjectListOptions<Class>(
               searchQuery: resultsSearch,
               tap: (c) => classTap(c, context),
               itemsStream: classes
@@ -935,14 +935,14 @@ class _SearchQueryState extends State<SearchQuery> {
                       isEqualTo: queryValue,
                       isNull: queryValue == null ? true : null)
                   .snapshots()
-                  .map((s) => s.docs.map(Class.fromDoc).toList()),
+                  .map((s) => s.docs.map(Class.fromQueryDoc).toList()),
             ),
           );
           break;
         }
         if (!birthDate && childIndex == 2) {
-          body = DataObjectList<Person?>(
-            options: DataObjectListOptions<Person?>(
+          body = DataObjectList<Person>(
+            options: DataObjectListOptions<Person>(
               searchQuery: resultsSearch,
               tap: (p) => personTap(p, context),
               itemsStream: fewClasses
@@ -962,7 +962,7 @@ class _SearchQueryState extends State<SearchQuery> {
                                 )
                               : null)
                       .snapshots()
-                      .map((s) => s.docs.map(Person.fromDoc).toList())
+                      .map((s) => s.docs.map(Person.fromQueryDoc).toList())
                   : Class.getAllForUser().switchMap(
                       (cs) => Rx.combineLatestList(cs.split(10).map((c) =>
                           persons
@@ -991,7 +991,7 @@ class _SearchQueryState extends State<SearchQuery> {
                             .expand(
                               (e) => e.docs,
                             )
-                            .map(Person.fromDoc)
+                            .map(Person.fromQueryDoc)
                             .toList(),
                       ),
                     ),
@@ -1015,39 +1015,41 @@ class _SearchQueryState extends State<SearchQuery> {
                             .where('ClassId',
                                 whereIn: c.map((c) => c.ref).toList())
                             .where(
-                                childItems[parentIndex!][childIndex].value.value,
+                                childItems[parentIndex!][childIndex]
+                                    .value
+                                    .value,
                                 isEqualTo: queryValue,
                                 isNull: queryValue == null ? true : null)
                             .snapshots())))
                     .map(
-                      ((s) => s
+                      (s) => s
                           .expand(
                             (e) => e.docs,
                           )
-                          .map(Person.fromDoc)
-                          .toList() as List<Person>) as List<Person> Function(List<QuerySnapshot>),
+                          .map(Person.fromQueryDoc)
+                          .toList(),
                     ),
           ),
         );
         break;
       case 1:
         if (parentIndex == 0) {
-          body = DataObjectList<Class?>(
-            options: DataObjectListOptions<Class?>(
+          body = DataObjectList<Class>(
+            options: DataObjectListOptions<Class>(
               searchQuery: resultsSearch,
               tap: (c) => classTap(c, context),
               itemsStream: classes
                   .where(childItems[parentIndex!][childIndex].value.value,
                       arrayContains: queryValue)
                   .snapshots()
-                  .map((s) => s.docs.map(Class.fromDoc).toList()),
+                  .map((s) => s.docs.map(Class.fromQueryDoc).toList()),
             ),
           );
           break;
         }
         if (!birthDate && childIndex == 2) {
-          body = DataObjectList<Person?>(
-            options: DataObjectListOptions<Person?>(
+          body = DataObjectList<Person>(
+            options: DataObjectListOptions<Person>(
               searchQuery: resultsSearch,
               tap: (p) => personTap(p, context),
               itemsStream: fewClasses
@@ -1060,7 +1062,7 @@ class _SearchQueryState extends State<SearchQuery> {
                                   queryValue.toDate().day))
                               : null)
                       .snapshots()
-                      .map((s) => s.docs.map(Person.fromDoc).toList())
+                      .map((s) => s.docs.map(Person.fromQueryDoc).toList())
                   : Class.getAllForUser().switchMap(
                       (cs) => Rx.combineLatestList(cs.split(10).map((c) =>
                           persons
@@ -1078,7 +1080,7 @@ class _SearchQueryState extends State<SearchQuery> {
                             .expand(
                               (e) => e.docs,
                             )
-                            .map(Person.fromDoc)
+                            .map(Person.fromQueryDoc)
                             .toList(),
                       ),
                     ),
@@ -1086,8 +1088,8 @@ class _SearchQueryState extends State<SearchQuery> {
           );
           break;
         }
-        body = DataObjectList<Person?>(
-          options: DataObjectListOptions<Person?>(
+        body = DataObjectList<Person>(
+          options: DataObjectListOptions<Person>(
             searchQuery: resultsSearch,
             tap: (p) => personTap(p, context),
             itemsStream: fewClasses
@@ -1095,7 +1097,7 @@ class _SearchQueryState extends State<SearchQuery> {
                     .where(childItems[parentIndex!][childIndex].value.value,
                         arrayContains: queryValue)
                     .snapshots()
-                    .map((s) => s.docs.map(Person.fromDoc).toList())
+                    .map((s) => s.docs.map(Person.fromQueryDoc).toList())
                 : Class.getAllForUser().switchMap(
                     (cs) => Rx.combineLatestList(cs.split(10).map((c) => persons
                         .where('ClassId', whereIn: c.map((c) => c.ref).toList())
@@ -1106,7 +1108,7 @@ class _SearchQueryState extends State<SearchQuery> {
                           .expand(
                             (e) => e.docs,
                           )
-                          .map(Person.fromDoc)
+                          .map(Person.fromQueryDoc)
                           .toList(),
                     ),
                   ),
@@ -1115,21 +1117,21 @@ class _SearchQueryState extends State<SearchQuery> {
         break;
       case 2:
         if (parentIndex == 0) {
-          body = DataObjectList<Class?>(
-            options: DataObjectListOptions<Class?>(
+          body = DataObjectList<Class>(
+            options: DataObjectListOptions<Class>(
                 searchQuery: resultsSearch,
                 tap: (c) => classTap(c, context),
                 itemsStream: classes
                     .where(childItems[parentIndex!][childIndex].value.value,
                         isGreaterThanOrEqualTo: queryValue)
                     .snapshots()
-                    .map((s) => s.docs.map(Class.fromDoc).toList())),
+                    .map((s) => s.docs.map(Class.fromQueryDoc).toList())),
           );
           break;
         }
         if (!birthDate && childIndex == 2) {
-          body = DataObjectList<Person?>(
-            options: DataObjectListOptions<Person?>(
+          body = DataObjectList<Person>(
+            options: DataObjectListOptions<Person>(
               searchQuery: resultsSearch,
               tap: (p) => personTap(p, context),
               itemsStream: fewClasses
@@ -1142,7 +1144,7 @@ class _SearchQueryState extends State<SearchQuery> {
                                   queryValue.toDate().day))
                               : null)
                       .snapshots()
-                      .map((s) => s.docs.map(Person.fromDoc).toList())
+                      .map((s) => s.docs.map(Person.fromQueryDoc).toList())
                   : Class.getAllForUser()
                       .switchMap((cs) => Rx.combineLatestList(cs.split(10).map(
                           (c) => persons
@@ -1159,15 +1161,15 @@ class _SearchQueryState extends State<SearchQuery> {
                             .expand(
                               (e) => e.docs,
                             )
-                            .map(Person.fromDoc)
+                            .map(Person.fromQueryDoc)
                             .toList(),
                       ),
             ),
           );
           break;
         }
-        body = DataObjectList<Person?>(
-          options: DataObjectListOptions<Person?>(
+        body = DataObjectList<Person>(
+          options: DataObjectListOptions<Person>(
             searchQuery: resultsSearch,
             tap: (p) => personTap(p, context),
             itemsStream: fewClasses
@@ -1175,7 +1177,7 @@ class _SearchQueryState extends State<SearchQuery> {
                     .where(childItems[parentIndex!][childIndex].value.value,
                         isGreaterThanOrEqualTo: queryValue)
                     .snapshots()
-                    .map((s) => s.docs.map(Person.fromDoc).toList())
+                    .map((s) => s.docs.map(Person.fromQueryDoc).toList())
                 : Class.getAllForUser().switchMap(
                     (cs) => Rx.combineLatestList(cs.split(10).map((c) => persons
                         .where('ClassId', whereIn: c.map((c) => c.ref).toList())
@@ -1186,7 +1188,7 @@ class _SearchQueryState extends State<SearchQuery> {
                           .expand(
                             (e) => e.docs,
                           )
-                          .map(Person.fromDoc)
+                          .map(Person.fromQueryDoc)
                           .toList(),
                     ),
                   ),
@@ -1195,22 +1197,22 @@ class _SearchQueryState extends State<SearchQuery> {
         break;
       case 3:
         if (parentIndex == 0) {
-          body = DataObjectList<Class?>(
-            options: DataObjectListOptions<Class?>(
+          body = DataObjectList<Class>(
+            options: DataObjectListOptions<Class>(
               searchQuery: resultsSearch,
               tap: (c) => classTap(c, context),
               itemsStream: classes
                   .where(childItems[parentIndex!][childIndex].value.value,
                       isLessThanOrEqualTo: queryValue)
                   .snapshots()
-                  .map((s) => s.docs.map(Class.fromDoc).toList()),
+                  .map((s) => s.docs.map(Class.fromQueryDoc).toList()),
             ),
           );
           break;
         }
         if (!birthDate && childIndex == 2) {
-          body = DataObjectList<Person?>(
-            options: DataObjectListOptions<Person?>(
+          body = DataObjectList<Person>(
+            options: DataObjectListOptions<Person>(
               searchQuery: resultsSearch,
               tap: (p) => personTap(p, context),
               itemsStream: fewClasses
@@ -1223,7 +1225,7 @@ class _SearchQueryState extends State<SearchQuery> {
                                   queryValue.toDate().day))
                               : null)
                       .snapshots()
-                      .map((s) => s.docs.map(Person.fromDoc).toList())
+                      .map((s) => s.docs.map(Person.fromQueryDoc).toList())
                   : Class.getAllForUser().switchMap(
                       (cs) => Rx.combineLatestList(cs.split(10).map((c) =>
                           persons
@@ -1241,7 +1243,7 @@ class _SearchQueryState extends State<SearchQuery> {
                             .expand(
                               (e) => e.docs,
                             )
-                            .map(Person.fromDoc)
+                            .map(Person.fromQueryDoc)
                             .toList(),
                       ),
                     ),
@@ -1249,8 +1251,8 @@ class _SearchQueryState extends State<SearchQuery> {
           );
           break;
         }
-        body = DataObjectList<Person?>(
-          options: DataObjectListOptions<Person?>(
+        body = DataObjectList<Person>(
+          options: DataObjectListOptions<Person>(
             searchQuery: resultsSearch,
             tap: (p) => personTap(p, context),
             itemsStream: fewClasses
@@ -1258,7 +1260,7 @@ class _SearchQueryState extends State<SearchQuery> {
                     .where(childItems[parentIndex!][childIndex].value.value,
                         isLessThanOrEqualTo: queryValue)
                     .snapshots()
-                    .map((s) => s.docs.map(Person.fromDoc).toList())
+                    .map((s) => s.docs.map(Person.fromQueryDoc).toList())
                 : Class.getAllForUser().switchMap(
                     (cs) => Rx.combineLatestList(cs.split(10).map((c) => persons
                         .where('ClassId', whereIn: c.map((c) => c.ref).toList())
@@ -1269,7 +1271,7 @@ class _SearchQueryState extends State<SearchQuery> {
                           .expand(
                             (e) => e.docs,
                           )
-                          .map(Person.fromDoc)
+                          .map(Person.fromQueryDoc)
                           .toList(),
                     ),
                   ),
@@ -1471,8 +1473,8 @@ class _SearchQueryState extends State<SearchQuery> {
         });
       },
       itemsStream: _orderOptions.switchMap(
-        (order) =>
-            Class.getAllForUser(orderBy: order.orderBy, descending: !order.asc!),
+        (order) => Class.getAllForUser(
+            orderBy: order.orderBy ?? 'Name', descending: !order.asc!),
       ),
     );
     await showDialog(

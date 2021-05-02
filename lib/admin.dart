@@ -258,37 +258,26 @@ class _ChurchesPageState extends State<ChurchesPage> {
                   : Text(church.address!),
               if (!editMode) Text('الأباء بالكنيسة:', style: title),
               if (!editMode)
-                FutureBuilder(
-                  future: church.getMembersLive(),
-                  builder: (context, widgetListData) {
-                    return widgetListData.connectionState !=
-                            ConnectionState.done
-                        ? Container()
-                        : StreamBuilder<QuerySnapshot>(
-                            stream: widgetListData.data,
-                            builder: (con, data) {
-                              if (data.hasData) {
-                                return ListView.builder(
-                                    physics: ClampingScrollPhysics(),
-                                    shrinkWrap: true,
-                                    itemCount: data.data!.docs.length,
-                                    itemBuilder: (context, i) {
-                                      var current =
-                                          Father.fromDoc(data.data!.docs[i]);
-                                      return Card(
-                                        child: ListTile(
-                                          onTap: () =>
-                                              fatherTap(current, false),
-                                          title: Text(current.name!),
-                                        ),
-                                      );
-                                    });
-                              } else {
-                                return const Center(
-                                    child: CircularProgressIndicator());
-                              }
-                            },
-                          );
+                StreamBuilder<QuerySnapshot>(
+                  stream: church.getMembersLive(),
+                  builder: (con, data) {
+                    if (data.hasData) {
+                      return ListView.builder(
+                          physics: ClampingScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: data.data!.docs.length,
+                          itemBuilder: (context, i) {
+                            var current = Father.fromDoc(data.data!.docs[i]);
+                            return Card(
+                              child: ListTile(
+                                onTap: () => fatherTap(current, false),
+                                title: Text(current.name!),
+                              ),
+                            );
+                          });
+                    } else {
+                      return const Center(child: CircularProgressIndicator());
+                    }
                   },
                 )
             ],
@@ -417,13 +406,13 @@ class _ChurchesPageState extends State<ChurchesPage> {
                         }
                       },
                     )
-                  : FutureBuilder(
+                  : FutureBuilder<String?>(
                       future: father.getChurchName(),
                       builder: (con, name) {
                         return name.hasData
                             ? Card(
                                 child: ListTile(
-                                    title: Text(name.data),
+                                    title: Text(name.data!),
                                     onTap: () async => churchTap(
                                         Church.fromDoc(
                                             await father.churchId!.get()),
@@ -548,37 +537,26 @@ class _FathersPageState extends State<FathersPage> {
                   : Text(church.address!),
               if (!editMode) Text('الأباء بالكنيسة:', style: title),
               if (!editMode)
-                FutureBuilder(
-                  future: church.getMembersLive(),
-                  builder: (context, widgetListData) {
-                    return widgetListData.connectionState !=
-                            ConnectionState.done
-                        ? Container()
-                        : StreamBuilder<QuerySnapshot>(
-                            stream: widgetListData.data,
-                            builder: (con, data) {
-                              if (data.hasData) {
-                                return ListView.builder(
-                                    physics: ClampingScrollPhysics(),
-                                    shrinkWrap: true,
-                                    itemCount: data.data!.docs.length,
-                                    itemBuilder: (context, i) {
-                                      var current =
-                                          Father.fromDoc(data.data!.docs[i]);
-                                      return Card(
-                                        child: ListTile(
-                                          onTap: () =>
-                                              fatherTap(current, false),
-                                          title: Text(current.name!),
-                                        ),
-                                      );
-                                    });
-                              } else {
-                                return const Center(
-                                    child: CircularProgressIndicator());
-                              }
-                            },
-                          );
+                StreamBuilder<QuerySnapshot>(
+                  stream: church.getMembersLive(),
+                  builder: (con, data) {
+                    if (data.hasData) {
+                      return ListView.builder(
+                          physics: ClampingScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: data.data!.docs.length,
+                          itemBuilder: (context, i) {
+                            var current = Father.fromDoc(data.data!.docs[i]);
+                            return Card(
+                              child: ListTile(
+                                onTap: () => fatherTap(current, false),
+                                title: Text(current.name!),
+                              ),
+                            );
+                          });
+                    } else {
+                      return const Center(child: CircularProgressIndicator());
+                    }
                   },
                 )
             ],
@@ -706,13 +684,13 @@ class _FathersPageState extends State<FathersPage> {
                         }
                       },
                     )
-                  : FutureBuilder(
+                  : FutureBuilder<String?>(
                       future: father.getChurchName(),
                       builder: (con, name) {
                         return name.hasData
                             ? Card(
                                 child: ListTile(
-                                    title: Text(name.data),
+                                    title: Text(name.data!),
                                     onTap: () async => churchTap(
                                         Church.fromDoc(
                                             await father.churchId!.get()),

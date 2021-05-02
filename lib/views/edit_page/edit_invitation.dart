@@ -56,7 +56,7 @@ class _EditInvitationState extends State<EditInvitation> {
                     opacity: constraints.biggest.height > kToolbarHeight * 1.7
                         ? 0
                         : 1,
-                    child: Text(widget.invitation.name!,
+                    child: Text(widget.invitation.name,
                         style: TextStyle(
                           fontSize: 16.0,
                         )),
@@ -101,10 +101,8 @@ class _EditInvitationState extends State<EditInvitation> {
                     focusNode: foci[6],
                     child: GestureDetector(
                       onTap: () async => widget.invitation.expiryDate =
-                          await _selectDateTime(
-                              'تاريخ الانتهاء',
-                              widget.invitation.expiryDate?.toDate() ??
-                                  DateTime.now()),
+                          await _selectDateTime('تاريخ الانتهاء',
+                              widget.invitation.expiryDate.toDate()),
                       child: InputDecorator(
                         decoration: InputDecoration(
                             labelText: 'تاريخ انتهاء الدعوة',
@@ -112,10 +110,8 @@ class _EditInvitationState extends State<EditInvitation> {
                               borderSide: BorderSide(
                                   color: Theme.of(context).primaryColor),
                             )),
-                        child: widget.invitation.expiryDate != null
-                            ? Text(DateFormat('h:m a yyyy/M/d', 'ar-EG')
-                                .format(widget.invitation.expiryDate!.toDate()))
-                            : Text('(فارغ)'),
+                        child: Text(DateFormat('h:m a yyyy/M/d', 'ar-EG')
+                            .format(widget.invitation.expiryDate.toDate())),
                       ),
                     ),
                   ),
@@ -208,11 +204,11 @@ class _EditInvitationState extends State<EditInvitation> {
                         )),
                   ),
                 ),
-                if (User.instance.manageUsers!)
+                if (User.instance.manageUsers)
                   ListTile(
                     trailing: Checkbox(
-                      value:
-                          widget.invitation.permissions!['manageUsers'] ?? false,
+                      value: widget.invitation.permissions!['manageUsers'] ??
+                          false,
                       onChanged: (v) => setState(() =>
                           widget.invitation.permissions!['manageUsers'] = v),
                     ),
@@ -244,20 +240,21 @@ class _EditInvitationState extends State<EditInvitation> {
                   trailing: Checkbox(
                     value:
                         widget.invitation.permissions!['superAccess'] ?? false,
-                    onChanged: (v) => setState(
-                        () => widget.invitation.permissions!['superAccess'] = v),
+                    onChanged: (v) => setState(() =>
+                        widget.invitation.permissions!['superAccess'] = v),
                   ),
                   leading: Icon(
                       const IconData(0xef56, fontFamily: 'MaterialIconsR')),
                   title: Text('رؤية جميع البيانات'),
-                  onTap: () => setState(() => widget
-                          .invitation.permissions!['superAccess'] =
-                      !(widget.invitation.permissions!['superAccess'] ?? false)),
+                  onTap: () => setState(() =>
+                      widget.invitation.permissions!['superAccess'] =
+                          !(widget.invitation.permissions!['superAccess'] ??
+                              false)),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value:
-                        widget.invitation.permissions!['manageDeleted'] ?? false,
+                    value: widget.invitation.permissions!['manageDeleted'] ??
+                        false,
                     onChanged: (v) => setState(() =>
                         widget.invitation.permissions!['manageDeleted'] = v),
                   ),
@@ -294,8 +291,8 @@ class _EditInvitationState extends State<EditInvitation> {
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value:
-                        widget.invitation.permissions!['exportClasses'] ?? false,
+                    value: widget.invitation.permissions!['exportClasses'] ??
+                        false,
                     onChanged: (v) => setState(() =>
                         widget.invitation.permissions!['exportClasses'] = v),
                   ),
@@ -323,10 +320,11 @@ class _EditInvitationState extends State<EditInvitation> {
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: widget.invitation.permissions!['confessionsNotify'] ??
-                        false,
-                    onChanged: (v) => setState(() =>
-                        widget.invitation.permissions!['confessionsNotify'] = v),
+                    value:
+                        widget.invitation.permissions!['confessionsNotify'] ??
+                            false,
+                    onChanged: (v) => setState(() => widget
+                        .invitation.permissions!['confessionsNotify'] = v),
                   ),
                   leading: Icon(
                       const IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
@@ -338,8 +336,8 @@ class _EditInvitationState extends State<EditInvitation> {
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value:
-                        widget.invitation.permissions!['tanawolNotify'] ?? false,
+                    value: widget.invitation.permissions!['tanawolNotify'] ??
+                        false,
                     onChanged: (v) => setState(() =>
                         widget.invitation.permissions!['tanawolNotify'] = v),
                   ),
@@ -355,20 +353,21 @@ class _EditInvitationState extends State<EditInvitation> {
                   trailing: Checkbox(
                     value:
                         widget.invitation.permissions!['kodasNotify'] ?? false,
-                    onChanged: (v) => setState(
-                        () => widget.invitation.permissions!['kodasNotify'] = v),
+                    onChanged: (v) => setState(() =>
+                        widget.invitation.permissions!['kodasNotify'] = v),
                   ),
                   leading: Icon(
                       const IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
                   title: Text('إشعار القداس'),
-                  onTap: () => setState(() => widget
-                          .invitation.permissions!['kodasNotify'] =
-                      !(widget.invitation.permissions!['kodasNotify'] ?? false)),
+                  onTap: () => setState(() =>
+                      widget.invitation.permissions!['kodasNotify'] =
+                          !(widget.invitation.permissions!['kodasNotify'] ??
+                              false)),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value:
-                        widget.invitation.permissions!['meetingNotify'] ?? false,
+                    value: widget.invitation.permissions!['meetingNotify'] ??
+                        false,
                     onChanged: (v) => setState(() =>
                         widget.invitation.permissions!['meetingNotify'] = v),
                   ),
@@ -426,10 +425,10 @@ class _EditInvitationState extends State<EditInvitation> {
         ),
       );
       if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
-        await widget.invitation.ref!.delete();
+        await widget.invitation.ref.delete();
       } else {
         // ignore: unawaited_futures
-        widget.invitation.ref!.delete();
+        widget.invitation.ref.delete();
       }
       navigator.currentState!.pop('deleted');
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
@@ -444,8 +443,8 @@ class _EditInvitationState extends State<EditInvitation> {
 
   @override
   void initState() {
-    old = widget.invitation?.getMap();
     super.initState();
+    old = widget.invitation.getMap();
   }
 
   void nameChanged(String value) {
@@ -462,8 +461,7 @@ class _EditInvitationState extends State<EditInvitation> {
     }
     try {
       if (form.currentState!.validate() &&
-          widget.invitation.expiryDate != null &&
-          widget.invitation.expiryDate!.toDate().difference(DateTime.now()) >=
+          widget.invitation.expiryDate.toDate().difference(DateTime.now()) >=
               Duration(hours: 24)) {
         scaffoldMessenger.currentState!.showSnackBar(SnackBar(
           content: Text('جار الحفظ...'),
@@ -472,16 +470,16 @@ class _EditInvitationState extends State<EditInvitation> {
         if (widget.invitation.id == 'null') {
           widget.invitation.ref =
               FirebaseFirestore.instance.collection('Invitations').doc();
-          widget.invitation.generatedBy = User.instance.uid;
+          widget.invitation.generatedBy = User.instance.uid!;
           if (await Connectivity().checkConnectivity() !=
               ConnectivityResult.none) {
-            await widget.invitation.ref!.set({
+            await widget.invitation.ref.set({
               ...widget.invitation.getMap(),
               'GeneratedOn': FieldValue.serverTimestamp()
             });
           } else {
             // ignore: unawaited_futures
-            widget.invitation.ref!.set({
+            widget.invitation.ref.set({
               ...widget.invitation.getMap(),
               'GeneratedOn': FieldValue.serverTimestamp()
             });

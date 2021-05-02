@@ -21,9 +21,9 @@ class InvitationInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<Invitation>(
+    return StreamBuilder<Invitation?>(
       initialData: invitation,
-      stream: invitation!.ref!.snapshots().map(Invitation.fromDoc),
+      stream: invitation!.ref.snapshots().map(Invitation.fromDoc),
       builder: (context, data) {
         Invitation? invitation = data.data;
         if (invitation == null)
@@ -108,7 +108,7 @@ class InvitationInfo extends StatelessWidget {
                         ? 0
                         : 1,
                     child:
-                        Text(invitation.name!, style: TextStyle(fontSize: 16.0)),
+                        Text(invitation.name, style: TextStyle(fontSize: 16.0)),
                   ),
                   background: Icon(Icons.link),
                 ),
@@ -118,7 +118,7 @@ class InvitationInfo extends StatelessWidget {
               delegate: SliverChildListDelegate(
                 <Widget>[
                   ListTile(
-                    title: Text(invitation.name!,
+                    title: Text(invitation.name,
                         style: Theme.of(context).textTheme.headline6),
                   ),
                   CopiableProperty(
@@ -174,19 +174,15 @@ class InvitationInfo extends StatelessWidget {
                       children: <Widget>[
                         Expanded(
                           child: Text(
-                            invitation.expiryDate != null
-                                ? DateFormat('yyyy/M/d', 'ar-EG').format(
-                                    invitation.expiryDate!.toDate(),
-                                  )
-                                : '',
+                            DateFormat('yyyy/M/d', 'ar-EG').format(
+                              invitation.expiryDate.toDate(),
+                            ),
                           ),
                         ),
                         Text(
-                            invitation.expiryDate != null
-                                ? DateFormat('h:m a', 'ar-EG').format(
-                                    invitation.expiryDate!.toDate(),
-                                  )
-                                : '',
+                            DateFormat('h:m a', 'ar-EG').format(
+                              invitation.expiryDate.toDate(),
+                            ),
                             style: Theme.of(context).textTheme.overline),
                       ],
                     ),
@@ -239,7 +235,8 @@ class InvitationInfo extends StatelessWidget {
                             leading: Icon(Icons.cake),
                             title: Text('إشعار أعياد الميلاد'),
                           ),
-                        if (invitation.permissions!['confessionsNotify'] == true)
+                        if (invitation.permissions!['confessionsNotify'] ==
+                            true)
                           ListTile(
                             leading: Icon(Icons.notifications_active),
                             title: Text('إشعار الاعتراف'),

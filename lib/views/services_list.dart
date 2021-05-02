@@ -115,7 +115,7 @@ class _ServicesListState extends State<ServicesList>
                         stream: widget.options!.selected,
                         builder: (context, snapshot) {
                           if (snapshot.hasData &&
-                              widget.options!.selectionModeLatest!) {
+                              widget.options!.selectionModeLatest) {
                             return Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -155,7 +155,7 @@ class _ServicesListState extends State<ServicesList>
                               c,
                               showSubTitle: false,
                               onTap: () {
-                                if (!widget.options!.selectionModeLatest!) {
+                                if (!widget.options!.selectionModeLatest) {
                                   widget.options!.tap == null
                                       ? dataObjectTap(c, context)
                                       : widget.options!.tap!(c);
@@ -167,7 +167,7 @@ class _ServicesListState extends State<ServicesList>
                                 stream: widget.options!.selected,
                                 builder: (context, snapshot) {
                                   if (snapshot.hasData &&
-                                      widget.options!.selectionModeLatest!) {
+                                      widget.options!.selectionModeLatest) {
                                     return Checkbox(
                                       value: snapshot.data!.containsKey(c.id),
                                       onChanged: (v) {
@@ -203,13 +203,14 @@ class _ServicesListState extends State<ServicesList>
                     stream: widget.options!.selected,
                     builder: (context, snapshot) {
                       if (snapshot.hasData &&
-                          widget.options!.selectionModeLatest!) {
+                          widget.options!.selectionModeLatest) {
                         return Checkbox(
                           value: snapshot.data!
                               .containsKey(services.data![element]![0].id),
                           onChanged: (v) {
                             if (v!) {
-                              widget.options!.select(services.data![element]![0]);
+                              widget.options!
+                                  .select(services.data![element]![0]);
                             } else {
                               widget.options!
                                   .deselect(services.data![element]![0]);
@@ -221,12 +222,13 @@ class _ServicesListState extends State<ServicesList>
                     },
                   ),
                   onTap: () {
-                    if (!widget.options!.selectionModeLatest!) {
+                    if (!widget.options!.selectionModeLatest) {
                       widget.options!.tap == null
                           ? dataObjectTap(services.data![element]![0], context)
                           : widget.options!.tap!(services.data![element]![0]);
                     } else {
-                      widget.options!.toggleSelected(services.data![element]![0]);
+                      widget.options!
+                          .toggleSelected(services.data![element]![0]);
                     }
                   },
                 ),

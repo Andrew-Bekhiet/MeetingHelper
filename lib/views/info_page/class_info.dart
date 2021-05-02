@@ -44,12 +44,12 @@ class _ClassInfoState extends State<ClassInfo> {
     super.initState();
     WidgetsBinding.instance!.addPostFrameCallback((_) {
       FeatureDiscovery.discoverFeatures(context, [
-        if (User.instance.write!) 'Edit',
+        if (User.instance.write) 'Edit',
         'Share',
         'MoreOptions',
         'EditHistory',
         'Class.Analytics',
-        if (User.instance.write!) 'Add'
+        if (User.instance.write) 'Add'
       ]);
     });
   }
@@ -60,15 +60,15 @@ class _ClassInfoState extends State<ClassInfo> {
       searchQuery: _searchStream,
       tap: (p) => personTap(p, context),
       itemsStream: _orderOptions.switchMap(
-        ((order) => widget.class$!
-            .getMembersLive(orderBy: order.orderBy, descending: !order.asc!) as Stream<List<Person>>) as Stream<List<Person>> Function(OrderOptions),
+        ((order) => widget.class$!.getMembersLive(
+            orderBy: order.orderBy ?? 'Name', descending: !order.asc!)),
       ),
     );
     return Selector<User, bool?>(
       selector: (_, user) => user.write,
       builder: (context, permission, _) => StreamBuilder<Class?>(
         initialData: widget.class$,
-        stream: widget.class$!.ref!.snapshots().map(Class.fromDoc),
+        stream: widget.class$!.ref.snapshots().map(Class.fromDoc),
         builder: (context, data) {
           Class? class$ = data.data;
           if (class$ == null)
@@ -86,14 +86,14 @@ class _ClassInfoState extends State<ClassInfo> {
                           ? TinyColor(class$.color!).lighten().color
                           : TinyColor(class$.color!).darken().color)
                       : null,
-                  actions: class$.ref!.path.startsWith('Deleted')
+                  actions: class$.ref.path.startsWith('Deleted')
                       ? <Widget>[
                           if (permission!)
                             IconButton(
                               icon: Icon(Icons.restore),
                               tooltip: 'استعادة',
                               onPressed: () {
-                                recoverDoc(context, class$.ref!.path);
+                                recoverDoc(context, class$.ref.path);
                               },
                             )
                         ]
@@ -332,7 +332,7 @@ class _ClassInfoState extends State<ClassInfo> {
                                 ? 0
                                 : 1,
                         child:
-                            Text(class$.name!, style: TextStyle(fontSize: 16.0)),
+                            Text(class$.name, style: TextStyle(fontSize: 16.0)),
                       ),
                       background: class$.photo(),
                     ),
@@ -342,28 +342,29 @@ class _ClassInfoState extends State<ClassInfo> {
                   delegate: SliverChildListDelegate(
                     <Widget>[
                       ListTile(
-                        title: Text(class$.name!,
+                        title: Text(class$.name,
                             style: Theme.of(context).textTheme.headline6),
                       ),
                       ListTile(
                         title: Text('السنة الدراسية:'),
-                        subtitle: FutureBuilder(
+                        subtitle: FutureBuilder<String>(
                             future: class$.getStudyYearName(),
                             builder: (context, data) {
                               if (data.hasData)
-                                return Text(
-                                    data.data + ' - ' + class$.getGenderName());
+                                return Text(data.data! +
+                                    ' - ' +
+                                    class$.getGenderName());
                               return LinearProgressIndicator();
                             }),
                       ),
-                      if (!class$.ref!.path.startsWith('Deleted'))
+                      if (!class$.ref.path.startsWith('Deleted'))
                         ElevatedButton.icon(
                           icon: Icon(Icons.map),
                           onPressed: () => showMap(context, class$),
                           label: Text('إظهار المخدومين على الخريطة'),
                         ),
-                      if (User.instance.manageUsers! ||
-                          User.instance.manageAllowedUsers!)
+                      if (User.instance.manageUsers ||
+                          User.instance.manageAllowedUsers)
                         ElevatedButton.icon(
                           icon: Icon(Icons.analytics_outlined),
                           onPressed: () => Navigator.pushNamed(
@@ -373,7 +374,7 @@ class _ClassInfoState extends State<ClassInfo> {
                           ),
                           label: Text('تحليل نشاط الخدام'),
                         ),
-                      if (!class$.ref!.path.startsWith('Deleted'))
+                      if (!class$.ref.path.startsWith('Deleted'))
                         ElevatedButton.icon(
                           icon: DescribedFeatureOverlay(
                             featureId: 'Class.Analytics',
@@ -429,7 +430,7 @@ class _ClassInfoState extends State<ClassInfo> {
                       EditHistoryProperty(
                         'أخر تحديث للبيانات:',
                         class$.lastEdit,
-                        class$.ref!.collection('EditHistory'),
+                        class$.ref.collection('EditHistory'),
                         discoverFeature: true,
                       ),
                       Text('المخدومين بالفصل:'),
@@ -445,7 +446,7 @@ class _ClassInfoState extends State<ClassInfo> {
                 ),
               ],
               body: SafeArea(
-                child: class$.ref!.path.startsWith('Deleted')
+                child: class$.ref.path.startsWith('Deleted')
                     ? Text('يجب استعادة الفصل لرؤية المخدومين بداخله')
                     : DataObjectList<Person>(options: _listOptions),
               ),
@@ -453,7 +454,7 @@ class _ClassInfoState extends State<ClassInfo> {
             bottomNavigationBar: BottomAppBar(
               color: Theme.of(context).primaryColor,
               shape: const CircularNotchedRectangle(),
-              child: StreamBuilder(
+              child: StreamBuilder<List>(
                 stream: _listOptions.objectsData,
                 builder: (context, snapshot) {
                   return Text(
@@ -469,7 +470,7 @@ class _ClassInfoState extends State<ClassInfo> {
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.endDocked,
             floatingActionButton: permission! &&
-                    !class$.ref!.path.startsWith('Deleted')
+                    !class$.ref.path.startsWith('Deleted')
                 ? FloatingActionButton(
                     onPressed: () => addTap(context),
                     child: DescribedFeatureOverlay(
@@ -496,8 +497,10 @@ class _ClassInfoState extends State<ClassInfo> {
                             child: Text(
                               'تخطي',
                               style: TextStyle(
-                                color:
-                                    Theme.of(context).textTheme.bodyText2!.color,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyText2!
+                                    .color,
                               ),
                             ),
                           ),
@@ -519,7 +522,7 @@ class _ClassInfoState extends State<ClassInfo> {
 
   void showMap(BuildContext context, Class class$) {
     navigator.currentState!
-        .push(MaterialPageRoute(builder: (context) => DataMap(classO: class$)));
+        .push(MaterialPageRoute(builder: (context) => DataMap(class$: class$)));
   }
 
   void _showAnalytics(BuildContext context, Class _class) {

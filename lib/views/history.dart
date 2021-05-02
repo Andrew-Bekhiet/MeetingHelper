@@ -40,7 +40,7 @@ class _HistoryState extends State<History> {
                 .collection('History')
                 .orderBy('Day', descending: true)
                 .snapshots()
-                .map((s) => s.docs.map(HistoryDay.fromDoc).toList()),
+                .map((s) => s.docs.map(HistoryDay.fromQueryDoc).toList()),
       ),
       builder: (context, _) {
         return Scaffold(
@@ -122,7 +122,8 @@ class _HistoryState extends State<History> {
                   ),
                   backgroundColor: Theme.of(context).accentColor,
                   targetColor: Theme.of(context).primaryColor,
-                  textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
+                  textColor:
+                      Theme.of(context).primaryTextTheme.bodyText1!.color!,
                   child: list == null
                       ? Icon(Icons.calendar_today)
                       : Icon(Icons.clear),
@@ -196,7 +197,7 @@ class _HistoryState extends State<History> {
             builder: (context) => BottomAppBar(
               color: Theme.of(context).primaryColor,
               shape: const CircularNotchedRectangle(),
-              child: StreamBuilder(
+              child: StreamBuilder<List>(
                 stream: context
                     .read<DataObjectListOptions<HistoryDay>>()
                     .objectsData,
@@ -245,7 +246,8 @@ class _ServantsHistoryState extends State<ServantsHistory> {
                 .collection('ServantsHistory')
                 .orderBy('Day', descending: true)
                 .snapshots()
-                .map((s) => s.docs.map(ServantsHistoryDay.fromDoc).toList()),
+                .map((s) =>
+                    s.docs.map(ServantsHistoryDay.fromQueryDoc).toList()),
       ),
       builder: (context, _) => Scaffold(
         appBar: AppBar(
@@ -365,7 +367,7 @@ class _ServantsHistoryState extends State<ServantsHistory> {
           builder: (context) => BottomAppBar(
             color: Theme.of(context).primaryColor,
             shape: const CircularNotchedRectangle(),
-            child: StreamBuilder(
+            child: StreamBuilder<List>(
               stream: context
                   .read<DataObjectListOptions<ServantsHistoryDay>>()
                   .objectsData,

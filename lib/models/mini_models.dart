@@ -35,7 +35,7 @@ class Church {
     return {'Name': name, 'Address': address};
   }
 
-  Future<Stream<QuerySnapshot>> getMembersLive() async {
+  Stream<QuerySnapshot> getMembersLive() {
     return FirebaseFirestore.instance
         .collection('Fathers')
         .where('ChurchId', isEqualTo: ref)
@@ -206,7 +206,8 @@ class History {
   }
 
   static History fromDoc(DocumentSnapshot doc) {
-    return History(doc.id, doc.data()!['By'], doc.data()!['Time'], doc.reference);
+    return History(
+        doc.id, doc.data()!['By'], doc.data()!['Time'], doc.reference);
   }
 
   String id;

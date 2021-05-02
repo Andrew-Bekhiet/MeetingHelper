@@ -69,16 +69,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                           '\n'
                                           'جرب تسجيل الدخول بفيسبوك'),
                                     ));
-                          return null;
                         }).then((user) {
-                          if (user != null) setupSettings();
+                          setupSettings();
                         });
                       } catch (err, stkTrace) {
                         await FirebaseCrashlytics.instance
                             .setCustomKey('LastErrorIn', 'Login.build');
                         await FirebaseCrashlytics.instance
                             .recordError(err, stkTrace);
-                        await showErrorDialog(context, err);
+                        await showErrorDialog(context, err.toString());
                       }
                     }
                   }
@@ -365,7 +364,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (user.getNotificationsPermissions().values.toList().any((e) => e)) {
           var notificationsSettings =
               Hive.box<Map<dynamic, dynamic>>('NotificationsSettings');
-          if (user.birthdayNotify!) {
+          if (user.birthdayNotify) {
             if (notificationsSettings.get('BirthDayTime') == null) {
               await notificationsSettings.put(
                   'BirthDayTime', <String, int>{'Hours': 11, 'Minutes': 0});
@@ -379,7 +378,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 rescheduleOnReboot: true);
           }
 
-          if (user.kodasNotify!) {
+          if (user.kodasNotify) {
             if (notificationsSettings.get('KodasTime') == null) {
               await notificationsSettings.put('KodasTime',
                   <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
@@ -391,7 +390,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     DateTime.now().day, 11),
                 rescheduleOnReboot: true);
           }
-          if (user.meetingNotify!) {
+          if (user.meetingNotify) {
             if (notificationsSettings.get('MeetingTime') == null) {
               await notificationsSettings.put('MeetingTime',
                   <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
@@ -403,7 +402,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     DateTime.now().day, 11),
                 rescheduleOnReboot: true);
           }
-          if (user.confessionsNotify!) {
+          if (user.confessionsNotify) {
             if (notificationsSettings.get('ConfessionTime') == null) {
               await notificationsSettings.put('ConfessionTime',
                   <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
@@ -415,7 +414,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     DateTime.now().day, 11),
                 rescheduleOnReboot: true);
           }
-          if (user.tanawolNotify!) {
+          if (user.tanawolNotify) {
             if (notificationsSettings.get('TanawolTime') == null) {
               await notificationsSettings.put('TanawolTime',
                   <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});

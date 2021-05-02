@@ -92,17 +92,17 @@ class _TrashDayScreenState extends State<TrashDayScreen>
 
   @override
   Widget build(BuildContext context) {
-    var _classesOptions = DataObjectListOptions<Class?>(
+    var _classesOptions = DataObjectListOptions<Class>(
       searchQuery: _searchQuery,
       tap: (c) => classTap(c, context),
-      itemsStream: (User.instance.superAccess!
-              ? widget.day.ref!.collection('Classes').snapshots()
+      itemsStream: (User.instance.superAccess
+              ? widget.day.ref.collection('Classes').snapshots()
               : FirebaseFirestore.instance
                   .collection('Classes')
                   .where('Allowed', arrayContains: User.instance.uid)
                   .snapshots())
           .map(
-        (s) => s.docs.map(Class.fromDoc).toList(),
+        (s) => s.docs.map(Class.fromQueryDoc).toList(),
       ),
     );
     var _personsOptions = DataObjectListOptions<Person>(
@@ -113,25 +113,26 @@ class _TrashDayScreenState extends State<TrashDayScreen>
               User.instance.stream,
               Class.getAllForUser(),
               (a, b) => Tuple2<User, List<Class>>(a, b)).switchMap((u) {
-        if (u.item1.superAccess!) {
-          return widget.day.ref!
-              .collection('Persons')
-              .snapshots()
-              .map(((p) => p.docs.map(Person.fromDoc).toList() as List<Person>) as List<Person> Function(QuerySnapshot));
+        if (u.item1.superAccess) {
+          return widget.day.ref.collection('Persons').snapshots().map(
+              ((p) => p.docs.map(Person.fromDoc).toList() as List<Person>));
         } else if (u.item2.length <= 10) {
-          return widget.day.ref!
+          return widget.day.ref
               .collection('Persons')
               .where('ClassId', whereIn: u.item2.map((e) => e.ref).toList())
               .snapshots()
-              .map(((p) => p.docs.map(Person.fromDoc).toList() as List<Person>) as List<Person> Function(QuerySnapshot));
+              .map(
+                  ((p) => p.docs.map(Person.fromDoc).toList() as List<Person>));
         }
         return Rx.combineLatestList<QuerySnapshot>(u.item2.split(10).map((c) =>
-                widget.day.ref!
-                    .collection('Persons')
-                    .where('ClassId', whereIn: c.map((e) => e.ref).toList())
-                    .snapshots()))
-            .map(((s) => s.expand((n) => n.docs).map(Person.fromDoc).toList() as List<Person>) as List<Person> Function(List<QuerySnapshot>));
-      } as Stream<List<Person>> Function(Tuple2<User, List<Class>>)),
+            widget.day.ref
+                .collection('Persons')
+                .where('ClassId', whereIn: c.map((e) => e.ref).toList())
+                .snapshots())).map(((s) => s
+            .expand((n) => n.docs)
+            .map(Person.fromDoc)
+            .toList() as List<Person>));
+      }),
     );
     return Scaffold(
       appBar: AppBar(
@@ -263,11 +264,14 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                           _showSearch.add(false);
                         },
                       ),
-                      hintStyle: Theme.of(context).textTheme.headline6!.copyWith(
-                          color: Theme.of(context)
-                              .primaryTextTheme
-                              .headline6!
-                              .color),
+                      hintStyle: Theme.of(context)
+                          .textTheme
+                          .headline6!
+                          .copyWith(
+                              color: Theme.of(context)
+                                  .primaryTextTheme
+                                  .headline6!
+                                  .color),
                       icon: Icon(Icons.search,
                           color: Theme.of(context)
                               .primaryTextTheme
@@ -284,7 +288,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
         shape: CircularNotchedRectangle(),
         child: AnimatedBuilder(
           animation: _tabController!,
-          builder: (context, _) => StreamBuilder(
+          builder: (context, _) => StreamBuilder<List>(
             stream: _tabController!.index == 0
                 ? _classesOptions.objectsData
                 : _personsOptions.objectsData,
@@ -305,7 +309,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          DataObjectList<Class?>(options: _classesOptions),
+          DataObjectList<Class>(options: _classesOptions),
           DataObjectList<Person>(options: _personsOptions),
         ],
       ),
