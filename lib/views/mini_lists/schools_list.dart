@@ -18,50 +18,50 @@ class InnerListState extends State<_InnerSchoolsList> {
           }),
       Expanded(
         child: RefreshIndicator(
-            onRefresh: () {
-              setState(() {});
-              return null;
-            } as Future<void> Function(),
-            child: StreamBuilder<QuerySnapshot>(
-              stream: widget.data,
-              builder: (context, schools) {
-                if (!schools.hasData) return CircularProgressIndicator();
-                return ListView.builder(
-                    itemCount: schools.data!.docs.length,
-                    itemBuilder: (context, i) {
-                      School current = School.fromDoc(schools.data!.docs[i]);
-                      return current.name!.contains(filter)
-                          ? Card(
-                              child: ListTile(
-                                onTap: () {
-                                  widget.result!
-                                          .map((f) => f!.id)
-                                          .contains(current.id)
+          onRefresh: () {
+            setState(() {});
+            return null;
+          } as Future<void> Function(),
+          child: StreamBuilder<QuerySnapshot>(
+            stream: widget.data,
+            builder: (context, schools) {
+              if (!schools.hasData) return CircularProgressIndicator();
+              return ListView.builder(
+                  itemCount: schools.data!.docs.length,
+                  itemBuilder: (context, i) {
+                    School current = School.fromDoc(schools.data!.docs[i]);
+                    return current.name!.contains(filter)
+                        ? Card(
+                            child: ListTile(
+                              onTap: () {
+                                widget.result!
+                                        .map((f) => f.id)
+                                        .contains(current.id)
+                                    ? widget.result!
+                                        .removeWhere((x) => x.id == current.id)
+                                    : widget.result!.add(current);
+                                setState(() {});
+                              },
+                              title: Text(current.name!),
+                              leading: Checkbox(
+                                value: widget.result!
+                                    .map((f) => f.id)
+                                    .contains(current.id),
+                                onChanged: (x) {
+                                  !x!
                                       ? widget.result!.removeWhere(
-                                          (x) => x!.id == current.id)
+                                          (x) => x.id == current.id)
                                       : widget.result!.add(current);
                                   setState(() {});
                                 },
-                                title: Text(current.name!),
-                                leading: Checkbox(
-                                  value: widget.result!
-                                      .map((f) => f!.id)
-                                      .contains(current.id),
-                                  onChanged: (x) {
-                                    !x!
-                                        ? widget.result!.removeWhere(
-                                            (x) => x!.id == current.id)
-                                        : widget.result!.add(current);
-                                    setState(() {});
-                                  },
-                                ),
                               ),
-                            )
-                          : Container();
-                    });
-              },
-            ),
-            ),
+                            ),
+                          )
+                        : Container();
+                  });
+            },
+          ),
+        ),
       ),
       Row(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -82,10 +82,10 @@ class InnerListState extends State<_InnerSchoolsList> {
 }
 
 class SchoolsEditList extends StatefulWidget {
-  final Future<QuerySnapshot>? list;
+  final Future<QuerySnapshot> list;
 
   final Function(School)? tap;
-  SchoolsEditList({this.list, this.tap});
+  SchoolsEditList({required this.list, this.tap});
 
   @override
   _SchoolsEditListState createState() => _SchoolsEditListState();
@@ -94,7 +94,7 @@ class SchoolsEditList extends StatefulWidget {
 class SchoolsList extends StatefulWidget {
   final Future<Stream<QuerySnapshot>>? list;
 
-  final Function(List<School>)? finished;
+  final Function(List<School>?)? finished;
   final Stream<School>? original;
   SchoolsList({this.list, this.finished, this.original});
 
@@ -104,8 +104,8 @@ class SchoolsList extends StatefulWidget {
 
 class _InnerSchoolsList extends StatefulWidget {
   final Stream<QuerySnapshot>? data;
-  final List<School?>? result;
-  final Function(List<School?>?)? finished;
+  final List<School>? result;
+  final Function(List<School>?)? finished;
   final Future<Stream<QuerySnapshot>>? list;
   _InnerSchoolsList(this.data, this.result, this.list, this.finished);
   @override
@@ -130,25 +130,26 @@ class _SchoolsEditListState extends State<SchoolsEditList> {
                 }),
             Expanded(
               child: RefreshIndicator(
-                  onRefresh: () {
-                    setState(() {});
-                    return widget.list.then((value) => value!);
+                onRefresh: () {
+                  setState(() {});
+                  return widget.list.then((value) => value);
+                },
+                child: ListView.builder(
+                  itemCount: data.data!.docs.length,
+                  itemBuilder: (context, i) {
+                    School current = School.fromDoc(data.data!.docs[i]);
+                    return current.name!.contains(filter)
+                        ? Card(
+                            child: ListTile(
+                              onTap: () => widget.tap!(current),
+                              title: Text(current.name!),
+                              subtitle: Text(current.address!),
+                            ),
+                          )
+                        : Container();
                   },
-                  child: ListView.builder(
-                      itemCount: data.data!.docs.length,
-                      itemBuilder: (context, i) {
-                        School current = School.fromDoc(data.data!.docs[i]);
-                        return current.name!.contains(filter)
-                            ? Card(
-                                child: ListTile(
-                                  onTap: () => widget.tap!(current),
-                                  title: Text(current.name!),
-                                  subtitle: Text(current.address!),
-                                ),
-                              )
-                            : Container();
-                      },),
-                  ),
+                ),
+              ),
             ),
           ]);
         } else {
@@ -160,7 +161,7 @@ class _SchoolsEditListState extends State<SchoolsEditList> {
 }
 
 class _SchoolsListState extends State<SchoolsList> {
-  List<School?>? result;
+  List<School>? result;
 
   @override
   Widget build(BuildContext c) {
@@ -172,14 +173,14 @@ class _SchoolsListState extends State<SchoolsList> {
                 stream: widget.original,
                 builder: (con, data) {
                   if (result == null && data.hasData) {
-                    result = [data.data];
+                    result = [data.data!];
                   } else if (data.hasData) {
-                    result!.add(data.data);
+                    result!.add(data.data!);
                   } else {
                     result = [];
                   }
                   return _InnerSchoolsList(
-                      o.data, result, widget.list, widget.finished);
+                      o.data, result ?? [], widget.list, widget.finished);
                 });
           } else {
             return Container();

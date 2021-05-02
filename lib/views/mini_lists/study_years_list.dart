@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:meetinghelper/models/mini_models.dart';
 
 class StudyYearsEditList extends StatefulWidget {
-  final Future<QuerySnapshot>? list;
+  final Future<QuerySnapshot> list;
 
   final Function(StudyYear)? tap;
-  StudyYearsEditList({this.list, this.tap});
+  StudyYearsEditList({required this.list, this.tap});
 
   @override
   _StudyYearsEditListState createState() => _StudyYearsEditListState();
@@ -34,7 +34,7 @@ class _StudyYearsEditListState extends State<StudyYearsEditList> {
               child: RefreshIndicator(
                 onRefresh: () {
                   setState(() {});
-                  return widget.list.then((value) => value!);
+                  return widget.list.then((value) => value);
                 },
                 child: ListView.builder(
                   itemCount: data.data!.docs.length,

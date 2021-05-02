@@ -6,8 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 class CopiableProperty extends StatelessWidget {
   const CopiableProperty(this.name, this.value,
       {Key? key, this.showError = true, this.items})
-      : assert(name != null),
-        super(key: key);
+      : super(key: key);
 
   final String name;
   final String? value;

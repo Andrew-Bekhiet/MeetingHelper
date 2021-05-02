@@ -5,21 +5,21 @@ import 'package:flutter/material.dart';
 import 'package:meetinghelper/models/mini_models.dart';
 
 class ChurchesEditList extends StatefulWidget {
-  final Future<QuerySnapshot>? list;
+  final Future<QuerySnapshot> list;
 
   final Function(Church)? tap;
-  ChurchesEditList({this.list, this.tap});
+  ChurchesEditList({required this.list, this.tap});
 
   @override
   _ChurchesEditListState createState() => _ChurchesEditListState();
 }
 
 class ChurchesList extends StatefulWidget {
-  final Future<Stream<QuerySnapshot>>? list;
+  final Future<Stream<QuerySnapshot>> list;
 
-  final Function(List<Church>)? finished;
+  final Function(List<Church>?)? finished;
   final Stream<Church>? original;
-  ChurchesList({this.list, this.finished, this.original});
+  ChurchesList({required this.list, this.finished, this.original});
 
   @override
   _ChurchesListState createState() => _ChurchesListState();
@@ -55,24 +55,24 @@ class InnerListState extends State<_InnerChurchsList> {
                       ? Card(
                           child: ListTile(
                             onTap: () {
-                              widget.result!
-                                      .map((f) => f!.id)
+                              widget.result
+                                      .map((f) => f.id)
                                       .contains(current.id)
-                                  ? widget.result!
-                                      .removeWhere((x) => x!.id == current.id)
-                                  : widget.result!.add(current);
+                                  ? widget.result
+                                      .removeWhere((x) => x.id == current.id)
+                                  : widget.result.add(current);
                               setState(() {});
                             },
                             title: Text(current.name!),
                             leading: Checkbox(
-                              value: widget.result!
-                                  .map((f) => f!.id)
+                              value: widget.result
+                                  .map((f) => f.id)
                                   .contains(current.id),
                               onChanged: (x) {
                                 !x!
-                                    ? widget.result!
-                                        .removeWhere((x) => x!.id == current.id)
-                                    : widget.result!.add(current);
+                                    ? widget.result
+                                        .removeWhere((x) => x.id == current.id)
+                                    : widget.result.add(current);
                                 setState(() {});
                               },
                             ),
@@ -124,7 +124,7 @@ class _ChurchesEditListState extends State<ChurchesEditList> {
                 child: RefreshIndicator(
                   onRefresh: () {
                     setState(() {});
-                    return widget.list.then((value) => value!);
+                    return widget.list.then((value) => value);
                   },
                   child: ListView.builder(
                       itemCount: data.data!.docs.length,
@@ -153,7 +153,7 @@ class _ChurchesEditListState extends State<ChurchesEditList> {
 }
 
 class _ChurchesListState extends State<ChurchesList> {
-  List<Church?>? result;
+  List<Church>? result;
 
   @override
   Widget build(BuildContext c) {
@@ -165,14 +165,14 @@ class _ChurchesListState extends State<ChurchesList> {
                 stream: widget.original,
                 builder: (con, data) {
                   if (result == null && data.hasData) {
-                    result = [data.data];
+                    result = [data.data!];
                   } else if (data.hasData) {
-                    result!.add(data.data);
+                    result!.add(data.data!);
                   } else {
                     result = [];
                   }
                   return _InnerChurchsList(
-                      o.data, result, widget.list, widget.finished);
+                      o.data, result ?? [], widget.list, widget.finished);
                 });
           } else {
             return Container();
@@ -183,8 +183,8 @@ class _ChurchesListState extends State<ChurchesList> {
 
 class _InnerChurchsList extends StatefulWidget {
   final Stream<QuerySnapshot>? data;
-  final List<Church?>? result;
-  final Function(List<Church?>?)? finished;
+  final List<Church> result;
+  final Function(List<Church>?)? finished;
   final Future<Stream<QuerySnapshot>>? list;
   _InnerChurchsList(this.data, this.result, this.list, this.finished);
   @override
