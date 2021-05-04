@@ -89,9 +89,9 @@ class _RootState extends State<Root>
     }
   }
 
-  ServicesListOptions? _servicesOptions;
-  DataObjectListOptions<Person>? _personsOptions;
-  DataObjectListOptions<User>? _usersOptions;
+  late ServicesListOptions _servicesOptions;
+  late DataObjectListOptions<Person> _personsOptions;
+  late DataObjectListOptions<User> _usersOptions;
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +118,7 @@ class _RootState extends State<Root>
                                 icon: Icon(Icons.select_all),
                                 label: Text('تحديد الكل'),
                                 onPressed: () {
-                                  _personsOptions!.selectAll();
+                                  _personsOptions.selectAll();
                                   navigator.currentState!.pop();
                                 },
                               ),
@@ -126,7 +126,7 @@ class _RootState extends State<Root>
                                 icon: Icon(Icons.select_all),
                                 label: Text('تحديد لا شئ'),
                                 onPressed: () {
-                                  _personsOptions!.selectNone();
+                                  _personsOptions.selectNone();
                                   navigator.currentState!.pop();
                                 },
                               ),
@@ -430,10 +430,10 @@ class _RootState extends State<Root>
           animation: _tabController!,
           builder: (context, _) => StreamBuilder<dynamic>(
             stream: _tabController!.index == _tabController!.length - 1
-                ? _personsOptions!.objectsData
+                ? _personsOptions.objectsData
                 : _tabController!.index == _tabController!.length - 2
-                    ? _servicesOptions!.objectsData
-                    : _usersOptions!.objectsData,
+                    ? _servicesOptions.objectsData
+                    : _usersOptions.objectsData,
             builder: (context, snapshot) {
               return Text(
                 (snapshot.data?.length ?? 0).toString() +
@@ -1245,7 +1245,7 @@ class _RootState extends State<Root>
                                         tap: (_class) =>
                                             navigator.currentState!.pop(
                                           _class,
-                                        ),
+                                        ),itemsStream: classesByStudyYearRef(),
                                       ),
                                     ),
                                   ),
@@ -1568,7 +1568,8 @@ class _RootState extends State<Root>
 
   Future<void> showBatteryOptimizationDialog() async {
     if ((await DeviceInfoPlugin().androidInfo).version.sdkInt! >= 23 &&
-        await BatteryOptimization.isIgnoringBatteryOptimizations() == false &&
+        !await (BatteryOptimization.isIgnoringBatteryOptimizations()
+            as FutureOr<bool>) &&
         Hive.box('Settings').get('ShowBatteryDialog', defaultValue: true)) {
       await showDialog(
         context: context,
