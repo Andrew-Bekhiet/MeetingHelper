@@ -1245,7 +1245,8 @@ class _RootState extends State<Root>
                                         tap: (_class) =>
                                             navigator.currentState!.pop(
                                           _class,
-                                        ),itemsStream: classesByStudyYearRef(),
+                                        ),
+                                        itemsStream: classesByStudyYearRef(),
                                       ),
                                     ),
                                   ),
@@ -1568,8 +1569,7 @@ class _RootState extends State<Root>
 
   Future<void> showBatteryOptimizationDialog() async {
     if ((await DeviceInfoPlugin().androidInfo).version.sdkInt! >= 23 &&
-        !await (BatteryOptimization.isIgnoringBatteryOptimizations()
-            as FutureOr<bool>) &&
+        (await BatteryOptimization.isIgnoringBatteryOptimizations() != true) &&
         Hive.box('Settings').get('ShowBatteryDialog', defaultValue: true)) {
       await showDialog(
         context: context,

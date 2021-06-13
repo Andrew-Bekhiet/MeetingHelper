@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -384,6 +385,7 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
     _initialized = Completer<bool>();
     uid = null;
     notifyListeners();
+    await GoogleSignIn().signOut();
     await auth.FirebaseAuth.instance.signOut();
     await connectionListener?.cancel();
   }
