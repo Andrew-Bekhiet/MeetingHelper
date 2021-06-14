@@ -4,6 +4,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/views/form_widgets/tapable_form_field.dart';
 
 import '../models/user.dart';
 import '../utils/helpers.dart';
@@ -16,91 +17,70 @@ class UpdateUserDataErrorPage extends StatefulWidget {
 }
 
 class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
-  late User user;
-
-  @override
-  void initState() {
-    super.initState();
-    user = ModalRoute.of(context)!.settings.arguments as User;
-  }
+  final user = User.instance;
+  final GlobalKey<FormState> _form = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('تحديث بيانات المستخدم')),
-      body: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisSize: MainAxisSize.max,
-            children: <Widget>[
-              Flexible(
-                flex: 3,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 4.0),
-                  child: Focus(
-                    child: GestureDetector(
-                      onTap: () async => user.lastTanawol = await _selectDate(
-                        'تاريخ أخر تناول',
-                        user.lastTanawol ?? Timestamp.now(),
-                        setState,
-                      ),
-                      child: InputDecorator(
-                        decoration: InputDecoration(
-                          labelText: 'تاريخ أخر تناول',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
-                          ),
-                        ),
-                        child: user.lastTanawol != null
-                            ? Text(DateFormat('yyyy/M/d')
-                                .format(user.lastTanawol!.toDate()))
-                            : const Text('(فارغ)'),
-                      ),
-                    ),
-                  ),
-                ),
+      body: Form(
+        key: _form,
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              TapableFormField<Timestamp?>(
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                labelText: 'تاريخ أخر تناول',
+                initialValue: user.lastTanawol,
+                onTap: (state) async {
+                  state.didChange(await _selectDate(
+                          'تاريخ أخر تناول', state.value ?? Timestamp.now()) ??
+                      user.lastTanawol);
+                },
+                builder: (context, state) {
+                  return state.value != null
+                      ? Text(
+                          DateFormat('yyyy/M/d').format(state.value!.toDate()))
+                      : null;
+                },
+                onSaved: (v) => user.lastTanawol = v!,
+                validator: (value) => value == null
+                    ? 'برجاء اختيار تاريخ أخر تناول'
+                    : value.toDate().isBefore(
+                            DateTime.now().subtract(const Duration(days: 60)))
+                        ? 'يجب أن يكون التاريخ منذ شهرين على الأكثر'
+                        : null,
               ),
+              TapableFormField<Timestamp?>(
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                labelText: 'تاريخ أخر اعتراف',
+                initialValue: user.lastConfession,
+                onTap: (state) async {
+                  state.didChange(await _selectDate(
+                          'تاريخ أخر اعتراف', state.value ?? Timestamp.now()) ??
+                      user.lastConfession);
+                },
+                builder: (context, state) {
+                  return state.value != null
+                      ? Text(
+                          DateFormat('yyyy/M/d').format(state.value!.toDate()))
+                      : null;
+                },
+                onSaved: (v) => user.lastConfession = v!,
+                validator: (value) => value == null
+                    ? 'برجاء اختيار تاريخ أخر اعتراف'
+                    : value.toDate().isBefore(
+                            DateTime.now().subtract(const Duration(days: 60)))
+                        ? 'يجب أن يكون التاريخ منذ شهرين على الأكثر'
+                        : null,
+              ),
+              const SizedBox(height: 40),
             ],
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisSize: MainAxisSize.max,
-            children: <Widget>[
-              Flexible(
-                flex: 3,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 4.0),
-                  child: Focus(
-                    child: GestureDetector(
-                      onTap: () async =>
-                          user.lastConfession = await _selectDate(
-                        'تاريخ أخر اعتراف',
-                        user.lastConfession ?? Timestamp.now(),
-                        setState,
-                      ),
-                      child: InputDecorator(
-                        decoration: InputDecoration(
-                            labelText: 'تاريخ أخر اعتراف',
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Theme.of(context).primaryColor),
-                            )),
-                        child: user.lastConfession != null
-                            ? Text(DateFormat('yyyy/M/d')
-                                .format(user.lastConfession!.toDate()))
-                            : const Text('(فارغ)'),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: save,
@@ -117,6 +97,8 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
             content: Text('برجاء ادخال تاريخ أخر الاعتراف والتناول')));
         return;
       }
+      if (!_form.currentState!.validate()) return;
+      _form.currentState!.save();
       scaffoldMessenger.currentState!
           .showSnackBar(const SnackBar(content: Text('جار الحفظ')));
       await FirebaseFunctions.instance
@@ -135,19 +117,17 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
     }
   }
 
-  Future<Timestamp> _selectDate(String helpText, Timestamp initialDate,
-      void Function(void Function()) setState) async {
+  Future<Timestamp?> _selectDate(String helpText, Timestamp initialDate) async {
     var picked = await showDatePicker(
         helpText: helpText,
         locale: const Locale('ar', 'EG'),
         context: context,
         initialDate: initialDate.toDate(),
-        firstDate: DateTime(1500),
+        firstDate: DateTime(1900),
         lastDate: DateTime.now());
     if (picked != null && picked != initialDate.toDate()) {
-      setState(() {});
       return Timestamp.fromDate(picked);
     }
-    return initialDate;
+    return null;
   }
 }
