@@ -1110,9 +1110,17 @@ Future<List<Class>?> selectClasses(
               title: const Text('اختر الفصول'),
               actions: [
                 IconButton(
+                    icon: const Icon(Icons.select_all),
+                    onPressed: _controller.selectAll,
+                    tooltip: 'تحديد الكل'),
+                IconButton(
+                    icon: const Icon(Icons.check_box_outline_blank),
+                    onPressed: _controller.selectNone,
+                    tooltip: 'تحديد لا شئ'),
+                IconButton(
                     icon: const Icon(Icons.done),
                     onPressed: () => navigator.currentState!.pop(true),
-                    tooltip: 'تم')
+                    tooltip: 'تم'),
               ],
             ),
             body: ServicesList(
