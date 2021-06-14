@@ -109,10 +109,11 @@ class _UsersListState extends State<UsersList> {
                       }
                     },
                     trailing: StreamBuilder<Map<String, User>?>(
-                      stream: Rx.combineLatest2(
+                      stream: Rx.combineLatest2<Map<String, User>, bool,
+                              Map<String, User>?>(
                           _listOptions.selected,
                           _listOptions.selectionMode,
-                          (dynamic a, dynamic b) => b ? a : null),
+                          (Map<String, User> a, bool b) => b ? a : null),
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
                           return Checkbox(

@@ -759,6 +759,7 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
             mainAxisSize: MainAxisSize.min,
             children: [
               SearchField(
+                showSuffix: false,
                 searchStream:
                     context.read<DataObjectListController<User>>().searchQuery,
                 textStyle: Theme.of(context).textTheme.bodyText2,

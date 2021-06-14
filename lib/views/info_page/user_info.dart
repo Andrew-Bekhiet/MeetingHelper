@@ -286,9 +286,11 @@ class _UserInfoState extends State<UserInfo> {
                         return Scaffold(
                           appBar: AppBar(
                             title: SearchField(
-                                searchStream: listOptions.searchQuery,
-                                textStyle:
-                                    Theme.of(context).textTheme.bodyText2),
+                              showSuffix: false,
+                              searchStream: listOptions.searchQuery,
+                              textStyle:
+                                  Theme.of(context).primaryTextTheme.headline6,
+                            ),
                           ),
                           body: UsersList(
                               autoDisposeController: true,

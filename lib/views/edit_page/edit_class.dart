@@ -291,7 +291,7 @@ class _EditClassState extends State<EditClass> {
                                 )
                               : null,
                           icon: const Icon(Icons.visibility),
-                          onPressed: showUsers,
+                          onPressed: _selectAllowedUsers,
                           label: const Text(
                               'المستخدمين المسموح لهم برؤية الفصل والمخدومين داخله',
                               softWrap: false,
@@ -481,11 +481,10 @@ class _EditClassState extends State<EditClass> {
     );
   }
 
-  void showUsers() async {
-    class$.allowedUsers = await showDialog(
-          context: context,
-          builder: (context) {
-            return FutureBuilder<List<User>>(
+  void _selectAllowedUsers() async {
+    class$.allowedUsers = await navigator.currentState!.push(
+          MaterialPageRoute(
+            builder: (context) => FutureBuilder<List<User>>(
               future: User.getAllForUser().first.then((value) => value
                   .where((u) => class$.allowedUsers.contains(u.uid))
                   .toList()),
@@ -498,8 +497,8 @@ class _EditClassState extends State<EditClass> {
                     itemBuilder: (current,
                             [void Function(User)? onLongPress,
                             void Function(User)? onTap,
-                            Widget? subtitle,
-                            trailing]) =>
+                            Widget? trailing,
+                            Widget? subtitle]) =>
                         DataObjectWidget(
                       current,
                       onTap: () => onTap!(current),
@@ -513,7 +512,16 @@ class _EditClassState extends State<EditClass> {
                   dispose: (context, c) => c.dispose(),
                   builder: (context, _) => Scaffold(
                     appBar: AppBar(
-                      title: const Text('اختيار مستخدمين'),
+                      leading: IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: navigator.currentState!.pop),
+                      title: SearchField(
+                        showSuffix: false,
+                        searchStream: context
+                            .read<DataObjectListController<User>>()
+                            .searchQuery,
+                        textStyle: Theme.of(context).primaryTextTheme.headline6,
+                      ),
                       actions: [
                         IconButton(
                           onPressed: () {
@@ -528,26 +536,14 @@ class _EditClassState extends State<EditClass> {
                         ),
                       ],
                     ),
-                    body: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SearchField(
-                            searchStream: context
-                                .read<DataObjectListController<User>>()
-                                .searchQuery,
-                            textStyle: Theme.of(context).textTheme.bodyText2),
-                        const Expanded(
-                          child: UsersList(
-                            autoDisposeController: false,
-                          ),
-                        ),
-                      ],
+                    body: const UsersList(
+                      autoDisposeController: false,
                     ),
                   ),
                 );
               },
-            );
-          },
+            ),
+          ),
         ) ??
         class$.allowedUsers;
   }

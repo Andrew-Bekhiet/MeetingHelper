@@ -371,63 +371,59 @@ class _EditUserState extends State<EditUser> {
   }
 
   void editChildrenUsers() async {
-    childrenUsers = await showDialog(
-      context: context,
-      builder: (context) {
-        return StreamBuilder<List<User>>(
-          stream: FirebaseFirestore.instance
-              .collection('UsersData')
-              .where('AllowedUsers', arrayContains: widget.user.uid)
-              .snapshots()
-              .map((value) => value.docs.map(User.fromDoc).toList()),
-          builder: (c, users) => users.hasData
-              ? MultiProvider(
-                  providers: [
-                    Provider<DataObjectListController<User>>(
-                      create: (_) => DataObjectListController<User>(
-                        selectionMode: true,
-                        itemsStream: User.getAllForUser(),
-                        selected: {for (var item in users.data!) item.id: item},
-                      ),
-                      dispose: (context, c) => c.dispose(),
-                    )
-                  ],
-                  builder: (context, child) => AlertDialog(
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          navigator.currentState!.pop(context
-                              .read<DataObjectListController<User>>()
-                              .selectedLatest
-                              ?.values
-                              .toList());
-                        },
-                        child: const Text('تم'),
+    childrenUsers = await navigator.currentState!.push(
+      MaterialPageRoute(
+        builder: (context) {
+          return StreamBuilder<List<User>>(
+            stream: FirebaseFirestore.instance
+                .collection('UsersData')
+                .where('AllowedUsers', arrayContains: widget.user.uid)
+                .snapshots()
+                .map((value) => value.docs.map(User.fromDoc).toList()),
+            builder: (c, users) => users.hasData
+                ? MultiProvider(
+                    providers: [
+                      Provider<DataObjectListController<User>>(
+                        create: (_) => DataObjectListController<User>(
+                          selectionMode: true,
+                          itemsStream: User.getAllForUser(),
+                          selected: {
+                            for (var item in users.data!) item.id: item
+                          },
+                        ),
+                        dispose: (context, c) => c.dispose(),
                       )
                     ],
-                    content: SizedBox(
-                      width: 280,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SearchField(
-                              searchStream: context
-                                  .read<DataObjectListController<User>>()
-                                  .searchQuery,
-                              textStyle: Theme.of(context).textTheme.bodyText2),
-                          const Expanded(
-                            child: UsersList(
-                              autoDisposeController: false,
-                            ),
-                          ),
-                        ],
+                    builder: (context, child) => Scaffold(
+                      persistentFooterButtons: [
+                        TextButton(
+                          onPressed: () {
+                            navigator.currentState!.pop(context
+                                .read<DataObjectListController<User>>()
+                                .selectedLatest
+                                ?.values
+                                .toList());
+                          },
+                          child: const Text('تم'),
+                        )
+                      ],
+                      appBar: AppBar(
+                        title: SearchField(
+                            showSuffix: false,
+                            searchStream: context
+                                .read<DataObjectListController<User>>()
+                                .searchQuery,
+                            textStyle: Theme.of(context).textTheme.bodyText2),
+                      ),
+                      body: const UsersList(
+                        autoDisposeController: false,
                       ),
                     ),
-                  ),
-                )
-              : const Center(child: CircularProgressIndicator()),
-        );
-      },
+                  )
+                : const Center(child: CircularProgressIndicator()),
+          );
+        },
+      ),
     );
   }
 
