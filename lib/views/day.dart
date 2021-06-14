@@ -299,20 +299,103 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                   (Map a, Map b) => Tuple2<int, int>(a.length, b.length),
                 ),
                 builder: (context, snapshot) {
-                  return Text(
-                    (snapshot.data?.item2 ?? 0).toString() +
-                        ' مخدوم حاضر و' +
-                        ((snapshot.data?.item1 ?? 0) -
-                                (snapshot.data?.item2 ?? 0))
-                            .toString() +
-                        ' مخدوم غائب من اجمالي ' +
-                        (snapshot.data?.item1 ?? 0).toString() +
-                        ' مخدوم',
-                    textAlign: TextAlign.center,
-                    textScaleFactor: 0.99,
-                    strutStyle:
-                        StrutStyle(height: IconTheme.of(context).size! / 7.5),
-                    style: Theme.of(context).primaryTextTheme.bodyText1,
+                  TextTheme theme = Theme.of(context).primaryTextTheme;
+                  return ExpansionTile(
+                    expandedAlignment: Alignment.centerRight,
+                    title: Text(
+                      'الحضور: ' +
+                          (snapshot.data?.item2 ?? 0).toString() +
+                          ' مخدوم',
+                      style: theme.bodyText2,
+                    ),
+                    trailing:
+                        Icon(Icons.expand_more, color: theme.bodyText2?.color),
+                    leading: DescribedFeatureOverlay(
+                      barrierDismissible: false,
+                      contentLocation: ContentLocation.above,
+                      featureId: 'LockUnchecks',
+                      tapTarget: const Icon(Icons.lock_open_outlined),
+                      title: const Text('تثبيت الحضور'),
+                      description: Column(
+                        children: <Widget>[
+                          const Text(
+                              'يقوم البرنامج تلقائيًا بطلب تأكيد لإزالة حضور مخدوم\nاذا اردت الغاء هذه الخاصية يمكنك الضغط هنا'),
+                          OutlinedButton.icon(
+                            icon: const Icon(Icons.forward),
+                            label: Text(
+                              'التالي',
+                              style: TextStyle(
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyText2
+                                    ?.color,
+                              ),
+                            ),
+                            onPressed: () {
+                              FeatureDiscovery.completeCurrentStep(context);
+                            },
+                          ),
+                          OutlinedButton(
+                            onPressed: () =>
+                                FeatureDiscovery.dismissAll(context),
+                            child: Text(
+                              'تخطي',
+                              style: TextStyle(
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyText2
+                                    ?.color,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      backgroundColor: Theme.of(context).accentColor,
+                      targetColor: Colors.transparent,
+                      textColor:
+                          Theme.of(context).primaryTextTheme.bodyText1!.color!,
+                      child: StreamBuilder<bool>(
+                        initialData: (widget.record is! ServantsHistoryDay
+                                ? context.read<CheckListController<Person>>()
+                                : context.read<CheckListController<User>>())
+                            .dayOptions
+                            .lockUnchecks
+                            .value,
+                        stream: (widget.record is! ServantsHistoryDay
+                                ? context.read<CheckListController<Person>>()
+                                : context.read<CheckListController<User>>())
+                            .dayOptions
+                            .lockUnchecks,
+                        builder: (context, data) {
+                          return IconButton(
+                            icon: Icon(
+                                !data.data!
+                                    ? Icons.lock_open
+                                    : Icons.lock_outlined,
+                                color: theme.bodyText2?.color),
+                            tooltip: 'تثبيت الحضور',
+                            onPressed: () => (widget.record
+                                        is! ServantsHistoryDay
+                                    ? context
+                                        .read<CheckListController<Person>>()
+                                    : context.read<CheckListController<User>>())
+                                .dayOptions
+                                .lockUnchecks
+                                .add(!data.data!),
+                          );
+                        },
+                      ),
+                    ),
+                    children: [
+                      Text('الغياب: ' +
+                          ((snapshot.data?.item1 ?? 0) -
+                                  (snapshot.data?.item2 ?? 0))
+                              .toString() +
+                          ' مخدوم'),
+                      Text('اجمالي: ' +
+                          (snapshot.data?.item1 ?? 0).toString() +
+                          ' مخدوم'),
+                    ],
                   );
                 },
               ),
