@@ -55,7 +55,7 @@ class HistoryDay extends DataObject with ChangeNotifier {
 
   @override
   bool operator ==(dynamic other) =>
-      (other is HistoryDay && other.hashCode == hashCode);
+      other is HistoryDay && other.hashCode == hashCode;
 
   @override
   void dispose() {
@@ -259,12 +259,12 @@ class MinimalHistoryRecord {
                     .where('ClassId', isEqualTo: a.ref)
                     .where(
                       'Time',
-                      isLessThanOrEqualTo:
-                          Timestamp.fromDate(range.end.add(Duration(days: 1))),
+                      isLessThanOrEqualTo: Timestamp.fromDate(
+                          range.end.add(const Duration(days: 1))),
                     )
                     .where('Time',
                         isGreaterThanOrEqualTo: Timestamp.fromDate(
-                            range.start.subtract(Duration(days: 1))))
+                            range.start.subtract(const Duration(days: 1))))
                     .orderBy('Time', descending: true)
                     .snapshots())
                 .toList())
@@ -276,11 +276,11 @@ class MinimalHistoryRecord {
               .where(
                 'Time',
                 isLessThanOrEqualTo:
-                    Timestamp.fromDate(range.end.add(Duration(days: 1))),
+                    Timestamp.fromDate(range.end.add(const Duration(days: 1))),
               )
               .where('Time',
                   isGreaterThanOrEqualTo: Timestamp.fromDate(
-                      range.start.subtract(Duration(days: 1))))
+                      range.start.subtract(const Duration(days: 1))))
               .orderBy('Time', descending: true)
               .snapshots()
               .map((s) => s.docs);
@@ -293,11 +293,11 @@ class MinimalHistoryRecord {
                       .where(
                         'Time',
                         isLessThanOrEqualTo: Timestamp.fromDate(
-                            range.end.add(Duration(days: 1))),
+                            range.end.add(const Duration(days: 1))),
                       )
                       .where('Time',
                           isGreaterThanOrEqualTo: Timestamp.fromDate(
-                              range.start.subtract(Duration(days: 1))))
+                              range.start.subtract(const Duration(days: 1))))
                       .orderBy('Time', descending: true)
                       .snapshots())
                   .toList())

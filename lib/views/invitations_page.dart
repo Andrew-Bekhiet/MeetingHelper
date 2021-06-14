@@ -6,7 +6,7 @@ import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/views/list.dart';
 
 class InvitationsPage extends StatefulWidget {
-  InvitationsPage({Key? key}) : super(key: key);
+  const InvitationsPage({Key? key}) : super(key: key);
 
   @override
   _InvitationsPageState createState() => _InvitationsPageState();
@@ -25,7 +25,7 @@ class _InvitationsPageState extends State<InvitationsPage> {
           navigator.currentState!.pushNamed('InvitationInfo', arguments: i),
     );
     return Scaffold(
-      appBar: AppBar(title: Text('لينكات الدعوة')),
+      appBar: AppBar(title: const Text('لينكات الدعوة')),
       body: DataObjectList<Invitation>(
         options: options,
       ),
@@ -33,7 +33,7 @@ class _InvitationsPageState extends State<InvitationsPage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
       bottomNavigationBar: BottomAppBar(
         color: Theme.of(context).primaryColor,
-        shape: CircularNotchedRectangle(),
+        shape: const CircularNotchedRectangle(),
         child: StreamBuilder<List<Invitation?>>(
           stream: options.objectsData,
           builder: (context, snapshot) {
@@ -48,7 +48,7 @@ class _InvitationsPageState extends State<InvitationsPage> {
       floatingActionButton: FloatingActionButton(
         tooltip: 'اضافة دعوة',
         onPressed: () => navigator.currentState!.pushNamed('EditInvitation'),
-        child: Icon(Icons.add_link),
+        child: const Icon(Icons.add_link),
       ),
     );
   }

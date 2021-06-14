@@ -46,7 +46,7 @@ class AttendanceChart extends StatelessWidget {
                       .where(
                         'Time',
                         isLessThan: Timestamp.fromDate(
-                            range.end.add(Duration(days: 1))),
+                            range.end.add(const Duration(days: 1))),
                       )
                       .where('IsServant', isEqualTo: isServant)
                       .orderBy('Time', descending: true)
@@ -60,7 +60,7 @@ class AttendanceChart extends StatelessWidget {
                       .where(
                         'Time',
                         isLessThan: Timestamp.fromDate(
-                            range.end.add(Duration(days: 1))),
+                            range.end.add(const Duration(days: 1))),
                       )
                       .orderBy('Time', descending: true)
                       .snapshots())
@@ -141,7 +141,7 @@ class AttendancePercent extends StatelessWidget {
   final int total;
   final int attends;
 
-  AttendancePercent({
+  const AttendancePercent({
     Key? key,
     this.label,
     this.attendanceLabel,
@@ -220,9 +220,11 @@ class ClassesAttendanceIndicator extends StatelessWidget {
   final bool isServant;
 
   ClassesAttendanceIndicator(
-      {required this.collection,
+      {Key? key,
+      required this.collection,
       required this.classes,
-      this.isServant = false});
+      this.isServant = false})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -328,7 +330,7 @@ class PersonAttendanceIndicator extends StatelessWidget {
   final String? absenseLabel;
   final DateTimeRange range;
   final int total;
-  PersonAttendanceIndicator({
+  const PersonAttendanceIndicator({
     Key? key,
     required this.id,
     required this.total,
@@ -371,7 +373,8 @@ class PersonAttendanceIndicator extends StatelessWidget {
                 isGreaterThanOrEqualTo: Timestamp.fromDate(range.start))
             .where(
               'Time',
-              isLessThan: Timestamp.fromDate(range.end.add(Duration(days: 1))),
+              isLessThan:
+                  Timestamp.fromDate(range.end.add(const Duration(days: 1))),
             )
             .orderBy('Time', descending: true)
             .snapshots()
@@ -385,8 +388,8 @@ class PersonAttendanceIndicator extends StatelessWidget {
                     .where('ID', isEqualTo: id)
                     .where(
                       'Time',
-                      isLessThan:
-                          Timestamp.fromDate(range.end.add(Duration(days: 1))),
+                      isLessThan: Timestamp.fromDate(
+                          range.end.add(const Duration(days: 1))),
                     )
                     .where('Time',
                         isGreaterThanOrEqualTo: Timestamp.fromDate(range.start))
@@ -524,7 +527,7 @@ class CartesianChart<T> extends StatelessWidget {
   final List<Class> classes;
   final bool showMax;
 
-  CartesianChart(
+  const CartesianChart(
       {Key? key,
       required this.classes,
       required this.range,
@@ -566,8 +569,8 @@ class CartesianChart<T> extends StatelessWidget {
               primaryYAxis: NumericAxis(
                   decimalPlaces: 0, maximum: persons.data?.length.toDouble()),
               primaryXAxis: DateTimeAxis(
-                minimum: range.start.subtract(Duration(hours: 4)),
-                maximum: range.end.add(Duration(hours: 4)),
+                minimum: range.start.subtract(const Duration(hours: 4)),
+                maximum: range.end.add(const Duration(hours: 4)),
                 dateFormat: intl.DateFormat('yyy/M/d', 'ar-EG'),
                 intervalType: DateTimeIntervalType.days,
                 labelRotation: 90,
@@ -582,11 +585,12 @@ class CartesianChart<T> extends StatelessWidget {
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: Colors.grey[400],
-                      borderRadius: BorderRadius.all(Radius.circular(6.0)),
+                      borderRadius:
+                          const BorderRadius.all(Radius.circular(6.0)),
                     ),
                     height: 120,
                     width: 90,
-                    padding: EdgeInsets.symmetric(horizontal: 5),
+                    padding: const EdgeInsets.symmetric(horizontal: 5),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -607,7 +611,7 @@ class CartesianChart<T> extends StatelessWidget {
               ),
               series: [
                 StackedAreaSeries<MapEntry<Timestamp, List<T>>, DateTime>(
-                  markerSettings: MarkerSettings(isVisible: true),
+                  markerSettings: const MarkerSettings(isVisible: true),
                   borderGradient: LinearGradient(
                     colors: [
                       Colors.amber[300]!.withOpacity(0.5),

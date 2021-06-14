@@ -4,6 +4,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../models/models.dart';
 import '../utils/helpers.dart';
+import 'data_map.dart';
 
 class MapView extends StatefulWidget {
   final bool? editMode;
@@ -11,7 +12,7 @@ class MapView extends StatefulWidget {
   final LatLng? initialLocation;
   final int childrenDepth;
   final Person? person;
-  MapView({
+  const MapView({
     Key? key,
     this.editMode,
     this.initialLocation,
@@ -28,7 +29,6 @@ class _MapViewState extends State<MapView> {
 
   @override
   Widget build(BuildContext context) {
-    LatLng center = LatLng(30.0444, 31.2357); //Cairo Location
     return GoogleMap(
       compassEnabled: true,
       mapToolbarEnabled: true,
@@ -53,7 +53,7 @@ class _MapViewState extends State<MapView> {
         zoom: 16,
         target: widget.person!.location != null
             ? fromGeoPoint(widget.person!.location!)
-            : (widget.initialLocation ?? center),
+            : (widget.initialLocation ?? MegaMap.center),
       ),
     );
   }

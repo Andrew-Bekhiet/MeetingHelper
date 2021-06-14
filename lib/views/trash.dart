@@ -35,7 +35,7 @@ class Trash extends StatelessWidget {
           ),
     );
     return Scaffold(
-      appBar: AppBar(title: Text('سلة المحذوفات')),
+      appBar: AppBar(title: const Text('سلة المحذوفات')),
       body: DataObjectList<TrashDay>(options: listOptions),
     );
   }
@@ -145,29 +145,29 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                     builder: (context, child) =>
                         _tabController!.index == 1 ? child! : Container(),
                     child: IconButton(
-                      icon: Icon(Icons.filter_list),
+                      icon: const Icon(Icons.filter_list),
                       onPressed: () async {
                         await showDialog(
                           context: context,
                           builder: (context) => SimpleDialog(
                             children: [
                               TextButton.icon(
-                                icon: Icon(Icons.select_all),
-                                label: Text('تحديد الكل'),
+                                icon: const Icon(Icons.select_all),
+                                label: const Text('تحديد الكل'),
                                 onPressed: () {
                                   _personsOptions.selectAll();
                                   navigator.currentState!.pop();
                                 },
                               ),
                               TextButton.icon(
-                                icon: Icon(Icons.select_all),
-                                label: Text('تحديد لا شئ'),
+                                icon: const Icon(Icons.select_all),
+                                label: const Text('تحديد لا شئ'),
                                 onPressed: () {
                                   _personsOptions.selectNone();
                                   navigator.currentState!.pop();
                                 },
                               ),
-                              Text('ترتيب حسب:',
+                              const Text('ترتيب حسب:',
                                   style:
                                       TextStyle(fontWeight: FontWeight.bold)),
                               ...Person.getHumanReadableMap2()
@@ -191,7 +191,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                               RadioListTile(
                                 value: true,
                                 groupValue: _personsOrder.value!.asc,
-                                title: Text('تصاعدي'),
+                                title: const Text('تصاعدي'),
                                 onChanged: (dynamic value) {
                                   _personsOrder.add(
                                     OrderOptions(
@@ -204,7 +204,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                               RadioListTile(
                                 value: false,
                                 groupValue: _personsOrder.value!.asc,
-                                title: Text('تنازلي'),
+                                title: const Text('تنازلي'),
                                 onChanged: (dynamic value) {
                                   _personsOrder.add(
                                     OrderOptions(
@@ -231,14 +231,14 @@ class _TrashDayScreenState extends State<TrashDayScreen>
         ],
         bottom: TabBar(
           controller: _tabController,
-          tabs: [
+          tabs: const [
             Tab(
               text: 'الخدمات',
-              icon: const Icon(Icons.miscellaneous_services),
+              icon: Icon(Icons.miscellaneous_services),
             ),
             Tab(
               text: 'المخدومين',
-              icon: const Icon(Icons.person),
+              icon: Icon(Icons.person),
             ),
           ],
         ),
@@ -279,12 +279,12 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                       hintText: 'بحث ...'),
                   onChanged: _searchQuery.add,
                 )
-              : Text('البيانات'),
+              : const Text('البيانات'),
         ),
       ),
       bottomNavigationBar: BottomAppBar(
         color: Theme.of(context).primaryColor,
-        shape: CircularNotchedRectangle(),
+        shape: const CircularNotchedRectangle(),
         child: AnimatedBuilder(
           animation: _tabController!,
           builder: (context, _) => StreamBuilder<List>(

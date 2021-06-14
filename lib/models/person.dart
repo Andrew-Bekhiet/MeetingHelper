@@ -197,7 +197,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
               future: Location.instance.getLocation(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData)
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 return MapView(
                     childrenDepth: 3,
                     initialLocation: LatLng(snapshot.data!.latitude ?? 34,
@@ -209,13 +209,13 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
           }
           return MapView(
               childrenDepth: 3,
-              initialLocation: LatLng(34, 50),
+              initialLocation: const LatLng(34, 50),
               editMode: editMode,
               person: this);
         },
       );
     else if (location == null)
-      return Text(
+      return const Text(
         'لم يتم تحديد موقع للمنزل',
         style: TextStyle(
             fontSize: 22,
@@ -263,13 +263,13 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
     if (key == 'Members') {
       return getMembersString();
     } else if (key == 'ClassId') {
-      return await getClassName();
+      return getClassName();
     } else if (key == 'School') {
-      return await getSchoolName();
+      return getSchoolName();
     } else if (key == 'Church') {
-      return await getChurchName();
+      return getChurchName();
     } else if (key == 'CFather') {
-      return await getCFatherName();
+      return getCFatherName();
     }
     return getHumanReadableMap()[key] ?? '';
   }

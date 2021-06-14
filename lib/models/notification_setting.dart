@@ -60,7 +60,7 @@ class _NotificationSettingState extends State<NotificationSetting> {
         Flexible(
           flex: 25,
           child: DropdownButtonFormField(
-            items: [
+            items: const [
               DropdownMenuItem(
                 value: DateType.day,
                 child: Text('يوم'),

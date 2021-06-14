@@ -47,7 +47,7 @@ class _UserRegistrationState extends State<UserRegistration> {
             resizeToAvoidBottomInset: !kIsWeb,
             appBar: AppBar(
               leading: Container(),
-              title: Text('تسجيل حساب جديد'),
+              title: const Text('تسجيل حساب جديد'),
             ),
             body: Form(
               key: _formKey,
@@ -55,7 +55,7 @@ class _UserRegistrationState extends State<UserRegistration> {
                 padding: const EdgeInsets.all(8.0),
                 children: <Widget>[
                   Image.asset('assets/Logo.png', fit: BoxFit.scaleDown),
-                  Divider(),
+                  const Divider(),
                   TextFormField(
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     decoration: InputDecoration(
@@ -148,7 +148,7 @@ class _UserRegistrationState extends State<UserRegistration> {
                     },
                     onFieldSubmitted: (v) => _submit(v, _userName.text),
                   ),
-                  Divider(),
+                  const Divider(),
                   FormField(
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     builder: (state) {
@@ -160,7 +160,8 @@ class _UserRegistrationState extends State<UserRegistration> {
                           Flexible(
                             flex: 3,
                             child: Container(
-                              padding: EdgeInsets.symmetric(vertical: 4.0),
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 4.0),
                               child: Focus(
                                 child: GestureDetector(
                                   onTap: () async =>
@@ -186,7 +187,7 @@ class _UserRegistrationState extends State<UserRegistration> {
                                         ? Text(DateFormat('yyyy/M/d').format(
                                             DateTime.fromMillisecondsSinceEpoch(
                                                 lastTanawol!)))
-                                        : Text('(فارغ)'),
+                                        : const Text('(فارغ)'),
                                   ),
                                 ),
                               ),
@@ -210,7 +211,8 @@ class _UserRegistrationState extends State<UserRegistration> {
                           Flexible(
                             flex: 3,
                             child: Container(
-                              padding: EdgeInsets.symmetric(vertical: 4.0),
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 4.0),
                               child: Focus(
                                 child: GestureDetector(
                                   onTap: () async =>
@@ -235,7 +237,7 @@ class _UserRegistrationState extends State<UserRegistration> {
                                         ? Text(DateFormat('yyyy/M/d').format(
                                             DateTime.fromMillisecondsSinceEpoch(
                                                 lastConfession!)))
-                                        : Text('(فارغ)'),
+                                        : const Text('(فارغ)'),
                                   ),
                                 ),
                               ),
@@ -251,7 +253,7 @@ class _UserRegistrationState extends State<UserRegistration> {
                   ElevatedButton(
                     onPressed: () =>
                         _submit(_passwordText.text, _userName.text),
-                    child: Text('انشاء حساب جديد'),
+                    child: const Text('انشاء حساب جديد'),
                   ),
                 ],
               ),
@@ -260,11 +262,11 @@ class _UserRegistrationState extends State<UserRegistration> {
         }
         return Scaffold(
           appBar: AppBar(
-            title: Text('في انتظار الموافقة'),
+            title: const Text('في انتظار الموافقة'),
             actions: <Widget>[
               IconButton(
-                  icon: Icon(
-                      const IconData(0xe9ba, fontFamily: 'MaterialIconsR')),
+                  icon: const Icon(
+                      IconData(0xe9ba, fontFamily: 'MaterialIconsR')),
                   tooltip: 'تسجيل الخروج',
                   onPressed: () async {
                     var user = User.instance;
@@ -276,7 +278,7 @@ class _UserRegistrationState extends State<UserRegistration> {
                         builder: (context) {
                           navigator.currentState!
                               .popUntil((route) => route.isFirst);
-                          return App();
+                          return const App();
                         },
                       ),
                     );
@@ -293,7 +295,7 @@ class _UserRegistrationState extends State<UserRegistration> {
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyText1,
               ),
-              Text('أو'),
+              const Text('أو'),
               Text(
                 'يمكنك ادخال لينك الدعوة هنا',
                 style: Theme.of(context).textTheme.bodyText1,
@@ -324,7 +326,7 @@ class _UserRegistrationState extends State<UserRegistration> {
               ),
               ElevatedButton(
                 onPressed: () => _registerUser(_linkController.text),
-                child: Text('تفعيل الحساب باللينك'),
+                child: const Text('تفعيل الحساب باللينك'),
               ),
             ],
           ),
@@ -353,8 +355,8 @@ class _UserRegistrationState extends State<UserRegistration> {
             return Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircularProgressIndicator(),
-                Text('جار تفعيل الحساب...'),
+                const CircularProgressIndicator(),
+                const Text('جار تفعيل الحساب...'),
               ],
             );
           },
@@ -367,7 +369,7 @@ class _UserRegistrationState extends State<UserRegistration> {
       void Function(void Function()) setState) async {
     var picked = await showDatePicker(
         helpText: helpText,
-        locale: Locale('ar', 'EG'),
+        locale: const Locale('ar', 'EG'),
         context: context,
         initialDate: DateTime.fromMillisecondsSinceEpoch(initialDate),
         firstDate: DateTime(1500),
@@ -387,8 +389,8 @@ class _UserRegistrationState extends State<UserRegistration> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('جار انشاء حساب جديد'),
-            LinearProgressIndicator(),
+            const Text('جار انشاء حساب جديد'),
+            const LinearProgressIndicator(),
           ],
         ),
       ),

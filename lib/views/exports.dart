@@ -12,10 +12,10 @@ class Exports extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('عمليات التصدير السابقة'),
+        title: const Text('عمليات التصدير السابقة'),
       ),
       body: FutureBuilder<List<FileSystemEntity>>(future: () async {
-        return await dirContents(Directory(
+        return dirContents(Directory(
             (await getApplicationDocumentsDirectory()).path + '/Exports'));
       }(), builder: (context, snapshot) {
         if (snapshot.hasError) return ErrorWidget(snapshot.error!);
@@ -39,8 +39,8 @@ class Exports extends StatelessWidget {
     var files = <FileSystemEntity>[];
     var completer = Completer<List<FileSystemEntity>>();
     var lister = dir.list(recursive: false);
+    // ignore: cascade_invocations
     lister.listen((file) => files.add(file),
-        // should also register onError
         onDone: () => completer.complete(files));
     return completer.future;
   }

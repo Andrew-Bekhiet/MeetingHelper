@@ -20,9 +20,6 @@ class Church {
     address = '';
   }
 
-  @override
-  int get hashCode => super.hashCode;
-
   DocumentReference get ref =>
       FirebaseFirestore.instance.collection('Churches').doc(id);
 
@@ -69,9 +66,6 @@ class School {
     address = '';
   }
 
-  @override
-  int get hashCode => super.hashCode;
-
   DocumentReference get ref =>
       FirebaseFirestore.instance.collection('Schools').doc(id);
 
@@ -116,9 +110,6 @@ class Father {
     id = FirebaseFirestore.instance.collection('Fathers').doc().id;
     name = '';
   }
-
-  @override
-  int get hashCode => super.hashCode;
 
   DocumentReference get ref =>
       FirebaseFirestore.instance.collection('Fathers').doc(id);
@@ -201,7 +192,7 @@ class History {
             .limit(1000)
             .get(dataSource))
         .docs
-        .map((e) => fromDoc(e))
+        .map(fromDoc)
         .toList();
   }
 

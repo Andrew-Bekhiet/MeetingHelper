@@ -14,7 +14,7 @@ import '../utils/encryption_keys.dart';
 import '../utils/helpers.dart';
 
 class MyAccount extends StatefulWidget {
-  MyAccount({Key? key}) : super(key: key);
+  const MyAccount({Key? key}) : super(key: key);
 
   @override
   _MyAccountState createState() => _MyAccountState();
@@ -52,20 +52,20 @@ class _MyAccountState extends State<MyAccount> {
                             TextButton.icon(
                               onPressed: () =>
                                   navigator.currentState!.pop(true),
-                              icon: Icon(Icons.camera),
-                              label: Text('التقاط صورة من الكاميرا'),
+                              icon: const Icon(Icons.camera),
+                              label: const Text('التقاط صورة من الكاميرا'),
                             ),
                             TextButton.icon(
                               onPressed: () =>
                                   navigator.currentState!.pop(false),
-                              icon: Icon(Icons.photo_library),
-                              label: Text('اختيار من المعرض'),
+                              icon: const Icon(Icons.photo_library),
+                              label: const Text('اختيار من المعرض'),
                             ),
                             TextButton.icon(
                               onPressed: () =>
                                   navigator.currentState!.pop('delete'),
-                              icon: Icon(Icons.delete),
-                              label: Text('حذف الصورة'),
+                              icon: const Icon(Icons.delete),
+                              label: const Text('حذف الصورة'),
                             ),
                           ],
                         ),
@@ -75,24 +75,25 @@ class _MyAccountState extends State<MyAccount> {
                         if (await showDialog(
                               context: context,
                               builder: (context) => AlertDialog(
-                                content: Text('هل تريد حذف الصورة؟'),
+                                content: const Text('هل تريد حذف الصورة؟'),
                                 actions: [
                                   TextButton.icon(
-                                    icon: Icon(Icons.delete),
-                                    label: Text('حذف'),
+                                    icon: const Icon(Icons.delete),
+                                    label: const Text('حذف'),
                                     onPressed: () =>
                                         navigator.currentState!.pop(true),
                                   ),
                                   TextButton(
                                     onPressed: () =>
                                         navigator.currentState!.pop(false),
-                                    child: Text('تراجع'),
+                                    child: const Text('تراجع'),
                                   )
                                 ],
                               ),
                             ) ??
                             false) {
-                          scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+                          scaffoldMessenger.currentState!
+                              .showSnackBar(const SnackBar(
                             content: Text('جار التحميل'),
                             duration: Duration(minutes: 2),
                           ));
@@ -102,7 +103,8 @@ class _MyAccountState extends State<MyAccount> {
                           user.reloadImage();
                           setState(() {});
                           scaffoldMessenger.currentState!.hideCurrentSnackBar();
-                          scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+                          scaffoldMessenger.currentState!
+                              .showSnackBar(const SnackBar(
                             content: Text('تم بنجاح'),
                           ));
                         }
@@ -113,12 +115,12 @@ class _MyAccountState extends State<MyAccount> {
                                   .isGranted) ||
                           !(await Permission.camera.request()).isGranted)
                         return;
-                      var selectedImage = (await ImagePicker().getImage(
+                      var selectedImage = await ImagePicker().getImage(
                           source: source
                               ? ImageSource.camera
-                              : ImageSource.gallery));
+                              : ImageSource.gallery);
                       if (selectedImage == null) return;
-                      var finalImage = (await ImageCropper.cropImage(
+                      var finalImage = await ImageCropper.cropImage(
                           sourcePath: selectedImage.path,
                           cropStyle: CropStyle.circle,
                           androidUiSettings: AndroidUiSettings(
@@ -129,27 +131,28 @@ class _MyAccountState extends State<MyAccount> {
                                   .headline6!
                                   .color,
                               initAspectRatio: CropAspectRatioPreset.square,
-                              lockAspectRatio: false)));
+                              lockAspectRatio: false));
                       if (await showDialog(
                             context: context,
                             builder: (context) => AlertDialog(
-                              content: Text('هل تريد تغير الصورة؟'),
+                              content: const Text('هل تريد تغير الصورة؟'),
                               actions: [
                                 TextButton(
                                   onPressed: () =>
                                       navigator.currentState!.pop(true),
-                                  child: Text('تغيير'),
+                                  child: const Text('تغيير'),
                                 ),
                                 TextButton(
                                   onPressed: () =>
                                       navigator.currentState!.pop(false),
-                                  child: Text('تراجع'),
+                                  child: const Text('تراجع'),
                                 )
                               ],
                             ),
                           ) ??
                           false) {
-                        scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+                        scaffoldMessenger.currentState!
+                            .showSnackBar(const SnackBar(
                           content: Text('جار التحميل'),
                           duration: Duration(minutes: 2),
                         ));
@@ -157,12 +160,13 @@ class _MyAccountState extends State<MyAccount> {
                         user.reloadImage();
                         setState(() {});
                         scaffoldMessenger.currentState!.hideCurrentSnackBar();
-                        scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+                        scaffoldMessenger.currentState!
+                            .showSnackBar(const SnackBar(
                           content: Text('تم بنجاح'),
                         ));
                       }
                     },
-                    icon: Icon(Icons.photo_camera),
+                    icon: const Icon(Icons.photo_camera),
                   ),
                 ],
                 expandedHeight: 250.0,
@@ -171,7 +175,7 @@ class _MyAccountState extends State<MyAccount> {
                 flexibleSpace: LayoutBuilder(
                   builder: (context, constraints) => FlexibleSpaceBar(
                     title: AnimatedOpacity(
-                      duration: Duration(milliseconds: 300),
+                      duration: const Duration(milliseconds: 300),
                       opacity: constraints.biggest.height > kToolbarHeight * 1.7
                           ? 0
                           : 1,
@@ -186,11 +190,11 @@ class _MyAccountState extends State<MyAccount> {
               children: <Widget>[
                 Text(user.name, style: Theme.of(context).textTheme.headline6),
                 ListTile(
-                  title: Text('البريد الاكتروني:'),
+                  title: const Text('البريد الاكتروني:'),
                   subtitle: Text(user.email),
                 ),
                 ListTile(
-                  title: Text('تاريخ اخر تناول:'),
+                  title: const Text('تاريخ اخر تناول:'),
                   subtitle: Row(
                     children: <Widget>[
                       Expanded(
@@ -207,7 +211,7 @@ class _MyAccountState extends State<MyAccount> {
                   ),
                 ),
                 ListTile(
-                  title: Text('تاريخ اخر اعتراف:'),
+                  title: const Text('تاريخ اخر اعتراف:'),
                   subtitle: Row(
                     children: <Widget>[
                       Expanded(
@@ -223,88 +227,88 @@ class _MyAccountState extends State<MyAccount> {
                     ],
                   ),
                 ),
-                Text('الصلاحيات:'),
+                const Text('الصلاحيات:'),
                 if (user.manageUsers == true)
-                  ListTile(
-                    leading: Icon(
-                        const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
+                  const ListTile(
+                    leading:
+                        Icon(IconData(0xef3d, fontFamily: 'MaterialIconsR')),
                     title: Text('إدارة المستخدمين'),
                   ),
                 if (user.manageAllowedUsers == true)
-                  ListTile(
-                    leading: Icon(
-                        const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
+                  const ListTile(
+                    leading:
+                        Icon(IconData(0xef3d, fontFamily: 'MaterialIconsR')),
                     title: Text('إدارة مستخدمين محددين'),
                   ),
                 if (user.superAccess == true)
-                  ListTile(
-                    leading: Icon(
-                        const IconData(0xef56, fontFamily: 'MaterialIconsR')),
+                  const ListTile(
+                    leading:
+                        Icon(IconData(0xef56, fontFamily: 'MaterialIconsR')),
                     title: Text('رؤية جميع البيانات'),
                   ),
                 if (user.manageDeleted == true)
-                  ListTile(
+                  const ListTile(
                     leading: Icon(Icons.delete_outlined),
                     title: Text('استرجاع المحذوفات'),
                   ),
                 if (user.secretary == true)
-                  ListTile(
+                  const ListTile(
                     leading: Icon(Icons.shield),
                     title: Text('تسجيل حضور الخدام'),
                   ),
                 if (user.write == true)
-                  ListTile(
+                  const ListTile(
                     leading: Icon(Icons.edit),
                     title: Text('تعديل البيانات'),
                   ),
                 if (user.exportClasses == true)
-                  ListTile(
+                  const ListTile(
                     leading: Icon(Icons.cloud_download),
                     title: Text('تصدير فصل لملف إكسل'),
                   ),
                 if (user.birthdayNotify == true)
-                  ListTile(
-                    leading: Icon(
-                        const IconData(0xe7e9, fontFamily: 'MaterialIconsR')),
+                  const ListTile(
+                    leading:
+                        Icon(IconData(0xe7e9, fontFamily: 'MaterialIconsR')),
                     title: Text('إشعار أعياد الميلاد'),
                   ),
                 if (user.confessionsNotify == true)
-                  ListTile(
-                    leading: Icon(
-                        const IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
+                  const ListTile(
+                    leading:
+                        Icon(IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
                     title: Text('إشعار الاعتراف'),
                   ),
                 if (user.tanawolNotify == true)
-                  ListTile(
-                    leading: Icon(
-                        const IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
+                  const ListTile(
+                    leading:
+                        Icon(IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
                     title: Text('إشعار التناول'),
                   ),
                 if (user.kodasNotify == true)
-                  ListTile(
-                    leading: Icon(
-                        const IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
+                  const ListTile(
+                    leading:
+                        Icon(IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
                     title: Text('إشعار القداس'),
                   ),
                 if (user.meetingNotify == true)
-                  ListTile(
-                    leading: Icon(
-                        const IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
+                  const ListTile(
+                    leading:
+                        Icon(IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
                     title: Text('إشعار حضور الاجتماع'),
                   ),
                 ElevatedButton.icon(
-                    onPressed: () async => await navigator.currentState!
+                    onPressed: () async => navigator.currentState!
                         .pushNamed('UpdateUserDataError', arguments: user),
-                    icon: Icon(Icons.update),
-                    label: Text('تحديث بيانات الاعتراف والتناول')),
+                    icon: const Icon(Icons.update),
+                    label: const Text('تحديث بيانات الاعتراف والتناول')),
                 ElevatedButton.icon(
                     onPressed: () => changeName(user.name, user.uid),
-                    icon: Icon(Icons.edit),
-                    label: Text('تغيير الاسم')),
+                    icon: const Icon(Icons.edit),
+                    label: const Text('تغيير الاسم')),
                 ElevatedButton.icon(
-                    onPressed: () => changePass(),
-                    icon: Icon(Icons.lock),
-                    label: Text('تغيير كلمة السر'))
+                    onPressed: changePass,
+                    icon: const Icon(Icons.lock),
+                    label: const Text('تغيير كلمة السر'))
               ],
             ),
           );
@@ -321,21 +325,21 @@ class _MyAccountState extends State<MyAccount> {
             return AlertDialog(
               actions: <Widget>[
                 TextButton.icon(
-                  icon: Icon(Icons.done),
+                  icon: const Icon(Icons.done),
                   onPressed: () => navigator.currentState!.pop(true),
-                  label: Text('تغيير'),
+                  label: const Text('تغيير'),
                 ),
                 TextButton.icon(
-                  icon: Icon(Icons.cancel),
+                  icon: const Icon(Icons.cancel),
                   onPressed: () => navigator.currentState!.pop(false),
-                  label: Text('الغاء الأمر'),
+                  label: const Text('الغاء الأمر'),
                 ),
               ],
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   Container(
-                    padding: EdgeInsets.symmetric(vertical: 4.0),
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: TextFormField(
                       decoration: InputDecoration(
                           labelText: 'الاسم',
@@ -373,14 +377,14 @@ class _MyAccountState extends State<MyAccount> {
             return AlertDialog(
               actions: <Widget>[
                 TextButton.icon(
-                  icon: Icon(Icons.done),
+                  icon: const Icon(Icons.done),
                   onPressed: () => navigator.currentState!.pop(true),
-                  label: Text('تغيير'),
+                  label: const Text('تغيير'),
                 ),
                 TextButton.icon(
-                  icon: Icon(Icons.cancel),
+                  icon: const Icon(Icons.cancel),
                   onPressed: () => navigator.currentState!.pop(false),
-                  label: Text('الغاء الأمر'),
+                  label: const Text('الغاء الأمر'),
                 ),
               ],
               content: Column(
@@ -393,7 +397,8 @@ class _MyAccountState extends State<MyAccount> {
                     onSubmitted: (_) => focuses[1].requestFocus(),
                     textInputAction: TextInputAction.next,
                     focusNode: focuses[0],
-                    decoration: InputDecoration(labelText: 'كلمة السر القديمة'),
+                    decoration:
+                        const InputDecoration(labelText: 'كلمة السر القديمة'),
                   ),
                   TextField(
                     controller: textFields[1],
@@ -402,14 +407,15 @@ class _MyAccountState extends State<MyAccount> {
                     onSubmitted: (_) => focuses[2].requestFocus(),
                     textInputAction: TextInputAction.next,
                     focusNode: focuses[1],
-                    decoration: InputDecoration(labelText: 'كلمة السر الجديدة'),
+                    decoration:
+                        const InputDecoration(labelText: 'كلمة السر الجديدة'),
                   ),
                   TextField(
                     controller: textFields[2],
                     obscureText: true,
                     autocorrect: false,
                     focusNode: focuses[2],
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                         labelText: 'اعادة إدخال كلمة السر الجديدة'),
                   ),
                 ],
@@ -425,13 +431,13 @@ class _MyAccountState extends State<MyAccount> {
 
   Future _submitPass() async {
     if (textFields[0].text == '' || textFields[1].text == '') {
-      scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+      scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
         content: Text('كلمة السر لا يمكن ان تكون فارغة!'),
         duration: Duration(seconds: 26),
       ));
       return;
     }
-    scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+    scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
       content: Text('جار تحديث كلمة السر...'),
       duration: Duration(seconds: 26),
     ));
@@ -454,21 +460,21 @@ class _MyAccountState extends State<MyAccount> {
           return;
         }
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
-        scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+        scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
           content: Text('تم تحديث كلمة السر بنجاح'),
           duration: Duration(seconds: 3),
         ));
         setState(() {});
       } else {
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
-        scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+        scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
           content: Text('كلمة السر القديمة خاطئة'),
           duration: Duration(seconds: 3),
         ));
       }
     } else {
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
-      scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+      scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
         content: Text('كلمتا السر غير متطابقتين!'),
         duration: Duration(seconds: 3),
       ));

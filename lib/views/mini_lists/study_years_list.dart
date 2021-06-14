@@ -8,7 +8,8 @@ class StudyYearsEditList extends StatefulWidget {
   final Future<QuerySnapshot> list;
 
   final Function(StudyYear)? tap;
-  StudyYearsEditList({required this.list, this.tap});
+  const StudyYearsEditList({Key? key, required this.list, this.tap})
+      : super(key: key);
 
   @override
   _StudyYearsEditListState createState() => _StudyYearsEditListState();
@@ -24,7 +25,7 @@ class _StudyYearsEditListState extends State<StudyYearsEditList> {
         if (data.hasData) {
           return Column(children: <Widget>[
             TextField(
-                decoration: InputDecoration(hintText: 'بحث...'),
+                decoration: const InputDecoration(hintText: 'بحث...'),
                 onChanged: (text) {
                   setState(() {
                     filter = text;

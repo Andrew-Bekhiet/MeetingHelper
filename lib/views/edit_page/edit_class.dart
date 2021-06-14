@@ -11,24 +11,24 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:meetinghelper/models/data_object_widget.dart';
 import 'package:meetinghelper/models/list_options.dart';
+import 'package:meetinghelper/utils/globals.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tinycolor/tinycolor.dart';
-import 'package:meetinghelper/utils/globals.dart';
 
 import '../../models/mini_models.dart';
 import '../../models/models.dart';
 import '../../models/search_filters.dart';
 import '../../models/user.dart';
-import '../mini_lists/colors_list.dart';
 import '../lists/users_list.dart';
+import '../mini_lists/colors_list.dart';
 
 class EditClass extends StatefulWidget {
   final Class? class$;
 
-  EditClass({Key? key, required this.class$}) : super(key: key);
+  const EditClass({Key? key, required this.class$}) : super(key: key);
   @override
   _EditClassState createState() => _EditClassState();
 }
@@ -52,7 +52,7 @@ class _EditClassState extends State<EditClass> {
                     icon: Builder(
                       builder: (context) => Stack(
                         children: <Widget>[
-                          Positioned(
+                          const Positioned(
                             left: 1.0,
                             top: 2.0,
                             child:
@@ -71,20 +71,21 @@ class _EditClassState extends State<EditClass> {
                                   TextButton.icon(
                                     onPressed: () =>
                                         navigator.currentState!.pop(true),
-                                    icon: Icon(Icons.camera),
-                                    label: Text('التقاط صورة من الكاميرا'),
+                                    icon: const Icon(Icons.camera),
+                                    label:
+                                        const Text('التقاط صورة من الكاميرا'),
                                   ),
                                   TextButton.icon(
                                     onPressed: () =>
                                         navigator.currentState!.pop(false),
-                                    icon: Icon(Icons.photo_library),
-                                    label: Text('اختيار من المعرض'),
+                                    icon: const Icon(Icons.photo_library),
+                                    label: const Text('اختيار من المعرض'),
                                   ),
                                   TextButton.icon(
                                     onPressed: () =>
                                         navigator.currentState!.pop('delete'),
-                                    icon: Icon(Icons.delete),
-                                    label: Text('حذف الصورة'),
+                                    icon: const Icon(Icons.delete),
+                                    label: const Text('حذف الصورة'),
                                   ),
                                 ],
                               ));
@@ -102,10 +103,10 @@ class _EditClassState extends State<EditClass> {
                           !(await Permission.camera.request()).isGranted) {
                         return;
                       }
-                      var selectedImage = (await ImagePicker().getImage(
+                      var selectedImage = await ImagePicker().getImage(
                           source: source
                               ? ImageSource.camera
-                              : ImageSource.gallery));
+                              : ImageSource.gallery);
                       if (selectedImage == null) return;
                       changedImage = (await ImageCropper.cropImage(
                               sourcePath: selectedImage.path,
@@ -133,12 +134,12 @@ class _EditClassState extends State<EditClass> {
               flexibleSpace: LayoutBuilder(
                 builder: (context, constraints) => FlexibleSpaceBar(
                   title: AnimatedOpacity(
-                    duration: Duration(milliseconds: 300),
+                    duration: const Duration(milliseconds: 300),
                     opacity: constraints.biggest.height > kToolbarHeight * 1.7
                         ? 0
                         : 1,
                     child: Text(class$.name,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 16.0,
                         )),
                   ),
@@ -154,14 +155,14 @@ class _EditClassState extends State<EditClass> {
         body: Form(
           key: form,
           child: Padding(
-            padding: EdgeInsets.all(5),
+            padding: const EdgeInsets.all(5),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   Container(
-                    padding: EdgeInsets.symmetric(vertical: 4.0),
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: TextFormField(
                       decoration: InputDecoration(
                           labelText: 'اسم الفصل',
@@ -187,7 +188,7 @@ class _EditClassState extends State<EditClass> {
                     builder: (conext, data) {
                       if (data.hasData) {
                         return Container(
-                          padding: EdgeInsets.symmetric(vertical: 4.0),
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: DropdownButtonFormField(
                             validator: (dynamic v) {
                               if (v == null) {
@@ -207,7 +208,7 @@ class _EditClassState extends State<EditClass> {
                                 .toList()
                                   ..insert(
                                     0,
-                                    DropdownMenuItem(
+                                    const DropdownMenuItem(
                                       value: null,
                                       child: Text(''),
                                     ),
@@ -228,7 +229,7 @@ class _EditClassState extends State<EditClass> {
                           ),
                         );
                       } else {
-                        return Container(width: 1, height: 1);
+                        return const SizedBox(width: 1, height: 1);
                       }
                     },
                   ),
@@ -274,8 +275,8 @@ class _EditClassState extends State<EditClass> {
                             )
                           : null,
                       onPressed: selectColor,
-                      icon: Icon(Icons.color_lens),
-                      label: Text('اللون')),
+                      icon: const Icon(Icons.color_lens),
+                      label: const Text('اللون')),
                   Selector<User, bool>(
                     selector: (_, user) =>
                         user.manageUsers || user.manageAllowedUsers,
@@ -290,16 +291,16 @@ class _EditClassState extends State<EditClass> {
                                       : TinyColor(class$.color).darken().color,
                                 )
                               : null,
-                          icon: Icon(Icons.visibility),
+                          icon: const Icon(Icons.visibility),
                           onPressed: showUsers,
-                          label: Text(
+                          label: const Text(
                               'المستخدمين المسموح لهم برؤية الفصل والمخدومين داخله',
                               softWrap: false,
                               textScaleFactor: 0.95,
                               overflow: TextOverflow.fade),
                         );
                       }
-                      return Container(width: 1, height: 1);
+                      return const SizedBox(width: 1, height: 1);
                     },
                   ),
                 ].map((w) => Focus(child: w)).toList(),
@@ -318,13 +319,13 @@ class _EditClassState extends State<EditClass> {
               tooltip: 'حذف',
               heroTag: 'Delete',
               onPressed: delete,
-              child: Icon(Icons.delete),
+              child: const Icon(Icons.delete),
             ),
           FloatingActionButton(
             tooltip: 'حفظ',
             heroTag: 'Save',
             onPressed: save,
-            child: Icon(Icons.save),
+            child: const Icon(Icons.save),
           ),
         ],
       ),
@@ -343,20 +344,20 @@ class _EditClassState extends State<EditClass> {
                 onPressed: () {
                   navigator.currentState!.pop(true);
                 },
-                child: Text('نعم'),
+                child: const Text('نعم'),
               ),
               TextButton(
                 onPressed: () {
                   navigator.currentState!.pop();
                 },
-                child: Text('تراجع'),
+                child: const Text('تراجع'),
               ),
             ],
           ),
         ) ==
         true) {
       scaffoldMessenger.currentState!.showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('جار حذف الفصل وكل ما به من مخدومين...'),
           duration: Duration(seconds: 2),
         ),
@@ -398,7 +399,7 @@ class _EditClassState extends State<EditClass> {
     try {
       if (form.currentState!.validate()) {
         scaffoldMessenger.currentState!.showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('جار الحفظ...'),
             duration: Duration(minutes: 20),
           ),
@@ -448,7 +449,7 @@ class _EditClassState extends State<EditClass> {
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(SnackBar(
         content: Text(err.toString()),
-        duration: Duration(seconds: 7),
+        duration: const Duration(seconds: 7),
       ));
     }
   }
@@ -465,7 +466,7 @@ class _EditClassState extends State<EditClass> {
                 class$.color = Colors.transparent;
               });
             },
-            child: Text('بلا لون'),
+            child: const Text('بلا لون'),
           ),
         ],
         content: ColorsList(
@@ -511,14 +512,14 @@ class _EditClassState extends State<EditClass> {
                     itemsStream: User.getAllForUser());
                 return Scaffold(
                   appBar: AppBar(
-                    title: Text('اختيار مستخدمين'),
+                    title: const Text('اختيار مستخدمين'),
                     actions: [
                       IconButton(
                         onPressed: () {
                           navigator.currentState!
                               .pop(options.selectedLatest?.keys.toList());
                         },
-                        icon: Icon(Icons.done),
+                        icon: const Icon(Icons.done),
                         tooltip: 'تم',
                       ),
                     ],
@@ -542,5 +543,6 @@ class _EditClassState extends State<EditClass> {
           },
         ) ??
         class$.allowedUsers;
+    await searchStream.close();
   }
 }

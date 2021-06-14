@@ -108,29 +108,29 @@ class _RootState extends State<Root>
                     builder: (context, child) =>
                         _tabController!.index == 1 ? child! : Container(),
                     child: IconButton(
-                      icon: Icon(Icons.filter_list),
+                      icon: const Icon(Icons.filter_list),
                       onPressed: () async {
                         await showDialog(
                           context: context,
                           builder: (context) => SimpleDialog(
                             children: [
                               TextButton.icon(
-                                icon: Icon(Icons.select_all),
-                                label: Text('تحديد الكل'),
+                                icon: const Icon(Icons.select_all),
+                                label: const Text('تحديد الكل'),
                                 onPressed: () {
                                   _personsOptions.selectAll();
                                   navigator.currentState!.pop();
                                 },
                               ),
                               TextButton.icon(
-                                icon: Icon(Icons.select_all),
-                                label: Text('تحديد لا شئ'),
+                                icon: const Icon(Icons.select_all),
+                                label: const Text('تحديد لا شئ'),
                                 onPressed: () {
                                   _personsOptions.selectNone();
                                   navigator.currentState!.pop();
                                 },
                               ),
-                              Text('ترتيب حسب:',
+                              const Text('ترتيب حسب:',
                                   style:
                                       TextStyle(fontWeight: FontWeight.bold)),
                               ...Person.getHumanReadableMap2()
@@ -154,7 +154,7 @@ class _RootState extends State<Root>
                               RadioListTile(
                                 value: true,
                                 groupValue: _personsOrder.value!.asc,
-                                title: Text('تصاعدي'),
+                                title: const Text('تصاعدي'),
                                 onChanged: (dynamic value) {
                                   _personsOrder.add(
                                     OrderOptions(
@@ -167,7 +167,7 @@ class _RootState extends State<Root>
                               RadioListTile(
                                 value: false,
                                 groupValue: _personsOrder.value!.asc,
-                                title: Text('تنازلي'),
+                                title: const Text('تنازلي'),
                                 onChanged: (dynamic value) {
                                   _personsOrder.add(
                                     OrderOptions(
@@ -189,13 +189,13 @@ class _RootState extends State<Root>
                       contentLocation: ContentLocation.below,
                       featureId: 'Search',
                       tapTarget: const Icon(Icons.search),
-                      title: Text('البحث السريع'),
+                      title: const Text('البحث السريع'),
                       description: Column(
                         children: <Widget>[
-                          Text(
+                          const Text(
                               'يمكنك في أي وقت عمل بحث سريع بالاسم عن المخدومين'),
                           OutlinedButton.icon(
-                            icon: Icon(Icons.forward),
+                            icon: const Icon(Icons.forward),
                             label: Text(
                               'التالي',
                               style: TextStyle(
@@ -238,7 +238,7 @@ class _RootState extends State<Root>
                   ),
           ),
           IconButton(
-            icon: Icon(Icons.notifications),
+            icon: const Icon(Icons.notifications),
             tooltip: 'الإشعارات',
             onPressed: () {
               navigator.currentState!.pushNamed('Notifications');
@@ -256,12 +256,13 @@ class _RootState extends State<Root>
                   contentLocation: ContentLocation.below,
                   featureId: 'Servants',
                   tapTarget: const Icon(Icons.person),
-                  title: Text('الخدام'),
+                  title: const Text('الخدام'),
                   description: Column(
                     children: <Widget>[
-                      Text('في هذه الشاشة ستجد كل بيانات الخدام بالبرنامج'),
+                      const Text(
+                          'في هذه الشاشة ستجد كل بيانات الخدام بالبرنامج'),
                       OutlinedButton.icon(
-                        icon: Icon(Icons.forward),
+                        icon: const Icon(Icons.forward),
                         label: Text(
                           'التالي',
                           style: TextStyle(
@@ -296,13 +297,13 @@ class _RootState extends State<Root>
                 contentLocation: ContentLocation.below,
                 featureId: 'Services',
                 tapTarget: const Icon(Icons.miscellaneous_services),
-                title: Text('الخدمات'),
+                title: const Text('الخدمات'),
                 description: Column(
                   children: <Widget>[
-                    Text(
+                    const Text(
                         'هنا تجد قائمة بكل الفصول في البرنامج مقسمة الى الخدمات وسنوات الدراسة'),
                     OutlinedButton.icon(
-                      icon: Icon(Icons.forward),
+                      icon: const Icon(Icons.forward),
                       label: Text(
                         'التالي',
                         style: TextStyle(
@@ -336,12 +337,12 @@ class _RootState extends State<Root>
                 contentLocation: ContentLocation.below,
                 featureId: 'Persons',
                 tapTarget: const Icon(Icons.person),
-                title: Text('المخدومين'),
+                title: const Text('المخدومين'),
                 description: Column(
                   children: <Widget>[
-                    Text('هنا تجد قائمة بكل المخدومين بالبرنامج'),
+                    const Text('هنا تجد قائمة بكل المخدومين بالبرنامج'),
                     OutlinedButton.icon(
-                      icon: Icon(Icons.forward),
+                      icon: const Icon(Icons.forward),
                       label: Text(
                         'التالي',
                         style: TextStyle(
@@ -407,7 +408,7 @@ class _RootState extends State<Root>
                       hintText: 'بحث ...'),
                   onChanged: _searchQuery.add,
                 )
-              : Text('البيانات'),
+              : const Text('البيانات'),
         ),
       ),
       extendBody: true,
@@ -425,7 +426,7 @@ class _RootState extends State<Root>
       ),
       bottomNavigationBar: BottomAppBar(
         color: Theme.of(context).primaryColor,
-        shape: CircularNotchedRectangle(),
+        shape: const CircularNotchedRectangle(),
         child: AnimatedBuilder(
           animation: _tabController!,
           builder: (context, _) => StreamBuilder<dynamic>(
@@ -457,15 +458,15 @@ class _RootState extends State<Root>
         children: [
           if (User.instance.manageUsers || User.instance.manageAllowedUsers)
             UsersList(
-              key: PageStorageKey('mainUsersList'),
+              key: const PageStorageKey('mainUsersList'),
               listOptions: _usersOptions,
             ),
           ServicesList(
-            key: PageStorageKey('mainClassesList'),
+            key: const PageStorageKey('mainClassesList'),
             options: _servicesOptions,
           ),
           DataObjectList<Person>(
-            key: PageStorageKey('mainPersonsList'),
+            key: const PageStorageKey('mainPersonsList'),
             options: _personsOptions,
           ),
         ],
@@ -474,7 +475,7 @@ class _RootState extends State<Root>
         child: ListView(
           children: <Widget>[
             DrawerHeader(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 image: DecorationImage(
                   image: AssetImage('assets/Logo.png'),
                 ),
@@ -493,13 +494,13 @@ class _RootState extends State<Root>
                     contentLocation: ContentLocation.below,
                     featureId: 'MyAccount',
                     tapTarget: user.getPhoto(true, false),
-                    title: Text('حسابي'),
+                    title: const Text('حسابي'),
                     description: Column(
                       children: <Widget>[
-                        Text(
+                        const Text(
                             'يمكنك الاطلاع على حسابك بالبرنامج وجميع الصلاحيات التي تملكها من خلال حسابي'),
                         OutlinedButton.icon(
-                          icon: Icon(Icons.forward),
+                          icon: const Icon(Icons.forward),
                           label: Text(
                             'التالي',
                             style: TextStyle(
@@ -533,7 +534,7 @@ class _RootState extends State<Root>
                   );
                 },
               ),
-              title: Text('حسابي'),
+              title: const Text('حسابي'),
               onTap: () {
                 mainScfld.currentState!.openEndDrawer();
                 navigator.currentState!.pushNamed('MyAccount');
@@ -544,7 +545,7 @@ class _RootState extends State<Root>
                   user.manageUsers || user.manageAllowedUsers,
               builder: (c, permission, data) {
                 if (!permission)
-                  return Container(
+                  return const SizedBox(
                     width: 0,
                     height: 0,
                   );
@@ -554,13 +555,13 @@ class _RootState extends State<Root>
                       featureId: 'ManageUsers',
                       tapTarget: const Icon(Icons.admin_panel_settings),
                       contentLocation: ContentLocation.below,
-                      title: Text('إدارة المستخدمين'),
+                      title: const Text('إدارة المستخدمين'),
                       description: Column(
                         children: <Widget>[
-                          Text(
+                          const Text(
                               'يمكنك دائمًا الاطلاع على مستخدمي البرنامج وتعديل صلاحياتهم من هنا'),
                           OutlinedButton.icon(
-                            icon: Icon(Icons.forward),
+                            icon: const Icon(Icons.forward),
                             label: Text(
                               'التالي',
                               style: TextStyle(
@@ -601,7 +602,7 @@ class _RootState extends State<Root>
                         // ignore: unawaited_futures
                         navigator.currentState!.push(
                           MaterialPageRoute(
-                            builder: (context) => AuthScreen(
+                            builder: (context) => const AuthScreen(
                               nextRoute: 'ManageUsers',
                             ),
                           ),
@@ -609,14 +610,14 @@ class _RootState extends State<Root>
                       } else {
                         await showDialog(
                             context: context,
-                            builder: (context) => AlertDialog(
+                            builder: (context) => const AlertDialog(
                                 content: Text('لا يوجد اتصال انترنت')));
                       }
                     },
-                    title: Text('إدارة المستخدمين'));
+                    title: const Text('إدارة المستخدمين'));
               },
             ),
-            Divider(),
+            const Divider(),
             ListTile(
               key: _addHistory,
               leading: DescribedFeatureOverlay(
@@ -624,14 +625,14 @@ class _RootState extends State<Root>
                 contentLocation: ContentLocation.below,
                 featureId: 'AddHistory',
                 tapTarget: const Icon(Icons.add),
-                title: Text('اضافة / عرض كشف حضور المخدومين'),
+                title: const Text('اضافة / عرض كشف حضور المخدومين'),
                 description: Column(
                   children: <Widget>[
-                    Text('يمكنك تسجيل كشف حضور المخدومين لليوم من هنا'),
-                    Text(
+                    const Text('يمكنك تسجيل كشف حضور المخدومين لليوم من هنا'),
+                    const Text(
                         'بالإضافة الى حضور القداس والتناول وامكانية وضع الملاحظات لكل مخدوم'),
                     OutlinedButton.icon(
-                      icon: Icon(Icons.forward),
+                      icon: const Icon(Icons.forward),
                       label: Text(
                         'التالي',
                         style: TextStyle(
@@ -657,7 +658,7 @@ class _RootState extends State<Root>
                 textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
                 child: const Icon(Icons.add),
               ),
-              title: Text('كشف حضور المخدومين'),
+              title: const Text('كشف حضور المخدومين'),
               onTap: () async {
                 var today = (await FirebaseFirestore.instance
                         .collection('History')
@@ -688,14 +689,15 @@ class _RootState extends State<Root>
                         contentLocation: ContentLocation.below,
                         featureId: 'AddServantsHistory',
                         tapTarget: const Icon(Icons.add),
-                        title: Text('اضافة / عرض كشف حضور الخدام'),
+                        title: const Text('اضافة / عرض كشف حضور الخدام'),
                         description: Column(
                           children: <Widget>[
-                            Text('يمكنك تسجيل كشف حضور الخدام لليوم من هنا'),
-                            Text(
+                            const Text(
+                                'يمكنك تسجيل كشف حضور الخدام لليوم من هنا'),
+                            const Text(
                                 'بالإضافة الى حضور القداس والتناول وامكانية وضع الملاحظات لكل خادم'),
                             OutlinedButton.icon(
-                              icon: Icon(Icons.forward),
+                              icon: const Icon(Icons.forward),
                               label: Text(
                                 'التالي',
                                 style: TextStyle(
@@ -731,7 +733,7 @@ class _RootState extends State<Root>
                             .color!,
                         child: const Icon(Icons.add),
                       ),
-                      title: Text('كشف حضور الخدام'),
+                      title: const Text('كشف حضور الخدام'),
                       onTap: () async {
                         mainScfld.currentState!.openEndDrawer();
                         var today = (await FirebaseFirestore.instance
@@ -764,12 +766,12 @@ class _RootState extends State<Root>
                 contentLocation: ContentLocation.below,
                 featureId: 'History',
                 tapTarget: const Icon(Icons.history),
-                title: Text('عرض كشوفات المخدومين'),
+                title: const Text('عرض كشوفات المخدومين'),
                 description: Column(
                   children: <Widget>[
-                    Text('يمكنك عرض جميع كشوفات الحضور من هنا'),
+                    const Text('يمكنك عرض جميع كشوفات الحضور من هنا'),
                     OutlinedButton.icon(
-                      icon: Icon(Icons.forward),
+                      icon: const Icon(Icons.forward),
                       label: Text(
                         'التالي',
                         style: TextStyle(
@@ -796,7 +798,7 @@ class _RootState extends State<Root>
                 textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
                 child: const Icon(Icons.history),
               ),
-              title: Text('السجل'),
+              title: const Text('السجل'),
               onTap: () {
                 mainScfld.currentState!.openEndDrawer();
                 navigator.currentState!.pushNamed('History');
@@ -811,12 +813,13 @@ class _RootState extends State<Root>
                         contentLocation: ContentLocation.below,
                         featureId: 'ServantsHistory',
                         tapTarget: const Icon(Icons.history),
-                        title: Text('عرض كشوفات الخدام'),
+                        title: const Text('عرض كشوفات الخدام'),
                         description: Column(
                           children: <Widget>[
-                            Text('يمكنك عرض جميع كشوفات الحضور للخدام من هنا'),
+                            const Text(
+                                'يمكنك عرض جميع كشوفات الحضور للخدام من هنا'),
                             OutlinedButton.icon(
-                              icon: Icon(Icons.forward),
+                              icon: const Icon(Icons.forward),
                               label: Text(
                                 'التالي',
                                 style: TextStyle(
@@ -852,7 +855,7 @@ class _RootState extends State<Root>
                             .color!,
                         child: const Icon(Icons.history),
                       ),
-                      title: Text('سجل الخدام'),
+                      title: const Text('سجل الخدام'),
                       onTap: () {
                         mainScfld.currentState!.openEndDrawer();
                         navigator.currentState!.pushNamed('ServantsHistory');
@@ -860,20 +863,20 @@ class _RootState extends State<Root>
                     )
                   : Container(),
             ),
-            Divider(),
+            const Divider(),
             ListTile(
               leading: DescribedFeatureOverlay(
                 barrierDismissible: false,
                 contentLocation: ContentLocation.below,
                 featureId: 'Analytics',
                 tapTarget: const Icon(Icons.analytics_outlined),
-                title: Text('عرض تحليل لبيانات سجلات المخدومين'),
+                title: const Text('عرض تحليل لبيانات سجلات المخدومين'),
                 description: Column(
                   children: <Widget>[
-                    Text(
+                    const Text(
                         'الأن يمكنك عرض تحليل لبيانات المخدومين خلال فترة معينة من هنا'),
                     OutlinedButton.icon(
-                      icon: Icon(Icons.forward),
+                      icon: const Icon(Icons.forward),
                       label: Text(
                         'التالي',
                         style: TextStyle(
@@ -901,7 +904,7 @@ class _RootState extends State<Root>
                 textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
                 child: const Icon(Icons.analytics_outlined),
               ),
-              title: Text('تحليل سجل المخدومين'),
+              title: const Text('تحليل سجل المخدومين'),
               onTap: () {
                 mainScfld.currentState!.openEndDrawer();
                 navigator.currentState!.pushNamed('Analytics',
@@ -914,13 +917,13 @@ class _RootState extends State<Root>
                 contentLocation: ContentLocation.below,
                 featureId: 'ServantsAnalytics',
                 tapTarget: const Icon(Icons.analytics_outlined),
-                title: Text('عرض تحليل لبيانات سجلات الحضور للخدام'),
+                title: const Text('عرض تحليل لبيانات سجلات الحضور للخدام'),
                 description: Column(
                   children: <Widget>[
-                    Text(
+                    const Text(
                         'الأن يمكنك عرض تحليل لبيانات الخدام خلال فترة معينة من هنا'),
                     OutlinedButton.icon(
-                      icon: Icon(Icons.forward),
+                      icon: const Icon(Icons.forward),
                       label: Text(
                         'التالي',
                         style: TextStyle(
@@ -948,7 +951,7 @@ class _RootState extends State<Root>
                 textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
                 child: const Icon(Icons.analytics_outlined),
               ),
-              title: Text('تحليل بيانات سجل الخدام'),
+              title: const Text('تحليل بيانات سجل الخدام'),
               onTap: () {
                 mainScfld.currentState!.openEndDrawer();
                 navigator.currentState!.pushNamed('Analytics',
@@ -965,14 +968,14 @@ class _RootState extends State<Root>
                         featureId: 'ActivityAnalysis',
                         contentLocation: ContentLocation.below,
                         tapTarget: const Icon(Icons.analytics_outlined),
-                        title: Text('تحليل بيانات الخدمة'),
+                        title: const Text('تحليل بيانات الخدمة'),
                         description: Column(
                           children: [
-                            Text('يمكنك الأن تحليل بيانات خدمة الخدام'
+                            const Text('يمكنك الأن تحليل بيانات خدمة الخدام'
                                 ' من حيث الافتقاد'
                                 ' وتحديث البيانات وبيانات المكالمات'),
                             OutlinedButton.icon(
-                              icon: Icon(Icons.forward),
+                              icon: const Icon(Icons.forward),
                               label: Text(
                                 'التالي',
                                 style: TextStyle(
@@ -1006,9 +1009,9 @@ class _RootState extends State<Root>
                             .primaryTextTheme
                             .bodyText1!
                             .color!,
-                        child: Icon(Icons.analytics_outlined),
+                        child: const Icon(Icons.analytics_outlined),
                       ),
-                      title: Text('تحليل بيانات الخدمة'),
+                      title: const Text('تحليل بيانات الخدمة'),
                       onTap: () {
                         mainScfld.currentState!.openEndDrawer();
                         navigator.currentState!.pushNamed('ActivityAnalysis');
@@ -1016,21 +1019,21 @@ class _RootState extends State<Root>
                     )
                   : Container(),
             ),
-            Divider(),
+            const Divider(),
             ListTile(
               key: _search,
               leading: DescribedFeatureOverlay(
                 barrierDismissible: false,
                 contentLocation: ContentLocation.below,
                 featureId: 'AdvancedSearch',
-                tapTarget: Icon(Icons.search),
-                title: Text('البحث المفصل'),
+                tapTarget: const Icon(Icons.search),
+                title: const Text('البحث المفصل'),
                 description: Column(
                   children: <Widget>[
-                    Text(
+                    const Text(
                         'يمكن عمل بحث مفصل عن البيانات بالبرنامج بالخصائص المطلوبة\nمثال: عرض كل المخدومين الذين يصادف عيد ميلادهم اليوم\nعرض كل المخدومين داخل منطقة معينة'),
                     OutlinedButton.icon(
-                      icon: Icon(Icons.forward),
+                      icon: const Icon(Icons.forward),
                       label: Text(
                         'التالي',
                         style: TextStyle(
@@ -1058,7 +1061,7 @@ class _RootState extends State<Root>
                 textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
                 child: const Icon(Icons.search),
               ),
-              title: Text('بحث مفصل'),
+              title: const Text('بحث مفصل'),
               onTap: () {
                 mainScfld.currentState!.openEndDrawer();
                 navigator.currentState!.pushNamed('Search');
@@ -1068,7 +1071,7 @@ class _RootState extends State<Root>
               selector: (_, user) => user.manageDeleted,
               builder: (context, permission, _) {
                 if (!permission!)
-                  return Container(
+                  return const SizedBox(
                     width: 0,
                     height: 0,
                   );
@@ -1077,15 +1080,15 @@ class _RootState extends State<Root>
                     backgroundDismissible: false,
                     barrierDismissible: false,
                     featureId: 'ManageDeleted',
-                    tapTarget: Icon(Icons.delete_outline),
+                    tapTarget: const Icon(Icons.delete_outline),
                     contentLocation: ContentLocation.below,
-                    title: Text('سلة المحذوفات'),
+                    title: const Text('سلة المحذوفات'),
                     description: Column(
                       children: <Widget>[
-                        Text(
+                        const Text(
                             'يمكنك الأن استرجاع المحذوفات خلال مدة شهر من حذفها من هنا'),
                         OutlinedButton.icon(
-                          icon: Icon(Icons.forward),
+                          icon: const Icon(Icons.forward),
                           label: Text(
                             'التالي',
                             style: TextStyle(
@@ -1112,13 +1115,13 @@ class _RootState extends State<Root>
                     targetColor: Colors.transparent,
                     textColor:
                         Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                    child: Icon(Icons.delete_outline),
+                    child: const Icon(Icons.delete_outline),
                   ),
                   onTap: () {
                     mainScfld.currentState!.openEndDrawer();
                     navigator.currentState!.pushNamed('Trash');
                   },
-                  title: Text('سلة المحذوفات'),
+                  title: const Text('سلة المحذوفات'),
                 );
               },
             ),
@@ -1129,13 +1132,13 @@ class _RootState extends State<Root>
                 featureId: 'DataMap',
                 contentLocation: ContentLocation.below,
                 tapTarget: const Icon(Icons.map),
-                title: Text('خريطة الافتقاد'),
+                title: const Text('خريطة الافتقاد'),
                 description: Column(
                   children: [
-                    Text(
+                    const Text(
                         'يمكنك دائمًا الاطلاع على جميع مواقع العائلات بالبرنامج عن طريق خريطة الافتقاد'),
                     OutlinedButton.icon(
-                      icon: Icon(Icons.forward),
+                      icon: const Icon(Icons.forward),
                       label: Text(
                         'التالي',
                         style: TextStyle(
@@ -1160,15 +1163,15 @@ class _RootState extends State<Root>
                 backgroundColor: Theme.of(context).accentColor,
                 targetColor: Colors.transparent,
                 textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                child: Icon(Icons.map),
+                child: const Icon(Icons.map),
               ),
-              title: Text('عرض خريطة الافتقاد'),
+              title: const Text('عرض خريطة الافتقاد'),
               onTap: () {
                 mainScfld.currentState!.openEndDrawer();
                 navigator.currentState!.pushNamed('DataMap');
               },
             ),
-            Divider(),
+            const Divider(),
             ListTile(
               leading: DescribedFeatureOverlay(
                 onBackgroundTap: () async {
@@ -1183,10 +1186,10 @@ class _RootState extends State<Root>
                 contentLocation: ContentLocation.below,
                 featureId: 'Settings',
                 tapTarget: const Icon(Icons.settings),
-                title: Text('الإعدادات'),
+                title: const Text('الإعدادات'),
                 description: Column(
                   children: <Widget>[
-                    Text(
+                    const Text(
                         'يمكنك ضبط بعض الاعدادات بالبرنامج مثل مظهر البرنامج ومظهر البيانات وبعض البيانات الاضافية مثل الوظائف والأباء الكهنة'),
                     OutlinedButton(
                       onPressed: () =>
@@ -1205,16 +1208,16 @@ class _RootState extends State<Root>
                 textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
                 child: const Icon(Icons.settings),
               ),
-              title: Text('الإعدادات'),
+              title: const Text('الإعدادات'),
               onTap: () {
                 mainScfld.currentState!.openEndDrawer();
                 navigator.currentState!.pushNamed('Settings');
               },
             ),
-            Divider(),
+            const Divider(),
             ListTile(
-              leading: Icon(Icons.cloud_upload),
-              title: Text('استيراد من ملف اكسل'),
+              leading: const Icon(Icons.cloud_upload),
+              title: const Text('استيراد من ملف اكسل'),
               onTap: () {
                 mainScfld.currentState!.openEndDrawer();
                 import(context);
@@ -1225,8 +1228,8 @@ class _RootState extends State<Root>
               builder: (context2, permission, _) {
                 return permission!
                     ? ListTile(
-                        leading: Icon(Icons.cloud_download),
-                        title: Text('تصدير فصل إلى ملف اكسل'),
+                        leading: const Icon(Icons.cloud_download),
+                        title: const Text('تصدير فصل إلى ملف اكسل'),
                         onTap: () async {
                           mainScfld.currentState!.openEndDrawer();
                           Class? rslt = await showDialog(
@@ -1262,10 +1265,10 @@ class _RootState extends State<Root>
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text('جار تصدير ' + rslt.name + '...'),
-                                    LinearProgressIndicator(),
+                                    const LinearProgressIndicator(),
                                   ],
                                 ),
-                                duration: Duration(minutes: 9),
+                                duration: const Duration(minutes: 9),
                               ),
                             );
                             try {
@@ -1287,7 +1290,8 @@ class _RootState extends State<Root>
                                   .hideCurrentSnackBar();
                               scaffoldMessenger.currentState!.showSnackBar(
                                 SnackBar(
-                                  content: Text('تم تصدير البيانات ينجاح'),
+                                  content:
+                                      const Text('تم تصدير البيانات ينجاح'),
                                   action: SnackBarAction(
                                     label: 'فتح',
                                     onPressed: () {
@@ -1300,7 +1304,8 @@ class _RootState extends State<Root>
                               scaffoldMessenger.currentState!
                                   .hideCurrentSnackBar();
                               scaffoldMessenger.currentState!.showSnackBar(
-                                SnackBar(content: Text('فشل تصدير البيانات')),
+                                const SnackBar(
+                                    content: Text('فشل تصدير البيانات')),
                               );
                               await FirebaseCrashlytics.instance.setCustomKey(
                                   'LastErrorIn', 'Root.exportOnlyArea');
@@ -1318,8 +1323,8 @@ class _RootState extends State<Root>
               builder: (context2, permission, _) {
                 return permission!
                     ? ListTile(
-                        leading: Icon(Icons.cloud_download),
-                        title: Text('تصدير جميع البيانات'),
+                        leading: const Icon(Icons.cloud_download),
+                        title: const Text('تصدير جميع البيانات'),
                         onTap: () async {
                           mainScfld.currentState!.openEndDrawer();
                           scaffoldMessenger.currentState!.showSnackBar(
@@ -1328,12 +1333,12 @@ class _RootState extends State<Root>
                                 mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
+                                  const Text(
                                       'جار تصدير جميع البيانات...\nيرجى الانتظار...'),
-                                  LinearProgressIndicator(),
+                                  const LinearProgressIndicator(),
                                 ],
                               ),
-                              duration: Duration(minutes: 9),
+                              duration: const Duration(minutes: 9),
                             ),
                           );
                           try {
@@ -1355,7 +1360,7 @@ class _RootState extends State<Root>
                                 .hideCurrentSnackBar();
                             scaffoldMessenger.currentState!.showSnackBar(
                               SnackBar(
-                                content: Text('تم تصدير البيانات ينجاح'),
+                                content: const Text('تم تصدير البيانات ينجاح'),
                                 action: SnackBarAction(
                                   label: 'فتح',
                                   onPressed: () {
@@ -1368,7 +1373,8 @@ class _RootState extends State<Root>
                             scaffoldMessenger.currentState!
                                 .hideCurrentSnackBar();
                             scaffoldMessenger.currentState!.showSnackBar(
-                              SnackBar(content: Text('فشل تصدير البيانات')),
+                              const SnackBar(
+                                  content: Text('فشل تصدير البيانات')),
                             );
                             await FirebaseCrashlytics.instance
                                 .setCustomKey('LastErrorIn', 'Root.exportAll');
@@ -1383,23 +1389,23 @@ class _RootState extends State<Root>
             Selector<User, bool?>(
               selector: (_, user) => user.exportClasses,
               builder: (context, user, _) => ListTile(
-                leading: Icon(Icons.list_alt),
-                title: Text('عمليات التصدير السابقة'),
+                leading: const Icon(Icons.list_alt),
+                title: const Text('عمليات التصدير السابقة'),
                 onTap: () => navigator.currentState!.pushNamed('ExportOps'),
               ),
             ),
-            Divider(),
+            const Divider(),
             ListTile(
-              leading: Icon(Icons.system_update_alt),
-              title: Text('تحديث البرنامج'),
+              leading: const Icon(Icons.system_update_alt),
+              title: const Text('تحديث البرنامج'),
               onTap: () {
                 mainScfld.currentState!.openEndDrawer();
                 navigator.currentState!.pushNamed('Update');
               },
             ),
             ListTile(
-              leading: Icon(Icons.info_outline),
-              title: Text('حول البرنامج'),
+              leading: const Icon(Icons.info_outline),
+              title: const Text('حول البرنامج'),
               onTap: () async {
                 mainScfld.currentState!.openEndDrawer();
                 showAboutDialog(
@@ -1459,8 +1465,8 @@ class _RootState extends State<Root>
             ),
             ListTile(
               leading:
-                  Icon(const IconData(0xe9ba, fontFamily: 'MaterialIconsR')),
-              title: Text('تسجيل الخروج'),
+                  const Icon(IconData(0xe9ba, fontFamily: 'MaterialIconsR')),
+              title: const Text('تسجيل الخروج'),
               onTap: () async {
                 mainScfld.currentState!.openEndDrawer();
                 var user = User.instance;
@@ -1471,7 +1477,7 @@ class _RootState extends State<Root>
                     builder: (context) {
                       navigator.currentState!
                           .popUntil((route) => route.isFirst);
-                      return App();
+                      return const App();
                     },
                   ),
                 );
@@ -1495,7 +1501,7 @@ class _RootState extends State<Root>
             MaterialPageRoute(
               builder: (context) => WillPopScope(
                 onWillPop: () => Future.delayed(Duration.zero, () => false),
-                child: AuthScreen(),
+                child: const AuthScreen(),
               ),
             ),
           )
@@ -1574,7 +1580,7 @@ class _RootState extends State<Root>
       await showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          content: Text(
+          content: const Text(
               'برجاء الغاء تفعيل حفظ الطاقة للبرنامج لإظهار الاشعارات في الخلفية'),
           actions: [
             TextButton(
@@ -1583,14 +1589,14 @@ class _RootState extends State<Root>
                 await AppSettings.openBatteryOptimizationSettings();
                 ;
               },
-              child: Text('الغاء حفظ الطاقة للبرنامج'),
+              child: const Text('الغاء حفظ الطاقة للبرنامج'),
             ),
             TextButton(
               onPressed: () async {
                 await Hive.box('Settings').put('ShowBatteryDialog', false);
                 navigator.currentState!.pop();
               },
-              child: Text('عدم الاظهار مجددًا'),
+              child: const Text('عدم الاظهار مجددًا'),
             ),
           ],
         ),
@@ -1655,7 +1661,7 @@ class _RootState extends State<Root>
       _keepAliveTimer = null;
     } else {
       _keepAliveTimer = Timer(
-        Duration(minutes: 1),
+        const Duration(minutes: 1),
         () => _timeout = true,
       );
     }
@@ -1673,7 +1679,7 @@ class _RootState extends State<Root>
     try {
       if (form.validate() && person.classId != null) {
         scaffoldMessenger.currentState!.showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('جار الحفظ...'),
             duration: Duration(minutes: 1),
           ),
@@ -1698,7 +1704,7 @@ class _RootState extends State<Root>
       } else {
         await showDialog(
           context: context,
-          builder: (context) => AlertDialog(
+          builder: (context) => const AlertDialog(
             title: Text('بيانات غير كاملة'),
             content: Text('يرجى التأكد من ملئ هذه الحقول:\nالاسم\nالفصل'),
           ),
@@ -1713,7 +1719,7 @@ class _RootState extends State<Root>
         content: Text(
           err.toString(),
         ),
-        duration: Duration(seconds: 7),
+        duration: const Duration(seconds: 7),
       ));
     }
   }

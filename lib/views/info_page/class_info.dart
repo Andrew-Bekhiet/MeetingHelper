@@ -4,23 +4,24 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/material.dart';
 import 'package:meetinghelper/models/models.dart';
+import 'package:meetinghelper/utils/globals.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:tinycolor/tinycolor.dart';
-import 'package:meetinghelper/utils/globals.dart';
 
-import '../../models/user.dart';
 import '../../models/history_property.dart';
 import '../../models/list_options.dart';
 import '../../models/order_options.dart';
 import '../../models/search_filters.dart';
+import '../../models/user.dart';
 import '../../utils/helpers.dart';
 import '../data_map.dart';
 import '../list.dart';
 
 class ClassInfo extends StatefulWidget {
   final Class? class$;
+
   const ClassInfo({Key? key, this.class$}) : super(key: key);
 
   @override
@@ -37,6 +38,13 @@ class _ClassInfoState extends State<ClassInfo> {
   void addTap(BuildContext context) {
     navigator.currentState!
         .pushNamed('Data/EditPerson', arguments: widget.class$!.ref);
+  }
+
+  @override
+  Future<void> dispose() async {
+    super.dispose();
+    await _orderOptions.close();
+    await _searchStream.close();
   }
 
   @override
@@ -60,8 +68,8 @@ class _ClassInfoState extends State<ClassInfo> {
       searchQuery: _searchStream,
       tap: (p) => personTap(p, context),
       itemsStream: _orderOptions.switchMap(
-        ((order) => widget.class$!.getMembersLive(
-            orderBy: order.orderBy ?? 'Name', descending: !order.asc!)),
+        (order) => widget.class$!.getMembersLive(
+            orderBy: order.orderBy ?? 'Name', descending: !order.asc!),
       ),
     );
     return Selector<User, bool?>(
@@ -72,7 +80,7 @@ class _ClassInfoState extends State<ClassInfo> {
         builder: (context, data) {
           Class? class$ = data.data;
           if (class$ == null)
-            return Scaffold(
+            return const Scaffold(
               body: Center(
                 child: Text('تم حذف الفصل'),
               ),
@@ -90,7 +98,7 @@ class _ClassInfoState extends State<ClassInfo> {
                       ? <Widget>[
                           if (permission!)
                             IconButton(
-                              icon: Icon(Icons.restore),
+                              icon: const Icon(Icons.restore),
                               tooltip: 'استعادة',
                               onPressed: () {
                                 recoverDoc(context, class$.ref.path);
@@ -110,12 +118,13 @@ class _ClassInfoState extends State<ClassInfo> {
                                         Icons.edit,
                                         color: IconTheme.of(context).color,
                                       ),
-                                      title: Text('تعديل'),
+                                      title: const Text('تعديل'),
                                       description: Column(
                                         children: <Widget>[
-                                          Text('يمكنك تعديل البيانات من هنا'),
+                                          const Text(
+                                              'يمكنك تعديل البيانات من هنا'),
                                           OutlinedButton.icon(
-                                            icon: Icon(Icons.forward),
+                                            icon: const Icon(Icons.forward),
                                             label: Text(
                                               'التالي',
                                               style: TextStyle(
@@ -154,7 +163,7 @@ class _ClassInfoState extends State<ClassInfo> {
                                       child: Builder(
                                         builder: (context) => Stack(
                                           children: <Widget>[
-                                            Positioned(
+                                            const Positioned(
                                               left: 1.0,
                                               top: 2.0,
                                               child: Icon(Icons.edit,
@@ -175,7 +184,7 @@ class _ClassInfoState extends State<ClassInfo> {
                                       if (result is DocumentReference) {
                                         scaffoldMessenger.currentState!
                                             .showSnackBar(
-                                          SnackBar(
+                                          const SnackBar(
                                             content: Text('تم الحفظ بنجاح'),
                                           ),
                                         );
@@ -191,16 +200,16 @@ class _ClassInfoState extends State<ClassInfo> {
                               barrierDismissible: false,
                               contentLocation: ContentLocation.below,
                               featureId: 'Share',
-                              tapTarget: Icon(
+                              tapTarget: const Icon(
                                 Icons.share,
                               ),
-                              title: Text('مشاركة البيانات'),
+                              title: const Text('مشاركة البيانات'),
                               description: Column(
                                 children: <Widget>[
-                                  Text(
+                                  const Text(
                                       'يمكنك مشاركة البيانات بلينك يفتح البيانات مباشرة داخل البرنامج'),
                                   OutlinedButton.icon(
-                                    icon: Icon(Icons.forward),
+                                    icon: const Icon(Icons.forward),
                                     label: Text(
                                       'التالي',
                                       style: TextStyle(
@@ -238,7 +247,7 @@ class _ClassInfoState extends State<ClassInfo> {
                               child: Builder(
                                 builder: (context) => Stack(
                                   children: <Widget>[
-                                    Positioned(
+                                    const Positioned(
                                       left: 1.0,
                                       top: 2.0,
                                       child: Icon(Icons.share,
@@ -260,16 +269,16 @@ class _ClassInfoState extends State<ClassInfo> {
                             barrierDismissible: false,
                             contentLocation: ContentLocation.below,
                             featureId: 'MoreOptions',
-                            tapTarget: Icon(
+                            tapTarget: const Icon(
                               Icons.more_vert,
                             ),
-                            title: Text('المزيد من الخيارات'),
+                            title: const Text('المزيد من الخيارات'),
                             description: Column(
                               children: <Widget>[
-                                Text(
+                                const Text(
                                     'يمكنك ايجاد المزيد من الخيارات من هنا مثل: اشعار المستخدمين عن الفصل'),
                                 OutlinedButton.icon(
-                                  icon: Icon(Icons.forward),
+                                  icon: const Icon(Icons.forward),
                                   label: Text(
                                     'التالي',
                                     style: TextStyle(
@@ -309,7 +318,7 @@ class _ClassInfoState extends State<ClassInfo> {
                                   sendNotification(context, class$),
                               itemBuilder: (context) {
                                 return [
-                                  PopupMenuItem(
+                                  const PopupMenuItem(
                                     value: '',
                                     child:
                                         Text('ارسال إشعار للمستخدمين عن الفصل'),
@@ -326,13 +335,13 @@ class _ClassInfoState extends State<ClassInfo> {
                   flexibleSpace: LayoutBuilder(
                     builder: (context, constraints) => FlexibleSpaceBar(
                       title: AnimatedOpacity(
-                        duration: Duration(milliseconds: 300),
+                        duration: const Duration(milliseconds: 300),
                         opacity:
                             constraints.biggest.height > kToolbarHeight * 1.7
                                 ? 0
                                 : 1,
-                        child:
-                            Text(class$.name, style: TextStyle(fontSize: 16.0)),
+                        child: Text(class$.name,
+                            style: const TextStyle(fontSize: 16.0)),
                       ),
                       background: class$.photo(),
                     ),
@@ -346,7 +355,7 @@ class _ClassInfoState extends State<ClassInfo> {
                             style: Theme.of(context).textTheme.headline6),
                       ),
                       ListTile(
-                        title: Text('السنة الدراسية:'),
+                        title: const Text('السنة الدراسية:'),
                         subtitle: FutureBuilder<String>(
                             future: class$.getStudyYearName(),
                             builder: (context, data) {
@@ -354,38 +363,38 @@ class _ClassInfoState extends State<ClassInfo> {
                                 return Text(data.data! +
                                     ' - ' +
                                     class$.getGenderName());
-                              return LinearProgressIndicator();
+                              return const LinearProgressIndicator();
                             }),
                       ),
                       if (!class$.ref.path.startsWith('Deleted'))
                         ElevatedButton.icon(
-                          icon: Icon(Icons.map),
+                          icon: const Icon(Icons.map),
                           onPressed: () => showMap(context, class$),
-                          label: Text('إظهار المخدومين على الخريطة'),
+                          label: const Text('إظهار المخدومين على الخريطة'),
                         ),
                       if (User.instance.manageUsers ||
                           User.instance.manageAllowedUsers)
                         ElevatedButton.icon(
-                          icon: Icon(Icons.analytics_outlined),
+                          icon: const Icon(Icons.analytics_outlined),
                           onPressed: () => Navigator.pushNamed(
                             context,
                             'ActivityAnalysis',
                             arguments: [class$],
                           ),
-                          label: Text('تحليل نشاط الخدام'),
+                          label: const Text('تحليل نشاط الخدام'),
                         ),
                       if (!class$.ref.path.startsWith('Deleted'))
                         ElevatedButton.icon(
                           icon: DescribedFeatureOverlay(
                             featureId: 'Class.Analytics',
                             tapTarget: const Icon(Icons.analytics_outlined),
-                            title: Text('عرض تحليل لبيانات سجلات الحضور'),
+                            title: const Text('عرض تحليل لبيانات سجلات الحضور'),
                             description: Column(
                               children: <Widget>[
-                                Text(
+                                const Text(
                                     'الأن يمكنك عرض تحليل لبيانات حضور مخدومين الفصل خلال فترة معينة من هنا'),
                                 OutlinedButton.icon(
-                                  icon: Icon(Icons.forward),
+                                  icon: const Icon(Icons.forward),
                                   label: Text(
                                     'التالي',
                                     style: TextStyle(
@@ -423,17 +432,17 @@ class _ClassInfoState extends State<ClassInfo> {
                                 .color!,
                             child: const Icon(Icons.analytics_outlined),
                           ),
-                          label: Text('احصائيات الحضور'),
+                          label: const Text('احصائيات الحضور'),
                           onPressed: () => _showAnalytics(context, class$),
                         ),
-                      Divider(thickness: 1),
+                      const Divider(thickness: 1),
                       EditHistoryProperty(
                         'أخر تحديث للبيانات:',
                         class$.lastEdit,
                         class$.ref.collection('EditHistory'),
                         discoverFeature: true,
                       ),
-                      Text('المخدومين بالفصل:'),
+                      const Text('المخدومين بالفصل:'),
                       SearchFilters(
                         1,
                         searchStream: _searchStream,
@@ -447,7 +456,7 @@ class _ClassInfoState extends State<ClassInfo> {
               ],
               body: SafeArea(
                 child: class$.ref.path.startsWith('Deleted')
-                    ? Text('يجب استعادة الفصل لرؤية المخدومين بداخله')
+                    ? const Text('يجب استعادة الفصل لرؤية المخدومين بداخله')
                     : DataObjectList<Person>(options: _listOptions),
               ),
             ),
@@ -485,11 +494,11 @@ class _ClassInfoState extends State<ClassInfo> {
                       backgroundDismissible: true,
                       contentLocation: ContentLocation.above,
                       featureId: 'Add',
-                      tapTarget: Icon(Icons.person_add),
-                      title: Text('اضافة مخدوم داخل الفصل'),
+                      tapTarget: const Icon(Icons.person_add),
+                      title: const Text('اضافة مخدوم داخل الفصل'),
                       description: Column(
                         children: [
-                          Text(
+                          const Text(
                               'يمكنك اضافة مخدوم داخل الفصل بسرعة وسهولة من هنا'),
                           OutlinedButton(
                             onPressed: () =>
@@ -510,7 +519,7 @@ class _ClassInfoState extends State<ClassInfo> {
                       targetColor: Theme.of(context).primaryColor,
                       textColor:
                           Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                      child: Icon(Icons.person_add),
+                      child: const Icon(Icons.person_add),
                     ),
                   )
                 : null,

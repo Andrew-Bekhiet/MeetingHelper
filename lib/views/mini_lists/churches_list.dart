@@ -8,7 +8,8 @@ class ChurchesEditList extends StatefulWidget {
   final Future<QuerySnapshot> list;
 
   final Function(Church)? tap;
-  ChurchesEditList({required this.list, this.tap});
+  const ChurchesEditList({Key? key, required this.list, this.tap})
+      : super(key: key);
 
   @override
   _ChurchesEditListState createState() => _ChurchesEditListState();
@@ -19,7 +20,9 @@ class ChurchesList extends StatefulWidget {
 
   final Function(List<Church>?)? finished;
   final Stream<Church>? original;
-  ChurchesList({required this.list, this.finished, this.original});
+  const ChurchesList(
+      {Key? key, required this.list, this.finished, this.original})
+      : super(key: key);
 
   @override
   _ChurchesListState createState() => _ChurchesListState();
@@ -31,12 +34,13 @@ class InnerListState extends State<_InnerChurchsList> {
   Widget build(BuildContext context) {
     return Column(children: <Widget>[
       TextField(
-          decoration: InputDecoration(hintText: 'بحث...'),
-          onChanged: (text) {
-            setState(() {
-              filter = text;
-            });
-          }),
+        decoration: const InputDecoration(hintText: 'بحث...'),
+        onChanged: (text) {
+          setState(() {
+            filter = text;
+          });
+        },
+      ),
       Expanded(
         child: RefreshIndicator(
           onRefresh: () async {
@@ -45,7 +49,7 @@ class InnerListState extends State<_InnerChurchsList> {
           child: StreamBuilder<QuerySnapshot>(
             stream: widget.data,
             builder: (context, churchs) {
-              if (!churchs.hasData) return CircularProgressIndicator();
+              if (!churchs.hasData) return const CircularProgressIndicator();
               return ListView.builder(
                 itemCount: churchs.data!.docs.length,
                 itemBuilder: (context, i) {
@@ -90,11 +94,11 @@ class InnerListState extends State<_InnerChurchsList> {
         children: <Widget>[
           TextButton(
             onPressed: () => widget.finished!(widget.result),
-            child: Text('تم'),
+            child: const Text('تم'),
           ),
           TextButton(
             onPressed: () => widget.finished!(null),
-            child: Text('إلغاء الأمر'),
+            child: const Text('إلغاء الأمر'),
           ),
         ],
       )
@@ -113,12 +117,13 @@ class _ChurchesEditListState extends State<ChurchesEditList> {
           return Column(
             children: <Widget>[
               TextField(
-                  decoration: InputDecoration(hintText: 'بحث...'),
-                  onChanged: (text) {
-                    setState(() {
-                      filter = text;
-                    });
-                  }),
+                decoration: const InputDecoration(hintText: 'بحث...'),
+                onChanged: (text) {
+                  setState(() {
+                    filter = text;
+                  });
+                },
+              ),
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () {

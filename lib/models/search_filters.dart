@@ -18,30 +18,30 @@ class FilterButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: Icon(Icons.filter_list),
+      icon: const Icon(Icons.filter_list),
       onPressed: () {
         showDialog(
           context: context,
           builder: (context) => SimpleDialog(
             children: [
               TextButton.icon(
-                icon: Icon(Icons.select_all),
-                label: Text('تحديد الكل'),
+                icon: const Icon(Icons.select_all),
+                label: const Text('تحديد الكل'),
                 onPressed: () {
                   controller!.selectAll();
                   navigator.currentState!.pop();
                 },
               ),
               TextButton.icon(
-                icon: Icon(Icons.select_all),
-                label: Text('تحديد لا شئ'),
+                icon: const Icon(Icons.select_all),
+                label: const Text('تحديد لا شئ'),
                 onPressed: () {
                   controller!.selectNone();
                   navigator.currentState!.pop();
                 },
               ),
               if (!disableOrdering)
-                Text('ترتيب حسب:',
+                const Text('ترتيب حسب:',
                     style: TextStyle(fontWeight: FontWeight.bold)),
               if (!disableOrdering)
                 ...getOrderingOptions(context, orderOptions!, index)
@@ -76,7 +76,7 @@ class SearchField extends StatelessWidget {
           hintStyle: textStyle,
           icon: Icon(Icons.search, color: textStyle!.color),
           hintText: 'بحث ...'),
-      onChanged: (_) => searchStream.add(_),
+      onChanged: searchStream.add,
     );
   }
 }

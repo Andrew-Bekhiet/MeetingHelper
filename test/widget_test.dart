@@ -12,7 +12,7 @@ import 'package:meetinghelper/main.dart';
 
 void main() {
   testWidgets('App test', (WidgetTester tester) async {
-    await tester.pumpWidget(App());
+    await tester.pumpWidget(const App());
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);

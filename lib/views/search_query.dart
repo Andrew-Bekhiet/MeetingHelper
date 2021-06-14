@@ -11,15 +11,15 @@ import '../models/models.dart';
 import '../models/order_options.dart';
 import '../models/search_filters.dart';
 import '../models/user.dart';
-import '../utils/helpers.dart';
 import '../utils/globals.dart';
+import '../utils/helpers.dart';
 import 'list.dart';
 import 'mini_lists/colors_list.dart';
 
 class SearchQuery extends StatefulWidget {
   final Map<String, dynamic>? query;
 
-  SearchQuery({Key? key, this.query}) : super(key: key);
+  const SearchQuery({Key? key, this.query}) : super(key: key);
 
   @override
   _SearchQueryState createState() => _SearchQueryState();
@@ -37,7 +37,7 @@ class _SearchQueryState extends State<SearchQuery> {
   bool? descending = false;
   String? orderBy = 'Name';
 
-  List<DropdownMenuItem> operatorItems = <DropdownMenuItem>[
+  List<DropdownMenuItem> operatorItems = const [
     DropdownMenuItem(value: 0, child: Text('=')),
     DropdownMenuItem(value: 1, child: Text('قائمة تحتوي على')),
     DropdownMenuItem(value: 2, child: Text('أكبر من')),
@@ -47,7 +47,7 @@ class _SearchQueryState extends State<SearchQuery> {
     ),
   ];
 
-  List<List<DropdownMenuItem>> childItems = <List<DropdownMenuItem>>[
+  List<List<DropdownMenuItem>> childItems = const [
     <DropdownMenuItem>[
       DropdownMenuItem(
         value: MapEntry(1, 'Name'),
@@ -215,7 +215,7 @@ class _SearchQueryState extends State<SearchQuery> {
           ),
         ),
         Container(
-          padding: EdgeInsets.symmetric(vertical: 4.0),
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
           child: TextFormField(
             autofocus: false,
             decoration: InputDecoration(
@@ -235,7 +235,7 @@ class _SearchQueryState extends State<SearchQuery> {
         GestureDetector(
           onTap: _selectClass,
           child: Container(
-            padding: EdgeInsets.symmetric(vertical: 4.0),
+            padding: const EdgeInsets.symmetric(vertical: 4.0),
             child: InputDecorator(
               decoration: InputDecoration(
                   labelText: 'اختيار فصل',
@@ -264,7 +264,7 @@ class _SearchQueryState extends State<SearchQuery> {
         // GestureDetector(
         //   onTap: _selectType,
         //   child: Container(
-        //     padding: EdgeInsets.symmetric(vertical: 4.0),
+        //     padding: const EdgeInsets.symmetric(vertical: 4.0),
         //     child: InputDecorator(
         //       decoration: InputDecoration(
         //           labelText: 'اختيار نوع الفرد',
@@ -283,11 +283,11 @@ class _SearchQueryState extends State<SearchQuery> {
             builder: (context, data) {
               if (data.hasData) {
                 return DropdownButtonFormField(
-                  value: (queryValue != null &&
+                  value: queryValue != null &&
                           queryValue is DocumentReference &&
                           queryValue.path.startsWith('Schools/')
                       ? queryValue.path
-                      : null),
+                      : null,
                   items: data.data!.docs
                       .map(
                         (item) => DropdownMenuItem(
@@ -298,7 +298,7 @@ class _SearchQueryState extends State<SearchQuery> {
                       .toList()
                         ..insert(
                           0,
-                          DropdownMenuItem(
+                          const DropdownMenuItem(
                             value: null,
                             child: Text(''),
                           ),
@@ -310,10 +310,10 @@ class _SearchQueryState extends State<SearchQuery> {
                             .get(dataSource))
                         .data()!['Name'];
                   },
-                  decoration: InputDecoration(labelText: 'المدرسة'),
+                  decoration: const InputDecoration(labelText: 'المدرسة'),
                 );
               }
-              return LinearProgressIndicator();
+              return const LinearProgressIndicator();
             }),
         FutureBuilder<QuerySnapshot>(
             //8
@@ -321,11 +321,11 @@ class _SearchQueryState extends State<SearchQuery> {
             builder: (context, data) {
               if (data.hasData) {
                 return DropdownButtonFormField(
-                  value: (queryValue != null &&
+                  value: queryValue != null &&
                           queryValue is DocumentReference &&
                           queryValue.path.startsWith('Churches/')
                       ? queryValue.path
-                      : null),
+                      : null,
                   items: data.data!.docs
                       .map(
                         (item) => DropdownMenuItem(
@@ -336,7 +336,7 @@ class _SearchQueryState extends State<SearchQuery> {
                       .toList()
                         ..insert(
                           0,
-                          DropdownMenuItem(
+                          const DropdownMenuItem(
                             value: null,
                             child: Text(''),
                           ),
@@ -348,10 +348,10 @@ class _SearchQueryState extends State<SearchQuery> {
                             .get(dataSource))
                         .data()!['Name'];
                   },
-                  decoration: InputDecoration(labelText: 'الكنيسة'),
+                  decoration: const InputDecoration(labelText: 'الكنيسة'),
                 );
               }
-              return LinearProgressIndicator();
+              return const LinearProgressIndicator();
             }),
         FutureBuilder<QuerySnapshot>(
             //9
@@ -359,11 +359,11 @@ class _SearchQueryState extends State<SearchQuery> {
             builder: (context, data) {
               if (data.hasData) {
                 return DropdownButtonFormField(
-                  value: (queryValue != null &&
+                  value: queryValue != null &&
                           queryValue is DocumentReference &&
                           queryValue.path.startsWith('Fathers/')
                       ? queryValue.path
-                      : null),
+                      : null,
                   items: data.data!.docs
                       .map(
                         (item) => DropdownMenuItem(
@@ -374,7 +374,7 @@ class _SearchQueryState extends State<SearchQuery> {
                       .toList()
                         ..insert(
                           0,
-                          DropdownMenuItem(
+                          const DropdownMenuItem(
                             value: null,
                             child: Text(''),
                           ),
@@ -386,10 +386,10 @@ class _SearchQueryState extends State<SearchQuery> {
                             .get(dataSource))
                         .data()!['Name'];
                   },
-                  decoration: InputDecoration(labelText: 'اب الاعتراف'),
+                  decoration: const InputDecoration(labelText: 'اب الاعتراف'),
                 );
               }
-              return LinearProgressIndicator();
+              return const LinearProgressIndicator();
             }),
         FutureBuilder<QuerySnapshot>(
             //10
@@ -397,11 +397,11 @@ class _SearchQueryState extends State<SearchQuery> {
             builder: (context, data) {
               if (data.hasData) {
                 return DropdownButtonFormField(
-                  value: (queryValue != null &&
+                  value: queryValue != null &&
                           queryValue is DocumentReference &&
                           queryValue.path.startsWith('StudyYears/')
                       ? queryValue.path
-                      : null),
+                      : null,
                   items: data.data!.docs
                       .map(
                         (item) => DropdownMenuItem(
@@ -412,7 +412,7 @@ class _SearchQueryState extends State<SearchQuery> {
                       .toList()
                         ..insert(
                           0,
-                          DropdownMenuItem(
+                          const DropdownMenuItem(
                             value: null,
                             child: Text(''),
                           ),
@@ -424,10 +424,10 @@ class _SearchQueryState extends State<SearchQuery> {
                             .get(dataSource))
                         .data()!['Name'];
                   },
-                  decoration: InputDecoration(labelText: 'سنة الدراسة'),
+                  decoration: const InputDecoration(labelText: 'سنة الدراسة'),
                 );
               }
-              return LinearProgressIndicator();
+              return const LinearProgressIndicator();
             }),
         Column(
           children: <Widget>[
@@ -449,7 +449,7 @@ class _SearchQueryState extends State<SearchQuery> {
             ),
             Row(
               children: <Widget>[
-                Text('بحث باليوم والشهر فقط'),
+                const Text('بحث باليوم والشهر فقط'),
                 Switch(
                   value: !(birthDate == true),
                   onChanged: (v) => setState(() {
@@ -460,7 +460,7 @@ class _SearchQueryState extends State<SearchQuery> {
             ),
             Row(
               children: <Widget>[
-                Text('(تاريخ فارغ)'),
+                const Text('(تاريخ فارغ)'),
                 Switch(
                   value: queryValue == null,
                   onChanged: (v) => setState(() {
@@ -577,15 +577,15 @@ class _SearchQueryState extends State<SearchQuery> {
         //           decoration: InputDecoration(labelText: 'نوع الخدمة'),
         //         );
         //       }
-        //       return LinearProgressIndicator();
+        //       return const LinearProgressIndicator();
         //     }),
         ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               primary: Color(
                   queryValue is int ? queryValue : Colors.transparent.value),
             ),
-            icon: Icon(Icons.color_lens),
-            label: Text('اختيار لون'),
+            icon: const Icon(Icons.color_lens),
+            label: const Text('اختيار لون'),
             onPressed: () {
               showDialog(
                 context: context,
@@ -598,7 +598,7 @@ class _SearchQueryState extends State<SearchQuery> {
                           queryValue = Colors.transparent.value;
                         });
                       },
-                      child: Text('بلا لون'),
+                      child: const Text('بلا لون'),
                     ),
                   ],
                   content: ColorsList(
@@ -624,11 +624,11 @@ class _SearchQueryState extends State<SearchQuery> {
             builder: (context, data) {
               if (data.hasData) {
                 return DropdownButtonFormField(
-                  value: (queryValue != null &&
+                  value: queryValue != null &&
                           queryValue is DocumentReference &&
                           queryValue.path.startsWith('Colleges/')
                       ? queryValue.path
-                      : null),
+                      : null,
                   items: data.data!.docs
                       .map(
                         (item) => DropdownMenuItem(
@@ -639,7 +639,7 @@ class _SearchQueryState extends State<SearchQuery> {
                       .toList()
                         ..insert(
                           0,
-                          DropdownMenuItem(
+                          const DropdownMenuItem(
                             value: null,
                             child: Text(''),
                           ),
@@ -651,16 +651,16 @@ class _SearchQueryState extends State<SearchQuery> {
                             .get(dataSource))
                         .data()!['Name'];
                   },
-                  decoration: InputDecoration(labelText: 'الكلية'),
+                  decoration: const InputDecoration(labelText: 'الكلية'),
                 );
               }
-              return LinearProgressIndicator();
+              return const LinearProgressIndicator();
             }),
       ],
     );
     return Scaffold(
       appBar: AppBar(
-        title: Text('بحث مفصل'),
+        title: const Text('بحث مفصل'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -672,9 +672,9 @@ class _SearchQueryState extends State<SearchQuery> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                Text('عرض كل: '),
+                const Text('عرض كل: '),
                 DropdownButton(
-                  items: <DropdownMenuItem>[
+                  items: const [
                     DropdownMenuItem(value: 0, child: Text('الفصول')),
                     DropdownMenuItem(value: 1, child: Text('المخدومين')),
                   ],
@@ -687,7 +687,7 @@ class _SearchQueryState extends State<SearchQuery> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                Text('حيث أن: '),
+                const Text('حيث أن: '),
                 Expanded(
                   child: DropdownButton(
                       isExpanded: true,
@@ -708,7 +708,7 @@ class _SearchQueryState extends State<SearchQuery> {
             equal,
             Row(
               children: <Widget>[
-                Text('ترتيب حسب:'),
+                const Text('ترتيب حسب:'),
                 Expanded(
                   child: DropdownButton(
                     isExpanded: true,
@@ -726,11 +726,11 @@ class _SearchQueryState extends State<SearchQuery> {
                     isExpanded: true,
                     value: descending,
                     items: [
-                      DropdownMenuItem(
+                      const DropdownMenuItem(
                         value: false,
                         child: Text('تصاعدي'),
                       ),
-                      DropdownMenuItem(
+                      const DropdownMenuItem(
                         value: true,
                         child: Text('تنازلي'),
                       ),
@@ -745,9 +745,9 @@ class _SearchQueryState extends State<SearchQuery> {
               ],
             ),
             ElevatedButton.icon(
-              icon: Icon(Icons.done),
+              icon: const Icon(Icons.done),
               onPressed: execute,
-              label: Text('تنفيذ'),
+              label: const Text('تنفيذ'),
             )
           ],
         ),
@@ -911,7 +911,7 @@ class _SearchQueryState extends State<SearchQuery> {
     Query classes = FirebaseFirestore.instance.collection('Classes');
     Query persons = FirebaseFirestore.instance.collection('Persons');
 
-    var resultsSearch = BehaviorSubject<String>.seeded('');
+    BehaviorSubject<String> resultsSearch = BehaviorSubject<String>.seeded('');
     bool fewClasses = true;
     if (!User.instance.superAccess) {
       final allowed =
@@ -1287,7 +1287,7 @@ class _SearchQueryState extends State<SearchQuery> {
             appBar: AppBar(
               actions: <Widget>[
                 IconButton(
-                  icon: Icon(Icons.share),
+                  icon: const Icon(Icons.share),
                   onPressed: () async {
                     await Share.share(
                       await shareQuery({
@@ -1328,6 +1328,7 @@ class _SearchQueryState extends State<SearchQuery> {
         },
       ),
     );
+    await resultsSearch.close();
   }
 
   List<DropdownMenuItem<String>>? getOrderByItems() {
@@ -1482,7 +1483,7 @@ class _SearchQueryState extends State<SearchQuery> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          content: Container(
+          content: SizedBox(
             width: 280,
             child: Column(
               children: [
@@ -1502,13 +1503,15 @@ class _SearchQueryState extends State<SearchQuery> {
         );
       },
     );
+    await _orderOptions.close();
+    await searchStream.close();
   }
 
   void _selectDate() async {
     DateTime? picked = await showDatePicker(
         context: context,
         initialDate:
-            !(queryValue is Timestamp) ? DateTime.now() : queryValue.toDate(),
+            queryValue is! Timestamp ? DateTime.now() : queryValue.toDate(),
         firstDate: DateTime(1500),
         lastDate: DateTime(2201));
     if (picked != null)

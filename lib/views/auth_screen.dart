@@ -36,12 +36,12 @@ class _AuthScreenState extends State<AuthScreen> {
   String _getAssetImage() {
     final riseDay = getRiseDay();
     if (DateTime.now()
-            .isAfter(riseDay.subtract(Duration(days: 7, seconds: 20))) &&
-        DateTime.now().isBefore(riseDay.subtract(Duration(days: 1)))) {
+            .isAfter(riseDay.subtract(const Duration(days: 7, seconds: 20))) &&
+        DateTime.now().isBefore(riseDay.subtract(const Duration(days: 1)))) {
       return 'assets/holyweek.jpeg';
     } else if (DateTime.now()
-            .isBefore(riseDay.add(Duration(days: 50, seconds: 20))) &&
-        DateTime.now().isAfter(riseDay.subtract(Duration(days: 1)))) {
+            .isBefore(riseDay.add(const Duration(days: 50, seconds: 20))) &&
+        DateTime.now().isAfter(riseDay.subtract(const Duration(days: 1)))) {
       return 'assets/risen.jpg';
     }
     return 'assets/Logo.png';
@@ -59,13 +59,13 @@ class _AuthScreenState extends State<AuthScreen> {
           resizeToAvoidBottomInset: !kIsWeb,
           appBar: AppBar(
             leading: Container(),
-            title: Text('برجاء التحقق للمتابعة'),
+            title: const Text('برجاء التحقق للمتابعة'),
           ),
           body: ListView(
             padding: const EdgeInsets.all(8.0),
             children: <Widget>[
               Image.asset(_getAssetImage(), fit: BoxFit.scaleDown),
-              Divider(),
+              const Divider(),
               TextFormField(
                 decoration: InputDecoration(
                   suffix: IconButton(
@@ -95,22 +95,17 @@ class _AuthScreenState extends State<AuthScreen> {
                   }
                   return null;
                 },
-                onFieldSubmitted: (v) => _submit(v),
+                onFieldSubmitted: _submit,
               ),
               ElevatedButton(
                 onPressed: () => _submit(_passwordText.text),
-                child: Text('تسجيل الدخول'),
+                child: const Text('تسجيل الدخول'),
               ),
               if (canCheckBio!)
                 OutlinedButton.icon(
-                  icon: Icon(Icons.fingerprint),
-                  label: Text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'),
-                  onPressed: () {
-                    _authenticate();
-                    /* setState(() {
-                          ignoreBiometrics = false;
-                        }); */
-                  },
+                  icon: const Icon(Icons.fingerprint),
+                  label: const Text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'),
+                  onPressed: _authenticate,
                 ),
             ],
           ),

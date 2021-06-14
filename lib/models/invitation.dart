@@ -31,7 +31,6 @@ class Invitation extends DataObject {
         expiryDate = data['ExpiryDate'],
         super.createFromData(data, ref) {
     name = data['Title'];
-    ;
   }
 
   String get title => name;
@@ -76,8 +75,8 @@ class Invitation extends DataObject {
         super(FirebaseFirestore.instance.collection('Invitations').doc(), '',
             null) {
     name = '';
-    expiryDate =
-        Timestamp.fromDate(DateTime.now().add(Duration(days: 1, minutes: 10)));
+    expiryDate = Timestamp.fromDate(
+        DateTime.now().add(const Duration(days: 1, minutes: 10)));
     permissions = {};
   }
 

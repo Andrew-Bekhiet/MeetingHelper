@@ -14,11 +14,15 @@ import '../utils/helpers.dart';
 import 'list.dart';
 
 class History extends StatefulWidget {
+  const History({Key? key}) : super(key: key);
+
   @override
   State<StatefulWidget> createState() => _HistoryState();
 }
 
 class ServantsHistory extends StatefulWidget {
+  const ServantsHistory({Key? key}) : super(key: key);
+
   @override
   State<StatefulWidget> createState() => _ServantsHistoryState();
 }
@@ -69,7 +73,7 @@ class _HistoryState extends State<History> {
                             hintText: 'بحث ...'),
                         onChanged: _search.add,
                       )
-                    : Text('السجلات');
+                    : const Text('السجلات');
               },
             ),
             actions: [
@@ -79,7 +83,7 @@ class _HistoryState extends State<History> {
                 builder: (context, snapshot) {
                   return snapshot.data!
                       ? IconButton(
-                          icon: Icon(Icons.search),
+                          icon: const Icon(Icons.search),
                           onPressed: () => setState(() {
                             _searchFocus.requestFocus();
                             _showSearch.add(true);
@@ -92,14 +96,14 @@ class _HistoryState extends State<History> {
                 icon: DescribedFeatureOverlay(
                   barrierDismissible: false,
                   featureId: 'SearchByDateRange',
-                  tapTarget: Icon(Icons.calendar_today),
-                  title: Text('بحث بالتاريخ'),
+                  tapTarget: const Icon(Icons.calendar_today),
+                  title: const Text('بحث بالتاريخ'),
                   description: Column(
                     children: <Widget>[
-                      Text(
+                      const Text(
                           'يمكنك البحث عن كشف عدة أيام معينة عن طريق الضغط هنا ثم تحديد تاريخ البداية وتاريخ النهاية'),
                       OutlinedButton.icon(
-                        icon: Icon(Icons.forward),
+                        icon: const Icon(Icons.forward),
                         label: Text(
                           'التالي',
                           style: TextStyle(
@@ -125,8 +129,8 @@ class _HistoryState extends State<History> {
                   textColor:
                       Theme.of(context).primaryTextTheme.bodyText1!.color!,
                   child: list == null
-                      ? Icon(Icons.calendar_today)
-                      : Icon(Icons.clear),
+                      ? const Icon(Icons.calendar_today)
+                      : const Icon(Icons.clear),
                 ),
                 tooltip: list == null ? 'بحث بالتاريخ' : 'محو البحث',
                 onPressed: () async {
@@ -148,11 +152,12 @@ class _HistoryState extends State<History> {
                             .where(
                               'Day',
                               isLessThanOrEqualTo: Timestamp.fromDate(
-                                  result.end.add(Duration(days: 1))),
+                                  result.end.add(const Duration(days: 1))),
                             )
                             .where('Day',
                                 isGreaterThanOrEqualTo: Timestamp.fromDate(
-                                    result.start.subtract(Duration(days: 1))))
+                                    result.start
+                                        .subtract(const Duration(days: 1))))
                             .snapshots()
                         : null;
                     setState(() {});
@@ -187,11 +192,11 @@ class _HistoryState extends State<History> {
               } else {
                 await showDialog(
                     context: context,
-                    builder: (context) =>
-                        AlertDialog(content: Text('لا يوجد اتصال انترنت')));
+                    builder: (context) => const AlertDialog(
+                        content: Text('لا يوجد اتصال انترنت')));
               }
             },
-            child: Icon(Icons.add),
+            child: const Icon(Icons.add),
           ),
           bottomNavigationBar: Builder(
             builder: (context) => BottomAppBar(
@@ -215,7 +220,7 @@ class _HistoryState extends State<History> {
           ),
           floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
           extendBody: true,
-          body: DataObjectList<HistoryDay>(),
+          body: const DataObjectList<HistoryDay>(),
         );
       },
     );
@@ -274,7 +279,7 @@ class _ServantsHistoryState extends State<ServantsHistory> {
                           hintText: 'بحث ...'),
                       onChanged: _search.add,
                     )
-                  : Text('السجلات');
+                  : const Text('السجلات');
             },
           ),
           actions: [
@@ -284,7 +289,7 @@ class _ServantsHistoryState extends State<ServantsHistory> {
               builder: (context, snapshot) {
                 return snapshot.data!
                     ? IconButton(
-                        icon: Icon(Icons.search),
+                        icon: const Icon(Icons.search),
                         onPressed: () => setState(() {
                           _searchFocus.requestFocus();
                           _showSearch.add(true);
@@ -294,8 +299,9 @@ class _ServantsHistoryState extends State<ServantsHistory> {
               },
             ),
             IconButton(
-              icon:
-                  list == null ? Icon(Icons.calendar_today) : Icon(Icons.clear),
+              icon: list == null
+                  ? const Icon(Icons.calendar_today)
+                  : const Icon(Icons.clear),
               tooltip: list == null ? 'بحث بالتاريخ' : 'محو البحث',
               onPressed: () async {
                 if (list == null) {
@@ -316,11 +322,12 @@ class _ServantsHistoryState extends State<ServantsHistory> {
                           .where(
                             'Day',
                             isLessThanOrEqualTo: Timestamp.fromDate(
-                                result.end.add(Duration(days: 1))),
+                                result.end.add(const Duration(days: 1))),
                           )
                           .where('Day',
-                              isGreaterThanOrEqualTo: Timestamp.fromDate(
-                                  result.start.subtract(Duration(days: 1))))
+                              isGreaterThanOrEqualTo: Timestamp.fromDate(result
+                                  .start
+                                  .subtract(const Duration(days: 1))))
                           .snapshots()
                       : null;
                   setState(() {});
@@ -357,10 +364,10 @@ class _ServantsHistoryState extends State<ServantsHistory> {
               await showDialog(
                   context: context,
                   builder: (context) =>
-                      AlertDialog(content: Text('لا يوجد اتصال انترنت')));
+                      const AlertDialog(content: Text('لا يوجد اتصال انترنت')));
             }
           },
-          child: Icon(Icons.add),
+          child: const Icon(Icons.add),
         ),
         bottomNavigationBar: Builder(
           builder: (context) => BottomAppBar(
@@ -384,7 +391,7 @@ class _ServantsHistoryState extends State<ServantsHistory> {
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
         extendBody: true,
-        body: DataObjectList<ServantsHistoryDay>(),
+        body: const DataObjectList<ServantsHistoryDay>(),
       ),
     );
   }

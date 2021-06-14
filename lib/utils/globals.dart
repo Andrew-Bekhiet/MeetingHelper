@@ -58,13 +58,13 @@ AndroidParameters androidParameters = AndroidParameters(
     fallbackUrl:
         Uri.parse('https://github.com/Andrew-Bekhiet/MeetingHelper/releases/'));
 
-GetOptions dataSource = GetOptions(source: Source.serverAndCache);
+GetOptions dataSource = const GetOptions(source: Source.serverAndCache);
 
 DynamicLinkParametersOptions dynamicLinkParametersOptions =
     DynamicLinkParametersOptions(
         shortDynamicLinkPathLength: ShortDynamicLinkPathLength.unguessable);
 
-FlutterSecureStorage flutterSecureStorage = FlutterSecureStorage();
+const FlutterSecureStorage flutterSecureStorage = FlutterSecureStorage();
 
 IosParameters iosParameters =
     IosParameters(bundleId: 'com.AndroidQuartz.meetinghelper');

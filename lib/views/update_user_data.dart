@@ -9,6 +9,8 @@ import '../models/user.dart';
 import '../utils/helpers.dart';
 
 class UpdateUserDataErrorPage extends StatefulWidget {
+  const UpdateUserDataErrorPage({Key? key}) : super(key: key);
+
   @override
   State<StatefulWidget> createState() => _UpdateUserDataErrorState();
 }
@@ -25,7 +27,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('تحديث بيانات المستخدم')),
+      appBar: AppBar(title: const Text('تحديث بيانات المستخدم')),
       body: Column(
         children: [
           Row(
@@ -36,7 +38,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
               Flexible(
                 flex: 3,
                 child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: Focus(
                     child: GestureDetector(
                       onTap: () async => user.lastTanawol = await _selectDate(
@@ -55,7 +57,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                         child: user.lastTanawol != null
                             ? Text(DateFormat('yyyy/M/d')
                                 .format(user.lastTanawol!.toDate()))
-                            : Text('(فارغ)'),
+                            : const Text('(فارغ)'),
                       ),
                     ),
                   ),
@@ -71,7 +73,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
               Flexible(
                 flex: 3,
                 child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: Focus(
                     child: GestureDetector(
                       onTap: () async =>
@@ -90,7 +92,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                         child: user.lastConfession != null
                             ? Text(DateFormat('yyyy/M/d')
                                 .format(user.lastConfession!.toDate()))
-                            : Text('(فارغ)'),
+                            : const Text('(فارغ)'),
                       ),
                     ),
                   ),
@@ -103,7 +105,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
       floatingActionButton: FloatingActionButton(
         onPressed: save,
         tooltip: 'حفظ',
-        child: Icon(Icons.save),
+        child: const Icon(Icons.save),
       ),
     );
   }
@@ -111,12 +113,12 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
   Future save() async {
     try {
       if (user.lastConfession == null || user.lastTanawol == null) {
-        scaffoldMessenger.currentState!.showSnackBar(
-            SnackBar(content: Text('برجاء ادخال تاريخ أخر الاعتراف والتناول')));
+        scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
+            content: Text('برجاء ادخال تاريخ أخر الاعتراف والتناول')));
         return;
       }
       scaffoldMessenger.currentState!
-          .showSnackBar(SnackBar(content: Text('جار الحفظ')));
+          .showSnackBar(const SnackBar(content: Text('جار الحفظ')));
       await FirebaseFunctions.instance
           .httpsCallable('updateUserSpiritData')
           .call({
@@ -137,7 +139,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
       void Function(void Function()) setState) async {
     var picked = await showDatePicker(
         helpText: helpText,
-        locale: Locale('ar', 'EG'),
+        locale: const Locale('ar', 'EG'),
         context: context,
         initialDate: initialDate.toDate(),
         firstDate: DateTime(1500),

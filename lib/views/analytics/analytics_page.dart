@@ -19,7 +19,7 @@ import 'package:meetinghelper/utils/helpers.dart';
 import 'analytics_indicators.dart';
 
 class AnalyticsPage extends StatefulWidget {
-  AnalyticsPage(
+  const AnalyticsPage(
       {Key? key,
       this.classes,
       this.range,
@@ -37,7 +37,7 @@ class AnalyticsPage extends StatefulWidget {
 }
 
 class PersonAnalyticsPage extends StatefulWidget {
-  PersonAnalyticsPage({Key? key, this.person, this.colection = 'History'})
+  const PersonAnalyticsPage({Key? key, this.person, this.colection = 'History'})
       : super(key: key);
 
   final String colection;
@@ -48,7 +48,7 @@ class PersonAnalyticsPage extends StatefulWidget {
 }
 
 class ActivityAnalysis extends StatefulWidget {
-  ActivityAnalysis({Key? key, this.classes}) : super(key: key);
+  const ActivityAnalysis({Key? key, this.classes}) : super(key: key);
 
   final List<Class>? classes;
 
@@ -58,10 +58,11 @@ class ActivityAnalysis extends StatefulWidget {
 
 class _ActivityAnalysisState extends State<ActivityAnalysis> {
   List<Class>? classes;
-  DateTime minAvaliable = DateTime.now().subtract(Duration(days: 30));
+  DateTime minAvaliable = DateTime.now().subtract(const Duration(days: 30));
   bool minAvaliableSet = false;
   DateTimeRange range = DateTimeRange(
-      start: DateTime.now().subtract(Duration(days: 30)), end: DateTime.now());
+      start: DateTime.now().subtract(const Duration(days: 30)),
+      end: DateTime.now());
 
   final _screenKey = GlobalKey();
 
@@ -106,7 +107,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                 .map((e) =>
                     (e.data()['Time'] as Timestamp).millisecondsSinceEpoch)
                 .toList())
-            .reduce(((a, b) => min<int>(a, b))));
+            .reduce((a, b) => min<int>(a, b)));
       }
     }
     minAvaliableSet = true;
@@ -118,10 +119,10 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
       key: _screenKey,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('تحليل بيانات الخدمة'),
+          title: const Text('تحليل بيانات الخدمة'),
           actions: [
             IconButton(
-              icon: Icon(Icons.mobile_screen_share),
+              icon: const Icon(Icons.mobile_screen_share),
               onPressed: () => takeScreenshot(_screenKey),
               tooltip: 'حفظ كصورة',
             ),
@@ -156,7 +157,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                                   DateFormat.yMMMEd('ar_EG').format(range.end),
                               style: Theme.of(context).textTheme.bodyText1),
                           trailing: IconButton(
-                            icon: Icon(Icons.date_range),
+                            icon: const Icon(Icons.date_range),
                             tooltip: 'اختيار نطاق السجل',
                             onPressed: () async {
                               final rslt = await showDateRangePicker(
@@ -164,7 +165,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                                   data: Theme.of(context).copyWith(
                                     textTheme:
                                         Theme.of(context).textTheme.copyWith(
-                                              overline: TextStyle(
+                                              overline: const TextStyle(
                                                 fontSize: 0,
                                               ),
                                             ),
@@ -175,14 +176,14 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                                 context: context,
                                 confirmText: 'حفظ',
                                 saveText: 'حفظ',
-                                initialDateRange:
-                                    range.start.millisecondsSinceEpoch <=
-                                            minAvaliable.millisecondsSinceEpoch
-                                        ? range
-                                        : DateTimeRange(
-                                            start: DateTime.now()
-                                                .subtract(Duration(days: 1)),
-                                            end: range.end),
+                                initialDateRange: range
+                                            .start.millisecondsSinceEpoch <=
+                                        minAvaliable.millisecondsSinceEpoch
+                                    ? range
+                                    : DateTimeRange(
+                                        start: DateTime.now()
+                                            .subtract(const Duration(days: 1)),
+                                        end: range.end),
                                 firstDate: minAvaliable,
                                 lastDate: DateTime.now(),
                               );
@@ -194,14 +195,14 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                           ),
                         ),
                         ListTile(
-                          title: Text('لفصول: '),
+                          title: const Text('لفصول: '),
                           subtitle: Text(
                             classes!.map((c) => c.name).toList().join(', '),
                             maxLines: 4,
                             overflow: TextOverflow.ellipsis,
                           ),
                           trailing: IconButton(
-                            icon: Icon(Icons.list_alt),
+                            icon: const Icon(Icons.list_alt),
                             tooltip: 'اختيار الفصول',
                             onPressed: () async {
                               final rslt =
@@ -211,7 +212,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                               else if (rslt!.isNotEmpty)
                                 await showDialog(
                                   context: context,
-                                  builder: (context) => AlertDialog(
+                                  builder: (context) => const AlertDialog(
                                     content:
                                         Text('برجاء اختيار فصل واحد على الأقل'),
                                   ),
@@ -226,7 +227,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                           collectionGroup: 'VisitHistory',
                           title: 'خدمة الافتقاد',
                         ),
-                        Divider(),
+                        const Divider(),
                         HistoryAnalysisWidget(
                           range: range,
                           classes: classes ?? [],
@@ -234,7 +235,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                           collectionGroup: 'EditHistory',
                           title: 'تحديث البيانات',
                         ),
-                        Divider(),
+                        const Divider(),
                         HistoryAnalysisWidget(
                           range: range,
                           classes: classes ?? [],
@@ -258,10 +259,11 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
 }
 
 class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
-  DateTime minAvaliable = DateTime.now().subtract(Duration(days: 30));
+  DateTime minAvaliable = DateTime.now().subtract(const Duration(days: 30));
   bool minAvaliableSet = false;
   DateTimeRange range = DateTimeRange(
-      start: DateTime.now().subtract(Duration(days: 30)), end: DateTime.now());
+      start: DateTime.now().subtract(const Duration(days: 30)),
+      end: DateTime.now());
 
   final _screenKey = GlobalKey();
 
@@ -287,10 +289,10 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
       key: _screenKey,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('الاحصائيات'),
+          title: const Text('الاحصائيات'),
           actions: [
             IconButton(
-              icon: Icon(Icons.mobile_screen_share),
+              icon: const Icon(Icons.mobile_screen_share),
               onPressed: () => takeScreenshot(_screenKey),
               tooltip: 'حفظ كصورة',
             ),
@@ -307,8 +309,8 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
                   .orderBy('Day')
                   .where(
                     'Day',
-                    isLessThan:
-                        Timestamp.fromDate(range.end.add(Duration(days: 1))),
+                    isLessThan: Timestamp.fromDate(
+                        range.end.add(const Duration(days: 1))),
                   )
                   .where('Day',
                       isGreaterThanOrEqualTo: Timestamp.fromDate(range.start))
@@ -329,14 +331,14 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
                               DateFormat.yMMMEd('ar_EG').format(range.end),
                           style: Theme.of(context).textTheme.bodyText1),
                       trailing: IconButton(
-                        icon: Icon(Icons.date_range),
+                        icon: const Icon(Icons.date_range),
                         tooltip: 'اختيار نطاق السجل',
                         onPressed: () async {
                           final rslt = await showDateRangePicker(
                             builder: (context, dialog) => Theme(
                               data: Theme.of(context).copyWith(
                                 textTheme: Theme.of(context).textTheme.copyWith(
-                                      overline: TextStyle(
+                                      overline: const TextStyle(
                                         fontSize: 0,
                                       ),
                                     ),
@@ -408,10 +410,11 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   List<Class>? classes;
   DateTime day = DateTime.now();
   DateTimeRange range = DateTimeRange(
-      start: DateTime.now().subtract(Duration(days: 30)), end: DateTime.now());
+      start: DateTime.now().subtract(const Duration(days: 30)),
+      end: DateTime.now());
 
   bool _isOneDay = false;
-  DateTime _minAvaliable = DateTime.now().subtract(Duration(days: 30));
+  DateTime _minAvaliable = DateTime.now().subtract(const Duration(days: 30));
   final AsyncMemoizer<void> _rangeStart = AsyncMemoizer<void>();
   final _screenKey = GlobalKey();
   bool _sourceChanged = false;
@@ -435,7 +438,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
       builder: (context, dialog) => Theme(
         data: Theme.of(context).copyWith(
           textTheme: Theme.of(context).textTheme.copyWith(
-                overline: TextStyle(
+                overline: const TextStyle(
                   fontSize: 0,
                 ),
               ),
@@ -449,7 +452,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                   range.end.millisecondsSinceEpoch &&
               !_isOneDay
           ? range
-          : DateTimeRange(start: day.subtract(Duration(days: 1)), end: day),
+          : DateTimeRange(
+              start: day.subtract(const Duration(days: 1)), end: day),
       firstDate: _minAvaliable,
       lastDate: DateTime.now(),
     );
@@ -466,7 +470,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
       builder: (context, dialog) => Theme(
         data: Theme.of(context).copyWith(
           textTheme: Theme.of(context).textTheme.copyWith(
-                overline: TextStyle(
+                overline: const TextStyle(
                   fontSize: 0,
                 ),
               ),
@@ -503,10 +507,10 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
       key: _screenKey,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('الاحصائيات'),
+          title: const Text('الاحصائيات'),
           actions: [
             IconButton(
-              icon: Icon(Icons.mobile_screen_share),
+              icon: const Icon(Icons.mobile_screen_share),
               onPressed: () => takeScreenshot(_screenKey),
               tooltip: 'حفظ كصورة',
             ),
@@ -536,7 +540,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                 .where(
                                   'Day',
                                   isLessThan: Timestamp.fromDate(
-                                      day.add(Duration(days: 1))),
+                                      day.add(const Duration(days: 1))),
                                 )
                                 .snapshots()
                             : FirebaseFirestore.instance
@@ -548,12 +552,11 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                 .where(
                                   'Day',
                                   isLessThan: Timestamp.fromDate(
-                                      range.end.add(Duration(days: 1))),
+                                      range.end.add(const Duration(days: 1))),
                                 )
                                 .snapshots())
-                        .map((s) => s.docs
-                            .map((o) => HistoryDay.fromQueryDoc(o))
-                            .toList()),
+                        .map((s) =>
+                            s.docs.map(HistoryDay.fromQueryDoc).toList()),
                     builder: (context, daysData) {
                       if (daysData.hasError)
                         return ErrorWidget(daysData.error!);
@@ -583,12 +586,13 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
-                                    icon: Icon(Icons.date_range),
+                                    icon: const Icon(Icons.date_range),
                                     tooltip: 'اختيار نطاق السجل',
                                     onPressed: _selectRange,
                                   ),
                                   IconButton(
-                                    icon: Icon(Icons.calendar_today_outlined),
+                                    icon: const Icon(
+                                        Icons.calendar_today_outlined),
                                     tooltip: 'اختيار يوم واحد',
                                     onPressed: _selectDay,
                                   ),
@@ -596,14 +600,14 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                               ),
                             ),
                             ListTile(
-                              title: Text('الفصول: '),
+                              title: const Text('الفصول: '),
                               subtitle: Text(
                                 classes!.map((c) => c.name).toList().join(', '),
                                 maxLines: 4,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               trailing: IconButton(
-                                icon: Icon(Icons.list_alt),
+                                icon: const Icon(Icons.list_alt),
                                 tooltip: 'اختيار الفصول',
                                 onPressed: () async {
                                   final rslt =
@@ -614,7 +618,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                   } else if (rslt != null)
                                     await showDialog(
                                       context: context,
-                                      builder: (context) => AlertDialog(
+                                      builder: (context) => const AlertDialog(
                                         content:
                                             Text('برجاء اختيار فصل على الأقل'),
                                       ),
@@ -629,14 +633,14 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                 isServant: widget.historyColection ==
                                     'ServantsHistory',
                               ),
-                              Divider(),
+                              const Divider(),
                               ClassesAttendanceIndicator(
                                 classes: classes ?? [],
                                 collection: days.first.kodas,
                                 isServant: widget.historyColection ==
                                     'ServantsHistory',
                               ),
-                              Divider(),
+                              const Divider(),
                               ClassesAttendanceIndicator(
                                 classes: classes ?? [],
                                 collection: days.first.tanawol,
@@ -653,7 +657,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                     'ServantsHistory',
                                 collectionGroup: 'Meeting',
                               ),
-                              Divider(),
+                              const Divider(),
                               AttendanceChart(
                                 title: 'حضور القداس',
                                 classes: classes ?? [],
@@ -663,7 +667,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                     'ServantsHistory',
                                 collectionGroup: 'Kodas',
                               ),
-                              Divider(),
+                              const Divider(),
                               AttendanceChart(
                                 title: 'التناول',
                                 classes: classes ?? [],

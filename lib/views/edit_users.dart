@@ -8,7 +8,8 @@ import 'package:rxdart/rxdart.dart';
 import 'lists/users_list.dart';
 
 class UsersPage extends StatefulWidget {
-  UsersPage({Key? key}) : super(key: key);
+  const UsersPage({Key? key}) : super(key: key);
+
   @override
   _UsersPageState createState() => _UsersPageState();
 }
@@ -28,20 +29,20 @@ class _UsersPageState extends State<UsersPage> {
       appBar: AppBar(
         actions: [
           IconButton(
-              icon: Icon(Icons.link),
+              icon: const Icon(Icons.link),
               tooltip: 'لينكات الدعوة',
               onPressed: () =>
                   navigator.currentState!.pushNamed('Invitations')),
           if (!_showSearch)
             IconButton(
-                icon: Icon(Icons.search),
+                icon: const Icon(Icons.search),
                 onPressed: () => setState(() => _showSearch = true)),
         ],
         title: _showSearch
             ? TextField(
                 decoration: InputDecoration(
                     suffixIcon: IconButton(
-                      icon: Icon(Icons.close),
+                      icon: const Icon(Icons.close),
                       onPressed: () => setState(
                         () {
                           _search.add('');
@@ -53,7 +54,7 @@ class _UsersPageState extends State<UsersPage> {
                     hintText: 'بحث ...'),
                 onChanged: _search.add,
               )
-            : Text('المستخدمون'),
+            : const Text('المستخدمون'),
       ),
       bottomNavigationBar: BottomAppBar(
         color: Theme.of(context).primaryColor,

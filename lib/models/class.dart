@@ -63,7 +63,7 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
   @override
   Future<List<Person>> getChildren(
       [String orderBy = 'Name', bool tranucate = false]) async {
-    return await getPersonMembersList(orderBy, tranucate);
+    return getPersonMembersList(orderBy, tranucate);
   }
 
   String getGenderName() {
@@ -156,9 +156,9 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
   Future<String> getSecondLine() async {
     String key = Hive.box('Settings').get('ClassSecondLine', defaultValue: '');
     if (key == 'Members') {
-      return await getMembersString();
+      return getMembersString();
     } else if (key == 'StudyYear') {
-      return await getStudyYearName();
+      return getStudyYearName();
     } else if (key == 'Gender') {
       return getGenderName();
     } else if (key == 'Allowed') {

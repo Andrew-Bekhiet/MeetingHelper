@@ -10,7 +10,7 @@ class InnerListState extends State<_InnerSchoolsList> {
   Widget build(BuildContext context) {
     return Column(children: <Widget>[
       TextField(
-          decoration: InputDecoration(hintText: 'بحث...'),
+          decoration: const InputDecoration(hintText: 'بحث...'),
           onChanged: (text) {
             setState(() {
               filter = text;
@@ -24,7 +24,7 @@ class InnerListState extends State<_InnerSchoolsList> {
           child: StreamBuilder<QuerySnapshot>(
             stream: widget.data,
             builder: (context, schools) {
-              if (!schools.hasData) return CircularProgressIndicator();
+              if (!schools.hasData) return const CircularProgressIndicator();
               return ListView.builder(
                   itemCount: schools.data!.docs.length,
                   itemBuilder: (context, i) {
@@ -68,11 +68,11 @@ class InnerListState extends State<_InnerSchoolsList> {
         children: <Widget>[
           TextButton(
             onPressed: () => widget.finished!(widget.result),
-            child: Text('تم'),
+            child: const Text('تم'),
           ),
           TextButton(
             onPressed: () => widget.finished!(null),
-            child: Text('إلغاء الأمر'),
+            child: const Text('إلغاء الأمر'),
           ),
         ],
       )
@@ -84,7 +84,8 @@ class SchoolsEditList extends StatefulWidget {
   final Future<QuerySnapshot> list;
 
   final Function(School)? tap;
-  SchoolsEditList({required this.list, this.tap});
+  const SchoolsEditList({Key? key, required this.list, this.tap})
+      : super(key: key);
 
   @override
   _SchoolsEditListState createState() => _SchoolsEditListState();
@@ -95,7 +96,8 @@ class SchoolsList extends StatefulWidget {
 
   final Function(List<School>?)? finished;
   final Stream<School>? original;
-  SchoolsList({this.list, this.finished, this.original});
+  const SchoolsList({Key? key, this.list, this.finished, this.original})
+      : super(key: key);
 
   @override
   _SchoolsListState createState() => _SchoolsListState();
@@ -121,7 +123,7 @@ class _SchoolsEditListState extends State<SchoolsEditList> {
         if (data.hasData) {
           return Column(children: <Widget>[
             TextField(
-                decoration: InputDecoration(hintText: 'بحث...'),
+                decoration: const InputDecoration(hintText: 'بحث...'),
                 onChanged: (text) {
                   setState(() {
                     filter = text;

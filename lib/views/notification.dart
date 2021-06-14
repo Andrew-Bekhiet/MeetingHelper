@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meetinghelper/models/super_classes.dart';
 
-import '../utils/helpers.dart';
 import '../models/user.dart';
+import '../utils/helpers.dart';
 
 class Notification extends StatelessWidget {
   final String? type;
@@ -16,7 +16,8 @@ class Notification extends StatelessWidget {
 
   const Notification(this.type, this.title, this.content, this.attachement,
       this.time, this.from,
-      [this.longPress]);
+      {Key? key, this.longPress})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +39,7 @@ class Notification extends StatelessWidget {
                             snapshot.data! as PhotoObject,
                             heroTag: snapshot.data,
                           )
-                : CircularProgressIndicator(),
+                : const CircularProgressIndicator(),
             title: Text(title!),
             subtitle: Text(
               content!,
@@ -47,9 +48,9 @@ class Notification extends StatelessWidget {
                   : TextOverflow.ellipsis,
               maxLines: content!.contains('تم تغيير موقع') ? null : 1,
             ),
-            onTap: () => (from == null
+            onTap: () => from == null
                 ? processLink(Uri.parse(attachement!), context)
-                : showMessage(context, this)),
+                : showMessage(context, this),
             onLongPress: longPress,
           ),
         );
@@ -66,5 +67,5 @@ class Notification extends StatelessWidget {
           message['attachement'],
           int.parse(message['time']),
           message['sentFrom'],
-          longPress);
+          longPress: longPress);
 }

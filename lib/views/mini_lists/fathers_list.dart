@@ -8,7 +8,8 @@ class FathersEditList extends StatefulWidget {
   final Future<QuerySnapshot> list;
 
   final Function(Father)? tap;
-  FathersEditList({required this.list, this.tap});
+  const FathersEditList({Key? key, required this.list, this.tap})
+      : super(key: key);
 
   @override
   _FathersEditListState createState() => _FathersEditListState();
@@ -19,7 +20,8 @@ class FathersList extends StatefulWidget {
 
   final Function(List<Father>?)? finished;
   final Stream<Father>? original;
-  FathersList({this.list, this.finished, this.original});
+  const FathersList({Key? key, this.list, this.finished, this.original})
+      : super(key: key);
 
   @override
   _FathersListState createState() => _FathersListState();
@@ -31,7 +33,7 @@ class InnerListState extends State<_InnerFathersList> {
   Widget build(BuildContext context) {
     return Column(children: <Widget>[
       TextField(
-          decoration: InputDecoration(hintText: 'بحث...'),
+          decoration: const InputDecoration(hintText: 'بحث...'),
           onChanged: (text) {
             setState(() {
               filter = text;
@@ -45,7 +47,7 @@ class InnerListState extends State<_InnerFathersList> {
           child: StreamBuilder<QuerySnapshot>(
             stream: widget.data,
             builder: (context, fathers) {
-              if (!fathers.hasData) return CircularProgressIndicator();
+              if (!fathers.hasData) return const CircularProgressIndicator();
               return ListView.builder(
                   itemCount: fathers.data!.docs.length,
                   itemBuilder: (context, i) {
@@ -68,7 +70,7 @@ class InnerListState extends State<_InnerFathersList> {
                                   builder: (con, name) {
                                     return name.hasData
                                         ? Text(name.data!)
-                                        : LinearProgressIndicator();
+                                        : const LinearProgressIndicator();
                                   }),
                               leading: Checkbox(
                                 value: widget.result
@@ -96,11 +98,11 @@ class InnerListState extends State<_InnerFathersList> {
         children: <Widget>[
           TextButton(
             onPressed: () => widget.finished!(widget.result),
-            child: Text('تم'),
+            child: const Text('تم'),
           ),
           TextButton(
             onPressed: () => widget.finished!(null),
-            child: Text('إلغاء الأمر'),
+            child: const Text('إلغاء الأمر'),
           ),
         ],
       )
@@ -119,7 +121,7 @@ class _FathersEditListState extends State<FathersEditList> {
           return Column(
             children: <Widget>[
               TextField(
-                  decoration: InputDecoration(hintText: 'بحث...'),
+                  decoration: const InputDecoration(hintText: 'بحث...'),
                   onChanged: (text) {
                     setState(() {
                       filter = text;
@@ -145,7 +147,7 @@ class _FathersEditListState extends State<FathersEditList> {
                                     builder: (con, name) {
                                       return name.hasData
                                           ? Text(name.data!)
-                                          : LinearProgressIndicator();
+                                          : const LinearProgressIndicator();
                                     }),
                               ),
                             )

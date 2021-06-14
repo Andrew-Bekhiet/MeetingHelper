@@ -9,25 +9,29 @@ import 'views/mini_lists/schools_list.dart';
 import 'views/mini_lists/study_years_list.dart';
 
 class ChurchesPage extends StatefulWidget {
-  ChurchesPage({Key? key}) : super(key: key);
+  const ChurchesPage({Key? key}) : super(key: key);
+
   @override
   _ChurchesPageState createState() => _ChurchesPageState();
 }
 
 class SchoolsPage extends StatefulWidget {
-  SchoolsPage({Key? key}) : super(key: key);
+  const SchoolsPage({Key? key}) : super(key: key);
+
   @override
   _SchoolsPageState createState() => _SchoolsPageState();
 }
 
 class FathersPage extends StatefulWidget {
-  FathersPage({Key? key}) : super(key: key);
+  const FathersPage({Key? key}) : super(key: key);
+
   @override
   _FathersPageState createState() => _FathersPageState();
 }
 
 class StudyYearsPage extends StatefulWidget {
-  StudyYearsPage({Key? key}) : super(key: key);
+  const StudyYearsPage({Key? key}) : super(key: key);
+
   @override
   _StudyYearsPageState createState() => _StudyYearsPageState();
 }
@@ -37,13 +41,13 @@ class _SchoolsPageState extends State<SchoolsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('المدارس'),
+        title: const Text('المدارس'),
       ),
       floatingActionButton: FloatingActionButton(
           onPressed: () {
             schoolTap(School.createNew(), true);
           },
-          child: Icon(Icons.add)),
+          child: const Icon(Icons.add)),
       body: SchoolsEditList(
         list: School.getAllForUser(),
         tap: (_) => schoolTap(_, false),
@@ -56,7 +60,7 @@ class _SchoolsPageState extends State<SchoolsPage> {
         fontSize: 22,
         fontWeight: FontWeight.bold,
         color: Theme.of(context).textTheme.headline6!.color,
-        locale: Locale('ar', 'EG'));
+        locale: const Locale('ar', 'EG'));
     // TextStyle subTitle = TextStyle(
     //     fontSize: 18,
     //     color: Theme.of(context).textTheme.subtitle2.color,
@@ -100,19 +104,19 @@ class _SchoolsPageState extends State<SchoolsPage> {
                               editMode = !editMode;
                             });
                           },
-                          child: Text('نعم'),
+                          child: const Text('نعم'),
                         ),
                         TextButton(
                           onPressed: () {
                             navigator.currentState!.pop();
                           },
-                          child: Text('تراجع'),
+                          child: const Text('تراجع'),
                         ),
                       ],
                     ),
                   );
                 },
-                child: Text('حذف'))
+                child: const Text('حذف'))
         ],
         title: Text(school.name!),
         content: SingleChildScrollView(
@@ -122,24 +126,26 @@ class _SchoolsPageState extends State<SchoolsPage> {
             children: <Widget>[
               DefaultTextStyle(
                 style: title,
-                child: Text('الاسم:'),
+                child: const Text('الاسم:'),
               ),
-              editMode
-                  ? TextField(
-                      controller: TextEditingController(text: school.name),
-                      onChanged: (v) => school.name = v,
-                    )
-                  : Text(school.name!),
+              if (editMode)
+                TextField(
+                  controller: TextEditingController(text: school.name),
+                  onChanged: (v) => school.name = v,
+                )
+              else
+                Text(school.name!),
               DefaultTextStyle(
                 style: title,
-                child: Text('العنوان:'),
+                child: const Text('العنوان:'),
               ),
-              editMode
-                  ? TextField(
-                      controller: TextEditingController(text: school.address),
-                      onChanged: (v) => school.address = v,
-                    )
-                  : Text(school.address!),
+              if (editMode)
+                TextField(
+                  controller: TextEditingController(text: school.address),
+                  onChanged: (v) => school.address = v,
+                )
+              else
+                Text(school.address!),
             ],
           ),
         ),
@@ -153,13 +159,13 @@ class _ChurchesPageState extends State<ChurchesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('الكنائس'),
+        title: const Text('الكنائس'),
       ),
       floatingActionButton: FloatingActionButton(
           onPressed: () {
             churchTap(Church.createNew(), true);
           },
-          child: Icon(Icons.add)),
+          child: const Icon(Icons.add)),
       body: ChurchesEditList(
         list: Church.getAllForUser(),
         tap: (_) => churchTap(_, false),
@@ -172,7 +178,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
         fontSize: 22,
         fontWeight: FontWeight.bold,
         color: Theme.of(context).textTheme.headline6!.color,
-        locale: Locale('ar', 'EG'));
+        locale: const Locale('ar', 'EG'));
     // TextStyle subTitle = TextStyle(
     //     fontSize: 18,
     //     color: Theme.of(context).textTheme.subtitle2.color,
@@ -216,23 +222,23 @@ class _ChurchesPageState extends State<ChurchesPage> {
                               editMode = !editMode;
                             });
                           },
-                          child: Text('نعم'),
+                          child: const Text('نعم'),
                         ),
                         TextButton(
                           onPressed: () {
                             navigator.currentState!.pop();
                           },
-                          child: Text('تراجع'),
+                          child: const Text('تراجع'),
                         ),
                       ],
                     ),
                   );
                 },
-                child: Text('حذف'))
+                child: const Text('حذف'))
         ],
         title: Text(church.name!),
         scrollable: true,
-        content: Container(
+        content: SizedBox(
           width: 300,
           height: 700,
           child: Column(
@@ -241,24 +247,26 @@ class _ChurchesPageState extends State<ChurchesPage> {
             children: <Widget>[
               DefaultTextStyle(
                 style: title,
-                child: Text('الاسم:'),
+                child: const Text('الاسم:'),
               ),
-              editMode
-                  ? TextField(
-                      controller: TextEditingController(text: church.name),
-                      onChanged: (v) => church.name = v,
-                    )
-                  : Text(church.name!),
+              if (editMode)
+                TextField(
+                  controller: TextEditingController(text: church.name),
+                  onChanged: (v) => church.name = v,
+                )
+              else
+                Text(church.name!),
               DefaultTextStyle(
                 style: title,
-                child: Text('العنوان:'),
+                child: const Text('العنوان:'),
               ),
-              editMode
-                  ? TextField(
-                      controller: TextEditingController(text: church.address),
-                      onChanged: (v) => church.address = v,
-                    )
-                  : Text(church.address!),
+              if (editMode)
+                TextField(
+                  controller: TextEditingController(text: church.address),
+                  onChanged: (v) => church.address = v,
+                )
+              else
+                Text(church.address!),
               if (!editMode) Text('الأباء بالكنيسة:', style: title),
               if (!editMode)
                 StreamBuilder<QuerySnapshot>(
@@ -296,7 +304,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
         fontSize: 22,
         fontWeight: FontWeight.bold,
         color: Theme.of(context).textTheme.headline6!.color,
-        locale: Locale('ar', 'EG'));
+        locale: const Locale('ar', 'EG'));
     // TextStyle subTitle = TextStyle(
     //     fontSize: 18,
     //     color: Theme.of(context).textTheme.subtitle2.color,
@@ -340,19 +348,19 @@ class _ChurchesPageState extends State<ChurchesPage> {
                               editMode = !editMode;
                             });
                           },
-                          child: Text('نعم'),
+                          child: const Text('نعم'),
                         ),
                         TextButton(
                           onPressed: () {
                             navigator.currentState!.pop();
                           },
-                          child: Text('تراجع'),
+                          child: const Text('تراجع'),
                         ),
                       ],
                     ),
                   );
                 },
-                child: Text('حذف'))
+                child: const Text('حذف'))
         ],
         title: Text(father.name!),
         content: SingleChildScrollView(
@@ -361,68 +369,70 @@ class _ChurchesPageState extends State<ChurchesPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text('الاسم:', style: title),
-              editMode
-                  ? TextField(
-                      controller: TextEditingController(text: father.name),
-                      onChanged: (v) => father.name = v,
-                    )
-                  : Text(father.name!),
+              if (editMode)
+                TextField(
+                  controller: TextEditingController(text: father.name),
+                  onChanged: (v) => father.name = v,
+                )
+              else
+                Text(father.name!),
               Text('داخل كنيسة', style: title),
-              editMode
-                  ? FutureBuilder<QuerySnapshot>(
-                      future: Church.getAllForUser(),
-                      builder: (context, data) {
-                        if (data.hasData) {
-                          return Container(
-                            padding: EdgeInsets.symmetric(vertical: 4.0),
-                            child: DropdownButtonFormField(
-                              value: father.churchId?.path,
-                              items: data.data!.docs
-                                  .map(
-                                    (item) => DropdownMenuItem(
-                                      value: item.reference.path,
-                                      child: Text(item.data()['Name']),
-                                    ),
-                                  )
-                                  .toList()
-                                    ..insert(
-                                      0,
-                                      DropdownMenuItem(
-                                        value: null,
-                                        child: Text(''),
-                                      ),
-                                    ),
-                              onChanged: (dynamic value) {
-                                father.churchId =
-                                    FirebaseFirestore.instance.doc(value);
-                              },
-                              decoration: InputDecoration(
-                                labelText: 'الكنيسة',
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Theme.of(context).primaryColor),
+              if (editMode)
+                FutureBuilder<QuerySnapshot>(
+                  future: Church.getAllForUser(),
+                  builder: (context, data) {
+                    if (data.hasData) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: DropdownButtonFormField(
+                          value: father.churchId?.path,
+                          items: data.data!.docs
+                              .map(
+                                (item) => DropdownMenuItem(
+                                  value: item.reference.path,
+                                  child: Text(item.data()['Name']),
                                 ),
-                              ),
+                              )
+                              .toList()
+                                ..insert(
+                                  0,
+                                  const DropdownMenuItem(
+                                    value: null,
+                                    child: Text(''),
+                                  ),
+                                ),
+                          onChanged: (dynamic value) {
+                            father.churchId =
+                                FirebaseFirestore.instance.doc(value);
+                          },
+                          decoration: InputDecoration(
+                            labelText: 'الكنيسة',
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).primaryColor),
                             ),
-                          );
-                        } else {
-                          return LinearProgressIndicator();
-                        }
-                      },
-                    )
-                  : FutureBuilder<String?>(
-                      future: father.getChurchName(),
-                      builder: (con, name) {
-                        return name.hasData
-                            ? Card(
-                                child: ListTile(
-                                    title: Text(name.data!),
-                                    onTap: () async => churchTap(
-                                        Church.fromDoc(
-                                            await father.churchId!.get()),
-                                        false)))
-                            : LinearProgressIndicator();
-                      }),
+                          ),
+                        ),
+                      );
+                    } else {
+                      return const LinearProgressIndicator();
+                    }
+                  },
+                )
+              else
+                FutureBuilder<String?>(
+                    future: father.getChurchName(),
+                    builder: (con, name) {
+                      return name.hasData
+                          ? Card(
+                              child: ListTile(
+                                  title: Text(name.data!),
+                                  onTap: () async => churchTap(
+                                      Church.fromDoc(
+                                          await father.churchId!.get()),
+                                      false)))
+                          : const LinearProgressIndicator();
+                    }),
             ],
           ),
         ),
@@ -436,13 +446,13 @@ class _FathersPageState extends State<FathersPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('الأباء الكهنة'),
+        title: const Text('الأباء الكهنة'),
       ),
       floatingActionButton: FloatingActionButton(
           onPressed: () {
             fatherTap(Father.createNew(), true);
           },
-          child: Icon(Icons.add)),
+          child: const Icon(Icons.add)),
       body: FathersEditList(
         list: Father.getAllForUser(),
         tap: (_) => fatherTap(_, false),
@@ -455,7 +465,7 @@ class _FathersPageState extends State<FathersPage> {
         fontSize: 22,
         fontWeight: FontWeight.bold,
         color: Theme.of(context).textTheme.headline6!.color,
-        locale: Locale('ar', 'EG'));
+        locale: const Locale('ar', 'EG'));
     // TextStyle subTitle = TextStyle(
     //     fontSize: 18,
     //     color: Theme.of(context).textTheme.subtitle2.color,
@@ -500,22 +510,22 @@ class _FathersPageState extends State<FathersPage> {
                                     editMode = !editMode;
                                   });
                                 },
-                                child: Text('نعم'),
+                                child: const Text('نعم'),
                               ),
                               TextButton(
                                 onPressed: () {
                                   navigator.currentState!.pop();
                                 },
-                                child: Text('تراجع'),
+                                child: const Text('تراجع'),
                               ),
                             ],
                           ));
                 },
-                child: Text('حذف'))
+                child: const Text('حذف'))
         ],
         title: Text(church.name!),
         scrollable: true,
-        content: Container(
+        content: SizedBox(
           width: 300,
           height: 700,
           child: Column(
@@ -524,24 +534,26 @@ class _FathersPageState extends State<FathersPage> {
             children: <Widget>[
               DefaultTextStyle(
                 style: title,
-                child: Text('الاسم:'),
+                child: const Text('الاسم:'),
               ),
-              editMode
-                  ? TextField(
-                      controller: TextEditingController(text: church.name),
-                      onChanged: (v) => church.name = v,
-                    )
-                  : Text(church.name!),
+              if (editMode)
+                TextField(
+                  controller: TextEditingController(text: church.name),
+                  onChanged: (v) => church.name = v,
+                )
+              else
+                Text(church.name!),
               DefaultTextStyle(
                 style: title,
-                child: Text('العنوان:'),
+                child: const Text('العنوان:'),
               ),
-              editMode
-                  ? TextField(
-                      controller: TextEditingController(text: church.address),
-                      onChanged: (v) => church.address = v,
-                    )
-                  : Text(church.address!),
+              if (editMode)
+                TextField(
+                  controller: TextEditingController(text: church.address),
+                  onChanged: (v) => church.address = v,
+                )
+              else
+                Text(church.address!),
               if (!editMode) Text('الأباء بالكنيسة:', style: title),
               if (!editMode)
                 Expanded(
@@ -578,7 +590,7 @@ class _FathersPageState extends State<FathersPage> {
         fontSize: 22,
         fontWeight: FontWeight.bold,
         color: Theme.of(context).textTheme.headline6!.color,
-        locale: Locale('ar', 'EG'));
+        locale: const Locale('ar', 'EG'));
     // TextStyle subTitle = TextStyle(
     //     fontSize: 18,
     //     color: Theme.of(context).textTheme.subtitle2.color,
@@ -623,18 +635,18 @@ class _FathersPageState extends State<FathersPage> {
                                     editMode = !editMode;
                                   });
                                 },
-                                child: Text('نعم'),
+                                child: const Text('نعم'),
                               ),
                               TextButton(
                                 onPressed: () {
                                   navigator.currentState!.pop();
                                 },
-                                child: Text('تراجع'),
+                                child: const Text('تراجع'),
                               ),
                             ],
                           ));
                 },
-                child: Text('حذف'))
+                child: const Text('حذف'))
         ],
         title: Text(father.name!),
         content: SingleChildScrollView(
@@ -643,68 +655,70 @@ class _FathersPageState extends State<FathersPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text('الاسم:', style: title),
-              editMode
-                  ? TextField(
-                      controller: TextEditingController(text: father.name),
-                      onChanged: (v) => father.name = v,
-                    )
-                  : Text(father.name!),
+              if (editMode)
+                TextField(
+                  controller: TextEditingController(text: father.name),
+                  onChanged: (v) => father.name = v,
+                )
+              else
+                Text(father.name!),
               Text('داخل كنيسة', style: title),
-              editMode
-                  ? FutureBuilder<QuerySnapshot>(
-                      future: Church.getAllForUser(),
-                      builder: (context, data) {
-                        if (data.hasData) {
-                          return Container(
-                            padding: EdgeInsets.symmetric(vertical: 4.0),
-                            child: DropdownButtonFormField(
-                              value: father.churchId?.path,
-                              items: data.data!.docs
-                                  .map(
-                                    (item) => DropdownMenuItem(
-                                      value: item.reference.path,
-                                      child: Text(item.data()['Name']),
-                                    ),
-                                  )
-                                  .toList()
-                                    ..insert(
-                                      0,
-                                      DropdownMenuItem(
-                                        value: null,
-                                        child: Text(''),
-                                      ),
-                                    ),
-                              onChanged: (dynamic value) {
-                                father.churchId =
-                                    FirebaseFirestore.instance.doc(value);
-                              },
-                              decoration: InputDecoration(
-                                  labelText: 'الكنيسة',
-                                  border: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Theme.of(context).primaryColor),
-                                  )),
-                            ),
-                          );
-                        } else {
-                          return LinearProgressIndicator();
-                        }
-                      },
-                    )
-                  : FutureBuilder<String?>(
-                      future: father.getChurchName(),
-                      builder: (con, name) {
-                        return name.hasData
-                            ? Card(
-                                child: ListTile(
-                                    title: Text(name.data!),
-                                    onTap: () async => churchTap(
-                                        Church.fromDoc(
-                                            await father.churchId!.get()),
-                                        false)))
-                            : LinearProgressIndicator();
-                      },
-                    ),
+              if (editMode)
+                FutureBuilder<QuerySnapshot>(
+                  future: Church.getAllForUser(),
+                  builder: (context, data) {
+                    if (data.hasData) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: DropdownButtonFormField(
+                          value: father.churchId?.path,
+                          items: data.data!.docs
+                              .map(
+                                (item) => DropdownMenuItem(
+                                  value: item.reference.path,
+                                  child: Text(item.data()['Name']),
+                                ),
+                              )
+                              .toList()
+                                ..insert(
+                                  0,
+                                  const DropdownMenuItem(
+                                    value: null,
+                                    child: Text(''),
+                                  ),
+                                ),
+                          onChanged: (dynamic value) {
+                            father.churchId =
+                                FirebaseFirestore.instance.doc(value);
+                          },
+                          decoration: InputDecoration(
+                              labelText: 'الكنيسة',
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Theme.of(context).primaryColor),
+                              )),
+                        ),
+                      );
+                    } else {
+                      return const LinearProgressIndicator();
+                    }
+                  },
+                )
+              else
+                FutureBuilder<String?>(
+                  future: father.getChurchName(),
+                  builder: (con, name) {
+                    return name.hasData
+                        ? Card(
+                            child: ListTile(
+                                title: Text(name.data!),
+                                onTap: () async => churchTap(
+                                    Church.fromDoc(
+                                        await father.churchId!.get()),
+                                    false)))
+                        : const LinearProgressIndicator();
+                  },
+                ),
             ],
           ),
         ),
@@ -718,13 +732,13 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('السنوات الدراسية'),
+        title: const Text('السنوات الدراسية'),
       ),
       floatingActionButton: FloatingActionButton(
           onPressed: () {
             studyYearTap(StudyYear.createNew(), true);
           },
-          child: Icon(Icons.add)),
+          child: const Icon(Icons.add)),
       body: StudyYearsEditList(
         list: StudyYear.getAllForUser(),
         tap: (_) => studyYearTap(_, false),
@@ -737,7 +751,7 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
         fontSize: 22,
         fontWeight: FontWeight.bold,
         color: Theme.of(context).textTheme.headline6!.color,
-        locale: Locale('ar', 'EG'));
+        locale: const Locale('ar', 'EG'));
     // TextStyle subTitle = TextStyle(
     //     fontSize: 18,
     //     color: Theme.of(context).textTheme.subtitle2.color,
@@ -781,18 +795,18 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
                                     editMode = !editMode;
                                   });
                                 },
-                                child: Text('نعم'),
+                                child: const Text('نعم'),
                               ),
                               TextButton(
                                 onPressed: () {
                                   navigator.currentState!.pop();
                                 },
-                                child: Text('تراجع'),
+                                child: const Text('تراجع'),
                               ),
                             ],
                           ));
                 },
-                child: Text('حذف'))
+                child: const Text('حذف'))
         ],
         title: Text(year.name!),
         content: SingleChildScrollView(
@@ -802,26 +816,28 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
             children: <Widget>[
               DefaultTextStyle(
                 style: title,
-                child: Text('الاسم:'),
+                child: const Text('الاسم:'),
               ),
-              editMode
-                  ? TextField(
-                      controller: TextEditingController(text: year.name),
-                      onChanged: (v) => year.name = v,
-                    )
-                  : Text(year.name!),
+              if (editMode)
+                TextField(
+                  controller: TextEditingController(text: year.name),
+                  onChanged: (v) => year.name = v,
+                )
+              else
+                Text(year.name!),
               DefaultTextStyle(
                 style: title,
-                child: Text('ترتيب السنة:'),
+                child: const Text('ترتيب السنة:'),
               ),
-              editMode
-                  ? TextField(
-                      keyboardType: TextInputType.number,
-                      controller:
-                          TextEditingController(text: year.grade.toString()),
-                      onChanged: (v) => year.grade = int.parse(v),
-                    )
-                  : Text(year.grade.toString()),
+              if (editMode)
+                TextField(
+                  keyboardType: TextInputType.number,
+                  controller:
+                      TextEditingController(text: year.grade.toString()),
+                  onChanged: (v) => year.grade = int.parse(v),
+                )
+              else
+                Text(year.grade.toString()),
             ],
           ),
         ),

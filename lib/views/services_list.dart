@@ -4,16 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:group_list_view/group_list_view.dart';
 import 'package:meetinghelper/models/data_object_widget.dart';
 import 'package:meetinghelper/models/list_options.dart';
-export 'package:meetinghelper/models/list_options.dart'
-    show ServicesListOptions;
 
 import '../models/mini_models.dart';
 import '../models/models.dart';
 import '../utils/helpers.dart';
 
+export 'package:meetinghelper/models/list_options.dart'
+    show ServicesListOptions;
+
 class ServicesList extends StatefulWidget {
   final ServicesListOptions options;
-  ServicesList({Key? key, required this.options}) : super(key: key);
+
+  const ServicesList({Key? key, required this.options}) : super(key: key);
   @override
   _ServicesListState createState() => _ServicesListState();
 }
@@ -66,7 +68,7 @@ class _ServicesListState extends State<ServicesList>
           }
         });
         return GroupListView(
-          padding: EdgeInsets.symmetric(horizontal: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 6),
           cacheExtent: 200,
           sectionsCount: groupedStudyYears.length + 1,
           countOfItemInSection: (i) => groupedStudyYears.values.length > i
@@ -79,17 +81,17 @@ class _ServicesListState extends State<ServicesList>
               );
             switch (groupedStudyYears.keys.elementAt(section)) {
               case 0:
-                return ListTile(title: Text('KG'));
+                return const ListTile(title: Text('KG'));
               case 1:
-                return ListTile(title: Text('ابتدائي'));
+                return const ListTile(title: Text('ابتدائي'));
               case 2:
-                return ListTile(title: Text('اعدادي'));
+                return const ListTile(title: Text('اعدادي'));
               case 3:
-                return ListTile(title: Text('ثانوي'));
+                return const ListTile(title: Text('ثانوي'));
               case 4:
-                return ListTile(title: Text('جامعة'));
+                return const ListTile(title: Text('جامعة'));
               default:
-                return ListTile(title: Text('أخرى'));
+                return const ListTile(title: Text('أخرى'));
             }
           },
           itemBuilder: (context, index) {
@@ -109,7 +111,7 @@ class _ServicesListState extends State<ServicesList>
                       onTap: () =>
                           _controllers[hashValues(index.index, index.section)]!
                               .toggle(),
-                      leading: Icon(Icons.miscellaneous_services),
+                      leading: const Icon(Icons.miscellaneous_services),
                       title: Text(element?.name ?? ''),
                       trailing: StreamBuilder<Map<String?, Class?>?>(
                         stream: widget.options.selected,
@@ -119,7 +121,7 @@ class _ServicesListState extends State<ServicesList>
                             return Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.arrow_drop_down),
+                                const Icon(Icons.arrow_drop_down),
                                 Checkbox(
                                   value: services.data![element]!
                                       .map((c) =>
@@ -140,7 +142,7 @@ class _ServicesListState extends State<ServicesList>
                               ],
                             );
                           }
-                          return Icon(Icons.arrow_drop_down);
+                          return const Icon(Icons.arrow_drop_down);
                         },
                       ),
                     ),
@@ -179,7 +181,7 @@ class _ServicesListState extends State<ServicesList>
                                       },
                                     );
                                   }
-                                  return Container(width: 1, height: 1);
+                                  return const SizedBox(width: 1, height: 1);
                                 },
                               ),
                             ),
@@ -187,7 +189,7 @@ class _ServicesListState extends State<ServicesList>
                           .toList(),
                     ),
                   ),
-                  theme: ExpandableThemeData(
+                  theme: const ExpandableThemeData(
                       tapHeaderToExpand: false,
                       useInkWell: true,
                       hasIcon: false),
@@ -218,7 +220,7 @@ class _ServicesListState extends State<ServicesList>
                           },
                         );
                       }
-                      return Container(width: 1, height: 1);
+                      return const SizedBox(width: 1, height: 1);
                     },
                   ),
                   onTap: () {

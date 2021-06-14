@@ -39,12 +39,12 @@ import '../models/person.dart';
 import '../models/super_classes.dart';
 import '../models/theme_notifier.dart';
 import '../models/user.dart';
+import '../utils/globals.dart';
 import '../views/auth_screen.dart';
 import '../views/list.dart';
+import '../views/lists/users_list.dart';
 import '../views/notification.dart' as no;
 import '../views/search_query.dart';
-import '../views/lists/users_list.dart';
-import '../utils/globals.dart';
 
 void changeTheme({required BuildContext context}) {
   bool? darkTheme = Hive.box('Settings').get('DarkTheme');
@@ -56,14 +56,15 @@ void changeTheme({required BuildContext context}) {
   final riseDay = getRiseDay();
   if (greatFeastTheme &&
       DateTime.now()
-          .isAfter(riseDay.subtract(Duration(days: 7, seconds: 20))) &&
-      DateTime.now().isBefore(riseDay.subtract(Duration(days: 1)))) {
+          .isAfter(riseDay.subtract(const Duration(days: 7, seconds: 20))) &&
+      DateTime.now().isBefore(riseDay.subtract(const Duration(days: 1)))) {
     color = black;
     accent = blackAccent;
     darkTheme = true;
   } else if (greatFeastTheme &&
-      DateTime.now().isBefore(riseDay.add(Duration(days: 50, seconds: 20))) &&
-      DateTime.now().isAfter(riseDay.subtract(Duration(days: 1)))) {
+      DateTime.now()
+          .isBefore(riseDay.add(const Duration(days: 50, seconds: 20))) &&
+      DateTime.now().isAfter(riseDay.subtract(const Duration(days: 1)))) {
     darkTheme = false;
   }
 
@@ -97,35 +98,34 @@ Stream<Map<StudyYear?, List<Class>>> classesByStudyYearRef() {
         for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
       };
       return User.instance.stream.switchMap(
-        ((user) => (user.superAccess
-                    ? FirebaseFirestore.instance
-                        .collection('Classes')
-                        .orderBy('StudyYear')
-                        .orderBy('Gender')
-                        .snapshots()
-                    : FirebaseFirestore.instance
-                        .collection('Classes')
-                        .where('Allowed',
-                            arrayContains:
-                                auth.FirebaseAuth.instance.currentUser!.uid)
-                        .orderBy('StudyYear')
-                        .orderBy('Gender')
-                        .snapshots())
-                .map(
-              (cs) {
-                final classes =
-                    cs.docs.map((c) => Class.fromQueryDoc(c)).toList();
-                mergeSort<Class>(classes, compare: (c, c2) {
-                  if (c.studyYear == c2.studyYear)
-                    return c.gender.compareTo(c2.gender);
-                  return studyYears[c.studyYear]!
-                      .grade!
-                      .compareTo(studyYears[c2.studyYear]!.grade!);
-                });
-                return groupBy<Class, StudyYear?>(
-                    classes, (c) => studyYears[c.studyYear]);
-              },
-            )),
+        (user) => (user.superAccess
+                ? FirebaseFirestore.instance
+                    .collection('Classes')
+                    .orderBy('StudyYear')
+                    .orderBy('Gender')
+                    .snapshots()
+                : FirebaseFirestore.instance
+                    .collection('Classes')
+                    .where('Allowed',
+                        arrayContains:
+                            auth.FirebaseAuth.instance.currentUser!.uid)
+                    .orderBy('StudyYear')
+                    .orderBy('Gender')
+                    .snapshots())
+            .map(
+          (cs) {
+            final classes = cs.docs.map(Class.fromQueryDoc).toList();
+            mergeSort<Class>(classes, compare: (c, c2) {
+              if (c.studyYear == c2.studyYear)
+                return c.gender.compareTo(c2.gender);
+              return studyYears[c.studyYear]!
+                  .grade!
+                  .compareTo(studyYears[c2.studyYear]!.grade!);
+            });
+            return groupBy<Class, StudyYear?>(
+                classes, (c) => studyYears[c.studyYear]);
+          },
+        ),
       );
     },
   );
@@ -149,7 +149,7 @@ Stream<Map<StudyYear, List<Class>>> classesByStudyYearRefForUser(String? uid) {
           .snapshots()
           .map(
         (cs) {
-          final classes = cs.docs.map((c) => Class.fromQueryDoc(c)).toList();
+          final classes = cs.docs.map(Class.fromQueryDoc).toList();
           mergeSort<Class>(classes, compare: (c, c2) {
             if (c.studyYear == c2.studyYear)
               return c.gender.compareTo(c2.gender);
@@ -200,7 +200,7 @@ Future<dynamic> getLinkObject(Uri deepLink) async {
     } else if (deepLink.pathSegments[0] == 'viewUser') {
       return await User.fromID(deepLink.queryParameters['UID'] ?? 'null');
     } else if (deepLink.pathSegments[0] == 'viewQuery') {
-      return QueryIcon();
+      return const QueryIcon();
     }
     // ignore: empty_catches
   } catch (err) {}
@@ -231,7 +231,7 @@ List<RadioListTile> getOrderingOptions(BuildContext context,
             RadioListTile(
               value: 'true',
               groupValue: orderOptions.value!.asc.toString(),
-              title: Text('تصاعدي'),
+              title: const Text('تصاعدي'),
               onChanged: (value) {
                 orderOptions.add(OrderOptions(
                     orderBy: orderOptions.value!.orderBy,
@@ -242,7 +242,7 @@ List<RadioListTile> getOrderingOptions(BuildContext context,
             RadioListTile(
               value: 'false',
               groupValue: orderOptions.value!.asc.toString(),
-              title: Text('تنازلي'),
+              title: const Text('تنازلي'),
               onChanged: (value) {
                 orderOptions.add(OrderOptions(
                     orderBy: orderOptions.value!.orderBy,
@@ -291,7 +291,7 @@ void import(BuildContext context) async {
     if (decoder.tables.containsKey('Classes') &&
         decoder.tables.containsKey('Persons')) {
       scaffoldMessenger.currentState!.showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('جار رفع الملف...'),
           duration: Duration(minutes: 9),
         ),
@@ -305,7 +305,7 @@ void import(BuildContext context) async {
                   customMetadata: {'createdBy': User.instance.uid!}));
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('جار استيراد الملف...'),
           duration: Duration(minutes: 9),
         ),
@@ -315,7 +315,7 @@ void import(BuildContext context) async {
           .call({'fileId': filename + '.xlsx'});
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('تم الاستيراد بنجاح'),
           duration: Duration(seconds: 4),
         ),
@@ -374,66 +374,61 @@ Stream<Map<DocumentReference, Tuple2<Class, List<User>>>> usersByClassRef(
           .collection('StudyYears')
           .doc('Unknown')] = StudyYear('unknown', 'غير معروفة', 10000000);
       return User.instance.stream.switchMap(
-        ((user) => (user.superAccess
-                    ? FirebaseFirestore.instance
-                        .collection('Classes')
-                        .orderBy('StudyYear')
-                        .orderBy('Gender')
-                        .snapshots()
-                    : FirebaseFirestore.instance
-                        .collection('Classes')
-                        .where('Allowed',
-                            arrayContains:
-                                auth.FirebaseAuth.instance.currentUser!.uid)
-                        .orderBy('StudyYear')
-                        .orderBy('Gender')
-                        .snapshots())
-                .map(
-              (cs) {
-                final classesByRef = {
-                  for (final c in cs.docs.map((c) => Class.fromDoc(c)).toList())
-                    c!.ref: c
-                };
+        (user) => (user.superAccess
+                ? FirebaseFirestore.instance
+                    .collection('Classes')
+                    .orderBy('StudyYear')
+                    .orderBy('Gender')
+                    .snapshots()
+                : FirebaseFirestore.instance
+                    .collection('Classes')
+                    .where('Allowed',
+                        arrayContains:
+                            auth.FirebaseAuth.instance.currentUser!.uid)
+                    .orderBy('StudyYear')
+                    .orderBy('Gender')
+                    .snapshots())
+            .map(
+          (cs) {
+            final classesByRef = {
+              for (final c in cs.docs.map(Class.fromDoc).toList()) c!.ref: c
+            };
 
-                final rslt = {
-                  for (final e in groupBy<User, Class>(
-                      users,
-                      (user) => user.classId == null
-                          ? Class(
-                              name: 'غير محدد',
+            final rslt = {
+              for (final e in groupBy<User, Class>(
+                  users,
+                  (user) => user.classId == null
+                      ? Class(
+                          name: 'غير محدد',
+                          gender: true,
+                          color: Colors.redAccent)
+                      : classesByRef[user.classId] ??
+                          Class(
+                              name: '{لا يمكن قراءة اسم الفصل}',
                               gender: true,
-                              color: Colors.redAccent)
-                          : classesByRef[user.classId] ??
-                              Class(
-                                  name: '{لا يمكن قراءة اسم الفصل}',
-                                  gender: true,
-                                  color: Colors.redAccent,
-                                  id: 'Unknown')).entries)
-                    e.key.ref: Tuple2(e.key, e.value)
-                }.entries.toList();
+                              color: Colors.redAccent,
+                              id: 'Unknown')).entries)
+                e.key.ref: Tuple2(e.key, e.value)
+            }.entries.toList();
 
-                mergeSort<
-                    MapEntry<DocumentReference?,
-                        Tuple2<Class, List<User>>>>(rslt, compare: (c, c2) {
-                  if (c.value.item1.name == 'غير محدد' ||
-                      c.value.item1.name == '{لا يمكن قراءة اسم الفصل}')
-                    return 1;
-                  if (c2.value.item1.name == 'غير محدد' ||
-                      c2.value.item1.name == '{لا يمكن قراءة اسم الفصل}')
-                    return -1;
+            mergeSort<MapEntry<DocumentReference?, Tuple2<Class, List<User>>>>(
+                rslt, compare: (c, c2) {
+              if (c.value.item1.name == 'غير محدد' ||
+                  c.value.item1.name == '{لا يمكن قراءة اسم الفصل}') return 1;
+              if (c2.value.item1.name == 'غير محدد' ||
+                  c2.value.item1.name == '{لا يمكن قراءة اسم الفصل}') return -1;
 
-                  if (studyYears[c.value.item1.studyYear!] ==
-                      studyYears[c2.value.item1.studyYear!])
-                    return c.value.item1.gender
-                        .compareTo(c2.value.item1.gender);
-                  return studyYears[c.value.item1.studyYear!]!
-                      .grade!
-                      .compareTo(studyYears[c2.value.item1.studyYear!]!.grade!);
-                });
+              if (studyYears[c.value.item1.studyYear!] ==
+                  studyYears[c2.value.item1.studyYear!])
+                return c.value.item1.gender.compareTo(c2.value.item1.gender);
+              return studyYears[c.value.item1.studyYear!]!
+                  .grade!
+                  .compareTo(studyYears[c2.value.item1.studyYear!]!.grade!);
+            });
 
-                return {for (final e in rslt) e.key: e.value};
-              },
-            )),
+            return {for (final e in rslt) e.key: e.value};
+          },
+        ),
       );
     },
   );
@@ -451,7 +446,47 @@ Stream<Map<DocumentReference, Tuple2<Class, List<Person>>>> personsByClassRef(
     };
     if (persons != null) {
       return User.instance.stream.switchMap(
-        ((user) => (user.superAccess
+        (user) => (user.superAccess
+                ? FirebaseFirestore.instance
+                    .collection('Classes')
+                    .orderBy('StudyYear')
+                    .orderBy('Gender')
+                    .snapshots()
+                : FirebaseFirestore.instance
+                    .collection('Classes')
+                    .where('Allowed',
+                        arrayContains:
+                            auth.FirebaseAuth.instance.currentUser!.uid)
+                    .orderBy('StudyYear')
+                    .orderBy('Gender')
+                    .snapshots())
+            .map(
+          (cs) {
+            Map<DocumentReference?, List<Person>> personsByClassRef =
+                groupBy(persons, (p) => p.classId);
+            final classes = cs.docs
+                .map(Class.fromQueryDoc)
+                .where((c) => personsByClassRef[c.ref] != null)
+                .toList();
+            mergeSort<Class>(classes, compare: (c, c2) {
+              if (c.studyYear == c2.studyYear)
+                return c.gender.compareTo(c2.gender);
+              return studyYears[c.studyYear]!
+                  .grade!
+                  .compareTo(studyYears[c2.studyYear]!.grade!);
+            });
+            return {
+              for (final c in classes)
+                c.ref: Tuple2<Class, List<Person>>(c, personsByClassRef[c.ref]!)
+            };
+          },
+        ),
+      );
+    } else {
+      return Person.getAllForUser().switchMap(
+        (persons) {
+          return User.instance.stream.switchMap(
+            (user) => (user.superAccess
                     ? FirebaseFirestore.instance
                         .collection('Classes')
                         .orderBy('StudyYear')
@@ -470,7 +505,7 @@ Stream<Map<DocumentReference, Tuple2<Class, List<Person>>>> personsByClassRef(
                 Map<DocumentReference?, List<Person>> personsByClassRef =
                     groupBy(persons, (p) => p.classId);
                 final classes = cs.docs
-                    .map((c) => Class.fromQueryDoc(c))
+                    .map(Class.fromQueryDoc)
                     .where((c) => personsByClassRef[c.ref] != null)
                     .toList();
                 mergeSort<Class>(classes, compare: (c, c2) {
@@ -486,48 +521,7 @@ Stream<Map<DocumentReference, Tuple2<Class, List<Person>>>> personsByClassRef(
                         c, personsByClassRef[c.ref]!)
                 };
               },
-            )),
-      );
-    } else {
-      return Person.getAllForUser().switchMap(
-        (persons) {
-          return User.instance.stream.switchMap(
-            ((user) => (user.superAccess
-                        ? FirebaseFirestore.instance
-                            .collection('Classes')
-                            .orderBy('StudyYear')
-                            .orderBy('Gender')
-                            .snapshots()
-                        : FirebaseFirestore.instance
-                            .collection('Classes')
-                            .where('Allowed',
-                                arrayContains:
-                                    auth.FirebaseAuth.instance.currentUser!.uid)
-                            .orderBy('StudyYear')
-                            .orderBy('Gender')
-                            .snapshots())
-                    .map(
-                  (cs) {
-                    Map<DocumentReference?, List<Person>> personsByClassRef =
-                        groupBy(persons, (p) => p.classId);
-                    final classes = cs.docs
-                        .map((c) => Class.fromQueryDoc(c))
-                        .where((c) => personsByClassRef[c.ref] != null)
-                        .toList();
-                    mergeSort<Class>(classes, compare: (c, c2) {
-                      if (c.studyYear == c2.studyYear)
-                        return c.gender.compareTo(c2.gender);
-                      return studyYears[c.studyYear]!
-                          .grade!
-                          .compareTo(studyYears[c2.studyYear]!.grade!);
-                    });
-                    return {
-                      for (final c in classes)
-                        c.ref: Tuple2<Class, List<Person>>(
-                            c, personsByClassRef[c.ref]!)
-                    };
-                  },
-                )),
+            ),
           );
         },
       );
@@ -548,7 +542,7 @@ Future<void> processClickedNotification(BuildContext? context,
   if (notificationDetails.didNotificationLaunchApp) {
     if ((notificationDetails.payload ?? payload) == 'Birthday') {
       WidgetsBinding.instance!.addPostFrameCallback((_) async {
-        await Future.delayed(Duration(milliseconds: 900), () => null);
+        await Future.delayed(const Duration(milliseconds: 900), () => null);
         await navigator.currentState!.push(
           MaterialPageRoute(
             builder: (context) {
@@ -570,7 +564,7 @@ Future<void> processClickedNotification(BuildContext? context,
       });
     } else if ((notificationDetails.payload ?? payload) == 'Confessions') {
       WidgetsBinding.instance!.addPostFrameCallback((_) async {
-        await Future.delayed(Duration(milliseconds: 900), () => null);
+        await Future.delayed(const Duration(milliseconds: 900), () => null);
         await navigator.currentState!.push(
           MaterialPageRoute(
             builder: (context) {
@@ -594,7 +588,7 @@ Future<void> processClickedNotification(BuildContext? context,
       });
     } else if ((notificationDetails.payload ?? payload) == 'Tanawol') {
       WidgetsBinding.instance!.addPostFrameCallback((_) async {
-        await Future.delayed(Duration(milliseconds: 900), () => null);
+        await Future.delayed(const Duration(milliseconds: 900), () => null);
         await navigator.currentState!.push(
           MaterialPageRoute(
             builder: (context) {
@@ -618,7 +612,7 @@ Future<void> processClickedNotification(BuildContext? context,
       });
     } else if ((notificationDetails.payload ?? payload) == 'Kodas') {
       WidgetsBinding.instance!.addPostFrameCallback((_) async {
-        await Future.delayed(Duration(milliseconds: 900), () => null);
+        await Future.delayed(const Duration(milliseconds: 900), () => null);
         await navigator.currentState!.push(
           MaterialPageRoute(
             builder: (context) {
@@ -642,7 +636,7 @@ Future<void> processClickedNotification(BuildContext? context,
       });
     } else if ((notificationDetails.payload ?? payload) == 'Meeting') {
       WidgetsBinding.instance!.addPostFrameCallback((_) async {
-        await Future.delayed(Duration(milliseconds: 900), () => null);
+        await Future.delayed(const Duration(milliseconds: 900), () => null);
         await navigator.currentState!.push(
           MaterialPageRoute(
             builder: (context) {
@@ -747,7 +741,7 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
         ],
         builder: (context, child) => Scaffold(
           appBar: AppBar(
-            title: Text('اختيار مستخدمين'),
+            title: const Text('اختيار مستخدمين'),
             actions: [
               IconButton(
                 onPressed: () {
@@ -757,7 +751,7 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
                       ?.values
                       .toList());
                 },
-                icon: Icon(Icons.done),
+                icon: const Icon(Icons.done),
                 tooltip: 'تم',
               ),
             ],
@@ -768,7 +762,7 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
               SearchField(
                   searchStream: search,
                   textStyle: Theme.of(context).textTheme.bodyText2),
-              Expanded(
+              const Expanded(
                 child: UsersList(),
               ),
             ],
@@ -777,6 +771,7 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
       );
     },
   );
+  await search.close();
   final title = TextEditingController();
   final content = TextEditingController();
   if (users != null &&
@@ -786,23 +781,23 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
               return AlertDialog(
                 actions: <Widget>[
                   TextButton.icon(
-                    icon: Icon(Icons.send),
+                    icon: const Icon(Icons.send),
                     onPressed: () => navigator.currentState!.pop(true),
-                    label: Text('ارسال'),
+                    label: const Text('ارسال'),
                   ),
                   TextButton.icon(
-                    icon: Icon(Icons.cancel),
+                    icon: const Icon(Icons.cancel),
                     onPressed: () => navigator.currentState!.pop(false),
-                    label: Text('الغاء الأمر'),
+                    label: const Text('الغاء الأمر'),
                   ),
                 ],
-                title: Text('انشاء رسالة'),
-                content: Container(
+                title: const Text('انشاء رسالة'),
+                content: SizedBox(
                   width: 280,
                   child: Column(
                     children: <Widget>[
                       Container(
-                        padding: EdgeInsets.symmetric(vertical: 4.0),
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
                         child: TextFormField(
                           decoration: InputDecoration(
                             labelText: 'عنوان الرسالة',
@@ -823,7 +818,7 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
                       ),
                       Expanded(
                         child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 4.0),
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: TextFormField(
                             decoration: InputDecoration(
                               labelText: 'محتوى الرسالة',
@@ -872,7 +867,7 @@ Future<void> recoverDoc(BuildContext context, String path) async {
           actions: [
             TextButton(
               onPressed: () => navigator.currentState!.pop(true),
-              child: Text('استرجاع'),
+              child: const Text('استرجاع'),
             ),
           ],
           content: StatefulBuilder(
@@ -886,7 +881,7 @@ Future<void> recoverDoc(BuildContext context, String path) async {
                         value: nested,
                         onChanged: (v) => setState(() => nested = v),
                       ),
-                      Text(
+                      const Text(
                         'استرجع ايضا العناصر بداخل هذا العنصر',
                         textScaleFactor: 0.9,
                       ),
@@ -898,7 +893,7 @@ Future<void> recoverDoc(BuildContext context, String path) async {
                         value: keepBackup,
                         onChanged: (v) => setState(() => keepBackup = v),
                       ),
-                      Text('ابقاء البيانات المحذوفة'),
+                      const Text('ابقاء البيانات المحذوفة'),
                     ],
                   ),
                 ],
@@ -915,7 +910,7 @@ Future<void> recoverDoc(BuildContext context, String path) async {
         'nested': nested,
       });
       scaffoldMessenger.currentState!
-          .showSnackBar(SnackBar(content: Text('تم الاسترجاع بنجاح')));
+          .showSnackBar(const SnackBar(content: Text('تم الاسترجاع بنجاح')));
     } catch (err, stcTrace) {
       await FirebaseCrashlytics.instance
           .setCustomKey('LastErrorIn', 'helpers.recoverDoc');
@@ -924,7 +919,7 @@ Future<void> recoverDoc(BuildContext context, String path) async {
   }
 }
 
-Future<String> shareClass(Class _class) async => await shareClassRaw(_class.id);
+Future<String> shareClass(Class _class) async => shareClassRaw(_class.id);
 
 Future<String> shareClassRaw(String? id) async {
   return (await DynamicLinkParameters(
@@ -939,14 +934,14 @@ Future<String> shareClassRaw(String? id) async {
 }
 
 Future<String> shareDataObject(DataObject? obj) async {
-  if (obj is HistoryDay) return await shareHistory(obj);
-  if (obj is Class) return await shareClass(obj);
-  if (obj is Person) return await sharePerson(obj);
+  if (obj is HistoryDay) return shareHistory(obj);
+  if (obj is Class) return shareClass(obj);
+  if (obj is Person) return sharePerson(obj);
   throw UnimplementedError();
 }
 
 Future<String> shareHistory(HistoryDay record) async =>
-    await shareHistoryRaw(record.id);
+    shareHistoryRaw(record.id);
 
 Future<String> shareHistoryRaw(String? id) async {
   return (await DynamicLinkParameters(
@@ -962,7 +957,7 @@ Future<String> shareHistoryRaw(String? id) async {
 }
 
 Future<String> sharePerson(Person person) async {
-  return await sharePersonRaw(person.id);
+  return sharePersonRaw(person.id);
 }
 
 Future<String> sharePersonRaw(String? id) async {
@@ -989,7 +984,7 @@ Future<String> shareQuery(Map<String, String?> query) async {
       .toString();
 }
 
-Future<String> shareUser(User user) async => await shareUserRaw(user.uid);
+Future<String> shareUser(User user) async => shareUserRaw(user.uid);
 
 Future<String> shareUserRaw(String? uid) async {
   return (await DynamicLinkParameters(
@@ -1085,7 +1080,7 @@ void showBirthDayNotification() async {
         2,
         'أعياد الميلاد',
         persons.join(', '),
-        NotificationDetails(
+        const NotificationDetails(
           android: AndroidNotificationDetails(
               'Birthday', 'إشعارات أعياد الميلاد', 'إشعارات أعياد الميلاد',
               icon: 'birthday',
@@ -1107,10 +1102,10 @@ Future<List<Class>?> selectClasses(
         MaterialPageRoute(
           builder: (context) => Scaffold(
             appBar: AppBar(
-              title: Text('اختر الفصول'),
+              title: const Text('اختر الفصول'),
               actions: [
                 IconButton(
-                    icon: Icon(Icons.done),
+                    icon: const Icon(Icons.done),
                     onPressed: () => navigator.currentState!.pop(true),
                     tooltip: 'تم')
               ],
@@ -1142,7 +1137,7 @@ void showConfessionNotification() async {
             .collection('Persons')
             .where('LastConfession',
                 isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(Duration(days: 7))))
+                    DateTime.now().subtract(const Duration(days: 7))))
             .limit(20)
             .get(source))
         .docs
@@ -1154,7 +1149,7 @@ void showConfessionNotification() async {
             .where('ClassId', whereIn: classes.map((c) => c.ref).toList())
             .where('LastConfession',
                 isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(Duration(days: 7))))
+                    DateTime.now().subtract(const Duration(days: 7))))
             .limit(20)
             .get(source))
         .docs
@@ -1167,7 +1162,7 @@ void showConfessionNotification() async {
             .where('ClassId', whereIn: cs.map((c) => c.ref).toList())
             .where('LastConfession',
                 isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(Duration(days: 7))))
+                    DateTime.now().subtract(const Duration(days: 7))))
             .limit(20)
             .get(source))))
         .map((e) => e.docs.map((e) => e.data()['Name'] as String))
@@ -1179,7 +1174,7 @@ void showConfessionNotification() async {
         0,
         'انذار الاعتراف',
         persons.join(', '),
-        NotificationDetails(
+        const NotificationDetails(
           android: AndroidNotificationDetails(
               'Confessions', 'إشعارات الاعتراف', 'إشعارات الاعتراف',
               icon: 'warning',
@@ -1192,7 +1187,7 @@ void showConfessionNotification() async {
 
 Future<void> showErrorDialog(BuildContext context, String? message,
     {String? title}) async {
-  return await showDialog(
+  return showDialog(
     context: context,
     barrierDismissible: false, // user must tap button!
     builder: (BuildContext context) => AlertDialog(
@@ -1203,7 +1198,7 @@ Future<void> showErrorDialog(BuildContext context, String? message,
           onPressed: () {
             navigator.currentState!.pop();
           },
-          child: Text('حسنًا'),
+          child: const Text('حسنًا'),
         ),
       ],
     ),
@@ -1218,11 +1213,11 @@ Future<void> showErrorUpdateDataDialog(
     await showDialog(
       context: context!,
       builder: (context) => AlertDialog(
-        content:
-            Text('الخادم مثال حى للنفس التائبة ـ يمارس التوبة فى حياته الخاصة'
-                ' وفى أصوامـه وصلواته ، وحب المسـيح المصلوب\n'
-                'أبونا بيشوي كامل \n'
-                'يرجي مراجعة حياتك الروحية والاهتمام بها'),
+        content: const Text(
+            'الخادم مثال حى للنفس التائبة ـ يمارس التوبة فى حياته الخاصة'
+            ' وفى أصوامـه وصلواته ، وحب المسـيح المصلوب\n'
+            'أبونا بيشوي كامل \n'
+            'يرجي مراجعة حياتك الروحية والاهتمام بها'),
         actions: [
           OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
@@ -1243,16 +1238,16 @@ Future<void> showErrorUpdateDataDialog(
                 if (pushApp)
                   // ignore: unawaited_futures
                   navigator.currentState!.pushReplacement(
-                      MaterialPageRoute(builder: (context) => App()));
+                      MaterialPageRoute(builder: (context) => const App()));
               }
             },
-            icon: Icon(Icons.update),
-            label: Text('تحديث بيانات التناول والاعتراف'),
+            icon: const Icon(Icons.update),
+            label: const Text('تحديث بيانات التناول والاعتراف'),
           ),
           TextButton.icon(
             onPressed: () => navigator.currentState!.pop(),
-            icon: Icon(Icons.close),
-            label: Text('تم'),
+            icon: const Icon(Icons.close),
+            label: const Text('تم'),
           ),
         ],
       ),
@@ -1273,14 +1268,14 @@ void showKodasNotification() async {
               ? Source.cache
               : Source.serverAndCache);
   final classes = await Class.getAllForUser().first;
-  await Future.delayed(Duration(seconds: 3));
+  await Future.delayed(const Duration(seconds: 3));
   List<String> persons;
   if (user.superAccess) {
     persons = (await FirebaseFirestore.instance
             .collection('Persons')
             .where('LastKodas',
                 isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(Duration(days: 7))))
+                    DateTime.now().subtract(const Duration(days: 7))))
             .limit(20)
             .get(source))
         .docs
@@ -1292,7 +1287,7 @@ void showKodasNotification() async {
             .where('ClassId', whereIn: classes.map((c) => c.ref).toList())
             .where('LastKodas',
                 isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(Duration(days: 7))))
+                    DateTime.now().subtract(const Duration(days: 7))))
             .limit(20)
             .get(source))
         .docs
@@ -1305,7 +1300,7 @@ void showKodasNotification() async {
             .where('ClassId', whereIn: cs.map((c) => c.ref).toList())
             .where('LastKodas',
                 isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(Duration(days: 7))))
+                    DateTime.now().subtract(const Duration(days: 7))))
             .limit(20)
             .get(source))))
         .map((e) => e.docs.map((e) => e.data()['Name'] as String))
@@ -1317,7 +1312,7 @@ void showKodasNotification() async {
         4,
         'انذار حضور القداس',
         persons.join(', '),
-        NotificationDetails(
+        const NotificationDetails(
           android: AndroidNotificationDetails(
               'Kodas', 'إشعارات حضور القداس', 'إشعارات حضور القداس',
               icon: 'warning',
@@ -1339,14 +1334,14 @@ void showMeetingNotification() async {
               ? Source.cache
               : Source.serverAndCache);
   final classes = await Class.getAllForUser().first;
-  await Future.delayed(Duration(seconds: 4));
+  await Future.delayed(const Duration(seconds: 4));
   List<String> persons;
   if (user.superAccess) {
     persons = (await FirebaseFirestore.instance
             .collection('Persons')
             .where('LastMeeting',
                 isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(Duration(days: 7))))
+                    DateTime.now().subtract(const Duration(days: 7))))
             .limit(20)
             .get(source))
         .docs
@@ -1358,7 +1353,7 @@ void showMeetingNotification() async {
             .where('ClassId', whereIn: classes.map((c) => c.ref).toList())
             .where('LastMeeting',
                 isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(Duration(days: 7))))
+                    DateTime.now().subtract(const Duration(days: 7))))
             .limit(20)
             .get(source))
         .docs
@@ -1371,7 +1366,7 @@ void showMeetingNotification() async {
             .where('ClassId', whereIn: cs.map((c) => c.ref).toList())
             .where('LastMeeting',
                 isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(Duration(days: 7))))
+                    DateTime.now().subtract(const Duration(days: 7))))
             .limit(20)
             .get(source))))
         .map((e) => e.docs.map((e) => e.data()['Name'] as String))
@@ -1383,7 +1378,7 @@ void showMeetingNotification() async {
         3,
         'انذار حضور الاجتماع',
         persons.join(', '),
-        NotificationDetails(
+        const NotificationDetails(
           android: AndroidNotificationDetails(
               'Meeting', 'إشعارات حضور الاجتماع', 'إشعارات حضور الاجتماع',
               icon: 'warning',
@@ -1409,14 +1404,14 @@ Future<void> showMessage(
     context: context,
     builder: (context) => AlertDialog(
       title: Text(notification.title!),
-      content: Container(
+      content: SizedBox(
         width: 280,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             Text(
               notification.content!,
-              style: TextStyle(fontSize: 18),
+              style: const TextStyle(fontSize: 18),
             ),
             if (user != null)
               Card(
@@ -1490,14 +1485,14 @@ void showTanawolNotification() async {
               ? Source.cache
               : Source.serverAndCache);
   final classes = await Class.getAllForUser().first;
-  await Future.delayed(Duration(seconds: 5));
+  await Future.delayed(const Duration(seconds: 5));
   List<String> persons;
   if (user.superAccess) {
     persons = (await FirebaseFirestore.instance
             .collection('Persons')
             .where('LastTanawol',
                 isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(Duration(days: 7))))
+                    DateTime.now().subtract(const Duration(days: 7))))
             .limit(20)
             .get(source))
         .docs
@@ -1509,7 +1504,7 @@ void showTanawolNotification() async {
             .where('ClassId', whereIn: classes.map((c) => c.ref).toList())
             .where('LastTanawol',
                 isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(Duration(days: 7))))
+                    DateTime.now().subtract(const Duration(days: 7))))
             .limit(20)
             .get(source))
         .docs
@@ -1522,7 +1517,7 @@ void showTanawolNotification() async {
             .where('ClassId', whereIn: cs.map((c) => c.ref).toList())
             .where('LastTanawol',
                 isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(Duration(days: 7))))
+                    DateTime.now().subtract(const Duration(days: 7))))
             .limit(20)
             .get(source))))
         .map((e) => e.docs.map((e) => e.data()['Name'] as String))
@@ -1534,7 +1529,7 @@ void showTanawolNotification() async {
         1,
         'انذار التناول',
         persons.join(', '),
-        NotificationDetails(
+        const NotificationDetails(
           android: AndroidNotificationDetails(
               'Tanawol', 'إشعارات التناول', 'إشعارات التناول',
               icon: 'warning',
@@ -1546,8 +1541,7 @@ void showTanawolNotification() async {
 }
 
 Future<int> storeNotification(RemoteMessage message) async {
-  return await Hive.box<Map<dynamic, dynamic>>('Notifications')
-      .add(message.data);
+  return Hive.box<Map<dynamic, dynamic>>('Notifications').add(message.data);
 }
 
 String toDurationString(Timestamp? date, {appendSince = true}) {
@@ -1573,18 +1567,18 @@ void userTap(User user, BuildContext context) async {
         builder: (context) => AlertDialog(
               actions: <Widget>[
                 TextButton.icon(
-                  icon: Icon(Icons.done),
-                  label: Text('نعم'),
+                  icon: const Icon(Icons.done),
+                  label: const Text('نعم'),
                   onPressed: () => navigator.currentState!.pop(true),
                 ),
                 TextButton.icon(
-                  icon: Icon(Icons.close),
-                  label: Text('لا'),
+                  icon: const Icon(Icons.close),
+                  label: const Text('لا'),
                   onPressed: () => navigator.currentState!.pop(false),
                 ),
                 TextButton.icon(
-                  icon: Icon(Icons.close),
-                  label: Text('حذف المستخدم'),
+                  icon: const Icon(Icons.close),
+                  label: const Text('حذف المستخدم'),
                   onPressed: () => navigator.currentState!.pop('deleted'),
                 ),
               ],
@@ -1601,7 +1595,7 @@ void userTap(User user, BuildContext context) async {
             ));
     if (rslt == true) {
       scaffoldMessenger.currentState!.showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: LinearProgressIndicator(),
           duration: Duration(seconds: 15),
         ),
@@ -1610,13 +1604,14 @@ void userTap(User user, BuildContext context) async {
         await FirebaseFunctions.instance
             .httpsCallable('approveUser')
             .call({'affectedUser': user.uid});
-        user.approved = true;
-        // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
-        user.notifyListeners();
+        user
+          ..approved = true
+          // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
+          ..notifyListeners();
         userTap(user, context);
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
         scaffoldMessenger.currentState!.showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('تم بنجاح'),
             duration: Duration(seconds: 15),
           ),
@@ -1628,7 +1623,7 @@ void userTap(User user, BuildContext context) async {
       }
     } else if (rslt == 'delete') {
       scaffoldMessenger.currentState!.showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: LinearProgressIndicator(),
           duration: Duration(seconds: 15),
         ),
@@ -1639,7 +1634,7 @@ void userTap(User user, BuildContext context) async {
             .call({'affectedUser': user.uid});
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
         scaffoldMessenger.currentState!.showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('تم بنجاح'),
             duration: Duration(seconds: 15),
           ),
@@ -1662,7 +1657,7 @@ class MessageIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
-      constraints: BoxConstraints.expand(width: 55.2, height: 55.2),
+      constraints: const BoxConstraints.expand(width: 55.2, height: 55.2),
       child: Material(
         type: MaterialType.transparency,
         child: InkWell(
@@ -1703,6 +1698,8 @@ class MessageIcon extends StatelessWidget {
 }
 
 class QueryIcon extends StatelessWidget {
+  const QueryIcon({Key? key}) : super(key: key);
+
   Color get color => Colors.transparent;
   String get name => 'نتائج بحث';
 

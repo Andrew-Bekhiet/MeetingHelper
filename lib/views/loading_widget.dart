@@ -15,12 +15,12 @@ class Loading extends StatelessWidget {
   String _getAssetImage() {
     final riseDay = getRiseDay();
     if (DateTime.now()
-            .isAfter(riseDay.subtract(Duration(days: 7, seconds: 20))) &&
-        DateTime.now().isBefore(riseDay.subtract(Duration(days: 1)))) {
+            .isAfter(riseDay.subtract(const Duration(days: 7, seconds: 20))) &&
+        DateTime.now().isBefore(riseDay.subtract(const Duration(days: 1)))) {
       return 'assets/holyweek.jpeg';
     } else if (DateTime.now()
-            .isBefore(riseDay.add(Duration(days: 50, seconds: 20))) &&
-        DateTime.now().isAfter(riseDay.subtract(Duration(days: 1)))) {
+            .isBefore(riseDay.add(const Duration(days: 50, seconds: 20))) &&
+        DateTime.now().isAfter(riseDay.subtract(const Duration(days: 1)))) {
       return 'assets/risen.jpg';
     }
     return 'assets/Logo.png';
@@ -48,18 +48,19 @@ class Loading extends StatelessWidget {
                   Text(error
                       ? 'لا يمكن تحميل البرنامج في الوقت الحالي'
                       : 'جار التحميل...'),
-                  error
-                      ? OutlinedButton.icon(
-                          label: Text('اضغط لمزيد من المعلومات'),
-                          icon: Icon(Icons.error),
-                          onPressed: () {
-                            if (message != 'Exception: Error Update User Data')
-                              showErrorDialog(context, message);
-                            else
-                              showErrorUpdateDataDialog(context: context);
-                          },
-                        )
-                      : CircularProgressIndicator(),
+                  if (error)
+                    OutlinedButton.icon(
+                      label: const Text('اضغط لمزيد من المعلومات'),
+                      icon: const Icon(Icons.error),
+                      onPressed: () {
+                        if (message != 'Exception: Error Update User Data')
+                          showErrorDialog(context, message);
+                        else
+                          showErrorUpdateDataDialog(context: context);
+                      },
+                    )
+                  else
+                    const CircularProgressIndicator(),
                 ],
               ),
             ),
@@ -71,7 +72,7 @@ class Loading extends StatelessWidget {
                   builder: (context, data) => data.hasData
                       ? Text('اصدار: ' + data.data!.version,
                           style: Theme.of(context).textTheme.caption)
-                      : Text(''),
+                      : const Text(''),
                 ),
               ),
           ],

@@ -13,13 +13,13 @@ import '../utils/helpers.dart';
 class DataMap extends StatefulWidget {
   final Class? class$;
 
-  DataMap({this.class$, Key? key}) : super(key: key);
+  const DataMap({this.class$, Key? key}) : super(key: key);
   @override
   _DataMapState createState() => _DataMapState();
 }
 
 class MegaMap extends StatelessWidget {
-  final LatLng center = LatLng(30.0444, 31.2357); //Cairo Location
+  static const LatLng center = LatLng(30.0444, 31.2357); //Cairo Location
   final LatLng? initialLocation;
 
   MegaMap({Key? key, this.initialLocation}) : super(key: key);
@@ -41,7 +41,7 @@ class MegaMap extends StatelessWidget {
               .first,
           builder: (context, data) {
             if (data.connectionState != ConnectionState.done) {
-              return Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator());
             }
             var persons = data.data!;
 
@@ -127,20 +127,20 @@ class _DataMapState extends State<DataMap> {
             value: selected,
             builder: (context, _) => Scaffold(
               appBar: AppBar(
-                title: Text('خريطة الافتقاد'),
+                title: const Text('خريطة الافتقاد'),
                 actions: [
                   IconButton(
                     icon: DescribedFeatureOverlay(
                       barrierDismissible: false,
                       featureId: 'ShowHideClasses',
-                      tapTarget: Icon(Icons.visibility),
-                      title: Text('إظهار / إخفاء فصول'),
+                      tapTarget: const Icon(Icons.visibility),
+                      title: const Text('إظهار / إخفاء فصول'),
                       description: Column(
                         children: <Widget>[
-                          Text(
+                          const Text(
                               'يمكنك اختيار الفصول التي تريد اظهار مواقع مخدوميها من هنا'),
                           OutlinedButton.icon(
-                            icon: Icon(Icons.forward),
+                            icon: const Icon(Icons.forward),
                             label: Text(
                               'التالي',
                               style: TextStyle(
@@ -172,7 +172,7 @@ class _DataMapState extends State<DataMap> {
                       targetColor: Theme.of(context).primaryColor,
                       textColor:
                           Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                      child: Icon(Icons.visibility),
+                      child: const Icon(Icons.visibility),
                     ),
                     tooltip: 'اظهار/اخفاء فصول',
                     onPressed: () async {
@@ -180,9 +180,11 @@ class _DataMapState extends State<DataMap> {
                           context, context.read<SelectedClasses>().selected);
                       if (rslt?.isEmpty ?? false)
                         await showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                                content: Text('برجاء اختيار فصل على الأقل')));
+                          context: context,
+                          builder: (context) => const AlertDialog(
+                            content: Text('برجاء اختيار فصل على الأقل'),
+                          ),
+                        );
                       else if (rslt != null)
                         context.read<SelectedClasses>().setSelected(rslt);
                     },
@@ -200,10 +202,10 @@ class _DataMapState extends State<DataMap> {
                               initialLocation: LatLng(snapshot.data!.latitude!,
                                   snapshot.data!.longitude!),
                             )
-                          : Center(child: CircularProgressIndicator()),
+                          : const Center(child: CircularProgressIndicator()),
                     );
                   } else if (data.hasData) return MegaMap();
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 },
               ),
             ),

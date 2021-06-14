@@ -9,8 +9,8 @@ import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../models/notification_setting.dart';
 import '../models/user.dart';
-import '../utils/helpers.dart';
 import '../utils/globals.dart';
+import '../utils/helpers.dart';
 
 enum DateType {
   month,
@@ -19,7 +19,8 @@ enum DateType {
 }
 
 class Settings extends StatefulWidget {
-  Settings({Key? key}) : super(key: key);
+  const Settings({Key? key}) : super(key: key);
+
   @override
   SettingsState createState() => SettingsState();
 }
@@ -47,7 +48,7 @@ class SettingsState extends State<Settings> {
       onWillPop: confirmExit,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('الاعدادات'),
+          title: const Text('الاعدادات'),
         ),
         body: SingleChildScrollView(
           child: Padding(
@@ -57,7 +58,7 @@ class SettingsState extends State<Settings> {
                 builder: (context) {
                   _save = () {
                     Form.of(context)!.save();
-                    scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+                    scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
                       content: Text('تم الحفظ'),
                     ));
                   };
@@ -69,11 +70,11 @@ class SettingsState extends State<Settings> {
                             useInkWell: true,
                             iconColor: Theme.of(context).iconTheme.color,
                             bodyAlignment: ExpandablePanelBodyAlignment.right),
-                        header: Text(
+                        header: const Text(
                           'المظهر',
                           style: TextStyle(fontSize: 24),
                         ),
-                        collapsed: Text('المظهر العام للبرنامج'),
+                        collapsed: const Text('المظهر العام للبرنامج'),
                         expanded: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: <Widget>[
@@ -81,19 +82,19 @@ class SettingsState extends State<Settings> {
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: <Widget>[
                                 ChoiceChip(
-                                  label: Text('المظهر الداكن'),
+                                  label: const Text('المظهر الداكن'),
                                   selected: darkTheme == true,
                                   onSelected: (v) =>
                                       setState(() => darkTheme = true),
                                 ),
                                 ChoiceChip(
-                                  label: Text('المظهر الفاتح'),
+                                  label: const Text('المظهر الفاتح'),
                                   selected: darkTheme == false,
                                   onSelected: (v) =>
                                       setState(() => darkTheme = false),
                                 ),
                                 ChoiceChip(
-                                  label: Text('حسب النظام'),
+                                  label: const Text('حسب النظام'),
                                   selected: darkTheme == null,
                                   onSelected: (v) =>
                                       setState(() => darkTheme = null),
@@ -104,7 +105,7 @@ class SettingsState extends State<Settings> {
                               value: greatFeastTheme,
                               onChanged: (v) =>
                                   setState(() => greatFeastTheme = v),
-                              title: Text(
+                              title: const Text(
                                   'تغيير لون البرنامج حسب أسبوع الآلام وفترة الخمسين'),
                             ),
                             ElevatedButton.icon(
@@ -115,8 +116,8 @@ class SettingsState extends State<Settings> {
                                     .put('GreatFeastTheme', greatFeastTheme);
                                 changeTheme(context: context);
                               },
-                              icon: Icon(Icons.done),
-                              label: Text('تغيير'),
+                              icon: const Icon(Icons.done),
+                              label: const Text('تغيير'),
                             ),
                           ],
                         ),
@@ -126,9 +127,9 @@ class SettingsState extends State<Settings> {
                             useInkWell: true,
                             iconColor: Theme.of(context).iconTheme.color,
                             bodyAlignment: ExpandablePanelBodyAlignment.right),
-                        header: Text('بيانات إضافية',
+                        header: const Text('بيانات إضافية',
                             style: TextStyle(fontSize: 24)),
-                        collapsed: Text(
+                        collapsed: const Text(
                             'الكنائس، الأباء الكهنة، الوظائف، السنوات الدراسية، أنواع الخدمات، أنواع المخدومين',
                             overflow: TextOverflow.ellipsis),
                         expanded: Column(
@@ -137,19 +138,19 @@ class SettingsState extends State<Settings> {
                             ElevatedButton(
                                 onPressed: () => navigator.currentState!
                                     .pushNamed('Settings/Churches'),
-                                child: Text('الكنائس')),
+                                child: const Text('الكنائس')),
                             ElevatedButton(
                                 onPressed: () => navigator.currentState!
                                     .pushNamed('Settings/Fathers'),
-                                child: Text('الأباء الكهنة')),
+                                child: const Text('الأباء الكهنة')),
                             ElevatedButton(
                                 onPressed: () => navigator.currentState!
                                     .pushNamed('Settings/StudyYears'),
-                                child: Text('السنوات الدراسية')),
+                                child: const Text('السنوات الدراسية')),
                             ElevatedButton(
                                 onPressed: () => navigator.currentState!
                                     .pushNamed('Settings/Schools'),
-                                child: Text('المدارس')),
+                                child: const Text('المدارس')),
                           ],
                         ),
                       ),
@@ -158,16 +159,17 @@ class SettingsState extends State<Settings> {
                             useInkWell: true,
                             iconColor: Theme.of(context).iconTheme.color,
                             bodyAlignment: ExpandablePanelBodyAlignment.right),
-                        header: Text('مظهر البيانات',
+                        header: const Text('مظهر البيانات',
                             style: TextStyle(fontSize: 24)),
-                        collapsed: Text(
+                        collapsed: const Text(
                             'السطر الثاني للفصل، السطر الثاني للمخدوم',
                             overflow: TextOverflow.ellipsis),
                         expanded: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: <Widget>[
                             Container(
-                              padding: EdgeInsets.symmetric(vertical: 4.0),
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 4.0),
                               child: DropdownButtonFormField(
                                 value: settings.get('ClassSecondLine'),
                                 items: Class.getHumanReadableMap2()
@@ -177,13 +179,13 @@ class SettingsState extends State<Settings> {
                                     .toList()
                                       ..removeWhere(
                                           (element) => element.value == 'Color')
-                                      ..add(DropdownMenuItem(
+                                      ..add(const DropdownMenuItem(
                                         value: 'Members',
                                         child: Text('المخدومين بالفصل'),
                                       ))
                                       ..insert(
                                           0,
-                                          DropdownMenuItem(
+                                          const DropdownMenuItem(
                                             value: null,
                                             child: Text(''),
                                           )),
@@ -201,7 +203,8 @@ class SettingsState extends State<Settings> {
                               ),
                             ),
                             Container(
-                              padding: EdgeInsets.symmetric(vertical: 4.0),
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 4.0),
                               child: DropdownButtonFormField(
                                 value: settings.get('PersonSecondLine'),
                                 items: Person.getHumanReadableMap2()
@@ -215,7 +218,7 @@ class SettingsState extends State<Settings> {
                                           (element) => element.value == 'Color')
                                       ..insert(
                                           0,
-                                          DropdownMenuItem(
+                                          const DropdownMenuItem(
                                             value: null,
                                             child: Text(''),
                                           )),
@@ -246,11 +249,11 @@ class SettingsState extends State<Settings> {
                                   iconColor: Theme.of(context).iconTheme.color,
                                   bodyAlignment:
                                       ExpandablePanelBodyAlignment.right),
-                              header: Text(
+                              header: const Text(
                                 'الاشعارات',
                                 style: TextStyle(fontSize: 24),
                               ),
-                              collapsed: Text('اعدادات الاشعارات'),
+                              collapsed: const Text('اعدادات الاشعارات'),
                               expanded: _getNotificationsContent(permission),
                             );
                           }
@@ -262,10 +265,11 @@ class SettingsState extends State<Settings> {
                             useInkWell: true,
                             iconColor: Theme.of(context).iconTheme.color,
                             bodyAlignment: ExpandablePanelBodyAlignment.right),
-                        header: Text('أخرى', style: TextStyle(fontSize: 24)),
-                        collapsed: Text('إعدادات أخرى'),
+                        header:
+                            const Text('أخرى', style: TextStyle(fontSize: 24)),
+                        collapsed: const Text('إعدادات أخرى'),
                         expanded: Container(
-                          padding: EdgeInsets.symmetric(vertical: 4.0),
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: TextFormField(
                             decoration: InputDecoration(
                               labelText: 'الحجم الأقصى للبيانات المؤقتة (MB):',
@@ -305,7 +309,7 @@ class SettingsState extends State<Settings> {
         floatingActionButton: FloatingActionButton(
           onPressed: () => _save(),
           tooltip: 'حفظ',
-          child: Icon(Icons.save),
+          child: const Icon(Icons.save),
         ),
       ),
     );
@@ -313,30 +317,30 @@ class SettingsState extends State<Settings> {
 
   Future<bool> confirmExit() async {
     return (true) ||
-        await (showDialog(
+        await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            content: Text('لم يتم حفظ التعديلات الجديدة'),
-            title: Text('هل تريد الخروج دون الحفظ؟'),
+            content: const Text('لم يتم حفظ التعديلات الجديدة'),
+            title: const Text('هل تريد الخروج دون الحفظ؟'),
             actions: [
               TextButton(
                 onPressed: () => navigator.currentState!.pop(true),
-                child: Text('الخروج دون حفظ'),
+                child: const Text('الخروج دون حفظ'),
               ),
               TextButton(
                 onPressed: () => navigator.currentState!.pop(false),
-                child: Text('رجوع'),
+                child: const Text('رجوع'),
               ),
               TextButton(
                 onPressed: () async {
                   _save();
                   navigator.currentState!.pop(true);
                 },
-                child: Text('الخروج مع حفظ'),
+                child: const Text('الخروج مع حفظ'),
               ),
             ],
           ),
-        ));
+        );
   }
 
   @override
@@ -356,7 +360,7 @@ class SettingsState extends State<Settings> {
         if (notifications['birthdayNotify']!)
           Row(
             children: <Widget>[
-              Text('التذكير بأعياد الميلاد كل يوم الساعة: '),
+              const Text('التذكير بأعياد الميلاد كل يوم الساعة: '),
               Expanded(
                 child: DateTimeField(
                   format: DateFormat(
@@ -405,7 +409,7 @@ class SettingsState extends State<Settings> {
                         'Minutes': value.minute
                       },
                     );
-                    await AndroidAlarmManager.periodic(Duration(days: 1),
+                    await AndroidAlarmManager.periodic(const Duration(days: 1),
                         'BirthDay'.hashCode, showBirthDayNotification,
                         exact: true,
                         startAt: DateTime(
@@ -422,7 +426,7 @@ class SettingsState extends State<Settings> {
             ],
           ),
         if (notifications['confessionsNotify']!)
-          Divider(
+          const Divider(
             thickness: 2,
             height: 30,
           ),
@@ -434,7 +438,7 @@ class SettingsState extends State<Settings> {
             notificationCallback: showConfessionNotification,
           ),
         if (notifications['tanawolNotify']!)
-          Divider(
+          const Divider(
             thickness: 2,
             height: 30,
           ),
@@ -446,7 +450,7 @@ class SettingsState extends State<Settings> {
             notificationCallback: showTanawolNotification,
           ),
         if (notifications['kodasNotify']!)
-          Divider(
+          const Divider(
             thickness: 2,
             height: 30,
           ),
@@ -458,7 +462,7 @@ class SettingsState extends State<Settings> {
             notificationCallback: showKodasNotification,
           ),
         if (notifications['meetingNotify']!)
-          Divider(
+          const Divider(
             thickness: 2,
             height: 30,
           ),

@@ -34,7 +34,7 @@ export 'package:tuple/tuple.dart';
 class DataObjectList<T extends DataObject> extends StatefulWidget {
   final DataObjectListOptions<T>? options;
 
-  DataObjectList({Key? key, this.options}) : super(key: key);
+  const DataObjectList({Key? key, this.options}) : super(key: key);
 
   @override
   _ListState<T> createState() => _ListState<T>();
@@ -66,7 +66,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
           return Center(child: Text('لا يوجد ${_getPluralStringType()}'));
 
         return ListView.builder(
-          padding: EdgeInsets.symmetric(horizontal: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 6),
           addAutomaticKeepAlives: _data.length < 500,
           cacheExtent: 200,
           itemCount: _data.length + 1,
@@ -105,7 +105,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                       },
                     );
                   }
-                  return Container(width: 1, height: 1);
+                  return const SizedBox(width: 1, height: 1);
                 },
               ),
             );
@@ -130,10 +130,10 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
           await showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              content: Text('اختر أمرًا:'),
+              content: const Text('اختر أمرًا:'),
               actions: <Widget>[
                 TextButton.icon(
-                  icon: Icon(Icons.sms),
+                  icon: const Icon(Icons.sms),
                   onPressed: () {
                     navigator.currentState!.pop();
                     List<Person> people = _listOptions
@@ -156,10 +156,10 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                                 .join(','),
                       );
                   },
-                  label: Text('ارسال رسالة جماعية'),
+                  label: const Text('ارسال رسالة جماعية'),
                 ),
                 TextButton.icon(
-                  icon: Icon(Icons.share),
+                  icon: const Icon(Icons.share),
                   onPressed: () async {
                     navigator.currentState!.pop();
                     await Share.share(
@@ -173,10 +173,10 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                           .join('\n'),
                     );
                   },
-                  label: Text('مشاركة القائمة'),
+                  label: const Text('مشاركة القائمة'),
                 ),
                 TextButton.icon(
-                  icon: ImageIcon(AssetImage('assets/whatsapp.png')),
+                  icon: const ImageIcon(AssetImage('assets/whatsapp.png')),
                   onPressed: () async {
                     navigator.currentState!.pop();
                     var con = TextEditingController();
@@ -185,8 +185,8 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                       builder: (context) => AlertDialog(
                         actions: [
                           TextButton.icon(
-                            icon: Icon(Icons.send),
-                            label: Text('ارسال'),
+                            icon: const Icon(Icons.send),
+                            label: const Text('ارسال'),
                             onPressed: () {
                               navigator.currentState!.pop(con.text);
                             },
@@ -215,10 +215,10 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                       }
                     }
                   },
-                  label: Text('ارسال رسالة واتساب للكل'),
+                  label: const Text('ارسال رسالة واتساب للكل'),
                 ),
                 TextButton.icon(
-                  icon: Icon(Icons.person_add),
+                  icon: const Icon(Icons.person_add),
                   onPressed: () async {
                     navigator.currentState!.pop();
                     if ((await Permission.contacts.request()).isGranted) {
@@ -244,7 +244,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                       }
                     }
                   },
-                  label: Text('اضافة إلى جهات الاتصال بالهاتف'),
+                  label: const Text('اضافة إلى جهات الاتصال بالهاتف'),
                 ),
               ],
             ),
@@ -257,7 +257,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                 .join('\n'),
           );
       }
-      _listOptions.selected.add({});
+      _listOptions.selectNone(false);
     } else {
       _listOptions.select(current);
     }
@@ -276,7 +276,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
 class DataObjectCheckList<T extends Person> extends StatefulWidget {
   final CheckListOptions<T>? options;
 
-  DataObjectCheckList({Key? key, this.options}) : super(key: key);
+  const DataObjectCheckList({Key? key, this.options}) : super(key: key);
 
   @override
   _CheckListState<T> createState() => _CheckListState<T>();
@@ -329,7 +329,7 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
           return const Center(child: CircularProgressIndicator());
 
         return GroupListView(
-          padding: EdgeInsets.symmetric(horizontal: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 4),
           sectionsCount: groupedData.data!.length + 1,
           countOfItemInSection: (i) {
             if (i == groupedData.data!.length) return 0;
@@ -375,7 +375,7 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
 
   Widget buildListView(List<T> _data) {
     return ListView.builder(
-      padding: EdgeInsets.symmetric(horizontal: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 6),
       addAutomaticKeepAlives: _data.length < 500,
       cacheExtent: 200,
       itemCount: _data.length + 1,
@@ -417,12 +417,12 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
                               TextButton(
                                 onPressed: () =>
                                     navigator.currentState!.pop(true),
-                                child: Text('تأكيد'),
+                                child: const Text('تأكيد'),
                               ),
                               TextButton(
                                 onPressed: () =>
                                     navigator.currentState!.pop(false),
-                                child: Text('تراجع'),
+                                child: const Text('تراجع'),
                               ),
                             ],
                           ),
@@ -449,7 +449,7 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
                       }
                     : null,
               )
-            : Checkbox(value: false, onChanged: null),
+            : const Checkbox(value: false, onChanged: null),
       ),
     );
   }
@@ -582,7 +582,7 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
               if (_listOptions.dayOptions.enabled.value!)
                 TextButton(
                   onPressed: () => navigator.currentState!.pop(true),
-                  child: Text('حفظ'),
+                  child: const Text('حفظ'),
                 ),
             ],
           ),
@@ -595,8 +595,7 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
       } else if (record != null) {
         await _listOptions.select(current,
             notes: record?.notes, time: record?.time);
-      } else if (_listOptions.selected.requireValue.containsKey(current.id) &&
-          record == null) {
+      } else if (_listOptions.selected.requireValue.containsKey(current.id)) {
         await _listOptions.deselect(current);
       }
     }

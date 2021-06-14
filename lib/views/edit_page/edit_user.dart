@@ -21,7 +21,8 @@ import '../../models/user.dart';
 
 class EditUser extends StatefulWidget {
   final User user;
-  EditUser({Key? key, required this.user}) : super(key: key);
+
+  const EditUser({Key? key, required this.user}) : super(key: key);
   @override
   _EditUserState createState() => _EditUserState();
 }
@@ -36,7 +37,7 @@ class _EditUserState extends State<EditUser> {
     FocusNode(),
     FocusNode()
   ];
-  AsyncCache<String?> className = AsyncCache(Duration(minutes: 1));
+  AsyncCache<String?> className = AsyncCache(const Duration(minutes: 1));
   late Map<String, dynamic> old;
 
   GlobalKey<FormState> form = GlobalKey<FormState>();
@@ -55,12 +56,12 @@ class _EditUserState extends State<EditUser> {
               pinned: true,
               actions: [
                 IconButton(
-                  icon: Icon(Icons.close),
+                  icon: const Icon(Icons.close),
                   tooltip: 'إلغاء تنشيط الحساب',
                   onPressed: unApproveUser,
                 ),
                 IconButton(
-                  icon: Icon(Icons.delete_forever),
+                  icon: const Icon(Icons.delete_forever),
                   tooltip: 'حذف الحساب',
                   onPressed: deleteUser,
                 ),
@@ -68,14 +69,16 @@ class _EditUserState extends State<EditUser> {
               flexibleSpace: LayoutBuilder(
                 builder: (context, constraints) => FlexibleSpaceBar(
                   title: AnimatedOpacity(
-                    duration: Duration(milliseconds: 300),
+                    duration: const Duration(milliseconds: 300),
                     opacity: constraints.biggest.height > kToolbarHeight * 1.7
                         ? 0
                         : 1,
-                    child: Text(widget.user.name,
-                        style: TextStyle(
-                          fontSize: 16.0,
-                        )),
+                    child: Text(
+                      widget.user.name,
+                      style: const TextStyle(
+                        fontSize: 16.0,
+                      ),
+                    ),
                   ),
                   background: widget.user.getPhoto(false, false),
                 ),
@@ -86,11 +89,11 @@ class _EditUserState extends State<EditUser> {
         body: Form(
           key: form,
           child: Padding(
-            padding: EdgeInsets.all(5),
+            padding: const EdgeInsets.all(5),
             child: ListView(
               children: <Widget>[
                 Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: TextFormField(
                     decoration: InputDecoration(
                         labelText: 'الاسم',
@@ -112,7 +115,7 @@ class _EditUserState extends State<EditUser> {
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: Focus(
                     focusNode: foci[2],
                     child: InkWell(
@@ -133,13 +136,13 @@ class _EditUserState extends State<EditUser> {
                             ? Text(DateFormat('yyyy/M/d').format(
                                 widget.user.lastTanawolDate!,
                               ))
-                            : Text('لا يمكن التحديد'),
+                            : const Text('لا يمكن التحديد'),
                       ),
                     ),
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: Focus(
                     focusNode: foci[3],
                     child: InkWell(
@@ -160,7 +163,7 @@ class _EditUserState extends State<EditUser> {
                             ? Text(DateFormat('yyyy/M/d').format(
                                 widget.user.lastConfessionDate!,
                               ))
-                            : Text('لا يمكن التحديد'),
+                            : const Text('لا يمكن التحديد'),
                       ),
                     ),
                   ),
@@ -169,7 +172,7 @@ class _EditUserState extends State<EditUser> {
                   child: GestureDetector(
                     onTap: _selectClass,
                     child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 4.0),
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
                       child: InputDecorator(
                         isEmpty: widget.user.classId == null,
                         decoration: InputDecoration(
@@ -189,7 +192,7 @@ class _EditUserState extends State<EditUser> {
                               return Text(data.data!);
                             } else if (data.connectionState ==
                                 ConnectionState.waiting) {
-                              return LinearProgressIndicator();
+                              return const LinearProgressIndicator();
                             } else {
                               return Container();
                             }
@@ -206,9 +209,9 @@ class _EditUserState extends State<EditUser> {
                       onChanged: (v) =>
                           setState(() => widget.user.manageUsers = v!),
                     ),
-                    leading: Icon(
-                        const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
-                    title: Text('إدارة المستخدمين'),
+                    leading: const Icon(
+                        IconData(0xef3d, fontFamily: 'MaterialIconsR')),
+                    title: const Text('إدارة المستخدمين'),
                     onTap: () => setState(() =>
                         widget.user.manageUsers = !widget.user.manageUsers),
                   ),
@@ -218,9 +221,9 @@ class _EditUserState extends State<EditUser> {
                     onChanged: (v) =>
                         setState(() => widget.user.manageAllowedUsers = v!),
                   ),
-                  leading: Icon(
-                      const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
-                  title: Text('إدارة مستخدمين محددين'),
+                  leading: const Icon(
+                      IconData(0xef3d, fontFamily: 'MaterialIconsR')),
+                  title: const Text('إدارة مستخدمين محددين'),
                   onTap: () => setState(() => widget.user.manageAllowedUsers =
                       !widget.user.manageAllowedUsers),
                 ),
@@ -230,9 +233,9 @@ class _EditUserState extends State<EditUser> {
                     onChanged: (v) =>
                         setState(() => widget.user.superAccess = v!),
                   ),
-                  leading: Icon(
-                      const IconData(0xef56, fontFamily: 'MaterialIconsR')),
-                  title: Text('رؤية جميع البيانات'),
+                  leading: const Icon(
+                      IconData(0xef56, fontFamily: 'MaterialIconsR')),
+                  title: const Text('رؤية جميع البيانات'),
                   onTap: () => setState(
                       () => widget.user.superAccess = !widget.user.superAccess),
                 ),
@@ -242,10 +245,10 @@ class _EditUserState extends State<EditUser> {
                     onChanged: (v) =>
                         setState(() => widget.user.manageDeleted = v!),
                   ),
-                  leading: Icon(Icons.delete_outlined),
-                  title: Text('استرجاع المحذوفات'),
+                  leading: const Icon(Icons.delete_outlined),
+                  title: const Text('استرجاع المحذوفات'),
                   onTap: () => setState(() =>
-                      widget.user.manageDeleted = !(widget.user.manageDeleted)),
+                      widget.user.manageDeleted = !widget.user.manageDeleted),
                 ),
                 ListTile(
                   trailing: Checkbox(
@@ -253,8 +256,8 @@ class _EditUserState extends State<EditUser> {
                     onChanged: (v) =>
                         setState(() => widget.user.secretary = v!),
                   ),
-                  leading: Icon(Icons.shield),
-                  title: Text('تسجيل حضور الخدام'),
+                  leading: const Icon(Icons.shield),
+                  title: const Text('تسجيل حضور الخدام'),
                   onTap: () => setState(
                       () => widget.user.secretary = !widget.user.secretary),
                 ),
@@ -263,8 +266,8 @@ class _EditUserState extends State<EditUser> {
                     value: widget.user.write,
                     onChanged: (v) => setState(() => widget.user.write = v!),
                   ),
-                  leading: Icon(Icons.edit),
-                  title: Text('تعديل البيانات'),
+                  leading: const Icon(Icons.edit),
+                  title: const Text('تعديل البيانات'),
                   onTap: () =>
                       setState(() => widget.user.write = !widget.user.write),
                 ),
@@ -274,8 +277,8 @@ class _EditUserState extends State<EditUser> {
                     onChanged: (v) =>
                         setState(() => widget.user.exportClasses = v!),
                   ),
-                  leading: Icon(Icons.cloud_download),
-                  title: Text('تصدير فصل لملف إكسل'),
+                  leading: const Icon(Icons.cloud_download),
+                  title: const Text('تصدير فصل لملف إكسل'),
                   onTap: () => setState(() =>
                       widget.user.exportClasses = !widget.user.exportClasses),
                 ),
@@ -285,9 +288,9 @@ class _EditUserState extends State<EditUser> {
                     onChanged: (v) =>
                         setState(() => widget.user.birthdayNotify = v!),
                   ),
-                  leading: Icon(
-                      const IconData(0xe7e9, fontFamily: 'MaterialIconsR')),
-                  title: Text('إشعار أعياد الميلاد'),
+                  leading: const Icon(
+                      IconData(0xe7e9, fontFamily: 'MaterialIconsR')),
+                  title: const Text('إشعار أعياد الميلاد'),
                   onTap: () => setState(() =>
                       widget.user.birthdayNotify = !widget.user.birthdayNotify),
                 ),
@@ -297,11 +300,11 @@ class _EditUserState extends State<EditUser> {
                     onChanged: (v) =>
                         setState(() => widget.user.confessionsNotify = v!),
                   ),
-                  leading: Icon(
-                      const IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
-                  title: Text('إشعار  الاعتراف'),
+                  leading: const Icon(
+                      IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
+                  title: const Text('إشعار  الاعتراف'),
                   onTap: () => setState(() => widget.user.confessionsNotify =
-                      !(widget.user.confessionsNotify)),
+                      !widget.user.confessionsNotify),
                 ),
                 ListTile(
                   trailing: Checkbox(
@@ -309,11 +312,11 @@ class _EditUserState extends State<EditUser> {
                     onChanged: (v) =>
                         setState(() => widget.user.tanawolNotify = v!),
                   ),
-                  leading: Icon(
-                      const IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
-                  title: Text('إشعار التناول'),
+                  leading: const Icon(
+                      IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
+                  title: const Text('إشعار التناول'),
                   onTap: () => setState(() =>
-                      widget.user.tanawolNotify = !(widget.user.tanawolNotify)),
+                      widget.user.tanawolNotify = !widget.user.tanawolNotify),
                 ),
                 ListTile(
                   trailing: Checkbox(
@@ -321,11 +324,11 @@ class _EditUserState extends State<EditUser> {
                     onChanged: (v) =>
                         setState(() => widget.user.kodasNotify = v!),
                   ),
-                  leading: Icon(
-                      const IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
-                  title: Text('إشعار القداس'),
-                  onTap: () => setState(() =>
-                      widget.user.kodasNotify = !(widget.user.kodasNotify)),
+                  leading: const Icon(
+                      IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
+                  title: const Text('إشعار القداس'),
+                  onTap: () => setState(
+                      () => widget.user.kodasNotify = !widget.user.kodasNotify),
                 ),
                 ListTile(
                   trailing: Checkbox(
@@ -333,15 +336,15 @@ class _EditUserState extends State<EditUser> {
                     onChanged: (v) =>
                         setState(() => widget.user.meetingNotify = v!),
                   ),
-                  leading: Icon(
-                      const IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
-                  title: Text('إشعار حضور الاجتماع'),
+                  leading: const Icon(
+                      IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
+                  title: const Text('إشعار حضور الاجتماع'),
                   onTap: () => setState(() =>
-                      widget.user.meetingNotify = !(widget.user.meetingNotify)),
+                      widget.user.meetingNotify = !widget.user.meetingNotify),
                 ),
                 ElevatedButton.icon(
                   onPressed: editChildrenUsers,
-                  icon: Icon(Icons.shield),
+                  icon: const Icon(Icons.shield),
                   label: Text(
                       'تعديل المستخدمين المسؤول عنهم ' + widget.user.name,
                       softWrap: false,
@@ -350,8 +353,8 @@ class _EditUserState extends State<EditUser> {
                 ),
                 ElevatedButton.icon(
                   onPressed: resetPassword,
-                  icon: Icon(Icons.lock_open),
-                  label: Text('إعادة تعيين كلمة السر'),
+                  icon: const Icon(Icons.lock_open),
+                  label: const Text('إعادة تعيين كلمة السر'),
                 ),
               ],
             ),
@@ -362,7 +365,7 @@ class _EditUserState extends State<EditUser> {
         tooltip: 'حفظ',
         heroTag: 'Save',
         onPressed: save,
-        child: Icon(Icons.save),
+        child: const Icon(Icons.save),
       ),
     );
   }
@@ -400,10 +403,10 @@ class _EditUserState extends State<EditUser> {
                               ?.values
                               .toList());
                         },
-                        child: Text('تم'),
+                        child: const Text('تم'),
                       )
                     ],
-                    content: Container(
+                    content: SizedBox(
                       width: 280,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -411,7 +414,7 @@ class _EditUserState extends State<EditUser> {
                           SearchField(
                               searchStream: searchStream,
                               textStyle: Theme.of(context).textTheme.bodyText2),
-                          Expanded(
+                          const Expanded(
                             child: UsersList(),
                           ),
                         ],
@@ -419,10 +422,11 @@ class _EditUserState extends State<EditUser> {
                     ),
                   ),
                 )
-              : Center(child: CircularProgressIndicator()),
+              : const Center(child: CircularProgressIndicator()),
         );
       },
     );
+    await searchStream.close();
   }
 
   void deleteUser() {
@@ -440,7 +444,7 @@ class _EditUserState extends State<EditUser> {
             onPressed: () async {
               try {
                 scaffoldMessenger.currentState!.showSnackBar(
-                  SnackBar(
+                  const SnackBar(
                     content: LinearProgressIndicator(),
                     duration: Duration(seconds: 15),
                   ),
@@ -452,7 +456,7 @@ class _EditUserState extends State<EditUser> {
                 scaffoldMessenger.currentState!.hideCurrentSnackBar();
                 navigator.currentState!.pop('deleted');
                 scaffoldMessenger.currentState!.showSnackBar(
-                  SnackBar(
+                  const SnackBar(
                     content: Text('تم بنجاح'),
                     duration: Duration(seconds: 15),
                   ),
@@ -467,18 +471,18 @@ class _EditUserState extends State<EditUser> {
                     content: Text(
                       err.toString(),
                     ),
-                    duration: Duration(seconds: 7),
+                    duration: const Duration(seconds: 7),
                   ),
                 );
               }
             },
-            child: Text('حذف'),
+            child: const Text('حذف'),
           ),
           TextButton(
             onPressed: () {
               navigator.currentState!.pop();
             },
-            child: Text('تراجع'),
+            child: const Text('تراجع'),
           ),
         ],
       ),
@@ -490,12 +494,12 @@ class _EditUserState extends State<EditUser> {
       context: context,
       builder: (navContext) => AlertDialog(
         title: Text('إلغاء تنشيط حساب ${widget.user.name}'),
-        content: Text('إلغاء تنشيط الحساب لن يقوم بالضرورة بحذف الحساب '),
+        content: const Text('إلغاء تنشيط الحساب لن يقوم بالضرورة بحذف الحساب '),
         actions: <Widget>[
           TextButton(
             onPressed: () async {
               try {
-                scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+                scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
                   content: LinearProgressIndicator(),
                   duration: Duration(seconds: 15),
                 ));
@@ -505,7 +509,7 @@ class _EditUserState extends State<EditUser> {
                     .call({'affectedUser': widget.user.uid});
                 navigator.currentState!.pop('deleted');
                 scaffoldMessenger.currentState!.hideCurrentSnackBar();
-                scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+                scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
                   content: Text('تم بنجاح'),
                   duration: Duration(seconds: 15),
                 ));
@@ -516,17 +520,17 @@ class _EditUserState extends State<EditUser> {
                 scaffoldMessenger.currentState!.hideCurrentSnackBar();
                 scaffoldMessenger.currentState!.showSnackBar(SnackBar(
                   content: Text(err.toString()),
-                  duration: Duration(seconds: 7),
+                  duration: const Duration(seconds: 7),
                 ));
               }
             },
-            child: Text('متابعة'),
+            child: const Text('متابعة'),
           ),
           TextButton(
             onPressed: () {
               navigator.currentState!.pop();
             },
-            child: Text('تراجع'),
+            child: const Text('تراجع'),
           ),
         ],
       ),
@@ -553,18 +557,18 @@ class _EditUserState extends State<EditUser> {
             actions: [
               TextButton(
                 onPressed: () => navigator.currentState!.pop(true),
-                child: Text('نعم'),
+                child: const Text('نعم'),
               ),
               TextButton(
                 onPressed: () => navigator.currentState!.pop(false),
-                child: Text('لا'),
+                child: const Text('لا'),
               ),
             ],
           ),
         ) !=
         true) return;
     scaffoldMessenger.currentState!.showSnackBar(
-      SnackBar(
+      const SnackBar(
         content: LinearProgressIndicator(),
         duration: Duration(seconds: 15),
       ),
@@ -575,7 +579,7 @@ class _EditUserState extends State<EditUser> {
           .call({'affectedUser': widget.user.uid});
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('تم إعادة تعيين كلمة السر بنجاح'),
         ),
       );
@@ -596,12 +600,12 @@ class _EditUserState extends State<EditUser> {
       await showDialog(
           context: context,
           builder: (context) =>
-              AlertDialog(content: Text('لا يوجد اتصال انترنت')));
+              const AlertDialog(content: Text('لا يوجد اتصال انترنت')));
       return;
     }
     try {
       if (form.currentState!.validate()) {
-        scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+        scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
           content: Text('جار الحفظ...'),
           duration: Duration(seconds: 15),
         ));
@@ -611,8 +615,7 @@ class _EditUserState extends State<EditUser> {
           await FirebaseFunctions.instance.httpsCallable('changeUserName').call(
               {'affectedUser': widget.user.uid, 'newName': widget.user.name});
         }
-        update.remove('name');
-        update.remove('classId');
+        update..remove('name')..remove('classId');
 
         if (update.isNotEmpty) {
           await FirebaseFunctions.instance
@@ -653,7 +656,7 @@ class _EditUserState extends State<EditUser> {
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
         navigator.currentState!.pop(widget.user);
         scaffoldMessenger.currentState!.showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('تم الحفظ بنجاح'),
             duration: Duration(seconds: 1),
           ),
@@ -666,7 +669,7 @@ class _EditUserState extends State<EditUser> {
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(SnackBar(
         content: Text(err.toString()),
-        duration: Duration(seconds: 7),
+        duration: const Duration(seconds: 7),
       ));
     }
   }
@@ -674,7 +677,7 @@ class _EditUserState extends State<EditUser> {
   Future<Timestamp> _selectDate(String helpText, DateTime initialDate) async {
     DateTime? picked = await showDatePicker(
       helpText: helpText,
-      locale: Locale('ar', 'EG'),
+      locale: const Locale('ar', 'EG'),
       context: context,
       initialDate: initialDate,
       firstDate: DateTime(1500),
@@ -687,7 +690,7 @@ class _EditUserState extends State<EditUser> {
     return Timestamp.fromDate(initialDate);
   }
 
-  void _selectClass() {
+  void _selectClass() async {
     final BehaviorSubject<String> searchStream =
         BehaviorSubject<String>.seeded('');
     final options = ServicesListOptions(
@@ -701,7 +704,7 @@ class _EditUserState extends State<EditUser> {
       searchQuery: searchStream,
       itemsStream: classesByStudyYearRef(),
     );
-    showDialog(
+    await showDialog(
       context: context,
       builder: (context) {
         return Dialog(
@@ -728,7 +731,7 @@ class _EditUserState extends State<EditUser> {
             ),
             bottomNavigationBar: BottomAppBar(
               color: Theme.of(context).primaryColor,
-              shape: CircularNotchedRectangle(),
+              shape: const CircularNotchedRectangle(),
               child: StreamBuilder<Map?>(
                 stream: options.objectsData,
                 builder: (context, snapshot) {
@@ -745,18 +748,19 @@ class _EditUserState extends State<EditUser> {
                     heroTag: null,
                     onPressed: () async {
                       navigator.currentState!.pop();
-                      widget.user.classId = (await navigator.currentState!
-                                  .pushNamed('Data/EditClass'))
+                      widget.user.classId = await navigator.currentState!
+                                  .pushNamed('Data/EditClass')
                               as DocumentReference? ??
                           widget.user.classId;
                       setState(() {});
                     },
-                    child: Icon(Icons.group_add),
+                    child: const Icon(Icons.group_add),
                   )
                 : null,
           ),
         );
       },
     );
+    await searchStream.close();
   }
 }

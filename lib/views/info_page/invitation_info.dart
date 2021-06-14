@@ -12,6 +12,7 @@ import '../../models/user.dart';
 
 class InvitationInfo extends StatelessWidget {
   final Invitation? invitation;
+
   const InvitationInfo({Key? key, this.invitation}) : super(key: key);
 
   void addTap(BuildContext context) {
@@ -27,7 +28,7 @@ class InvitationInfo extends StatelessWidget {
       builder: (context, data) {
         Invitation? invitation = data.data;
         if (invitation == null)
-          return Scaffold(
+          return const Scaffold(
             body: Center(
               child: Text('تم حذف الدعوة'),
             ),
@@ -49,7 +50,7 @@ class InvitationInfo extends StatelessWidget {
                           icon: Builder(
                             builder: (context) => Stack(
                               children: <Widget>[
-                                Positioned(
+                                const Positioned(
                                   left: 1.0,
                                   top: 2.0,
                                   child:
@@ -66,7 +67,7 @@ class InvitationInfo extends StatelessWidget {
                                     arguments: invitation);
                             if (result is DocumentReference) {
                               scaffoldMessenger.currentState!.showSnackBar(
-                                SnackBar(
+                                const SnackBar(
                                   content: Text('تم الحفظ بنجاح'),
                                 ),
                               );
@@ -81,7 +82,7 @@ class InvitationInfo extends StatelessWidget {
                   icon: Builder(
                     builder: (context) => Stack(
                       children: <Widget>[
-                        Positioned(
+                        const Positioned(
                           left: 1.0,
                           top: 2.0,
                           child: Icon(Icons.share, color: Colors.black54),
@@ -103,14 +104,14 @@ class InvitationInfo extends StatelessWidget {
               flexibleSpace: LayoutBuilder(
                 builder: (context, constraints) => FlexibleSpaceBar(
                   title: AnimatedOpacity(
-                    duration: Duration(milliseconds: 300),
+                    duration: const Duration(milliseconds: 300),
                     opacity: constraints.biggest.height > kToolbarHeight * 1.7
                         ? 0
                         : 1,
-                    child:
-                        Text(invitation.name, style: TextStyle(fontSize: 16.0)),
+                    child: Text(invitation.name,
+                        style: const TextStyle(fontSize: 16.0)),
                   ),
-                  background: Icon(Icons.link),
+                  background: const Icon(Icons.link),
                 ),
               ),
             ),
@@ -129,23 +130,23 @@ class InvitationInfo extends StatelessWidget {
                           onPressed: () async {
                             await Share.share(invitation.link!);
                           },
-                          icon: Icon(Icons.share)),
+                          icon: const Icon(Icons.share)),
                     ],
                   ),
                   ListTile(
                     title: invitation.used
-                        ? Text('تم الاستخدام بواسطة')
-                        : Text('لم يتم الاستخدام بعد'),
+                        ? const Text('تم الاستخدام بواسطة')
+                        : const Text('لم يتم الاستخدام بعد'),
                     subtitle: invitation.used
                         ? FutureBuilder<String?>(
                             future: User.onlyName(invitation.usedBy),
                             builder: (context, data) => data.hasData
                                 ? Text(data.data!)
-                                : LinearProgressIndicator())
+                                : const LinearProgressIndicator())
                         : null,
                   ),
                   ListTile(
-                    title: Text('تم توليد اللينك بواسطة'),
+                    title: const Text('تم توليد اللينك بواسطة'),
                     subtitle: FutureBuilder<String?>(
                         future: User.onlyName(invitation.generatedBy),
                         builder: (context, data) => data.hasData
@@ -166,10 +167,10 @@ class InvitationInfo extends StatelessWidget {
                                           Theme.of(context).textTheme.overline),
                                 ],
                               )
-                            : LinearProgressIndicator()),
+                            : const LinearProgressIndicator()),
                   ),
                   ListTile(
-                    title: Text('تاريخ الانتهاء'),
+                    title: const Text('تاريخ الانتهاء'),
                     subtitle: Row(
                       children: <Widget>[
                         Expanded(
@@ -188,71 +189,71 @@ class InvitationInfo extends StatelessWidget {
                     ),
                   ),
                   ListTile(
-                    title: Text('صلاحيات المستخدم المدعوو'),
+                    title: const Text('صلاحيات المستخدم المدعوو'),
                     subtitle: Column(
                       children: [
                         if (invitation.permissions!['manageUsers'] == true)
-                          ListTile(
-                            leading: Icon(const IconData(0xef3d,
-                                fontFamily: 'MaterialIconsR')),
+                          const ListTile(
+                            leading: Icon(
+                                IconData(0xef3d, fontFamily: 'MaterialIconsR')),
                             title: Text('إدارة المستخدمين'),
                           ),
                         if (invitation.permissions!['manageAllowedUsers'] ==
                             true)
-                          ListTile(
-                            leading: Icon(const IconData(0xef3d,
-                                fontFamily: 'MaterialIconsR')),
+                          const ListTile(
+                            leading: Icon(
+                                IconData(0xef3d, fontFamily: 'MaterialIconsR')),
                             title: Text('إدارة مستخدمين محددين'),
                           ),
                         if (invitation.permissions!['superAccess'] == true)
-                          ListTile(
-                            leading: Icon(const IconData(0xef56,
-                                fontFamily: 'MaterialIconsR')),
+                          const ListTile(
+                            leading: Icon(
+                                IconData(0xef56, fontFamily: 'MaterialIconsR')),
                             title: Text('رؤية جميع البيانات'),
                           ),
                         if (invitation.permissions!['manageDeleted'] == true)
-                          ListTile(
+                          const ListTile(
                             leading: Icon(Icons.delete_outline),
                             title: Text('استرجاع المحذوفات'),
                           ),
                         if (invitation.permissions!['secretary'] == true)
-                          ListTile(
+                          const ListTile(
                             leading: Icon(Icons.shield),
                             title: Text('تسجيل حضور الخدام'),
                           ),
                         if (invitation.permissions!['write'] == true)
-                          ListTile(
+                          const ListTile(
                             leading: Icon(Icons.edit),
                             title: Text('تعديل البيانات'),
                           ),
                         if (invitation.permissions!['exportClasses'] == true)
-                          ListTile(
+                          const ListTile(
                             leading: Icon(Icons.cloud_download),
                             title: Text('تصدير فصل لملف إكسل'),
                           ),
                         if (invitation.permissions!['birthdayNotify'] == true)
-                          ListTile(
+                          const ListTile(
                             leading: Icon(Icons.cake),
                             title: Text('إشعار أعياد الميلاد'),
                           ),
                         if (invitation.permissions!['confessionsNotify'] ==
                             true)
-                          ListTile(
+                          const ListTile(
                             leading: Icon(Icons.notifications_active),
                             title: Text('إشعار الاعتراف'),
                           ),
                         if (invitation.permissions!['tanawolNotify'] == true)
-                          ListTile(
+                          const ListTile(
                             leading: Icon(Icons.notifications_active),
                             title: Text('إشعار التناول'),
                           ),
                         if (invitation.permissions!['kodasNotify'] == true)
-                          ListTile(
+                          const ListTile(
                             leading: Icon(Icons.notifications_active),
                             title: Text('إشعار القداس'),
                           ),
                         if (invitation.permissions!['meetingNotify'] == true)
-                          ListTile(
+                          const ListTile(
                             leading: Icon(Icons.notifications_active),
                             title: Text('إشعار حضور الاجتماع'),
                           ),

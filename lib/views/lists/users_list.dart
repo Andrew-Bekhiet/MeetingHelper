@@ -50,7 +50,7 @@ class _UsersListState extends State<UsersList> {
               return const Center(child: CircularProgressIndicator());
 
             return GroupListView(
-              padding: EdgeInsets.symmetric(horizontal: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 4),
               sectionsCount: groupedData.data!.length + 1,
               countOfItemInSection: (i) {
                 if (i == groupedData.data!.length) return 0;
@@ -123,7 +123,7 @@ class _UsersListState extends State<UsersList> {
                             },
                           );
                         }
-                        return Container(width: 1, height: 1);
+                        return const SizedBox(width: 1, height: 1);
                       },
                     ),
                   ),

@@ -31,12 +31,12 @@ class _LoginScreenState extends State<LoginScreen> {
     );
     return Scaffold(
       appBar: AppBar(
-        title: Text('تسجيل الدخول'),
+        title: const Text('تسجيل الدخول'),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Text('قم بتسجيل الدخول أو انشاء حساب'),
+          const Text('قم بتسجيل الدخول أو انشاء حساب'),
           Container(height: 30),
           Column(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -63,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               'An account already exists with the same email address'))
                             showDialog(
                                 context: context,
-                                builder: (context) => AlertDialog(
+                                builder: (context) => const AlertDialog(
                                       content: Text(
                                           'هذا الحساب مسجل من قبل بنفس البريد الاكتروني'
                                           '\n'
@@ -94,7 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         height: 30,
                       ),
                     ),
-                    Expanded(
+                    const Expanded(
                       child: Text(
                         'Google',
                         style: TextStyle(color: Colors.black),
@@ -143,7 +143,7 @@ class _LoginScreenState extends State<LoginScreen> {
               //           showDialog(
               //               context: context,
               //               builder:(context)=>AlertDialog(
-              //                   content: Text('هذا الحساب مسجل من ' +
+              //                   content: const Text('هذا الحساب مسجل من ' +
               //                       'قبل بنفس البريد ' +
               //                       'الاكتروني' +
               //                       '\n' +
@@ -169,7 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       text: 'شروط الاستخدام',
                       recognizer: TapGestureRecognizer()
                         ..onTap = () async {
-                          final url =
+                          const url =
                               'https://church-data.flycricket.io/terms.html';
                           if (await canLaunch(url)) {
                             await launch(url);
@@ -187,7 +187,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       text: 'سياسة الخصوصية',
                       recognizer: TapGestureRecognizer()
                         ..onTap = () async {
-                          final url =
+                          const url =
                               'https://church-data.flycricket.io/privacy.html';
                           if (await canLaunch(url)) {
                             await launch(url);
@@ -204,7 +204,7 @@ class _LoginScreenState extends State<LoginScreen> {
               //     mainAxisAlignment: MainAxisAlignment.center,
               //     crossAxisAlignment: CrossAxisAlignment.center,
               //     children: <Widget>[
-              //       Container(padding: btnPdng, child: Icon(Icons.phone)),
+              //       Container(padding: btnPdng, child: const Icon(Icons.phone)),
               //       Expanded(
               //         child: Text(
               //           'تسجيل الدخول برقم الهاتف',
@@ -246,7 +246,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               //           await auth.FirebaseAuth.instance.verifyPhoneNumber(
               //             phoneNumber: phoneNumber,
-              //             timeout: Duration(milliseconds: 120000),
+              //             timeout: const Duration(milliseconds: 120000),
               //             verificationCompleted: submitOTP,
               //             verificationFailed: (_) {},
               //             codeSent: (vid, [__]) => verificationId = vid,
@@ -258,11 +258,11 @@ class _LoginScreenState extends State<LoginScreen> {
               //               builder: (context) {
               //                 return Scaffold(
               //                   appBar: AppBar(
-              //                       title: Text('تسجيل الدخول بالهاتف')),
+              //                       title: const Text('تسجيل الدخول بالهاتف')),
               //                   body: Column(
               //                     children: <Widget>[
               //                       Container(
-              //                         padding: EdgeInsets.symmetric(
+              //                         padding: const EdgeInsets.symmetric(
               //                             vertical: 4.0),
               //                         child: TextFormField(
               //                           decoration: InputDecoration(
@@ -283,7 +283,7 @@ class _LoginScreenState extends State<LoginScreen> {
               //                         ),
               //                       ),
               //                       ElevatedButton(
-              //                           child: Text('تسجيل الدخول'),
+              //                           child: const Text('تسجيل الدخول'),
               //                           onPressed: () => submitOTP()),
               //                     ],
               //                   ),
@@ -295,12 +295,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
               //         return Scaffold(
               //           appBar:
-              //               AppBar(title: Text('تسجيل الدخول بالهاتف')),
+              //               AppBar(title: const Text('تسجيل الدخول بالهاتف')),
               //           body: Column(
               //             children: <Widget>[
               //               Container(
               //                 padding:
-              //                     EdgeInsets.symmetric(vertical: 4.0),
+              //                     const EdgeInsets.symmetric(vertical: 4.0),
               //                 child: TextFormField(
               //                   decoration: InputDecoration(
               //                       labelText: 'رقم الهاتف',
@@ -319,7 +319,7 @@ class _LoginScreenState extends State<LoginScreen> {
               //                 ),
               //               ),
               //               ElevatedButton(
-              //                   child: Text('إرسال رمز تحقق'),
+              //                   child: const Text('إرسال رمز تحقق'),
               //                   onPressed: () => sendOTP()),
               //             ],
               //           ),
@@ -369,7 +369,7 @@ class _LoginScreenState extends State<LoginScreen> {
               await notificationsSettings.put(
                   'BirthDayTime', <String, int>{'Hours': 11, 'Minutes': 0});
             }
-            await AndroidAlarmManager.periodic(Duration(days: 1),
+            await AndroidAlarmManager.periodic(const Duration(days: 1),
                 'BirthDay'.hashCode, showBirthDayNotification,
                 exact: true,
                 startAt: DateTime(DateTime.now().year, DateTime.now().month,
@@ -383,8 +383,8 @@ class _LoginScreenState extends State<LoginScreen> {
               await notificationsSettings.put('KodasTime',
                   <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
             }
-            await AndroidAlarmManager.periodic(
-                Duration(days: 7), 'Kodas'.hashCode, showKodasNotification,
+            await AndroidAlarmManager.periodic(const Duration(days: 7),
+                'Kodas'.hashCode, showKodasNotification,
                 exact: true,
                 startAt: DateTime(DateTime.now().year, DateTime.now().month,
                     DateTime.now().day, 11),
@@ -395,8 +395,8 @@ class _LoginScreenState extends State<LoginScreen> {
               await notificationsSettings.put('MeetingTime',
                   <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
             }
-            await AndroidAlarmManager.periodic(
-                Duration(days: 7), 'Meeting'.hashCode, showMeetingNotification,
+            await AndroidAlarmManager.periodic(const Duration(days: 7),
+                'Meeting'.hashCode, showMeetingNotification,
                 exact: true,
                 startAt: DateTime(DateTime.now().year, DateTime.now().month,
                     DateTime.now().day, 11),
@@ -407,7 +407,7 @@ class _LoginScreenState extends State<LoginScreen> {
               await notificationsSettings.put('ConfessionTime',
                   <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
             }
-            await AndroidAlarmManager.periodic(Duration(days: 7),
+            await AndroidAlarmManager.periodic(const Duration(days: 7),
                 'Confessions'.hashCode, showConfessionNotification,
                 exact: true,
                 startAt: DateTime(DateTime.now().year, DateTime.now().month,
@@ -419,8 +419,8 @@ class _LoginScreenState extends State<LoginScreen> {
               await notificationsSettings.put('TanawolTime',
                   <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
             }
-            await AndroidAlarmManager.periodic(
-                Duration(days: 7), 'Tanawol'.hashCode, showTanawolNotification,
+            await AndroidAlarmManager.periodic(const Duration(days: 7),
+                'Tanawol'.hashCode, showTanawolNotification,
                 exact: true,
                 startAt: DateTime(DateTime.now().year, DateTime.now().month,
                     DateTime.now().day, 11),

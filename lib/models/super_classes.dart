@@ -48,7 +48,7 @@ abstract class DataObject {
         e.whereType<DocumentReference>().isEmpty &&
         e.whereType<List>().isEmpty)
       return hashList(e);
-    else if (e is List) return hashList(e.map((it) => _fullyHash(it)));
+    else if (e is List) return hashList(e.map(_fullyHash));
 
     return e?.hashCode ?? 0;
   }
@@ -81,7 +81,7 @@ abstract class PhotoObject {
   late bool hasPhoto;
 
   final AsyncCache<String> _photoUrlCache =
-      AsyncCache<String>(Duration(days: 1));
+      AsyncCache<String>(const Duration(days: 1));
 
   Reference get photoRef;
 

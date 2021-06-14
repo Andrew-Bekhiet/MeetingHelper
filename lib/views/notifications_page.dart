@@ -5,7 +5,7 @@ import 'package:meetinghelper/utils/globals.dart';
 import 'notification.dart' as n;
 
 class NotificationsPage extends StatefulWidget {
-  NotificationsPage({Key? key}) : super(key: key);
+  const NotificationsPage({Key? key}) : super(key: key);
 
   @override
   _NotificationsPageState createState() => _NotificationsPageState();
@@ -16,7 +16,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('الإشعارات'),
+        title: const Text('الإشعارات'),
       ),
       body: ListView.builder(
         itemCount: Hive.box<Map<dynamic, dynamic>>('Notifications').length,
@@ -34,10 +34,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
                       actions: <Widget>[
                         TextButton(
                           onPressed: () => navigator.currentState!.pop(true),
-                          child: Text('نعم'),
+                          child: const Text('نعم'),
                         )
                       ],
-                      title: Text('هل تريد حذف هذا الاشعار؟'),
+                      title: const Text('هل تريد حذف هذا الاشعار؟'),
                     ),
                   ) ==
                   true) {

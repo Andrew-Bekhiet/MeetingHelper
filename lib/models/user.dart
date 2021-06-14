@@ -73,14 +73,7 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
   StreamSubscription<auth.User?>? authListener;
 
   final AsyncCache<String> _photoUrlCache =
-      AsyncCache<String>(Duration(days: 1));
-
-  User._initInstance()
-      : allowedUsers = [],
-        super() {
-    defaultIcon = Icons.account_circle;
-    _initListeners();
-  }
+      AsyncCache<String>(const Duration(days: 1));
 
   factory User(
       {DocumentReference? ref,
@@ -130,6 +123,13 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
       allowedUsers: allowedUsers,
       email: email,
     );
+  }
+
+  User._initInstance()
+      : allowedUsers = [],
+        super() {
+    defaultIcon = Icons.account_circle;
+    _initListeners();
   }
 
   User._new(
@@ -560,7 +560,7 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
                                       photoUrl.data!),
                                 )
                               : CachedNetworkImage(imageUrl: photoUrl.data!)
-                          : CircularProgressIndicator(),
+                          : const CircularProgressIndicator(),
                     ),
                     if (showActiveStatus &&
                         activity.data?.snapshot.value == 'Active')
@@ -619,10 +619,10 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
       User._createFromData(data.data()!, data.reference);
 
   static Future<User> fromID(String? uid) async {
-    return fromDoc((await FirebaseFirestore.instance
+    return fromDoc(await FirebaseFirestore.instance
         .collection('Users')
         .doc(uid)
-        .get(dataSource)));
+        .get(dataSource));
   }
 
   static Future<List<User>> getUsers(List<String> users) async {
@@ -630,7 +630,7 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
             .collection('Users')
             .doc(s)
             .get(dataSource))))
-        .map((e) => User.fromDoc(e))
+        .map(User.fromDoc)
         .toList();
   }
 

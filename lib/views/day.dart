@@ -14,7 +14,7 @@ import 'package:rxdart/rxdart.dart';
 class Day extends StatefulWidget {
   final HistoryDay record;
 
-  Day({required this.record});
+  const Day({Key? key, required this.record}) : super(key: key);
 
   @override
   State<Day> createState() => _DayState();
@@ -115,11 +115,11 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                         hintText: 'بحث ...'),
                     onChanged: _searchQuery.add,
                   )
-                : Text('كشف الحضور'),
+                : const Text('كشف الحضور'),
             actions: [
               if (!_showSearch)
                 IconButton(
-                  icon: Icon(Icons.search),
+                  icon: const Icon(Icons.search),
                   onPressed: () => setState(() {
                     _searchFocus.requestFocus();
                     _showSearch = true;
@@ -128,7 +128,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                 ),
               if (User.instance.superAccess)
                 IconButton(
-                  icon: Icon(Icons.delete),
+                  icon: const Icon(Icons.delete),
                   onPressed: () async {
                     if (await showDialog(
                           context: context,
@@ -136,14 +136,14 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                             TextButton(
                               onPressed: () =>
                                   navigator.currentState!.pop(true),
-                              child: Text('نعم'),
+                              child: const Text('نعم'),
                             ),
                             TextButton(
                               onPressed: () =>
                                   navigator.currentState!.pop(false),
-                              child: Text('لا'),
+                              child: const Text('لا'),
                             )
-                          ], content: Text('هل أنت متأكد من الحذف؟')),
+                          ], content: const Text('هل أنت متأكد من الحذف؟')),
                         ) ==
                         true) {
                       await widget.record.ref.delete();
@@ -158,13 +158,13 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                   contentLocation: ContentLocation.below,
                   featureId: 'AnalyticsToday',
                   tapTarget: const Icon(Icons.analytics_outlined),
-                  title: Text('عرض تحليل لبيانات كشف اليوم'),
+                  title: const Text('عرض تحليل لبيانات كشف اليوم'),
                   description: Column(
                     children: <Widget>[
-                      Text(
+                      const Text(
                           'الأن يمكنك عرض تحليل لبيانات المخدومين خلال اليوم من هنا'),
                       OutlinedButton.icon(
-                        icon: Icon(Icons.forward),
+                        icon: const Icon(Icons.forward),
                         label: Text(
                           'التالي',
                           style: TextStyle(
@@ -202,15 +202,15 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
               DescribedFeatureOverlay(
                 barrierDismissible: false,
                 featureId: 'Sorting',
-                tapTarget: Icon(Icons.library_add_check_outlined),
-                title: Text('تنظيم الليستة'),
+                tapTarget: const Icon(Icons.library_add_check_outlined),
+                title: const Text('تنظيم الليستة'),
                 description: Column(
                   children: <Widget>[
-                    Text('يمكنك تقسيم المخدومين حسب الفصول أو'
+                    const Text('يمكنك تقسيم المخدومين حسب الفصول أو'
                         ' اظهار المخدومين الحاضرين فقط أو '
                         'الغائبين والترتيب حسب وقت الحضور فقط من هنا'),
                     OutlinedButton.icon(
-                      icon: Icon(Icons.forward),
+                      icon: const Icon(Icons.forward),
                       label: Text(
                         'التالي',
                         style: TextStyle(
@@ -245,14 +245,14 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                               TextButton(
                                 onPressed: () =>
                                     navigator.currentState!.pop(true),
-                                child: Text('نعم'),
+                                child: const Text('نعم'),
                               ),
                               TextButton(
                                 onPressed: () =>
                                     navigator.currentState!.pop(false),
-                                child: Text('لا'),
+                                child: const Text('لا'),
                               )
-                            ], content: Text('هل أنت متأكد من الحذف؟')),
+                            ], content: const Text('هل أنت متأكد من الحذف؟')),
                           ) ==
                           true) {
                         await widget.record.ref.delete();
@@ -262,7 +262,8 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                       await showDialog(
                         context: context,
                         builder: (context2) => AlertDialog(
-                          insetPadding: EdgeInsets.symmetric(vertical: 24.0),
+                          insetPadding:
+                              const EdgeInsets.symmetric(vertical: 24.0),
                           content: StatefulBuilder(
                               builder: (innerContext, setState) {
                             var dayOptions = (widget.record
@@ -270,7 +271,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                                     ? context.read<CheckListOptions<Person>>()
                                     : context.read<CheckListOptions<User>>())
                                 .dayOptions;
-                            return Container(
+                            return SizedBox(
                               width: 350,
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
@@ -290,7 +291,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                                               !dayOptions.grouped.requireValue);
                                           setState(() {});
                                         },
-                                        child: Text('تقسيم حسب الفصول'),
+                                        child: const Text('تقسيم حسب الفصول'),
                                       ),
                                     ],
                                   ),
@@ -319,14 +320,14 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                                                 setState(() {});
                                               }
                                             : null,
-                                        child: Text(
+                                        child: const Text(
                                             'اظهار عدد المخدومين داخل كل فصل'),
                                       ),
                                     ],
                                   ),
                                   Container(height: 5),
                                   ListTile(
-                                    title: Text('ترتيب حسب:'),
+                                    title: const Text('ترتيب حسب:'),
                                     subtitle: Wrap(
                                       direction: Axis.vertical,
                                       children: [null, true, false]
@@ -365,7 +366,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                                   ListTile(
                                     enabled:
                                         dayOptions.sortByTimeASC.value == null,
-                                    title: Text('إظهار:'),
+                                    title: const Text('إظهار:'),
                                     subtitle: Wrap(
                                       direction: Axis.vertical,
                                       children: [null, true, false]
@@ -424,7 +425,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                               onPressed: () {
                                 navigator.currentState!.pop();
                               },
-                              child: Text('إغلاق'),
+                              child: const Text('إغلاق'),
                             )
                           ],
                         ),
@@ -432,12 +433,12 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                     }
                   },
                   itemBuilder: (context) => [
-                    PopupMenuItem(
+                    const PopupMenuItem(
                       value: 'sorting',
                       child: Text('تنظيم الليستة'),
                     ),
                     if (User.instance.superAccess)
-                      PopupMenuItem(
+                      const PopupMenuItem(
                         value: 'delete',
                         child: Text('حذف الكشف'),
                       ),
@@ -447,7 +448,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
             ],
             bottom: TabBar(
               controller: _tabs,
-              tabs: [
+              tabs: const [
                 Tab(text: 'حضور الاجتماع'),
                 Tab(text: 'حضور القداس'),
                 Tab(text: 'التناول'),
@@ -578,8 +579,8 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
         await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text('كيفية استخدام كشف الحضور'),
-            content: Text('1.يمكنك تسجيل حضور مخدوم بالضغط عليه وسيقوم'
+            title: const Text('كيفية استخدام كشف الحضور'),
+            content: const Text('1.يمكنك تسجيل حضور مخدوم بالضغط عليه وسيقوم'
                 ' البرنامج بتسجيل الحضور في الوقت الحالي'
                 '\n2.يمكنك تغيير وقت حضور المخدوم'
                 ' عن طريق الضغط مطولا عليه ثم تغيير الوقت'
@@ -590,7 +591,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
             actions: [
               TextButton(
                 onPressed: () => navigator.currentState!.pop(),
-                child: Text('تم'),
+                child: const Text('تم'),
               )
             ],
           ),

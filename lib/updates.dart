@@ -10,7 +10,8 @@ import 'package:version/version.dart';
 import 'utils/globals.dart';
 
 class Update extends StatefulWidget {
-  Update({Key? key}) : super(key: key);
+  const Update({Key? key}) : super(key: key);
+
   @override
   _UpdateState createState() => _UpdateState();
 }
@@ -42,13 +43,14 @@ class Updates {
       {bool canCancel = true}) async {
     Version latest = Version.parse(
         (await UpdateHelper.setupRemoteConfig())!.getString('LatestVersion'));
-    if (latest > Version.parse((await PackageInfo.fromPlatform()).version)) {
+    if (latest > Version.parse((await PackageInfo.fromPlatform()).version) &&
+        canCancel) {
       await showDialog(
         barrierDismissible: canCancel,
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text(''),
+            title: const Text(''),
             content: Text(canCancel
                 ? 'هل تريد التحديث إلى إصدار $latest؟'
                 : 'للأسف فإصدار البرنامج الحالي غير مدعوم\nيرجى تحديث البرنامج'),
@@ -67,7 +69,7 @@ class Updates {
                         text: (await UpdateHelper.setupRemoteConfig())!
                             .getString('DownloadLink')));
                     scaffoldMessenger.currentState!.showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content: Text(
                             'حدث خطأ أثناء فتح رابط التحديث وتم نقله الى الحافظة'),
                       ),
@@ -80,14 +82,14 @@ class Updates {
           );
         },
       );
-    } else if ((latest >
-        Version.parse((await PackageInfo.fromPlatform()).version))) {
+    } else if (latest >
+        Version.parse((await PackageInfo.fromPlatform()).version)) {
       await showDialog(
         barrierDismissible: canCancel,
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text(''),
+            title: const Text(''),
             content: Text(canCancel
                 ? 'هل تريد التحديث إلى إصدار $latest؟'
                 : 'للأسف فإصدار البرنامج الحالي غير مدعوم\nيرجى تحديث البرنامج'),
@@ -107,7 +109,7 @@ class Updates {
                         text: (await UpdateHelper.setupRemoteConfig())!
                             .getString('DownloadLink')));
                     scaffoldMessenger.currentState!.showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content: Text(
                             'حدث خطأ أثناء فتح رابط التحديث وتم نقله الى الحافظة'),
                       ),
@@ -121,7 +123,7 @@ class Updates {
                   onPressed: () {
                     navigator.currentState!.pop();
                   },
-                  child: Text('لا'),
+                  child: const Text('لا'),
                 ),
             ],
           );
@@ -136,7 +138,7 @@ class _UpdateState extends State<Update> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('التحقق من التحديثات'),
+        title: const Text('التحقق من التحديثات'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -146,26 +148,26 @@ class _UpdateState extends State<Update> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               ListTile(
-                title: Text('الإصدار الحالي:'),
+                title: const Text('الإصدار الحالي:'),
                 subtitle: FutureBuilder<PackageInfo>(
                   future: PackageInfo.fromPlatform(),
                   builder: (cont, data) {
                     if (data.hasData) {
                       return Text(data.data!.version);
                     }
-                    return LinearProgressIndicator();
+                    return const LinearProgressIndicator();
                   },
                 ),
               ),
               ListTile(
-                title: Text('آخر إصدار:'),
+                title: const Text('آخر إصدار:'),
                 subtitle: FutureBuilder<RemoteConfig?>(
                   future: UpdateHelper.setupRemoteConfig(),
                   builder: (cont, data) {
                     if (data.hasData) {
                       return Text(data.data!.getString('LatestVersion'));
                     }
-                    return LinearProgressIndicator();
+                    return const LinearProgressIndicator();
                   },
                 ),
               ),

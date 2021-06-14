@@ -33,28 +33,28 @@ import 'models/invitation.dart';
 import 'models/models.dart';
 import 'models/theme_notifier.dart';
 import 'models/user.dart';
+import 'updates.dart';
+import 'utils/globals.dart';
+import 'utils/helpers.dart';
 import 'views/analytics/analytics_page.dart';
 import 'views/auth_screen.dart';
-import 'views/info_page/class_info.dart';
 import 'views/data_map.dart';
 import 'views/edit_page/edit_class.dart';
 import 'views/edit_page/edit_person.dart';
 import 'views/history.dart';
+import 'views/info_page/class_info.dart';
 import 'views/info_page/invitation_info.dart';
+import 'views/info_page/person_info.dart';
+import 'views/info_page/user_info.dart';
 import 'views/loading_widget.dart';
 import 'views/login.dart';
 import 'views/my_account.dart';
 import 'views/notifications_page.dart';
-import 'views/info_page/person_info.dart';
 import 'views/root.dart';
 import 'views/search_query.dart';
 import 'views/settings.dart' as s;
 import 'views/update_user_data.dart';
-import 'views/info_page/user_info.dart';
 import 'views/user_registeration.dart';
-import 'updates.dart';
-import 'utils/globals.dart';
-import 'utils/helpers.dart';
 
 void main() {
   FlutterError.onError = (flutterError) {
@@ -88,16 +88,16 @@ void main() {
 
       final riseDay = getRiseDay();
       if (greatFeastTheme &&
-          DateTime.now()
-              .isAfter(riseDay.subtract(Duration(days: 7, seconds: 20))) &&
-          DateTime.now().isBefore(riseDay.subtract(Duration(days: 1)))) {
+          DateTime.now().isAfter(
+              riseDay.subtract(const Duration(days: 7, seconds: 20))) &&
+          DateTime.now().isBefore(riseDay.subtract(const Duration(days: 1)))) {
         color = black;
         accent = blackAccent;
         darkTheme = true;
       } else if (greatFeastTheme &&
           DateTime.now()
-              .isBefore(riseDay.add(Duration(days: 50, seconds: 20))) &&
-          DateTime.now().isAfter(riseDay.subtract(Duration(days: 1)))) {
+              .isBefore(riseDay.add(const Duration(days: 50, seconds: 20))) &&
+          DateTime.now().isAfter(riseDay.subtract(const Duration(days: 1)))) {
         darkTheme = false;
       }
 
@@ -127,7 +127,7 @@ void main() {
               ),
             ),
           ],
-          builder: (context, _) => App(),
+          builder: (context, _) => const App(),
         ),
       );
     },
@@ -148,12 +148,13 @@ Future _initConfigs() async {
   await AndroidAlarmManager.initialize();
 
   await FlutterLocalNotificationsPlugin().initialize(
-      InitializationSettings(android: AndroidInitializationSettings('warning')),
+      const InitializationSettings(
+          android: AndroidInitializationSettings('warning')),
       onSelectNotification: onNotificationClicked);
 }
 
 class App extends StatefulWidget {
-  App({Key? key}) : super(key: key);
+  const App({Key? key}) : super(key: key);
 
   @override
   AppState createState() => AppState();
@@ -181,7 +182,7 @@ class AppState extends State<App> {
             initialRoute: '/',
             routes: {
               '/': buildLoadAppWidget,
-              'Login': (context) => LoginScreen(),
+              'Login': (context) => const LoginScreen(),
               'Data/EditClass': (context) => EditClass(
                   class$: ModalRoute.of(context)!.settings.arguments as Class?),
               'Data/EditPerson': (context) {
@@ -218,12 +219,12 @@ class AppState extends State<App> {
                 else
                   return Day(record: ServantsHistoryDay());
               },
-              'Trash': (context) => Trash(),
-              'History': (context) => History(),
-              'ExportOps': (context) => Exports(),
-              'ServantsHistory': (context) => ServantsHistory(),
-              'MyAccount': (context) => MyAccount(),
-              'Notifications': (context) => NotificationsPage(),
+              'Trash': (context) => const Trash(),
+              'History': (context) => const History(),
+              'ExportOps': (context) => const Exports(),
+              'ServantsHistory': (context) => const ServantsHistory(),
+              'MyAccount': (context) => const MyAccount(),
+              'Notifications': (context) => const NotificationsPage(),
               'ClassInfo': (context) => ClassInfo(
                   class$: ModalRoute.of(context)!.settings.arguments as Class),
               'PersonInfo': (context) => PersonInfo(
@@ -233,39 +234,40 @@ class AppState extends State<App> {
                       : Person.fromDoc,
                   showMotherAndFatherPhones:
                       ModalRoute.of(context)!.settings.arguments is! User),
-              'UserInfo': (context) => UserInfo(),
+              'UserInfo': (context) => const UserInfo(),
               'InvitationInfo': (context) => InvitationInfo(
                   invitation:
                       ModalRoute.of(context)!.settings.arguments as Invitation),
-              'Update': (context) => Update(),
-              'Search': (context) => SearchQuery(),
-              'DataMap': (context) => DataMap(),
-              'Settings': (context) => s.Settings(),
-              'Settings/Churches': (context) => ChurchesPage(),
+              'Update': (context) => const Update(),
+              'Search': (context) => const SearchQuery(),
+              'DataMap': (context) => const DataMap(),
+              'Settings': (context) => const s.Settings(),
+              'Settings/Churches': (context) => const ChurchesPage(),
               /*MiniList(
                 parent: FirebaseFirestore.instance.collection('Churches'),
                 pageTitle: 'الكنائس',
               ),*/
-              'Settings/Fathers': (context) => FathersPage(),
+              'Settings/Fathers': (context) => const FathersPage(),
               /* MiniList(
                 parent: FirebaseFirestore.instance.collection('Fathers'),
                 pageTitle: 'الأباء الكهنة',
               ) */
               'Settings/StudyYears': (context) =>
-                  StudyYearsPage() /* MiniList(
+                  const StudyYearsPage() /* MiniList(
                 parent: FirebaseFirestore.instance.collection('StudyYears'),
                 pageTitle: 'السنوات الدراسية',
               ) */
               ,
               'Settings/Schools': (context) =>
-                  SchoolsPage() /* MiniList(
+                  const SchoolsPage() /* MiniList(
                 parent: FirebaseFirestore.instance.collection('Schools'),
                 pageTitle: 'المدارس',
               ) */
               ,
-              'UpdateUserDataError': (context) => UpdateUserDataErrorPage(),
-              'ManageUsers': (context) => UsersPage(),
-              'Invitations': (context) => InvitationsPage(),
+              'UpdateUserDataError': (context) =>
+                  const UpdateUserDataErrorPage(),
+              'ManageUsers': (context) => const UsersPage(),
+              'Invitations': (context) => const InvitationsPage(),
               'ActivityAnalysis': (context) => ActivityAnalysis(
                     classes: ModalRoute.of(context)?.settings.arguments
                         as List<Class>?,
@@ -303,12 +305,12 @@ class AppState extends State<App> {
               GlobalCupertinoLocalizations.delegate,
             ],
             supportedLocales: [
-              Locale('ar', 'EG'),
+              const Locale('ar', 'EG'),
             ],
             themeMode: theme.data!.brightness == Brightness.dark
                 ? ThemeMode.dark
                 : ThemeMode.light,
-            locale: Locale('ar', 'EG'),
+            locale: const Locale('ar', 'EG'),
             theme: theme.data,
             darkTheme: theme.data,
           );
@@ -322,7 +324,7 @@ class AppState extends State<App> {
       future: loadApp(context),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done)
-          return Loading(
+          return const Loading(
             showVersionInfo: true,
           );
 
@@ -404,17 +406,19 @@ class AppState extends State<App> {
       if (result == ConnectivityResult.mobile ||
           result == ConnectivityResult.wifi) {
         dataSource =
-            firestore.GetOptions(source: firestore.Source.serverAndCache);
+            const firestore.GetOptions(source: firestore.Source.serverAndCache);
         if (mainScfld.currentState?.mounted ?? false)
-          ScaffoldMessenger.of(mainScfld.currentContext!).showSnackBar(SnackBar(
+          ScaffoldMessenger.of(mainScfld.currentContext!)
+              .showSnackBar(const SnackBar(
             backgroundColor: Colors.greenAccent,
             content: Text('تم استرجاع الاتصال بالانترنت'),
           ));
       } else {
-        dataSource = firestore.GetOptions(source: firestore.Source.cache);
+        dataSource = const firestore.GetOptions(source: firestore.Source.cache);
 
         if (mainScfld.currentState?.mounted ?? false)
-          ScaffoldMessenger.of(mainScfld.currentContext!).showSnackBar(SnackBar(
+          ScaffoldMessenger.of(mainScfld.currentContext!)
+              .showSnackBar(const SnackBar(
             backgroundColor: Colors.redAccent,
             content: Text('لا يوجد اتصال بالانترنت!'),
           ));

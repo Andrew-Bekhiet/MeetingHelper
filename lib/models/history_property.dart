@@ -40,7 +40,7 @@ class HistoryProperty extends StatelessWidget {
       ),
       trailing: IconButton(
         tooltip: 'السجل',
-        icon: Icon(Icons.history),
+        icon: const Icon(Icons.history),
         onPressed: () {
           showDialog(
             context: context,
@@ -63,7 +63,7 @@ class HistoryProperty extends StatelessWidget {
                         builder: (context, user) {
                           return user.hasData
                               ? Text(user.data!.data()!['Name'])
-                              : LinearProgressIndicator();
+                              : const LinearProgressIndicator();
                         },
                       ),
                       subtitle: Text(DateFormat(
@@ -96,7 +96,7 @@ class EditHistoryProperty extends StatelessWidget {
   Widget build(BuildContext context) {
     var icon = IconButton(
       tooltip: 'السجل',
-      icon: Icon(Icons.history),
+      icon: const Icon(Icons.history),
       onPressed: () {
         showDialog(
           context: context,
@@ -119,7 +119,7 @@ class EditHistoryProperty extends StatelessWidget {
                       builder: (context, user) {
                         return user.hasData
                             ? Text(user.data!.data()!['Name'])
-                            : LinearProgressIndicator();
+                            : const LinearProgressIndicator();
                       },
                     ),
                     subtitle: Text(DateFormat(
@@ -176,22 +176,22 @@ class EditHistoryProperty extends StatelessWidget {
                             ),
                         ],
                       )
-                    : LinearProgressIndicator();
+                    : const LinearProgressIndicator();
               },
             )
-          : Text(''),
+          : const Text(''),
       trailing: discoverFeature
           ? DescribedFeatureOverlay(
               barrierDismissible: false,
               contentLocation: ContentLocation.above,
               featureId: 'EditHistory',
-              tapTarget: Icon(Icons.history),
-              title: Text('سجل التعديل'),
+              tapTarget: const Icon(Icons.history),
+              title: const Text('سجل التعديل'),
               description: Column(
                 children: <Widget>[
-                  Text('يمكنك الاطلاع على سجل التعديلات من هنا'),
+                  const Text('يمكنك الاطلاع على سجل التعديلات من هنا'),
                   OutlinedButton.icon(
-                    icon: Icon(Icons.forward),
+                    icon: const Icon(Icons.forward),
                     label: Text(
                       'التالي',
                       style: TextStyle(
@@ -253,7 +253,7 @@ class TimeHistoryProperty extends StatelessWidget {
       ),
       trailing: IconButton(
         tooltip: 'السجل',
-        icon: Icon(Icons.history),
+        icon: const Icon(Icons.history),
         onPressed: () {
           showDialog(
             context: context,
@@ -314,12 +314,12 @@ class DayHistoryProperty extends StatelessWidget {
       ),
       trailing: IconButton(
         tooltip: 'السجل',
-        icon: Icon(Icons.history),
+        icon: const Icon(Icons.history),
         onPressed: () {
           showDialog(
             context: context,
             builder: (context) => Dialog(
-              // title: Text('السجل'),
+              // title: const Text('السجل'),
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               child: StreamBuilder<List<HistoryRecord>>(
                 stream: FirebaseFirestore.instance
@@ -327,7 +327,7 @@ class DayHistoryProperty extends StatelessWidget {
                     .where('ID', isEqualTo: id)
                     .orderBy('Time', descending: true)
                     .snapshots()
-                    .asyncMap((s) async => await Future.wait(s.docs
+                    .asyncMap((s) => Future.wait(s.docs
                         .map((d) async => HistoryRecord.fromDoc(
                             await HistoryDay.fromId(
                                 d.reference.parent.parent!.id),

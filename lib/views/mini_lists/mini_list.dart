@@ -7,7 +7,9 @@ class MiniList extends StatefulWidget {
   final String? pageTitle;
   final String? itemSubtitle;
   final void Function()? onAdd;
-  const MiniList({this.parent, this.pageTitle, this.itemSubtitle, this.onAdd});
+  const MiniList(
+      {Key? key, this.parent, this.pageTitle, this.itemSubtitle, this.onAdd})
+      : super(key: key);
 
   @override
   State<MiniList> createState() => _MiniListState();
@@ -27,7 +29,8 @@ class _MiniListState extends State<MiniList> {
       stream: widget.parent!.orderBy('Name').snapshots(),
       builder: (context, stream) {
         if (stream.hasError) return Center(child: ErrorWidget(stream.error!));
-        if (!stream.hasData) return Center(child: CircularProgressIndicator());
+        if (!stream.hasData)
+          return const Center(child: CircularProgressIndicator());
         if (_documentsData == null ||
             _documentsData!.length != stream.data!.docs.length)
           _documentsData = stream.data!.docs;
@@ -43,7 +46,7 @@ class _MiniListState extends State<MiniList> {
                             _showSearch = true;
                           })),
                 IconButton(
-                  icon: Icon(Icons.notifications),
+                  icon: const Icon(Icons.notifications),
                   tooltip: 'الإشعارات',
                   onPressed: () {
                     navigator.currentState!.pushNamed('Notifications');
@@ -114,7 +117,7 @@ class _MiniListState extends State<MiniList> {
                 }
                 _oldFilter = _filter;
                 return ListView.builder(
-                  padding: EdgeInsets.symmetric(horizontal: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
                   addAutomaticKeepAlives: (_documentsData?.length ?? 0) < 300,
                   cacheExtent: 200,
                   itemCount: _documentsData?.length ?? 0,
@@ -148,8 +151,8 @@ class _MiniListState extends State<MiniList> {
                           builder: (context) => AlertDialog(
                             actions: [
                               TextButton.icon(
-                                  icon: Icon(Icons.save),
-                                  label: Text('حفظ'),
+                                  icon: const Icon(Icons.save),
+                                  label: const Text('حفظ'),
                                   onPressed: () =>
                                       navigator.currentState!.pop(name.text)),
                             ],
@@ -161,7 +164,7 @@ class _MiniListState extends State<MiniList> {
                         null)
                       await widget.parent!.doc().set({'Name': name.text});
                   },
-              child: Icon(Icons.add),
+              child: const Icon(Icons.add),
             ),
           ),
         );
