@@ -28,6 +28,12 @@ abstract class BaseListController<L, U> {
   ValueStream<Map<String, U>?> get selected => _selected.shareValue();
   Map<String, U>? get selectedLatest => _selected.value;
 
+  final BehaviorSubject<String> _searchQuery;
+  BehaviorSubject<String> get searchQuery => _searchQuery;
+  String? get searchQueryLatest => _searchQuery.value;
+
+  StreamSubscription<String>? _searchQueryListener;
+
   final void Function(U)? tap;
   final void Function(U)? onLongPress;
 
@@ -55,13 +61,21 @@ abstract class BaseListController<L, U> {
     Stream<L>? itemsStream,
     L? items,
     Map<String, U>? selected,
+    Stream<String>? searchQuery,
   })  : assert(itemsStream != null || items != null),
         assert(showNull == false || (showNull == true && empty != null)),
         _selectionMode = BehaviorSubject<bool>.seeded(selectionMode),
         _selected = BehaviorSubject<Map<String, U>>.seeded(selected ?? {}),
+        _searchQuery = searchQuery == null
+            ? BehaviorSubject<String>.seeded('')
+            : BehaviorSubject<String>(),
         _objectsData = itemsStream != null
             ? BehaviorSubject<L>()
             : BehaviorSubject<L>.seeded(items!) {
+    //
+    _searchQueryListener =
+        searchQuery?.listen(_searchQuery.add, onError: _searchQuery.addError);
+
     _objectsDataListener =
         itemsStream?.listen(_objectsData.add, onError: _objectsData.addError);
   }
@@ -72,6 +86,9 @@ abstract class BaseListController<L, U> {
 
     if (!_selected.isClosed) await _selected.close();
     if (!_selectionMode.isClosed) await _selectionMode.close();
+
+    await _searchQueryListener?.cancel();
+    if (!_searchQuery.isClosed) await _searchQuery.close();
   }
 }
 
@@ -108,10 +125,14 @@ class DataObjectListController<T extends DataObject>
   @override
   Map<String, T>? get selectedLatest => _selected.value;
 
+  @override
   final BehaviorSubject<String> _searchQuery;
+  @override
   BehaviorSubject<String> get searchQuery => _searchQuery;
+  @override
   String? get searchQueryLatest => _searchQuery.value;
 
+  @override
   StreamSubscription<String>? _searchQueryListener;
 
   final List<T> Function(List<T>, String) _filter;
@@ -657,10 +678,14 @@ class ServicesListController
   @override
   StreamSubscription<Map<StudyYear?, List<Class>>>? _objectsDataListener;
 
+  @override
   final BehaviorSubject<String> _searchQuery;
+  @override
   BehaviorSubject<String> get searchQuery => _searchQuery;
+  @override
   String? get searchQueryLatest => _searchQuery.value;
 
+  @override
   StreamSubscription<String>? _searchQueryListener;
 
   @override

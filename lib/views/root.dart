@@ -459,14 +459,17 @@ class _RootState extends State<Root>
           if (User.instance.manageUsers || User.instance.manageAllowedUsers)
             UsersList(
               key: const PageStorageKey('mainUsersList'),
+              autoDisposeController: true,
               listOptions: _usersOptions,
             ),
           ServicesList(
             key: const PageStorageKey('mainClassesList'),
+            autoDisposeController: true,
             options: _servicesOptions,
           ),
           DataObjectList<Person>(
             key: const PageStorageKey('mainPersonsList'),
+            disposeController: true,
             options: _personsOptions,
           ),
         ],
@@ -1243,8 +1246,8 @@ class _RootState extends State<Root>
                                           .headline5),
                                   Expanded(
                                     child: ServicesList(
+                                      autoDisposeController: true,
                                       options: ServicesListController(
-                                        searchQuery: Stream.value(''),
                                         tap: (_class) =>
                                             navigator.currentState!.pop(
                                           _class,
@@ -1528,9 +1531,12 @@ class _RootState extends State<Root>
   }
 
   @override
-  void dispose() {
-    WidgetsBinding.instance!.removeObserver(this);
+  Future<void> dispose() async {
     super.dispose();
+    WidgetsBinding.instance!.removeObserver(this);
+    await _showSearch.close();
+    await _personsOrder.close();
+    await _searchQuery.close();
   }
 
   @override

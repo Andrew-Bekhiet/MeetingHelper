@@ -15,7 +15,6 @@ import 'package:meetinghelper/utils/globals.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:tinycolor/tinycolor.dart';
 
 import '../../models/mini_models.dart';
@@ -483,7 +482,6 @@ class _EditClassState extends State<EditClass> {
   }
 
   void showUsers() async {
-    BehaviorSubject<String> searchStream = BehaviorSubject<String>.seeded('');
     class$.allowedUsers = await showDialog(
           context: context,
           builder: (context) {
@@ -494,48 +492,57 @@ class _EditClassState extends State<EditClass> {
               builder: (c, users) {
                 if (!users.hasData)
                   return const Center(child: CircularProgressIndicator());
-                final options = DataObjectListController<User>(
+
+                return Provider<DataObjectListController<User>>(
+                  create: (_) => DataObjectListController<User>(
                     itemBuilder: (current,
                             [void Function(User)? onLongPress,
                             void Function(User)? onTap,
                             Widget? subtitle,
                             trailing]) =>
                         DataObjectWidget(
-                          current,
-                          onTap: () => onTap!(current),
-                          trailing: trailing,
-                          showSubTitle: false,
-                        ),
+                      current,
+                      onTap: () => onTap!(current),
+                      trailing: trailing,
+                      showSubTitle: false,
+                    ),
                     selectionMode: true,
                     selected: {for (var item in users.data!) item.id: item},
-                    searchQuery: searchStream,
-                    itemsStream: User.getAllForUser());
-                return Scaffold(
-                  appBar: AppBar(
-                    title: const Text('اختيار مستخدمين'),
-                    actions: [
-                      IconButton(
-                        onPressed: () {
-                          navigator.currentState!
-                              .pop(options.selectedLatest?.keys.toList());
-                        },
-                        icon: const Icon(Icons.done),
-                        tooltip: 'تم',
-                      ),
-                    ],
+                    itemsStream: User.getAllForUser(),
                   ),
-                  body: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SearchField(
-                          searchStream: searchStream,
-                          textStyle: Theme.of(context).textTheme.bodyText2),
-                      Expanded(
-                        child: UsersList(
-                          listOptions: options,
+                  dispose: (context, c) => c.dispose(),
+                  builder: (context, _) => Scaffold(
+                    appBar: AppBar(
+                      title: const Text('اختيار مستخدمين'),
+                      actions: [
+                        IconButton(
+                          onPressed: () {
+                            navigator.currentState!.pop(context
+                                .read<DataObjectListController<User>>()
+                                .selectedLatest
+                                ?.keys
+                                .toList());
+                          },
+                          icon: const Icon(Icons.done),
+                          tooltip: 'تم',
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
+                    body: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SearchField(
+                            searchStream: context
+                                .read<DataObjectListController<User>>()
+                                .searchQuery,
+                            textStyle: Theme.of(context).textTheme.bodyText2),
+                        const Expanded(
+                          child: UsersList(
+                            autoDisposeController: false,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
@@ -543,6 +550,5 @@ class _EditClassState extends State<EditClass> {
           },
         ) ??
         class$.allowedUsers;
-    await searchStream.close();
   }
 }

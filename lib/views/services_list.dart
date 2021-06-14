@@ -14,8 +14,11 @@ export 'package:meetinghelper/models/list_controllers.dart'
 
 class ServicesList extends StatefulWidget {
   final ServicesListController options;
+  final bool autoDisposeController;
 
-  const ServicesList({Key? key, required this.options}) : super(key: key);
+  const ServicesList(
+      {Key? key, required this.options, required this.autoDisposeController})
+      : super(key: key);
   @override
   _ServicesListState createState() => _ServicesListState();
 }
@@ -23,6 +26,7 @@ class ServicesList extends StatefulWidget {
 class _ServicesListState extends State<ServicesList>
     with AutomaticKeepAliveClientMixin<ServicesList> {
   final Map<int, ExpandableController> _controllers = {};
+
   @override
   bool get wantKeepAlive => true;
 
@@ -239,5 +243,11 @@ class _ServicesListState extends State<ServicesList>
         );
       },
     );
+  }
+
+  @override
+  Future<void> dispose() async {
+    super.dispose();
+    if (widget.autoDisposeController) await widget.options.dispose();
   }
 }

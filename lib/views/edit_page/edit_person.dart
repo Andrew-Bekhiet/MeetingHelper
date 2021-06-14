@@ -1073,16 +1073,13 @@ class _EditPersonState extends State<EditPerson> {
   }
 
   void _selectClass() async {
-    final BehaviorSubject<String> searchStream =
-        BehaviorSubject<String>.seeded('');
-    final options = ServicesListController(
+    final controller = ServicesListController(
       tap: (class$) {
         navigator.currentState!.pop();
         person.classId = class$.ref;
         setState(() {});
         FocusScope.of(context).nextFocus();
       },
-      searchQuery: searchStream,
       itemsStream: classesByStudyYearRef(),
     );
     await showDialog(
@@ -1097,15 +1094,15 @@ class _EditPersonState extends State<EditPerson> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 SearchFilters(0,
-                    options: options,
-                    searchStream: searchStream,
+                    options: controller,
                     orderOptions: BehaviorSubject<OrderOptions>.seeded(
                       OrderOptions(),
                     ),
                     textStyle: Theme.of(context).textTheme.bodyText2),
                 Expanded(
                   child: ServicesList(
-                    options: options,
+                    options: controller,
+                    autoDisposeController: false,
                   ),
                 ),
               ],
@@ -1114,7 +1111,7 @@ class _EditPersonState extends State<EditPerson> {
               color: Theme.of(context).primaryColor,
               shape: const CircularNotchedRectangle(),
               child: StreamBuilder<Map?>(
-                stream: options.objectsData,
+                stream: controller.objectsData,
                 builder: (context, snapshot) {
                   return Text((snapshot.data?.length ?? 0).toString() + ' خدمة',
                       textAlign: TextAlign.center,
@@ -1142,7 +1139,7 @@ class _EditPersonState extends State<EditPerson> {
         );
       },
     );
-    await searchStream.close();
+    await controller.dispose();
   }
 
   Future<Timestamp> _selectDate(String helpText, DateTime initialDate) async {

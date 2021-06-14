@@ -371,7 +371,6 @@ class _EditUserState extends State<EditUser> {
   }
 
   void editChildrenUsers() async {
-    BehaviorSubject<String> searchStream = BehaviorSubject<String>.seeded('');
     childrenUsers = await showDialog(
       context: context,
       builder: (context) {
@@ -384,13 +383,13 @@ class _EditUserState extends State<EditUser> {
           builder: (c, users) => users.hasData
               ? MultiProvider(
                   providers: [
-                    Provider(
+                    Provider<DataObjectListController<User>>(
                       create: (_) => DataObjectListController<User>(
-                        searchQuery: searchStream,
                         selectionMode: true,
                         itemsStream: User.getAllForUser(),
                         selected: {for (var item in users.data!) item.id: item},
                       ),
+                      dispose: (context, c) => c.dispose(),
                     )
                   ],
                   builder: (context, child) => AlertDialog(
@@ -412,10 +411,14 @@ class _EditUserState extends State<EditUser> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           SearchField(
-                              searchStream: searchStream,
+                              searchStream: context
+                                  .read<DataObjectListController<User>>()
+                                  .searchQuery,
                               textStyle: Theme.of(context).textTheme.bodyText2),
                           const Expanded(
-                            child: UsersList(),
+                            child: UsersList(
+                              autoDisposeController: false,
+                            ),
                           ),
                         ],
                       ),
@@ -426,7 +429,6 @@ class _EditUserState extends State<EditUser> {
         );
       },
     );
-    await searchStream.close();
   }
 
   void deleteUser() {
@@ -691,17 +693,13 @@ class _EditUserState extends State<EditUser> {
   }
 
   void _selectClass() async {
-    final BehaviorSubject<String> searchStream =
-        BehaviorSubject<String>.seeded('');
-    final options = ServicesListController(
+    final controller = ServicesListController(
       tap: (class$) {
         navigator.currentState!.pop();
         widget.user.classId = class$.ref;
-        className.invalidate();
         setState(() {});
         FocusScope.of(context).nextFocus();
       },
-      searchQuery: searchStream,
       itemsStream: classesByStudyYearRef(),
     );
     await showDialog(
@@ -716,15 +714,15 @@ class _EditUserState extends State<EditUser> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 SearchFilters(0,
-                    options: options,
-                    searchStream: searchStream,
+                    options: controller,
                     orderOptions: BehaviorSubject<OrderOptions>.seeded(
                       OrderOptions(),
                     ),
                     textStyle: Theme.of(context).textTheme.bodyText2),
                 Expanded(
                   child: ServicesList(
-                    options: options,
+                    options: controller,
+                    autoDisposeController: false,
                   ),
                 ),
               ],
@@ -733,7 +731,7 @@ class _EditUserState extends State<EditUser> {
               color: Theme.of(context).primaryColor,
               shape: const CircularNotchedRectangle(),
               child: StreamBuilder<Map?>(
-                stream: options.objectsData,
+                stream: controller.objectsData,
                 builder: (context, snapshot) {
                   return Text((snapshot.data?.length ?? 0).toString() + ' خدمة',
                       textAlign: TextAlign.center,
@@ -761,6 +759,6 @@ class _EditUserState extends State<EditUser> {
         );
       },
     );
-    await searchStream.close();
+    await controller.dispose();
   }
 }

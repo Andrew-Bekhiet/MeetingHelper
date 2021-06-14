@@ -29,9 +29,6 @@ class ClassInfo extends StatefulWidget {
 }
 
 class _ClassInfoState extends State<ClassInfo> {
-  final BehaviorSubject<String> _searchStream =
-      BehaviorSubject<String>.seeded('');
-
   final BehaviorSubject<OrderOptions> _orderOptions =
       BehaviorSubject<OrderOptions>.seeded(OrderOptions());
 
@@ -44,7 +41,6 @@ class _ClassInfoState extends State<ClassInfo> {
   Future<void> dispose() async {
     super.dispose();
     await _orderOptions.close();
-    await _searchStream.close();
   }
 
   @override
@@ -65,7 +61,6 @@ class _ClassInfoState extends State<ClassInfo> {
   @override
   Widget build(BuildContext context) {
     final _listOptions = DataObjectListController<Person>(
-      searchQuery: _searchStream,
       tap: (p) => personTap(p, context),
       itemsStream: _orderOptions.switchMap(
         (order) => widget.class$!.getMembersLive(
@@ -445,7 +440,6 @@ class _ClassInfoState extends State<ClassInfo> {
                       const Text('المخدومين بالفصل:'),
                       SearchFilters(
                         1,
-                        searchStream: _searchStream,
                         options: _listOptions,
                         orderOptions: _orderOptions,
                         textStyle: Theme.of(context).textTheme.bodyText2,
@@ -457,7 +451,8 @@ class _ClassInfoState extends State<ClassInfo> {
               body: SafeArea(
                 child: class$.ref.path.startsWith('Deleted')
                     ? const Text('يجب استعادة الفصل لرؤية المخدومين بداخله')
-                    : DataObjectList<Person>(options: _listOptions),
+                    : DataObjectList<Person>(
+                        options: _listOptions, disposeController: true),
               ),
             ),
             bottomNavigationBar: BottomAppBar(

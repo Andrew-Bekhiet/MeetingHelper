@@ -22,10 +22,10 @@ class Day extends StatefulWidget {
 
 class _DayState extends State<Day> with SingleTickerProviderStateMixin {
   TabController? _tabs;
-  bool _showSearch = false;
+  final BehaviorSubject<bool> _showSearch = BehaviorSubject<bool>.seeded(false);
   final FocusNode _searchFocus = FocusNode();
-  final BehaviorSubject<String> _searchQuery =
-      BehaviorSubject<String>.seeded('');
+
+  final List<CheckListController> _listControllers = [];
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +40,6 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                   0;
               return CheckListController(
                   itemsStream: Person.getAllForUser(orderBy: 'Name'),
-                  searchQuery: _searchQuery,
                   day: widget.record,
                   dayOptions: HistoryDayOptions(
                     grouped: !isSameDay,
@@ -51,6 +50,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                   getGroupedData: personsByClassRef,
                   type: DayListType.Meeting);
             },
+            dispose: (context, c) => c.dispose(),
           )
         else
           Provider<CheckListController<User>>(
@@ -61,7 +61,6 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                   0;
               return CheckListController(
                   itemsStream: User.getAllForUser(),
-                  searchQuery: _searchQuery,
                   day: widget.record,
                   dayOptions: HistoryDayOptions(
                     grouped: !isSameDay,
@@ -72,85 +71,87 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                   getGroupedData: usersByClassRef,
                   type: DayListType.Meeting);
             },
+            dispose: (context, c) => c.dispose(),
           ),
       ],
       builder: (context, body) {
         return Scaffold(
           appBar: AppBar(
-            title: _showSearch
-                ? TextField(
-                    focusNode: _searchFocus,
-                    style: Theme.of(context).textTheme.headline6!.copyWith(
-                        color: Theme.of(context)
-                            .primaryTextTheme
-                            .headline6!
-                            .color),
-                    decoration: InputDecoration(
-                        suffixIcon: IconButton(
-                          icon: Icon(Icons.close,
-                              color: Theme.of(context)
-                                  .primaryTextTheme
-                                  .headline6!
-                                  .color),
-                          onPressed: () => setState(
-                            () {
-                              _searchQuery.add('');
-                              _showSearch = false;
-                            },
-                          ),
-                        ),
-                        hintStyle: Theme.of(context)
-                            .textTheme
-                            .headline6!
-                            .copyWith(
+            title: StreamBuilder<bool>(
+              initialData: _showSearch.value,
+              stream: _showSearch,
+              builder: (context, data) => data.requireData
+                  ? TextField(
+                      focusNode: _searchFocus,
+                      style: Theme.of(context).textTheme.headline6!.copyWith(
+                          color: Theme.of(context)
+                              .primaryTextTheme
+                              .headline6!
+                              .color),
+                      decoration: InputDecoration(
+                          suffixIcon: IconButton(
+                            icon: Icon(Icons.close,
                                 color: Theme.of(context)
                                     .primaryTextTheme
                                     .headline6!
                                     .color),
-                        icon: Icon(Icons.search,
-                            color: Theme.of(context)
-                                .primaryTextTheme
-                                .headline6!
-                                .color),
-                        hintText: 'بحث ...'),
-                    onChanged: _searchQuery.add,
-                  )
-                : const Text('كشف الحضور'),
-            actions: [
-              if (!_showSearch)
-                IconButton(
-                  icon: const Icon(Icons.search),
-                  onPressed: () => setState(() {
-                    _searchFocus.requestFocus();
-                    _showSearch = true;
-                  }),
-                  tooltip: 'بحث',
-                ),
-              if (User.instance.superAccess)
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () async {
-                    if (await showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(actions: [
-                            TextButton(
-                              onPressed: () =>
-                                  navigator.currentState!.pop(true),
-                              child: const Text('نعم'),
+                            onPressed: () => setState(
+                              () {
+                                if (widget.record is! ServantsHistoryDay)
+                                  context
+                                      .read<CheckListController<Person>>()
+                                      .searchQuery
+                                      .add('');
+                                else
+                                  context
+                                      .read<CheckListController<User>>()
+                                      .searchQuery
+                                      .add('');
+                                _showSearch.add(false);
+                              },
                             ),
-                            TextButton(
-                              onPressed: () =>
-                                  navigator.currentState!.pop(false),
-                              child: const Text('لا'),
-                            )
-                          ], content: const Text('هل أنت متأكد من الحذف؟')),
-                        ) ==
-                        true) {
-                      await widget.record.ref.delete();
-                      navigator.currentState!.pop();
-                    }
-                  },
-                ),
+                          ),
+                          hintStyle: Theme.of(context)
+                              .textTheme
+                              .headline6!
+                              .copyWith(
+                                  color: Theme.of(context)
+                                      .primaryTextTheme
+                                      .headline6!
+                                      .color),
+                          icon: Icon(Icons.search,
+                              color: Theme.of(context)
+                                  .primaryTextTheme
+                                  .headline6!
+                                  .color),
+                          hintText: 'بحث ...'),
+                      onChanged: widget.record is! ServantsHistoryDay
+                          ? context
+                              .read<CheckListController<Person>>()
+                              .searchQuery
+                              .add
+                          : context
+                              .read<CheckListController<User>>()
+                              .searchQuery
+                              .add,
+                    )
+                  : const Text('كشف الحضور'),
+            ),
+            actions: [
+              StreamBuilder<bool>(
+                initialData: _showSearch.value,
+                stream: _showSearch,
+                builder: (context, data) => !data.requireData
+                    ? IconButton(
+                        icon: const Icon(Icons.search),
+                        onPressed: () => setState(() {
+                          _searchFocus.requestFocus();
+                          _showSearch.add(true);
+                        }),
+                        tooltip: 'بحث',
+                      )
+                    : Container(),
+              ),
               IconButton(
                 tooltip: 'تحليل بيانات كشف اليوم',
                 icon: DescribedFeatureOverlay(
@@ -238,199 +239,10 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                         Colors.black,
                 child: PopupMenuButton(
                   onSelected: (v) async {
-                    if (v == 'delete') {
-                      if (await showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(actions: [
-                              TextButton(
-                                onPressed: () =>
-                                    navigator.currentState!.pop(true),
-                                child: const Text('نعم'),
-                              ),
-                              TextButton(
-                                onPressed: () =>
-                                    navigator.currentState!.pop(false),
-                                child: const Text('لا'),
-                              )
-                            ], content: const Text('هل أنت متأكد من الحذف؟')),
-                          ) ==
-                          true) {
-                        await widget.record.ref.delete();
-                        navigator.currentState!.pop();
-                      }
+                    if (v == 'delete' && User.instance.superAccess) {
+                      await _delete();
                     } else if (v == 'sorting') {
-                      await showDialog(
-                        context: context,
-                        builder: (context2) => AlertDialog(
-                          insetPadding:
-                              const EdgeInsets.symmetric(vertical: 24.0),
-                          content: StatefulBuilder(
-                              builder: (innerContext, setState) {
-                            var dayOptions = (widget.record
-                                        is! ServantsHistoryDay
-                                    ? context
-                                        .read<CheckListController<Person>>()
-                                    : context.read<CheckListController<User>>())
-                                .dayOptions;
-                            return SizedBox(
-                              width: 350,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Checkbox(
-                                        value: dayOptions.grouped.value,
-                                        onChanged: (value) {
-                                          dayOptions.grouped.add(value!);
-                                          setState(() {});
-                                        },
-                                      ),
-                                      GestureDetector(
-                                        onTap: () {
-                                          dayOptions.grouped.add(
-                                              !dayOptions.grouped.requireValue);
-                                          setState(() {});
-                                        },
-                                        child: const Text('تقسيم حسب الفصول'),
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: [
-                                      Container(width: 10),
-                                      Checkbox(
-                                        value: dayOptions
-                                            .showSubtitlesInGroups.value,
-                                        onChanged: dayOptions
-                                                .grouped.requireValue
-                                            ? (value) {
-                                                dayOptions.showSubtitlesInGroups
-                                                    .add(value!);
-                                                setState(() {});
-                                              }
-                                            : null,
-                                      ),
-                                      GestureDetector(
-                                        onTap: dayOptions.grouped.requireValue
-                                            ? () {
-                                                dayOptions.showSubtitlesInGroups
-                                                    .add(!dayOptions
-                                                        .showSubtitlesInGroups
-                                                        .requireValue);
-                                                setState(() {});
-                                              }
-                                            : null,
-                                        child: const Text(
-                                            'اظهار عدد المخدومين داخل كل فصل'),
-                                      ),
-                                    ],
-                                  ),
-                                  Container(height: 5),
-                                  ListTile(
-                                    title: const Text('ترتيب حسب:'),
-                                    subtitle: Wrap(
-                                      direction: Axis.vertical,
-                                      children: [null, true, false]
-                                          .map(
-                                            (i) => Row(
-                                              children: [
-                                                Radio<bool?>(
-                                                  value: i,
-                                                  groupValue: dayOptions
-                                                      .sortByTimeASC.value,
-                                                  onChanged: (v) {
-                                                    dayOptions.sortByTimeASC
-                                                        .add(v);
-                                                    setState(() {});
-                                                  },
-                                                ),
-                                                GestureDetector(
-                                                  onTap: () {
-                                                    dayOptions.sortByTimeASC
-                                                        .add(i);
-                                                    setState(() {});
-                                                  },
-                                                  child: Text(i == null
-                                                      ? 'الاسم'
-                                                      : i == true
-                                                          ? 'وقت الحضور'
-                                                          : 'وقت الحضور (المتأخر أولا)'),
-                                                )
-                                              ],
-                                            ),
-                                          )
-                                          .toList(),
-                                    ),
-                                  ),
-                                  Container(height: 5),
-                                  ListTile(
-                                    enabled:
-                                        dayOptions.sortByTimeASC.value == null,
-                                    title: const Text('إظهار:'),
-                                    subtitle: Wrap(
-                                      direction: Axis.vertical,
-                                      children: [null, true, false]
-                                          .map(
-                                            (i) => Row(
-                                              children: [
-                                                Radio<bool?>(
-                                                  value: i,
-                                                  groupValue: dayOptions
-                                                              .sortByTimeASC
-                                                              .value ==
-                                                          null
-                                                      ? dayOptions
-                                                          .showOnly.value
-                                                      : true,
-                                                  onChanged: dayOptions
-                                                              .sortByTimeASC
-                                                              .value ==
-                                                          null
-                                                      ? (v) {
-                                                          dayOptions.showOnly
-                                                              .add(v);
-                                                          setState(() {});
-                                                        }
-                                                      : null,
-                                                ),
-                                                GestureDetector(
-                                                  onTap: dayOptions
-                                                              .sortByTimeASC
-                                                              .value ==
-                                                          null
-                                                      ? () {
-                                                          dayOptions.showOnly
-                                                              .add(i);
-                                                          setState(() {});
-                                                        }
-                                                      : null,
-                                                  child: Text(i == null
-                                                      ? 'الكل'
-                                                      : i == true
-                                                          ? 'الحاضرين فقط'
-                                                          : 'الغائبين فقط'),
-                                                )
-                                              ],
-                                            ),
-                                          )
-                                          .toList(),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                navigator.currentState!.pop();
-                              },
-                              child: const Text('إغلاق'),
-                            )
-                          ],
-                        ),
-                      );
+                      await _showSortingOptions();
                     }
                   },
                   itemBuilder: (context) => [
@@ -515,47 +327,248 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
           children: widget.record is! ServantsHistoryDay
               ? [
                   DataObjectCheckList<Person>(
+                    autoDisposeController: false,
                     key: PageStorageKey('PersonsMeeting' + widget.record.id),
-                    options: context
-                        .read<CheckListController<Person>>()
-                        .copyWith(type: DayListType.Meeting),
+                    options: () {
+                      final tmp = context
+                          .read<CheckListController<Person>>()
+                          .copyWith(type: DayListType.Meeting);
+                      _listControllers.add(tmp);
+                      return tmp;
+                    }(),
                   ),
                   DataObjectCheckList<Person>(
+                    autoDisposeController: false,
                     key: PageStorageKey('PersonsKodas' + widget.record.id),
-                    options: context
-                        .read<CheckListController<Person>>()
-                        .copyWith(type: DayListType.Kodas),
+                    options: () {
+                      final tmp = context
+                          .read<CheckListController<Person>>()
+                          .copyWith(type: DayListType.Kodas);
+                      _listControllers.add(tmp);
+                      return tmp;
+                    }(),
                   ),
                   DataObjectCheckList<Person>(
+                    autoDisposeController: false,
                     key: PageStorageKey('PersonsTanawol' + widget.record.id),
-                    options: context
-                        .read<CheckListController<Person>>()
-                        .copyWith(type: DayListType.Tanawol),
+                    options: () {
+                      final tmp = context
+                          .read<CheckListController<Person>>()
+                          .copyWith(type: DayListType.Tanawol);
+                      _listControllers.add(tmp);
+                      return tmp;
+                    }(),
                   ),
                 ]
               : [
                   DataObjectCheckList<User>(
+                    autoDisposeController: false,
                     key: PageStorageKey('UsersMeeting' + widget.record.id),
-                    options: context
-                        .read<CheckListController<User>>()
-                        .copyWith(type: DayListType.Meeting),
+                    options: () {
+                      final tmp = context
+                          .read<CheckListController<User>>()
+                          .copyWith(type: DayListType.Meeting);
+                      _listControllers.add(tmp);
+                      return tmp;
+                    }(),
                   ),
                   DataObjectCheckList<User>(
+                    autoDisposeController: false,
                     key: PageStorageKey('UsersKodas' + widget.record.id),
-                    options: context
-                        .read<CheckListController<User>>()
-                        .copyWith(type: DayListType.Kodas),
+                    options: () {
+                      final tmp = context
+                          .read<CheckListController<User>>()
+                          .copyWith(type: DayListType.Kodas);
+                      _listControllers.add(tmp);
+                      return tmp;
+                    }(),
                   ),
                   DataObjectCheckList<User>(
+                    autoDisposeController: false,
                     key: PageStorageKey('UsersTanawol' + widget.record.id),
-                    options: context
-                        .read<CheckListController<User>>()
-                        .copyWith(type: DayListType.Tanawol),
+                    options: () {
+                      final tmp = context
+                          .read<CheckListController<User>>()
+                          .copyWith(type: DayListType.Tanawol);
+                      _listControllers.add(tmp);
+                      return tmp;
+                    }(),
                   ),
                 ],
         );
       }),
     );
+  }
+
+  Future<dynamic> _showSortingOptions() {
+    return showDialog(
+      context: context,
+      builder: (context2) => AlertDialog(
+        insetPadding: const EdgeInsets.symmetric(vertical: 24.0),
+        content: StatefulBuilder(builder: (innerContext, setState) {
+          var dayOptions = (widget.record is! ServantsHistoryDay
+                  ? context.read<CheckListController<Person>>()
+                  : context.read<CheckListController<User>>())
+              .dayOptions;
+          return SizedBox(
+            width: 350,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Checkbox(
+                      value: dayOptions.grouped.value,
+                      onChanged: (value) {
+                        dayOptions.grouped.add(value!);
+                        setState(() {});
+                      },
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        dayOptions.grouped
+                            .add(!dayOptions.grouped.requireValue);
+                        setState(() {});
+                      },
+                      child: const Text('تقسيم حسب الفصول'),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Container(width: 10),
+                    Checkbox(
+                      value: dayOptions.showSubtitlesInGroups.value,
+                      onChanged: dayOptions.grouped.requireValue
+                          ? (value) {
+                              dayOptions.showSubtitlesInGroups.add(value!);
+                              setState(() {});
+                            }
+                          : null,
+                    ),
+                    GestureDetector(
+                      onTap: dayOptions.grouped.requireValue
+                          ? () {
+                              dayOptions.showSubtitlesInGroups.add(!dayOptions
+                                  .showSubtitlesInGroups.requireValue);
+                              setState(() {});
+                            }
+                          : null,
+                      child: const Text('اظهار عدد المخدومين داخل كل فصل'),
+                    ),
+                  ],
+                ),
+                Container(height: 5),
+                ListTile(
+                  title: const Text('ترتيب حسب:'),
+                  subtitle: Wrap(
+                    direction: Axis.vertical,
+                    children: [null, true, false]
+                        .map(
+                          (i) => Row(
+                            children: [
+                              Radio<bool?>(
+                                value: i,
+                                groupValue: dayOptions.sortByTimeASC.value,
+                                onChanged: (v) {
+                                  dayOptions.sortByTimeASC.add(v);
+                                  setState(() {});
+                                },
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  dayOptions.sortByTimeASC.add(i);
+                                  setState(() {});
+                                },
+                                child: Text(i == null
+                                    ? 'الاسم'
+                                    : i == true
+                                        ? 'وقت الحضور'
+                                        : 'وقت الحضور (المتأخر أولا)'),
+                              )
+                            ],
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+                Container(height: 5),
+                ListTile(
+                  enabled: dayOptions.sortByTimeASC.value == null,
+                  title: const Text('إظهار:'),
+                  subtitle: Wrap(
+                    direction: Axis.vertical,
+                    children: [null, true, false]
+                        .map(
+                          (i) => Row(
+                            children: [
+                              Radio<bool?>(
+                                value: i,
+                                groupValue:
+                                    dayOptions.sortByTimeASC.value == null
+                                        ? dayOptions.showOnly.value
+                                        : true,
+                                onChanged:
+                                    dayOptions.sortByTimeASC.value == null
+                                        ? (v) {
+                                            dayOptions.showOnly.add(v);
+                                            setState(() {});
+                                          }
+                                        : null,
+                              ),
+                              GestureDetector(
+                                onTap: dayOptions.sortByTimeASC.value == null
+                                    ? () {
+                                        dayOptions.showOnly.add(i);
+                                        setState(() {});
+                                      }
+                                    : null,
+                                child: Text(i == null
+                                    ? 'الكل'
+                                    : i == true
+                                        ? 'الحاضرين فقط'
+                                        : 'الغائبين فقط'),
+                              )
+                            ],
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+        actions: [
+          TextButton(
+            onPressed: () {
+              navigator.currentState!.pop();
+            },
+            child: const Text('إغلاق'),
+          )
+        ],
+      ),
+    );
+  }
+
+  Future<void> _delete() async {
+    if (await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(actions: [
+            TextButton(
+              onPressed: () => navigator.currentState!.pop(true),
+              child: const Text('نعم'),
+            ),
+            TextButton(
+              onPressed: () => navigator.currentState!.pop(false),
+              child: const Text('لا'),
+            )
+          ], content: const Text('هل أنت متأكد من الحذف؟')),
+        ) ==
+        true) {
+      await widget.record.ref.delete();
+      navigator.currentState!.pop();
+    }
   }
 
   @override
@@ -602,5 +615,12 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
       FeatureDiscovery.discoverFeatures(
           context, ['Sorting', 'AnalyticsToday', 'LockUnchecks']);
     });
+  }
+
+  @override
+  Future<void> dispose() async {
+    super.dispose();
+    await _showSearch.close();
+    await Future.wait(_listControllers.map((c) => c.dispose()));
   }
 }

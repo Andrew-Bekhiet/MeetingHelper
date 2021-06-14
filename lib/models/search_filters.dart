@@ -84,15 +84,13 @@ class SearchField extends StatelessWidget {
 class SearchFilters extends StatelessWidget {
   final int? index;
   final TextStyle? textStyle;
-  final BaseListController? options;
+  final BaseListController options;
   final BehaviorSubject<OrderOptions>? orderOptions;
-  final BehaviorSubject<String> searchStream;
   final bool disableOrdering;
   const SearchFilters(this.index,
       {Key? key,
       required this.textStyle,
       required this.options,
-      required this.searchStream,
       this.disableOrdering = false,
       this.orderOptions})
       : super(key: key);
@@ -103,7 +101,7 @@ class SearchFilters extends StatelessWidget {
       children: [
         Expanded(
           child: SearchField(
-            searchStream: searchStream,
+            searchStream: options.searchQuery,
             textStyle: textStyle ??
                 Theme.of(context).textTheme.headline6!.copyWith(
                     color: Theme.of(context).primaryTextTheme.headline6!.color),

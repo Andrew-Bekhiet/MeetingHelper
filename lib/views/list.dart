@@ -33,8 +33,11 @@ export 'package:tuple/tuple.dart';
 ///or use [Provider<ListOptions<T>>] above this widget
 class DataObjectList<T extends DataObject> extends StatefulWidget {
   final DataObjectListController<T>? options;
+  final bool disposeController;
 
-  const DataObjectList({Key? key, this.options}) : super(key: key);
+  const DataObjectList(
+      {Key? key, this.options, required this.disposeController})
+      : super(key: key);
 
   @override
   _ListState<T> createState() => _ListState<T>();
@@ -272,12 +275,21 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
     if (T == TrashDay) return 'محذوفات';
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> dispose() async {
+    super.dispose();
+    if (widget.disposeController) await _listOptions.dispose();
+  }
 }
 
 class DataObjectCheckList<T extends Person> extends StatefulWidget {
   final CheckListController<T>? options;
+  final bool autoDisposeController;
 
-  const DataObjectCheckList({Key? key, this.options}) : super(key: key);
+  const DataObjectCheckList(
+      {Key? key, this.options, required this.autoDisposeController})
+      : super(key: key);
 
   @override
   _CheckListState<T> createState() => _CheckListState<T>();
@@ -609,5 +621,11 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
     if (T == Person) return 'مخدومين';
     if (T == Invitation) return 'دعوات';
     throw UnimplementedError();
+  }
+
+  @override
+  Future<void> dispose() async {
+    super.dispose();
+    if (widget.autoDisposeController) await _listOptions.dispose();
   }
 }

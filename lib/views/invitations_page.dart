@@ -13,20 +13,22 @@ class InvitationsPage extends StatefulWidget {
 }
 
 class _InvitationsPageState extends State<InvitationsPage> {
+  final options = DataObjectListController<Invitation>(
+    searchQuery: Stream.value(''),
+    itemsStream: FirebaseFirestore.instance
+        .collection('Invitations')
+        .snapshots()
+        .map((s) => s.docs.map(Invitation.fromQueryDoc).toList()),
+    tap: (dynamic i) =>
+        navigator.currentState!.pushNamed('InvitationInfo', arguments: i),
+  );
+
   @override
   Widget build(BuildContext context) {
-    final options = DataObjectListController<Invitation>(
-      searchQuery: Stream.value(''),
-      itemsStream: FirebaseFirestore.instance
-          .collection('Invitations')
-          .snapshots()
-          .map((s) => s.docs.map(Invitation.fromQueryDoc).toList()),
-      tap: (dynamic i) =>
-          navigator.currentState!.pushNamed('InvitationInfo', arguments: i),
-    );
     return Scaffold(
       appBar: AppBar(title: const Text('لينكات الدعوة')),
       body: DataObjectList<Invitation>(
+        disposeController: true,
         options: options,
       ),
       extendBody: true,

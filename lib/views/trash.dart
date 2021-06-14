@@ -15,28 +15,30 @@ class Trash extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final listOptions = DataObjectListController<TrashDay>(
-      onLongPress: (_) {},
-      tap: (day) {
-        navigator.currentState!
-            .push(MaterialPageRoute(builder: (context) => TrashDayScreen(day)));
-      },
-      searchQuery: BehaviorSubject<String>.seeded(''),
-      itemsStream: FirebaseFirestore.instance
-          .collection('Deleted')
-          .orderBy('Time', descending: true)
-          .snapshots()
-          .map(
-            (s) => s.docs
-                .map(
-                  (d) => TrashDay(d.data()['Time'].toDate(), d.reference),
-                )
-                .toList(),
-          ),
-    );
     return Scaffold(
       appBar: AppBar(title: const Text('سلة المحذوفات')),
-      body: DataObjectList<TrashDay>(options: listOptions),
+      body: DataObjectList<TrashDay>(
+        disposeController: true,
+        options: DataObjectListController<TrashDay>(
+          onLongPress: (_) {},
+          tap: (day) {
+            navigator.currentState!.push(
+                MaterialPageRoute(builder: (context) => TrashDayScreen(day)));
+          },
+          searchQuery: BehaviorSubject<String>.seeded(''),
+          itemsStream: FirebaseFirestore.instance
+              .collection('Deleted')
+              .orderBy('Time', descending: true)
+              .snapshots()
+              .map(
+                (s) => s.docs
+                    .map(
+                      (d) => TrashDay(d.data()['Time'].toDate(), d.reference),
+                    )
+                    .toList(),
+              ),
+        ),
+      ),
     );
   }
 }
@@ -86,53 +88,14 @@ class _TrashDayScreenState extends State<TrashDayScreen>
 
   final BehaviorSubject<OrderOptions> _personsOrder =
       BehaviorSubject.seeded(OrderOptions());
-
   final BehaviorSubject<String> _searchQuery =
       BehaviorSubject<String>.seeded('');
 
+  late final DataObjectListController<Person> _personsOptions;
+  late final DataObjectListController<Class> _classesOptions;
+
   @override
   Widget build(BuildContext context) {
-    var _classesOptions = DataObjectListController<Class>(
-      searchQuery: _searchQuery,
-      tap: (c) => classTap(c, context),
-      itemsStream: (User.instance.superAccess
-              ? widget.day.ref.collection('Classes').snapshots()
-              : FirebaseFirestore.instance
-                  .collection('Classes')
-                  .where('Allowed', arrayContains: User.instance.uid)
-                  .snapshots())
-          .map(
-        (s) => s.docs.map(Class.fromQueryDoc).toList(),
-      ),
-    );
-    var _personsOptions = DataObjectListController<Person>(
-      searchQuery: _searchQuery,
-      tap: (p) => personTap(p, context),
-      itemsStream:
-          Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
-              User.instance.stream,
-              Class.getAllForUser(),
-              (a, b) => Tuple2<User, List<Class>>(a, b)).switchMap((u) {
-        if (u.item1.superAccess) {
-          return widget.day.ref
-              .collection('Persons')
-              .snapshots()
-              .map((p) => p.docs.map(Person.fromQueryDoc).toList());
-        } else if (u.item2.length <= 10) {
-          return widget.day.ref
-              .collection('Persons')
-              .where('ClassId', whereIn: u.item2.map((e) => e.ref).toList())
-              .snapshots()
-              .map((p) => p.docs.map(Person.fromQueryDoc).toList());
-        }
-        return Rx.combineLatestList<QuerySnapshot>(u.item2.split(10).map((c) =>
-            widget.day.ref
-                .collection('Persons')
-                .where('ClassId', whereIn: c.map((e) => e.ref).toList())
-                .snapshots())).map(
-            (s) => s.expand((n) => n.docs).map(Person.fromQueryDoc).toList());
-      }),
-    );
     return Scaffold(
       appBar: AppBar(
         actions: <Widget>[
@@ -308,8 +271,14 @@ class _TrashDayScreenState extends State<TrashDayScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          DataObjectList<Class>(options: _classesOptions),
-          DataObjectList<Person>(options: _personsOptions),
+          DataObjectList<Class>(
+            disposeController: true,
+            options: _classesOptions,
+          ),
+          DataObjectList<Person>(
+            disposeController: true,
+            options: _personsOptions,
+          ),
         ],
       ),
     );
@@ -320,11 +289,55 @@ class _TrashDayScreenState extends State<TrashDayScreen>
     super.initState();
     _tabController = TabController(vsync: this, length: 2);
     WidgetsBinding.instance!.addObserver(this);
+    _classesOptions = DataObjectListController<Class>(
+      searchQuery: _searchQuery,
+      tap: (c) => classTap(c, context),
+      itemsStream: (User.instance.superAccess
+              ? widget.day.ref.collection('Classes').snapshots()
+              : FirebaseFirestore.instance
+                  .collection('Classes')
+                  .where('Allowed', arrayContains: User.instance.uid)
+                  .snapshots())
+          .map(
+        (s) => s.docs.map(Class.fromQueryDoc).toList(),
+      ),
+    );
+    _personsOptions = DataObjectListController<Person>(
+      searchQuery: _searchQuery,
+      tap: (p) => personTap(p, context),
+      itemsStream:
+          Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
+              User.instance.stream,
+              Class.getAllForUser(),
+              (a, b) => Tuple2<User, List<Class>>(a, b)).switchMap((u) {
+        if (u.item1.superAccess) {
+          return widget.day.ref
+              .collection('Persons')
+              .snapshots()
+              .map((p) => p.docs.map(Person.fromQueryDoc).toList());
+        } else if (u.item2.length <= 10) {
+          return widget.day.ref
+              .collection('Persons')
+              .where('ClassId', whereIn: u.item2.map((e) => e.ref).toList())
+              .snapshots()
+              .map((p) => p.docs.map(Person.fromQueryDoc).toList());
+        }
+        return Rx.combineLatestList<QuerySnapshot>(u.item2.split(10).map((c) =>
+            widget.day.ref
+                .collection('Persons')
+                .where('ClassId', whereIn: c.map((e) => e.ref).toList())
+                .snapshots())).map(
+            (s) => s.expand((n) => n.docs).map(Person.fromQueryDoc).toList());
+      }),
+    );
   }
 
   @override
-  void dispose() {
-    WidgetsBinding.instance!.removeObserver(this);
+  Future<void> dispose() async {
     super.dispose();
+    WidgetsBinding.instance!.removeObserver(this);
+    await _showSearch.close();
+    await _personsOrder.close();
+    await _searchQuery.close();
   }
 }

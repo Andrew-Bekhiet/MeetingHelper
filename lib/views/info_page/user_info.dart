@@ -13,7 +13,6 @@ import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/views/services_list.dart';
 import 'package:meetinghelper/views/lists/users_list.dart';
 import 'package:meetinghelper/utils/helpers.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../edit_page/edit_user.dart';
@@ -257,12 +256,12 @@ class _UserInfoState extends State<UserInfo> {
                           Expanded(
                             child: ServicesList(
                               options: ServicesListController(
-                                searchQuery: Stream.value(''),
                                 tap: (c) => classTap(c, context),
                                 itemsStream: user.superAccess
                                     ? classesByStudyYearRef()
                                     : classesByStudyYearRefForUser(user.uid),
                               ),
+                              autoDisposeController: true,
                             ),
                           )
                         ],
@@ -274,54 +273,50 @@ class _UserInfoState extends State<UserInfo> {
                   label: Text('المستخدمين المسؤول عنهم ' + user.name,
                       textScaleFactor: 0.95, overflow: TextOverflow.fade),
                   icon: const Icon(Icons.shield),
-                  onPressed: () async {
-                    final BehaviorSubject<String> searchStream =
-                        BehaviorSubject<String>.seeded('');
-                    await navigator.currentState!.push(
-                      MaterialPageRoute(
-                        builder: (context) {
-                          final listOptions = DataObjectListController<User>(
-                            searchQuery: searchStream,
-                            itemsStream: FirebaseFirestore.instance
-                                .collection('UsersData')
-                                .where('AllowedUsers', arrayContains: user.uid)
-                                .snapshots()
-                                .map((s) => s.docs.map(User.fromDoc).toList()),
-                          );
-                          return Scaffold(
-                            appBar: AppBar(
-                              title: SearchField(
-                                  searchStream: searchStream,
-                                  textStyle:
-                                      Theme.of(context).textTheme.bodyText2),
+                  onPressed: () => navigator.currentState!.push(
+                    MaterialPageRoute(
+                      builder: (context) {
+                        final listOptions = DataObjectListController<User>(
+                          itemsStream: FirebaseFirestore.instance
+                              .collection('UsersData')
+                              .where('AllowedUsers', arrayContains: user.uid)
+                              .snapshots()
+                              .map((s) => s.docs.map(User.fromDoc).toList()),
+                        );
+                        return Scaffold(
+                          appBar: AppBar(
+                            title: SearchField(
+                                searchStream: listOptions.searchQuery,
+                                textStyle:
+                                    Theme.of(context).textTheme.bodyText2),
+                          ),
+                          body: UsersList(
+                              autoDisposeController: true,
+                              listOptions: listOptions),
+                          bottomNavigationBar: BottomAppBar(
+                            color: Theme.of(context).primaryColor,
+                            shape: const CircularNotchedRectangle(),
+                            child: StreamBuilder<List>(
+                              stream: listOptions.objectsData,
+                              builder: (context, snapshot) {
+                                return Text(
+                                  (snapshot.data?.length ?? 0).toString() +
+                                      ' مستخدم',
+                                  textAlign: TextAlign.center,
+                                  strutStyle: StrutStyle(
+                                      height:
+                                          IconTheme.of(context).size! / 7.5),
+                                  style: Theme.of(context)
+                                      .primaryTextTheme
+                                      .bodyText1,
+                                );
+                              },
                             ),
-                            body: UsersList(listOptions: listOptions),
-                            bottomNavigationBar: BottomAppBar(
-                              color: Theme.of(context).primaryColor,
-                              shape: const CircularNotchedRectangle(),
-                              child: StreamBuilder<List>(
-                                stream: listOptions.objectsData,
-                                builder: (context, snapshot) {
-                                  return Text(
-                                    (snapshot.data?.length ?? 0).toString() +
-                                        ' مستخدم',
-                                    textAlign: TextAlign.center,
-                                    strutStyle: StrutStyle(
-                                        height:
-                                            IconTheme.of(context).size! / 7.5),
-                                    style: Theme.of(context)
-                                        .primaryTextTheme
-                                        .bodyText1,
-                                  );
-                                },
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    );
-                    await searchStream.close();
-                  },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ],
             ),

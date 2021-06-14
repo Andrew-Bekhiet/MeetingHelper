@@ -3,7 +3,6 @@ import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
-import 'package:rxdart/rxdart.dart';
 
 import 'lists/users_list.dart';
 
@@ -16,15 +15,10 @@ class UsersPage extends StatefulWidget {
 
 class _UsersPageState extends State<UsersPage> {
   bool _showSearch = false;
-  final BehaviorSubject<String> _search = BehaviorSubject<String>.seeded('');
+  late final _listOptions;
 
   @override
   Widget build(BuildContext context) {
-    var _listOptions = DataObjectListController<User>(
-      itemsStream: User.getAllForUserForEdit(),
-      searchQuery: _search,
-      tap: (u) => userTap(u, context),
-    );
     return Scaffold(
       appBar: AppBar(
         actions: [
@@ -45,14 +39,14 @@ class _UsersPageState extends State<UsersPage> {
                       icon: const Icon(Icons.close),
                       onPressed: () => setState(
                         () {
-                          _search.add('');
+                          _listOptions.searchQuery.add('');
                           _showSearch = false;
                         },
                       ),
                     ),
                     hintStyle: Theme.of(context).primaryTextTheme.headline6,
                     hintText: 'بحث ...'),
-                onChanged: _search.add,
+                onChanged: _listOptions.searchQuery.add,
               )
             : const Text('المستخدمون'),
       ),
@@ -72,8 +66,19 @@ class _UsersPageState extends State<UsersPage> {
         ),
       ),
       body: UsersList(
+        autoDisposeController: true,
         listOptions: _listOptions,
       ),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    _listOptions = DataObjectListController<User>(
+      itemsStream: User.getAllForUserForEdit(),
+      tap: (u) => userTap(u, context),
     );
   }
 }

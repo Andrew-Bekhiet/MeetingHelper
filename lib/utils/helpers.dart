@@ -708,13 +708,12 @@ Future<void> processLink(Uri? deepLink, BuildContext context) async {
 }
 
 Future<void> sendNotification(BuildContext context, dynamic attachement) async {
-  BehaviorSubject<String> search = BehaviorSubject<String>.seeded('');
   List<User>? users = await showDialog(
     context: context,
     builder: (context) {
       return MultiProvider(
         providers: [
-          Provider(
+          Provider<DataObjectListController<User>>(
             create: (_) => DataObjectListController<User>(
               itemBuilder: (current,
                       [void Function(User)? onLongPress,
@@ -728,7 +727,6 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
                 showSubTitle: false,
               ),
               selectionMode: true,
-              searchQuery: search,
               itemsStream: FirebaseFirestore.instance
                   .collection('Users')
                   .snapshots()
@@ -737,6 +735,7 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
                         s.docs.map((e) => User.fromDoc(e)..uid = e.id).toList(),
                   ),
             ),
+            dispose: (context, c) => c.dispose(),
           ),
         ],
         builder: (context, child) => Scaffold(
@@ -760,10 +759,14 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
             mainAxisSize: MainAxisSize.min,
             children: [
               SearchField(
-                  searchStream: search,
-                  textStyle: Theme.of(context).textTheme.bodyText2),
+                searchStream:
+                    context.read<DataObjectListController<User>>().searchQuery,
+                textStyle: Theme.of(context).textTheme.bodyText2,
+              ),
               const Expanded(
-                child: UsersList(),
+                child: UsersList(
+                  autoDisposeController: false,
+                ),
               ),
             ],
           ),
@@ -771,7 +774,7 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
       );
     },
   );
-  await search.close();
+
   final title = TextEditingController();
   final content = TextEditingController();
   if (users != null &&
@@ -1093,11 +1096,12 @@ void showBirthDayNotification() async {
 
 Future<List<Class>?> selectClasses(
     BuildContext context, List<Class>? classes) async {
-  final _options = ServicesListController(
-      itemsStream: classesByStudyYearRef(),
-      selectionMode: true,
-      selected: classes,
-      searchQuery: Stream.value(''));
+  final _controller = ServicesListController(
+    itemsStream: classesByStudyYearRef(),
+    selectionMode: true,
+    selected: classes,
+    searchQuery: Stream.value(''),
+  );
   if (await navigator.currentState!.push(
         MaterialPageRoute(
           builder: (context) => Scaffold(
@@ -1110,13 +1114,16 @@ Future<List<Class>?> selectClasses(
                     tooltip: 'تم')
               ],
             ),
-            body: ServicesList(options: _options),
+            body: ServicesList(
+                options: _controller, autoDisposeController: false),
           ),
         ),
       ) ==
       true) {
-    return _options.selectedLatest!.values.toList();
+    await _controller.dispose();
+    return _controller.selectedLatest!.values.toList();
   }
+  await _controller.dispose();
   return null;
 }
 

@@ -46,6 +46,7 @@ class _HistoryState extends State<History> {
                     .snapshots())
             .map((s) => s.docs.map(HistoryDay.fromQueryDoc).toList()),
       ),
+      dispose: (context, c) => c.dispose(),
       builder: (context, _) {
         return Scaffold(
           appBar: AppBar(
@@ -220,7 +221,9 @@ class _HistoryState extends State<History> {
           ),
           floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
           extendBody: true,
-          body: const DataObjectList<HistoryDay>(),
+          body: const DataObjectList<HistoryDay>(
+            disposeController: false,
+          ),
         );
       },
     );
@@ -253,6 +256,7 @@ class _ServantsHistoryState extends State<ServantsHistory> {
                     .snapshots())
             .map((s) => s.docs.map(ServantsHistoryDay.fromQueryDoc).toList()),
       ),
+      dispose: (context, c) => c.dispose(),
       builder: (context, _) => Scaffold(
         appBar: AppBar(
           title: StreamBuilder<bool>(
@@ -391,7 +395,9 @@ class _ServantsHistoryState extends State<ServantsHistory> {
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
         extendBody: true,
-        body: const DataObjectList<ServantsHistoryDay>(),
+        body: const DataObjectList<ServantsHistoryDay>(
+          disposeController: false,
+        ),
       ),
     );
   }

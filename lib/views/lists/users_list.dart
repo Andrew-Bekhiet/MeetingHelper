@@ -13,8 +13,11 @@ import 'package:tuple/tuple.dart';
 
 class UsersList extends StatefulWidget {
   final DataObjectListController<User>? listOptions;
+  final bool autoDisposeController;
 
-  const UsersList({Key? key, this.listOptions}) : super(key: key);
+  const UsersList(
+      {Key? key, this.listOptions, required this.autoDisposeController})
+      : super(key: key);
 
   @override
   _UsersListState createState() => _UsersListState();
@@ -134,5 +137,11 @@ class _UsersListState extends State<UsersList> {
         );
       },
     );
+  }
+
+  @override
+  Future<void> dispose() async {
+    super.dispose();
+    if (widget.autoDisposeController) await _listOptions.dispose();
   }
 }
