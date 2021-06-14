@@ -25,7 +25,7 @@ import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../main.dart';
-import '../models/list_options.dart';
+import '../models/list_controllers.dart';
 import '../models/models.dart';
 import '../models/order_options.dart';
 import '../models/user.dart';
@@ -89,9 +89,9 @@ class _RootState extends State<Root>
     }
   }
 
-  late ServicesListOptions _servicesOptions;
-  late DataObjectListOptions<Person> _personsOptions;
-  late DataObjectListOptions<User> _usersOptions;
+  late ServicesListController _servicesOptions;
+  late DataObjectListController<Person> _personsOptions;
+  late DataObjectListController<User> _usersOptions;
 
   @override
   Widget build(BuildContext context) {
@@ -1243,7 +1243,7 @@ class _RootState extends State<Root>
                                           .headline5),
                                   Expanded(
                                     child: ServicesList(
-                                      options: ServicesListOptions(
+                                      options: ServicesListController(
                                         searchQuery: Stream.value(''),
                                         tap: (_class) =>
                                             navigator.currentState!.pop(
@@ -1537,17 +1537,17 @@ class _RootState extends State<Root>
   void initState() {
     super.initState();
     initializeDateFormatting('ar_EG', null);
-    _usersOptions = DataObjectListOptions<User>(
+    _usersOptions = DataObjectListController<User>(
       searchQuery: _searchQuery,
       tap: (p) => personTap(p, context),
       itemsStream: User.getAllForUser(),
     );
-    _servicesOptions = ServicesListOptions(
+    _servicesOptions = ServicesListController(
       searchQuery: _searchQuery,
       itemsStream: classesByStudyYearRef(),
       tap: (c) => classTap(c, context),
     );
-    _personsOptions = DataObjectListOptions<Person>(
+    _personsOptions = DataObjectListController<Person>(
       searchQuery: _searchQuery,
       tap: (p) => personTap(p, context),
       //Listen to Ordering options and combine it

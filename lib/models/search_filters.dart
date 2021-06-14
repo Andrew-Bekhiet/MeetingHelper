@@ -3,12 +3,12 @@ import 'package:meetinghelper/utils/globals.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../utils/helpers.dart';
-import 'list_options.dart';
+import 'list_controllers.dart';
 import 'order_options.dart';
 
 class FilterButton extends StatelessWidget {
   final int? index;
-  final BaseListOptions? controller;
+  final BaseListController? controller;
   final BehaviorSubject<OrderOptions>? orderOptions;
   final bool disableOrdering;
   const FilterButton(this.index, this.controller, this.orderOptions,
@@ -84,7 +84,7 @@ class SearchField extends StatelessWidget {
 class SearchFilters extends StatelessWidget {
   final int? index;
   final TextStyle? textStyle;
-  final BaseListOptions? options;
+  final BaseListController? options;
   final BehaviorSubject<OrderOptions>? orderOptions;
   final BehaviorSubject<String> searchStream;
   final bool disableOrdering;

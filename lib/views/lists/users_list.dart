@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:group_list_view/group_list_view.dart';
 import 'package:meetinghelper/models/class.dart';
 import 'package:meetinghelper/models/data_object_widget.dart';
-import 'package:meetinghelper/models/list_options.dart';
+import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/helpers.dart';
@@ -12,7 +12,7 @@ import 'package:rxdart/rxdart.dart';
 import 'package:tuple/tuple.dart';
 
 class UsersList extends StatefulWidget {
-  final DataObjectListOptions<User>? listOptions;
+  final DataObjectListController<User>? listOptions;
 
   const UsersList({Key? key, this.listOptions}) : super(key: key);
 
@@ -21,13 +21,13 @@ class UsersList extends StatefulWidget {
 }
 
 class _UsersListState extends State<UsersList> {
-  late DataObjectListOptions<User> _listOptions;
+  late DataObjectListController<User> _listOptions;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _listOptions =
-        widget.listOptions ?? context.read<DataObjectListOptions<User>>();
+        widget.listOptions ?? context.read<DataObjectListController<User>>();
   }
 
   @override

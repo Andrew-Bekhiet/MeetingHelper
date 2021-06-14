@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:meetinghelper/models/data_object_widget.dart';
-import 'package:meetinghelper/models/list_options.dart';
+import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
@@ -494,7 +494,7 @@ class _EditClassState extends State<EditClass> {
               builder: (c, users) {
                 if (!users.hasData)
                   return const Center(child: CircularProgressIndicator());
-                final options = DataObjectListOptions<User>(
+                final options = DataObjectListController<User>(
                     itemBuilder: (current,
                             [void Function(User)? onLongPress,
                             void Function(User)? onTap,

@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:meetinghelper/models/list_options.dart';
+import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -927,7 +927,7 @@ class _SearchQueryState extends State<SearchQuery> {
       case 0:
         if (parentIndex == 0) {
           body = DataObjectList<Class>(
-            options: DataObjectListOptions<Class>(
+            options: DataObjectListController<Class>(
               searchQuery: resultsSearch,
               tap: (c) => classTap(c, context),
               itemsStream: classes
@@ -942,7 +942,7 @@ class _SearchQueryState extends State<SearchQuery> {
         }
         if (!birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
-            options: DataObjectListOptions<Person>(
+            options: DataObjectListController<Person>(
               searchQuery: resultsSearch,
               tap: (p) => personTap(p, context),
               itemsStream: fewClasses
@@ -1000,7 +1000,7 @@ class _SearchQueryState extends State<SearchQuery> {
           break;
         }
         body = DataObjectList<Person>(
-          options: DataObjectListOptions<Person>(
+          options: DataObjectListController<Person>(
             searchQuery: resultsSearch,
             tap: (p) => personTap(p, context),
             itemsStream: fewClasses
@@ -1036,7 +1036,7 @@ class _SearchQueryState extends State<SearchQuery> {
       case 1:
         if (parentIndex == 0) {
           body = DataObjectList<Class>(
-            options: DataObjectListOptions<Class>(
+            options: DataObjectListController<Class>(
               searchQuery: resultsSearch,
               tap: (c) => classTap(c, context),
               itemsStream: classes
@@ -1050,7 +1050,7 @@ class _SearchQueryState extends State<SearchQuery> {
         }
         if (!birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
-            options: DataObjectListOptions<Person>(
+            options: DataObjectListController<Person>(
               searchQuery: resultsSearch,
               tap: (p) => personTap(p, context),
               itemsStream: fewClasses
@@ -1090,7 +1090,7 @@ class _SearchQueryState extends State<SearchQuery> {
           break;
         }
         body = DataObjectList<Person>(
-          options: DataObjectListOptions<Person>(
+          options: DataObjectListController<Person>(
             searchQuery: resultsSearch,
             tap: (p) => personTap(p, context),
             itemsStream: fewClasses
@@ -1119,7 +1119,7 @@ class _SearchQueryState extends State<SearchQuery> {
       case 2:
         if (parentIndex == 0) {
           body = DataObjectList<Class>(
-            options: DataObjectListOptions<Class>(
+            options: DataObjectListController<Class>(
                 searchQuery: resultsSearch,
                 tap: (c) => classTap(c, context),
                 itemsStream: classes
@@ -1132,7 +1132,7 @@ class _SearchQueryState extends State<SearchQuery> {
         }
         if (!birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
-            options: DataObjectListOptions<Person>(
+            options: DataObjectListController<Person>(
               searchQuery: resultsSearch,
               tap: (p) => personTap(p, context),
               itemsStream: fewClasses
@@ -1170,7 +1170,7 @@ class _SearchQueryState extends State<SearchQuery> {
           break;
         }
         body = DataObjectList<Person>(
-          options: DataObjectListOptions<Person>(
+          options: DataObjectListController<Person>(
             searchQuery: resultsSearch,
             tap: (p) => personTap(p, context),
             itemsStream: fewClasses
@@ -1199,7 +1199,7 @@ class _SearchQueryState extends State<SearchQuery> {
       case 3:
         if (parentIndex == 0) {
           body = DataObjectList<Class>(
-            options: DataObjectListOptions<Class>(
+            options: DataObjectListController<Class>(
               searchQuery: resultsSearch,
               tap: (c) => classTap(c, context),
               itemsStream: classes
@@ -1213,7 +1213,7 @@ class _SearchQueryState extends State<SearchQuery> {
         }
         if (!birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
-            options: DataObjectListOptions<Person>(
+            options: DataObjectListController<Person>(
               searchQuery: resultsSearch,
               tap: (p) => personTap(p, context),
               itemsStream: fewClasses
@@ -1253,7 +1253,7 @@ class _SearchQueryState extends State<SearchQuery> {
           break;
         }
         body = DataObjectList<Person>(
-          options: DataObjectListOptions<Person>(
+          options: DataObjectListController<Person>(
             searchQuery: resultsSearch,
             tap: (p) => personTap(p, context),
             itemsStream: fewClasses
@@ -1464,7 +1464,7 @@ class _SearchQueryState extends State<SearchQuery> {
         BehaviorSubject<String>.seeded('');
     BehaviorSubject<OrderOptions> _orderOptions =
         BehaviorSubject<OrderOptions>.seeded(OrderOptions());
-    final _listOptions = DataObjectListOptions<Class>(
+    final _listOptions = DataObjectListController<Class>(
       searchQuery: searchStream,
       tap: (value) {
         navigator.currentState!.pop();

@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:meetinghelper/models/invitation.dart';
-import 'package:meetinghelper/models/list_options.dart';
+import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/views/list.dart';
 
@@ -15,7 +15,7 @@ class InvitationsPage extends StatefulWidget {
 class _InvitationsPageState extends State<InvitationsPage> {
   @override
   Widget build(BuildContext context) {
-    final options = DataObjectListOptions<Invitation>(
+    final options = DataObjectListController<Invitation>(
       searchQuery: Stream.value(''),
       itemsStream: FirebaseFirestore.instance
           .collection('Invitations')

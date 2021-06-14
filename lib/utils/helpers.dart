@@ -21,7 +21,7 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data_object_widget.dart';
-import 'package:meetinghelper/models/list_options.dart';
+import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/search_filters.dart';
 import 'package:meetinghelper/views/lists/lists.dart';
 import 'package:meetinghelper/views/services_list.dart';
@@ -715,7 +715,7 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
       return MultiProvider(
         providers: [
           Provider(
-            create: (_) => DataObjectListOptions<User>(
+            create: (_) => DataObjectListController<User>(
               itemBuilder: (current,
                       [void Function(User)? onLongPress,
                       void Function(User)? onTap,
@@ -746,7 +746,7 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
               IconButton(
                 onPressed: () {
                   navigator.currentState!.pop(context
-                      .read<DataObjectListOptions<User>>()
+                      .read<DataObjectListController<User>>()
                       .selectedLatest
                       ?.values
                       .toList());
@@ -1093,7 +1093,7 @@ void showBirthDayNotification() async {
 
 Future<List<Class>?> selectClasses(
     BuildContext context, List<Class>? classes) async {
-  final _options = ServicesListOptions(
+  final _options = ServicesListController(
       itemsStream: classesByStudyYearRef(),
       selectionMode: true,
       selected: classes,

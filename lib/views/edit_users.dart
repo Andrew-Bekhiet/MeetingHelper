@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:meetinghelper/models/list_options.dart';
+import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
@@ -20,7 +20,7 @@ class _UsersPageState extends State<UsersPage> {
 
   @override
   Widget build(BuildContext context) {
-    var _listOptions = DataObjectListOptions<User>(
+    var _listOptions = DataObjectListController<User>(
       itemsStream: User.getAllForUserForEdit(),
       searchQuery: _search,
       tap: (u) => userTap(u, context),

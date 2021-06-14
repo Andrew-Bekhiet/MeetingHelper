@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:provider/provider.dart';
 
-import '../models/list_options.dart';
+import '../models/list_controllers.dart';
 import '../models/models.dart';
 import '../utils/globals.dart';
 import '../utils/helpers.dart';
@@ -35,8 +35,8 @@ class _HistoryState extends State<History> {
 
   @override
   Widget build(BuildContext context) {
-    return Provider<DataObjectListOptions<HistoryDay>>(
-      create: (_) => DataObjectListOptions<HistoryDay>(
+    return Provider<DataObjectListController<HistoryDay>>(
+      create: (_) => DataObjectListController<HistoryDay>(
         searchQuery: _search,
         tap: (h) => historyTap(h, context),
         itemsStream: (list ??
@@ -204,7 +204,7 @@ class _HistoryState extends State<History> {
               shape: const CircularNotchedRectangle(),
               child: StreamBuilder<List>(
                 stream: context
-                    .read<DataObjectListOptions<HistoryDay>>()
+                    .read<DataObjectListController<HistoryDay>>()
                     .objectsData,
                 builder: (context, snapshot) {
                   return Text(
@@ -242,8 +242,8 @@ class _ServantsHistoryState extends State<ServantsHistory> {
 
   @override
   Widget build(BuildContext context) {
-    return Provider<DataObjectListOptions<ServantsHistoryDay>>(
-      create: (_) => DataObjectListOptions<ServantsHistoryDay>(
+    return Provider<DataObjectListController<ServantsHistoryDay>>(
+      create: (_) => DataObjectListController<ServantsHistoryDay>(
         searchQuery: _search,
         tap: (h) => historyTap(h, context),
         itemsStream: (list ??
@@ -375,7 +375,7 @@ class _ServantsHistoryState extends State<ServantsHistory> {
             shape: const CircularNotchedRectangle(),
             child: StreamBuilder<List>(
               stream: context
-                  .read<DataObjectListOptions<ServantsHistoryDay>>()
+                  .read<DataObjectListController<ServantsHistoryDay>>()
                   .objectsData,
               builder: (context, snapshot) {
                 return Text(

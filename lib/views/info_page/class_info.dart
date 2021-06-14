@@ -11,7 +11,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:tinycolor/tinycolor.dart';
 
 import '../../models/history_property.dart';
-import '../../models/list_options.dart';
+import '../../models/list_controllers.dart';
 import '../../models/order_options.dart';
 import '../../models/search_filters.dart';
 import '../../models/user.dart';
@@ -64,7 +64,7 @@ class _ClassInfoState extends State<ClassInfo> {
 
   @override
   Widget build(BuildContext context) {
-    final _listOptions = DataObjectListOptions<Person>(
+    final _listOptions = DataObjectListController<Person>(
       searchQuery: _searchStream,
       tap: (p) => personTap(p, context),
       itemsStream: _orderOptions.switchMap(

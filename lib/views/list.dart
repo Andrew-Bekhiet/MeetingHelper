@@ -8,7 +8,7 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:group_list_view/group_list_view.dart';
 import 'package:meetinghelper/models/data_object_widget.dart';
 import 'package:meetinghelper/models/invitation.dart';
-import 'package:meetinghelper/models/list_options.dart';
+import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/models/user.dart';
@@ -32,7 +32,7 @@ export 'package:tuple/tuple.dart';
 ///You must provide [ListOptions<T>] in the parameter
 ///or use [Provider<ListOptions<T>>] above this widget
 class DataObjectList<T extends DataObject> extends StatefulWidget {
-  final DataObjectListOptions<T>? options;
+  final DataObjectListController<T>? options;
 
   const DataObjectList({Key? key, this.options}) : super(key: key);
 
@@ -43,7 +43,7 @@ class DataObjectList<T extends DataObject> extends StatefulWidget {
 class _ListState<T extends DataObject> extends State<DataObjectList<T>>
     with AutomaticKeepAliveClientMixin<DataObjectList<T>> {
   bool _builtOnce = false;
-  late DataObjectListOptions<T> _listOptions;
+  late DataObjectListController<T> _listOptions;
 
   @override
   bool get wantKeepAlive => _builtOnce && ModalRoute.of(context)!.isCurrent;
@@ -118,7 +118,8 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _listOptions = widget.options ?? context.read<DataObjectListOptions<T>>();
+    _listOptions =
+        widget.options ?? context.read<DataObjectListController<T>>();
   }
 
   void _defaultLongPress(T current) async {
@@ -274,7 +275,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
 }
 
 class DataObjectCheckList<T extends Person> extends StatefulWidget {
-  final CheckListOptions<T>? options;
+  final CheckListController<T>? options;
 
   const DataObjectCheckList({Key? key, this.options}) : super(key: key);
 
@@ -285,7 +286,7 @@ class DataObjectCheckList<T extends Person> extends StatefulWidget {
 class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
     with AutomaticKeepAliveClientMixin<DataObjectCheckList<T>> {
   bool _builtOnce = false;
-  late CheckListOptions<T> _listOptions;
+  late CheckListController<T> _listOptions;
 
   @override
   bool get wantKeepAlive => _builtOnce && ModalRoute.of(context)!.isCurrent;
@@ -457,7 +458,7 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _listOptions = widget.options ?? context.read<CheckListOptions<T>>();
+    _listOptions = widget.options ?? context.read<CheckListController<T>>();
   }
 
   void _showRecordDialog(T current, HistoryRecord? oRecord) async {

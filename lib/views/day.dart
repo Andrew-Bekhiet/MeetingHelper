@@ -2,7 +2,7 @@ import 'package:feature_discovery/feature_discovery.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:meetinghelper/models/list_options.dart';
+import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/views/list.dart';
@@ -32,13 +32,13 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
     return MultiProvider(
       providers: [
         if (widget.record is! ServantsHistoryDay)
-          Provider<CheckListOptions<Person>>(
+          Provider<CheckListController<Person>>(
             create: (_) {
               bool isSameDay = DateTime.now()
                       .difference(widget.record.day.toDate())
                       .inDays ==
                   0;
-              return CheckListOptions(
+              return CheckListController(
                   itemsStream: Person.getAllForUser(orderBy: 'Name'),
                   searchQuery: _searchQuery,
                   day: widget.record,
@@ -53,13 +53,13 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
             },
           )
         else
-          Provider<CheckListOptions<User>>(
+          Provider<CheckListController<User>>(
             create: (_) {
               bool isSameDay = DateTime.now()
                       .difference(widget.record.day.toDate())
                       .inDays ==
                   0;
-              return CheckListOptions(
+              return CheckListController(
                   itemsStream: User.getAllForUser(),
                   searchQuery: _searchQuery,
                   day: widget.record,
@@ -268,8 +268,9 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                               builder: (innerContext, setState) {
                             var dayOptions = (widget.record
                                         is! ServantsHistoryDay
-                                    ? context.read<CheckListOptions<Person>>()
-                                    : context.read<CheckListOptions<User>>())
+                                    ? context
+                                        .read<CheckListController<Person>>()
+                                    : context.read<CheckListController<User>>())
                                 .dayOptions;
                             return SizedBox(
                               width: 350,
@@ -465,15 +466,15 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                 stream: Rx.combineLatest2<Map, Map, Tuple2<int, int>>(
                   widget.record is! ServantsHistoryDay
                       ? context
-                          .read<CheckListOptions<Person>>()
+                          .read<CheckListController<Person>>()
                           .originalObjectsData
                       : context
-                          .read<CheckListOptions<User>>()
+                          .read<CheckListController<User>>()
                           .originalObjectsData,
                   () {
                     var rslt = widget.record is! ServantsHistoryDay
-                        ? context.read<CheckListOptions<Person>>()
-                        : context.read<CheckListOptions<User>>();
+                        ? context.read<CheckListController<Person>>()
+                        : context.read<CheckListController<User>>();
                     if (_tabs!.index == 0) {
                       return rslt.copyWith(type: DayListType.Meeting).attended;
                     } else if (_tabs!.index == 1) {
@@ -516,19 +517,19 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                   DataObjectCheckList<Person>(
                     key: PageStorageKey('PersonsMeeting' + widget.record.id),
                     options: context
-                        .read<CheckListOptions<Person>>()
+                        .read<CheckListController<Person>>()
                         .copyWith(type: DayListType.Meeting),
                   ),
                   DataObjectCheckList<Person>(
                     key: PageStorageKey('PersonsKodas' + widget.record.id),
                     options: context
-                        .read<CheckListOptions<Person>>()
+                        .read<CheckListController<Person>>()
                         .copyWith(type: DayListType.Kodas),
                   ),
                   DataObjectCheckList<Person>(
                     key: PageStorageKey('PersonsTanawol' + widget.record.id),
                     options: context
-                        .read<CheckListOptions<Person>>()
+                        .read<CheckListController<Person>>()
                         .copyWith(type: DayListType.Tanawol),
                   ),
                 ]
@@ -536,19 +537,19 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                   DataObjectCheckList<User>(
                     key: PageStorageKey('UsersMeeting' + widget.record.id),
                     options: context
-                        .read<CheckListOptions<User>>()
+                        .read<CheckListController<User>>()
                         .copyWith(type: DayListType.Meeting),
                   ),
                   DataObjectCheckList<User>(
                     key: PageStorageKey('UsersKodas' + widget.record.id),
                     options: context
-                        .read<CheckListOptions<User>>()
+                        .read<CheckListController<User>>()
                         .copyWith(type: DayListType.Kodas),
                   ),
                   DataObjectCheckList<User>(
                     key: PageStorageKey('UsersTanawol' + widget.record.id),
                     options: context
-                        .read<CheckListOptions<User>>()
+                        .read<CheckListController<User>>()
                         .copyWith(type: DayListType.Tanawol),
                   ),
                 ],

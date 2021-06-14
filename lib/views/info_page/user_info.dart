@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/class.dart';
 import 'package:meetinghelper/models/data_object_widget.dart';
-import 'package:meetinghelper/models/list_options.dart';
+import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/search_filters.dart';
 import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
@@ -256,7 +256,7 @@ class _UserInfoState extends State<UserInfo> {
                           ),
                           Expanded(
                             child: ServicesList(
-                              options: ServicesListOptions(
+                              options: ServicesListController(
                                 searchQuery: Stream.value(''),
                                 tap: (c) => classTap(c, context),
                                 itemsStream: user.superAccess
@@ -280,7 +280,7 @@ class _UserInfoState extends State<UserInfo> {
                     await navigator.currentState!.push(
                       MaterialPageRoute(
                         builder: (context) {
-                          final listOptions = DataObjectListOptions<User>(
+                          final listOptions = DataObjectListController<User>(
                             searchQuery: searchStream,
                             itemsStream: FirebaseFirestore.instance
                                 .collection('UsersData')

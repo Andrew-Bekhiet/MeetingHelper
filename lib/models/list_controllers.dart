@@ -13,7 +13,7 @@ import 'package:tuple/tuple.dart';
 
 import 'mini_models.dart';
 
-abstract class BaseListOptions<L, U> {
+abstract class BaseListController<L, U> {
   final BehaviorSubject<L> _objectsData;
   ValueStream<L> get objectsData => _objectsData.shareValue();
   L? get items => _objectsData.value;
@@ -46,7 +46,7 @@ abstract class BaseListOptions<L, U> {
 
   void deselect(U item);
 
-  BaseListOptions({
+  BaseListController({
     this.onLongPress,
     this.tap,
     this.empty,
@@ -75,8 +75,8 @@ abstract class BaseListOptions<L, U> {
   }
 }
 
-class DataObjectListOptions<T extends DataObject>
-    implements BaseListOptions<List<T>, T> {
+class DataObjectListController<T extends DataObject>
+    implements BaseListController<List<T>, T> {
   @override
   late final BehaviorSubject<List<T>> _objectsData;
   @override
@@ -134,7 +134,7 @@ class DataObjectListOptions<T extends DataObject>
       Widget? trailing,
       Widget? subtitle}) buildItem;
 
-  DataObjectListOptions({
+  DataObjectListController({
     Widget Function(T, void Function(T)? onLongPress, void Function(T)? onTap,
             Widget? trailing, Widget? subtitle)?
         itemBuilder,
@@ -244,7 +244,8 @@ class DataObjectListOptions<T extends DataObject>
   }
 }
 
-class CheckListOptions<T extends Person> implements DataObjectListOptions<T> {
+class CheckListController<T extends Person>
+    implements DataObjectListController<T> {
   final HistoryDay day;
   final DayListType type;
   final HistoryDayOptions dayOptions;
@@ -330,7 +331,7 @@ class CheckListOptions<T extends Person> implements DataObjectListOptions<T> {
       Widget? trailing,
       Widget? subtitle}) buildItem;
 
-  CheckListOptions({
+  CheckListController({
     this.getGroupedData,
     required this.day,
     required this.type,
@@ -557,7 +558,7 @@ class CheckListOptions<T extends Person> implements DataObjectListOptions<T> {
         .update();
   }
 
-  CheckListOptions<T> copyWith({
+  CheckListController<T> copyWith({
     Stream<Map<DocumentReference, Tuple2<Class, List<T>>>> Function(
             List<T?> data)?
         getGroupedData,
@@ -574,7 +575,7 @@ class CheckListOptions<T extends Person> implements DataObjectListOptions<T> {
     Map<String, T>? selected,
     Stream<String>? searchQuery,
   }) {
-    return CheckListOptions<T>(
+    return CheckListController<T>(
       getGroupedData: getGroupedData ?? this.getGroupedData,
       day: day ?? this.day,
       type: type ?? this.type,
@@ -642,8 +643,8 @@ class HistoryDayOptions {
       o is HistoryDayOptions && o.hashCode == hashCode;
 }
 
-class ServicesListOptions
-    implements BaseListOptions<Map<StudyYear?, List<Class>>, Class> {
+class ServicesListController
+    implements BaseListController<Map<StudyYear?, List<Class>>, Class> {
   @override
   final BehaviorSubject<Map<StudyYear?, List<Class>>> _objectsData =
       BehaviorSubject();
@@ -702,7 +703,7 @@ class ServicesListOptions
   @override
   bool get showNull => false;
 
-  ServicesListOptions({
+  ServicesListController({
     this.onLongPress,
     this.tap,
     List<Class>? selected,

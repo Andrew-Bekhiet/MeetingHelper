@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:meetinghelper/models/list_options.dart';
+import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/order_options.dart';
 import 'package:meetinghelper/models/search_filters.dart';
 import 'package:meetinghelper/models/user.dart';
@@ -1075,7 +1075,7 @@ class _EditPersonState extends State<EditPerson> {
   void _selectClass() async {
     final BehaviorSubject<String> searchStream =
         BehaviorSubject<String>.seeded('');
-    final options = ServicesListOptions(
+    final options = ServicesListController(
       tap: (class$) {
         navigator.currentState!.pop();
         person.classId = class$.ref;

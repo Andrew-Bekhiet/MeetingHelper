@@ -7,7 +7,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:meetinghelper/models/list_options.dart';
+import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/order_options.dart';
 import 'package:meetinghelper/models/search_filters.dart';
 import 'package:meetinghelper/utils/helpers.dart';
@@ -385,7 +385,7 @@ class _EditUserState extends State<EditUser> {
               ? MultiProvider(
                   providers: [
                     Provider(
-                      create: (_) => DataObjectListOptions<User>(
+                      create: (_) => DataObjectListController<User>(
                         searchQuery: searchStream,
                         selectionMode: true,
                         itemsStream: User.getAllForUser(),
@@ -398,7 +398,7 @@ class _EditUserState extends State<EditUser> {
                       TextButton(
                         onPressed: () {
                           navigator.currentState!.pop(context
-                              .read<DataObjectListOptions<User>>()
+                              .read<DataObjectListController<User>>()
                               .selectedLatest
                               ?.values
                               .toList());
@@ -693,7 +693,7 @@ class _EditUserState extends State<EditUser> {
   void _selectClass() async {
     final BehaviorSubject<String> searchStream =
         BehaviorSubject<String>.seeded('');
-    final options = ServicesListOptions(
+    final options = ServicesListController(
       tap: (class$) {
         navigator.currentState!.pop();
         widget.user.classId = class$.ref;

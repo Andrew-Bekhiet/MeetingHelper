@@ -1,4 +1,4 @@
-import 'package:meetinghelper/models/list_options.dart';
+import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
@@ -15,7 +15,7 @@ class Trash extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final listOptions = DataObjectListOptions<TrashDay>(
+    final listOptions = DataObjectListController<TrashDay>(
       onLongPress: (_) {},
       tap: (day) {
         navigator.currentState!
@@ -92,7 +92,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
 
   @override
   Widget build(BuildContext context) {
-    var _classesOptions = DataObjectListOptions<Class>(
+    var _classesOptions = DataObjectListController<Class>(
       searchQuery: _searchQuery,
       tap: (c) => classTap(c, context),
       itemsStream: (User.instance.superAccess
@@ -105,7 +105,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
         (s) => s.docs.map(Class.fromQueryDoc).toList(),
       ),
     );
-    var _personsOptions = DataObjectListOptions<Person>(
+    var _personsOptions = DataObjectListController<Person>(
       searchQuery: _searchQuery,
       tap: (p) => personTap(p, context),
       itemsStream:
