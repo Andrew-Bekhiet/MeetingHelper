@@ -622,7 +622,8 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
     return fromDoc(await FirebaseFirestore.instance
         .collection('Users')
         .doc(uid)
-        .get(dataSource));
+        .get(dataSource))
+      ..uid = uid;
   }
 
   static Future<List<User>> getUsers(List<String> users) async {

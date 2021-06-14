@@ -3,6 +3,8 @@ import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/history_record.dart';
+import 'package:meetinghelper/models/super_classes.dart';
+import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 
@@ -111,20 +113,25 @@ class EditHistoryProperty extends StatelessWidget {
                   return const Center(child: Text('لا يوجد سجل'));
                 return ListView.builder(
                   itemCount: history.data!.length,
-                  itemBuilder: (context, i) => ListTile(
-                    title: FutureBuilder<DocumentSnapshot>(
-                      future: FirebaseFirestore.instance
-                          .doc('Users/' + history.data![i].byUser!)
-                          .get(dataSource),
-                      builder: (context, user) {
-                        return user.hasData
-                            ? Text(user.data!.data()!['Name'])
-                            : const LinearProgressIndicator();
-                      },
-                    ),
-                    subtitle: Text(DateFormat(
-                            showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d', 'ar-EG')
-                        .format(history.data![i].time!.toDate())),
+                  itemBuilder: (context, i) => FutureBuilder<User>(
+                    future: User.fromID(history.data![i].byUser!),
+                    builder: (context, user) {
+                      return ListTile(
+                        leading: user.hasData
+                            ? DataObjectPhoto(
+                                user.data!,
+                                wrapPhotoInCircle: true,
+                              )
+                            : const CircularProgressIndicator(),
+                        title: user.hasData
+                            ? Text(user.data!.name)
+                            : const LinearProgressIndicator(),
+                        subtitle: Text(DateFormat(
+                                showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d',
+                                'ar-EG')
+                            .format(history.data![i].time!.toDate())),
+                      );
+                    },
                   ),
                 );
               },
@@ -133,91 +140,88 @@ class EditHistoryProperty extends StatelessWidget {
         );
       },
     );
-    return ListTile(
-      title: Text(name),
-      subtitle: user != null
-          ? FutureBuilder<List>(
-              future: Future.wait([
-                FirebaseFirestore.instance
-                    .doc('Users/' + user!)
-                    .get(dataSource),
-                historyRef
-                    .orderBy('Time', descending: true)
-                    .limit(1)
-                    .get(dataSource)
-              ]),
+    return FutureBuilder<User>(
+        future: User.fromID(user!),
+        builder: (context, user) {
+          return ListTile(
+            leading: user.hasData
+                ? DataObjectPhoto(
+                    user.data!,
+                    wrapPhotoInCircle: true,
+                  )
+                : const CircularProgressIndicator(),
+            title: Text(name),
+            subtitle: FutureBuilder<QuerySnapshot>(
+              future: historyRef
+                  .orderBy('Time', descending: true)
+                  .limit(1)
+                  .get(dataSource),
               builder: (context, future) {
                 return future.hasData
-                    ? Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    ? Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        crossAxisAlignment: WrapCrossAlignment.end,
+                        // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Flexible(
-                            flex: 5,
-                            child: Text(future.data![0].data()['Name']),
-                          ),
-                          if ((future.data![1] as QuerySnapshot)
-                              .docs
-                              .isNotEmpty)
-                            Flexible(
-                              flex: 5,
-                              child: Text(
-                                  DateFormat(
-                                          showTime
-                                              ? 'yyyy/M/d   h:m a'
-                                              : 'yyyy/M/d',
-                                          'ar-EG')
-                                      .format(
-                                    (future.data![1] as QuerySnapshot)
-                                        .docs[0]
-                                        .data()['Time']
-                                        .toDate(),
-                                  ),
-                                  style: Theme.of(context).textTheme.overline),
-                            ),
+                          if (user.hasData) Text(user.data!.name),
+                          if (future.data!.docs.isNotEmpty)
+                            Text(
+                                DateFormat(
+                                        showTime
+                                            ? 'yyyy/M/d   h:m a'
+                                            : 'yyyy/M/d',
+                                        'ar-EG')
+                                    .format(
+                                  future.data!.docs[0].data()['Time'].toDate(),
+                                ),
+                                style: Theme.of(context).textTheme.overline),
                         ],
                       )
                     : const LinearProgressIndicator();
               },
-            )
-          : const Text(''),
-      trailing: discoverFeature
-          ? DescribedFeatureOverlay(
-              barrierDismissible: false,
-              contentLocation: ContentLocation.above,
-              featureId: 'EditHistory',
-              tapTarget: const Icon(Icons.history),
-              title: const Text('سجل التعديل'),
-              description: Column(
-                children: <Widget>[
-                  const Text('يمكنك الاطلاع على سجل التعديلات من هنا'),
-                  OutlinedButton.icon(
-                    icon: const Icon(Icons.forward),
-                    label: Text(
-                      'التالي',
-                      style: TextStyle(
-                        color: Theme.of(context).textTheme.bodyText2!.color,
-                      ),
+            ),
+            trailing: discoverFeature
+                ? DescribedFeatureOverlay(
+                    barrierDismissible: false,
+                    contentLocation: ContentLocation.above,
+                    featureId: 'EditHistory',
+                    tapTarget: const Icon(Icons.history),
+                    title: const Text('سجل التعديل'),
+                    description: Column(
+                      children: <Widget>[
+                        const Text('يمكنك الاطلاع على سجل التعديلات من هنا'),
+                        OutlinedButton.icon(
+                          icon: const Icon(Icons.forward),
+                          label: Text(
+                            'التالي',
+                            style: TextStyle(
+                              color:
+                                  Theme.of(context).textTheme.bodyText2!.color,
+                            ),
+                          ),
+                          onPressed: () =>
+                              FeatureDiscovery.completeCurrentStep(context),
+                        ),
+                        OutlinedButton(
+                          onPressed: () => FeatureDiscovery.dismissAll(context),
+                          child: Text(
+                            'تخطي',
+                            style: TextStyle(
+                              color:
+                                  Theme.of(context).textTheme.bodyText2!.color,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    onPressed: () =>
-                        FeatureDiscovery.completeCurrentStep(context),
-                  ),
-                  OutlinedButton(
-                    onPressed: () => FeatureDiscovery.dismissAll(context),
-                    child: Text(
-                      'تخطي',
-                      style: TextStyle(
-                        color: Theme.of(context).textTheme.bodyText2!.color,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              backgroundColor: Theme.of(context).accentColor,
-              targetColor: Colors.transparent,
-              textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
-              child: icon)
-          : icon,
-    );
+                    backgroundColor: Theme.of(context).accentColor,
+                    targetColor: Colors.transparent,
+                    textColor:
+                        Theme.of(context).primaryTextTheme.bodyText1!.color!,
+                    child: icon)
+                : icon,
+          );
+        });
   }
 }
 
