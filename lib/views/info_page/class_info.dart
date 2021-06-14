@@ -346,8 +346,13 @@ class _ClassInfoState extends State<ClassInfo> {
                   delegate: SliverChildListDelegate(
                     <Widget>[
                       ListTile(
-                        title: Text(class$.name,
-                            style: Theme.of(context).textTheme.headline6),
+                        title: Text(
+                          class$.name,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headline5
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
                       ),
                       ListTile(
                         title: const Text('السنة الدراسية:'),
@@ -437,7 +442,10 @@ class _ClassInfoState extends State<ClassInfo> {
                         class$.ref.collection('EditHistory'),
                         discoverFeature: true,
                       ),
-                      const Text('المخدومين بالفصل:'),
+                      Text(
+                        'المخدومين بالفصل:',
+                        style: Theme.of(context).textTheme.headline6,
+                      ),
                       SearchFilters(
                         1,
                         options: _listOptions,
