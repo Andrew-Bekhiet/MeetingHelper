@@ -54,11 +54,16 @@ class FilterButton extends StatelessWidget {
 }
 
 class SearchField extends StatelessWidget {
-  SearchField({Key? key, required this.textStyle, required this.searchStream})
+  SearchField(
+      {Key? key,
+      required this.textStyle,
+      required this.searchStream,
+      this.showSuffix = true})
       : super(key: key);
   final TextStyle? textStyle;
   final TextEditingController _textController = TextEditingController();
   final BehaviorSubject<String> searchStream;
+  final bool showSuffix;
 
   @override
   Widget build(BuildContext context) {
@@ -66,13 +71,15 @@ class SearchField extends StatelessWidget {
       style: textStyle,
       controller: _textController,
       decoration: InputDecoration(
-          suffixIcon: IconButton(
-            icon: Icon(Icons.close, color: textStyle!.color),
-            onPressed: () {
-              _textController.text = '';
-              searchStream.add('');
-            },
-          ),
+          suffixIcon: showSuffix
+              ? IconButton(
+                  icon: Icon(Icons.close, color: textStyle!.color),
+                  onPressed: () {
+                    _textController.text = '';
+                    searchStream.add('');
+                  },
+                )
+              : null,
           hintStyle: textStyle,
           icon: Icon(Icons.search, color: textStyle!.color),
           hintText: 'بحث ...'),
