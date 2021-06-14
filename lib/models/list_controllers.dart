@@ -172,8 +172,9 @@ class DataObjectListController<T extends DataObject>
   })  : assert(itemsStream != null || items != null),
         assert(showNull == false || (showNull == true && empty != null)),
         _filter = (filter ??
-            ((o, f) =>
-                o.where((e) => filterString(e.name).contains(f)).toList())),
+            ((o, f) => o
+                .where((e) => filterString(e.name).contains(filterString(f)))
+                .toList())),
         _searchQuery = searchQuery == null
             ? BehaviorSubject<String>.seeded('')
             : BehaviorSubject<String>(),
@@ -370,8 +371,9 @@ class CheckListController<T extends Person>
   })  : assert(dayOptions.grouped.value == false || getGroupedData != null),
         assert(itemsMapStream != null || itemsStream != null || items != null),
         _filter = (filter ??
-            ((o, f) =>
-                o.where((e) => filterString(e.name).contains(f)).toList())),
+            ((o, f) => o
+                .where((e) => filterString(e.name).contains(filterString(f)))
+                .toList())),
         _searchQuery = searchQuery != null
             ? BehaviorSubject<String>()
             : BehaviorSubject<String>.seeded(''),
