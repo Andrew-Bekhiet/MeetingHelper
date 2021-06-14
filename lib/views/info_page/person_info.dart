@@ -406,20 +406,25 @@ class _PersonInfoState extends State<PersonInfo> {
                         person.lastEdit,
                         person.ref.collection('EditHistory'),
                       ),
-                      if (!person.ref.path.startsWith('Deleted'))
-                        ListTile(
-                          title: const Text('داخل فصل:'),
-                          subtitle: person.classId != null &&
-                                  person.classId!.parent.id != 'null'
-                              ? FutureBuilder<Class?>(
-                                  future: Class.fromId(person.classId!.id),
-                                  builder: (context, _class) => _class.hasData
-                                      ? DataObjectWidget<Class>(_class.data!,
-                                          isDense: true)
-                                      : const LinearProgressIndicator(),
-                                )
-                              : const Text('غير موجود'),
-                        ),
+                      ListTile(
+                        title: const Text('داخل فصل:'),
+                        subtitle: person.classId != null &&
+                                person.classId!.parent.id != 'null'
+                            ? FutureBuilder<Class?>(
+                                future: Class.fromId(person.classId!.id),
+                                builder: (context, _class) =>
+                                    _class.connectionState ==
+                                                ConnectionState.done &&
+                                            _class.hasData
+                                        ? DataObjectWidget<Class>(_class.data!,
+                                            isDense: true)
+                                        : _class.connectionState ==
+                                                ConnectionState.done
+                                            ? const Text('لا يمكن ايجاد الفصل')
+                                            : const LinearProgressIndicator(),
+                              )
+                            : const Text('غير موجود'),
+                      ),
                     ],
                   ),
                 ),
