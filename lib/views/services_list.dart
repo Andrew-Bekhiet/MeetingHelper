@@ -127,12 +127,20 @@ class _ServicesListState extends State<ServicesList>
                               children: [
                                 const Icon(Icons.arrow_drop_down),
                                 Checkbox(
+                                  tristate: true,
                                   value: services.data![element]!
-                                      .map((c) =>
-                                          snapshot.data!.containsKey(c.id))
-                                      .fold<bool>(true, (o, n) => o && n),
+                                          .map((c) =>
+                                              snapshot.data!.containsKey(c.id))
+                                          .every((e) => e)
+                                      ? true
+                                      : services.data![element]!
+                                              .map((c) => snapshot.data!
+                                                  .containsKey(c.id))
+                                              .every((e) => !e)
+                                          ? false
+                                          : null,
                                   onChanged: (v) {
-                                    if (v!) {
+                                    if (v == true) {
                                       services.data![element]!.forEach(
                                         (c) => widget.options.select(c),
                                       );
