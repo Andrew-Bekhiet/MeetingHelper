@@ -15,7 +15,7 @@ import 'mini_models.dart';
 
 abstract class BaseListController<L, U> {
   final BehaviorSubject<L> _objectsData;
-  ValueStream<L> get objectsData => _objectsData.shareValue();
+  ValueStream<L> get objectsData => _objectsData.stream;
   L? get items => _objectsData.value;
 
   StreamSubscription<L>? _objectsDataListener;
@@ -25,7 +25,7 @@ abstract class BaseListController<L, U> {
   bool? get selectionModeLatest => _selectionMode.value;
 
   final BehaviorSubject<Map<String, U>?> _selected;
-  ValueStream<Map<String, U>?> get selected => _selected.shareValue();
+  ValueStream<Map<String, U>?> get selected => _selected.stream;
   Map<String, U>? get selectedLatest => _selected.value;
 
   final BehaviorSubject<String> _searchQuery;
@@ -97,7 +97,7 @@ class DataObjectListController<T extends DataObject>
   @override
   late final BehaviorSubject<List<T>> _objectsData;
   @override
-  ValueStream<List<T>> get objectsData => _objectsData.shareValue();
+  ValueStream<List<T>> get objectsData => _objectsData.stream;
   @override
   List<T>? get items => objectsData.value;
 
@@ -106,7 +106,7 @@ class DataObjectListController<T extends DataObject>
 
   final BehaviorSubject<Map<String, T>> _originalObjectsData;
   ValueStream<Map<String, T>> get originalObjectsData =>
-      _originalObjectsData.shareValue();
+      _originalObjectsData.stream;
   Map<String, T>? get originalObjectsDataLatest => originalObjectsData.value;
 
   StreamSubscription<Object>? _originalObjectsDataListener;
@@ -121,7 +121,7 @@ class DataObjectListController<T extends DataObject>
   @override
   final BehaviorSubject<Map<String, T>> _selected;
   @override
-  ValueStream<Map<String, T>> get selected => _selected.shareValue();
+  ValueStream<Map<String, T>> get selected => _selected.stream;
   @override
   Map<String, T>? get selectedLatest => _selected.value;
 
@@ -274,7 +274,7 @@ class CheckListController<T extends Person>
   @override
   late final BehaviorSubject<List<T>> _objectsData;
   @override
-  ValueStream<List<T>> get objectsData => _objectsData.shareValue();
+  ValueStream<List<T>> get objectsData => _objectsData.stream;
   @override
   List<T>? get items => objectsData.value;
 
@@ -285,7 +285,7 @@ class CheckListController<T extends Person>
   final BehaviorSubject<Map<String, T>> _originalObjectsData;
   @override
   ValueStream<Map<String, T>> get originalObjectsData =>
-      _originalObjectsData.shareValue();
+      _originalObjectsData.stream;
   @override
   Map<String, T>? get originalObjectsDataLatest => originalObjectsData.value;
 
@@ -315,8 +315,7 @@ class CheckListController<T extends Person>
   StreamSubscription<String>? _searchQueryListener;
 
   late final BehaviorSubject<Map<String, HistoryRecord>> _attended;
-  ValueStream<Map<String, HistoryRecord>> get attended =>
-      _attended.shareValue();
+  ValueStream<Map<String, HistoryRecord>> get attended => _attended.stream;
   Map<String, HistoryRecord>? get attendedLatest => attended.value;
 
   StreamSubscription<Map<String, HistoryRecord>>? _attendedListener;
@@ -671,7 +670,7 @@ class ServicesListController
       BehaviorSubject();
   @override
   ValueStream<Map<StudyYear?, List<Class>>> get objectsData =>
-      _objectsData.shareValue();
+      _objectsData.stream;
   @override
   Map<StudyYear?, List<Class>> get items => _objectsData.requireValue;
 

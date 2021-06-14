@@ -242,7 +242,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                     if (v == 'delete' && User.instance.superAccess) {
                       await _delete();
                     } else if (v == 'sorting') {
-                      await _showSortingOptions();
+                      await _showSortingOptions(context);
                     }
                   },
                   itemBuilder: (context) => [
@@ -400,8 +400,8 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
     );
   }
 
-  Future<dynamic> _showSortingOptions() {
-    return showDialog(
+  Future<void> _showSortingOptions(BuildContext context) async {
+    await showDialog(
       context: context,
       builder: (context2) => AlertDialog(
         insetPadding: const EdgeInsets.symmetric(vertical: 24.0),
