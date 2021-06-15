@@ -47,7 +47,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                     enabled: isSameDay,
                     sortByTimeASC: isSameDay ? null : true,
                   ),
-                  getGroupedData: personsByClassRef,
+                  groupBy: personsByClassRef,
                   type: DayListType.Meeting);
             },
             dispose: (context, c) => c.dispose(),
@@ -68,7 +68,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                     enabled: isSameDay,
                     sortByTimeASC: isSameDay ? null : true,
                   ),
-                  getGroupedData: usersByClassRef,
+                  groupBy: usersByClassRef,
                   type: DayListType.Meeting);
             },
             dispose: (context, c) => c.dispose(),

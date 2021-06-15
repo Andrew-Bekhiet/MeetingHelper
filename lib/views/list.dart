@@ -309,40 +309,35 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
     _builtOnce = true;
     updateKeepAlive();
 
-    return StreamBuilder<Tuple2<List<T>, bool?>>(
-      stream: Rx.combineLatest2<List<T>, bool?, Tuple2<List<T>, bool?>>(
-        _listOptions.objectsData,
-        _listOptions.dayOptions.grouped,
-        (a, b) => Tuple2<List<T>, bool?>(a, b),
-      ),
-      builder: (context, options) {
-        if (options.hasError) return Center(child: ErrorWidget(options.error!));
-        if (!options.hasData)
+    return StreamBuilder<bool>(
+      stream: _listOptions.dayOptions.grouped,
+      builder: (context, grouped) {
+        if (grouped.hasError) return Center(child: ErrorWidget(grouped.error!));
+        if (!grouped.hasData)
           return const Center(child: CircularProgressIndicator());
 
-        final List<T> _data = options.data!.item1;
-        if (_data.isEmpty)
-          return Center(child: Text('لا يوجد ${_getPluralStringType()}'));
-
-        if (options.data!.item2!) {
-          return buildGroupedListView(_data);
+        if (grouped.data!) {
+          return buildGroupedListView();
         } else {
-          return buildListView(_data);
+          return buildListView();
         }
       },
     );
   }
 
-  Widget buildGroupedListView(List<T> _data) {
+  Widget buildGroupedListView() {
     return StreamBuilder<Map<DocumentReference, Tuple2<Class, List<T>>>>(
-      stream: _listOptions.getGroupedData!(_data),
+      stream: _listOptions.groupedData,
       builder: (context, groupedData) {
         if (groupedData.hasError) return ErrorWidget(groupedData.error!);
         if (!groupedData.hasData)
           return const Center(child: CircularProgressIndicator());
 
+        if (groupedData.data!.isEmpty)
+          return Center(child: Text('لا يوجد ${_getPluralStringType()}'));
+
         return GroupListView(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 6),
           sectionsCount: groupedData.data!.length + 1,
           countOfItemInSection: (i) {
             if (i == groupedData.data!.length) return 0;
@@ -352,21 +347,45 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
           cacheExtent: 500,
           groupHeaderBuilder: (context, i) {
             if (i == groupedData.data!.length)
-              return Container(height: MediaQuery.of(context).size.height / 19);
+              return Container(height: MediaQuery.of(context).size.height / 15);
 
             return StreamBuilder<bool?>(
               stream: _listOptions.dayOptions.showSubtitlesInGroups,
               builder: (context, showSubtitle) {
-                return DataObjectWidget<Class>(
-                  groupedData.data!.values.elementAt(i).item1,
-                  showSubTitle: showSubtitle.data == true,
-                  subtitle: Text('يتم عرض ' +
-                      groupedData.data!.values
-                          .elementAt(i)
-                          .item2
-                          .length
-                          .toString() +
-                      ' مخدوم داخل الفصل'),
+                return Container(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  child: DataObjectWidget<Class>(
+                    groupedData.data!.values.elementAt(i).item1,
+                    wrapInCard: false,
+                    showSubTitle: showSubtitle.data == true,
+                    subtitle: showSubtitle.data == true
+                        ? Text('يتم عرض ' +
+                            groupedData.data!.values
+                                .elementAt(i)
+                                .item2
+                                .length
+                                .toString() +
+                            ' مخدوم داخل الفصل')
+                        : null,
+                    trailing: IconButton(
+                      onPressed: () {
+                        _listOptions.openedNodes.add({
+                          ..._listOptions.openedNodes.requireValue,
+                          groupedData.data!.keys.elementAt(i):
+                              !(_listOptions.openedNodes.requireValue[
+                                      groupedData.data!.keys.elementAt(i)] ??
+                                  false)
+                        });
+                      },
+                      icon: Icon(
+                        _listOptions.openedNodes.requireValue[
+                                    groupedData.data!.keys.elementAt(i)] ??
+                                false
+                            ? Icons.arrow_drop_up
+                            : Icons.arrow_drop_down,
+                      ),
+                    ),
+                  ),
                 );
               },
             );
@@ -386,20 +405,33 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
     );
   }
 
-  Widget buildListView(List<T> _data) {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
-      addAutomaticKeepAlives: _data.length < 500,
-      cacheExtent: 200,
-      itemCount: _data.length + 1,
-      itemBuilder: (context, i) {
-        if (i == _data.length)
-          return Container(height: MediaQuery.of(context).size.height / 19);
+  Widget buildListView() {
+    return StreamBuilder<List<T>>(
+        stream: _listOptions.objectsData,
+        builder: (context, data) {
+          if (data.hasError) return Center(child: ErrorWidget(data.error!));
+          if (!data.hasData)
+            return const Center(child: CircularProgressIndicator());
 
-        final T current = _data[i];
-        return _buildItem(current);
-      },
-    );
+          final List<T> _data = data.data!;
+          if (_data.isEmpty)
+            return Center(child: Text('لا يوجد ${_getPluralStringType()}'));
+
+          return ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            addAutomaticKeepAlives: _data.length < 500,
+            cacheExtent: 200,
+            itemCount: _data.length + 1,
+            itemBuilder: (context, i) {
+              if (i == _data.length)
+                return Container(
+                    height: MediaQuery.of(context).size.height / 19);
+
+              final T current = _data[i];
+              return _buildItem(current);
+            },
+          );
+        });
   }
 
   Widget _buildItem(T current) {

@@ -271,6 +271,8 @@ class CheckListController<T extends Person>
   final HistoryDay day;
   final DayListType type;
   final HistoryDayOptions dayOptions;
+  final BehaviorSubject<Map<DocumentReference, bool?>> openedNodes =
+      BehaviorSubject.seeded({});
 
   @override
   late final BehaviorSubject<List<T>> _objectsData;
@@ -321,8 +323,11 @@ class CheckListController<T extends Person>
 
   StreamSubscription<Map<String, HistoryRecord>>? _attendedListener;
 
+  late final Stream<Map<DocumentReference, Tuple2<Class, List<T>>>>?
+      groupedData;
+
   final Stream<Map<DocumentReference, Tuple2<Class, List<T>>>> Function(
-      List<T> data)? getGroupedData;
+      List<T> data)? _groupBy;
 
   CollectionReference? get ref => day.collections[type];
 
@@ -353,7 +358,9 @@ class CheckListController<T extends Person>
       Widget? subtitle}) buildItem;
 
   CheckListController({
-    this.getGroupedData,
+    Stream<Map<DocumentReference, Tuple2<Class, List<T>>>> Function(
+            List<T> data)?
+        groupBy,
     required this.day,
     required this.type,
     required this.dayOptions,
@@ -368,7 +375,7 @@ class CheckListController<T extends Person>
     List<T>? items,
     Map<String, T>? selected,
     Stream<String>? searchQuery,
-  })  : assert(dayOptions.grouped.value == false || getGroupedData != null),
+  })  : assert(dayOptions.grouped.value == false || groupBy != null),
         assert(itemsMapStream != null || itemsStream != null || items != null),
         _filter = (filter ??
             ((o, f) => o
@@ -382,6 +389,7 @@ class CheckListController<T extends Person>
         _originalObjectsData = BehaviorSubject<Map<String, T>>(),
         _objectsData = BehaviorSubject<List<T>>(),
         _attended = BehaviorSubject<Map<String, HistoryRecord>>(),
+        _groupBy = groupBy,
         itemBuilder = (itemBuilder ??
             (i, void Function(T)? onLongPress, void Function(T)? onTap,
                     Widget? trailing, Widget? subtitle) =>
@@ -428,6 +436,22 @@ class CheckListController<T extends Person>
       _attended,
       _objectsFilteringMapping,
     ).listen(_objectsData.add, onError: _objectsData.addError);
+
+    groupedData = _groupBy != null
+        ? Rx.combineLatest2<
+            Map<DocumentReference, Tuple2<Class, List<T>>>,
+            Map<DocumentReference, bool?>,
+            Map<DocumentReference, Tuple2<Class, List<T>>>>(
+            _objectsData.switchMap(_groupBy!),
+            openedNodes,
+            (g, n) => g.map(
+              (k, v) => MapEntry(
+                k,
+                n[k] == true ? v : Tuple2<Class, List<T>>(v.item1, []),
+              ),
+            ),
+          )
+        : null;
   }
 
   List<T> _objectsFilteringMapping(
@@ -602,7 +626,7 @@ class CheckListController<T extends Person>
   CheckListController<T> copyWith({
     Stream<Map<DocumentReference, Tuple2<Class, List<T>>>> Function(
             List<T?> data)?
-        getGroupedData,
+        groupBy,
     HistoryDay? day,
     DayListType? type,
     HistoryDayOptions? dayOptions,
@@ -617,7 +641,7 @@ class CheckListController<T extends Person>
     Stream<String>? searchQuery,
   }) {
     return CheckListController<T>(
-      getGroupedData: getGroupedData ?? this.getGroupedData,
+      groupBy: groupBy ?? _groupBy,
       day: day ?? this.day,
       type: type ?? this.type,
       dayOptions: dayOptions ?? this.dayOptions,
@@ -639,6 +663,8 @@ class CheckListController<T extends Person>
 
     await _originalObjectsDataListener?.cancel();
     if (!_originalObjectsData.isClosed) await _originalObjectsData.close();
+
+    if (!openedNodes.isClosed) await openedNodes.close();
 
     await _attendedListener?.cancel();
     if (!_attended.isClosed) await _attended.close();
