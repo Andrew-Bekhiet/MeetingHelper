@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/material.dart';
+import 'package:meetinghelper/models/data_object_widget.dart';
 import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:provider/provider.dart';
@@ -342,117 +343,122 @@ class _ClassInfoState extends State<ClassInfo> {
                     ),
                   ),
                 ),
-                SliverList(
-                  delegate: SliverChildListDelegate(
-                    <Widget>[
-                      ListTile(
-                        title: Text(
-                          class$.name,
-                          style: Theme.of(context)
-                              .textTheme
-                              .headline5
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      ListTile(
-                        title: const Text('السنة الدراسية:'),
-                        subtitle: FutureBuilder<String>(
-                            future: class$.getStudyYearName(),
-                            builder: (context, data) {
-                              if (data.hasData)
-                                return Text(data.data! +
-                                    ' - ' +
-                                    class$.getGenderName());
-                              return const LinearProgressIndicator();
-                            }),
-                      ),
-                      if (!class$.ref.path.startsWith('Deleted'))
-                        ElevatedButton.icon(
-                          icon: const Icon(Icons.map),
-                          onPressed: () => showMap(context, class$),
-                          label: const Text('إظهار المخدومين على الخريطة'),
-                        ),
-                      if (User.instance.manageUsers ||
-                          User.instance.manageAllowedUsers)
-                        ElevatedButton.icon(
-                          icon: const Icon(Icons.analytics_outlined),
-                          onPressed: () => Navigator.pushNamed(
-                            context,
-                            'ActivityAnalysis',
-                            arguments: [class$],
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate(
+                      [
+                        ListTile(
+                          title: Text(
+                            class$.name,
+                            style: Theme.of(context)
+                                .textTheme
+                                .headline5
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
-                          label: const Text('تحليل نشاط الخدام'),
                         ),
-                      if (!class$.ref.path.startsWith('Deleted'))
-                        ElevatedButton.icon(
-                          icon: DescribedFeatureOverlay(
-                            featureId: 'Class.Analytics',
-                            tapTarget: const Icon(Icons.analytics_outlined),
-                            title: const Text('عرض تحليل لبيانات سجلات الحضور'),
-                            description: Column(
-                              children: <Widget>[
-                                const Text(
-                                    'الأن يمكنك عرض تحليل لبيانات حضور مخدومين الفصل خلال فترة معينة من هنا'),
-                                OutlinedButton.icon(
-                                  icon: const Icon(Icons.forward),
-                                  label: Text(
-                                    'التالي',
-                                    style: TextStyle(
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .bodyText2!
-                                          .color,
-                                    ),
-                                  ),
-                                  onPressed: () {
-                                    FeatureDiscovery.completeCurrentStep(
-                                        context);
-                                  },
-                                ),
-                                OutlinedButton(
-                                  onPressed: () =>
-                                      FeatureDiscovery.dismissAll(context),
-                                  child: Text(
-                                    'تخطي',
-                                    style: TextStyle(
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .bodyText2!
-                                          .color,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                        ListTile(
+                          title: const Text('السنة الدراسية:'),
+                          subtitle: FutureBuilder<String>(
+                              future: class$.getStudyYearName(),
+                              builder: (context, data) {
+                                if (data.hasData)
+                                  return Text(data.data! +
+                                      ' - ' +
+                                      class$.getGenderName());
+                                return const LinearProgressIndicator();
+                              }),
+                        ),
+                        if (!class$.ref.path.startsWith('Deleted'))
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.map),
+                            onPressed: () => showMap(context, class$),
+                            label: const Text('إظهار المخدومين على الخريطة'),
+                          ),
+                        if (User.instance.manageUsers ||
+                            User.instance.manageAllowedUsers)
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.analytics_outlined),
+                            onPressed: () => Navigator.pushNamed(
+                              context,
+                              'ActivityAnalysis',
+                              arguments: [class$],
                             ),
-                            backgroundColor: Theme.of(context).accentColor,
-                            targetColor: Colors.transparent,
-                            textColor: Theme.of(context)
-                                .primaryTextTheme
-                                .bodyText1!
-                                .color!,
-                            child: const Icon(Icons.analytics_outlined),
+                            label: const Text('تحليل نشاط الخدام'),
                           ),
-                          label: const Text('احصائيات الحضور'),
-                          onPressed: () => _showAnalytics(context, class$),
+                        if (!class$.ref.path.startsWith('Deleted'))
+                          ElevatedButton.icon(
+                            icon: DescribedFeatureOverlay(
+                              featureId: 'Class.Analytics',
+                              tapTarget: const Icon(Icons.analytics_outlined),
+                              title:
+                                  const Text('عرض تحليل لبيانات سجلات الحضور'),
+                              description: Column(
+                                children: <Widget>[
+                                  const Text(
+                                      'الأن يمكنك عرض تحليل لبيانات حضور مخدومين الفصل خلال فترة معينة من هنا'),
+                                  OutlinedButton.icon(
+                                    icon: const Icon(Icons.forward),
+                                    label: Text(
+                                      'التالي',
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .bodyText2!
+                                            .color,
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      FeatureDiscovery.completeCurrentStep(
+                                          context);
+                                    },
+                                  ),
+                                  OutlinedButton(
+                                    onPressed: () =>
+                                        FeatureDiscovery.dismissAll(context),
+                                    child: Text(
+                                      'تخطي',
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .bodyText2!
+                                            .color,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              backgroundColor: Theme.of(context).accentColor,
+                              targetColor: Colors.transparent,
+                              textColor: Theme.of(context)
+                                  .primaryTextTheme
+                                  .bodyText1!
+                                  .color!,
+                              child: const Icon(Icons.analytics_outlined),
+                            ),
+                            label: const Text('احصائيات الحضور'),
+                            onPressed: () => _showAnalytics(context, class$),
+                          ),
+                        const Divider(thickness: 1),
+                        EditHistoryProperty(
+                          'أخر تحديث للبيانات:',
+                          class$.lastEdit,
+                          class$.ref.collection('EditHistory'),
+                          discoverFeature: true,
                         ),
-                      const Divider(thickness: 1),
-                      EditHistoryProperty(
-                        'أخر تحديث للبيانات:',
-                        class$.lastEdit,
-                        class$.ref.collection('EditHistory'),
-                        discoverFeature: true,
-                      ),
-                      Text(
-                        'المخدومين بالفصل:',
-                        style: Theme.of(context).textTheme.headline6,
-                      ),
-                      SearchFilters(
-                        1,
-                        options: _listOptions,
-                        orderOptions: _orderOptions,
-                        textStyle: Theme.of(context).textTheme.bodyText2,
-                      ),
-                    ],
+                        _ClassServants(class$: class$),
+                        Text(
+                          'المخدومين بالفصل:',
+                          style: Theme.of(context).textTheme.headline6,
+                        ),
+                        SearchFilters(
+                          1,
+                          options: _listOptions,
+                          orderOptions: _orderOptions,
+                          textStyle: Theme.of(context).textTheme.bodyText2,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -539,5 +545,97 @@ class _ClassInfoState extends State<ClassInfo> {
 
   void _showAnalytics(BuildContext context, Class _class) {
     navigator.currentState!.pushNamed('Analytics', arguments: _class);
+  }
+}
+
+class _ClassServants extends StatelessWidget {
+  const _ClassServants({
+    Key? key,
+    required this.class$,
+  }) : super(key: key);
+
+  final Class class$;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(
+        'خدام الفصل',
+        style: Theme.of(context).textTheme.headline6,
+      ),
+      subtitle: class$.allowedUsers.isNotEmpty
+          ? GridView.builder(
+              padding: EdgeInsets.zero,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 7,
+                mainAxisSpacing: 10,
+                childAspectRatio: 1,
+                crossAxisSpacing: 10,
+              ),
+              shrinkWrap: true,
+              itemCount: class$.allowedUsers.length > 7
+                  ? 7
+                  : class$.allowedUsers.length,
+              physics: const NeverScrollableScrollPhysics(),
+              itemBuilder: (context, i) {
+                if (class$.allowedUsers.length > 7 && i == 6) {
+                  return SizedBox.expand(
+                    child: ClipOval(
+                      child: Container(
+                        color: Theme.of(context).brightness == Brightness.light
+                            ? Colors.black26
+                            : Colors.black54,
+                        child: Center(
+                          child: Text('+' +
+                              (class$.allowedUsers.length - 6).toString()),
+                        ),
+                      ),
+                    ),
+                  );
+                }
+                return IgnorePointer(
+                  child: User.photoFromUID(class$.allowedUsers[i]),
+                );
+              },
+            )
+          : const Text('لا يوجد خدام محددين في هذا الفصل'),
+      onTap: class$.allowedUsers.isNotEmpty
+          ? () async {
+              await showDialog(
+                context: context,
+                builder: (context) => Dialog(
+                  child: FutureBuilder<List<User>>(
+                    future: Future.wait(class$.allowedUsers.map(User.fromID)),
+                    builder: (context, data) {
+                      if (data.hasError) return ErrorWidget(data.error!);
+                      if (!data.hasData)
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+
+                      return ListView.builder(
+                        padding: const EdgeInsetsDirectional.all(8),
+                        shrinkWrap: true,
+                        itemCount: class$.allowedUsers.length,
+                        itemBuilder: (context, i) {
+                          return Container(
+                            margin: const EdgeInsets.symmetric(vertical: 5),
+                            child: IgnorePointer(
+                              child: DataObjectWidget(
+                                data.requireData[i],
+                                showSubTitle: false,
+                                wrapInCard: false,
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              );
+            }
+          : null,
+    );
   }
 }

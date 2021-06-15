@@ -33,7 +33,17 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
             children: [
               TapableFormField<Timestamp?>(
                 autovalidateMode: AutovalidateMode.onUserInteraction,
-                labelText: 'تاريخ أخر تناول',
+                decoration: (context, state) => InputDecoration(
+                  errorText: state.errorText,
+                  labelText: 'تاريخ أخر تناول',
+                  suffixIcon: state.isValid
+                      ? const Icon(Icons.done, color: Colors.green)
+                      : const Icon(Icons.close, color: Colors.red),
+                  border: OutlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Theme.of(context).primaryColor),
+                  ),
+                ),
                 initialValue: user.lastTanawol,
                 onTap: (state) async {
                   state.didChange(await _selectDate(
@@ -56,7 +66,17 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
               ),
               TapableFormField<Timestamp?>(
                 autovalidateMode: AutovalidateMode.onUserInteraction,
-                labelText: 'تاريخ أخر اعتراف',
+                decoration: (context, state) => InputDecoration(
+                  errorText: state.errorText,
+                  labelText: 'تاريخ أخر اعتراف',
+                  suffixIcon: state.isValid
+                      ? const Icon(Icons.done, color: Colors.green)
+                      : const Icon(Icons.close, color: Colors.red),
+                  border: OutlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Theme.of(context).primaryColor),
+                  ),
+                ),
                 initialValue: user.lastConfession,
                 onTap: (state) async {
                   state.didChange(await _selectDate(
