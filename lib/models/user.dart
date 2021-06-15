@@ -16,6 +16,8 @@ import 'package:rxdart/rxdart.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/models/person.dart';
 
+import 'super_classes.dart';
+
 class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
   static final User instance = User._initInstance();
 
@@ -755,4 +757,8 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
             .get(dataSource))
         .data()!['Name'];
   }
+
+  static Widget photoFromUID(String uid) =>
+      PhotoWidget(FirebaseStorage.instance.ref().child('UsersPhotos/$uid'))
+          .photo(true);
 }

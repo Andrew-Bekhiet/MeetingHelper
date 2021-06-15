@@ -180,7 +180,7 @@ class HistoryRecord {
   HistoryDay? parent;
   String id;
   Timestamp time;
-  String recordedBy;
+  String? recordedBy;
   String? notes;
   DocumentReference? classId;
   bool isServant;

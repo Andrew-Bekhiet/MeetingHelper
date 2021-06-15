@@ -219,3 +219,13 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
     );
   }
 }
+
+class PhotoWidget with PhotoObject {
+  PhotoWidget(this.photoRef);
+
+  @override
+  Reference photoRef;
+
+  @override
+  bool get hasPhoto => true;
+}

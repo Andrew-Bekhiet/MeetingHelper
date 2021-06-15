@@ -57,20 +57,32 @@ class HistoryProperty extends StatelessWidget {
                     return const Center(child: Text('لا يوجد سجل'));
                   return ListView.builder(
                     itemCount: history.data!.length,
-                    itemBuilder: (context, i) => ListTile(
-                      title: FutureBuilder<DocumentSnapshot>(
-                        future: FirebaseFirestore.instance
-                            .doc('Users/' + history.data![i].byUser!)
-                            .get(dataSource),
-                        builder: (context, user) {
-                          return user.hasData
-                              ? Text(user.data!.data()!['Name'])
-                              : const LinearProgressIndicator();
-                        },
-                      ),
-                      subtitle: Text(DateFormat(
-                              showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d', 'ar-EG')
-                          .format(history.data![i].time!.toDate())),
+                    itemBuilder: (context, i) =>
+                        FutureBuilder<DocumentSnapshot>(
+                      future: history.data![i].byUser != null
+                          ? FirebaseFirestore.instance
+                              .doc('Users/' + history.data![i].byUser!)
+                              .get(dataSource)
+                          : null,
+                      builder: (context, user) {
+                        return ListTile(
+                          leading: history.data![i].byUser != null
+                              ? IgnorePointer(
+                                  child: User.photoFromUID(
+                                      history.data![i].byUser!),
+                                )
+                              : null,
+                          title: history.data![i].byUser != null
+                              ? user.hasData
+                                  ? Text(user.data!.data()!['Name'])
+                                  : const LinearProgressIndicator()
+                              : const Text('غير معروف'),
+                          subtitle: Text(DateFormat(
+                                  showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d',
+                                  'ar-EG')
+                              .format(history.data![i].time!.toDate())),
+                        );
+                      },
                     ),
                   );
                 },
@@ -118,9 +130,9 @@ class EditHistoryProperty extends StatelessWidget {
                     builder: (context, user) {
                       return ListTile(
                         leading: user.hasData
-                            ? DataObjectPhoto(
-                                user.data!,
-                                wrapPhotoInCircle: true,
+                            ? IgnorePointer(
+                                child:
+                                    User.photoFromUID(history.data![i].byUser!),
                               )
                             : const CircularProgressIndicator(),
                         title: user.hasData
@@ -141,15 +153,10 @@ class EditHistoryProperty extends StatelessWidget {
       },
     );
     return FutureBuilder<User>(
-        future: User.fromID(user!),
+        future: user != null ? User.fromID(user!) : null,
         builder: (context, user) {
           return ListTile(
-            leading: user.hasData
-                ? DataObjectPhoto(
-                    user.data!,
-                    wrapPhotoInCircle: true,
-                  )
-                : const CircularProgressIndicator(),
+            isThreeLine: true,
             title: Text(name),
             subtitle: FutureBuilder<QuerySnapshot>(
               future: historyRef
@@ -158,14 +165,33 @@ class EditHistoryProperty extends StatelessWidget {
                   .get(dataSource),
               builder: (context, future) {
                 return future.hasData
-                    ? Wrap(
-                        alignment: WrapAlignment.spaceBetween,
-                        crossAxisAlignment: WrapCrossAlignment.end,
-                        // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          if (user.hasData) Text(user.data!.name),
-                          if (future.data!.docs.isNotEmpty)
-                            Text(
+                    ? ListTile(
+                        leading: this.user != null
+                            ? IgnorePointer(
+                                child: User.photoFromUID(this.user!),
+                              )
+                            : null,
+                        title: this.user != null
+                            ? user.hasData
+                                ? Text(user.data!.name)
+                                : const LinearProgressIndicator()
+                            : future.data!.docs.isNotEmpty
+                                ? Text(
+                                    DateFormat(
+                                            showTime
+                                                ? 'yyyy/M/d   h:m a'
+                                                : 'yyyy/M/d',
+                                            'ar-EG')
+                                        .format(
+                                      future.data!.docs[0]
+                                          .data()['Time']
+                                          .toDate(),
+                                    ),
+                                  )
+                                : const LinearProgressIndicator(),
+                        subtitle: future.data!.docs.isNotEmpty &&
+                                this.user != null
+                            ? Text(
                                 DateFormat(
                                         showTime
                                             ? 'yyyy/M/d   h:m a'
@@ -174,8 +200,8 @@ class EditHistoryProperty extends StatelessWidget {
                                     .format(
                                   future.data!.docs[0].data()['Time'].toDate(),
                                 ),
-                                style: Theme.of(context).textTheme.overline),
-                        ],
+                              )
+                            : null,
                       )
                     : const LinearProgressIndicator();
               },
@@ -353,9 +379,11 @@ class DayHistoryProperty extends StatelessWidget {
                         title: Text(DateFormat('yyyy/M/d h:m a', 'ar-EG')
                             .format(history.data![i].time.toDate())),
                         subtitle: FutureBuilder<DocumentSnapshot>(
-                          future: FirebaseFirestore.instance
-                              .doc('Users/' + history.data![i].recordedBy)
-                              .get(dataSource),
+                          future: history.data![i].recordedBy != null
+                              ? FirebaseFirestore.instance
+                                  .doc('Users/' + history.data![i].recordedBy!)
+                                  .get(dataSource)
+                              : null,
                           builder: (context, user) {
                             return user.hasData
                                 ? Text(user.data!.data()!['Name'] +
