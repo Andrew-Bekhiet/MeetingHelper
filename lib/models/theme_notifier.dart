@@ -7,7 +7,7 @@ class ThemeNotifier {
   ThemeNotifier(ThemeData themeData)
       : _themeData = BehaviorSubject.seeded(themeData);
 
-  ThemeData get theme => _themeData.requireValue;
+  ThemeData get theme => _themeData.value;
 
   Stream<ThemeData> get stream => _themeData.stream;
 

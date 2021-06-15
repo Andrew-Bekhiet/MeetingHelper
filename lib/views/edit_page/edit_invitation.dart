@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/invitation.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 
 import '../../models/mini_models.dart';
 import '../../models/user.dart';
@@ -29,7 +30,7 @@ class _EditInvitationState extends State<EditInvitation> {
     FocusNode(),
     FocusNode()
   ];
-  late Map<String, dynamic> old;
+  late Json old;
 
   GlobalKey<FormState> form = GlobalKey<FormState>();
 
@@ -117,7 +118,7 @@ class _EditInvitationState extends State<EditInvitation> {
                     ),
                   ),
                 ),
-                FutureBuilder<QuerySnapshot>(
+                FutureBuilder<JsonQuery>(
                   future: StudyYear.getAllForUser(),
                   builder: (conext, data) {
                     if (data.hasData) {

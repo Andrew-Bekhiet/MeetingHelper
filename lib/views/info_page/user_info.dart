@@ -14,6 +14,7 @@ import 'package:meetinghelper/views/services_list.dart';
 import 'package:meetinghelper/views/lists/users_list.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 
 import '../edit_page/edit_user.dart';
 
@@ -48,7 +49,7 @@ class _UserInfoState extends State<UserInfo> {
                           builder: (co) => EditUser(user: user),
                         ),
                       );
-                      if (result is DocumentReference) {
+                      if (result is JsonRef) {
                         scaffoldMessenger.currentState!.showSnackBar(
                           const SnackBar(
                             content: Text('تم الحفظ بنجاح'),

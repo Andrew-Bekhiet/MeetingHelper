@@ -15,6 +15,7 @@ import 'package:meetinghelper/models/order_options.dart';
 import 'package:meetinghelper/models/search_filters.dart';
 import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rxdart/rxdart.dart';
@@ -447,7 +448,7 @@ class _EditPersonState extends State<EditPerson> {
                   Row(
                     children: <Widget>[
                       Expanded(
-                        child: FutureBuilder<QuerySnapshot>(
+                        child: FutureBuilder<JsonQuery>(
                           future: School.getAllForUser(),
                           builder: (context, data) {
                             if (data.hasData) {
@@ -509,7 +510,7 @@ class _EditPersonState extends State<EditPerson> {
                     mainAxisSize: MainAxisSize.max,
                     children: <Widget>[
                       Expanded(
-                        child: FutureBuilder<QuerySnapshot>(
+                        child: FutureBuilder<JsonQuery>(
                           future: Church.getAllForUser(),
                           builder: (context, data) {
                             if (data.hasData) {
@@ -569,7 +570,7 @@ class _EditPersonState extends State<EditPerson> {
                   Row(
                     children: [
                       Expanded(
-                        child: FutureBuilder<QuerySnapshot>(
+                        child: FutureBuilder<JsonQuery>(
                           future: Father.getAllForUser(),
                           builder: (context, data) {
                             if (data.hasData) {
@@ -1127,8 +1128,7 @@ class _EditPersonState extends State<EditPerson> {
                     onPressed: () async {
                       navigator.currentState!.pop();
                       person.classId = await navigator.currentState!
-                                  .pushNamed('Data/EditClass')
-                              as DocumentReference? ??
+                              .pushNamed('Data/EditClass') as JsonRef? ??
                           person.classId;
                       setState(() {});
                     },

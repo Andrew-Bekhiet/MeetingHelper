@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:flutter/material.dart';
 import 'package:meetinghelper/models/copiable_property.dart';
 import 'package:meetinghelper/models/invitation.dart';
@@ -65,7 +65,7 @@ class InvitationInfo extends StatelessWidget {
                             dynamic result = await navigator.currentState!
                                 .pushNamed('EditInvitation',
                                     arguments: invitation);
-                            if (result is DocumentReference) {
+                            if (result is JsonRef) {
                               scaffoldMessenger.currentState!.showSnackBar(
                                 const SnackBar(
                                   content: Text('تم الحفظ بنجاح'),

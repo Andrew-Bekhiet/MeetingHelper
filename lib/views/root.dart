@@ -138,13 +138,13 @@ class _RootState extends State<Root>
                                   .map(
                                     (e) => RadioListTile(
                                       value: e.key,
-                                      groupValue: _personsOrder.value!.orderBy,
+                                      groupValue: _personsOrder.value.orderBy,
                                       title: Text(e.value),
                                       onChanged: (dynamic value) {
                                         _personsOrder.add(
                                           OrderOptions(
                                               orderBy: value,
-                                              asc: _personsOrder.value!.asc),
+                                              asc: _personsOrder.value.asc),
                                         );
                                         navigator.currentState!.pop();
                                       },
@@ -153,12 +153,12 @@ class _RootState extends State<Root>
                                   .toList(),
                               RadioListTile(
                                 value: true,
-                                groupValue: _personsOrder.value!.asc,
+                                groupValue: _personsOrder.value.asc,
                                 title: const Text('تصاعدي'),
                                 onChanged: (dynamic value) {
                                   _personsOrder.add(
                                     OrderOptions(
-                                        orderBy: _personsOrder.value!.orderBy,
+                                        orderBy: _personsOrder.value.orderBy,
                                         asc: value),
                                   );
                                   navigator.currentState!.pop();
@@ -166,12 +166,12 @@ class _RootState extends State<Root>
                               ),
                               RadioListTile(
                                 value: false,
-                                groupValue: _personsOrder.value!.asc,
+                                groupValue: _personsOrder.value.asc,
                                 title: const Text('تنازلي'),
                                 onChanged: (dynamic value) {
                                   _personsOrder.add(
                                     OrderOptions(
-                                        orderBy: _personsOrder.value!.orderBy,
+                                        orderBy: _personsOrder.value.orderBy,
                                         asc: value),
                                   );
                                   navigator.currentState!.pop();

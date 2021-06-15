@@ -12,6 +12,7 @@ import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/views/map_view.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tuple/tuple.dart';
@@ -19,7 +20,7 @@ import 'package:tuple/tuple.dart';
 import 'user.dart';
 
 class Person extends DataObject with PhotoObject, ChildObject<Class> {
-  DocumentReference? classId;
+  JsonRef? classId;
 
   String? address;
   GeoPoint? location;
@@ -27,13 +28,13 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
   String? phone;
   String? fatherPhone;
   String? motherPhone;
-  late Map<String, dynamic> phones;
+  late Json phones;
 
   Timestamp? birthDate;
 
-  DocumentReference? school;
-  DocumentReference? church;
-  DocumentReference? cFather;
+  JsonRef? school;
+  JsonRef? church;
+  JsonRef? cFather;
 
   Timestamp? lastConfession;
   Timestamp? lastTanawol;
@@ -47,11 +48,11 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
 
   Person(
       {String? id,
-      DocumentReference? ref,
+      JsonRef? ref,
       this.classId,
       String name = '',
       this.phone = '',
-      Map<String, dynamic>? phones,
+      Json? phones,
       this.fatherPhone = '',
       this.motherPhone = '',
       this.address = '',
@@ -82,7 +83,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
     defaultIcon = Icons.person;
   }
 
-  Person.createFromData(Map<dynamic, dynamic> data, DocumentReference ref)
+  Person.createFromData(Map<dynamic, dynamic> data, JsonRef ref)
       : super.createFromData(data, ref) {
     classId = data['ClassId'];
 
@@ -121,7 +122,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
       : null;
 
   @override
-  DocumentReference? get parentId => classId;
+  JsonRef? get parentId => classId;
 
   @override
   Reference get photoRef =>
@@ -140,7 +141,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
   }
 
   @override
-  Map<String, dynamic> getHumanReadableMap() => {
+  Json getHumanReadableMap() => {
         'Name': name,
         'Phone': phone ?? '',
         'FatherPhone': fatherPhone ?? '',
@@ -160,7 +161,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
       };
 
   @override
-  Map<String, dynamic> getMap() => {
+  Json getMap() => {
         'ClassId': classId,
         'Name': name,
         'Phone': phone,
@@ -274,10 +275,10 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
     return getHumanReadableMap()[key] ?? '';
   }
 
-  static Person? fromDoc(DocumentSnapshot data) =>
+  static Person? fromDoc(JsonDoc data) =>
       data.exists ? Person.createFromData(data.data()!, data.reference) : null;
 
-  static Person fromQueryDoc(QueryDocumentSnapshot data) =>
+  static Person fromQueryDoc(JsonQueryDoc data) =>
       Person.createFromData(data.data(), data.reference);
 
   static Future<Person?> fromId(String id) async =>
@@ -306,7 +307,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
               .snapshots()
               .map((p) => p.docs.map(fromQueryDoc).toList());
         }
-        return Rx.combineLatestList<QuerySnapshot>(u.item2.split(10).map((c) =>
+        return Rx.combineLatestList<JsonQuery>(u.item2.split(10).map((c) =>
                 FirebaseFirestore.instance
                     .collection('Persons')
                     .where('ClassId', whereIn: c.map((e) => e.ref).toList())
@@ -317,7 +318,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
     );
   }
 
-  static Map<String, dynamic> getEmptyExportMap() => {
+  static Json getEmptyExportMap() => {
         'ID': 'id',
         'ClassId': 'classId',
         'Name': 'name',
@@ -343,7 +344,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
         'Location': 'location',
       };
 
-  static Map<String, dynamic> getHumanReadableMap2() => {
+  static Json getHumanReadableMap2() => {
         'Name': 'الاسم',
         'Phone': 'موبايل (شخصي)',
         'FatherPhone': 'موبايل الأب',

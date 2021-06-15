@@ -3,9 +3,9 @@ import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/history_record.dart';
-import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 
 import 'mini_models.dart';
@@ -18,7 +18,7 @@ class HistoryProperty extends StatelessWidget {
   final String name;
   final Timestamp? value;
   final bool showTime;
-  final CollectionReference historyRef;
+  final JsonCollectionRef historyRef;
 
   @override
   Widget build(BuildContext context) {
@@ -57,8 +57,7 @@ class HistoryProperty extends StatelessWidget {
                     return const Center(child: Text('لا يوجد سجل'));
                   return ListView.builder(
                     itemCount: history.data!.length,
-                    itemBuilder: (context, i) =>
-                        FutureBuilder<DocumentSnapshot>(
+                    itemBuilder: (context, i) => FutureBuilder<JsonDoc>(
                       future: history.data![i].byUser != null
                           ? FirebaseFirestore.instance
                               .doc('Users/' + history.data![i].byUser!)
@@ -104,7 +103,7 @@ class EditHistoryProperty extends StatelessWidget {
   final String? user;
   final bool showTime;
   final bool discoverFeature;
-  final CollectionReference historyRef;
+  final JsonCollectionRef historyRef;
 
   @override
   Widget build(BuildContext context) {
@@ -158,7 +157,7 @@ class EditHistoryProperty extends StatelessWidget {
           return ListTile(
             isThreeLine: true,
             title: Text(name),
-            subtitle: FutureBuilder<QuerySnapshot>(
+            subtitle: FutureBuilder<JsonQuery>(
               future: historyRef
                   .orderBy('Time', descending: true)
                   .limit(1)
@@ -259,7 +258,7 @@ class TimeHistoryProperty extends StatelessWidget {
   final String name;
   final Timestamp? value;
   final bool showTime;
-  final CollectionReference historyRef;
+  final JsonCollectionRef historyRef;
 
   @override
   Widget build(BuildContext context) {
@@ -378,7 +377,7 @@ class DayHistoryProperty extends StatelessWidget {
                             historyTap(history.data![i].parent, context),
                         title: Text(DateFormat('yyyy/M/d h:m a', 'ar-EG')
                             .format(history.data![i].time.toDate())),
-                        subtitle: FutureBuilder<DocumentSnapshot>(
+                        subtitle: FutureBuilder<JsonDoc>(
                           future: history.data![i].recordedBy != null
                               ? FirebaseFirestore.instance
                                   .doc('Users/' + history.data![i].recordedBy!)

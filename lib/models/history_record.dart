@@ -9,6 +9,7 @@ import 'package:meetinghelper/models/class.dart';
 import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tuple/tuple.dart';
@@ -17,7 +18,7 @@ class HistoryDay extends DataObject with ChangeNotifier {
   Timestamp day;
   String? notes;
 
-  late StreamSubscription<DocumentSnapshot> _realTimeListener;
+  late StreamSubscription<JsonDoc> _realTimeListener;
   HistoryDay()
       : day = tranucateToDay(),
         notes = '',
@@ -30,7 +31,7 @@ class HistoryDay extends DataObject with ChangeNotifier {
     _initListener();
   }
 
-  HistoryDay._createFromData(Map<String, dynamic> data, DocumentReference ref)
+  HistoryDay._createFromData(Json data, JsonRef ref)
       : day = data['Day'],
         notes = data['Notes'],
         super.createFromData(data, ref) {
@@ -43,11 +44,11 @@ class HistoryDay extends DataObject with ChangeNotifier {
   @override
   int get hashCode => hashValues(id, day, notes);
 
-  CollectionReference get kodas => ref.collection('Kodas');
-  CollectionReference get meeting => ref.collection('Meeting');
-  CollectionReference get tanawol => ref.collection('Tanawol');
+  JsonCollectionRef get kodas => ref.collection('Kodas');
+  JsonCollectionRef get meeting => ref.collection('Meeting');
+  JsonCollectionRef get tanawol => ref.collection('Tanawol');
 
-  Map<DayListType, CollectionReference> get collections => {
+  Map<DayListType, JsonCollectionRef> get collections => {
         DayListType.Meeting: meeting,
         DayListType.Kodas: kodas,
         DayListType.Tanawol: tanawol
@@ -64,7 +65,7 @@ class HistoryDay extends DataObject with ChangeNotifier {
   }
 
   @override
-  Map<String, dynamic> getMap() => {'Day': day, 'Notes': notes};
+  Json getMap() => {'Day': day, 'Notes': notes};
 
   void _initListener() {
     _realTimeListener = ref.snapshots().listen((event) {
@@ -74,17 +75,17 @@ class HistoryDay extends DataObject with ChangeNotifier {
     });
   }
 
-  static HistoryDay? fromDoc(DocumentSnapshot data) => data.exists
+  static HistoryDay? fromDoc(JsonDoc data) => data.exists
       ? HistoryDay._createFromData(data.data()!, data.reference)
       : null;
 
-  static HistoryDay fromQueryDoc(QueryDocumentSnapshot data) =>
+  static HistoryDay fromQueryDoc(JsonQueryDoc data) =>
       HistoryDay._createFromData(data.data(), data.reference);
 
   static Future<HistoryDay?> fromId(String id) async => HistoryDay.fromDoc(
       await FirebaseFirestore.instance.doc('History/$id').get());
 
-  static Future<Stream<QuerySnapshot>> getAllForUser(
+  static Future<Stream<JsonQuery>> getAllForUser(
       {String orderBy = 'Day', bool descending = false}) async {
     return FirebaseFirestore.instance
         .collection('History')
@@ -93,7 +94,7 @@ class HistoryDay extends DataObject with ChangeNotifier {
   }
 
   @override
-  Map<String, dynamic> getHumanReadableMap() {
+  Json getHumanReadableMap() {
     throw UnimplementedError();
   }
 
@@ -123,18 +124,17 @@ class ServantsHistoryDay extends HistoryDay {
     _initListener();
   }
 
-  static ServantsHistoryDay? fromDoc(DocumentSnapshot data) => data.exists
+  static ServantsHistoryDay? fromDoc(JsonDoc data) => data.exists
       ? ServantsHistoryDay._createFromData(data.data()!, data.reference)
       : null;
 
-  static ServantsHistoryDay fromQueryDoc(QueryDocumentSnapshot data) =>
+  static ServantsHistoryDay fromQueryDoc(JsonQueryDoc data) =>
       ServantsHistoryDay._createFromData(data.data(), data.reference);
 
-  ServantsHistoryDay._createFromData(
-      Map<String, dynamic> data, DocumentReference ref)
+  ServantsHistoryDay._createFromData(Json data, JsonRef ref)
       : super._createFromData(data, ref);
 
-  static Future<Stream<QuerySnapshot>> getAllForUser(
+  static Future<Stream<JsonQuery>> getAllForUser(
       {String orderBy = 'Day', bool descending = false}) async {
     return FirebaseFirestore.instance
         .collection('ServantsHistory')
@@ -154,10 +154,10 @@ class HistoryRecord {
       this.notes,
       this.isServant = false});
 
-  static HistoryRecord? fromDoc(HistoryDay? parent, DocumentSnapshot doc) =>
+  static HistoryRecord? fromDoc(HistoryDay? parent, JsonDoc doc) =>
       doc.exists ? HistoryRecord._fromDoc(parent, doc) : null;
 
-  HistoryRecord._fromDoc(this.parent, DocumentSnapshot doc)
+  HistoryRecord._fromDoc(this.parent, JsonDoc doc)
       : id = doc.id,
         classId = doc.data()!['ClassId'],
         type = doc.reference.parent.id == 'Meeting'
@@ -170,8 +170,7 @@ class HistoryRecord {
         recordedBy = doc.data()!['RecordedBy'],
         notes = doc.data()!['Notes'];
 
-  static HistoryRecord fromQueryDoc(QueryDocumentSnapshot doc,
-      [HistoryDay? parent]) {
+  static HistoryRecord fromQueryDoc(JsonQueryDoc doc, [HistoryDay? parent]) {
     return HistoryRecord.fromDoc(parent, doc)!;
   }
 
@@ -182,10 +181,10 @@ class HistoryRecord {
   Timestamp time;
   String? recordedBy;
   String? notes;
-  DocumentReference? classId;
+  JsonRef? classId;
   bool isServant;
 
-  DocumentReference? get ref => parent?.collections[type]?.doc(id);
+  JsonRef? get ref => parent?.collections[type]?.doc(id);
 
   Future<void> set() async {
     return await ref?.set(getMap());
@@ -195,7 +194,7 @@ class HistoryRecord {
     return await ref?.update(getMap());
   }
 
-  Map<String, dynamic> getMap() {
+  Json getMap() {
     return {
       'ID': id,
       'Time': time,
@@ -223,7 +222,7 @@ class MinimalHistoryRecord {
       required this.time,
       required this.by});
 
-  static MinimalHistoryRecord? fromDoc(DocumentSnapshot doc) {
+  static MinimalHistoryRecord? fromDoc(JsonDoc doc) {
     if (!doc.exists) return null;
     return MinimalHistoryRecord(
       ref: doc.reference,
@@ -234,7 +233,7 @@ class MinimalHistoryRecord {
     );
   }
 
-  static MinimalHistoryRecord fromQueryDoc(QueryDocumentSnapshot doc) {
+  static MinimalHistoryRecord fromQueryDoc(JsonQueryDoc doc) {
     return MinimalHistoryRecord(
       ref: doc.reference,
       classId: doc.data()['ClassId'],
@@ -244,7 +243,7 @@ class MinimalHistoryRecord {
     );
   }
 
-  static Stream<List<QueryDocumentSnapshot>> getAllForUser(
+  static Stream<List<JsonQueryDoc>> getAllForUser(
       {required String collectionGroup,
       DateTimeRange? range,
       List<Class>? classes}) {
@@ -253,7 +252,7 @@ class MinimalHistoryRecord {
         Class.getAllForUser(),
         (a, b) => Tuple2<User, List<Class>>(a, b)).switchMap((value) {
       if (range != null && classes != null) {
-        return Rx.combineLatestList<QuerySnapshot>(classes
+        return Rx.combineLatestList<JsonQuery>(classes
                 .map((a) => FirebaseFirestore.instance
                     .collectionGroup(collectionGroup)
                     .where('ClassId', isEqualTo: a.ref)
@@ -285,7 +284,7 @@ class MinimalHistoryRecord {
               .snapshots()
               .map((s) => s.docs);
         } else {
-          return Rx.combineLatestList<QuerySnapshot>(value.item2
+          return Rx.combineLatestList<JsonQuery>(value.item2
                   .split(10)
                   .map((a) => FirebaseFirestore.instance
                       .collectionGroup(collectionGroup)
@@ -304,7 +303,7 @@ class MinimalHistoryRecord {
               .map((s) => s.expand((n) => n.docs).toList());
         }
       } else if (classes != null) {
-        return Rx.combineLatestList<QuerySnapshot>(classes
+        return Rx.combineLatestList<JsonQuery>(classes
                 .split(10)
                 .map((a) => FirebaseFirestore.instance
                     .collectionGroup(collectionGroup)
@@ -327,11 +326,11 @@ class MinimalHistoryRecord {
   Timestamp time;
   String by;
 
-  DocumentReference? classId;
-  DocumentReference? personId;
-  DocumentReference ref;
+  JsonRef? classId;
+  JsonRef? personId;
+  JsonRef ref;
 
-  Map<String, dynamic> getMap() {
+  Json getMap() {
     return {
       'ID': id,
       'Time': time,

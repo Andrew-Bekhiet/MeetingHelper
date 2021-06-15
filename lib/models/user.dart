@@ -14,6 +14,7 @@ import 'package:flutter_stream_notifiers/flutter_stream_notifiers.dart';
 import 'package:hive/hive.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:meetinghelper/models/person.dart';
 
 import 'super_classes.dart';
@@ -71,14 +72,14 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
 
   StreamSubscription<Event>? userTokenListener;
   StreamSubscription<Event>? connectionListener;
-  StreamSubscription<DocumentSnapshot>? personListener;
+  StreamSubscription<JsonDoc>? personListener;
   StreamSubscription<auth.User?>? authListener;
 
   final AsyncCache<String> _photoUrlCache =
       AsyncCache<String>(const Duration(days: 1));
 
   factory User(
-      {DocumentReference? ref,
+      {JsonRef? ref,
       String? uid,
       required String name,
       String? password,
@@ -156,10 +157,10 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
       Timestamp? lastTanawol,
       List<String>? allowedUsers,
       required this.email,
-      DocumentReference? ref,
-      DocumentReference? classId,
+      JsonRef? ref,
+      JsonRef? classId,
       String? phone,
-      Map<String, dynamic>? phones,
+      Json? phones,
       String? fatherPhone,
       String? motherPhone,
       String? address,
@@ -171,9 +172,9 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
       Timestamp? lastVisit,
       String? lastEdit,
       String? notes,
-      DocumentReference? school,
-      DocumentReference? church,
-      DocumentReference? cFather,
+      JsonRef? school,
+      JsonRef? church,
+      JsonRef? cFather,
       Color color = Colors.transparent})
       : _uid = uid,
         super(
@@ -348,7 +349,7 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
     notifyListeners();
   }
 
-  void _refreshFromDoc(DocumentSnapshot doc) {
+  void _refreshFromDoc(JsonDoc doc) {
     final data = doc.data()!;
     classId = data['ClassId'];
 
@@ -392,7 +393,7 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
     await connectionListener?.cancel();
   }
 
-  User._createFromData(Map<String, dynamic> data, DocumentReference ref)
+  User._createFromData(Json data, JsonRef ref)
       : super.createFromData(data, ref) {
     _uid = data['UID'];
     email = data['Email'] ?? '';
@@ -591,7 +592,7 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
   @override
   Future<String> getSecondLine() async => getPermissions();
 
-  Map<String, dynamic> getUpdateMap() {
+  Json getUpdateMap() {
     return {
       'name': name,
       'classId': classId?.path,
@@ -614,10 +615,9 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
   }
 
   @override
-  Map<String, dynamic> getMap() =>
-      {...super.getMap(), 'AllowedUsers': allowedUsers};
+  Json getMap() => {...super.getMap(), 'AllowedUsers': allowedUsers};
 
-  static User fromDoc(DocumentSnapshot data) =>
+  static User fromDoc(JsonDoc data) =>
       User._createFromData(data.data()!, data.reference);
 
   static Future<User> fromID(String? uid) async {

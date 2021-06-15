@@ -16,6 +16,7 @@ import 'package:meetinghelper/views/services_list.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 
 import '../../models/user.dart';
 
@@ -38,7 +39,7 @@ class _EditUserState extends State<EditUser> {
     FocusNode()
   ];
   AsyncCache<String?> className = AsyncCache(const Duration(minutes: 1));
-  late Map<String, dynamic> old;
+  late Json old;
 
   GlobalKey<FormState> form = GlobalKey<FormState>();
 
@@ -743,8 +744,7 @@ class _EditUserState extends State<EditUser> {
                     onPressed: () async {
                       navigator.currentState!.pop();
                       widget.user.classId = await navigator.currentState!
-                                  .pushNamed('Data/EditClass')
-                              as DocumentReference? ??
+                              .pushNamed('Data/EditClass') as JsonRef? ??
                           widget.user.classId;
                       setState(() {});
                     },

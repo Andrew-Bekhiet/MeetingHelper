@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:flutter/material.dart';
 import 'package:meetinghelper/models/mini_models.dart';
 
 class StudyYearsEditList extends StatefulWidget {
-  final Future<QuerySnapshot> list;
+  final Future<JsonQuery> list;
 
   final Function(StudyYear)? tap;
   const StudyYearsEditList({Key? key, required this.list, this.tap})
@@ -19,7 +19,7 @@ class _StudyYearsEditListState extends State<StudyYearsEditList> {
   String filter = '';
   @override
   Widget build(BuildContext c) {
-    return FutureBuilder<QuerySnapshot>(
+    return FutureBuilder<JsonQuery>(
       future: widget.list,
       builder: (con, data) {
         if (data.hasData) {

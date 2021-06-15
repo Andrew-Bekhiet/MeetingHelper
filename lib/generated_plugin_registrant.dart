@@ -28,7 +28,7 @@ import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 void registerPlugins(Registrar registrar) {
   FirebaseFirestoreWeb.registerWith(registrar);
   FirebaseFunctionsWeb.registerWith(registrar);
-  ConnectivityPlugin.registerWith(registrar);
+  ConnectivityPlusPlugin.registerWith(registrar);
   DeviceInfoPlusPlugin.registerWith(registrar);
   FilePickerWeb.registerWith(registrar);
   FirebaseAnalyticsWeb.registerWith(registrar);

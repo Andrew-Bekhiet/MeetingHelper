@@ -6,6 +6,7 @@ import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:provider/provider.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 
 import '../models/list_controllers.dart';
 import '../models/models.dart';
@@ -28,7 +29,7 @@ class ServantsHistory extends StatefulWidget {
 }
 
 class _HistoryState extends State<History> {
-  Stream<QuerySnapshot>? list;
+  Stream<JsonQuery>? list;
   final BehaviorSubject<bool> _showSearch = BehaviorSubject<bool>.seeded(false);
   final BehaviorSubject<String> _search = BehaviorSubject<String>.seeded('');
   final FocusNode _searchFocus = FocusNode();
@@ -238,7 +239,7 @@ class _HistoryState extends State<History> {
 }
 
 class _ServantsHistoryState extends State<ServantsHistory> {
-  Stream<QuerySnapshot>? list;
+  Stream<JsonQuery>? list;
   final BehaviorSubject<bool> _showSearch = BehaviorSubject<bool>.seeded(false);
   final BehaviorSubject<String> _search = BehaviorSubject<String>.seeded('');
   final FocusNode _searchFocus = FocusNode();

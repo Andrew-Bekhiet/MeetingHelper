@@ -5,6 +5,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:provider/provider.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../models/models.dart';
@@ -29,7 +30,7 @@ class MegaMap extends StatelessWidget {
     return Consumer<SelectedClasses>(
       builder: (context, selected, _) {
         return FutureBuilder<List<Person>>(
-          future: Rx.combineLatestList<QuerySnapshot>(selected.selected!
+          future: Rx.combineLatestList<JsonQuery>(selected.selected!
                   .split(10)
                   .map((c) => FirebaseFirestore.instance
                       .collection('Persons')

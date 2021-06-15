@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:flutter/material.dart';
 import 'package:meetinghelper/models/mini_models.dart';
 
@@ -21,7 +21,7 @@ class InnerListState extends State<_InnerSchoolsList> {
           onRefresh: () async {
             setState(() {});
           },
-          child: StreamBuilder<QuerySnapshot>(
+          child: StreamBuilder<JsonQuery>(
             stream: widget.data,
             builder: (context, schools) {
               if (!schools.hasData) return const CircularProgressIndicator();
@@ -81,7 +81,7 @@ class InnerListState extends State<_InnerSchoolsList> {
 }
 
 class SchoolsEditList extends StatefulWidget {
-  final Future<QuerySnapshot> list;
+  final Future<JsonQuery> list;
 
   final Function(School)? tap;
   const SchoolsEditList({Key? key, required this.list, this.tap})
@@ -92,7 +92,7 @@ class SchoolsEditList extends StatefulWidget {
 }
 
 class SchoolsList extends StatefulWidget {
-  final Future<Stream<QuerySnapshot>>? list;
+  final Future<Stream<JsonQuery>>? list;
 
   final Function(List<School>?)? finished;
   final Stream<School>? original;
@@ -104,10 +104,10 @@ class SchoolsList extends StatefulWidget {
 }
 
 class _InnerSchoolsList extends StatefulWidget {
-  final Stream<QuerySnapshot>? data;
+  final Stream<JsonQuery>? data;
   final List<School>? result;
   final Function(List<School>?)? finished;
-  final Future<Stream<QuerySnapshot>>? list;
+  final Future<Stream<JsonQuery>>? list;
   _InnerSchoolsList(this.data, this.result, this.list, this.finished);
   @override
   State<StatefulWidget> createState() => InnerListState();
@@ -117,7 +117,7 @@ class _SchoolsEditListState extends State<SchoolsEditList> {
   String filter = '';
   @override
   Widget build(BuildContext c) {
-    return FutureBuilder<QuerySnapshot>(
+    return FutureBuilder<JsonQuery>(
       future: widget.list,
       builder: (con, data) {
         if (data.hasData) {
@@ -166,7 +166,7 @@ class _SchoolsListState extends State<SchoolsList> {
 
   @override
   Widget build(BuildContext c) {
-    return FutureBuilder<Stream<QuerySnapshot>>(
+    return FutureBuilder<Stream<JsonQuery>>(
         future: widget.list,
         builder: (c, o) {
           if (o.hasData) {

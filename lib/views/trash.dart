@@ -3,6 +3,7 @@ import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
@@ -45,17 +46,17 @@ class Trash extends StatelessWidget {
 
 class TrashDay extends DataObject {
   final DateTime date;
-  TrashDay(this.date, DocumentReference ref)
+  TrashDay(this.date, JsonRef ref)
       : super(ref, date.toUtc().toIso8601String().split('T')[0],
             Colors.transparent);
 
   @override
-  Map<String, dynamic> getHumanReadableMap() {
+  Json getHumanReadableMap() {
     return {'Time': toDurationString(Timestamp.fromDate(date))};
   }
 
   @override
-  Map<String, dynamic> getMap() {
+  Json getMap() {
     return {'Time': Timestamp.fromDate(date)};
   }
 
@@ -138,13 +139,13 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                   .map(
                                     (e) => RadioListTile(
                                       value: e.key,
-                                      groupValue: _personsOrder.value!.orderBy,
+                                      groupValue: _personsOrder.value.orderBy,
                                       title: Text(e.value),
                                       onChanged: (dynamic value) {
                                         _personsOrder.add(
                                           OrderOptions(
                                               orderBy: value,
-                                              asc: _personsOrder.value!.asc),
+                                              asc: _personsOrder.value.asc),
                                         );
                                         navigator.currentState!.pop();
                                       },
@@ -153,12 +154,12 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                   .toList(),
                               RadioListTile(
                                 value: true,
-                                groupValue: _personsOrder.value!.asc,
+                                groupValue: _personsOrder.value.asc,
                                 title: const Text('تصاعدي'),
                                 onChanged: (dynamic value) {
                                   _personsOrder.add(
                                     OrderOptions(
-                                        orderBy: _personsOrder.value!.orderBy,
+                                        orderBy: _personsOrder.value.orderBy,
                                         asc: value),
                                   );
                                   navigator.currentState!.pop();
@@ -166,12 +167,12 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                               ),
                               RadioListTile(
                                 value: false,
-                                groupValue: _personsOrder.value!.asc,
+                                groupValue: _personsOrder.value.asc,
                                 title: const Text('تنازلي'),
                                 onChanged: (dynamic value) {
                                   _personsOrder.add(
                                     OrderOptions(
-                                        orderBy: _personsOrder.value!.orderBy,
+                                        orderBy: _personsOrder.value.orderBy,
                                         asc: value),
                                   );
                                   navigator.currentState!.pop();
@@ -322,7 +323,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
               .snapshots()
               .map((p) => p.docs.map(Person.fromQueryDoc).toList());
         }
-        return Rx.combineLatestList<QuerySnapshot>(u.item2.split(10).map((c) =>
+        return Rx.combineLatestList<JsonQuery>(u.item2.split(10).map((c) =>
             widget.day.ref
                 .collection('Persons')
                 .where('ClassId', whereIn: c.map((e) => e.ref).toList())

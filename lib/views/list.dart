@@ -13,6 +13,7 @@ import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:meetinghelper/views/trash.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
@@ -82,7 +83,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
               current,
               onLongPress: _listOptions.onLongPress ?? _defaultLongPress,
               onTap: (T current) {
-                if (!_listOptions.selectionMode.requireValue) {
+                if (!_listOptions.selectionMode.value) {
                   _listOptions.tap == null
                       ? dataObjectTap(current, context)
                       : _listOptions.tap!(current);
@@ -126,10 +127,10 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
   }
 
   void _defaultLongPress(T current) async {
-    _listOptions.selectionMode.add(!_listOptions.selectionMode.requireValue);
+    _listOptions.selectionMode.add(!_listOptions.selectionMode.value);
 
-    if (!_listOptions.selectionMode.requireValue) {
-      if (_listOptions.selected.requireValue.isNotEmpty) {
+    if (!_listOptions.selectionMode.value) {
+      if (_listOptions.selected.value.isNotEmpty) {
         if (T == Person) {
           await showDialog(
             context: context,
@@ -140,8 +141,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                   icon: const Icon(Icons.sms),
                   onPressed: () {
                     navigator.currentState!.pop();
-                    List<Person> people = _listOptions
-                        .selected.requireValue.values
+                    List<Person> people = _listOptions.selected.value.values
                         .cast<Person>()
                         .toList()
                           ..removeWhere((p) =>
@@ -168,9 +168,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                     navigator.currentState!.pop();
                     await Share.share(
                       (await Future.wait(
-                        _listOptions.selected.requireValue.values
-                            .cast<Person>()
-                            .map(
+                        _listOptions.selected.value.values.cast<Person>().map(
                               (f) async => f.name + ': ' + await sharePerson(f),
                             ),
                       ))
@@ -211,8 +209,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                     );
                     if (msg != null) {
                       msg = Uri.encodeComponent(msg);
-                      for (Person person in _listOptions
-                          .selected.requireValue.values
+                      for (Person person in _listOptions.selected.value.values
                           .cast<Person>()) {
                         String phone = getPhone(person.phone!);
                         await launch('https://wa.me/$phone?text=$msg');
@@ -226,8 +223,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                   onPressed: () async {
                     navigator.currentState!.pop();
                     if ((await Permission.contacts.request()).isGranted) {
-                      for (Person item in _listOptions
-                          .selected.requireValue.values
+                      for (Person item in _listOptions.selected.value.values
                           .cast<Person>()) {
                         try {
                           final c = Contact(
@@ -255,7 +251,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
           );
         } else
           await Share.share(
-            (await Future.wait(_listOptions.selected.requireValue.values
+            (await Future.wait(_listOptions.selected.value.values
                     .map((f) async => f.name + ': ' + await shareDataObject(f))
                     .toList()))
                 .join('\n'),
@@ -326,7 +322,7 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
   }
 
   Widget buildGroupedListView() {
-    return StreamBuilder<Map<DocumentReference, Tuple2<Class, List<T>>>>(
+    return StreamBuilder<Map<JsonRef, Tuple2<Class, List<T>>>>(
       stream: _listOptions.groupedData,
       builder: (context, groupedData) {
         if (groupedData.hasError) return ErrorWidget(groupedData.error!);
@@ -370,15 +366,15 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
                     trailing: IconButton(
                       onPressed: () {
                         _listOptions.openedNodes.add({
-                          ..._listOptions.openedNodes.requireValue,
-                          groupedData.data!.keys.elementAt(i):
-                              !(_listOptions.openedNodes.requireValue[
-                                      groupedData.data!.keys.elementAt(i)] ??
-                                  false)
+                          ..._listOptions.openedNodes.value,
+                          groupedData.data!.keys.elementAt(i): !(_listOptions
+                                  .openedNodes
+                                  .value[groupedData.data!.keys.elementAt(i)] ??
+                              false)
                         });
                       },
                       icon: Icon(
-                        _listOptions.openedNodes.requireValue[
+                        _listOptions.openedNodes.value[
                                     groupedData.data!.keys.elementAt(i)] ??
                                 false
                             ? Icons.arrow_drop_up
@@ -441,18 +437,17 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
         current,
         onLongPress: _listOptions.onLongPress ??
             ((o) =>
-                _showRecordDialog(o, _listOptions.attended.value![current.id])),
+                _showRecordDialog(o, _listOptions.attended.value[current.id])),
         onTap: (T current) async {
-          if (!_listOptions.dayOptions.enabled.value!) {
+          if (!_listOptions.dayOptions.enabled.value) {
             _listOptions.tap == null
                 ? dataObjectTap(current, context)
                 : _listOptions.tap!(current);
           } else {
-            if (!_listOptions.dayOptions.lockUnchecks.requireValue) {
+            if (!_listOptions.dayOptions.lockUnchecks.value) {
               await _listOptions.toggleSelected(current);
-            } else if (!_listOptions.selected.requireValue
-                    .containsKey(current.id) ||
-                _listOptions.dayOptions.lockUnchecks.requireValue &&
+            } else if (!_listOptions.selected.value.containsKey(current.id) ||
+                _listOptions.dayOptions.lockUnchecks.value &&
                     await showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
@@ -484,7 +479,7 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
         trailing: attended.hasData
             ? Checkbox(
                 value: attended.data!.containsKey(current.id),
-                onChanged: _listOptions.dayOptions.enabled.value!
+                onChanged: _listOptions.dayOptions.enabled.value
                     ? (v) {
                         if (v!) {
                           _listOptions.select(current);
@@ -624,7 +619,7 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
                 },
                 child: Text('عرض بيانات ' + current.name),
               ),
-              if (_listOptions.dayOptions.enabled.value!)
+              if (_listOptions.dayOptions.enabled.value)
                 TextButton(
                   onPressed: () => navigator.currentState!.pop(true),
                   child: const Text('حفظ'),
@@ -633,14 +628,14 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
           ),
         ) ==
         true) {
-      if (_listOptions.selected.requireValue.containsKey(current.id) &&
+      if (_listOptions.selected.value.containsKey(current.id) &&
           record != null) {
         await _listOptions.modifySelected(current,
             notes: record!.notes, time: record!.time);
       } else if (record != null) {
         await _listOptions.select(current,
             notes: record?.notes, time: record?.time);
-      } else if (_listOptions.selected.requireValue.containsKey(current.id)) {
+      } else if (_listOptions.selected.value.containsKey(current.id)) {
         await _listOptions.deselect(current);
       }
     }

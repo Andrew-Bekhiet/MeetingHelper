@@ -509,8 +509,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                     ),
                     GestureDetector(
                       onTap: () {
-                        dayOptions.grouped
-                            .add(!dayOptions.grouped.requireValue);
+                        dayOptions.grouped.add(!dayOptions.grouped.value);
                         setState(() {});
                       },
                       child: const Text('تقسيم حسب الفصول'),
@@ -522,7 +521,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                     Container(width: 10),
                     Checkbox(
                       value: dayOptions.showSubtitlesInGroups.value,
-                      onChanged: dayOptions.grouped.requireValue
+                      onChanged: dayOptions.grouped.value
                           ? (value) {
                               dayOptions.showSubtitlesInGroups.add(value!);
                               setState(() {});
@@ -530,10 +529,10 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                           : null,
                     ),
                     GestureDetector(
-                      onTap: dayOptions.grouped.requireValue
+                      onTap: dayOptions.grouped.value
                           ? () {
-                              dayOptions.showSubtitlesInGroups.add(!dayOptions
-                                  .showSubtitlesInGroups.requireValue);
+                              dayOptions.showSubtitlesInGroups
+                                  .add(!dayOptions.showSubtitlesInGroups.value);
                               setState(() {});
                             }
                           : null,

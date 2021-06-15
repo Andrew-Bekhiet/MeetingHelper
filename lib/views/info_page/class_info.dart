@@ -1,11 +1,11 @@
 import 'dart:ui';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/material.dart';
 import 'package:meetinghelper/models/data_object_widget.dart';
 import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
@@ -177,7 +177,7 @@ class _ClassInfoState extends State<ClassInfo> {
                                           .currentState!
                                           .pushNamed('Data/EditClass',
                                               arguments: class$);
-                                      if (result is DocumentReference) {
+                                      if (result is JsonRef) {
                                         scaffoldMessenger.currentState!
                                             .showSnackBar(
                                           const SnackBar(

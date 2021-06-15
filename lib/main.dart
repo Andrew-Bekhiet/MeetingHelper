@@ -36,6 +36,7 @@ import 'models/user.dart';
 import 'updates.dart';
 import 'utils/globals.dart';
 import 'utils/helpers.dart';
+import 'utils/typedefs.dart';
 import 'views/analytics/analytics_page.dart';
 import 'views/auth_screen.dart';
 import 'views/data_map.dart';
@@ -194,8 +195,8 @@ class AppState extends State<App> {
                           ModalRoute.of(context)!.settings.arguments as Person);
                 else {
                   Person person = Person()
-                    ..classId = ModalRoute.of(context)!.settings.arguments
-                        as firestore.DocumentReference;
+                    ..classId =
+                        ModalRoute.of(context)!.settings.arguments as JsonRef;
                   return EditPerson(person: person);
                 }
               },
@@ -287,9 +288,8 @@ class AppState extends State<App> {
                       day: ModalRoute.of(context)!.settings.arguments
                           as HistoryDay);
                 else {
-                  final Map<String, dynamic> args = ModalRoute.of(context)!
-                      .settings
-                      .arguments as Map<String, dynamic>;
+                  final Json args =
+                      ModalRoute.of(context)!.settings.arguments as Json;
                   return AnalyticsPage(
                     historyColection: args['HistoryCollection'] ?? 'History',
                     classes: args['Classes'],

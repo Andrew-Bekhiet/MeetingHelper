@@ -8,20 +8,21 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'models.dart';
 import 'user.dart';
 
 class Class extends DataObject with PhotoObject, ParentObject<Person> {
-  DocumentReference? studyYear;
+  JsonRef? studyYear;
   bool gender;
 
   late List<String> allowedUsers;
   String? lastEdit;
 
   Class(
-      {DocumentReference? ref,
+      {JsonRef? ref,
       String? id,
       required String name,
       List<String>? allowedUsers,
@@ -43,7 +44,7 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
     defaultIcon = const IconData(0xf233, fontFamily: 'MaterialIconsR');
   }
 
-  Class.createFromData(Map<dynamic, dynamic> data, DocumentReference ref)
+  Class.createFromData(Map<dynamic, dynamic> data, JsonRef ref)
       : gender = data['Gender'] ?? true,
         super.createFromData(data, ref) {
     studyYear = data['StudyYear'];
@@ -71,14 +72,14 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
   }
 
   @override
-  Map<String, dynamic> getHumanReadableMap() => {
+  Json getHumanReadableMap() => {
         'Name': name,
         'StudyYear': studyYear ?? '',
         'Gender': gender,
       };
 
   @override
-  Map<String, dynamic> getMap() => {
+  Json getMap() => {
         'Name': name,
         'StudyYear': studyYear,
         'Gender': gender,
@@ -186,10 +187,10 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
         hasPhoto: false);
   }
 
-  static Class? fromDoc(DocumentSnapshot data) =>
+  static Class? fromDoc(JsonDoc data) =>
       data.exists ? Class.createFromData(data.data()!, data.reference) : null;
 
-  static Class fromQueryDoc(QueryDocumentSnapshot data) =>
+  static Class fromQueryDoc(JsonQueryDoc data) =>
       Class.createFromData(data.data(), data.reference);
 
   static Future<Class?> fromId(String id) async =>
@@ -217,7 +218,7 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
     });
   }
 
-  static Stream<List<Person?>> getClassMembersLive(DocumentReference id,
+  static Stream<List<Person?>> getClassMembersLive(JsonRef id,
       [String orderBy = 'Name', bool descending = false]) {
     return FirebaseFirestore.instance
         .collection('Persons')
@@ -227,7 +228,7 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
         .map((p) => p.docs.map(Person.fromDoc).toList());
   }
 
-  static Map<String, dynamic> getEmptyExportMap() => {
+  static Json getEmptyExportMap() => {
         'ID': 'id',
         'Name': 'name',
         'StudyYear': 'studyYear',
@@ -237,7 +238,7 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
         'Allowed': 'allowedUsers'
       };
 
-  static Map<String, dynamic> getHumanReadableMap2() => {
+  static Json getHumanReadableMap2() => {
         'Name': 'الاسم',
         'StudyYear': 'سنة الدراسة',
         'Gender': 'نوع الفصل',

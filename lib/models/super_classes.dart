@@ -1,13 +1,13 @@
 import 'package:async/async.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
 abstract class DataObject {
-  DocumentReference ref;
+  JsonRef ref;
   String name;
   Color color;
 
@@ -31,9 +31,9 @@ abstract class DataObject {
 
   DataObject copyWith();
 
-  Map<String, dynamic> getMap();
+  Json getMap();
 
-  Map<String, dynamic> getHumanReadableMap();
+  Json getHumanReadableMap();
 
   Future<String?> getSecondLine();
 
@@ -41,11 +41,11 @@ abstract class DataObject {
     if (e is Map)
       return hashValues(
           _fullyHash(e.keys.toList()), _fullyHash(e.values.toList()));
-    else if (e is DocumentReference)
+    else if (e is JsonRef)
       return e.path.hashCode;
     else if (e is List &&
         e.whereType<Map>().isEmpty &&
-        e.whereType<DocumentReference>().isEmpty &&
+        e.whereType<JsonRef>().isEmpty &&
         e.whereType<List>().isEmpty)
       return hashList(e);
     else if (e is List) return hashList(e.map(_fullyHash));
@@ -57,7 +57,7 @@ abstract class DataObject {
     await ref.set(getMap());
   }
 
-  Future<void> update({Map<String, dynamic> old = const {}}) async {
+  Future<void> update({Json old = const {}}) async {
     await ref.update(getMap()..removeWhere((key, value) => old[key] == value));
   }
 }
@@ -72,7 +72,7 @@ abstract class ParentObject<T extends DataObject> {
 }
 
 abstract class ChildObject<T extends DataObject> {
-  DocumentReference? get parentId;
+  JsonRef? get parentId;
   Future<String?> getParentName();
 }
 

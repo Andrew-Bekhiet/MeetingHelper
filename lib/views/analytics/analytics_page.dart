@@ -13,7 +13,7 @@ import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/history_property.dart';
 import 'package:meetinghelper/models/models.dart';
-import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/globals.dart';import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 
 import 'analytics_indicators.dart';
@@ -303,7 +303,7 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
           builder: (context, _) {
             if (_.connectionState != ConnectionState.done)
               return const Center(child: CircularProgressIndicator());
-            return StreamBuilder<QuerySnapshot>(
+            return StreamBuilder<JsonQuery>(
               stream: FirebaseFirestore.instance
                   .collection(widget.colection)
                   .orderBy('Day')

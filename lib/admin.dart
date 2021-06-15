@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 
 import 'models/mini_models.dart';
 import 'views/mini_lists/churches_list.dart';
@@ -269,7 +270,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                 Text(church.address!),
               if (!editMode) Text('الأباء بالكنيسة:', style: title),
               if (!editMode)
-                StreamBuilder<QuerySnapshot>(
+                StreamBuilder<JsonQuery>(
                   stream: church.getMembersLive(),
                   builder: (con, data) {
                     if (data.hasData) {
@@ -378,7 +379,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                 Text(father.name!),
               Text('داخل كنيسة', style: title),
               if (editMode)
-                FutureBuilder<QuerySnapshot>(
+                FutureBuilder<JsonQuery>(
                   future: Church.getAllForUser(),
                   builder: (context, data) {
                     if (data.hasData) {
@@ -557,7 +558,7 @@ class _FathersPageState extends State<FathersPage> {
               if (!editMode) Text('الأباء بالكنيسة:', style: title),
               if (!editMode)
                 Expanded(
-                  child: StreamBuilder<QuerySnapshot>(
+                  child: StreamBuilder<JsonQuery>(
                     stream: church.getMembersLive(),
                     builder: (con, data) {
                       if (data.hasData) {
@@ -664,7 +665,7 @@ class _FathersPageState extends State<FathersPage> {
                 Text(father.name!),
               Text('داخل كنيسة', style: title),
               if (editMode)
-                FutureBuilder<QuerySnapshot>(
+                FutureBuilder<JsonQuery>(
                   future: Church.getAllForUser(),
                   builder: (context, data) {
                     if (data.hasData) {

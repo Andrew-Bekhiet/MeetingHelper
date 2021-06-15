@@ -2,11 +2,12 @@ import 'package:intl/intl.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:meetinghelper/models/super_classes.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:meetinghelper/models/user.dart';
 
 class Invitation extends DataObject {
   Invitation({
-    required DocumentReference ref,
+    required JsonRef ref,
     required String title,
     this.link,
     this.usedBy,
@@ -16,13 +17,13 @@ class Invitation extends DataObject {
     required this.expiryDate,
   }) : super(ref, title, null);
 
-  static Invitation? fromDoc(DocumentSnapshot doc) =>
+  static Invitation? fromDoc(JsonDoc doc) =>
       doc.exists ? Invitation.createFromData(doc.data()!, doc.reference) : null;
 
-  static Invitation fromQueryDoc(QueryDocumentSnapshot doc) =>
+  static Invitation fromQueryDoc(JsonQueryDoc doc) =>
       Invitation.createFromData(doc.data(), doc.reference);
 
-  Invitation.createFromData(Map<String, dynamic> data, DocumentReference ref)
+  Invitation.createFromData(Json data, JsonRef ref)
       : link = data['Link'],
         usedBy = data['UsedBy'],
         generatedBy = data['GeneratedBy'],
@@ -38,19 +39,19 @@ class Invitation extends DataObject {
   final String? link;
   String? usedBy;
   String generatedBy;
-  Map<String, dynamic>? permissions;
+  Json? permissions;
   Timestamp? generatedOn;
   late Timestamp expiryDate;
 
   bool get used => usedBy != null;
 
   @override
-  Map<String, dynamic> getHumanReadableMap() {
+  Json getHumanReadableMap() {
     throw UnimplementedError();
   }
 
   @override
-  Map<String, dynamic> getMap() {
+  Json getMap() {
     return {
       'Title': title,
       'UsedBy': usedBy,

@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:flutter/material.dart';
 import 'package:meetinghelper/models/mini_models.dart';
 
 class ChurchesEditList extends StatefulWidget {
-  final Future<QuerySnapshot> list;
+  final Future<JsonQuery> list;
 
   final Function(Church)? tap;
   const ChurchesEditList({Key? key, required this.list, this.tap})
@@ -16,7 +16,7 @@ class ChurchesEditList extends StatefulWidget {
 }
 
 class ChurchesList extends StatefulWidget {
-  final Future<Stream<QuerySnapshot>> list;
+  final Future<Stream<JsonQuery>> list;
 
   final Function(List<Church>?)? finished;
   final Stream<Church>? original;
@@ -46,7 +46,7 @@ class InnerListState extends State<_InnerChurchsList> {
           onRefresh: () async {
             setState(() {});
           },
-          child: StreamBuilder<QuerySnapshot>(
+          child: StreamBuilder<JsonQuery>(
             stream: widget.data,
             builder: (context, churchs) {
               if (!churchs.hasData) return const CircularProgressIndicator();
@@ -110,7 +110,7 @@ class _ChurchesEditListState extends State<ChurchesEditList> {
   String filter = '';
   @override
   Widget build(BuildContext c) {
-    return FutureBuilder<QuerySnapshot>(
+    return FutureBuilder<JsonQuery>(
       future: widget.list,
       builder: (con, data) {
         if (data.hasData) {
@@ -161,7 +161,7 @@ class _ChurchesListState extends State<ChurchesList> {
 
   @override
   Widget build(BuildContext c) {
-    return FutureBuilder<Stream<QuerySnapshot>>(
+    return FutureBuilder<Stream<JsonQuery>>(
         future: widget.list,
         builder: (c, o) {
           if (o.hasData) {
@@ -186,10 +186,10 @@ class _ChurchesListState extends State<ChurchesList> {
 }
 
 class _InnerChurchsList extends StatefulWidget {
-  final Stream<QuerySnapshot>? data;
+  final Stream<JsonQuery>? data;
   final List<Church> result;
   final Function(List<Church>?)? finished;
-  final Future<Stream<QuerySnapshot>>? list;
+  final Future<Stream<JsonQuery>>? list;
   _InnerChurchsList(this.data, this.result, this.list, this.finished);
   @override
   State<StatefulWidget> createState() => InnerListState();

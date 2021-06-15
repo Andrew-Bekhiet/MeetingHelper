@@ -14,6 +14,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:tinycolor/tinycolor.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 
 import '../../models/copiable_property.dart';
 import '../../models/data_object_widget.dart';
@@ -24,7 +25,7 @@ import '../../utils/helpers.dart';
 
 class PersonInfo extends StatefulWidget {
   final Person person;
-  final Person? Function(DocumentSnapshot) converter;
+  final Person? Function(JsonDoc) converter;
   final bool showMotherAndFatherPhones;
   const PersonInfo(
       {Key? key,
@@ -159,7 +160,7 @@ class _PersonInfoState extends State<PersonInfo> {
                                   dynamic result = await navigator.currentState!
                                       .pushNamed('Data/EditPerson',
                                           arguments: person);
-                                  if (result is DocumentReference) {
+                                  if (result is JsonRef) {
                                     scaffoldMessenger.currentState!
                                         .showSnackBar(
                                       const SnackBar(

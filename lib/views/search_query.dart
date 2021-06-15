@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -17,7 +18,7 @@ import 'list.dart';
 import 'mini_lists/colors_list.dart';
 
 class SearchQuery extends StatefulWidget {
-  final Map<String, dynamic>? query;
+  final Json? query;
 
   const SearchQuery({Key? key, this.query}) : super(key: key);
 
@@ -243,7 +244,7 @@ class _SearchQueryState extends State<SearchQuery> {
                     borderSide:
                         BorderSide(color: Theme.of(context).primaryColor),
                   )),
-              child: Text(queryValue != null && queryValue is DocumentReference
+              child: Text(queryValue != null && queryValue is JsonRef
                   ? queryText!
                   : 'اختيار فصل'),
             ),
@@ -271,20 +272,20 @@ class _SearchQueryState extends State<SearchQuery> {
         //           border: OutlineInputBorder(
         //             borderSide: BorderSide(color: Theme.of(context).primaryColor),
         //           )),
-        //       child: Text(queryValue != null && queryValue is DocumentReference
+        //       child: Text(queryValue != null && queryValue is JsonRef
         //           ? queryText
         //           : 'اختيار نوع الفرد'),
         //     ),
         //   ),
         // ),
-        FutureBuilder<QuerySnapshot>(
+        FutureBuilder<JsonQuery>(
             //7
             future: School.getAllForUser(),
             builder: (context, data) {
               if (data.hasData) {
                 return DropdownButtonFormField(
                   value: queryValue != null &&
-                          queryValue is DocumentReference &&
+                          queryValue is JsonRef &&
                           queryValue.path.startsWith('Schools/')
                       ? queryValue.path
                       : null,
@@ -315,14 +316,14 @@ class _SearchQueryState extends State<SearchQuery> {
               }
               return const LinearProgressIndicator();
             }),
-        FutureBuilder<QuerySnapshot>(
+        FutureBuilder<JsonQuery>(
             //8
             future: Church.getAllForUser(),
             builder: (context, data) {
               if (data.hasData) {
                 return DropdownButtonFormField(
                   value: queryValue != null &&
-                          queryValue is DocumentReference &&
+                          queryValue is JsonRef &&
                           queryValue.path.startsWith('Churches/')
                       ? queryValue.path
                       : null,
@@ -353,14 +354,14 @@ class _SearchQueryState extends State<SearchQuery> {
               }
               return const LinearProgressIndicator();
             }),
-        FutureBuilder<QuerySnapshot>(
+        FutureBuilder<JsonQuery>(
             //9
             future: Father.getAllForUser(),
             builder: (context, data) {
               if (data.hasData) {
                 return DropdownButtonFormField(
                   value: queryValue != null &&
-                          queryValue is DocumentReference &&
+                          queryValue is JsonRef &&
                           queryValue.path.startsWith('Fathers/')
                       ? queryValue.path
                       : null,
@@ -391,14 +392,14 @@ class _SearchQueryState extends State<SearchQuery> {
               }
               return const LinearProgressIndicator();
             }),
-        FutureBuilder<QuerySnapshot>(
+        FutureBuilder<JsonQuery>(
             //10
             future: StudyYear.getAllForUser(),
             builder: (context, data) {
               if (data.hasData) {
                 return DropdownButtonFormField(
                   value: queryValue != null &&
-                          queryValue is DocumentReference &&
+                          queryValue is JsonRef &&
                           queryValue.path.startsWith('StudyYears/')
                       ? queryValue.path
                       : null,
@@ -479,7 +480,7 @@ class _SearchQueryState extends State<SearchQuery> {
             ),
           ],
         ),
-        // StreamBuilder<QuerySnapshot>(
+        // StreamBuilder<JsonQuery>(
         //   //12
         //   stream: FirebaseFirestore.instance
         //       .collection('States')
@@ -489,7 +490,7 @@ class _SearchQueryState extends State<SearchQuery> {
         //     if (data.hasData) {
         //       return DropdownButtonFormField(
         //         value: (queryValue != null &&
-        //                 queryValue is DocumentReference &&
+        //                 queryValue is JsonRef &&
         //                 queryValue.path.startsWith('States/')
         //             ? queryValue.path
         //             : null),
@@ -538,7 +539,7 @@ class _SearchQueryState extends State<SearchQuery> {
         // ),
         Container(),
         Container(),
-        // StreamBuilder<QuerySnapshot>(
+        // StreamBuilder<JsonQuery>(
         //     //13
         //     stream: FirebaseFirestore.instance
         //         .collection('ServingTypes')
@@ -548,7 +549,7 @@ class _SearchQueryState extends State<SearchQuery> {
         //       if (data.hasData) {
         //         return DropdownButtonFormField(
         //           value: (queryValue != null &&
-        //                   queryValue is DocumentReference &&
+        //                   queryValue is JsonRef &&
         //                   queryValue.path.startsWith('ServingTypes/')
         //               ? queryValue.path
         //               : null),
@@ -615,7 +616,7 @@ class _SearchQueryState extends State<SearchQuery> {
                 ),
               );
             }),
-        StreamBuilder<QuerySnapshot>(
+        StreamBuilder<JsonQuery>(
             //15
             stream: FirebaseFirestore.instance
                 .collection('Colleges')
@@ -625,7 +626,7 @@ class _SearchQueryState extends State<SearchQuery> {
               if (data.hasData) {
                 return DropdownButtonFormField(
                   value: queryValue != null &&
-                          queryValue is DocumentReference &&
+                          queryValue is JsonRef &&
                           queryValue.path.startsWith('Colleges/')
                       ? queryValue.path
                       : null,
@@ -908,8 +909,8 @@ class _SearchQueryState extends State<SearchQuery> {
 
   void execute() async {
     late final DataObjectList body;
-    Query classes = FirebaseFirestore.instance.collection('Classes');
-    Query persons = FirebaseFirestore.instance.collection('Persons');
+    Query<Json> classes = FirebaseFirestore.instance.collection('Classes');
+    Query<Json> persons = FirebaseFirestore.instance.collection('Persons');
 
     bool fewClasses = true;
     if (!User.instance.superAccess) {
@@ -1293,8 +1294,8 @@ class _SearchQueryState extends State<SearchQuery> {
                         'parentIndex': parentIndex.toString(),
                         'childIndex': childIndex.toString(),
                         'operatorIndex': operatorIndex.toString(),
-                        'queryValue': queryValue is DocumentReference
-                            ? 'D' + (queryValue as DocumentReference).path
+                        'queryValue': queryValue is JsonRef
+                            ? 'D' + (queryValue as JsonRef).path
                             : (queryValue is Timestamp
                                 ? 'T' +
                                     (queryValue as Timestamp)

@@ -1,9 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:flutter/material.dart';
 import 'package:meetinghelper/utils/globals.dart';
 
 class MiniList extends StatefulWidget {
-  final CollectionReference? parent;
+  final JsonCollectionRef? parent;
   final String? pageTitle;
   final String? itemSubtitle;
   final void Function()? onAdd;
@@ -16,7 +16,7 @@ class MiniList extends StatefulWidget {
 }
 
 class _MiniListState extends State<MiniList> {
-  List<QueryDocumentSnapshot>? _documentsData;
+  List<JsonQueryDoc>? _documentsData;
   bool _showSearch = false;
   FocusNode searchFocus = FocusNode();
 
@@ -25,7 +25,7 @@ class _MiniListState extends State<MiniList> {
   String _oldFilter = '';
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot>(
+    return StreamBuilder<JsonQuery>(
       stream: widget.parent!.orderBy('Name').snapshots(),
       builder: (context, stream) {
         if (stream.hasError) return Center(child: ErrorWidget(stream.error!));

@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:group_list_view/group_list_view.dart';
 import 'package:meetinghelper/models/class.dart';
@@ -7,6 +6,7 @@ import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/helpers.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tuple/tuple.dart';
@@ -45,7 +45,7 @@ class _UsersListState extends State<UsersList> {
         final List<User> _data = options.data!;
         if (_data.isEmpty) return const Center(child: Text('لا يوجد مستخدمين'));
 
-        return StreamBuilder<Map<DocumentReference, Tuple2<Class, List<User>>>>(
+        return StreamBuilder<Map<JsonRef, Tuple2<Class, List<User>>>>(
           stream: usersByClassRef(_data),
           builder: (context, groupedData) {
             if (groupedData.hasError) return ErrorWidget(groupedData.error!);
@@ -95,12 +95,12 @@ class _UsersListState extends State<UsersList> {
                     onLongPress: _listOptions.onLongPress ??
                         (u) {
                           _listOptions.selectionMode
-                              .add(!_listOptions.selectionMode.requireValue);
-                          if (_listOptions.selectionMode.requireValue)
+                              .add(!_listOptions.selectionMode.value);
+                          if (_listOptions.selectionMode.value)
                             _listOptions.select(current);
                         },
                     onTap: (User current) {
-                      if (!_listOptions.selectionMode.requireValue) {
+                      if (!_listOptions.selectionMode.value) {
                         _listOptions.tap == null
                             ? dataObjectTap(current, context)
                             : _listOptions.tap!(current);

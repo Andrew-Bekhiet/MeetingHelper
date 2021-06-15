@@ -7,6 +7,7 @@ import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tuple/tuple.dart';
@@ -42,7 +43,7 @@ abstract class BaseListController<L, U> {
 
   void selectAll();
   void selectNone() {
-    if (!_selectionMode.requireValue) _selectionMode.add(true);
+    if (!_selectionMode.value) _selectionMode.add(true);
     _selected.add({});
   }
 
@@ -218,20 +219,19 @@ class DataObjectListController<T extends DataObject>
 
   @override
   void selectAll() {
-    if (!_selectionMode.requireValue) _selectionMode.add(true);
-    _selected.add({for (var item in _objectsData.requireValue) item.id: item});
+    if (!_selectionMode.value) _selectionMode.add(true);
+    _selected.add({for (var item in _objectsData.value) item.id: item});
   }
 
   @override
   void selectNone([bool enterSelectionMode = true]) {
-    if (enterSelectionMode && !_selectionMode.requireValue)
-      _selectionMode.add(true);
+    if (enterSelectionMode && !_selectionMode.value) _selectionMode.add(true);
     _selected.add({});
   }
 
   @override
   void toggleSelected(T item) {
-    if (_selected.requireValue.containsKey(item.id)) {
+    if (_selected.value.containsKey(item.id)) {
       deselect(item);
     } else {
       select(item);
@@ -240,14 +240,14 @@ class DataObjectListController<T extends DataObject>
 
   @override
   void select(T item) {
-    assert(!_selected.requireValue.containsKey(item.id));
-    _selected.add({..._selected.requireValue, item.id: item});
+    assert(!_selected.value.containsKey(item.id));
+    _selected.add({..._selected.value, item.id: item});
   }
 
   @override
   void deselect(T item) {
-    assert(_selected.requireValue.containsKey(item.id));
-    _selected.add(_selected.requireValue..remove(item.id));
+    assert(_selected.value.containsKey(item.id));
+    _selected.add(_selected.value..remove(item.id));
   }
 
   @override
@@ -271,7 +271,7 @@ class CheckListController<T extends Person>
   final HistoryDay day;
   final DayListType type;
   final HistoryDayOptions dayOptions;
-  final BehaviorSubject<Map<DocumentReference, bool?>> openedNodes =
+  final BehaviorSubject<Map<JsonRef, bool?>> openedNodes =
       BehaviorSubject.seeded({});
 
   @override
@@ -323,13 +323,12 @@ class CheckListController<T extends Person>
 
   StreamSubscription<Map<String, HistoryRecord>>? _attendedListener;
 
-  late final Stream<Map<DocumentReference, Tuple2<Class, List<T>>>>?
-      groupedData;
+  late final Stream<Map<JsonRef, Tuple2<Class, List<T>>>>? groupedData;
 
-  final Stream<Map<DocumentReference, Tuple2<Class, List<T>>>> Function(
-      List<T> data)? _groupBy;
+  final Stream<Map<JsonRef, Tuple2<Class, List<T>>>> Function(List<T> data)?
+      _groupBy;
 
-  CollectionReference? get ref => day.collections[type];
+  JsonCollectionRef? get ref => day.collections[type];
 
   @override
   bool get selectionModeLatest => true;
@@ -358,8 +357,7 @@ class CheckListController<T extends Person>
       Widget? subtitle}) buildItem;
 
   CheckListController({
-    Stream<Map<DocumentReference, Tuple2<Class, List<T>>>> Function(
-            List<T> data)?
+    Stream<Map<JsonRef, Tuple2<Class, List<T>>>> Function(List<T> data)?
         groupBy,
     required this.day,
     required this.type,
@@ -438,10 +436,8 @@ class CheckListController<T extends Person>
     ).listen(_objectsData.add, onError: _objectsData.addError);
 
     groupedData = _groupBy != null
-        ? Rx.combineLatest2<
-            Map<DocumentReference, Tuple2<Class, List<T>>>,
-            Map<DocumentReference, bool?>,
-            Map<DocumentReference, Tuple2<Class, List<T>>>>(
+        ? Rx.combineLatest2<Map<JsonRef, Tuple2<Class, List<T>>>,
+            Map<JsonRef, bool?>, Map<JsonRef, Tuple2<Class, List<T>>>>(
             _objectsData.switchMap(_groupBy!),
             openedNodes,
             (g, n) => g.map(
@@ -492,14 +488,14 @@ class CheckListController<T extends Person>
     //
     //<empty comment for readability>
 
-    Map<String, HistoryRecord> _docsMapper(QuerySnapshot s) {
+    Map<String, HistoryRecord> _docsMapper(JsonQuery s) {
       Map<String, T> tempSelected = {};
       Map<String, HistoryRecord> snapshotMap =
           Map<String, HistoryRecord>.fromIterable(
         s.docs,
         key: (d) {
-          if (originalObjectsData.value != null)
-            tempSelected[d.id] = originalObjectsData.requireValue[d.id]!;
+          if (originalObjectsData.valueOrNull != null)
+            tempSelected[d.id] = originalObjectsData.value[d.id]!;
           return d.id;
         },
         value: (d) => HistoryRecord.fromQueryDoc(d, day),
@@ -532,18 +528,17 @@ class CheckListController<T extends Person>
     }
 
     if (v.item3 != null) {
-      return Rx.combineLatestList<QuerySnapshot>(v.item2.split(10).map((c) =>
-          ref!
-              .where('ClassId', whereIn: c.map((e) => e.ref).toList())
-              .orderBy('Time', descending: !v.item3!)
-              .snapshots())).map((s) => s.expand((n) => n.docs)).map((s) {
+      return Rx.combineLatestList<JsonQuery>(v.item2.split(10).map((c) => ref!
+          .where('ClassId', whereIn: c.map((e) => e.ref).toList())
+          .orderBy('Time', descending: !v.item3!)
+          .snapshots())).map((s) => s.expand((n) => n.docs)).map((s) {
         Map<String, T> tempSelected = {};
         Map<String, HistoryRecord> snapshotMap =
             Map<String, HistoryRecord>.fromIterable(
           s,
           key: (d) {
-            if (originalObjectsData.value != null)
-              tempSelected[d.id] = originalObjectsData.requireValue[d.id]!;
+            if (originalObjectsData.valueOrNull != null)
+              tempSelected[d.id] = originalObjectsData.value[d.id]!;
             return d.id;
           },
           value: (d) => HistoryRecord.fromQueryDoc(d, day),
@@ -552,7 +547,7 @@ class CheckListController<T extends Person>
         return snapshotMap;
       });
     }
-    return Rx.combineLatestList<QuerySnapshot>(v.item2.split(10).map((c) => ref!
+    return Rx.combineLatestList<JsonQuery>(v.item2.split(10).map((c) => ref!
         .where('ClassId', whereIn: c.map((e) => e.ref).toList())
         .snapshots())).map((s) => s.expand((n) => n.docs)).map((s) {
       Map<String, T> tempSelected = {};
@@ -560,8 +555,8 @@ class CheckListController<T extends Person>
           Map<String, HistoryRecord>.fromIterable(
         s,
         key: (d) {
-          if (originalObjectsData.value != null)
-            tempSelected[d.id] = originalObjectsData.requireValue[d.id]!;
+          if (originalObjectsData.valueOrNull != null)
+            tempSelected[d.id] = originalObjectsData.value[d.id]!;
           return d.id;
         },
         value: (d) => HistoryRecord.fromQueryDoc(d, day),
@@ -583,7 +578,7 @@ class CheckListController<T extends Person>
 
   @override
   Future<void> toggleSelected(T item, {String? notes, Timestamp? time}) async {
-    if (_selected.requireValue.containsKey(item.id)) {
+    if (_selected.value.containsKey(item.id)) {
       await deselect(item);
     } else {
       await select(item, notes: notes, time: time);
@@ -610,7 +605,7 @@ class CheckListController<T extends Person>
   }
 
   Future<void> modifySelected(T item, {String? notes, Timestamp? time}) async {
-    assert(_selected.requireValue.containsKey(item.id));
+    assert(_selected.value.containsKey(item.id));
     await HistoryRecord(
             type: type,
             parent: day,
@@ -624,8 +619,7 @@ class CheckListController<T extends Person>
   }
 
   CheckListController<T> copyWith({
-    Stream<Map<DocumentReference, Tuple2<Class, List<T>>>> Function(
-            List<T?> data)?
+    Stream<Map<JsonRef, Tuple2<Class, List<T>>>> Function(List<T?> data)?
         groupBy,
     HistoryDay? day,
     DayListType? type,
@@ -719,7 +713,7 @@ class ServicesListController
   ValueStream<Map<StudyYear?, List<Class>>> get objectsData =>
       _objectsData.stream;
   @override
-  Map<StudyYear?, List<Class>> get items => _objectsData.requireValue;
+  Map<StudyYear?, List<Class>> get items => _objectsData.value;
 
   @override
   StreamSubscription<Map<StudyYear?, List<Class>>>? _objectsDataListener;
@@ -737,7 +731,7 @@ class ServicesListController
   @override
   final BehaviorSubject<bool> _selectionMode;
   @override
-  bool get selectionModeLatest => _selectionMode.requireValue;
+  bool get selectionModeLatest => _selectionMode.value;
   @override
   BehaviorSubject<bool> get selectionMode => _selectionMode;
 
@@ -804,7 +798,7 @@ class ServicesListController
 
   @override
   void selectAll() {
-    if (!_selectionMode.requireValue) _selectionMode.add(true);
+    if (!_selectionMode.value) _selectionMode.add(true);
     _selected.add({
       for (var item in items.values.expand((i) => i).toList()) item.id: item
     });
@@ -812,13 +806,13 @@ class ServicesListController
 
   @override
   void selectNone() {
-    if (!_selectionMode.requireValue) _selectionMode.add(true);
+    if (!_selectionMode.value) _selectionMode.add(true);
     _selected.add({});
   }
 
   @override
   void toggleSelected(Class item) {
-    if (_selected.requireValue.containsKey(item.id)) {
+    if (_selected.value.containsKey(item.id)) {
       deselect(item);
     } else {
       select(item);
@@ -827,12 +821,12 @@ class ServicesListController
 
   @override
   void select(Class item) {
-    _selected.add({..._selected.requireValue, item.id: item});
+    _selected.add({..._selected.value, item.id: item});
   }
 
   @override
   void deselect(Class item) {
-    _selected.add(_selected.requireValue..remove(item.id));
+    _selected.add(_selected.value..remove(item.id));
   }
 
   @override

@@ -12,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:meetinghelper/models/data_object_widget.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
@@ -182,7 +183,7 @@ class _EditClassState extends State<EditClass> {
                       },
                     ),
                   ),
-                  FutureBuilder<QuerySnapshot>(
+                  FutureBuilder<JsonQuery>(
                     future: StudyYear.getAllForUser(),
                     builder: (conext, data) {
                       if (data.hasData) {

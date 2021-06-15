@@ -5,6 +5,7 @@ import 'package:intl/intl.dart' as intl;
 import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/helpers.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
@@ -34,7 +35,7 @@ class AttendanceChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<HistoryRecord>>(
-      stream: Rx.combineLatestList<QuerySnapshot>(classes
+      stream: Rx.combineLatestList<JsonQuery>(classes
               .split(10)
               .map((c) => isServant
                   ? FirebaseFirestore.instance
@@ -80,7 +81,7 @@ class AttendanceChart extends StatelessWidget {
             groupBy<HistoryRecord, Timestamp>(
                 history.data!, (d) => tranucateToDay(time: d.time.toDate()));
 
-        final Map<DocumentReference, Class> groupedClasses = {
+        final Map<JsonRef, Class> groupedClasses = {
           for (final c in classes) c.ref: c
         };
 
@@ -107,7 +108,7 @@ class AttendanceChart extends StatelessWidget {
                                             : ColorBrightness.light,
                                   )
                                 : _class.item2.color,
-                    pieData: groupBy<HistoryRecord, DocumentReference?>(
+                    pieData: groupBy<HistoryRecord, JsonRef?>(
                             history.data!, (r) => r.classId)
                         .entries
                         .map(
@@ -213,7 +214,7 @@ class AttendancePercent extends StatelessWidget {
 }
 
 class ClassesAttendanceIndicator extends StatelessWidget {
-  final CollectionReference collection;
+  final JsonCollectionRef collection;
   final List<Class> classes;
   final rnd = RandomColor();
   final Map<String, Color> usedColorsMap = {};
@@ -229,7 +230,7 @@ class ClassesAttendanceIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Person>>(
-      stream: Rx.combineLatestList<QuerySnapshot>(classes
+      stream: Rx.combineLatestList<JsonQuery>(classes
               .split(10)
               .map((c) => collection
                   .where('ClassId', whereIn: c.map((e) => e.ref).toList())
@@ -242,7 +243,7 @@ class ClassesAttendanceIndicator extends StatelessWidget {
         if (!snapshot.hasData)
           return const Center(child: CircularProgressIndicator());
         return StreamBuilder<int>(
-          stream: Rx.combineLatestList<QuerySnapshot>(classes
+          stream: Rx.combineLatestList<JsonQuery>(classes
                   .split(10)
                   .map((c) => isServant
                       ? FirebaseFirestore.instance
@@ -265,7 +266,7 @@ class ClassesAttendanceIndicator extends StatelessWidget {
               return const Center(
                   child: Text('لا يوجد مخدومين في الفصول المحددة'));
 
-            final Map<DocumentReference, Class> groupedClasses = {
+            final Map<JsonRef, Class> groupedClasses = {
               for (final c in classes) c.ref: c
             };
 
@@ -293,7 +294,7 @@ class ClassesAttendanceIndicator extends StatelessWidget {
                                                 : ColorBrightness.light,
                                       )
                                     : _class.item2.color,
-                        pieData: groupBy<Person, DocumentReference>(
+                        pieData: groupBy<Person, JsonRef>(
                                 snapshot.data!, (p) => p.classId!)
                             .entries
                             .map(
@@ -343,7 +344,7 @@ class PersonAttendanceIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<QueryDocumentSnapshot>>(
+    return StreamBuilder<List<JsonQueryDoc>>(
       stream: _getHistoryForUser(),
       builder: (context, history) {
         if (history.hasError) return ErrorWidget(history.error!);
@@ -360,7 +361,7 @@ class PersonAttendanceIndicator extends StatelessWidget {
     );
   }
 
-  Stream<List<QueryDocumentSnapshot>> _getHistoryForUser() {
+  Stream<List<JsonQueryDoc>> _getHistoryForUser() {
     return Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
         User.instance.stream,
         Class.getAllForUser(),
@@ -380,7 +381,7 @@ class PersonAttendanceIndicator extends StatelessWidget {
             .snapshots()
             .map((s) => s.docs);
       } else {
-        return Rx.combineLatestList<QuerySnapshot>(u.item2
+        return Rx.combineLatestList<JsonQuery>(u.item2
                 .split(10)
                 .map((c) => FirebaseFirestore.instance
                     .collectionGroup(collectionGroup)
@@ -426,7 +427,7 @@ class HistoryAnalysisWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<QueryDocumentSnapshot>>(
+    return StreamBuilder<List<JsonQueryDoc>>(
       stream: MinimalHistoryRecord.getAllForUser(
           collectionGroup: collectionGroup, range: range, classes: classes),
       builder: (context, daysData) {

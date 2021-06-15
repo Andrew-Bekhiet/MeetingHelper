@@ -25,6 +25,7 @@ import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/search_filters.dart';
 import 'package:meetinghelper/views/lists/lists.dart';
 import 'package:meetinghelper/views/services_list.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
@@ -94,7 +95,7 @@ Stream<Map<StudyYear?, List<Class>>> classesByStudyYearRef() {
       .snapshots()
       .switchMap<Map<StudyYear?, List<Class>>>(
     (sys) {
-      Map<DocumentReference, StudyYear> studyYears = {
+      Map<JsonRef, StudyYear> studyYears = {
         for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
       };
       return User.instance.stream.switchMap(
@@ -138,7 +139,7 @@ Stream<Map<StudyYear, List<Class>>> classesByStudyYearRefForUser(String? uid) {
       .snapshots()
       .switchMap(
     (sys) {
-      Map<DocumentReference, StudyYear> studyYears = {
+      Map<JsonRef, StudyYear> studyYears = {
         for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
       };
       return FirebaseFirestore.instance
@@ -216,11 +217,11 @@ List<RadioListTile> getOrderingOptions(BuildContext context,
       .map(
         (e) => RadioListTile(
           value: e.key,
-          groupValue: orderOptions.value!.orderBy,
+          groupValue: orderOptions.value.orderBy,
           title: Text(e.value),
           onChanged: (dynamic value) {
-            orderOptions.add(
-                OrderOptions(orderBy: value, asc: orderOptions.value!.asc));
+            orderOptions
+                .add(OrderOptions(orderBy: value, asc: orderOptions.value.asc));
             navigator.currentState!.pop();
           },
         ),
@@ -230,23 +231,21 @@ List<RadioListTile> getOrderingOptions(BuildContext context,
           [
             RadioListTile(
               value: 'true',
-              groupValue: orderOptions.value!.asc.toString(),
+              groupValue: orderOptions.value.asc.toString(),
               title: const Text('تصاعدي'),
               onChanged: (value) {
                 orderOptions.add(OrderOptions(
-                    orderBy: orderOptions.value!.orderBy,
-                    asc: value == 'true'));
+                    orderBy: orderOptions.value.orderBy, asc: value == 'true'));
                 navigator.currentState!.pop();
               },
             ),
             RadioListTile(
               value: 'false',
-              groupValue: orderOptions.value!.asc.toString(),
+              groupValue: orderOptions.value.asc.toString(),
               title: const Text('تنازلي'),
               onChanged: (value) {
                 orderOptions.add(OrderOptions(
-                    orderBy: orderOptions.value!.orderBy,
-                    asc: value == 'true'));
+                    orderBy: orderOptions.value.orderBy, asc: value == 'true'));
                 navigator.currentState!.pop();
               },
             ),
@@ -359,7 +358,7 @@ Future<void> onNotificationClicked(String? payload) async {
   }
 }
 
-Stream<Map<DocumentReference, Tuple2<Class, List<User>>>> usersByClassRef(
+Stream<Map<JsonRef, Tuple2<Class, List<User>>>> usersByClassRef(
     List<User> users) {
   return FirebaseFirestore.instance
       .collection('StudyYears')
@@ -367,7 +366,7 @@ Stream<Map<DocumentReference, Tuple2<Class, List<User>>>> usersByClassRef(
       .snapshots()
       .switchMap(
     (sys) {
-      Map<DocumentReference, StudyYear> studyYears = {
+      Map<JsonRef, StudyYear> studyYears = {
         for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
       };
       studyYears[FirebaseFirestore.instance
@@ -411,8 +410,8 @@ Stream<Map<DocumentReference, Tuple2<Class, List<User>>>> usersByClassRef(
                 e.key.ref: Tuple2(e.key, e.value)
             }.entries.toList();
 
-            mergeSort<MapEntry<DocumentReference?, Tuple2<Class, List<User>>>>(
-                rslt, compare: (c, c2) {
+            mergeSort<MapEntry<JsonRef?, Tuple2<Class, List<User>>>>(rslt,
+                compare: (c, c2) {
               if (c.value.item1.name == 'غير محدد' ||
                   c.value.item1.name == '{لا يمكن قراءة اسم الفصل}') return 1;
               if (c2.value.item1.name == 'غير محدد' ||
@@ -434,14 +433,14 @@ Stream<Map<DocumentReference, Tuple2<Class, List<User>>>> usersByClassRef(
   );
 }
 
-Stream<Map<DocumentReference, Tuple2<Class, List<Person>>>> personsByClassRef(
+Stream<Map<JsonRef, Tuple2<Class, List<Person>>>> personsByClassRef(
     [List<Person>? persons]) {
   return FirebaseFirestore.instance
       .collection('StudyYears')
       .orderBy('Grade')
       .snapshots()
       .switchMap((sys) {
-    Map<DocumentReference, StudyYear> studyYears = {
+    Map<JsonRef, StudyYear> studyYears = {
       for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
     };
     if (persons != null) {
@@ -462,7 +461,7 @@ Stream<Map<DocumentReference, Tuple2<Class, List<Person>>>> personsByClassRef(
                     .snapshots())
             .map(
           (cs) {
-            Map<DocumentReference?, List<Person>> personsByClassRef =
+            Map<JsonRef?, List<Person>> personsByClassRef =
                 groupBy(persons, (p) => p.classId);
             final classes = cs.docs
                 .map(Class.fromQueryDoc)
@@ -502,7 +501,7 @@ Stream<Map<DocumentReference, Tuple2<Class, List<Person>>>> personsByClassRef(
                         .snapshots())
                 .map(
               (cs) {
-                Map<DocumentReference?, List<Person>> personsByClassRef =
+                Map<JsonRef?, List<Person>> personsByClassRef =
                     groupBy(persons, (p) => p.classId);
                 final classes = cs.docs
                     .map(Class.fromQueryDoc)
