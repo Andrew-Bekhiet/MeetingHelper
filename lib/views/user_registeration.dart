@@ -2,15 +2,15 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:intl/intl.dart';
 import 'package:meetinghelper/main.dart';
 import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/encryption_keys.dart';
+import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:provider/provider.dart';
-import 'package:meetinghelper/utils/globals.dart';
 
 class UserRegistration extends StatefulWidget {
   const UserRegistration({Key? key}) : super(key: key);

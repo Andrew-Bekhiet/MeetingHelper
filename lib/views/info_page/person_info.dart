@@ -8,13 +8,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:intl/intl.dart';
+import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:tinycolor/tinycolor.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 
 import '../../models/copiable_property.dart';
 import '../../models/data_object_widget.dart';

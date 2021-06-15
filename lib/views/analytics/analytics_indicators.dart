@@ -7,21 +7,12 @@ import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import 'package:random_color/random_color.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:tuple/tuple.dart';
-import 'package:random_color/random_color.dart';
 
 class AttendanceChart extends StatelessWidget {
-  final List<Class> classes;
-  final DateTimeRange range;
-  final String collectionGroup;
-  final String title;
-  final List<HistoryDay>? days;
-  final bool isServant;
-  final rnd = RandomColor();
-  final Map<String, Color> usedColorsMap = {};
-
   AttendanceChart(
       {Key? key,
       required this.classes,
@@ -31,6 +22,15 @@ class AttendanceChart extends StatelessWidget {
       this.isServant = false,
       required this.title})
       : super(key: key);
+
+  final List<Class> classes;
+  final String collectionGroup;
+  final List<HistoryDay>? days;
+  final bool isServant;
+  final DateTimeRange range;
+  final rnd = RandomColor();
+  final String title;
+  final Map<String, Color> usedColorsMap = {};
 
   @override
   Widget build(BuildContext context) {
@@ -134,14 +134,6 @@ class AttendanceChart extends StatelessWidget {
 }
 
 class AttendancePercent extends StatelessWidget {
-  final String? label;
-
-  final String? attendanceLabel;
-  final String? absenseLabel;
-  final String? totalLabel;
-  final int total;
-  final int attends;
-
   const AttendancePercent({
     Key? key,
     this.label,
@@ -151,6 +143,13 @@ class AttendancePercent extends StatelessWidget {
     required this.total,
     required this.attends,
   }) : super(key: key);
+
+  final String? absenseLabel;
+  final String? attendanceLabel;
+  final int attends;
+  final String? label;
+  final int total;
+  final String? totalLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -214,18 +213,18 @@ class AttendancePercent extends StatelessWidget {
 }
 
 class ClassesAttendanceIndicator extends StatelessWidget {
-  final JsonCollectionRef collection;
-  final List<Class> classes;
-  final rnd = RandomColor();
-  final Map<String, Color> usedColorsMap = {};
-  final bool isServant;
-
   ClassesAttendanceIndicator(
       {Key? key,
       required this.collection,
       required this.classes,
       this.isServant = false})
       : super(key: key);
+
+  final List<Class> classes;
+  final JsonCollectionRef collection;
+  final bool isServant;
+  final rnd = RandomColor();
+  final Map<String, Color> usedColorsMap = {};
 
   @override
   Widget build(BuildContext context) {
@@ -323,14 +322,6 @@ class ClassesAttendanceIndicator extends StatelessWidget {
 }
 
 class PersonAttendanceIndicator extends StatelessWidget {
-  final String id;
-
-  final String collectionGroup;
-  final String? label;
-  final String? attendanceLabel;
-  final String? absenseLabel;
-  final DateTimeRange range;
-  final int total;
   const PersonAttendanceIndicator({
     Key? key,
     required this.id,
@@ -342,24 +333,13 @@ class PersonAttendanceIndicator extends StatelessWidget {
     this.absenseLabel,
   }) : super(key: key);
 
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<List<JsonQueryDoc>>(
-      stream: _getHistoryForUser(),
-      builder: (context, history) {
-        if (history.hasError) return ErrorWidget(history.error!);
-        if (!history.hasData)
-          return const Center(child: CircularProgressIndicator());
-        return AttendancePercent(
-          label: label,
-          attendanceLabel: attendanceLabel,
-          absenseLabel: absenseLabel,
-          total: total,
-          attends: history.data!.length,
-        );
-      },
-    );
-  }
+  final String? absenseLabel;
+  final String? attendanceLabel;
+  final String collectionGroup;
+  final String id;
+  final String? label;
+  final DateTimeRange range;
+  final int total;
 
   Stream<List<JsonQueryDoc>> _getHistoryForUser() {
     return Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
@@ -401,6 +381,25 @@ class PersonAttendanceIndicator extends StatelessWidget {
       }
     });
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<JsonQueryDoc>>(
+      stream: _getHistoryForUser(),
+      builder: (context, history) {
+        if (history.hasError) return ErrorWidget(history.error!);
+        if (!history.hasData)
+          return const Center(child: CircularProgressIndicator());
+        return AttendancePercent(
+          label: label,
+          attendanceLabel: attendanceLabel,
+          absenseLabel: absenseLabel,
+          total: total,
+          attends: history.data!.length,
+        );
+      },
+    );
+  }
 }
 
 class HistoryAnalysisWidget extends StatelessWidget {
@@ -414,14 +413,13 @@ class HistoryAnalysisWidget extends StatelessWidget {
     this.showUsers = true,
   }) : super(key: key);
 
-  final DateTimeRange range;
   final List<Class> classes;
   final Map<String, Class> classesByRef;
   final String collectionGroup;
-  final String title;
-  final bool showUsers;
-
+  final DateTimeRange range;
   final rnd = RandomColor();
+  final bool showUsers;
+  final String title;
   final Map<Tuple2<int, String?>, Color> usedColorsMap =
       <Tuple2<int, String?>, Color>{};
 
@@ -522,12 +520,6 @@ class HistoryAnalysisWidget extends StatelessWidget {
 }
 
 class CartesianChart<T> extends StatelessWidget {
-  final String title;
-  final DateTimeRange range;
-  final Map<Timestamp, List<T>> data;
-  final List<Class> classes;
-  final bool showMax;
-
   const CartesianChart(
       {Key? key,
       required this.classes,
@@ -536,6 +528,12 @@ class CartesianChart<T> extends StatelessWidget {
       required this.data,
       required this.title})
       : super(key: key);
+
+  final List<Class> classes;
+  final Map<Timestamp, List<T>> data;
+  final DateTimeRange range;
+  final bool showMax;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
@@ -651,9 +649,11 @@ class PieChart<T> extends StatelessWidget {
         super(key: key);
 
   final Color Function(Tuple2<int, T>, int)? pointColorMapper;
-  final int total;
-  final List<Tuple2<int, T>> pieData;
   final String? Function(T)? nameGetter;
+  final List<Tuple2<int, T>> pieData;
+  final int total;
+
+  String? _getName(T t) => nameGetter != null ? nameGetter!(t) : t?.toString();
 
   @override
   Widget build(BuildContext context) {
@@ -684,6 +684,4 @@ class PieChart<T> extends StatelessWidget {
       ),
     );
   }
-
-  String? _getName(T t) => nameGetter != null ? nameGetter!(t) : t?.toString();
 }

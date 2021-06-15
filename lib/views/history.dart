@@ -4,9 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/material.dart';
-import 'package:rxdart/rxdart.dart';
-import 'package:provider/provider.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
+import 'package:provider/provider.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../models/list_controllers.dart';
 import '../models/models.dart';

@@ -10,13 +10,13 @@ import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/order_options.dart';
 import 'package:meetinghelper/models/search_filters.dart';
+import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:meetinghelper/views/lists/users_list.dart';
 import 'package:meetinghelper/views/services_list.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 
 import '../../models/user.dart';
 

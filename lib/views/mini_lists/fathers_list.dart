@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:flutter/material.dart';
 import 'package:meetinghelper/models/mini_models.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 
 class FathersEditList extends StatefulWidget {
   final Future<JsonQuery> list;

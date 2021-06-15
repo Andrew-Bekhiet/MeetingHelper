@@ -135,6 +135,12 @@ class Updates {
 
 class _UpdateState extends State<Update> {
   @override
+  void initState() {
+    super.initState();
+    Updates.showUpdateDialog(context);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -176,11 +182,5 @@ class _UpdateState extends State<Update> {
         ),
       ),
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    Updates.showUpdateDialog(context);
   }
 }

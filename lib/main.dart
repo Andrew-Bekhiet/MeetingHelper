@@ -162,10 +162,134 @@ class App extends StatefulWidget {
 }
 
 class AppState extends State<App> {
+  bool configureMessaging = true;
   StreamSubscription<ConnectivityResult>? connection;
   StreamSubscription? userTokenListener;
 
-  bool configureMessaging = true;
+  @override
+  void dispose() {
+    connection?.cancel();
+    userTokenListener?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    connection = Connectivity()
+        .onConnectivityChanged
+        .listen((ConnectivityResult result) {
+      if (result == ConnectivityResult.mobile ||
+          result == ConnectivityResult.wifi) {
+        dataSource =
+            const firestore.GetOptions(source: firestore.Source.serverAndCache);
+        if (mainScfld.currentState?.mounted ?? false)
+          ScaffoldMessenger.of(mainScfld.currentContext!)
+              .showSnackBar(const SnackBar(
+            backgroundColor: Colors.greenAccent,
+            content: Text('تم استرجاع الاتصال بالانترنت'),
+          ));
+      } else {
+        dataSource = const firestore.GetOptions(source: firestore.Source.cache);
+
+        if (mainScfld.currentState?.mounted ?? false)
+          ScaffoldMessenger.of(mainScfld.currentContext!)
+              .showSnackBar(const SnackBar(
+            backgroundColor: Colors.redAccent,
+            content: Text('لا يوجد اتصال بالانترنت!'),
+          ));
+      }
+    });
+    setLocaleMessages('ar', ArMessages());
+  }
+
+  Widget buildLoadAppWidget(BuildContext context) {
+    return FutureBuilder<void>(
+      future: loadApp(context),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done)
+          return const Loading(
+            showVersionInfo: true,
+          );
+
+        if (snapshot.hasError && User.instance.password != null) {
+          if (snapshot.error.toString() ==
+              'Exception: Error Update User Data') {
+            WidgetsBinding.instance!.addPostFrameCallback((_) {
+              showErrorUpdateDataDialog(context: context);
+            });
+          }
+          return Loading(
+            error: true,
+            message: snapshot.error.toString(),
+            showVersionInfo: true,
+          );
+        }
+        return Consumer<User>(
+          builder: (context, user, child) {
+            if (user.uid == null) {
+              return const LoginScreen();
+            } else if (user.approved && user.password != null) {
+              return const AuthScreen(nextWidget: Root());
+            } else {
+              return const UserRegistration();
+            }
+          },
+        );
+      },
+    );
+  }
+
+  Future configureFirebaseMessaging() async {
+    if (!Hive.box('Settings')
+            .get('FCM_Token_Registered', defaultValue: false) &&
+        auth.FirebaseAuth.instance.currentUser != null) {
+      try {
+        firestore.FirebaseFirestore.instance.settings = firestore.Settings(
+          persistenceEnabled: true,
+          sslEnabled: true,
+          cacheSizeBytes: Hive.box('Settings')
+              .get('cacheSize', defaultValue: 300 * 1024 * 1024),
+        );
+        // ignore: empty_catches
+      } catch (e) {}
+      try {
+        await FirebaseFunctions.instance
+            .httpsCallable('registerFCMToken')
+            .call({'token': await FirebaseMessaging.instance.getToken()});
+        await Hive.box('Settings').put('FCM_Token_Registered', true);
+      } catch (err, stkTrace) {
+        await FirebaseCrashlytics.instance
+            .setCustomKey('LastErrorIn', 'AppState.initState');
+        await FirebaseCrashlytics.instance.recordError(err, stkTrace);
+      }
+    }
+    if (configureMessaging) {
+      FirebaseMessaging.onBackgroundMessage(onBackgroundMessage);
+      FirebaseMessaging.onMessage.listen(onForegroundMessage);
+      FirebaseMessaging.onMessageOpenedApp.listen((m) async {
+        await showPendingMessage();
+      });
+      configureMessaging = false;
+    }
+  }
+
+  Future<void> loadApp(BuildContext context) async {
+    var result = await UpdateHelper.setupRemoteConfig();
+    if (result?.getString('LoadApp') == 'false') {
+      await Updates.showUpdateDialog(context, canCancel: false);
+      throw Exception('يجب التحديث لأخر إصدار لتشغيل البرنامج');
+    } else {
+      if (User.instance.uid != null) {
+        await configureFirebaseMessaging();
+        await FirebaseCrashlytics.instance
+            .setCustomKey('UID', User.instance.uid!);
+        if (!await User.instance.userDataUpToDate()) {
+          throw Exception('Error Update User Data');
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -317,130 +441,5 @@ class AppState extends State<App> {
         },
       ),
     );
-  }
-
-  Widget buildLoadAppWidget(BuildContext context) {
-    return FutureBuilder<void>(
-      future: loadApp(context),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done)
-          return const Loading(
-            showVersionInfo: true,
-          );
-
-        if (snapshot.hasError && User.instance.password != null) {
-          if (snapshot.error.toString() ==
-              'Exception: Error Update User Data') {
-            WidgetsBinding.instance!.addPostFrameCallback((_) {
-              showErrorUpdateDataDialog(context: context);
-            });
-          }
-          return Loading(
-            error: true,
-            message: snapshot.error.toString(),
-            showVersionInfo: true,
-          );
-        }
-        return Consumer<User>(
-          builder: (context, user, child) {
-            if (user.uid == null) {
-              return const LoginScreen();
-            } else if (user.approved && user.password != null) {
-              return const AuthScreen(nextWidget: Root());
-            } else {
-              return const UserRegistration();
-            }
-          },
-        );
-      },
-    );
-  }
-
-  Future configureFirebaseMessaging() async {
-    if (!Hive.box('Settings')
-            .get('FCM_Token_Registered', defaultValue: false) &&
-        auth.FirebaseAuth.instance.currentUser != null) {
-      try {
-        firestore.FirebaseFirestore.instance.settings = firestore.Settings(
-          persistenceEnabled: true,
-          sslEnabled: true,
-          cacheSizeBytes: Hive.box('Settings')
-              .get('cacheSize', defaultValue: 300 * 1024 * 1024),
-        );
-        // ignore: empty_catches
-      } catch (e) {}
-      try {
-        await FirebaseFunctions.instance
-            .httpsCallable('registerFCMToken')
-            .call({'token': await FirebaseMessaging.instance.getToken()});
-        await Hive.box('Settings').put('FCM_Token_Registered', true);
-      } catch (err, stkTrace) {
-        await FirebaseCrashlytics.instance
-            .setCustomKey('LastErrorIn', 'AppState.initState');
-        await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-      }
-    }
-    if (configureMessaging) {
-      FirebaseMessaging.onBackgroundMessage(onBackgroundMessage);
-      FirebaseMessaging.onMessage.listen(onForegroundMessage);
-      FirebaseMessaging.onMessageOpenedApp.listen((m) async {
-        await showPendingMessage();
-      });
-      configureMessaging = false;
-    }
-  }
-
-  @override
-  void dispose() {
-    connection?.cancel();
-    userTokenListener?.cancel();
-    super.dispose();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    connection = Connectivity()
-        .onConnectivityChanged
-        .listen((ConnectivityResult result) {
-      if (result == ConnectivityResult.mobile ||
-          result == ConnectivityResult.wifi) {
-        dataSource =
-            const firestore.GetOptions(source: firestore.Source.serverAndCache);
-        if (mainScfld.currentState?.mounted ?? false)
-          ScaffoldMessenger.of(mainScfld.currentContext!)
-              .showSnackBar(const SnackBar(
-            backgroundColor: Colors.greenAccent,
-            content: Text('تم استرجاع الاتصال بالانترنت'),
-          ));
-      } else {
-        dataSource = const firestore.GetOptions(source: firestore.Source.cache);
-
-        if (mainScfld.currentState?.mounted ?? false)
-          ScaffoldMessenger.of(mainScfld.currentContext!)
-              .showSnackBar(const SnackBar(
-            backgroundColor: Colors.redAccent,
-            content: Text('لا يوجد اتصال بالانترنت!'),
-          ));
-      }
-    });
-    setLocaleMessages('ar', ArMessages());
-  }
-
-  Future<void> loadApp(BuildContext context) async {
-    var result = await UpdateHelper.setupRemoteConfig();
-    if (result?.getString('LoadApp') == 'false') {
-      await Updates.showUpdateDialog(context, canCancel: false);
-      throw Exception('يجب التحديث لأخر إصدار لتشغيل البرنامج');
-    } else {
-      if (User.instance.uid != null) {
-        await configureFirebaseMessaging();
-        await FirebaseCrashlytics.instance
-            .setCustomKey('UID', User.instance.uid!);
-        if (!await User.instance.userDataUpToDate()) {
-          throw Exception('Error Update User Data');
-        }
-      }
-    }
   }
 }

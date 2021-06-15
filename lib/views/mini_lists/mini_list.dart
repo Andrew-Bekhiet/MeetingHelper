@@ -1,6 +1,6 @@
-import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:flutter/material.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 
 class MiniList extends StatefulWidget {
   final JsonCollectionRef? parent;

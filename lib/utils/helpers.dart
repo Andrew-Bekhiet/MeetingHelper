@@ -23,9 +23,9 @@ import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data_object_widget.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/search_filters.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:meetinghelper/views/lists/lists.dart';
 import 'package:meetinghelper/views/services_list.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
@@ -1664,11 +1664,20 @@ void userTap(User user, BuildContext context) async {
 }
 
 class MessageIcon extends StatelessWidget {
-  final String? url;
   MessageIcon(this.url, {Key? key}) : super(key: key);
 
+  final String? url;
+
   Color get color => Colors.transparent;
+
   String get name => '';
+
+  Widget getPhoto(BuildContext context) {
+    return build(context);
+  }
+
+  Future<String> getSecondLine() async => '';
+
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
@@ -1704,31 +1713,26 @@ class MessageIcon extends StatelessWidget {
       ),
     );
   }
-
-  Widget getPhoto(BuildContext context) {
-    return build(context);
-  }
-
-  Future<String> getSecondLine() async => '';
 }
 
 class QueryIcon extends StatelessWidget {
   const QueryIcon({Key? key}) : super(key: key);
 
   Color get color => Colors.transparent;
-  String get name => 'نتائج بحث';
 
-  @override
-  Widget build(BuildContext context) {
-    return Icon(Icons.search,
-        size: MediaQuery.of(context).size.shortestSide / 7.2);
-  }
+  String get name => 'نتائج بحث';
 
   Widget getPhoto(BuildContext context) {
     return build(context);
   }
 
   Future<String> getSecondLine() async => '';
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(Icons.search,
+        size: MediaQuery.of(context).size.shortestSide / 7.2);
+  }
 }
 
 extension BoolComparison on bool? {

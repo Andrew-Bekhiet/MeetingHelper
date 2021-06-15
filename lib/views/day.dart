@@ -5,9 +5,9 @@ import 'package:hive/hive.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/models/user.dart';
-import 'package:meetinghelper/views/list.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
+import 'package:meetinghelper/views/list.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 

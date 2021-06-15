@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:meetinghelper/utils/globals.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
-import 'package:meetinghelper/utils/globals.dart';
 
 import '../models/user.dart';
 import '../utils/encryption_keys.dart';
