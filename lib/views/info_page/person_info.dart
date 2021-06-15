@@ -275,159 +275,153 @@ class _PersonInfoState extends State<PersonInfo> {
                   ),
                 ];
               },
-              body: Center(
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      ListTile(
-                        title: Text(person.name,
-                            style: Theme.of(context).textTheme.headline6),
-                      ),
-                      PhoneNumberProperty(
-                        'موبايل:',
-                        person.phone,
-                        (n) => _phoneCall(context, n),
-                        (n) => _contactAdd(context, n, person),
-                      ),
-                      if (widget.showMotherAndFatherPhones)
-                        PhoneNumberProperty(
-                          'موبايل (الأب):',
-                          person.fatherPhone,
-                          (n) => _phoneCall(context, n),
-                          (n) => _contactAdd(context, n, person),
-                        ),
-                      if (widget.showMotherAndFatherPhones)
-                        PhoneNumberProperty(
-                          'موبايل (الأم):',
-                          person.motherPhone,
-                          (n) => _phoneCall(context, n),
-                          (n) => _contactAdd(context, n, person),
-                        ),
-                      ...person.phones.entries
-                          .map(
-                            (e) => PhoneNumberProperty(
-                              e.key,
-                              e.value,
-                              (n) => _phoneCall(context, n),
-                              (n) => _contactAdd(context, n, person),
-                            ),
-                          )
-                          .toList(),
-                      ListTile(
-                        title: const Text('السن:'),
-                        subtitle: Row(
-                          children: <Widget>[
-                            Expanded(
-                              child: Text(toDurationString(person.birthDate,
-                                  appendSince: false)),
-                            ),
-                            Text(
-                                person.birthDate != null
-                                    ? DateFormat('yyyy/M/d').format(
-                                        person.birthDate!.toDate(),
-                                      )
-                                    : '',
-                                style: Theme.of(context).textTheme.overline),
-                          ],
-                        ),
-                      ),
-                      CopiableProperty('العنوان:', person.address),
-                      if (person.location != null &&
-                          !person.ref.path.startsWith('Deleted'))
-                        ElevatedButton.icon(
-                          icon: const Icon(Icons.map),
-                          onPressed: () => navigator.currentState!.push(
-                            MaterialPageRoute(
-                              builder: (context) => Scaffold(
-                                appBar: AppBar(title: Text(person.name)),
-                                body: person.getMapView(),
-                              ),
-                            ),
-                          ),
-                          label: const Text('إظهار على الخريطة'),
-                        ),
-                      ListTile(
-                        title: const Text('المدرسة:'),
-                        subtitle: FutureBuilder<String>(
-                          future: person.getSchoolName(),
-                          builder: (context, data) {
-                            if (data.hasData) return Text(data.data!);
-                            return const LinearProgressIndicator();
-                          },
-                        ),
-                      ),
-                      ListTile(
-                        title: const Text('الكنيسة:'),
-                        subtitle: FutureBuilder<String>(
-                          future: person.getChurchName(),
-                          builder: (context, data) {
-                            if (data.hasData) return Text(data.data!);
-                            return const LinearProgressIndicator();
-                          },
-                        ),
-                      ),
-                      ListTile(
-                        title: const Text('اب الاعتراف:'),
-                        subtitle: FutureBuilder<String>(
-                          future: person.getCFatherName(),
-                          builder: (context, data) {
-                            if (data.hasData) return Text(data.data!);
-                            return const LinearProgressIndicator();
-                          },
-                        ),
-                      ),
-                      CopiableProperty('ملاحظات', person.notes),
-                      const Divider(thickness: 1),
-                      if (!person.ref.path.startsWith('Deleted'))
-                        ElevatedButton.icon(
-                          icon: const Icon(Icons.analytics),
-                          label: const Text('احصائيات الحضور'),
-                          onPressed: () => _showAnalytics(context, person),
-                        ),
-                      DayHistoryProperty('تاريخ أخر حضور اجتماع:',
-                          person.lastMeeting, person.id, 'Meeting'),
-                      DayHistoryProperty('تاريخ أخر حضور قداس:',
-                          person.lastKodas, person.id, 'Kodas'),
-                      DayHistoryProperty('تاريخ أخر تناول:', person.lastTanawol,
-                          person.id, 'Tanawol'),
-                      TimeHistoryProperty(
-                          'تاريخ أخر اعتراف:',
-                          person.lastConfession,
-                          person.ref.collection('ConfessionHistory')),
-                      const Divider(thickness: 1),
-                      HistoryProperty('تاريخ أخر زيارة:', person.lastVisit,
-                          person.ref.collection('VisitHistory')),
-                      HistoryProperty('تاريخ أخر مكالمة:', person.lastCall,
-                          person.ref.collection('CallHistory')),
-                      EditHistoryProperty(
-                        'أخر تحديث للبيانات:',
-                        person.lastEdit,
-                        person.ref.collection('EditHistory'),
-                      ),
-                      ListTile(
-                        title: const Text('داخل فصل:'),
-                        subtitle: person.classId != null &&
-                                person.classId!.parent.id != 'null'
-                            ? FutureBuilder<Class?>(
-                                future: Class.fromId(person.classId!.id),
-                                builder: (context, _class) =>
-                                    _class.connectionState ==
-                                                ConnectionState.done &&
-                                            _class.hasData
-                                        ? DataObjectWidget<Class>(_class.data!,
-                                            isDense: true)
-                                        : _class.connectionState ==
-                                                ConnectionState.done
-                                            ? const Text('لا يمكن ايجاد الفصل')
-                                            : const LinearProgressIndicator(),
-                              )
-                            : const Text('غير موجود'),
-                      ),
-                    ],
+              body: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                children: <Widget>[
+                  ListTile(
+                    title: Text(person.name,
+                        style: Theme.of(context).textTheme.headline6),
                   ),
-                ),
+                  PhoneNumberProperty(
+                    'موبايل:',
+                    person.phone,
+                    (n) => _phoneCall(context, n),
+                    (n) => _contactAdd(context, n, person),
+                  ),
+                  if (widget.showMotherAndFatherPhones)
+                    PhoneNumberProperty(
+                      'موبايل (الأب):',
+                      person.fatherPhone,
+                      (n) => _phoneCall(context, n),
+                      (n) => _contactAdd(context, n, person),
+                    ),
+                  if (widget.showMotherAndFatherPhones)
+                    PhoneNumberProperty(
+                      'موبايل (الأم):',
+                      person.motherPhone,
+                      (n) => _phoneCall(context, n),
+                      (n) => _contactAdd(context, n, person),
+                    ),
+                  ...person.phones.entries
+                      .map(
+                        (e) => PhoneNumberProperty(
+                          e.key,
+                          e.value,
+                          (n) => _phoneCall(context, n),
+                          (n) => _contactAdd(context, n, person),
+                        ),
+                      )
+                      .toList(),
+                  ListTile(
+                    title: const Text('السن:'),
+                    subtitle: Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: Text(toDurationString(person.birthDate,
+                              appendSince: false)),
+                        ),
+                        Text(
+                            person.birthDate != null
+                                ? DateFormat('yyyy/M/d').format(
+                                    person.birthDate!.toDate(),
+                                  )
+                                : '',
+                            style: Theme.of(context).textTheme.overline),
+                      ],
+                    ),
+                  ),
+                  CopiableProperty('العنوان:', person.address),
+                  if (person.location != null &&
+                      !person.ref.path.startsWith('Deleted'))
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.map),
+                      onPressed: () => navigator.currentState!.push(
+                        MaterialPageRoute(
+                          builder: (context) => Scaffold(
+                            appBar: AppBar(title: Text(person.name)),
+                            body: person.getMapView(),
+                          ),
+                        ),
+                      ),
+                      label: const Text('إظهار على الخريطة'),
+                    ),
+                  ListTile(
+                    title: const Text('المدرسة:'),
+                    subtitle: FutureBuilder<String>(
+                      future: person.getSchoolName(),
+                      builder: (context, data) {
+                        if (data.hasData) return Text(data.data!);
+                        return const LinearProgressIndicator();
+                      },
+                    ),
+                  ),
+                  ListTile(
+                    title: const Text('الكنيسة:'),
+                    subtitle: FutureBuilder<String>(
+                      future: person.getChurchName(),
+                      builder: (context, data) {
+                        if (data.hasData) return Text(data.data!);
+                        return const LinearProgressIndicator();
+                      },
+                    ),
+                  ),
+                  ListTile(
+                    title: const Text('اب الاعتراف:'),
+                    subtitle: FutureBuilder<String>(
+                      future: person.getCFatherName(),
+                      builder: (context, data) {
+                        if (data.hasData) return Text(data.data!);
+                        return const LinearProgressIndicator();
+                      },
+                    ),
+                  ),
+                  CopiableProperty('ملاحظات', person.notes),
+                  const Divider(thickness: 1),
+                  if (!person.ref.path.startsWith('Deleted'))
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.analytics),
+                      label: const Text('احصائيات الحضور'),
+                      onPressed: () => _showAnalytics(context, person),
+                    ),
+                  DayHistoryProperty('تاريخ أخر حضور اجتماع:',
+                      person.lastMeeting, person.id, 'Meeting'),
+                  DayHistoryProperty('تاريخ أخر حضور قداس:', person.lastKodas,
+                      person.id, 'Kodas'),
+                  DayHistoryProperty('تاريخ أخر تناول:', person.lastTanawol,
+                      person.id, 'Tanawol'),
+                  TimeHistoryProperty(
+                      'تاريخ أخر اعتراف:',
+                      person.lastConfession,
+                      person.ref.collection('ConfessionHistory')),
+                  const Divider(thickness: 1),
+                  HistoryProperty('تاريخ أخر زيارة:', person.lastVisit,
+                      person.ref.collection('VisitHistory')),
+                  HistoryProperty('تاريخ أخر مكالمة:', person.lastCall,
+                      person.ref.collection('CallHistory')),
+                  EditHistoryProperty(
+                    'أخر تحديث للبيانات:',
+                    person.lastEdit,
+                    person.ref.collection('EditHistory'),
+                  ),
+                  ListTile(
+                    title: const Text('داخل فصل:'),
+                    subtitle: person.classId != null &&
+                            person.classId!.parent.id != 'null'
+                        ? FutureBuilder<Class?>(
+                            future: Class.fromId(person.classId!.id),
+                            builder: (context, _class) => _class
+                                            .connectionState ==
+                                        ConnectionState.done &&
+                                    _class.hasData
+                                ? DataObjectWidget<Class>(_class.data!,
+                                    isDense: true)
+                                : _class.connectionState == ConnectionState.done
+                                    ? const Text('لا يمكن ايجاد الفصل')
+                                    : const LinearProgressIndicator(),
+                          )
+                        : const Text('غير موجود'),
+                  ),
+                ],
               ),
             ),
             floatingActionButton: permission! &&
