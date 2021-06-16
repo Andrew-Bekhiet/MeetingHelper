@@ -1510,17 +1510,17 @@ class _RootState extends State<Root>
     initializeDateFormatting('ar_EG', null);
     _usersOptions = DataObjectListController<User>(
       searchQuery: _searchQuery,
-      tap: (p) => personTap(p, context),
+      tap: personTap,
       itemsStream: User.getAllForUser(),
     );
     _servicesOptions = ServicesListController(
       searchQuery: _searchQuery,
       itemsStream: classesByStudyYearRef(),
-      tap: (c) => classTap(c, context),
+      tap: classTap,
     );
     _personsOptions = DataObjectListController<Person>(
       searchQuery: _searchQuery,
-      tap: (p) => personTap(p, context),
+      tap: personTap,
       //Listen to Ordering options and combine it
       //with the Data Stream from Firestore
       itemsStream: _personsOrder.switchMap(
@@ -1583,7 +1583,7 @@ class _RootState extends State<Root>
         if (dynamicLink == null) return;
         Uri deepLink = dynamicLink.link;
 
-        await processLink(deepLink, context);
+        await processLink(deepLink);
       },
       onError: (e) async {
         debugPrint('DynamicLinks onError $e');
@@ -1591,7 +1591,7 @@ class _RootState extends State<Root>
     );
     if (data == null) return;
     Uri deepLink = data.link;
-    await processLink(deepLink, context);
+    await processLink(deepLink);
   }
 
   void showPendingUIDialogs() async {

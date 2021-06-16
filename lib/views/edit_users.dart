@@ -78,7 +78,7 @@ class _UsersPageState extends State<UsersPage> {
 
     _listOptions = DataObjectListController<User>(
       itemsStream: User.getAllForUserForEdit(),
-      tap: (u) => userTap(u, context),
+      tap: userTap,
     );
   }
 }

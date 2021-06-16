@@ -171,7 +171,7 @@ class _ServicesListState extends State<ServicesList>
                               onTap: () {
                                 if (!widget.options.selectionModeLatest) {
                                   widget.options.tap == null
-                                      ? dataObjectTap(c, context)
+                                      ? dataObjectTap(c)
                                       : widget.options.tap!(c);
                                 } else {
                                   widget.options.toggleSelected(c);
@@ -238,7 +238,7 @@ class _ServicesListState extends State<ServicesList>
                   onTap: () {
                     if (!widget.options.selectionModeLatest) {
                       widget.options.tap == null
-                          ? dataObjectTap(services.data![element]![0], context)
+                          ? dataObjectTap(services.data![element]![0])
                           : widget.options.tap!(services.data![element]![0]);
                     } else {
                       widget.options

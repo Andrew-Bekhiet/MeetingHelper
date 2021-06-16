@@ -85,7 +85,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
               onTap: (T current) {
                 if (!_listOptions.selectionMode.value) {
                   _listOptions.tap == null
-                      ? dataObjectTap(current, context)
+                      ? dataObjectTap(current)
                       : _listOptions.tap!(current);
                 } else {
                   _listOptions.toggleSelected(current);
@@ -397,8 +397,7 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
                         IconButton(
                           onPressed: () {
                             classTap(
-                                groupedData.data!.values.elementAt(i).item1,
-                                context);
+                                groupedData.data!.values.elementAt(i).item1);
                           },
                           icon: const Icon(Icons.info_outlined),
                         ),
@@ -464,7 +463,7 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
         onTap: (T current) async {
           if (!_listOptions.dayOptions.enabled.value) {
             _listOptions.tap == null
-                ? dataObjectTap(current, context)
+                ? dataObjectTap(current)
                 : _listOptions.tap!(current);
           } else {
             if (!_listOptions.dayOptions.lockUnchecks.value) {
@@ -638,7 +637,7 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
               TextButton(
                 onPressed: () {
                   navigator.currentState!.pop();
-                  dataObjectTap(current, context);
+                  dataObjectTap(current);
                 },
                 child: Text('عرض بيانات ' + current.name),
               ),

@@ -78,7 +78,7 @@ class _UserInfoState extends State<UserInfo> {
                   IconButton(
                     icon: const Icon(Icons.info),
                     onPressed: () {
-                      personTap(user, context);
+                      personTap(user);
                     },
                     tooltip: 'بيانات المستخدم',
                   ),
@@ -265,7 +265,7 @@ class _UserInfoState extends State<UserInfo> {
                           Expanded(
                             child: ServicesList(
                               options: ServicesListController(
-                                tap: (c) => classTap(c, context),
+                                tap: classTap,
                                 itemsStream: user.superAccess
                                     ? classesByStudyYearRef()
                                     : classesByStudyYearRefForUser(user.uid),

@@ -43,8 +43,7 @@ class FilterButton extends StatelessWidget {
               if (!disableOrdering)
                 const Text('ترتيب حسب:',
                     style: TextStyle(fontWeight: FontWeight.bold)),
-              if (!disableOrdering)
-                ...getOrderingOptions(context, orderOptions!, index)
+              if (!disableOrdering) ...getOrderingOptions(orderOptions!, index)
             ],
           ),
         );

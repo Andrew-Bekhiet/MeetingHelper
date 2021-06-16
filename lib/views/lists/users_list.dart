@@ -79,7 +79,7 @@ class _UsersListState extends State<UsersList> {
                   ),
                   onTap: () {
                     if (_class.id != 'null' && _class.id != 'unknown')
-                      classTap(_class, context);
+                      classTap(_class);
                   },
                 );
               },
@@ -102,7 +102,7 @@ class _UsersListState extends State<UsersList> {
                     onTap: (User current) {
                       if (!_listOptions.selectionMode.value) {
                         _listOptions.tap == null
-                            ? dataObjectTap(current, context)
+                            ? dataObjectTap(current)
                             : _listOptions.tap!(current);
                       } else {
                         _listOptions.toggleSelected(current);

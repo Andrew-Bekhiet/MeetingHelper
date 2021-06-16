@@ -206,8 +206,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                             icon: const Icon(Icons.list_alt),
                             tooltip: 'اختيار الفصول',
                             onPressed: () async {
-                              final rslt =
-                                  await selectClasses(context, classes);
+                              final rslt = await selectClasses(classes);
                               if (rslt != null && rslt.isNotEmpty)
                                 setState(() => classes = rslt);
                               else if (rslt!.isNotEmpty)
@@ -611,8 +610,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                 icon: const Icon(Icons.list_alt),
                                 tooltip: 'اختيار الفصول',
                                 onPressed: () async {
-                                  final rslt =
-                                      await selectClasses(context, classes);
+                                  final rslt = await selectClasses(classes);
                                   if (rslt != null && rslt.isNotEmpty) {
                                     _sourceChanged = true;
                                     setState(() => classes = rslt);

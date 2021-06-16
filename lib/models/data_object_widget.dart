@@ -39,7 +39,7 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
       tileColor: wrapInCard ? null : _getColor(context),
       dense: isDense,
       onLongPress: onLongPress,
-      onTap: onTap ?? () => dataObjectTap(current, context),
+      onTap: onTap ?? () => dataObjectTap(current),
       trailing: trailing,
       title: title ?? Text(current.name),
       subtitle: showSubTitle

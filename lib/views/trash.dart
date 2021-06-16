@@ -292,7 +292,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
     WidgetsBinding.instance!.addObserver(this);
     _classesOptions = DataObjectListController<Class>(
       searchQuery: _searchQuery,
-      tap: (c) => classTap(c, context),
+      tap: classTap,
       itemsStream: (User.instance.superAccess
               ? widget.day.ref.collection('Classes').snapshots()
               : FirebaseFirestore.instance
@@ -305,7 +305,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
     );
     _personsOptions = DataObjectListController<Person>(
       searchQuery: _searchQuery,
-      tap: (p) => personTap(p, context),
+      tap: personTap,
       itemsStream:
           Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
               User.instance.stream,

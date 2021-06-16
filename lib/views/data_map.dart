@@ -67,7 +67,7 @@ class MegaMap extends StatelessWidget {
                                     : f.color,
                                 action: SnackBarAction(
                                   label: 'فتح',
-                                  onPressed: () => personTap(f, context),
+                                  onPressed: () => personTap(f),
                                 ),
                               ),
                             );
@@ -178,7 +178,7 @@ class _DataMapState extends State<DataMap> {
                     tooltip: 'اظهار/اخفاء فصول',
                     onPressed: () async {
                       var rslt = await selectClasses(
-                          context, context.read<SelectedClasses>().selected);
+                          context.read<SelectedClasses>().selected);
                       if (rslt?.isEmpty ?? false)
                         await showDialog(
                           context: context,

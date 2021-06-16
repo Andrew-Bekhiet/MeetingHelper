@@ -49,8 +49,8 @@ class Notification extends StatelessWidget {
               maxLines: content!.contains('تم تغيير موقع') ? null : 1,
             ),
             onTap: () => from == null
-                ? processLink(Uri.parse(attachement!), context)
-                : showMessage(context, this),
+                ? processLink(Uri.parse(attachement!))
+                : showMessage(this),
             onLongPress: longPress,
           ),
         );

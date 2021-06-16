@@ -45,7 +45,7 @@ class _ClassInfoState extends State<ClassInfo> {
   void initState() {
     super.initState();
     _listOptions = DataObjectListController<Person>(
-      tap: (p) => personTap(p, context),
+      tap: personTap,
       itemsStream: _orderOptions.switchMap(
         (order) => widget.class$!.getMembersLive(
             orderBy: order.orderBy ?? 'Name', descending: !order.asc!),

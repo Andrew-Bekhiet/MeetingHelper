@@ -166,17 +166,17 @@ Stream<Map<StudyYear, List<Class>>> classesByStudyYearRefForUser(String? uid) {
   );
 }
 
-void classTap(Class? _class, BuildContext context) {
+void classTap(Class? _class) {
   navigator.currentState!.pushNamed('ClassInfo', arguments: _class);
 }
 
-void dataObjectTap(DataObject? obj, BuildContext context) {
+void dataObjectTap(DataObject? obj) {
   if (obj is Class)
-    classTap(obj, context);
+    classTap(obj);
   else if (obj is Person)
-    personTap(obj, context);
+    personTap(obj);
   else if (obj is User)
-    userTap(obj, context);
+    userTap(obj);
   else
     throw UnimplementedError();
 }
@@ -208,7 +208,7 @@ Future<dynamic> getLinkObject(Uri deepLink) async {
   return null;
 }
 
-List<RadioListTile> getOrderingOptions(BuildContext context,
+List<RadioListTile> getOrderingOptions(
     BehaviorSubject<OrderOptions> orderOptions, int? index) {
   return (index == 0
           ? Class.getHumanReadableMap2()
@@ -528,7 +528,7 @@ Stream<Map<JsonRef, Tuple2<Class, List<Person>>>> personsByClassRef(
   });
 }
 
-void personTap(Person? person, BuildContext context) {
+void personTap(Person? person) {
   navigator.currentState!.pushNamed('PersonInfo', arguments: person);
 }
 
@@ -661,23 +661,19 @@ Future<void> processClickedNotification(BuildContext? context,
   }
 }
 
-Future<void> processLink(Uri? deepLink, BuildContext context) async {
+Future<void> processLink(Uri? deepLink) async {
   try {
     if (deepLink != null &&
         deepLink.pathSegments.isNotEmpty &&
         deepLink.queryParameters.isNotEmpty) {
       if (deepLink.pathSegments[0] == 'viewClass') {
-        classTap(
-            Class.fromDoc(await FirebaseFirestore.instance
-                .doc('Classes/${deepLink.queryParameters['ClassId']}')
-                .get()),
-            context);
+        classTap(Class.fromDoc(await FirebaseFirestore.instance
+            .doc('Classes/${deepLink.queryParameters['ClassId']}')
+            .get()));
       } else if (deepLink.pathSegments[0] == 'viewPerson') {
-        personTap(
-            Person.fromDoc(await FirebaseFirestore.instance
-                .doc('Persons/${deepLink.queryParameters['PersonId']}')
-                .get()),
-            context);
+        personTap(Person.fromDoc(await FirebaseFirestore.instance
+            .doc('Persons/${deepLink.queryParameters['PersonId']}')
+            .get()));
       } else if (deepLink.pathSegments[0] == 'viewQuery') {
         await navigator.currentState!.push(
           MaterialPageRoute(
@@ -688,20 +684,22 @@ Future<void> processLink(Uri? deepLink, BuildContext context) async {
         );
       } else if (deepLink.pathSegments[0] == 'viewUser') {
         if (User.instance.manageUsers) {
-          userTap(await User.fromID(deepLink.queryParameters['UID']), context);
+          userTap(await User.fromID(deepLink.queryParameters['UID']));
         } else {
-          await showErrorDialog(
-              context, 'ليس لديك الصلاحية لرؤية محتويات الرابط!');
+          await showErrorDialog(navigator.currentContext!,
+              'ليس لديك الصلاحية لرؤية محتويات الرابط!');
         }
       }
     } else {
-      await showErrorDialog(context, 'رابط غير صالح!');
+      await showErrorDialog(navigator.currentContext!, 'رابط غير صالح!');
     }
   } catch (err) {
     if (err.toString().contains('PERMISSION_DENIED')) {
-      await showErrorDialog(context, 'ليس لديك الصلاحية لرؤية محتويات الرابط!');
+      await showErrorDialog(
+          navigator.currentContext!, 'ليس لديك الصلاحية لرؤية محتويات الرابط!');
     } else {
-      await showErrorDialog(context, 'حدث خطأ! أثناء قراءة محتويات الرابط');
+      await showErrorDialog(
+          navigator.currentContext!, 'حدث خطأ! أثناء قراءة محتويات الرابط');
     }
   }
 }
@@ -1094,8 +1092,7 @@ void showBirthDayNotification() async {
         payload: 'Birthday');
 }
 
-Future<List<Class>?> selectClasses(
-    BuildContext context, List<Class>? classes) async {
+Future<List<Class>?> selectClasses(List<Class>? classes) async {
   final _controller = ServicesListController(
     itemsStream: classesByStudyYearRef(),
     selectionMode: true,
@@ -1404,8 +1401,7 @@ void showMeetingNotification() async {
         payload: 'Meeting');
 }
 
-Future<void> showMessage(
-    BuildContext context, no.Notification notification) async {
+Future<void> showMessage(no.Notification notification) async {
   final attachement = await getLinkObject(
     Uri.parse(notification.attachement!),
   );
@@ -1416,7 +1412,7 @@ Future<void> showMessage(
           .get(dataSource)
       : null;
   await showDialog(
-    context: context,
+    context: navigator.currentContext!,
     builder: (context) => AlertDialog(
       title: Text(notification.title!),
       content: SizedBox(
@@ -1443,11 +1439,11 @@ Future<void> showMessage(
                       : attachement.photo(),
                   onTap: () {
                     if (attachement is Class) {
-                      classTap(attachement, context);
+                      classTap(attachement);
                     } else if (attachement is Person) {
-                      personTap(attachement, context);
+                      personTap(attachement);
                     } else if (attachement is User) {
-                      userTap(attachement, context);
+                      userTap(attachement);
                     }
                   },
                 ),
@@ -1472,20 +1468,17 @@ Future<void> showMessage(
   );
 }
 
-Future<void> showPendingMessage([BuildContext? context]) async {
-  context ??= mainScfld.currentContext;
+Future<void> showPendingMessage() async {
   final pendingMessage = await FirebaseMessaging.instance.getInitialMessage();
   if (pendingMessage != null) {
     // ignore: unawaited_futures
     navigator.currentState!.pushNamed('Notifications');
     if (pendingMessage.data['type'] == 'Message')
       await showMessage(
-        context!,
         no.Notification.fromMessage(pendingMessage.data),
       );
     else
-      await processLink(
-          Uri.parse(pendingMessage.data['attachement']), context!);
+      await processLink(Uri.parse(pendingMessage.data['attachement']));
   }
 }
 
@@ -1573,12 +1566,12 @@ Timestamp tranucateToDay({DateTime? time}) {
   );
 }
 
-void userTap(User user, BuildContext context) async {
+void userTap(User user) async {
   if (user.approved) {
     await navigator.currentState!.pushNamed('UserInfo', arguments: user);
   } else {
     dynamic rslt = await showDialog(
-        context: context,
+        context: navigator.currentContext!,
         builder: (context) => AlertDialog(
               actions: <Widget>[
                 TextButton.icon(
@@ -1623,7 +1616,7 @@ void userTap(User user, BuildContext context) async {
           ..approved = true
           // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
           ..notifyListeners();
-        userTap(user, context);
+        userTap(user);
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
         scaffoldMessenger.currentState!.showSnackBar(
           const SnackBar(

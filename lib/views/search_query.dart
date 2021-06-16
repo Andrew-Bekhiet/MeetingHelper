@@ -787,7 +787,7 @@ class _SearchQueryState extends State<SearchQuery> {
           body = DataObjectList<Class>(
             disposeController: false,
             options: DataObjectListController<Class>(
-              tap: (c) => classTap(c, context),
+              tap: classTap,
               itemsStream: classes
                   .where(childItems[parentIndex!][childIndex].value.value,
                       isEqualTo: queryValue,
@@ -802,7 +802,7 @@ class _SearchQueryState extends State<SearchQuery> {
           body = DataObjectList<Person>(
             disposeController: false,
             options: DataObjectListController<Person>(
-              tap: (p) => personTap(p, context),
+              tap: personTap,
               itemsStream: fewClasses
                   ? persons
                       .where('BirthDay',
@@ -860,7 +860,7 @@ class _SearchQueryState extends State<SearchQuery> {
         body = DataObjectList<Person>(
           disposeController: false,
           options: DataObjectListController<Person>(
-            tap: (p) => personTap(p, context),
+            tap: personTap,
             itemsStream: fewClasses
                 ? persons
                     .where(childItems[parentIndex!][childIndex].value.value,
@@ -896,7 +896,7 @@ class _SearchQueryState extends State<SearchQuery> {
           body = DataObjectList<Class>(
             disposeController: false,
             options: DataObjectListController<Class>(
-              tap: (c) => classTap(c, context),
+              tap: classTap,
               itemsStream: classes
                   .where(childItems[parentIndex!][childIndex].value.value,
                       arrayContains: queryValue)
@@ -910,7 +910,7 @@ class _SearchQueryState extends State<SearchQuery> {
           body = DataObjectList<Person>(
             disposeController: false,
             options: DataObjectListController<Person>(
-              tap: (p) => personTap(p, context),
+              tap: personTap,
               itemsStream: fewClasses
                   ? persons
                       .where('BirthDay',
@@ -950,7 +950,7 @@ class _SearchQueryState extends State<SearchQuery> {
         body = DataObjectList<Person>(
           disposeController: false,
           options: DataObjectListController<Person>(
-            tap: (p) => personTap(p, context),
+            tap: personTap,
             itemsStream: fewClasses
                 ? persons
                     .where(childItems[parentIndex!][childIndex].value.value,
@@ -979,7 +979,7 @@ class _SearchQueryState extends State<SearchQuery> {
           body = DataObjectList<Class>(
             disposeController: false,
             options: DataObjectListController<Class>(
-                tap: (c) => classTap(c, context),
+                tap: classTap,
                 itemsStream: classes
                     .where(childItems[parentIndex!][childIndex].value.value,
                         isGreaterThanOrEqualTo: queryValue)
@@ -992,7 +992,7 @@ class _SearchQueryState extends State<SearchQuery> {
           body = DataObjectList<Person>(
             disposeController: false,
             options: DataObjectListController<Person>(
-              tap: (p) => personTap(p, context),
+              tap: personTap,
               itemsStream: fewClasses
                   ? persons
                       .where('BirthDay',
@@ -1030,7 +1030,7 @@ class _SearchQueryState extends State<SearchQuery> {
         body = DataObjectList<Person>(
           disposeController: false,
           options: DataObjectListController<Person>(
-            tap: (p) => personTap(p, context),
+            tap: personTap,
             itemsStream: fewClasses
                 ? persons
                     .where(childItems[parentIndex!][childIndex].value.value,
@@ -1059,7 +1059,7 @@ class _SearchQueryState extends State<SearchQuery> {
           body = DataObjectList<Class>(
             disposeController: false,
             options: DataObjectListController<Class>(
-              tap: (c) => classTap(c, context),
+              tap: classTap,
               itemsStream: classes
                   .where(childItems[parentIndex!][childIndex].value.value,
                       isLessThanOrEqualTo: queryValue)
@@ -1073,7 +1073,7 @@ class _SearchQueryState extends State<SearchQuery> {
           body = DataObjectList<Person>(
             disposeController: false,
             options: DataObjectListController<Person>(
-              tap: (p) => personTap(p, context),
+              tap: personTap,
               itemsStream: fewClasses
                   ? persons
                       .where('BirthDay',
@@ -1113,7 +1113,7 @@ class _SearchQueryState extends State<SearchQuery> {
         body = DataObjectList<Person>(
           disposeController: false,
           options: DataObjectListController<Person>(
-            tap: (p) => personTap(p, context),
+            tap: personTap,
             itemsStream: fewClasses
                 ? persons
                     .where(childItems[parentIndex!][childIndex].value.value,
