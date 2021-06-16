@@ -89,7 +89,7 @@ android {
             shrinkResources true
         }
         release {
-            defaultConfig.minSdkVersion 19
+            defaultConfig.minSdkVersion 20
             signingConfig signingConfigs.release
             minifyEnabled true
             shrinkResources true
