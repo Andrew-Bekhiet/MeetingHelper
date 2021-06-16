@@ -181,8 +181,18 @@ class _ClassInfoState extends State<ClassInfo> {
                                             content: Text('تم الحفظ بنجاح'),
                                           ),
                                         );
-                                      } else if (result == 'deleted')
+                                      } else if (result == 'deleted') {
+                                        scaffoldMessenger.currentState!
+                                            .hideCurrentSnackBar();
+                                        scaffoldMessenger.currentState!
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text('تم الحذف بنجاح'),
+                                            duration: Duration(seconds: 2),
+                                          ),
+                                        );
                                         navigator.currentState!.pop();
+                                      }
                                     },
                                     tooltip: 'تعديل',
                                   )
