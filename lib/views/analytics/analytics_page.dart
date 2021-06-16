@@ -628,6 +628,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                               ),
                             ),
                             if (_isOneDay && days!.isNotEmpty) ...[
+                              Text('حضور الاجتماع',
+                                  style: Theme.of(context).textTheme.headline6),
                               ClassesAttendanceIndicator(
                                 classes: classes ?? [],
                                 collection: days.first.meeting,
@@ -635,6 +637,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                     'ServantsHistory',
                               ),
                               const Divider(),
+                              Text('حضور القداس',
+                                  style: Theme.of(context).textTheme.headline6),
                               ClassesAttendanceIndicator(
                                 classes: classes ?? [],
                                 collection: days.first.kodas,
@@ -642,6 +646,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                     'ServantsHistory',
                               ),
                               const Divider(),
+                              Text('التناول',
+                                  style: Theme.of(context).textTheme.headline6),
                               ClassesAttendanceIndicator(
                                 classes: classes ?? [],
                                 collection: days.first.tanawol,

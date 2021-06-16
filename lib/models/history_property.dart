@@ -348,7 +348,6 @@ class DayHistoryProperty extends StatelessWidget {
           showDialog(
             context: context,
             builder: (context) => Dialog(
-              // title: const Text('السجل'),
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               child: StreamBuilder<List<HistoryRecord>>(
                 stream: FirebaseFirestore.instance

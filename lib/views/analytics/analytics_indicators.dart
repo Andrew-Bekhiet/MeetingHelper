@@ -158,8 +158,9 @@ class AttendancePercent extends StatelessWidget {
       children: [
         CircularPercentIndicator(
           header: label != null
-              ? ListTile(
-                  title: Text(label!),
+              ? Center(
+                  child: Text(label!,
+                      style: Theme.of(context).textTheme.headline6),
                 )
               : null,
           radius: 160.0,
@@ -460,7 +461,7 @@ class HistoryAnalysisWidget extends StatelessWidget {
               showMax: false,
             ),
             ListTile(
-              title: Text('تحليل ' + title + ' لكل فصل'),
+              title: Center(child: Text('تحليل ' + title + ' لكل فصل')),
             ),
             PieChart<String?>(
               total: data.length,
@@ -482,7 +483,7 @@ class HistoryAnalysisWidget extends StatelessWidget {
             ),
             if (showUsers)
               ListTile(
-                title: Text('تحليل ' + title + ' لكل خادم'),
+                title: Center(child: Text('تحليل ' + title + ' لكل خادم')),
               ),
             if (showUsers)
               FutureBuilder<List<User>>(
@@ -560,77 +561,89 @@ class CartesianChart<T> extends StatelessWidget {
           if (!persons.hasData && showMax)
             return const Center(child: CircularProgressIndicator.adaptive());
 
-          return Directionality(
-            textDirection: TextDirection.ltr,
-            child: SfCartesianChart(
-              title: ChartTitle(text: title),
-              enableAxisAnimation: true,
-              primaryYAxis: NumericAxis(
-                  decimalPlaces: 0, maximum: persons.data?.length.toDouble()),
-              primaryXAxis: DateTimeAxis(
-                minimum: range.start.subtract(const Duration(hours: 4)),
-                maximum: range.end.add(const Duration(hours: 4)),
-                dateFormat: intl.DateFormat('yyy/M/d', 'ar-EG'),
-                intervalType: DateTimeIntervalType.days,
-                labelRotation: 90,
-                desiredIntervals: data.keys.length > 25 ? 25 : data.keys.length,
-              ),
-              tooltipBehavior: TooltipBehavior(
-                enable: true,
-                duration: 5000,
-                tooltipPosition: TooltipPosition.pointer,
-                builder: (data, point, series, pointIndex, seriesIndex) {
-                  return Container(
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[400],
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(6.0)),
-                    ),
-                    height: 120,
-                    width: 90,
-                    padding: const EdgeInsets.symmetric(horizontal: 5),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(intl.DateFormat('yyy/M/d', 'ar-EG')
-                            .format(data.key.toDate())),
-                        Text(
-                          data.value.length.toString(),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-              zoomPanBehavior: ZoomPanBehavior(
-                enablePinching: true,
-                enablePanning: true,
-                enableDoubleTapZooming: true,
-              ),
-              series: [
-                StackedAreaSeries<MapEntry<Timestamp, List<T>>, DateTime>(
-                  markerSettings: const MarkerSettings(isVisible: true),
-                  borderGradient: LinearGradient(
-                    colors: [
-                      Colors.amber[300]!.withOpacity(0.5),
-                      Colors.amber[800]!.withOpacity(0.5)
-                    ],
-                  ),
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.amber[300]!.withOpacity(0.5),
-                      Colors.amber[800]!.withOpacity(0.5)
-                    ],
-                  ),
-                  borderWidth: 2,
-                  dataSource: data.entries.toList(),
-                  xValueMapper: (item, index) => item.key.toDate().toUtc(),
-                  yValueMapper: (item, index) => item.value.length,
-                  name: title,
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.headline6,
                 ),
-              ],
-            ),
+              ),
+              Directionality(
+                textDirection: TextDirection.ltr,
+                child: SfCartesianChart(
+                  enableAxisAnimation: true,
+                  primaryYAxis: NumericAxis(
+                      decimalPlaces: 0,
+                      maximum: persons.data?.length.toDouble()),
+                  primaryXAxis: DateTimeAxis(
+                    minimum: range.start.subtract(const Duration(hours: 4)),
+                    maximum: range.end.add(const Duration(hours: 4)),
+                    dateFormat: intl.DateFormat('yyy/M/d', 'ar-EG'),
+                    intervalType: DateTimeIntervalType.days,
+                    labelRotation: 90,
+                    desiredIntervals:
+                        data.keys.length > 25 ? 25 : data.keys.length,
+                  ),
+                  tooltipBehavior: TooltipBehavior(
+                    enable: true,
+                    duration: 5000,
+                    tooltipPosition: TooltipPosition.pointer,
+                    builder: (data, point, series, pointIndex, seriesIndex) {
+                      return Container(
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[400],
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(6.0)),
+                        ),
+                        height: 120,
+                        width: 90,
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(intl.DateFormat('yyy/M/d', 'ar-EG')
+                                .format(data.key.toDate())),
+                            Text(
+                              data.value.length.toString(),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  zoomPanBehavior: ZoomPanBehavior(
+                    enablePinching: true,
+                    enablePanning: true,
+                    enableDoubleTapZooming: true,
+                  ),
+                  series: [
+                    StackedAreaSeries<MapEntry<Timestamp, List<T>>, DateTime>(
+                      markerSettings: const MarkerSettings(isVisible: true),
+                      borderGradient: LinearGradient(
+                        colors: [
+                          Colors.amber[300]!.withOpacity(0.5),
+                          Colors.amber[800]!.withOpacity(0.5)
+                        ],
+                      ),
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.amber[300]!.withOpacity(0.5),
+                          Colors.amber[800]!.withOpacity(0.5)
+                        ],
+                      ),
+                      borderWidth: 2,
+                      dataSource: data.entries.toList(),
+                      xValueMapper: (item, index) => item.key.toDate().toUtc(),
+                      yValueMapper: (item, index) => item.value.length,
+                      name: title,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           );
         },
       ),
@@ -664,8 +677,10 @@ class PieChart<T> extends StatelessWidget {
         legend: Legend(
           isVisible: true,
           position: LegendPosition.bottom,
-          overflowMode: LegendItemOverflowMode.wrap,
-          isResponsive: false,
+          overflowMode: LegendItemOverflowMode.scroll,
+          orientation: LegendItemOrientation.vertical,
+          isResponsive: true,
+          alignment: ChartAlignment.center,
         ),
         series: [
           PieSeries<Tuple2<int, T>, String>(
@@ -677,7 +692,7 @@ class PieChart<T> extends StatelessWidget {
                   (entry.item1 / total * 100).toStringAsFixed(2) +
                   '%',
               pointColorMapper: pointColorMapper,
-              dataSource: pieData,
+              dataSource: pieData.sorted((n, o) => o.item1.compareTo(n.item1)),
               xValueMapper: (entry, _) => _getName(entry.item2) ?? 'غير معروف',
               yValueMapper: (entry, _) => entry.item1),
         ],
