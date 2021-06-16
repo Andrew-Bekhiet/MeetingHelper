@@ -346,7 +346,7 @@ class _ClassInfoState extends State<ClassInfo> {
                         child: Text(class$.name,
                             style: const TextStyle(fontSize: 16.0)),
                       ),
-                      background: class$.photo(),
+                      background: class$.photo(cropToCircle: false),
                     ),
                   ),
                 ),

@@ -95,7 +95,7 @@ class _EditClassState extends State<EditClass> {
                         )),
                   ),
                   background: changedImage == null || deletePhoto
-                      ? class$.photo()
+                      ? class$.photo(cropToCircle: false)
                       : PhotoView(
                           imageProvider: FileImage(File(changedImage!))),
                 ),

@@ -280,7 +280,7 @@ class _PersonInfoState extends State<PersonInfo> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        background: person.photo(),
+                        background: person.photo(cropToCircle: false),
                       ),
                     ),
                   ),

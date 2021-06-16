@@ -107,7 +107,7 @@ class _EditPersonState extends State<EditPerson> {
                     ),
                   ),
                   background: changedImage == null
-                      ? person.photo()
+                      ? person.photo(cropToCircle: false)
                       : Image.file(
                           File(changedImage!),
                         ),
