@@ -13,6 +13,7 @@ import 'package:meetinghelper/models/data_object_widget.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
+import 'package:meetinghelper/views/form_widgets/decorated_text_form_field.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
@@ -48,79 +49,29 @@ class _EditClassState extends State<EditClass> {
           return <Widget>[
             SliverAppBar(
               actions: <Widget>[
+                if (class$.id != 'null')
+                  IconButton(
+                    onPressed: _delete,
+                    icon: const Icon(Icons.delete),
+                    tooltip: 'حذف',
+                  ),
                 IconButton(
-                    icon: Builder(
-                      builder: (context) => Stack(
-                        children: <Widget>[
-                          const Positioned(
-                            left: 1.0,
-                            top: 2.0,
-                            child:
-                                Icon(Icons.photo_camera, color: Colors.black54),
-                          ),
-                          Icon(Icons.photo_camera,
-                              color: IconTheme.of(context).color),
-                        ],
-                      ),
+                  icon: Builder(
+                    builder: (context) => Stack(
+                      children: <Widget>[
+                        const Positioned(
+                          left: 1.0,
+                          top: 2.0,
+                          child:
+                              Icon(Icons.photo_camera, color: Colors.black54),
+                        ),
+                        Icon(Icons.photo_camera,
+                            color: IconTheme.of(context).color),
+                      ],
                     ),
-                    onPressed: () async {
-                      var source = await showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                                actions: <Widget>[
-                                  TextButton.icon(
-                                    onPressed: () =>
-                                        navigator.currentState!.pop(true),
-                                    icon: const Icon(Icons.camera),
-                                    label:
-                                        const Text('التقاط صورة من الكاميرا'),
-                                  ),
-                                  TextButton.icon(
-                                    onPressed: () =>
-                                        navigator.currentState!.pop(false),
-                                    icon: const Icon(Icons.photo_library),
-                                    label: const Text('اختيار من المعرض'),
-                                  ),
-                                  TextButton.icon(
-                                    onPressed: () =>
-                                        navigator.currentState!.pop('delete'),
-                                    icon: const Icon(Icons.delete),
-                                    label: const Text('حذف الصورة'),
-                                  ),
-                                ],
-                              ));
-                      if (source == null) return;
-                      if (source == 'delete') {
-                        changedImage = null;
-                        deletePhoto = true;
-                        class$.hasPhoto = false;
-                        setState(() {});
-                        return;
-                      }
-                      if ((source &&
-                              !(await Permission.storage.request())
-                                  .isGranted) ||
-                          !(await Permission.camera.request()).isGranted) {
-                        return;
-                      }
-                      var selectedImage = await ImagePicker().getImage(
-                          source: source
-                              ? ImageSource.camera
-                              : ImageSource.gallery);
-                      if (selectedImage == null) return;
-                      changedImage = (await ImageCropper.cropImage(
-                              sourcePath: selectedImage.path,
-                              cropStyle: CropStyle.circle,
-                              androidUiSettings: AndroidUiSettings(
-                                  toolbarTitle: 'قص الصورة',
-                                  toolbarColor: Theme.of(context).primaryColor,
-                                  initAspectRatio:
-                                      CropAspectRatioPreset.original,
-                                  lockAspectRatio: false)))
-                          ?.path;
-                      deletePhoto = false;
-                      setState(() {});
-                    })
+                  ),
+                  onPressed: _selectImage,
+                )
               ],
               backgroundColor: class$.color != Colors.transparent
                   ? (Theme.of(context).brightness == Brightness.light
@@ -155,33 +106,15 @@ class _EditClassState extends State<EditClass> {
         body: Form(
           key: form,
           child: Padding(
-            padding: const EdgeInsets.all(5),
+            padding: const EdgeInsets.all(8),
             child: SingleChildScrollView(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: TextFormField(
-                      decoration: InputDecoration(
-                          labelText: 'اسم الفصل',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
-                          )),
-                      textInputAction: TextInputAction.next,
-                      onFieldSubmitted: (_) =>
-                          FocusScope.of(context).nextFocus(),
-                      initialValue: class$.name,
-                      onChanged: nameChanged,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'هذا الحقل مطلوب';
-                        }
-                        return null;
-                      },
-                    ),
+                  DecoratedTextFormField(
+                    labelText: 'اسم الفصل',
+                    initialValue: class$.name,
+                    onChanged: (v) => class$.name = v,
                   ),
                   FutureBuilder<JsonQuery>(
                     future: StudyYear.getAllForUser(),
@@ -259,13 +192,29 @@ class _EditClassState extends State<EditClass> {
                       class$.gender = value;
                     },
                     decoration: InputDecoration(
-                        labelText: 'نوع الفصل',
-                        border: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Theme.of(context).primaryColor),
-                        )),
+                      labelText: 'نوع الفصل',
+                      border: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: Theme.of(context).primaryColor),
+                      ),
+                    ),
                   ),
                   ElevatedButton.icon(
+                    style: class$.color != Colors.transparent
+                        ? ElevatedButton.styleFrom(
+                            primary:
+                                Theme.of(context).brightness == Brightness.light
+                                    ? TinyColor(class$.color).lighten().color
+                                    : TinyColor(class$.color).darken().color,
+                          )
+                        : null,
+                    onPressed: selectColor,
+                    icon: const Icon(Icons.color_lens),
+                    label: const Text('اللون'),
+                  ),
+                  if (User.instance.manageAllowedUsers ||
+                      User.instance.manageUsers)
+                    ElevatedButton.icon(
                       style: class$.color != Colors.transparent
                           ? ElevatedButton.styleFrom(
                               primary: Theme.of(context).brightness ==
@@ -274,65 +223,80 @@ class _EditClassState extends State<EditClass> {
                                   : TinyColor(class$.color).darken().color,
                             )
                           : null,
-                      onPressed: selectColor,
-                      icon: const Icon(Icons.color_lens),
-                      label: const Text('اللون')),
-                  Selector<User, bool>(
-                    selector: (_, user) =>
-                        user.manageUsers || user.manageAllowedUsers,
-                    builder: (c, permission, data) {
-                      if (permission) {
-                        return ElevatedButton.icon(
-                          style: class$.color != Colors.transparent
-                              ? ElevatedButton.styleFrom(
-                                  primary: Theme.of(context).brightness ==
-                                          Brightness.light
-                                      ? TinyColor(class$.color).lighten().color
-                                      : TinyColor(class$.color).darken().color,
-                                )
-                              : null,
-                          icon: const Icon(Icons.visibility),
-                          onPressed: _selectAllowedUsers,
-                          label: const Text(
-                              'المستخدمين المسموح لهم برؤية الفصل والمخدومين داخله',
-                              softWrap: false,
-                              textScaleFactor: 0.95,
-                              overflow: TextOverflow.fade),
-                        );
-                      }
-                      return const SizedBox(width: 1, height: 1);
-                    },
-                  ),
+                      icon: const Icon(Icons.visibility),
+                      onPressed: _selectAllowedUsers,
+                      label: const Text(
+                          'المستخدمين المسموح لهم برؤية الفصل والمخدومين داخله',
+                          softWrap: false,
+                          textScaleFactor: 0.95,
+                          overflow: TextOverflow.fade),
+                    ),
                 ].map((w) => Focus(child: w)).toList(),
               ),
             ),
           ),
         ),
       ),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          if (class$.id != 'null')
-            FloatingActionButton(
-              mini: true,
-              tooltip: 'حذف',
-              heroTag: 'Delete',
-              onPressed: delete,
-              child: const Icon(Icons.delete),
-            ),
-          FloatingActionButton(
-            tooltip: 'حفظ',
-            heroTag: 'Save',
-            onPressed: save,
-            child: const Icon(Icons.save),
-          ),
-        ],
+      floatingActionButton: FloatingActionButton(
+        tooltip: 'حفظ',
+        onPressed: save,
+        child: const Icon(Icons.save),
       ),
     );
   }
 
-  void delete() async {
+  Future<void> _selectImage() async {
+    var source = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        actions: <Widget>[
+          TextButton.icon(
+            onPressed: () => navigator.currentState!.pop(true),
+            icon: const Icon(Icons.camera),
+            label: const Text('التقاط صورة من الكاميرا'),
+          ),
+          TextButton.icon(
+            onPressed: () => navigator.currentState!.pop(false),
+            icon: const Icon(Icons.photo_library),
+            label: const Text('اختيار من المعرض'),
+          ),
+          if (changedImage != null || class$.hasPhoto)
+            TextButton.icon(
+              onPressed: () => navigator.currentState!.pop('delete'),
+              icon: const Icon(Icons.delete),
+              label: const Text('حذف الصورة'),
+            ),
+        ],
+      ),
+    );
+    if (source == null) return;
+    if (source == 'delete') {
+      changedImage = null;
+      deletePhoto = true;
+      class$.hasPhoto = false;
+      setState(() {});
+      return;
+    }
+    if (source as bool && !(await Permission.camera.request()).isGranted)
+      return;
+
+    var selectedImage = await ImagePicker()
+        .getImage(source: source ? ImageSource.camera : ImageSource.gallery);
+    if (selectedImage == null) return;
+    changedImage = (await ImageCropper.cropImage(
+            sourcePath: selectedImage.path,
+            cropStyle: CropStyle.circle,
+            androidUiSettings: AndroidUiSettings(
+                toolbarTitle: 'قص الصورة',
+                toolbarColor: Theme.of(context).primaryColor,
+                initAspectRatio: CropAspectRatioPreset.original,
+                lockAspectRatio: false)))
+        ?.path;
+    deletePhoto = false;
+    setState(() {});
+  }
+
+  void _delete() async {
     if (await showDialog(
           context: context,
           builder: (context) => AlertDialog(
