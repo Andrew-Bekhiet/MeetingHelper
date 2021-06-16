@@ -944,7 +944,6 @@ class _EditPersonState extends State<EditPerson> {
             ),
             floatingActionButton: User.instance.write
                 ? FloatingActionButton(
-                    heroTag: null,
                     onPressed: () async {
                       navigator.currentState!.pop();
                       state.didChange(person.classId = await navigator

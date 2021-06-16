@@ -414,7 +414,6 @@ class _RootState extends State<Root>
       extendBody: true,
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
       floatingActionButton: FloatingActionButton(
-        heroTag: null,
         onPressed: addTap,
         child: AnimatedBuilder(
           animation: _tabController!,

@@ -364,7 +364,6 @@ class _EditUserState extends State<EditUser> {
       ),
       floatingActionButton: FloatingActionButton(
         tooltip: 'حفظ',
-        heroTag: 'Save',
         onPressed: save,
         child: const Icon(Icons.save),
       ),
@@ -740,7 +739,6 @@ class _EditUserState extends State<EditUser> {
             ),
             floatingActionButton: User.instance.write
                 ? FloatingActionButton(
-                    heroTag: null,
                     onPressed: () async {
                       navigator.currentState!.pop();
                       widget.user.classId = await navigator.currentState!

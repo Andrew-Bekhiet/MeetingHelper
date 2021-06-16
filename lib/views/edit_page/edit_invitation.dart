@@ -388,7 +388,6 @@ class _EditInvitationState extends State<EditInvitation> {
       ),
       floatingActionButton: FloatingActionButton(
         tooltip: 'حفظ',
-        heroTag: 'Save',
         onPressed: save,
         child: const Icon(Icons.save),
       ),
