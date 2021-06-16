@@ -16,33 +16,11 @@ class Update extends StatefulWidget {
   _UpdateState createState() => _UpdateState();
 }
 
-class UpdateHelper {
-  static Future<RemoteConfig?> setupRemoteConfig() async {
-    try {
-      remoteConfig = RemoteConfig.instance;
-      await remoteConfig!.setDefaults(<String, dynamic>{
-        'LatestVersion': (await PackageInfo.fromPlatform()).version,
-        'LoadApp': 'false',
-        'DownloadLink':
-            'https://github.com/Andrew-Bekhiet/MeetingHelper/releases/download/v' +
-                (await PackageInfo.fromPlatform()).version +
-                '/MeetingHelper.apk',
-      });
-      await remoteConfig!.setConfigSettings(RemoteConfigSettings(
-          fetchTimeout: const Duration(seconds: 30),
-          minimumFetchInterval: const Duration(minutes: 2)));
-      await remoteConfig!.fetchAndActivate();
-      // ignore: empty_catches
-    } catch (err) {}
-    return remoteConfig;
-  }
-}
-
 class Updates {
   static Future showUpdateDialog(BuildContext context,
       {bool canCancel = true}) async {
-    Version latest = Version.parse(
-        (await UpdateHelper.setupRemoteConfig())!.getString('LatestVersion'));
+    Version latest =
+        Version.parse(RemoteConfig.instance.getString('LatestVersion'));
     if (latest > Version.parse((await PackageInfo.fromPlatform()).version) &&
         canCancel) {
       await showDialog(
@@ -57,17 +35,16 @@ class Updates {
             actions: <Widget>[
               TextButton(
                 onPressed: () async {
-                  if (await canLaunch((await UpdateHelper.setupRemoteConfig())!
+                  if (await canLaunch(RemoteConfig.instance
                       .getString('DownloadLink')
                       .replaceFirst('https://', 'https:'))) {
-                    await launch((await UpdateHelper.setupRemoteConfig())!
+                    await launch(RemoteConfig.instance
                         .getString('DownloadLink')
                         .replaceFirst('https://', 'https:'));
                   } else {
                     navigator.currentState!.pop();
                     await Clipboard.setData(ClipboardData(
-                        text: (await UpdateHelper.setupRemoteConfig())!
-                            .getString('DownloadLink')));
+                        text: RemoteConfig.instance.getString('DownloadLink')));
                     scaffoldMessenger.currentState!.showSnackBar(
                       const SnackBar(
                         content: Text(
@@ -97,17 +74,16 @@ class Updates {
               TextButton(
                 onPressed: () async {
                   navigator.currentState!.pop();
-                  if (await canLaunch((await UpdateHelper.setupRemoteConfig())!
+                  if (await canLaunch(RemoteConfig.instance
                       .getString('DownloadLink')
                       .replaceFirst('https://', 'https:'))) {
-                    await launch((await UpdateHelper.setupRemoteConfig())!
+                    await launch(RemoteConfig.instance
                         .getString('DownloadLink')
                         .replaceFirst('https://', 'https:'));
                   } else {
                     navigator.currentState!.pop();
                     await Clipboard.setData(ClipboardData(
-                        text: (await UpdateHelper.setupRemoteConfig())!
-                            .getString('DownloadLink')));
+                        text: RemoteConfig.instance.getString('DownloadLink')));
                     scaffoldMessenger.currentState!.showSnackBar(
                       const SnackBar(
                         content: Text(
@@ -166,17 +142,9 @@ class _UpdateState extends State<Update> {
                 ),
               ),
               ListTile(
-                title: const Text('آخر إصدار:'),
-                subtitle: FutureBuilder<RemoteConfig?>(
-                  future: UpdateHelper.setupRemoteConfig(),
-                  builder: (cont, data) {
-                    if (data.hasData) {
-                      return Text(data.data!.getString('LatestVersion'));
-                    }
-                    return const LinearProgressIndicator();
-                  },
-                ),
-              ),
+                  title: const Text('آخر إصدار:'),
+                  subtitle:
+                      Text(RemoteConfig.instance.getString('LatestVersion'))),
             ],
           ),
         ),

@@ -9,6 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,6 +25,7 @@ import 'package:meetinghelper/views/edit_users.dart';
 import 'package:meetinghelper/views/exports.dart';
 import 'package:meetinghelper/views/invitations_page.dart';
 import 'package:meetinghelper/views/trash.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart';
 
@@ -275,8 +277,23 @@ class AppState extends State<App> {
   }
 
   Future<void> loadApp(BuildContext context) async {
-    var result = await UpdateHelper.setupRemoteConfig();
-    if (result?.getString('LoadApp') == 'false') {
+    try {
+      await RemoteConfig.instance.setDefaults(<String, dynamic>{
+        'LatestVersion': (await PackageInfo.fromPlatform()).version,
+        'LoadApp': 'false',
+        'DownloadLink':
+            'https://github.com/Andrew-Bekhiet/MeetingHelper/releases/download/v' +
+                (await PackageInfo.fromPlatform()).version +
+                '/MeetingHelper.apk',
+      });
+      await RemoteConfig.instance.setConfigSettings(RemoteConfigSettings(
+          fetchTimeout: const Duration(seconds: 30),
+          minimumFetchInterval: const Duration(minutes: 2)));
+      await RemoteConfig.instance.fetchAndActivate();
+      // ignore: empty_catches
+    } catch (err) {}
+
+    if (RemoteConfig.instance.getString('LoadApp') == 'false') {
       await Updates.showUpdateDialog(context, canCancel: false);
       throw Exception('يجب التحديث لأخر إصدار لتشغيل البرنامج');
     } else {

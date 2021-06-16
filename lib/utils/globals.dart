@@ -2,7 +2,6 @@ library globals;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
-import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -95,8 +94,6 @@ List<Color?> primaries = <Color?>[
   Colors.blueAccent,
   Colors.grey.shade700
 ];
-
-RemoteConfig? remoteConfig;
 
 String uriPrefix = 'https://meetinghelper.page.link';
 enum DayListType { Meeting, Kodas, Tanawol }
