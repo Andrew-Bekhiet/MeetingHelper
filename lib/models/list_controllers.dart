@@ -17,21 +17,21 @@ import 'mini_models.dart';
 abstract class BaseListController<L, U> {
   final BehaviorSubject<L> _objectsData;
   ValueStream<L> get objectsData => _objectsData.stream;
-  L? get items => _objectsData.value;
+  L? get items => _objectsData.valueOrNull;
 
   StreamSubscription<L>? _objectsDataListener;
 
   final BehaviorSubject<bool> _selectionMode;
   BehaviorSubject<bool> get selectionMode => _selectionMode;
-  bool? get selectionModeLatest => _selectionMode.value;
+  bool? get selectionModeLatest => _selectionMode.valueOrNull;
 
   final BehaviorSubject<Map<String, U>?> _selected;
   ValueStream<Map<String, U>?> get selected => _selected.stream;
-  Map<String, U>? get selectedLatest => _selected.value;
+  Map<String, U>? get selectedLatest => _selected.valueOrNull;
 
   final BehaviorSubject<String> _searchQuery;
   BehaviorSubject<String> get searchQuery => _searchQuery;
-  String? get searchQueryLatest => _searchQuery.value;
+  String? get searchQueryLatest => _searchQuery.valueOrNull;
 
   StreamSubscription<String>? _searchQueryListener;
 
@@ -100,7 +100,7 @@ class DataObjectListController<T extends DataObject>
   @override
   ValueStream<List<T>> get objectsData => _objectsData.stream;
   @override
-  List<T>? get items => objectsData.value;
+  List<T>? get items => objectsData.valueOrNull;
 
   @override
   StreamSubscription<List<T>>? _objectsDataListener;
@@ -108,7 +108,8 @@ class DataObjectListController<T extends DataObject>
   final BehaviorSubject<Map<String, T>> _originalObjectsData;
   ValueStream<Map<String, T>> get originalObjectsData =>
       _originalObjectsData.stream;
-  Map<String, T>? get originalObjectsDataLatest => originalObjectsData.value;
+  Map<String, T>? get originalObjectsDataLatest =>
+      originalObjectsData.valueOrNull;
 
   StreamSubscription<Object>? _originalObjectsDataListener;
 
@@ -117,21 +118,21 @@ class DataObjectListController<T extends DataObject>
   @override
   BehaviorSubject<bool> get selectionMode => _selectionMode;
   @override
-  bool? get selectionModeLatest => _selectionMode.value;
+  bool? get selectionModeLatest => _selectionMode.valueOrNull;
 
   @override
   final BehaviorSubject<Map<String, T>> _selected;
   @override
   ValueStream<Map<String, T>> get selected => _selected.stream;
   @override
-  Map<String, T>? get selectedLatest => _selected.value;
+  Map<String, T>? get selectedLatest => _selected.valueOrNull;
 
   @override
   final BehaviorSubject<String> _searchQuery;
   @override
   BehaviorSubject<String> get searchQuery => _searchQuery;
   @override
-  String? get searchQueryLatest => _searchQuery.value;
+  String? get searchQueryLatest => _searchQuery.valueOrNull;
 
   @override
   StreamSubscription<String>? _searchQueryListener;
@@ -279,7 +280,7 @@ class CheckListController<T extends Person>
   @override
   ValueStream<List<T>> get objectsData => _objectsData.stream;
   @override
-  List<T>? get items => objectsData.value;
+  List<T>? get items => objectsData.valueOrNull;
 
   @override
   StreamSubscription<List<T>>? _objectsDataListener;
@@ -290,7 +291,8 @@ class CheckListController<T extends Person>
   ValueStream<Map<String, T>> get originalObjectsData =>
       _originalObjectsData.stream;
   @override
-  Map<String, T>? get originalObjectsDataLatest => originalObjectsData.value;
+  Map<String, T>? get originalObjectsDataLatest =>
+      originalObjectsData.valueOrNull;
 
   @override
   StreamSubscription<Object>? _originalObjectsDataListener;
@@ -305,21 +307,21 @@ class CheckListController<T extends Person>
   @override
   ValueStream<Map<String, T>> get selected => _selected;
   @override
-  Map<String, T>? get selectedLatest => _selected.value;
+  Map<String, T>? get selectedLatest => _selected.valueOrNull;
 
   @override
   final BehaviorSubject<String> _searchQuery;
   @override
   BehaviorSubject<String> get searchQuery => _searchQuery;
   @override
-  String? get searchQueryLatest => _searchQuery.value;
+  String? get searchQueryLatest => _searchQuery.valueOrNull;
 
   @override
   StreamSubscription<String>? _searchQueryListener;
 
   late final BehaviorSubject<Map<String, HistoryRecord>> _attended;
   ValueStream<Map<String, HistoryRecord>> get attended => _attended.stream;
-  Map<String, HistoryRecord>? get attendedLatest => attended.value;
+  Map<String, HistoryRecord>? get attendedLatest => attended.valueOrNull;
 
   StreamSubscription<Map<String, HistoryRecord>>? _attendedListener;
 
@@ -723,7 +725,7 @@ class ServicesListController
   @override
   BehaviorSubject<String> get searchQuery => _searchQuery;
   @override
-  String? get searchQueryLatest => _searchQuery.value;
+  String? get searchQueryLatest => _searchQuery.valueOrNull;
 
   @override
   StreamSubscription<String>? _searchQueryListener;
@@ -740,7 +742,7 @@ class ServicesListController
   @override
   ValueStream<Map<String, Class>> get selected => _selected;
   @override
-  Map<String, Class>? get selectedLatest => _selected.value;
+  Map<String, Class>? get selectedLatest => _selected.valueOrNull;
 
   final Map<StudyYear?, List<Class>> Function(
       Map<StudyYear?, List<Class>>, String) _filter = (o, filter) {
