@@ -661,9 +661,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
       if (DateTime.now().difference(widget.record.day.toDate()).inDays != 0)
         return;
       try {
-        if ((await widget.record.ref.get(dataSource)).exists) {
-          await widget.record.ref.update(widget.record.getMap());
-        } else {
+        if (!(await widget.record.ref.get(dataSource)).exists) {
           await widget.record.ref.set(widget.record.getMap());
         }
       } catch (err, stkTrace) {

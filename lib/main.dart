@@ -345,9 +345,10 @@ class AppState extends State<App> {
                   return Day(record: ServantsHistoryDay());
               },
               'Trash': (context) => const Trash(),
-              'History': (context) => const History(),
+              'History': (context) => const History(iServantsHistory: false),
               'ExportOps': (context) => const Exports(),
-              'ServantsHistory': (context) => const ServantsHistory(),
+              'ServantsHistory': (context) =>
+                  const History(iServantsHistory: true),
               'MyAccount': (context) => const MyAccount(),
               'Notifications': (context) => const NotificationsPage(),
               'ClassInfo': (context) => ClassInfo(

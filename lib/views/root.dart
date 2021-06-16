@@ -661,25 +661,9 @@ class _RootState extends State<Root>
                 child: const Icon(Icons.add),
               ),
               title: const Text('كشف حضور المخدومين'),
-              onTap: () async {
-                var today = (await FirebaseFirestore.instance
-                        .collection('History')
-                        .where('Day',
-                            isEqualTo: Timestamp.fromMillisecondsSinceEpoch(
-                              DateTime.now().millisecondsSinceEpoch -
-                                  (DateTime.now().millisecondsSinceEpoch %
-                                      86400000),
-                            ))
-                        .limit(1)
-                        .get(dataSource))
-                    .docs;
+              onTap: () {
                 mainScfld.currentState!.openEndDrawer();
-                if (today.isNotEmpty) {
-                  await navigator.currentState!.pushNamed('Day',
-                      arguments: HistoryDay.fromDoc(today[0]));
-                } else {
-                  await navigator.currentState!.pushNamed('Day');
-                }
+                navigator.currentState!.pushNamed('Day');
               },
             ),
             Selector<User, bool?>(
@@ -736,27 +720,9 @@ class _RootState extends State<Root>
                         child: const Icon(Icons.add),
                       ),
                       title: const Text('كشف حضور الخدام'),
-                      onTap: () async {
+                      onTap: () {
                         mainScfld.currentState!.openEndDrawer();
-                        var today = (await FirebaseFirestore.instance
-                                .collection('ServantsHistory')
-                                .where('Day',
-                                    isEqualTo:
-                                        Timestamp.fromMillisecondsSinceEpoch(
-                                      DateTime.now().millisecondsSinceEpoch -
-                                          (DateTime.now()
-                                                  .millisecondsSinceEpoch %
-                                              86400000),
-                                    ))
-                                .get(dataSource))
-                            .docs;
-                        if (today.isNotEmpty) {
-                          await navigator.currentState!.pushNamed('ServantsDay',
-                              arguments: ServantsHistoryDay.fromDoc(today[0]));
-                        } else {
-                          await navigator.currentState!
-                              .pushNamed('ServantsDay');
-                        }
+                        navigator.currentState!.pushNamed('ServantsDay');
                       },
                     )
                   : Container(),
