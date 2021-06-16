@@ -25,6 +25,8 @@ class UsersList extends StatefulWidget {
 
 class _UsersListState extends State<UsersList> {
   late DataObjectListController<User> _listOptions;
+  final BehaviorSubject<Map<JsonRef, bool?>> _openedNodes =
+      BehaviorSubject.seeded({});
 
   @override
   void didChangeDependencies() {
@@ -35,104 +37,136 @@ class _UsersListState extends State<UsersList> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<User>>(
-      stream: _listOptions.objectsData,
-      builder: (context, options) {
-        if (options.hasError) return Center(child: ErrorWidget(options.error!));
-        if (!options.hasData)
+    return StreamBuilder<Map<JsonRef, Tuple2<Class, List<User>>>>(
+      stream: Rx.combineLatest2<Map<JsonRef, Tuple2<Class, List<User>>>,
+          Map<JsonRef, bool?>, Map<JsonRef, Tuple2<Class, List<User>>>>(
+        _listOptions.objectsData.switchMap(usersByClassRef),
+        _openedNodes,
+        (g, n) => g.map(
+          (k, v) => MapEntry(
+            k,
+            n[k] == true ? v : Tuple2<Class, List<User>>(v.item1, []),
+          ),
+        ),
+      ),
+      builder: (context, groupedData) {
+        if (groupedData.hasError) return ErrorWidget(groupedData.error!);
+        if (!groupedData.hasData)
           return const Center(child: CircularProgressIndicator());
 
-        final List<User> _data = options.data!;
-        if (_data.isEmpty) return const Center(child: Text('لا يوجد مستخدمين'));
+        if (groupedData.data!.isEmpty)
+          return const Center(child: Text('لا يوجد مستخدمين'));
 
-        return StreamBuilder<Map<JsonRef, Tuple2<Class, List<User>>>>(
-          stream: usersByClassRef(_data),
-          builder: (context, groupedData) {
-            if (groupedData.hasError) return ErrorWidget(groupedData.error!);
-            if (!groupedData.hasData)
-              return const Center(child: CircularProgressIndicator());
+        return GroupListView(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          sectionsCount: groupedData.data!.length + 1,
+          countOfItemInSection: (i) {
+            if (i == groupedData.data!.length) return 0;
 
-            return GroupListView(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              sectionsCount: groupedData.data!.length + 1,
-              countOfItemInSection: (i) {
-                if (i == groupedData.data!.length) return 0;
+            return groupedData.data!.values.elementAt(i).item2.length;
+          },
+          cacheExtent: 500,
+          groupHeaderBuilder: (context, i) {
+            if (i == groupedData.data!.length)
+              return Container(height: MediaQuery.of(context).size.height / 19);
 
-                return groupedData.data!.values.elementAt(i).item2.length;
+            final _class = groupedData.data!.values.elementAt(i).item1;
+
+            return DataObjectWidget<Class>(
+              _class,
+              showSubTitle: false,
+              wrapInCard: false,
+              photo: DataObjectPhoto(
+                _class,
+                heroTag: _class.name + _class.id,
+                wrapPhotoInCircle: false,
+              ),
+              onTap: () {
+                _openedNodes.add({
+                  ..._openedNodes.value,
+                  groupedData.data!.keys.elementAt(i): !(_openedNodes
+                          .value[groupedData.data!.keys.elementAt(i)] ??
+                      false)
+                });
               },
-              cacheExtent: 500,
-              groupHeaderBuilder: (context, i) {
-                if (i == groupedData.data!.length)
-                  return Container(
-                      height: MediaQuery.of(context).size.height / 19);
-
-                final _class = groupedData.data!.values.elementAt(i).item1;
-
-                return DataObjectWidget<Class>(
-                  _class,
-                  showSubTitle: false,
-                  wrapInCard: false,
-                  photo: DataObjectPhoto(
-                    _class,
-                    heroTag: _class.name + _class.id,
-                    wrapPhotoInCircle: false,
-                  ),
-                  onTap: () {
-                    if (_class.id != 'null' && _class.id != 'unknown')
-                      classTap(_class);
-                  },
-                );
-              },
-              itemBuilder: (context, i) {
-                User current = groupedData.data!.values
-                    .elementAt(i.section)
-                    .item2
-                    .elementAt(i.index);
-                return Padding(
-                  padding: const EdgeInsets.fromLTRB(3, 0, 9, 0),
-                  child: _listOptions.buildItem(
-                    current,
-                    onLongPress: _listOptions.onLongPress ??
-                        (u) {
-                          _listOptions.selectionMode
-                              .add(!_listOptions.selectionMode.value);
-                          if (_listOptions.selectionMode.value)
-                            _listOptions.select(current);
-                        },
-                    onTap: (User current) {
-                      if (!_listOptions.selectionMode.value) {
-                        _listOptions.tap == null
-                            ? dataObjectTap(current)
-                            : _listOptions.tap!(current);
-                      } else {
-                        _listOptions.toggleSelected(current);
-                      }
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      _openedNodes.add({
+                        ..._openedNodes.value,
+                        groupedData.data!.keys.elementAt(i): !(_openedNodes
+                                .value[groupedData.data!.keys.elementAt(i)] ??
+                            false)
+                      });
                     },
-                    trailing: StreamBuilder<Map<String, User>?>(
-                      stream: Rx.combineLatest2<Map<String, User>, bool,
-                              Map<String, User>?>(
-                          _listOptions.selected,
-                          _listOptions.selectionMode,
-                          (Map<String, User> a, bool b) => b ? a : null),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          return Checkbox(
-                            value: snapshot.data!.containsKey(current.uid),
-                            onChanged: (v) {
-                              if (v!) {
-                                _listOptions.select(current);
-                              } else {
-                                _listOptions.deselect(current);
-                              }
-                            },
-                          );
-                        }
-                        return const SizedBox(width: 1, height: 1);
-                      },
+                    icon: Icon(
+                      _openedNodes.value[groupedData.data!.keys.elementAt(i)] ??
+                              false
+                          ? Icons.arrow_drop_up
+                          : Icons.arrow_drop_down,
                     ),
                   ),
-                );
-              },
+                  IconButton(
+                    onPressed: () {
+                      if (_class.id != 'null' && _class.id != 'unknown')
+                        classTap(_class);
+                    },
+                    icon: const Icon(Icons.info_outlined),
+                  ),
+                ],
+              ),
+            );
+          },
+          itemBuilder: (context, i) {
+            User current = groupedData.data!.values
+                .elementAt(i.section)
+                .item2
+                .elementAt(i.index);
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(3, 0, 9, 0),
+              child: _listOptions.buildItem(
+                current,
+                onLongPress: _listOptions.onLongPress ??
+                    (u) {
+                      _listOptions.selectionMode
+                          .add(!_listOptions.selectionMode.value);
+                      if (_listOptions.selectionMode.value)
+                        _listOptions.select(current);
+                    },
+                onTap: (User current) {
+                  if (!_listOptions.selectionMode.value) {
+                    _listOptions.tap == null
+                        ? dataObjectTap(current)
+                        : _listOptions.tap!(current);
+                  } else {
+                    _listOptions.toggleSelected(current);
+                  }
+                },
+                trailing: StreamBuilder<Map<String, User>?>(
+                  stream: Rx.combineLatest2<Map<String, User>, bool,
+                          Map<String, User>?>(
+                      _listOptions.selected,
+                      _listOptions.selectionMode,
+                      (Map<String, User> a, bool b) => b ? a : null),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return Checkbox(
+                        value: snapshot.data!.containsKey(current.uid),
+                        onChanged: (v) {
+                          if (v!) {
+                            _listOptions.select(current);
+                          } else {
+                            _listOptions.deselect(current);
+                          }
+                        },
+                      );
+                    }
+                    return const SizedBox(width: 1, height: 1);
+                  },
+                ),
+              ),
             );
           },
         );
@@ -144,5 +178,6 @@ class _UsersListState extends State<UsersList> {
   Future<void> dispose() async {
     super.dispose();
     if (widget.autoDisposeController) await _listOptions.dispose();
+    await _openedNodes.close();
   }
 }
