@@ -363,23 +363,46 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
                                 .toString() +
                             ' مخدوم داخل الفصل')
                         : null,
-                    trailing: IconButton(
-                      onPressed: () {
-                        _listOptions.openedNodes.add({
-                          ..._listOptions.openedNodes.value,
-                          groupedData.data!.keys.elementAt(i): !(_listOptions
-                                  .openedNodes
-                                  .value[groupedData.data!.keys.elementAt(i)] ??
-                              false)
-                        });
-                      },
-                      icon: Icon(
-                        _listOptions.openedNodes.value[
-                                    groupedData.data!.keys.elementAt(i)] ??
-                                false
-                            ? Icons.arrow_drop_up
-                            : Icons.arrow_drop_down,
-                      ),
+                    onTap: () {
+                      _listOptions.openedNodes.add({
+                        ..._listOptions.openedNodes.value,
+                        groupedData.data!.keys.elementAt(i): !(_listOptions
+                                .openedNodes
+                                .value[groupedData.data!.keys.elementAt(i)] ??
+                            false)
+                      });
+                    },
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            _listOptions.openedNodes.add({
+                              ..._listOptions.openedNodes.value,
+                              groupedData.data!.keys.elementAt(i):
+                                  !(_listOptions.openedNodes.value[groupedData
+                                          .data!.keys
+                                          .elementAt(i)] ??
+                                      false)
+                            });
+                          },
+                          icon: Icon(
+                            _listOptions.openedNodes.value[
+                                        groupedData.data!.keys.elementAt(i)] ??
+                                    false
+                                ? Icons.arrow_drop_up
+                                : Icons.arrow_drop_down,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            classTap(
+                                groupedData.data!.values.elementAt(i).item1,
+                                context);
+                          },
+                          icon: const Icon(Icons.info_outlined),
+                        ),
+                      ],
                     ),
                   ),
                 );
