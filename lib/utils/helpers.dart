@@ -261,7 +261,7 @@ String getPhone(String phone, [bool whatsapp = true]) {
   return phone.trim();
 }
 
-void historyTap(HistoryDay? history, BuildContext context) async {
+void historyTap(HistoryDay? history) async {
   if (history is! ServantsHistoryDay) {
     await navigator.currentState!.pushNamed('Day', arguments: history);
   } else {

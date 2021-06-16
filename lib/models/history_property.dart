@@ -373,8 +373,7 @@ class DayHistoryProperty extends StatelessWidget {
                     itemCount: history.data!.length,
                     itemBuilder: (context, i) => Card(
                       child: ListTile(
-                        onTap: () =>
-                            historyTap(history.data![i].parent, context),
+                        onTap: () => historyTap(history.data![i].parent),
                         title: Text(DateFormat('yyyy/M/d h:m a', 'ar-EG')
                             .format(history.data![i].time.toDate())),
                         subtitle: FutureBuilder<JsonDoc>(
