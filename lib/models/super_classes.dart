@@ -85,10 +85,13 @@ abstract class PhotoObject {
 
   Reference get photoRef;
 
-  Widget photo([bool wrapPhotoInCircle = false]) {
-    return DataObjectPhoto(this,
-        wrapPhotoInCircle: wrapPhotoInCircle,
-        key: hasPhoto ? ValueKey(photoRef.fullPath) : null);
+  Widget photo({bool cropToCircle = true, bool removeHero = false}) {
+    return DataObjectPhoto(
+      this,
+      wrapPhotoInCircle: cropToCircle,
+      key: hasPhoto ? ValueKey(photoRef.fullPath) : null,
+      heroTag: removeHero ? UniqueKey() : null,
+    );
   }
 }
 

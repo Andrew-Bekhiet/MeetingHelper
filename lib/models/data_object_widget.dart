@@ -61,7 +61,7 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
           : null,
       leading: photo ??
           (current is PhotoObject
-              ? (current as PhotoObject).photo(current is Person)
+              ? (current as PhotoObject).photo(cropToCircle: current is Person)
               : null),
     );
     return wrapInCard

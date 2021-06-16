@@ -488,7 +488,8 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
   }
 
   @override
-  Widget photo([bool b = false]) => getPhoto(b);
+  Widget photo({bool cropToCircle = true, bool removeHero = false}) =>
+      getPhoto(cropToCircle);
 
   Widget getPhoto([bool showCircle = true, bool showActiveStatus = true]) {
     return AspectRatio(
@@ -758,7 +759,7 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
         .data()!['Name'];
   }
 
-  static Widget photoFromUID(String uid) =>
+  static Widget photoFromUID(String uid, {bool removeHero = false}) =>
       PhotoWidget(FirebaseStorage.instance.ref().child('UsersPhotos/$uid'))
-          .photo(true);
+          .photo(removeHero: removeHero);
 }

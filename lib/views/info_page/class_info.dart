@@ -33,10 +33,7 @@ class _ClassInfoState extends State<ClassInfo> {
   final BehaviorSubject<OrderOptions> _orderOptions =
       BehaviorSubject<OrderOptions>.seeded(OrderOptions());
 
-  void addTap(BuildContext context) {
-    navigator.currentState!
-        .pushNamed('Data/EditPerson', arguments: widget.class$!.ref);
-  }
+  late final DataObjectListController<Person> _listOptions;
 
   @override
   Future<void> dispose() async {
@@ -47,6 +44,13 @@ class _ClassInfoState extends State<ClassInfo> {
   @override
   void initState() {
     super.initState();
+    _listOptions = DataObjectListController<Person>(
+      tap: (p) => personTap(p, context),
+      itemsStream: _orderOptions.switchMap(
+        (order) => widget.class$!.getMembersLive(
+            orderBy: order.orderBy ?? 'Name', descending: !order.asc!),
+      ),
+    );
     WidgetsBinding.instance!.addPostFrameCallback((_) {
       FeatureDiscovery.discoverFeatures(context, [
         if (User.instance.write) 'Edit',
@@ -61,13 +65,6 @@ class _ClassInfoState extends State<ClassInfo> {
 
   @override
   Widget build(BuildContext context) {
-    final _listOptions = DataObjectListController<Person>(
-      tap: (p) => personTap(p, context),
-      itemsStream: _orderOptions.switchMap(
-        (order) => widget.class$!.getMembersLive(
-            orderBy: order.orderBy ?? 'Name', descending: !order.asc!),
-      ),
-    );
     return Selector<User, bool?>(
       selector: (_, user) => user.write,
       builder: (context, permission, _) => StreamBuilder<Class?>(
@@ -490,7 +487,9 @@ class _ClassInfoState extends State<ClassInfo> {
             floatingActionButton: permission! &&
                     !class$.ref.path.startsWith('Deleted')
                 ? FloatingActionButton(
-                    onPressed: () => addTap(context),
+                    onPressed: () => navigator.currentState!.pushNamed(
+                        'Data/EditPerson',
+                        arguments: widget.class$!.ref),
                     child: DescribedFeatureOverlay(
                       onBackgroundTap: () async {
                         await FeatureDiscovery.completeCurrentStep(context);
@@ -594,7 +593,8 @@ class _ClassServants extends StatelessWidget {
                   );
                 }
                 return IgnorePointer(
-                  child: User.photoFromUID(class$.allowedUsers[i]),
+                  child: User.photoFromUID(class$.allowedUsers[i],
+                      removeHero: true),
                 );
               },
             )
