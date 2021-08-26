@@ -2,13 +2,14 @@
 // Generated file. Do not edit.
 //
 
+// ignore_for_file: directives_ordering
 // ignore_for_file: lines_longer_than_80_chars
 
 import 'package:cloud_firestore_web/cloud_firestore_web.dart';
 import 'package:cloud_functions_web/cloud_functions_web.dart';
 import 'package:connectivity_plus_web/connectivity_plus_web.dart';
 import 'package:device_info_plus_web/device_info_plus_web.dart';
-import 'package:file_picker/src/file_picker_web.dart';
+import 'package:file_picker/_internal/file_picker_web.dart';
 import 'package:firebase_analytics_web/firebase_analytics_web.dart';
 import 'package:firebase_auth_web/firebase_auth_web.dart';
 import 'package:firebase_core_web/firebase_core_web.dart';

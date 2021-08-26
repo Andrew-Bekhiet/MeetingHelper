@@ -40,13 +40,13 @@ class Notification extends StatelessWidget {
                             heroTag: snapshot.data,
                           )
                 : const CircularProgressIndicator(),
-            title: Text(title!),
+            title: Text(title ?? ''),
             subtitle: Text(
-              content!,
-              overflow: content!.contains('تم تغيير موقع')
+              content ?? '',
+              overflow: (content ?? '').contains('تم تغيير موقع')
                   ? null
                   : TextOverflow.ellipsis,
-              maxLines: content!.contains('تم تغيير موقع') ? null : 1,
+              maxLines: (content ?? '').contains('تم تغيير موقع') ? null : 1,
             ),
             onTap: () => from == null
                 ? processLink(Uri.parse(attachement!))

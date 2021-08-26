@@ -224,7 +224,8 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                     navigator.currentState!.pop();
                     if ((await Permission.contacts.request()).isGranted) {
                       for (Person item in _listOptions.selected.value.values
-                          .cast<Person>().where(
+                          .cast<Person>()
+                          .where(
                               (p) => p.phone != null && p.phone!.isNotEmpty)) {
                         try {
                           final c = Contact(

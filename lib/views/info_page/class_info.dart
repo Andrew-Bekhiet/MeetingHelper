@@ -21,9 +21,9 @@ import '../data_map.dart';
 import '../list.dart';
 
 class ClassInfo extends StatefulWidget {
-  final Class? class$;
+  final Class class$;
 
-  const ClassInfo({Key? key, this.class$}) : super(key: key);
+  const ClassInfo({Key? key, required this.class$}) : super(key: key);
 
   @override
   _ClassInfoState createState() => _ClassInfoState();
@@ -47,7 +47,7 @@ class _ClassInfoState extends State<ClassInfo> {
     _listOptions = DataObjectListController<Person>(
       tap: personTap,
       itemsStream: _orderOptions.switchMap(
-        (order) => widget.class$!.getMembersLive(
+        (order) => widget.class$.getMembersLive(
             orderBy: order.orderBy ?? 'Name', descending: !order.asc!),
       ),
     );
@@ -69,7 +69,7 @@ class _ClassInfoState extends State<ClassInfo> {
       selector: (_, user) => user.write,
       builder: (context, permission, _) => StreamBuilder<Class?>(
         initialData: widget.class$,
-        stream: widget.class$!.ref.snapshots().map(Class.fromDoc),
+        stream: widget.class$.ref.snapshots().map(Class.fromDoc),
         builder: (context, data) {
           Class? class$ = data.data;
           if (class$ == null)
@@ -499,7 +499,7 @@ class _ClassInfoState extends State<ClassInfo> {
                 ? FloatingActionButton(
                     onPressed: () => navigator.currentState!.pushNamed(
                         'Data/EditPerson',
-                        arguments: widget.class$!.ref),
+                        arguments: widget.class$.ref),
                     child: DescribedFeatureOverlay(
                       onBackgroundTap: () async {
                         await FeatureDiscovery.completeCurrentStep(context);
