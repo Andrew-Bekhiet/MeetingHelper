@@ -144,10 +144,8 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                     List<Person> people = _listOptions.selected.value.values
                         .cast<Person>()
                         .toList()
-                          ..removeWhere((p) =>
-                              p.phone == '' ||
-                              p.phone == 'null' ||
-                              p.phone == null);
+                        .where((p) => p.phone != null && p.phone!.isNotEmpty)
+                        .toList();
                     if (people.isNotEmpty)
                       launch(
                         'sms:' +
@@ -210,7 +208,9 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                     if (msg != null) {
                       msg = Uri.encodeComponent(msg);
                       for (Person person in _listOptions.selected.value.values
-                          .cast<Person>()) {
+                          .cast<Person>()
+                          .where(
+                              (p) => p.phone != null && p.phone!.isNotEmpty)) {
                         String phone = getPhone(person.phone!);
                         await launch('https://wa.me/$phone?text=$msg');
                       }
@@ -224,7 +224,8 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                     navigator.currentState!.pop();
                     if ((await Permission.contacts.request()).isGranted) {
                       for (Person item in _listOptions.selected.value.values
-                          .cast<Person>()) {
+                          .cast<Person>().where(
+                              (p) => p.phone != null && p.phone!.isNotEmpty)) {
                         try {
                           final c = Contact(
                               photo: item.hasPhoto
@@ -560,7 +561,10 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
                                           parent: _listOptions.day,
                                           type: _listOptions.type,
                                           recordedBy: User.instance.uid!,
-                                          time: Timestamp.now(),
+                                          time: mergeDayWithTime(
+                                            _listOptions.day.day.toDate(),
+                                            DateTime.now(),
+                                          ),
                                           isServant: T == User);
                                     } else
                                       record = null;
@@ -591,19 +595,15 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
                                   context: context,
                                 );
                                 return DateTime(
-                                    DateTime.now().year,
-                                    DateTime.now().month,
-                                    DateTime.now().day,
+                                    _listOptions.day.day.toDate().year,
+                                    _listOptions.day.day.toDate().month,
+                                    _listOptions.day.day.toDate().day,
                                     selected?.hour ?? initialValue.hour,
                                     selected?.minute ?? initialValue.minute);
                               },
                               onChanged: (t) async {
-                                record!.time = Timestamp.fromDate(DateTime(
-                                    DateTime.now().year,
-                                    DateTime.now().month,
-                                    DateTime.now().day,
-                                    t!.hour,
-                                    t.minute));
+                                record!.time = mergeDayWithTime(
+                                    _listOptions.day.day.toDate(), t!);
                                 setState(() {});
                               },
                             ),
