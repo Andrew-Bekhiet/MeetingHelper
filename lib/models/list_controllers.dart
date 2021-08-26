@@ -594,7 +594,11 @@ class CheckListController<T extends Person>
             parent: day,
             id: item.id,
             classId: item.classId,
-            time: time ?? Timestamp.now(),
+            time: time ??
+                mergeDayWithTime(
+                  day.day.toDate(),
+                  DateTime.now(),
+                ),
             recordedBy: User.instance.uid!,
             notes: notes,
             isServant: T == User)
@@ -613,7 +617,7 @@ class CheckListController<T extends Person>
             parent: day,
             id: item.id,
             classId: item.classId,
-            time: time ?? Timestamp.now(),
+            time: time ?? mergeDayWithTime(day.day.toDate(), DateTime.now()),
             recordedBy: User.instance.uid!,
             notes: notes,
             isServant: T == User)

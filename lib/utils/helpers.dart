@@ -1566,6 +1566,10 @@ Timestamp tranucateToDay({DateTime? time}) {
   );
 }
 
+Timestamp mergeDayWithTime(DateTime day,DateTime time){
+  return Timestamp.fromDate(DateTime(day.year,day.month,day.day,time.hour,time.minute,time.second,time.millisecond,time.microsecond));
+}
+
 void userTap(User user) async {
   if (user.approved) {
     await navigator.currentState!.pushNamed('UserInfo', arguments: user);
