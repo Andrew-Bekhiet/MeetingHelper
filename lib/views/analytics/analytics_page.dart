@@ -209,7 +209,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                               final rslt = await selectClasses(classes);
                               if (rslt != null && rslt.isNotEmpty)
                                 setState(() => classes = rslt);
-                              else if (rslt!.isNotEmpty)
+                              else if (rslt != null)
                                 await showDialog(
                                   context: context,
                                   builder: (context) => const AlertDialog(
