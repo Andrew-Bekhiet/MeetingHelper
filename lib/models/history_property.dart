@@ -5,8 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/history_record.dart';
 import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:meetinghelper/utils/helpers.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 
 import 'mini_models.dart';
 
@@ -239,11 +239,12 @@ class EditHistoryProperty extends StatelessWidget {
                         ),
                       ],
                     ),
-                    backgroundColor: Theme.of(context).accentColor,
+                    backgroundColor: Theme.of(context).colorScheme.secondary,
                     targetColor: Colors.transparent,
                     textColor:
                         Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                    child: icon)
+                    child: icon,
+                  )
                 : icon,
           );
         });

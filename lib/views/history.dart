@@ -110,8 +110,8 @@ class _HistoryState extends State<History> {
                     ),
                   ],
                 ),
-                backgroundColor: Theme.of(context).accentColor,
-                targetColor: Theme.of(context).primaryColor,
+                backgroundColor: Theme.of(context).colorScheme.secondary,
+                targetColor: Theme.of(context).colorScheme.primary,
                 textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
                 child: !data.hasData
                     ? const Icon(Icons.calendar_today)
@@ -170,7 +170,7 @@ class _HistoryState extends State<History> {
         child: const Icon(Icons.add),
       ),
       bottomNavigationBar: BottomAppBar(
-        color: Theme.of(context).primaryColor,
+        color: Theme.of(context).colorScheme.primary,
         shape: const CircularNotchedRectangle(),
         child: StreamBuilder<List>(
           stream: _listController.objectsData,

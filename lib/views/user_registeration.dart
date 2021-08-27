@@ -63,8 +63,8 @@ class _UserRegistrationState extends State<UserRegistration> {
                           'يرجى ادخال اسمك الذي سيظهر للمستخدمين الأخرين',
                       labelText: 'اسم المستخدم',
                       border: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Theme.of(context).primaryColor),
+                        borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.primary),
                       ),
                     ),
                     textInputAction: TextInputAction.next,
@@ -96,8 +96,8 @@ class _UserRegistrationState extends State<UserRegistration> {
                           'يرجى إدخال كلمة سر لحسابك الجديد في البرنامج',
                       labelText: 'كلمة السر',
                       border: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Theme.of(context).primaryColor),
+                        borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.primary),
                       ),
                     ),
                     textInputAction: TextInputAction.next,
@@ -130,8 +130,8 @@ class _UserRegistrationState extends State<UserRegistration> {
                       ),
                       labelText: 'تأكيد كلمة السر',
                       border: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Theme.of(context).primaryColor),
+                        borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.primary),
                       ),
                     ),
                     textInputAction: TextInputAction.done,
@@ -179,8 +179,9 @@ class _UserRegistrationState extends State<UserRegistration> {
                                       labelText: 'تاريخ أخر تناول',
                                       border: OutlineInputBorder(
                                         borderSide: BorderSide(
-                                            color:
-                                                Theme.of(context).primaryColor),
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary),
                                       ),
                                     ),
                                     child: lastTanawol != null
@@ -309,8 +310,8 @@ class _UserRegistrationState extends State<UserRegistration> {
                   helperText: 'يمكنك أن تسأل أحد المشرفين ليعطيك لينك دعوة',
                   labelText: 'لينك الدعوة',
                   border: OutlineInputBorder(
-                    borderSide:
-                        BorderSide(color: Theme.of(context).primaryColor),
+                    borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.primary),
                   ),
                 ),
                 maxLines: null,

@@ -44,7 +44,8 @@ class _NotificationSettingState extends State<NotificationSetting> {
             decoration: InputDecoration(
               labelText: widget.label,
               border: OutlineInputBorder(
-                borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                borderSide:
+                    BorderSide(color: Theme.of(context).colorScheme.primary),
               ),
             ),
             keyboardType: TextInputType.number,

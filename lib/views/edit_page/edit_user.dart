@@ -99,8 +99,8 @@ class _EditUserState extends State<EditUser> {
                     decoration: InputDecoration(
                         labelText: 'الاسم',
                         border: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Theme.of(context).primaryColor),
+                          borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.primary),
                         )),
                     focusNode: foci[0],
                     textInputAction: TextInputAction.next,
@@ -130,7 +130,7 @@ class _EditUserState extends State<EditUser> {
                           labelText: 'تاريخ أخر تناول',
                           border: OutlineInputBorder(
                             borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
+                                color: Theme.of(context).colorScheme.primary),
                           ),
                         ),
                         child: widget.user.lastTanawolDate != null
@@ -157,7 +157,7 @@ class _EditUserState extends State<EditUser> {
                           labelText: 'تاريخ أخر اعتراف',
                           border: OutlineInputBorder(
                             borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
+                                color: Theme.of(context).colorScheme.primary),
                           ),
                         ),
                         child: widget.user.lastConfessionDate != null
@@ -180,7 +180,7 @@ class _EditUserState extends State<EditUser> {
                           labelText: 'داخل فصل',
                           border: OutlineInputBorder(
                             borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
+                                color: Theme.of(context).colorScheme.primary),
                           ),
                         ),
                         child: FutureBuilder<String?>(
@@ -613,7 +613,9 @@ class _EditUserState extends State<EditUser> {
           await FirebaseFunctions.instance.httpsCallable('changeUserName').call(
               {'affectedUser': widget.user.uid, 'newName': widget.user.name});
         }
-        update..remove('name')..remove('classId');
+        update
+          ..remove('name')
+          ..remove('classId');
 
         if (update.isNotEmpty) {
           await FirebaseFunctions.instance
@@ -724,7 +726,7 @@ class _EditUserState extends State<EditUser> {
               ],
             ),
             bottomNavigationBar: BottomAppBar(
-              color: Theme.of(context).primaryColor,
+              color: Theme.of(context).colorScheme.primary,
               shape: const CircularNotchedRectangle(),
               child: StreamBuilder<Map?>(
                 stream: controller.objectsData,

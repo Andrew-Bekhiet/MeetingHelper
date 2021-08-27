@@ -208,7 +208,8 @@ class _SearchQueryState extends State<SearchQuery> {
             decoration: InputDecoration(
                 labelText: 'اختيار تاريخ',
                 border: OutlineInputBorder(
-                  borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                  borderSide:
+                      BorderSide(color: Theme.of(context).colorScheme.primary),
                 )),
             child: Text(DateFormat('yyyy/M/d').format(queryValue is Timestamp
                 ? (queryValue as Timestamp).toDate()
@@ -222,7 +223,8 @@ class _SearchQueryState extends State<SearchQuery> {
             decoration: InputDecoration(
                 labelText: 'قيمة',
                 border: OutlineInputBorder(
-                  borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                  borderSide:
+                      BorderSide(color: Theme.of(context).colorScheme.primary),
                 )),
             textInputAction: TextInputAction.done,
             initialValue: queryText is String ? queryText : '',
@@ -241,8 +243,8 @@ class _SearchQueryState extends State<SearchQuery> {
               decoration: InputDecoration(
                   labelText: 'اختيار فصل',
                   border: OutlineInputBorder(
-                    borderSide:
-                        BorderSide(color: Theme.of(context).primaryColor),
+                    borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.primary),
                   )),
               child: Text(queryValue != null && queryValue is JsonRef
                   ? queryText!
@@ -270,7 +272,7 @@ class _SearchQueryState extends State<SearchQuery> {
         //       decoration: InputDecoration(
         //           labelText: 'اختيار نوع الفرد',
         //           border: OutlineInputBorder(
-        //             borderSide: BorderSide(color: Theme.of(context).primaryColor),
+        //             borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
         //           )),
         //       child: Text(queryValue != null && queryValue is JsonRef
         //           ? queryText
@@ -297,13 +299,13 @@ class _SearchQueryState extends State<SearchQuery> {
                         ),
                       )
                       .toList()
-                        ..insert(
-                          0,
-                          const DropdownMenuItem(
-                            value: null,
-                            child: Text(''),
-                          ),
-                        ),
+                    ..insert(
+                      0,
+                      const DropdownMenuItem(
+                        value: null,
+                        child: Text(''),
+                      ),
+                    ),
                   onChanged: (dynamic value) async {
                     queryValue = FirebaseFirestore.instance.doc(value);
                     queryText = (await FirebaseFirestore.instance
@@ -335,13 +337,13 @@ class _SearchQueryState extends State<SearchQuery> {
                         ),
                       )
                       .toList()
-                        ..insert(
-                          0,
-                          const DropdownMenuItem(
-                            value: null,
-                            child: Text(''),
-                          ),
-                        ),
+                    ..insert(
+                      0,
+                      const DropdownMenuItem(
+                        value: null,
+                        child: Text(''),
+                      ),
+                    ),
                   onChanged: (dynamic value) async {
                     queryValue = FirebaseFirestore.instance.doc(value);
                     queryText = (await FirebaseFirestore.instance
@@ -373,13 +375,13 @@ class _SearchQueryState extends State<SearchQuery> {
                         ),
                       )
                       .toList()
-                        ..insert(
-                          0,
-                          const DropdownMenuItem(
-                            value: null,
-                            child: Text(''),
-                          ),
-                        ),
+                    ..insert(
+                      0,
+                      const DropdownMenuItem(
+                        value: null,
+                        child: Text(''),
+                      ),
+                    ),
                   onChanged: (dynamic value) async {
                     queryValue = FirebaseFirestore.instance.doc(value);
                     queryText = (await FirebaseFirestore.instance
@@ -411,13 +413,13 @@ class _SearchQueryState extends State<SearchQuery> {
                         ),
                       )
                       .toList()
-                        ..insert(
-                          0,
-                          const DropdownMenuItem(
-                            value: null,
-                            child: Text(''),
-                          ),
-                        ),
+                    ..insert(
+                      0,
+                      const DropdownMenuItem(
+                        value: null,
+                        child: Text(''),
+                      ),
+                    ),
                   onChanged: (dynamic value) async {
                     queryValue = FirebaseFirestore.instance.doc(value);
                     queryText = (await FirebaseFirestore.instance
@@ -439,8 +441,8 @@ class _SearchQueryState extends State<SearchQuery> {
                 decoration: InputDecoration(
                     labelText: 'اختيار تاريخ',
                     border: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Theme.of(context).primaryColor),
+                      borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.primary),
                     )),
                 child: Text(DateFormat('yyyy/M/d').format(
                     queryValue != null && queryValue is Timestamp
@@ -530,7 +532,7 @@ class _SearchQueryState extends State<SearchQuery> {
         //         decoration: InputDecoration(
         //             labelText: 'الحالة',
         //             border: OutlineInputBorder(
-        //               borderSide: BorderSide(color: Theme.of(context).primaryColor),
+        //               borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
         //             )),
         //       );
         //     } else
@@ -638,13 +640,13 @@ class _SearchQueryState extends State<SearchQuery> {
                         ),
                       )
                       .toList()
-                        ..insert(
-                          0,
-                          const DropdownMenuItem(
-                            value: null,
-                            child: Text(''),
-                          ),
-                        ),
+                    ..insert(
+                      0,
+                      const DropdownMenuItem(
+                        value: null,
+                        child: Text(''),
+                      ),
+                    ),
                   onChanged: (dynamic value) async {
                     queryValue = FirebaseFirestore.instance.doc(value);
                     queryText = (await FirebaseFirestore.instance

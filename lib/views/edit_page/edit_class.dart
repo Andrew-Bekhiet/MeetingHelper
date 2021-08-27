@@ -139,13 +139,13 @@ class _EditClassState extends State<EditClass> {
                                   ),
                                 )
                                 .toList()
-                                  ..insert(
-                                    0,
-                                    const DropdownMenuItem(
-                                      value: null,
-                                      child: Text(''),
-                                    ),
-                                  ),
+                              ..insert(
+                                0,
+                                const DropdownMenuItem(
+                                  value: null,
+                                  child: Text(''),
+                                ),
+                              ),
                             onChanged: (dynamic value) {
                               setState(() {});
                               class$.studyYear = value != null
@@ -157,7 +157,9 @@ class _EditClassState extends State<EditClass> {
                                 labelText: 'السنة الدراسية',
                                 border: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: Theme.of(context).primaryColor),
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary),
                                 )),
                           ),
                         );
@@ -194,8 +196,8 @@ class _EditClassState extends State<EditClass> {
                     decoration: InputDecoration(
                       labelText: 'نوع الفصل',
                       border: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Theme.of(context).primaryColor),
+                        borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.primary),
                       ),
                     ),
                   ),
@@ -288,7 +290,7 @@ class _EditClassState extends State<EditClass> {
             cropStyle: CropStyle.circle,
             androidUiSettings: AndroidUiSettings(
                 toolbarTitle: 'قص الصورة',
-                toolbarColor: Theme.of(context).primaryColor,
+                toolbarColor: Theme.of(context).colorScheme.primary,
                 initAspectRatio: CropAspectRatioPreset.original,
                 lockAspectRatio: false)))
         ?.path;

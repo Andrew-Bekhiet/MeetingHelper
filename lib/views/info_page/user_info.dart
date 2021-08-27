@@ -305,7 +305,7 @@ class _UserInfoState extends State<UserInfo> {
                               autoDisposeController: true,
                               listOptions: listOptions),
                           bottomNavigationBar: BottomAppBar(
-                            color: Theme.of(context).primaryColor,
+                            color: Theme.of(context).colorScheme.primary,
                             shape: const CircularNotchedRectangle(),
                             child: StreamBuilder<List>(
                               stream: listOptions.objectsData,

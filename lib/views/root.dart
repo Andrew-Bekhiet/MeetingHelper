@@ -225,7 +225,7 @@ class _RootState extends State<Root>
                           ),
                         ],
                       ),
-                      backgroundColor: Theme.of(context).accentColor,
+                      backgroundColor: Theme.of(context).colorScheme.secondary,
                       targetColor: Colors.transparent,
                       textColor:
                           Theme.of(context).primaryTextTheme.bodyText1!.color!,
@@ -283,7 +283,7 @@ class _RootState extends State<Root>
                       ),
                     ],
                   ),
-                  backgroundColor: Theme.of(context).accentColor,
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
                   targetColor: Colors.transparent,
                   textColor:
                       Theme.of(context).primaryTextTheme.bodyText1!.color!,
@@ -324,7 +324,7 @@ class _RootState extends State<Root>
                     ),
                   ],
                 ),
-                backgroundColor: Theme.of(context).accentColor,
+                backgroundColor: Theme.of(context).colorScheme.secondary,
                 targetColor: Colors.transparent,
                 textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
                 child: const Icon(Icons.miscellaneous_services),
@@ -363,7 +363,7 @@ class _RootState extends State<Root>
                     ),
                   ],
                 ),
-                backgroundColor: Theme.of(context).accentColor,
+                backgroundColor: Theme.of(context).colorScheme.secondary,
                 targetColor: Colors.transparent,
                 textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
                 child: const Icon(Icons.person),
@@ -424,7 +424,7 @@ class _RootState extends State<Root>
         ),
       ),
       bottomNavigationBar: BottomAppBar(
-        color: Theme.of(context).primaryColor,
+        color: Theme.of(context).colorScheme.primary,
         shape: const CircularNotchedRectangle(),
         child: AnimatedBuilder(
           animation: _tabController!,
@@ -528,7 +528,7 @@ class _RootState extends State<Root>
                         ),
                       ],
                     ),
-                    backgroundColor: Theme.of(context).accentColor,
+                    backgroundColor: Theme.of(context).colorScheme.secondary,
                     targetColor: Colors.transparent,
                     textColor:
                         Theme.of(context).primaryTextTheme.bodyText1!.color!,
@@ -591,7 +591,7 @@ class _RootState extends State<Root>
                           ),
                         ],
                       ),
-                      backgroundColor: Theme.of(context).accentColor,
+                      backgroundColor: Theme.of(context).colorScheme.secondary,
                       targetColor: Colors.transparent,
                       textColor:
                           Theme.of(context).primaryTextTheme.bodyText1!.color!,
@@ -655,7 +655,7 @@ class _RootState extends State<Root>
                     ),
                   ],
                 ),
-                backgroundColor: Theme.of(context).accentColor,
+                backgroundColor: Theme.of(context).colorScheme.secondary,
                 targetColor: Colors.transparent,
                 textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
                 child: const Icon(Icons.add),
@@ -711,7 +711,8 @@ class _RootState extends State<Root>
                             ),
                           ],
                         ),
-                        backgroundColor: Theme.of(context).accentColor,
+                        backgroundColor:
+                            Theme.of(context).colorScheme.secondary,
                         targetColor: Colors.transparent,
                         textColor: Theme.of(context)
                             .primaryTextTheme
@@ -761,7 +762,7 @@ class _RootState extends State<Root>
                     ),
                   ],
                 ),
-                backgroundColor: Theme.of(context).accentColor,
+                backgroundColor: Theme.of(context).colorScheme.secondary,
                 targetColor: Colors.transparent,
                 textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
                 child: const Icon(Icons.history),
@@ -815,7 +816,8 @@ class _RootState extends State<Root>
                             ),
                           ],
                         ),
-                        backgroundColor: Theme.of(context).accentColor,
+                        backgroundColor:
+                            Theme.of(context).colorScheme.secondary,
                         targetColor: Colors.transparent,
                         textColor: Theme.of(context)
                             .primaryTextTheme
@@ -867,7 +869,7 @@ class _RootState extends State<Root>
                     ),
                   ],
                 ),
-                backgroundColor: Theme.of(context).accentColor,
+                backgroundColor: Theme.of(context).colorScheme.secondary,
                 targetColor: Colors.transparent,
                 textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
                 child: const Icon(Icons.analytics_outlined),
@@ -914,7 +916,7 @@ class _RootState extends State<Root>
                     ),
                   ],
                 ),
-                backgroundColor: Theme.of(context).accentColor,
+                backgroundColor: Theme.of(context).colorScheme.secondary,
                 targetColor: Colors.transparent,
                 textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
                 child: const Icon(Icons.analytics_outlined),
@@ -971,7 +973,8 @@ class _RootState extends State<Root>
                             ),
                           ],
                         ),
-                        backgroundColor: Theme.of(context).accentColor,
+                        backgroundColor:
+                            Theme.of(context).colorScheme.secondary,
                         targetColor: Colors.transparent,
                         textColor: Theme.of(context)
                             .primaryTextTheme
@@ -1024,7 +1027,7 @@ class _RootState extends State<Root>
                     ),
                   ],
                 ),
-                backgroundColor: Theme.of(context).accentColor,
+                backgroundColor: Theme.of(context).colorScheme.secondary,
                 targetColor: Colors.transparent,
                 textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
                 child: const Icon(Icons.search),
@@ -1079,7 +1082,7 @@ class _RootState extends State<Root>
                         ),
                       ],
                     ),
-                    backgroundColor: Theme.of(context).accentColor,
+                    backgroundColor: Theme.of(context).colorScheme.secondary,
                     targetColor: Colors.transparent,
                     textColor:
                         Theme.of(context).primaryTextTheme.bodyText1!.color!,
@@ -1128,7 +1131,7 @@ class _RootState extends State<Root>
                     ),
                   ],
                 ),
-                backgroundColor: Theme.of(context).accentColor,
+                backgroundColor: Theme.of(context).colorScheme.secondary,
                 targetColor: Colors.transparent,
                 textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
                 child: const Icon(Icons.map),
@@ -1171,7 +1174,7 @@ class _RootState extends State<Root>
                     ),
                   ],
                 ),
-                backgroundColor: Theme.of(context).accentColor,
+                backgroundColor: Theme.of(context).colorScheme.secondary,
                 targetColor: Colors.transparent,
                 textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
                 child: const Icon(Icons.settings),

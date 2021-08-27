@@ -395,13 +395,13 @@ class _ChurchesPageState extends State<ChurchesPage> {
                                 ),
                               )
                               .toList()
-                                ..insert(
-                                  0,
-                                  const DropdownMenuItem(
-                                    value: null,
-                                    child: Text(''),
-                                  ),
-                                ),
+                            ..insert(
+                              0,
+                              const DropdownMenuItem(
+                                value: null,
+                                child: Text(''),
+                              ),
+                            ),
                           onChanged: (dynamic value) {
                             father.churchId =
                                 FirebaseFirestore.instance.doc(value);
@@ -410,7 +410,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                             labelText: 'الكنيسة',
                             border: OutlineInputBorder(
                               borderSide: BorderSide(
-                                  color: Theme.of(context).primaryColor),
+                                  color: Theme.of(context).colorScheme.primary),
                             ),
                           ),
                         ),
@@ -681,13 +681,13 @@ class _FathersPageState extends State<FathersPage> {
                                 ),
                               )
                               .toList()
-                                ..insert(
-                                  0,
-                                  const DropdownMenuItem(
-                                    value: null,
-                                    child: Text(''),
-                                  ),
-                                ),
+                            ..insert(
+                              0,
+                              const DropdownMenuItem(
+                                value: null,
+                                child: Text(''),
+                              ),
+                            ),
                           onChanged: (dynamic value) {
                             father.churchId =
                                 FirebaseFirestore.instance.doc(value);
@@ -696,7 +696,8 @@ class _FathersPageState extends State<FathersPage> {
                               labelText: 'الكنيسة',
                               border: OutlineInputBorder(
                                 borderSide: BorderSide(
-                                    color: Theme.of(context).primaryColor),
+                                    color:
+                                        Theme.of(context).colorScheme.primary),
                               )),
                         ),
                       );

@@ -199,7 +199,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                             labelText: 'اكتب رسالة',
                             border: OutlineInputBorder(
                               borderSide: BorderSide(
-                                  color: Theme.of(context).primaryColor),
+                                  color: Theme.of(context).colorScheme.primary),
                             ),
                           ),
                         ),
@@ -579,7 +579,9 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
                                 labelText: 'وقت الحضور',
                                 border: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: Theme.of(context).primaryColor),
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary),
                                 ),
                               ),
                               format:
@@ -617,7 +619,7 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
                           labelText: 'ملاحظات',
                           border: OutlineInputBorder(
                             borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
+                                color: Theme.of(context).colorScheme.primary),
                           ),
                         ),
                         textInputAction: TextInputAction.done,

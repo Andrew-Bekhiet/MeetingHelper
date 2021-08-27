@@ -34,7 +34,7 @@ class _InvitationsPageState extends State<InvitationsPage> {
       extendBody: true,
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
       bottomNavigationBar: BottomAppBar(
-        color: Theme.of(context).primaryColor,
+        color: Theme.of(context).colorScheme.primary,
         shape: const CircularNotchedRectangle(),
         child: StreamBuilder<List<Invitation?>>(
           stream: options.objectsData,

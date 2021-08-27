@@ -54,7 +54,8 @@ class _DecoratedTextFormFieldState extends State<DecoratedTextFormField> {
             InputDecoration(
               labelText: widget.labelText,
               border: OutlineInputBorder(
-                borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                borderSide:
+                    BorderSide(color: Theme.of(context).colorScheme.primary),
               ),
             ),
         autovalidateMode: widget.autovalidateMode,

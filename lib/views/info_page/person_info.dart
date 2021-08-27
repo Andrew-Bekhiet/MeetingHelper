@@ -135,7 +135,7 @@ class _PersonInfoState extends State<PersonInfo> {
                                     ],
                                   ),
                                   backgroundColor:
-                                      Theme.of(context).accentColor,
+                                      Theme.of(context).colorScheme.secondary,
                                   targetColor: Colors.transparent,
                                   textColor: Theme.of(context)
                                       .primaryTextTheme
@@ -225,7 +225,8 @@ class _PersonInfoState extends State<PersonInfo> {
                                     ),
                                   ],
                                 ),
-                                backgroundColor: Theme.of(context).accentColor,
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.secondary,
                                 targetColor: Colors.transparent,
                                 textColor: Theme.of(context)
                                     .primaryTextTheme
@@ -473,8 +474,8 @@ class _PersonInfoState extends State<PersonInfo> {
                           ),
                         ],
                       ),
-                      backgroundColor: Theme.of(context).accentColor,
-                      targetColor: Theme.of(context).primaryColor,
+                      backgroundColor: Theme.of(context).colorScheme.secondary,
+                      targetColor: Theme.of(context).colorScheme.primary,
                       textColor:
                           Theme.of(context).primaryTextTheme.bodyText1!.color!,
                       child: const Icon(Icons.update),

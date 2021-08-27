@@ -169,8 +169,8 @@ class _DataMapState extends State<DataMap> {
                           ),
                         ],
                       ),
-                      backgroundColor: Theme.of(context).accentColor,
-                      targetColor: Theme.of(context).primaryColor,
+                      backgroundColor: Theme.of(context).colorScheme.secondary,
+                      targetColor: Theme.of(context).colorScheme.primary,
                       textColor:
                           Theme.of(context).primaryTextTheme.bodyText1!.color!,
                       child: const Icon(Icons.visibility),

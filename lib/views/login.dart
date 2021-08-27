@@ -199,7 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               // ElevatedButton(
               //   shape: btnShape,
-              //   color: Theme.of(context).primaryColor,
+              //   color: Theme.of(context).colorScheme.primary,
               //   child: Row(
               //     mainAxisAlignment: MainAxisAlignment.center,
               //     crossAxisAlignment: CrossAxisAlignment.center,
@@ -269,7 +269,7 @@ class _LoginScreenState extends State<LoginScreen> {
               //                               labelText: 'رمز التحقق',
               //                               border: OutlineInputBorder(
               //                                 borderSide: BorderSide(
-              //                                     color: Theme.of(context).primaryColor),
+              //                                     color: Theme.of(context).colorScheme.primary),
               //                               )),
               //                           onFieldSubmitted: (_) =>
               //                               submitOTP(),
@@ -306,7 +306,7 @@ class _LoginScreenState extends State<LoginScreen> {
               //                       labelText: 'رقم الهاتف',
               //                       border: OutlineInputBorder(
               //                         borderSide:
-              //                             BorderSide(color: Theme.of(context).primaryColor),
+              //                             BorderSide(color: Theme.of(context).colorScheme.primary),
               //                       )),
               //                   onFieldSubmitted: (_) => sendOTP(),
               //                   controller: phone,

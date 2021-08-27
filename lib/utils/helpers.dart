@@ -227,30 +227,30 @@ List<RadioListTile> getOrderingOptions(
         ),
       )
       .toList()
-        ..addAll(
-          [
-            RadioListTile(
-              value: 'true',
-              groupValue: orderOptions.value.asc.toString(),
-              title: const Text('تصاعدي'),
-              onChanged: (value) {
-                orderOptions.add(OrderOptions(
-                    orderBy: orderOptions.value.orderBy, asc: value == 'true'));
-                navigator.currentState!.pop();
-              },
-            ),
-            RadioListTile(
-              value: 'false',
-              groupValue: orderOptions.value.asc.toString(),
-              title: const Text('تنازلي'),
-              onChanged: (value) {
-                orderOptions.add(OrderOptions(
-                    orderBy: orderOptions.value.orderBy, asc: value == 'true'));
-                navigator.currentState!.pop();
-              },
-            ),
-          ],
-        );
+    ..addAll(
+      [
+        RadioListTile(
+          value: 'true',
+          groupValue: orderOptions.value.asc.toString(),
+          title: const Text('تصاعدي'),
+          onChanged: (value) {
+            orderOptions.add(OrderOptions(
+                orderBy: orderOptions.value.orderBy, asc: value == 'true'));
+            navigator.currentState!.pop();
+          },
+        ),
+        RadioListTile(
+          value: 'false',
+          groupValue: orderOptions.value.asc.toString(),
+          title: const Text('تنازلي'),
+          onChanged: (value) {
+            orderOptions.add(OrderOptions(
+                orderBy: orderOptions.value.orderBy, asc: value == 'true'));
+            navigator.currentState!.pop();
+          },
+        ),
+      ],
+    );
 }
 
 String getPhone(String phone, [bool whatsapp = true]) {
@@ -804,7 +804,7 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
                             labelText: 'عنوان الرسالة',
                             border: OutlineInputBorder(
                               borderSide: BorderSide(
-                                  color: Theme.of(context).primaryColor),
+                                  color: Theme.of(context).colorScheme.primary),
                             ),
                           ),
                           controller: title,
@@ -825,7 +825,8 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
                               labelText: 'محتوى الرسالة',
                               border: OutlineInputBorder(
                                 borderSide: BorderSide(
-                                    color: Theme.of(context).primaryColor),
+                                    color:
+                                        Theme.of(context).colorScheme.primary),
                               ),
                             ),
                             textInputAction: TextInputAction.newline,
@@ -1566,8 +1567,9 @@ Timestamp tranucateToDay({DateTime? time}) {
   );
 }
 
-Timestamp mergeDayWithTime(DateTime day,DateTime time){
-  return Timestamp.fromDate(DateTime(day.year,day.month,day.day,time.hour,time.minute,time.second,time.millisecond,time.microsecond));
+Timestamp mergeDayWithTime(DateTime day, DateTime time) {
+  return Timestamp.fromDate(DateTime(day.year, day.month, day.day, time.hour,
+      time.minute, time.second, time.millisecond, time.microsecond));
 }
 
 void userTap(User user) async {

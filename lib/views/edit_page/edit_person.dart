@@ -212,7 +212,7 @@ class _EditPersonState extends State<EditPerson> {
                             ),
                             border: OutlineInputBorder(
                               borderSide: BorderSide(
-                                  color: Theme.of(context).primaryColor),
+                                  color: Theme.of(context).colorScheme.primary),
                             ),
                           ),
                           keyboardType: TextInputType.phone,
@@ -275,8 +275,8 @@ class _EditPersonState extends State<EditPerson> {
                         },
                       ),
                       border: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Theme.of(context).primaryColor),
+                        borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.primary),
                       ),
                     ),
                     builder: (context, state) {
@@ -328,13 +328,13 @@ class _EditPersonState extends State<EditPerson> {
                                         ),
                                       )
                                       .toList()
-                                        ..insert(
-                                          0,
-                                          const DropdownMenuItem(
-                                            value: null,
-                                            child: Text(''),
-                                          ),
-                                        ),
+                                    ..insert(
+                                      0,
+                                      const DropdownMenuItem(
+                                        value: null,
+                                        child: Text(''),
+                                      ),
+                                    ),
                                   onChanged: (dynamic value) {
                                     person.school = value != null
                                         ? FirebaseFirestore.instance.doc(value)
@@ -345,8 +345,9 @@ class _EditPersonState extends State<EditPerson> {
                                     labelText: 'المدرسة',
                                     border: OutlineInputBorder(
                                       borderSide: BorderSide(
-                                          color:
-                                              Theme.of(context).primaryColor),
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary),
                                     ),
                                   ),
                                 ),
@@ -391,13 +392,13 @@ class _EditPersonState extends State<EditPerson> {
                                         ),
                                       )
                                       .toList()
-                                        ..insert(
-                                          0,
-                                          const DropdownMenuItem(
-                                            value: null,
-                                            child: Text(''),
-                                          ),
-                                        ),
+                                    ..insert(
+                                      0,
+                                      const DropdownMenuItem(
+                                        value: null,
+                                        child: Text(''),
+                                      ),
+                                    ),
                                   onChanged: (dynamic value) {
                                     person.church = value != null
                                         ? FirebaseFirestore.instance.doc(value)
@@ -408,8 +409,9 @@ class _EditPersonState extends State<EditPerson> {
                                     labelText: 'الكنيسة',
                                     border: OutlineInputBorder(
                                       borderSide: BorderSide(
-                                          color:
-                                              Theme.of(context).primaryColor),
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary),
                                     ),
                                   ),
                                 ),
@@ -448,13 +450,13 @@ class _EditPersonState extends State<EditPerson> {
                                       ),
                                     )
                                     .toList()
-                                      ..insert(
-                                        0,
-                                        const DropdownMenuItem(
-                                          value: null,
-                                          child: Text(''),
-                                        ),
-                                      ),
+                                  ..insert(
+                                    0,
+                                    const DropdownMenuItem(
+                                      value: null,
+                                      child: Text(''),
+                                    ),
+                                  ),
                                 onChanged: (dynamic value) {
                                   person.cFather = value != null
                                       ? FirebaseFirestore.instance.doc(value)
@@ -465,7 +467,9 @@ class _EditPersonState extends State<EditPerson> {
                                   labelText: 'أب الاعتراف',
                                   border: OutlineInputBorder(
                                     borderSide: BorderSide(
-                                        color: Theme.of(context).primaryColor),
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary),
                                   ),
                                 ),
                               );
@@ -533,8 +537,8 @@ class _EditPersonState extends State<EditPerson> {
                         },
                       ),
                       border: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Theme.of(context).primaryColor),
+                        borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.primary),
                       ),
                     ),
                     builder: (context, state) {
@@ -568,8 +572,8 @@ class _EditPersonState extends State<EditPerson> {
                         },
                       ),
                       border: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Theme.of(context).primaryColor),
+                        borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.primary),
                       ),
                     ),
                     builder: (context, state) {
@@ -603,8 +607,8 @@ class _EditPersonState extends State<EditPerson> {
                         },
                       ),
                       border: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Theme.of(context).primaryColor),
+                        borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.primary),
                       ),
                     ),
                     builder: (context, state) {
@@ -638,8 +642,8 @@ class _EditPersonState extends State<EditPerson> {
                         },
                       ),
                       border: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Theme.of(context).primaryColor),
+                        borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.primary),
                       ),
                     ),
                     builder: (context, state) {
@@ -673,8 +677,8 @@ class _EditPersonState extends State<EditPerson> {
                         },
                       ),
                       border: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Theme.of(context).primaryColor),
+                        borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.primary),
                       ),
                     ),
                     builder: (context, state) {
@@ -929,7 +933,7 @@ class _EditPersonState extends State<EditPerson> {
               ],
             ),
             bottomNavigationBar: BottomAppBar(
-              color: Theme.of(context).primaryColor,
+              color: Theme.of(context).colorScheme.primary,
               shape: const CircularNotchedRectangle(),
               child: StreamBuilder<Map?>(
                 stream: controller.objectsData,
@@ -1018,7 +1022,7 @@ class _EditPersonState extends State<EditPerson> {
       cropStyle: CropStyle.circle,
       androidUiSettings: AndroidUiSettings(
           toolbarTitle: 'قص الصورة',
-          toolbarColor: Theme.of(context).primaryColor,
+          toolbarColor: Theme.of(context).colorScheme.primary,
           initAspectRatio: CropAspectRatioPreset.square,
           lockAspectRatio: false),
     ))

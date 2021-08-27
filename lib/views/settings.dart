@@ -177,18 +177,18 @@ class SettingsState extends State<Settings> {
                                     .map((e) => DropdownMenuItem(
                                         value: e.key, child: Text(e.value)))
                                     .toList()
-                                      ..removeWhere(
-                                          (element) => element.value == 'Color')
-                                      ..add(const DropdownMenuItem(
-                                        value: 'Members',
-                                        child: Text('المخدومين بالفصل'),
-                                      ))
-                                      ..insert(
-                                          0,
-                                          const DropdownMenuItem(
-                                            value: null,
-                                            child: Text(''),
-                                          )),
+                                  ..removeWhere(
+                                      (element) => element.value == 'Color')
+                                  ..add(const DropdownMenuItem(
+                                    value: 'Members',
+                                    child: Text('المخدومين بالفصل'),
+                                  ))
+                                  ..insert(
+                                      0,
+                                      const DropdownMenuItem(
+                                        value: null,
+                                        child: Text(''),
+                                      )),
                                 onChanged: (dynamic value) {},
                                 onSaved: (dynamic value) async {
                                   await settings.put('ClassSecondLine', value);
@@ -197,8 +197,9 @@ class SettingsState extends State<Settings> {
                                     labelText: 'السطر الثاني للفصل:',
                                     border: OutlineInputBorder(
                                       borderSide: BorderSide(
-                                          color:
-                                              Theme.of(context).primaryColor),
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary),
                                     )),
                               ),
                             ),
@@ -214,14 +215,14 @@ class SettingsState extends State<Settings> {
                                           child: Text(e.value),
                                         ))
                                     .toList()
-                                      ..removeWhere(
-                                          (element) => element.value == 'Color')
-                                      ..insert(
-                                          0,
-                                          const DropdownMenuItem(
-                                            value: null,
-                                            child: Text(''),
-                                          )),
+                                  ..removeWhere(
+                                      (element) => element.value == 'Color')
+                                  ..insert(
+                                      0,
+                                      const DropdownMenuItem(
+                                        value: null,
+                                        child: Text(''),
+                                      )),
                                 onChanged: (dynamic value) {},
                                 onSaved: (dynamic value) async {
                                   await settings.put('PersonSecondLine', value);
@@ -230,8 +231,9 @@ class SettingsState extends State<Settings> {
                                     labelText: 'السطر الثاني للمخدوم:',
                                     border: OutlineInputBorder(
                                       borderSide: BorderSide(
-                                          color:
-                                              Theme.of(context).primaryColor),
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary),
                                     )),
                               ),
                             ),
@@ -275,7 +277,8 @@ class SettingsState extends State<Settings> {
                               labelText: 'الحجم الأقصى للبيانات المؤقتة (MB):',
                               border: OutlineInputBorder(
                                 borderSide: BorderSide(
-                                    color: Theme.of(context).primaryColor),
+                                    color:
+                                        Theme.of(context).colorScheme.primary),
                               ),
                             ),
                             keyboardType: TextInputType.number,

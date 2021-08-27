@@ -51,7 +51,7 @@ class _UsersPageState extends State<UsersPage> {
             : const Text('المستخدمون'),
       ),
       bottomNavigationBar: BottomAppBar(
-        color: Theme.of(context).primaryColor,
+        color: Theme.of(context).colorScheme.primary,
         shape: const CircularNotchedRectangle(),
         child: StreamBuilder<List>(
           stream: _listOptions.objectsData,

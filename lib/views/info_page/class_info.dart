@@ -146,8 +146,9 @@ class _ClassInfoState extends State<ClassInfo> {
                                           ),
                                         ],
                                       ),
-                                      backgroundColor:
-                                          Theme.of(context).accentColor,
+                                      backgroundColor: Theme.of(context)
+                                          .colorScheme
+                                          .secondary,
                                       targetColor: Colors.transparent,
                                       textColor: Theme.of(context)
                                           .primaryTextTheme
@@ -241,7 +242,8 @@ class _ClassInfoState extends State<ClassInfo> {
                                   ),
                                 ],
                               ),
-                              backgroundColor: Theme.of(context).accentColor,
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.secondary,
                               targetColor: Colors.transparent,
                               textColor: Theme.of(context)
                                   .primaryTextTheme
@@ -310,7 +312,8 @@ class _ClassInfoState extends State<ClassInfo> {
                                 ),
                               ],
                             ),
-                            backgroundColor: Theme.of(context).accentColor,
+                            backgroundColor:
+                                Theme.of(context).colorScheme.secondary,
                             targetColor: Colors.transparent,
                             textColor: Theme.of(context)
                                 .primaryTextTheme
@@ -435,7 +438,8 @@ class _ClassInfoState extends State<ClassInfo> {
                                   ),
                                 ],
                               ),
-                              backgroundColor: Theme.of(context).accentColor,
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.secondary,
                               targetColor: Colors.transparent,
                               textColor: Theme.of(context)
                                   .primaryTextTheme
@@ -477,7 +481,7 @@ class _ClassInfoState extends State<ClassInfo> {
               ),
             ),
             bottomNavigationBar: BottomAppBar(
-              color: Theme.of(context).primaryColor,
+              color: Theme.of(context).colorScheme.primary,
               shape: const CircularNotchedRectangle(),
               child: StreamBuilder<List>(
                 stream: _listOptions.objectsData,
@@ -533,8 +537,8 @@ class _ClassInfoState extends State<ClassInfo> {
                           ),
                         ],
                       ),
-                      backgroundColor: Theme.of(context).accentColor,
-                      targetColor: Theme.of(context).primaryColor,
+                      backgroundColor: Theme.of(context).colorScheme.secondary,
+                      targetColor: Theme.of(context).colorScheme.primary,
                       textColor:
                           Theme.of(context).primaryTextTheme.bodyText1!.color!,
                       child: const Icon(Icons.person_add),

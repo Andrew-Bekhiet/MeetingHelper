@@ -79,8 +79,8 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                   labelText: 'كلمة السر',
                   border: OutlineInputBorder(
-                    borderSide:
-                        BorderSide(color: Theme.of(context).primaryColor),
+                    borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.primary),
                   ),
                 ),
                 textInputAction: TextInputAction.done,

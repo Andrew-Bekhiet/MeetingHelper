@@ -124,7 +124,8 @@ class _MyAccountState extends State<MyAccount> {
                           cropStyle: CropStyle.circle,
                           androidUiSettings: AndroidUiSettings(
                               toolbarTitle: 'قص الصورة',
-                              toolbarColor: Theme.of(context).primaryColor,
+                              toolbarColor:
+                                  Theme.of(context).colorScheme.primary,
                               toolbarWidgetColor: Theme.of(context)
                                   .primaryTextTheme
                                   .headline6!
@@ -344,7 +345,7 @@ class _MyAccountState extends State<MyAccount> {
                           labelText: 'الاسم',
                           border: OutlineInputBorder(
                             borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
+                                color: Theme.of(context).colorScheme.primary),
                           )),
                       controller: name,
                       textInputAction: TextInputAction.done,

@@ -247,7 +247,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
         ),
       ),
       bottomNavigationBar: BottomAppBar(
-        color: Theme.of(context).primaryColor,
+        color: Theme.of(context).colorScheme.primary,
         shape: const CircularNotchedRectangle(),
         child: AnimatedBuilder(
           animation: _tabController!,

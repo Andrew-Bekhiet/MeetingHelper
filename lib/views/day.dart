@@ -187,7 +187,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                       ),
                     ],
                   ),
-                  backgroundColor: Theme.of(context).accentColor,
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
                   targetColor: Colors.transparent,
                   textColor:
                       Theme.of(context).primaryTextTheme.bodyText1!.color!,
@@ -232,8 +232,8 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                     ),
                   ],
                 ),
-                backgroundColor: Theme.of(context).accentColor,
-                targetColor: Theme.of(context).primaryColor,
+                backgroundColor: Theme.of(context).colorScheme.secondary,
+                targetColor: Theme.of(context).colorScheme.primary,
                 textColor:
                     Theme.of(context).primaryTextTheme.bodyText1?.color ??
                         Colors.black,
@@ -270,7 +270,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
           ),
           body: body,
           bottomNavigationBar: BottomAppBar(
-            color: Theme.of(context).primaryColor,
+            color: Theme.of(context).colorScheme.primary,
             shape: const CircularNotchedRectangle(),
             child: AnimatedBuilder(
               animation: _tabs!,
@@ -350,7 +350,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                           ),
                         ],
                       ),
-                      backgroundColor: Theme.of(context).accentColor,
+                      backgroundColor: Theme.of(context).colorScheme.secondary,
                       targetColor: Colors.transparent,
                       textColor:
                           Theme.of(context).primaryTextTheme.bodyText1!.color!,

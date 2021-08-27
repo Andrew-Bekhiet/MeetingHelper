@@ -81,8 +81,8 @@ class _EditInvitationState extends State<EditInvitation> {
                     decoration: InputDecoration(
                         labelText: 'عنوان الدعوة',
                         border: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Theme.of(context).primaryColor),
+                          borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.primary),
                         )),
                     focusNode: foci[0],
                     textInputAction: TextInputAction.next,
@@ -110,7 +110,7 @@ class _EditInvitationState extends State<EditInvitation> {
                             labelText: 'تاريخ انتهاء الدعوة',
                             border: OutlineInputBorder(
                               borderSide: BorderSide(
-                                  color: Theme.of(context).primaryColor),
+                                  color: Theme.of(context).colorScheme.primary),
                             )),
                         child: Text(DateFormat('h:m a yyyy/M/d', 'ar-EG')
                             .format(widget.invitation.expiryDate.toDate())),
@@ -143,13 +143,13 @@ class _EditInvitationState extends State<EditInvitation> {
                                 ),
                               )
                               .toList()
-                                ..insert(
-                                  0,
-                                  const DropdownMenuItem(
-                                    value: null,
-                                    child: Text(''),
-                                  ),
-                                ),
+                            ..insert(
+                              0,
+                              const DropdownMenuItem(
+                                value: null,
+                                child: Text(''),
+                              ),
+                            ),
                           onChanged: (dynamic value) {
                             setState(() {});
                             widget.invitation.permissions!['servingStudyYear'] =
@@ -162,7 +162,8 @@ class _EditInvitationState extends State<EditInvitation> {
                               labelText: 'صف الخدمة',
                               border: OutlineInputBorder(
                                 borderSide: BorderSide(
-                                    color: Theme.of(context).primaryColor),
+                                    color:
+                                        Theme.of(context).colorScheme.primary),
                               )),
                         ),
                       );
@@ -186,12 +187,12 @@ class _EditInvitationState extends State<EditInvitation> {
                           ),
                         )
                         .toList()
-                          ..insert(
-                              0,
-                              const DropdownMenuItem(
-                                value: null,
-                                child: Text(''),
-                              )),
+                      ..insert(
+                          0,
+                          const DropdownMenuItem(
+                            value: null,
+                            child: Text(''),
+                          )),
                     onChanged: (dynamic value) {
                       setState(() {});
                       widget.invitation.permissions!['servingStudyGender'] =
@@ -201,8 +202,8 @@ class _EditInvitationState extends State<EditInvitation> {
                     decoration: InputDecoration(
                         labelText: 'نوع الخدمة',
                         border: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Theme.of(context).primaryColor),
+                          borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.primary),
                         )),
                   ),
                 ),

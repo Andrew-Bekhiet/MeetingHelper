@@ -40,8 +40,8 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                       ? const Icon(Icons.done, color: Colors.green)
                       : const Icon(Icons.close, color: Colors.red),
                   border: OutlineInputBorder(
-                    borderSide:
-                        BorderSide(color: Theme.of(context).primaryColor),
+                    borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.primary),
                   ),
                 ),
                 initialValue: user.lastTanawol,
@@ -73,8 +73,8 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                       ? const Icon(Icons.done, color: Colors.green)
                       : const Icon(Icons.close, color: Colors.red),
                   border: OutlineInputBorder(
-                    borderSide:
-                        BorderSide(color: Theme.of(context).primaryColor),
+                    borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.primary),
                   ),
                 ),
                 initialValue: user.lastConfession,
