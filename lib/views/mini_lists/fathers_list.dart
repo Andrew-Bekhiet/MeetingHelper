@@ -33,12 +33,13 @@ class InnerListState extends State<_InnerFathersList> {
   Widget build(BuildContext context) {
     return Column(children: <Widget>[
       TextField(
-          decoration: const InputDecoration(hintText: 'بحث...'),
-          onChanged: (text) {
-            setState(() {
-              filter = text;
-            });
-          }),
+        decoration: const InputDecoration(hintText: 'بحث...'),
+        onChanged: (text) {
+          setState(() {
+            filter = text;
+          });
+        },
+      ),
       Expanded(
         child: RefreshIndicator(
           onRefresh: () async {
@@ -66,12 +67,16 @@ class InnerListState extends State<_InnerFathersList> {
                               },
                               title: Text(current.name),
                               subtitle: FutureBuilder<String?>(
-                                  future: current.getChurchName(),
-                                  builder: (con, name) {
-                                    return name.hasData
-                                        ? Text(name.data!)
-                                        : const LinearProgressIndicator();
-                                  }),
+                                future: current.getChurchName(),
+                                builder: (con, name) {
+                                  return name.hasData
+                                      ? Text(name.data!)
+                                      : name.connectionState ==
+                                              ConnectionState.waiting
+                                          ? const LinearProgressIndicator()
+                                          : const Text('');
+                                },
+                              ),
                               leading: Checkbox(
                                 value: widget.result
                                     .map((f) => f.id)
@@ -121,12 +126,13 @@ class _FathersEditListState extends State<FathersEditList> {
           return Column(
             children: <Widget>[
               TextField(
-                  decoration: const InputDecoration(hintText: 'بحث...'),
-                  onChanged: (text) {
-                    setState(() {
-                      filter = text;
-                    });
-                  }),
+                decoration: const InputDecoration(hintText: 'بحث...'),
+                onChanged: (text) {
+                  setState(() {
+                    filter = text;
+                  });
+                },
+              ),
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () {
@@ -143,12 +149,16 @@ class _FathersEditListState extends State<FathersEditList> {
                                 onTap: () => widget.tap!(current),
                                 title: Text(current.name),
                                 subtitle: FutureBuilder<String?>(
-                                    future: current.getChurchName(),
-                                    builder: (con, name) {
-                                      return name.hasData
-                                          ? Text(name.data!)
-                                          : const LinearProgressIndicator();
-                                    }),
+                                  future: current.getChurchName(),
+                                  builder: (con, name) {
+                                    return name.hasData
+                                        ? Text(name.data!)
+                                        : name.connectionState ==
+                                                ConnectionState.waiting
+                                            ? const LinearProgressIndicator()
+                                            : const Text('');
+                                  },
+                                ),
                               ),
                             )
                           : Container();
@@ -172,26 +182,27 @@ class _FathersListState extends State<FathersList> {
   @override
   Widget build(BuildContext c) {
     return FutureBuilder<Stream<JsonQuery>>(
-        future: widget.list,
-        builder: (c, o) {
-          if (o.hasData) {
-            return StreamBuilder<Father>(
-                stream: widget.original,
-                builder: (con, data) {
-                  if (result == null && data.hasData) {
-                    result = [data.data!];
-                  } else if (data.hasData) {
-                    result!.add(data.data!);
-                  } else {
-                    result = [];
-                  }
-                  return _InnerFathersList(
-                      o.data, result ?? [], widget.list, widget.finished);
-                });
-          } else {
-            return Container();
-          }
-        });
+      future: widget.list,
+      builder: (c, o) {
+        if (o.hasData) {
+          return StreamBuilder<Father>(
+              stream: widget.original,
+              builder: (con, data) {
+                if (result == null && data.hasData) {
+                  result = [data.data!];
+                } else if (data.hasData) {
+                  result!.add(data.data!);
+                } else {
+                  result = [];
+                }
+                return _InnerFathersList(
+                    o.data, result ?? [], widget.list, widget.finished);
+              });
+        } else {
+          return Container();
+        }
+      },
+    );
   }
 }
 

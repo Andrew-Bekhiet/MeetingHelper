@@ -131,20 +131,20 @@ class _ChurchesEditListState extends State<ChurchesEditList> {
                     return widget.list.then((value) => value);
                   },
                   child: ListView.builder(
-                      itemCount: data.data!.docs.length,
-                      itemBuilder: (context, i) {
-                        Church current =
-                            Church.fromQueryDoc(data.data!.docs[i]);
-                        return current.name.contains(filter)
-                            ? Card(
-                                child: ListTile(
-                                  onTap: () => widget.tap!(current),
-                                  title: Text(current.name),
-                                  subtitle: Text(current.address!),
-                                ),
-                              )
-                            : Container();
-                      }),
+                    itemCount: data.data!.docs.length,
+                    itemBuilder: (context, i) {
+                      Church current = Church.fromQueryDoc(data.data!.docs[i]);
+                      return current.name.contains(filter)
+                          ? Card(
+                              child: ListTile(
+                                onTap: () => widget.tap!(current),
+                                title: Text(current.name),
+                                subtitle: Text(current.address!),
+                              ),
+                            )
+                          : Container();
+                    },
+                  ),
                 ),
               ),
             ],
@@ -163,26 +163,28 @@ class _ChurchesListState extends State<ChurchesList> {
   @override
   Widget build(BuildContext c) {
     return FutureBuilder<Stream<JsonQuery>>(
-        future: widget.list,
-        builder: (c, o) {
-          if (o.hasData) {
-            return StreamBuilder<Church>(
-                stream: widget.original,
-                builder: (con, data) {
-                  if (result == null && data.hasData) {
-                    result = [data.data!];
-                  } else if (data.hasData) {
-                    result!.add(data.data!);
-                  } else {
-                    result = [];
-                  }
-                  return _InnerChurchsList(
-                      o.data, result ?? [], widget.list, widget.finished);
-                });
-          } else {
-            return Container();
-          }
-        });
+      future: widget.list,
+      builder: (c, o) {
+        if (o.hasData) {
+          return StreamBuilder<Church>(
+            stream: widget.original,
+            builder: (con, data) {
+              if (result == null && data.hasData) {
+                result = [data.data!];
+              } else if (data.hasData) {
+                result!.add(data.data!);
+              } else {
+                result = [];
+              }
+              return _InnerChurchsList(
+                  o.data, result ?? [], widget.list, widget.finished);
+            },
+          );
+        } else {
+          return Container();
+        }
+      },
+    );
   }
 }
 

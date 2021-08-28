@@ -8,24 +8,25 @@ class InnerListState extends State<_InnerSchoolsList> {
   String filter = '';
   @override
   Widget build(BuildContext context) {
-    return Column(children: <Widget>[
-      TextField(
-          decoration: const InputDecoration(hintText: 'بحث...'),
-          onChanged: (text) {
-            setState(() {
-              filter = text;
-            });
-          }),
-      Expanded(
-        child: RefreshIndicator(
-          onRefresh: () async {
-            setState(() {});
-          },
-          child: StreamBuilder<JsonQuery>(
-            stream: widget.data,
-            builder: (context, schools) {
-              if (!schools.hasData) return const CircularProgressIndicator();
-              return ListView.builder(
+    return Column(
+      children: <Widget>[
+        TextField(
+            decoration: const InputDecoration(hintText: 'بحث...'),
+            onChanged: (text) {
+              setState(() {
+                filter = text;
+              });
+            }),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: () async {
+              setState(() {});
+            },
+            child: StreamBuilder<JsonQuery>(
+              stream: widget.data,
+              builder: (context, schools) {
+                if (!schools.hasData) return const CircularProgressIndicator();
+                return ListView.builder(
                   itemCount: schools.data!.docs.length,
                   itemBuilder: (context, i) {
                     School current = School.fromDoc(schools.data!.docs[i]);
@@ -57,26 +58,28 @@ class InnerListState extends State<_InnerSchoolsList> {
                             ),
                           )
                         : Container();
-                  });
-            },
+                  },
+                );
+              },
+            ),
           ),
         ),
-      ),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          TextButton(
-            onPressed: () => widget.finished!(widget.result),
-            child: const Text('تم'),
-          ),
-          TextButton(
-            onPressed: () => widget.finished!(null),
-            child: const Text('إلغاء الأمر'),
-          ),
-        ],
-      )
-    ]);
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            TextButton(
+              onPressed: () => widget.finished!(widget.result),
+              child: const Text('تم'),
+            ),
+            TextButton(
+              onPressed: () => widget.finished!(null),
+              child: const Text('إلغاء الأمر'),
+            ),
+          ],
+        )
+      ],
+    );
   }
 }
 
@@ -121,38 +124,41 @@ class _SchoolsEditListState extends State<SchoolsEditList> {
       future: widget.list,
       builder: (con, data) {
         if (data.hasData) {
-          return Column(children: <Widget>[
-            TextField(
+          return Column(
+            children: <Widget>[
+              TextField(
                 decoration: const InputDecoration(hintText: 'بحث...'),
                 onChanged: (text) {
                   setState(() {
                     filter = text;
                   });
-                }),
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: () {
-                  setState(() {});
-                  return widget.list.then((value) => value);
                 },
-                child: ListView.builder(
-                  itemCount: data.data!.docs.length,
-                  itemBuilder: (context, i) {
-                    School current = School.fromDoc(data.data!.docs[i]);
-                    return current.name.contains(filter)
-                        ? Card(
-                            child: ListTile(
-                              onTap: () => widget.tap!(current),
-                              title: Text(current.name),
-                              subtitle: Text(current.address!),
-                            ),
-                          )
-                        : Container();
+              ),
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () {
+                    setState(() {});
+                    return widget.list.then((value) => value);
                   },
+                  child: ListView.builder(
+                    itemCount: data.data!.docs.length,
+                    itemBuilder: (context, i) {
+                      School current = School.fromDoc(data.data!.docs[i]);
+                      return current.name.contains(filter)
+                          ? Card(
+                              child: ListTile(
+                                onTap: () => widget.tap!(current),
+                                title: Text(current.name),
+                                subtitle: Text(current.address!),
+                              ),
+                            )
+                          : Container();
+                    },
+                  ),
                 ),
               ),
-            ),
-          ]);
+            ],
+          );
         } else {
           return const Center(child: CircularProgressIndicator());
         }
