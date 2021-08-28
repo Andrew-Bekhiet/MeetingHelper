@@ -195,7 +195,7 @@ Future _initConfigs() async {
   await Hive.openBox('Settings');
   await Hive.openBox<bool>('FeatureDiscovery');
   await Hive.openBox<Map>('NotificationsSettings');
-  await Hive.openBox<String>('PhotosURLsCache');
+  await Hive.openBox<String?>('PhotosURLsCache');
   await Hive.openBox<Map>('Notifications');
 
   await dotenv.load(fileName: '.env');
@@ -209,7 +209,8 @@ Future _initConfigs() async {
           appId: dotenv.env['appId']!,
           messagingSenderId: 'messagingSenderId',
           projectId: dotenv.env['projectId']!,
-          databaseURL: 'http://' + kEmulatorsHost! + ':9000?ns=meetinghelper-2a869'),
+          databaseURL:
+              'http://' + kEmulatorsHost! + ':9000?ns=meetinghelper-2a869'),
     );
     await auth.FirebaseAuth.instance.useAuthEmulator(kEmulatorsHost, 9099);
     await FirebaseStorage.instance.useStorageEmulator(kEmulatorsHost, 9199);

@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:hive/hive.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 
@@ -117,13 +118,18 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
   }
 
   void _updateCache(String cache) async {
-    String url = await widget.object.photoRef
-        .getDownloadURL()
-        .catchError((onError) => '');
+    String? url;
+    try {
+      url = await widget.object.photoRef.getDownloadURL();
+    } catch (e) {
+      url = null;
+    }
     if (cache != url) {
-      await Hive.box<String>('PhotosURLsCache')
+      await Hive.box<String?>('PhotosURLsCache')
           .put(widget.object.photoRef.fullPath, url);
+      await DefaultCacheManager().removeFile(cache);
       widget.object._photoUrlCache.invalidate();
+
       if (mounted && !disposed) setState(() {});
     }
   }
@@ -142,14 +148,14 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
             child: FutureBuilder<String>(
               future: widget.object._photoUrlCache.fetch(
                 () async {
-                  String? cache = Hive.box<String>('PhotosURLsCache')
+                  String? cache = Hive.box<String?>('PhotosURLsCache')
                       .get(widget.object.photoRef.fullPath);
 
                   if (cache == null) {
                     String url = await widget.object.photoRef
                         .getDownloadURL()
                         .catchError((onError) => '');
-                    await Hive.box<String>('PhotosURLsCache')
+                    await Hive.box<String?>('PhotosURLsCache')
                         .put(widget.object.photoRef.fullPath, url);
 
                     return url;
