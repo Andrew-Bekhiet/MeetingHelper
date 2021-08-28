@@ -157,6 +157,7 @@ void main() {
                       ),
                     ),
                   ),
+                  appBarTheme: AppBarTheme(backgroundColor: color),
                   bottomAppBarTheme: BottomAppBarTheme(
                     color: accent,
                     shape: const CircularNotchedRectangle(),

@@ -114,7 +114,7 @@ class _MyAccountState extends State<MyAccount> {
                           !(await Permission.camera.request()).isGranted)
                         return;
 
-                      var selectedImage = await ImagePicker().getImage(
+                      var selectedImage = await ImagePicker().pickImage(
                           source: source
                               ? ImageSource.camera
                               : ImageSource.gallery);

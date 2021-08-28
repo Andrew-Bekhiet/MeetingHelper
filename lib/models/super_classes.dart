@@ -193,8 +193,6 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                       ),
                       child: CachedNetworkImage(
                         memCacheHeight: (constrains.maxHeight * 4).toInt(),
-                        imageRenderMethodForWeb:
-                            ImageRenderMethodForWeb.HtmlImage,
                         imageUrl: data.data!,
                         progressIndicatorBuilder: (context, url, progress) =>
                             AspectRatio(

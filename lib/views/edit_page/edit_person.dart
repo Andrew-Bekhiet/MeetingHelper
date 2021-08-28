@@ -1015,7 +1015,7 @@ class _EditPersonState extends State<EditPerson> {
       return;
 
     var selectedImage = await ImagePicker()
-        .getImage(source: source ? ImageSource.camera : ImageSource.gallery);
+        .pickImage(source: source ? ImageSource.camera : ImageSource.gallery);
     if (selectedImage == null) return;
     changedImage = (await ImageCropper.cropImage(
       sourcePath: selectedImage.path,
