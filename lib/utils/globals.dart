@@ -1,6 +1,7 @@
 library globals;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -72,6 +73,8 @@ GlobalKey<ScaffoldState> mainScfld = GlobalKey<ScaffoldState>();
 GlobalKey<ScaffoldMessengerState> scaffoldMessenger =
     GlobalKey<ScaffoldMessengerState>();
 GlobalKey<NavigatorState> navigator = GlobalKey<NavigatorState>();
+
+FirebaseDatabase dbInstance = FirebaseDatabase.instance;
 
 List<Color?> primaries = <Color?>[
   Colors.red,

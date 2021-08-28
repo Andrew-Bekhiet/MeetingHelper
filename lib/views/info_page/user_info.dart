@@ -113,7 +113,7 @@ class _UserInfoState extends State<UserInfo> {
                 ListTile(
                   title: const Text('أخر ظهور على البرنامج:'),
                   subtitle: StreamBuilder<Event>(
-                    stream: FirebaseDatabase.instance
+                    stream: dbInstance
                         .reference()
                         .child('Users/${user.uid}/lastSeen')
                         .onValue,

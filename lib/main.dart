@@ -8,11 +8,14 @@ import 'package:feature_discovery/feature_discovery.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     hide Day, Person;
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -61,7 +64,7 @@ import 'views/settings.dart' as s;
 import 'views/update_user_data.dart';
 import 'views/user_registeration.dart';
 
-void main() {
+void main() async {
   FlutterError.onError = (flutterError) {
     FirebaseCrashlytics.instance.recordFlutterError(flutterError);
   };
@@ -77,113 +80,111 @@ void main() {
   };
 
   WidgetsFlutterBinding.ensureInitialized();
-  Firebase.initializeApp().then(
-    (app) async {
-      if (auth.FirebaseAuth.instance.currentUser != null &&
-          (await Connectivity().checkConnectivity()) != ConnectivityResult.none)
-        await User.instance.initialized;
-      User user = User.instance;
-      await _initConfigs();
 
-      bool? darkSetting = Hive.box('Settings').get('DarkTheme');
-      bool greatFeastTheme =
-          Hive.box('Settings').get('GreatFeastTheme', defaultValue: true);
-      MaterialColor primary = Colors.amber;
-      Color secondary = Colors.amberAccent;
+  await _initConfigs();
 
-      final riseDay = getRiseDay();
-      if (greatFeastTheme &&
-          DateTime.now().isAfter(
-              riseDay.subtract(const Duration(days: 7, seconds: 20))) &&
-          DateTime.now().isBefore(riseDay.subtract(const Duration(days: 1)))) {
-        primary = black;
-        secondary = blackAccent;
-        darkSetting = true;
-      } else if (greatFeastTheme &&
-          DateTime.now()
-              .isBefore(riseDay.add(const Duration(days: 50, seconds: 20))) &&
-          DateTime.now().isAfter(riseDay.subtract(const Duration(days: 1)))) {
-        darkSetting = false;
-      }
+  if (auth.FirebaseAuth.instance.currentUser != null &&
+      (await Connectivity().checkConnectivity()) != ConnectivityResult.none)
+    await User.instance.initialized;
+  User user = User.instance;
 
-      runApp(
-        MultiProvider(
-          providers: [
-            StreamProvider<User>.value(value: user.stream, initialData: user),
-            Provider<ThemeNotifier>(
-              create: (_) {
-                bool isDark = darkSetting ??
-                    WidgetsBinding.instance!.window.platformBrightness ==
-                        Brightness.dark;
+  bool? darkSetting = Hive.box('Settings').get('DarkTheme');
+  bool greatFeastTheme =
+      Hive.box('Settings').get('GreatFeastTheme', defaultValue: true);
+  MaterialColor primary = Colors.amber;
+  Color secondary = Colors.amberAccent;
 
-                return ThemeNotifier(
-                  ThemeData.from(
-                    colorScheme: ColorScheme.fromSwatch(
-                      backgroundColor:
-                          isDark ? Colors.grey[850]! : Colors.grey[50]!,
-                      brightness: isDark ? Brightness.dark : Brightness.light,
-                      primarySwatch: primary,
-                      accentColor: secondary,
-                    ),
-                  ).copyWith(
-                    inputDecorationTheme: InputDecorationTheme(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                        borderSide: BorderSide(color: primary),
-                      ),
-                    ),
-                    floatingActionButtonTheme:
-                        FloatingActionButtonThemeData(backgroundColor: primary),
-                    visualDensity: VisualDensity.adaptivePlatformDensity,
-                    brightness: isDark ? Brightness.dark : Brightness.light,
-                    textButtonTheme: TextButtonThemeData(
-                      style: TextButton.styleFrom(
-                        primary: secondary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                      ),
-                    ),
-                    outlinedButtonTheme: OutlinedButtonThemeData(
-                      style: OutlinedButton.styleFrom(
-                        primary: secondary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                      ),
-                    ),
-                    elevatedButtonTheme: ElevatedButtonThemeData(
-                      style: ElevatedButton.styleFrom(
-                        primary: secondary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                      ),
-                    ),
-                    appBarTheme: AppBarTheme(
-                      backgroundColor: primary,
-                      foregroundColor: (isDark
-                              ? Typography.material2018().white
-                              : Typography.material2018().black)
-                          .headline6
-                          ?.color,
-                      systemOverlayStyle: isDark
-                          ? SystemUiOverlayStyle.light
-                          : SystemUiOverlayStyle.dark,
-                    ),
-                    bottomAppBarTheme: BottomAppBarTheme(
-                      color: secondary,
-                      shape: const CircularNotchedRectangle(),
+  final riseDay = getRiseDay();
+  if (greatFeastTheme &&
+      DateTime.now()
+          .isAfter(riseDay.subtract(const Duration(days: 7, seconds: 20))) &&
+      DateTime.now().isBefore(riseDay.subtract(const Duration(days: 1)))) {
+    primary = black;
+    secondary = blackAccent;
+    darkSetting = true;
+  } else if (greatFeastTheme &&
+      DateTime.now()
+          .isBefore(riseDay.add(const Duration(days: 50, seconds: 20))) &&
+      DateTime.now().isAfter(riseDay.subtract(const Duration(days: 1)))) {
+    darkSetting = false;
+  }
+
+  runApp(
+    MultiProvider(
+      providers: [
+        StreamProvider<User>.value(value: user.stream, initialData: user),
+        Provider<ThemeNotifier>(
+          create: (_) {
+            bool isDark = darkSetting ??
+                WidgetsBinding.instance!.window.platformBrightness ==
+                    Brightness.dark;
+
+            return ThemeNotifier(
+              ThemeData.from(
+                colorScheme: ColorScheme.fromSwatch(
+                  backgroundColor:
+                      isDark ? Colors.grey[850]! : Colors.grey[50]!,
+                  brightness: isDark ? Brightness.dark : Brightness.light,
+                  primarySwatch: primary,
+                  accentColor: secondary,
+                ),
+              ).copyWith(
+                inputDecorationTheme: InputDecorationTheme(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(color: primary),
+                  ),
+                ),
+                floatingActionButtonTheme:
+                    FloatingActionButtonThemeData(backgroundColor: primary),
+                visualDensity: VisualDensity.adaptivePlatformDensity,
+                brightness: isDark ? Brightness.dark : Brightness.light,
+                textButtonTheme: TextButtonThemeData(
+                  style: TextButton.styleFrom(
+                    primary: secondary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
                     ),
                   ),
-                );
-              },
-            ),
-          ],
-          builder: (context, _) => const App(),
+                ),
+                outlinedButtonTheme: OutlinedButtonThemeData(
+                  style: OutlinedButton.styleFrom(
+                    primary: secondary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                  ),
+                ),
+                elevatedButtonTheme: ElevatedButtonThemeData(
+                  style: ElevatedButton.styleFrom(
+                    primary: secondary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                  ),
+                ),
+                appBarTheme: AppBarTheme(
+                  backgroundColor: primary,
+                  foregroundColor: (isDark
+                          ? Typography.material2018().white
+                          : Typography.material2018().black)
+                      .headline6
+                      ?.color,
+                  systemOverlayStyle: isDark
+                      ? SystemUiOverlayStyle.light
+                      : SystemUiOverlayStyle.dark,
+                ),
+                bottomAppBarTheme: BottomAppBarTheme(
+                  color: secondary,
+                  shape: const CircularNotchedRectangle(),
+                ),
+              ),
+            );
+          },
         ),
-      );
-    },
+      ],
+      builder: (context, _) => const App(),
+    ),
   );
 }
 
@@ -196,6 +197,30 @@ Future _initConfigs() async {
   await Hive.openBox<Map>('NotificationsSettings');
   await Hive.openBox<String>('PhotosURLsCache');
   await Hive.openBox<Map>('Notifications');
+
+  await dotenv.load(fileName: '.env');
+
+  final String? kEmulatorsHost = dotenv.env['kEmulatorsHost'];
+  //Firebase initialization
+  if (kDebugMode && dotenv.env['kUseFirebaseEmulators']?.toString() == 'true') {
+    await Firebase.initializeApp(
+      options: FirebaseOptions(
+          apiKey: dotenv.env['apiKey']!,
+          appId: dotenv.env['appId']!,
+          messagingSenderId: 'messagingSenderId',
+          projectId: dotenv.env['projectId']!,
+          databaseURL: 'http://' + kEmulatorsHost! + ':9000?ns=meetinghelper-2a869'),
+    );
+    await auth.FirebaseAuth.instance.useAuthEmulator(kEmulatorsHost, 9099);
+    await FirebaseStorage.instance.useStorageEmulator(kEmulatorsHost, 9199);
+    firestore.FirebaseFirestore.instance
+        .useFirestoreEmulator(kEmulatorsHost, 8080, sslEnabled: false);
+    FirebaseFunctions.instance.useFunctionsEmulator(kEmulatorsHost, 5001);
+    dbInstance =
+        FirebaseDatabase(databaseURL: 'http://' + kEmulatorsHost + ':9000');
+  } else {
+    await Firebase.initializeApp();
+  }
 
   //Notifications:
   await AndroidAlarmManager.initialize();

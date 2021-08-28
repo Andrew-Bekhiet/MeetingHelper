@@ -214,7 +214,7 @@ class User extends Person {
     authListener = auth.FirebaseAuth.instance.userChanges().listen(
       (user) async {
         if (user != null) {
-          userTokenListener = FirebaseDatabase.instance
+          userTokenListener = dbInstance
               .reference()
               .child('Users/${user.uid}/forceRefresh')
               .onValue
@@ -229,22 +229,22 @@ class User extends Person {
                 await flutterSecureStorage.write(
                     key: item.key, value: item.value?.toString());
               }
-              await FirebaseDatabase.instance
+              await dbInstance
                   .reference()
                   .child('Users/${currentUser.uid}/forceRefresh')
                   .set(false);
-              connectionListener ??= FirebaseDatabase.instance
+              connectionListener ??= dbInstance
                   .reference()
                   .child('.info/connected')
                   .onValue
                   .listen((snapshot) {
                 if (snapshot.snapshot.value == true) {
-                  FirebaseDatabase.instance
+                  dbInstance
                       .reference()
                       .child('Users/${user.uid}/lastSeen')
                       .onDisconnect()
                       .set(ServerValue.timestamp);
-                  FirebaseDatabase.instance
+                  dbInstance
                       .reference()
                       .child('Users/${user.uid}/lastSeen')
                       .set('Active');
@@ -268,23 +268,23 @@ class User extends Person {
                 await flutterSecureStorage.write(
                     key: item.key, value: item.value?.toString());
               }
-              await FirebaseDatabase.instance
+              await dbInstance
                   .reference()
                   .child('Users/${user.uid}/forceRefresh')
                   .set(false);
             }
-            connectionListener ??= FirebaseDatabase.instance
+            connectionListener ??= dbInstance
                 .reference()
                 .child('.info/connected')
                 .onValue
                 .listen((snapshot) {
               if (snapshot.snapshot.value == true) {
-                FirebaseDatabase.instance
+                dbInstance
                     .reference()
                     .child('Users/${user.uid}/lastSeen')
                     .onDisconnect()
                     .set(ServerValue.timestamp);
-                FirebaseDatabase.instance
+                dbInstance
                     .reference()
                     .child('Users/${user.uid}/lastSeen')
                     .set('Active');
@@ -499,10 +499,7 @@ class User extends Person {
     return AspectRatio(
       aspectRatio: 1,
       child: StreamBuilder<Event>(
-        stream: FirebaseDatabase.instance
-            .reference()
-            .child('Users/$uid/lastSeen')
-            .onValue,
+        stream: dbInstance.reference().child('Users/$uid/lastSeen').onValue,
         builder: (context, activity) {
           if (!hasPhoto)
             return Stack(
@@ -703,15 +700,12 @@ class User extends Person {
 
   Future<void> recordActive() async {
     if (uid == null) return;
-    await FirebaseDatabase.instance
-        .reference()
-        .child('Users/$uid/lastSeen')
-        .set('Active');
+    await dbInstance.reference().child('Users/$uid/lastSeen').set('Active');
   }
 
   Future<void> recordLastSeen() async {
     if (uid == null) return;
-    await FirebaseDatabase.instance
+    await dbInstance
         .reference()
         .child('Users/$uid/lastSeen')
         .set(Timestamp.now().millisecondsSinceEpoch);
