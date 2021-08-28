@@ -77,14 +77,47 @@ void changeTheme({required BuildContext context}) {
           : WidgetsBinding.instance!.window.platformBrightness,
       accentColor: accent,
     ),
+    inputDecorationTheme: InputDecorationTheme(
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: BorderSide(color: color),
+      ),
+    ),
     floatingActionButtonTheme:
         FloatingActionButtonThemeData(backgroundColor: color),
     visualDensity: VisualDensity.adaptivePlatformDensity,
     brightness: darkTheme != null
         ? (darkTheme ? Brightness.dark : Brightness.light)
         : WidgetsBinding.instance!.window.platformBrightness,
-    accentColor: accent,
     primaryColor: color,
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        primary: accent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        primary: accent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        primary: accent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
+    ),
+    bottomAppBarTheme: BottomAppBarTheme(
+      color: accent,
+      shape: const CircularNotchedRectangle(),
+    ),
   );
 }
 

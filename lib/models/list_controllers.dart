@@ -7,8 +7,8 @@ import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:meetinghelper/utils/helpers.dart';
+import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tuple/tuple.dart';
 
