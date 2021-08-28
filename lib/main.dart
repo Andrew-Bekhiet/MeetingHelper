@@ -32,6 +32,7 @@ import 'package:timeago/timeago.dart';
 import 'models/history_record.dart';
 import 'models/hive_persistence_provider.dart';
 import 'models/invitation.dart';
+import 'models/mini_models.dart' hide History;
 import 'models/models.dart';
 import 'models/theme_notifier.dart';
 import 'models/user.dart';
@@ -51,6 +52,7 @@ import 'views/info_page/person_info.dart';
 import 'views/info_page/user_info.dart';
 import 'views/loading_widget.dart';
 import 'views/login.dart';
+import 'views/mini_lists/mini_list.dart';
 import 'views/my_account.dart';
 import 'views/notifications_page.dart';
 import 'views/root.dart';
@@ -434,12 +436,12 @@ class AppState extends State<App> {
                 pageTitle: 'السنوات الدراسية',
               ) */
               ,
-              'Settings/Schools': (context) =>
-                  const SchoolsPage() /* MiniList(
-                parent: FirebaseFirestore.instance.collection('Schools'),
-                pageTitle: 'المدارس',
-              ) */
-              ,
+              'Settings/Schools': (context) => MiniModelList<School>(
+                    transformer: School.fromDoc,
+                    collection: firestore.FirebaseFirestore.instance
+                        .collection('Schools'),
+                    title: 'المدارس',
+                  ),
               'UpdateUserDataError': (context) =>
                   const UpdateUserDataErrorPage(),
               'ManageUsers': (context) => const UsersPage(),

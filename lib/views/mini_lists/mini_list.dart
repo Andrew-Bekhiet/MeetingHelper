@@ -1,174 +1,167 @@
 import 'package:flutter/material.dart';
+import 'package:meetinghelper/models/list_controllers.dart';
+import 'package:meetinghelper/models/mini_models.dart';
+import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
+import 'package:meetinghelper/views/list.dart';
 
-class MiniList extends StatefulWidget {
-  final JsonCollectionRef? parent;
-  final String? pageTitle;
-  final String? itemSubtitle;
-  final void Function()? onAdd;
-  const MiniList(
-      {Key? key, this.parent, this.pageTitle, this.itemSubtitle, this.onAdd})
+class MiniModelList<T extends MiniModel> extends StatelessWidget {
+  final String title;
+  final JsonCollectionRef collection;
+  final void Function()? add;
+  final void Function(T)? modify;
+  final T Function(JsonQueryDoc) transformer;
+
+  const MiniModelList(
+      {Key? key,
+      required this.title,
+      required this.collection,
+      this.add,
+      this.modify,
+      required this.transformer})
       : super(key: key);
 
   @override
-  State<MiniList> createState() => _MiniListState();
-}
-
-class _MiniListState extends State<MiniList> {
-  List<JsonQueryDoc>? _documentsData;
-  bool _showSearch = false;
-  FocusNode searchFocus = FocusNode();
-
-  String _filter = '';
-
-  String _oldFilter = '';
-  @override
   Widget build(BuildContext context) {
-    return StreamBuilder<JsonQuery>(
-      stream: widget.parent!.orderBy('Name').snapshots(),
-      builder: (context, stream) {
-        if (stream.hasError) return Center(child: ErrorWidget(stream.error!));
-        if (!stream.hasData)
-          return const Center(child: CircularProgressIndicator());
-        if (_documentsData == null ||
-            _documentsData!.length != stream.data!.docs.length)
-          _documentsData = stream.data!.docs;
-        return StatefulBuilder(
-          builder: (context, setState) => Scaffold(
-            appBar: AppBar(
-              actions: <Widget>[
-                if (!_showSearch)
-                  IconButton(
-                      icon: const Icon(Icons.search),
-                      onPressed: () => setState(() {
-                            searchFocus.requestFocus();
-                            _showSearch = true;
-                          })),
-                IconButton(
-                  icon: const Icon(Icons.notifications),
-                  tooltip: 'الإشعارات',
-                  onPressed: () {
-                    navigator.currentState!.pushNamed('Notifications');
-                  },
-                ),
-              ],
-              title: _showSearch
-                  ? TextField(
-                      focusNode: searchFocus,
-                      decoration: InputDecoration(
-                          suffixIcon: IconButton(
-                            icon: Icon(Icons.close,
-                                color: Theme.of(context)
-                                    .primaryTextTheme
-                                    .headline6!
-                                    .color),
-                            onPressed: () => setState(
-                              () {
-                                _filter = '';
-                                _showSearch = false;
-                              },
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: DataObjectList(
+        options: DataObjectListController<T>(
+          itemBuilder: (current, onLongPress, onTap, trailing, subtitle) =>
+              ListTile(
+            title: Text(current.name),
+            onTap: () => onTap?.call(current),
+          ),
+          tap: modify ?? (item) => _defaultModify(context, item, false),
+          itemsStream: collection.snapshots().map(
+                (s) => s.docs.map(transformer).toList(),
+              ),
+        ),
+        disposeController: true,
+      ),
+      floatingActionButton: User.instance.write
+          ? FloatingActionButton(
+              onPressed: add ??
+                  () async {
+                    final name = TextEditingController();
+                    await showDialog(
+                      context: context,
+                      builder: (context) => StatefulBuilder(
+                        builder: (context, setState) {
+                          return AlertDialog(
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                TextField(
+                                  decoration:
+                                      const InputDecoration(labelText: 'الاسم'),
+                                  controller: name,
+                                ),
+                              ],
                             ),
-                          ),
-                          hintText: 'بحث ...'),
-                      onChanged: (t) => setState(() => _filter = t),
-                    )
-                  : Text(widget.pageTitle!),
-            ),
-            body: Builder(
-              builder: (context) {
-                if (_filter.isNotEmpty) {
-                  if (_oldFilter.length < _filter.length &&
-                      _filter.startsWith(_oldFilter)) {
-                    _documentsData = _documentsData!
-                        .where((d) => (d.data()['Name'] as String)
-                            .toLowerCase()
-                            .replaceAll(
-                                RegExp(
-                                  r'[أإآ]',
-                                ),
-                                'ا')
-                            .replaceAll(
-                                RegExp(
-                                  r'[ى]',
-                                ),
-                                'ي')
-                            .contains(_filter))
-                        .toList();
-                  } else {
-                    _documentsData = stream.data!.docs
-                        .where((d) => (d.data()['Name'] as String)
-                            .toLowerCase()
-                            .replaceAll(
-                                RegExp(
-                                  r'[أإآ]',
-                                ),
-                                'ا')
-                            .replaceAll(
-                                RegExp(
-                                  r'[ى]',
-                                ),
-                                'ي')
-                            .contains(_filter))
-                        .toList();
-                  }
-                } else {
-                  _documentsData = stream.data!.docs;
-                }
-                _oldFilter = _filter;
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  addAutomaticKeepAlives: (_documentsData?.length ?? 0) < 300,
-                  cacheExtent: 200,
-                  itemCount: _documentsData?.length ?? 0,
-                  itemBuilder: (context, i) {
-                    return Card(
-                      child: ListTile(
-                        title: Text(_documentsData![i].data()['Name']),
-                        subtitle: widget.itemSubtitle != null
-                            ? Text(
-                                _documentsData![i].data()[widget.itemSubtitle!])
-                            : null,
-                        onLongPress: () async {
-                          //TODO: implement deletion
+                            actions: <Widget>[
+                              TextButton.icon(
+                                icon: const Icon(Icons.save),
+                                onPressed: () async {
+                                  await collection.add(
+                                    {
+                                      'Name': name.text,
+                                    },
+                                  );
+                                  navigator.currentState!.pop();
+                                },
+                                label: const Text('حفظ'),
+                              ),
+                            ],
+                          );
                         },
                       ),
                     );
                   },
+              child: const Icon(Icons.add),
+            )
+          : null,
+    );
+  }
+
+  void _defaultModify(BuildContext context, T item, bool editMode) async {
+    final name = TextEditingController(text: item.name);
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        actions: <Widget>[
+          if (User.instance.write)
+            TextButton.icon(
+              icon: editMode ? const Icon(Icons.save) : const Icon(Icons.edit),
+              onPressed: () async {
+                if (editMode) {
+                  await item.ref.update({'Name': name.text});
+                }
+                navigator.currentState!.pop();
+                if (modify == null)
+                  _defaultModify(context, item..name = name.text, !editMode);
+              },
+              label: Text(editMode ? 'حفظ' : 'تعديل'),
+            ),
+          if (editMode)
+            TextButton.icon(
+              icon: const Icon(Icons.delete),
+              style: TextButton.styleFrom(primary: Colors.red),
+              onPressed: () async {
+                await showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text(item.name),
+                    content: Text('هل أنت متأكد من حذف ${item.name}؟'),
+                    actions: <Widget>[
+                      TextButton.icon(
+                        icon: const Icon(Icons.delete),
+                        style: TextButton.styleFrom(primary: Colors.red),
+                        label: const Text('نعم'),
+                        onPressed: () async {
+                          await item.ref.delete();
+                          navigator.currentState!.pop();
+                          navigator.currentState!.pop();
+                        },
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          navigator.currentState!.pop();
+                        },
+                        child: const Text('تراجع'),
+                      ),
+                    ],
+                  ),
                 );
               },
+              label: const Text('حذف'),
             ),
-            floatingActionButtonLocation:
-                FloatingActionButtonLocation.endDocked,
-            floatingActionButton: FloatingActionButton(
-              tooltip: 'اضافة',
-              onPressed: widget.onAdd ??
-                  () async {
-                    TextEditingController name =
-                        TextEditingController(text: '');
-                    if (await showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            actions: [
-                              TextButton.icon(
-                                  icon: const Icon(Icons.save),
-                                  label: const Text('حفظ'),
-                                  onPressed: () =>
-                                      navigator.currentState!.pop(name.text)),
-                            ],
-                            title: TextField(
-                              controller: name,
-                            ),
-                          ),
-                        ) !=
-                        null)
-                      await widget.parent!.doc().set({'Name': name.text});
-                  },
-              child: const Icon(Icons.add),
-            ),
+        ],
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              if (editMode)
+                TextField(
+                  controller: name,
+                )
+              else
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 0.0),
+                  child: DefaultTextStyle(
+                    style: Theme.of(context).dialogTheme.titleTextStyle ??
+                        Theme.of(context).textTheme.headline6!,
+                    child: Text(item.name),
+                  ),
+                ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

@@ -6,7 +6,6 @@ import 'package:meetinghelper/utils/typedefs.dart';
 import 'models/mini_models.dart';
 import 'views/mini_lists/churches_list.dart';
 import 'views/mini_lists/fathers_list.dart';
-import 'views/mini_lists/schools_list.dart';
 import 'views/mini_lists/study_years_list.dart';
 
 class ChurchesPage extends StatefulWidget {
@@ -14,13 +13,6 @@ class ChurchesPage extends StatefulWidget {
 
   @override
   _ChurchesPageState createState() => _ChurchesPageState();
-}
-
-class SchoolsPage extends StatefulWidget {
-  const SchoolsPage({Key? key}) : super(key: key);
-
-  @override
-  _SchoolsPageState createState() => _SchoolsPageState();
 }
 
 class FathersPage extends StatefulWidget {
@@ -35,124 +27,6 @@ class StudyYearsPage extends StatefulWidget {
 
   @override
   _StudyYearsPageState createState() => _StudyYearsPageState();
-}
-
-class _SchoolsPageState extends State<SchoolsPage> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('المدارس'),
-      ),
-      floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            schoolTap(School.createNew(), true);
-          },
-          child: const Icon(Icons.add)),
-      body: SchoolsEditList(
-        list: School.getAllForUser(),
-        tap: (_) => schoolTap(_, false),
-      ),
-    );
-  }
-
-  void schoolTap(School school, bool editMode) async {
-    var title = TextStyle(
-        fontSize: 22,
-        fontWeight: FontWeight.bold,
-        color: Theme.of(context).textTheme.headline6!.color,
-        locale: const Locale('ar', 'EG'));
-    // TextStyle subTitle = TextStyle(
-    //     fontSize: 18,
-    //     color: Theme.of(context).textTheme.subtitle2.color,
-    //     locale: Locale('ar', 'EG'));
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        actions: <Widget>[
-          TextButton(
-              onPressed: () async {
-                if (editMode) {
-                  await FirebaseFirestore.instance
-                      .collection('Schools')
-                      .doc(school.id)
-                      .set(school.getMap());
-                }
-                navigator.currentState!.pop();
-                setState(() {
-                  schoolTap(school, !editMode);
-                });
-              },
-              child: Text(editMode ? 'حفظ' : 'تعديل')),
-          if (editMode)
-            TextButton(
-                onPressed: () async {
-                  await showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text(school.name),
-                      content: Text('هل أنت متأكد من حذف ${school.name}؟'),
-                      actions: <Widget>[
-                        TextButton(
-                          onPressed: () async {
-                            await FirebaseFirestore.instance
-                                .collection('Schools')
-                                .doc(school.id)
-                                .delete();
-                            navigator.currentState!.pop();
-                            navigator.currentState!.pop();
-                            setState(() {
-                              editMode = !editMode;
-                            });
-                          },
-                          child: const Text('نعم'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            navigator.currentState!.pop();
-                          },
-                          child: const Text('تراجع'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-                child: const Text('حذف'))
-        ],
-        title: Text(school.name),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              DefaultTextStyle(
-                style: title,
-                child: const Text('الاسم:'),
-              ),
-              if (editMode)
-                TextField(
-                  controller: TextEditingController(text: school.name),
-                  onChanged: (v) => school.name = v,
-                )
-              else
-                Text(school.name),
-              DefaultTextStyle(
-                style: title,
-                child: const Text('العنوان:'),
-              ),
-              if (editMode)
-                TextField(
-                  controller: TextEditingController(text: school.address),
-                  onChanged: (v) => school.address = v,
-                )
-              else
-                Text(school.address!),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class _ChurchesPageState extends State<ChurchesPage> {
