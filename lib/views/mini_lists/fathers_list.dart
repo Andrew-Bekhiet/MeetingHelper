@@ -51,8 +51,8 @@ class InnerListState extends State<_InnerFathersList> {
               return ListView.builder(
                   itemCount: fathers.data!.docs.length,
                   itemBuilder: (context, i) {
-                    Father current = Father.fromDoc(fathers.data!.docs[i]);
-                    return current.name!.contains(filter)
+                    Father current = Father.fromQueryDoc(fathers.data!.docs[i]);
+                    return current.name.contains(filter)
                         ? Card(
                             child: ListTile(
                               onTap: () {
@@ -64,7 +64,7 @@ class InnerListState extends State<_InnerFathersList> {
                                     : widget.result.add(current);
                                 setState(() {});
                               },
-                              title: Text(current.name!),
+                              title: Text(current.name),
                               subtitle: FutureBuilder<String?>(
                                   future: current.getChurchName(),
                                   builder: (con, name) {
@@ -136,12 +136,12 @@ class _FathersEditListState extends State<FathersEditList> {
                   child: ListView.builder(
                     itemCount: data.data!.docs.length,
                     itemBuilder: (context, i) {
-                      Father current = Father.fromDoc(data.data!.docs[i]);
-                      return current.name!.contains(filter)
+                      Father current = Father.fromQueryDoc(data.data!.docs[i]);
+                      return current.name.contains(filter)
                           ? Card(
                               child: ListTile(
                                 onTap: () => widget.tap!(current),
-                                title: Text(current.name!),
+                                title: Text(current.name),
                                 subtitle: FutureBuilder<String?>(
                                     future: current.getChurchName(),
                                     builder: (con, name) {

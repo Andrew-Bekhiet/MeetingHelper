@@ -761,8 +761,9 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
                   .collection('Users')
                   .snapshots()
                   .map(
-                    (s) =>
-                        s.docs.map((e) => User.fromDoc(e)..uid = e.id).toList(),
+                    (s) => s.docs
+                        .map((e) => User.fromDoc(e)..uid = e.id)
+                        .toList(),
                   ),
             ),
             dispose: (context, c) => c.dispose(),

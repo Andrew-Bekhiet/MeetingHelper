@@ -53,8 +53,8 @@ class InnerListState extends State<_InnerChurchsList> {
               return ListView.builder(
                 itemCount: churchs.data!.docs.length,
                 itemBuilder: (context, i) {
-                  Church current = Church.fromDoc(churchs.data!.docs[i]);
-                  return current.name!.contains(filter)
+                  Church current = Church.fromQueryDoc(churchs.data!.docs[i]);
+                  return current.name.contains(filter)
                       ? Card(
                           child: ListTile(
                             onTap: () {
@@ -66,7 +66,7 @@ class InnerListState extends State<_InnerChurchsList> {
                                   : widget.result.add(current);
                               setState(() {});
                             },
-                            title: Text(current.name!),
+                            title: Text(current.name),
                             leading: Checkbox(
                               value: widget.result
                                   .map((f) => f.id)
@@ -133,12 +133,13 @@ class _ChurchesEditListState extends State<ChurchesEditList> {
                   child: ListView.builder(
                       itemCount: data.data!.docs.length,
                       itemBuilder: (context, i) {
-                        Church current = Church.fromDoc(data.data!.docs[i]);
-                        return current.name!.contains(filter)
+                        Church current =
+                            Church.fromQueryDoc(data.data!.docs[i]);
+                        return current.name.contains(filter)
                             ? Card(
                                 child: ListTile(
                                   onTap: () => widget.tap!(current),
-                                  title: Text(current.name!),
+                                  title: Text(current.name),
                                   subtitle: Text(current.address!),
                                 ),
                               )

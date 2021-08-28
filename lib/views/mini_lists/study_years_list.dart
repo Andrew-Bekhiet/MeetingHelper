@@ -41,11 +41,11 @@ class _StudyYearsEditListState extends State<StudyYearsEditList> {
                   itemCount: data.data!.docs.length,
                   itemBuilder: (context, i) {
                     StudyYear current = StudyYear.fromDoc(data.data!.docs[i]);
-                    return current.name!.contains(filter)
+                    return current.name.contains(filter)
                         ? Card(
                             child: ListTile(
                               onTap: () => widget.tap!(current),
-                              title: Text(current.name!),
+                              title: Text(current.name),
                             ),
                           )
                         : Container();

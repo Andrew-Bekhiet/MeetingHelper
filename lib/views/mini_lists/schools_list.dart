@@ -29,7 +29,7 @@ class InnerListState extends State<_InnerSchoolsList> {
                   itemCount: schools.data!.docs.length,
                   itemBuilder: (context, i) {
                     School current = School.fromDoc(schools.data!.docs[i]);
-                    return current.name!.contains(filter)
+                    return current.name.contains(filter)
                         ? Card(
                             child: ListTile(
                               onTap: () {
@@ -41,7 +41,7 @@ class InnerListState extends State<_InnerSchoolsList> {
                                     : widget.result!.add(current);
                                 setState(() {});
                               },
-                              title: Text(current.name!),
+                              title: Text(current.name),
                               leading: Checkbox(
                                 value: widget.result!
                                     .map((f) => f.id)
@@ -139,11 +139,11 @@ class _SchoolsEditListState extends State<SchoolsEditList> {
                   itemCount: data.data!.docs.length,
                   itemBuilder: (context, i) {
                     School current = School.fromDoc(data.data!.docs[i]);
-                    return current.name!.contains(filter)
+                    return current.name.contains(filter)
                         ? Card(
                             child: ListTile(
                               onTap: () => widget.tap!(current),
-                              title: Text(current.name!),
+                              title: Text(current.name),
                               subtitle: Text(current.address!),
                             ),
                           )

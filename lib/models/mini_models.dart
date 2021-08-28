@@ -5,29 +5,56 @@ import 'package:flutter/material.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 
-class Church {
-  String? id;
-  String? name;
+import 'super_classes.dart';
+
+abstract class MiniModel extends DataObject {
+  final String collectionName;
+  MiniModel(this.collectionName, String id, [String name = '', Color? color])
+      : super(FirebaseFirestore.instance.collection(collectionName).doc(id),
+            name, color);
+
+  MiniModel.createFromData(this.collectionName, Json data, String id)
+      : super.createFromData(data,
+            FirebaseFirestore.instance.collection(collectionName).doc(id));
+
+  MiniModel.createNew(this.collectionName)
+      : super(FirebaseFirestore.instance.collection(collectionName).doc(), '',
+            null);
+
+  @override
+  Json getHumanReadableMap() {
+    return {};
+  }
+
+  @override
+  Future<String?> getSecondLine() async {
+    return null;
+  }
+
+  @override
+  MiniModel copyWith() {
+    throw UnimplementedError();
+  }
+}
+
+class Church extends MiniModel with ParentObject<Father> {
   String? address;
-  Church(this.id, this.name, {this.address});
-  Church._createFromData(Json data, this.id) {
-    name = data['Name'];
+  Church(String id, String name, {this.address}) : super(id, name);
+  Church._createFromData(Json data, String id)
+      : super.createFromData('Churches', data, id) {
     address = data['Address'];
   }
 
-  Church.createNew() {
-    id = FirebaseFirestore.instance.collection('Churches').doc().id;
-    name = '';
+  Church.createNew() : super.createNew('Churches') {
     address = '';
   }
 
-  JsonRef get ref => FirebaseFirestore.instance.collection('Churches').doc(id);
-
   @override
   bool operator ==(dynamic other) {
-    return id == other.id;
+    return other is Church && id == other.id;
   }
 
+  @override
   Json getMap() {
     return {'Name': name, 'Address': address};
   }
@@ -39,8 +66,11 @@ class Church {
         .snapshots();
   }
 
-  static Church fromDoc(JsonDoc data) =>
-      Church._createFromData(data.data()!, data.id);
+  static Church? fromDoc(JsonDoc data) =>
+      data.exists ? Church._createFromData(data.data()!, data.id) : null;
+
+  static Church fromQueryDoc(JsonQueryDoc data) =>
+      Church._createFromData(data.data(), data.id);
 
   static Future<JsonQuery> getAllForUser() {
     return FirebaseFirestore.instance
@@ -48,31 +78,283 @@ class Church {
         .orderBy('Name')
         .get(dataSource);
   }
+
+  @override
+  Future<List<Father>> getChildren(
+      [String orderBy = 'Name', bool tranucate = false]) async {
+    return (await FirebaseFirestore.instance
+            .collection('Fathers')
+            .where('ChurchId', isEqualTo: ref)
+            .get(dataSource))
+        .docs
+        .map(Father.fromQueryDoc)
+        .toList();
+  }
 }
 
-class School {
-  String? id;
-  String? name;
-  String? address;
-  School(this.id, this.name, {this.address});
-  School._createFromData(Json data, this.id) {
-    name = data['Name'];
-    address = data['Address'];
+class PersonState extends MiniModel {
+  PersonState(String id, String name, Color color)
+      : super('States', id, name, color);
+  PersonState._createFromData(Json data, String id)
+      : super.createFromData('States', data, id) {
+    color = Color(int.parse('0xFF' + data['Color']));
   }
 
-  School.createNew() {
-    id = FirebaseFirestore.instance.collection('Schools').doc().id;
-    name = '';
-    address = '';
-  }
-
-  JsonRef get ref => FirebaseFirestore.instance.collection('Schools').doc(id);
+  PersonState.createNew() : super.createNew('States');
 
   @override
   bool operator ==(dynamic other) {
-    return id == other.id;
+    return other is PersonState && id == other.id;
   }
 
+  @override
+  Json getMap() {
+    return {'Name': name, 'Color': color};
+  }
+
+  static PersonState? fromDoc(JsonDoc data) =>
+      data.exists ? PersonState._createFromData(data.data()!, data.id) : null;
+
+  static PersonState fromQueryDoc(JsonQueryDoc data) =>
+      PersonState._createFromData(data.data(), data.id);
+
+  static Future<JsonQuery> getAllForUser() {
+    return FirebaseFirestore.instance
+        .collection('States')
+        .orderBy('Name')
+        .get(dataSource);
+  }
+}
+
+class College extends MiniModel {
+  College(String id, String name) : super('Colleges', id, name);
+  College._createFromData(Json data, id)
+      : super.createFromData('Colleges', data, id);
+
+  College.createNew() : super.createNew('Colleges');
+
+  @override
+  bool operator ==(dynamic other) {
+    return other is College && id == other.id;
+  }
+
+  @override
+  Json getMap() {
+    return {'Name': name};
+  }
+
+  static College? fromDoc(JsonDoc data) =>
+      data.exists ? College._createFromData(data.data()!, data.id) : null;
+
+  static College fromQueryDoc(JsonQueryDoc data) =>
+      College._createFromData(data.data(), data.id);
+
+  static Future<JsonQuery> getAllForUser() {
+    return FirebaseFirestore.instance
+        .collection('Colleges')
+        .orderBy('Name')
+        .get(dataSource);
+  }
+}
+
+class Father extends MiniModel with ChildObject<Church> {
+  JsonRef? churchId;
+  Father(String id, String name, this.churchId) : super('Fathers', id, name);
+  Father._createFromData(Json data, String id)
+      : super.createFromData('Fathers', data, id) {
+    churchId = data['ChurchId'];
+  }
+
+  Father.createNew() : super.createNew('Fathers');
+
+  @override
+  bool operator ==(dynamic other) {
+    return other is Father && id == other.id;
+  }
+
+  Future<String?> getChurchName() async {
+    if (churchId == null) return null;
+    return Church.fromDoc(
+      await churchId!.get(),
+    )?.name;
+  }
+
+  @override
+  Json getMap() {
+    return {'Name': name, 'ChurchId': churchId};
+  }
+
+  static Father? fromDoc(JsonDoc data) =>
+      data.exists ? Father._createFromData(data.data()!, data.id) : null;
+
+  static Father fromQueryDoc(JsonQueryDoc data) =>
+      Father._createFromData(data.data(), data.id);
+
+  static Future<JsonQuery> getAllForUser() {
+    return FirebaseFirestore.instance
+        .collection('Fathers')
+        .orderBy('Name')
+        .get(dataSource);
+  }
+
+  @override
+  Future<String?> getParentName() async {
+    return (await churchId?.get(dataSource))?.data()?['Name'];
+  }
+
+  @override
+  JsonRef? get parentId => churchId;
+}
+
+class Job extends MiniModel {
+  Job(String id, String name) : super('Jobs', id, name);
+  Job._createFromData(Json data, String id)
+      : super.createFromData('Jobs', data, id);
+
+  Job.createNew() : super.createNew('Jobs');
+
+  @override
+  bool operator ==(dynamic other) {
+    return other is Job && id == other.id;
+  }
+
+  @override
+  Json getMap() {
+    return {'Name': name};
+  }
+
+  static Job? fromDoc(JsonDoc data) =>
+      data.exists ? Job._createFromData(data.data()!, data.id) : null;
+
+  static Job fromQueryDoc(JsonQueryDoc data) =>
+      Job._createFromData(data.data(), data.id);
+
+  static Future<JsonQuery> getAllForUser() {
+    return FirebaseFirestore.instance
+        .collection('Jobs')
+        .orderBy('Name')
+        .get(dataSource);
+  }
+}
+
+class PersonType extends MiniModel {
+  PersonType(String id, String name) : super('Types', id, name);
+  PersonType._createFromData(Json data, String id)
+      : super.createFromData('Types', data, id);
+
+  PersonType.createNew() : super.createNew('Types');
+
+  @override
+  bool operator ==(dynamic other) {
+    return other is PersonType && id == other.id;
+  }
+
+  @override
+  Json getMap() {
+    return {'Name': name};
+  }
+
+  static PersonType? fromDoc(JsonDoc data) =>
+      data.exists ? PersonType._createFromData(data.data()!, data.id) : null;
+
+  static PersonType fromQueryDoc(JsonQueryDoc data) =>
+      PersonType._createFromData(data.data(), data.id);
+
+  static Future<JsonQuery> getAllForUser() {
+    return FirebaseFirestore.instance
+        .collection('Types')
+        .orderBy('Name')
+        .get(dataSource);
+  }
+}
+
+class ServingType extends MiniModel {
+  ServingType(String id, String name) : super('ServingTypes', id, name);
+  ServingType._createFromData(Json data, String id)
+      : super.createFromData('ServingTypes', data, id);
+
+  ServingType.createNew() : super.createNew('ServingTypes');
+
+  @override
+  bool operator ==(dynamic other) {
+    return other is ServingType && id == other.id;
+  }
+
+  @override
+  Json getMap() {
+    return {'Name': name};
+  }
+
+  static ServingType? fromDoc(JsonDoc data) =>
+      data.exists ? ServingType._createFromData(data.data()!, data.id) : null;
+
+  static ServingType fromQueryDoc(JsonQueryDoc data) =>
+      ServingType._createFromData(data.data(), data.id);
+
+  static Future<JsonQuery> getAllForUser() {
+    return FirebaseFirestore.instance
+        .collection('ServingTypes')
+        .orderBy('Name')
+        .get(dataSource);
+  }
+}
+
+class StudyYear extends MiniModel{
+  bool? isCollegeYear;
+  int? grade;
+
+  StudyYear(String id, String name, this.grade, {this.isCollegeYear}):super('StudyYears', id, name);
+  StudyYear._createFromData(Json data, String id):grade = data['Grade'],
+    isCollegeYear = data['IsCollegeYear'],super.createFromData('StudyYears', data, id);
+
+  StudyYear.createNew():super.createNew('StudyYears'){
+    grade = 0;
+    isCollegeYear = false;
+  }
+
+  @override
+  int get hashCode => hashValues(id, name, grade);
+
+  @override
+  bool operator ==(dynamic other) {
+    return other is StudyYear && hashCode == other.hashCode;
+  }
+
+  @override
+  Json getMap() {
+    return {'Name': name, 'IsCollegeYear': isCollegeYear, 'Grade': grade};
+  }
+
+  static StudyYear fromDoc(JsonDoc data) =>
+      StudyYear._createFromData(data.data()!, data.id);
+
+  static Future<JsonQuery> getAllForUser() {
+    return FirebaseFirestore.instance
+        .collection('StudyYears')
+        .orderBy('Grade')
+        .get(dataSource);
+  }
+}
+
+class School extends MiniModel {
+  String? address;
+  School(String id, String name, {this.address}) : super('Schools', id, name);
+  School._createFromData(Json data, String id)
+      : super.createFromData('Schools', data, id) {
+    address = data['Address'];
+  }
+
+  School.createNew()
+      : super.createNew('Schools') {
+    address = '';
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return other is School && id == other.id;
+  }
+
+  @override
   Json getMap() {
     return {'Name': name, 'Address': address};
   }
@@ -91,94 +373,6 @@ class School {
     return FirebaseFirestore.instance
         .collection('Schools')
         .orderBy('Name')
-        .get(dataSource);
-  }
-}
-
-class Father {
-  String? id;
-  String? name;
-  JsonRef? churchId;
-  Father(this.id, this.name, this.churchId);
-  Father._createFromData(Json data, this.id) {
-    name = data['Name'];
-    churchId = data['ChurchId'];
-  }
-
-  Father.createNew() {
-    id = FirebaseFirestore.instance.collection('Fathers').doc().id;
-    name = '';
-  }
-
-  JsonRef get ref => FirebaseFirestore.instance.collection('Fathers').doc(id);
-
-  @override
-  bool operator ==(dynamic other) {
-    return id == other.id;
-  }
-
-  Future<String?> getChurchName() async {
-    if (churchId == null) return '';
-    return Church.fromDoc(await churchId!.get()).name;
-  }
-
-  Json getMap() {
-    return {'Name': name, 'ChurchId': churchId};
-  }
-
-  static Father fromDoc(JsonDoc data) =>
-      Father._createFromData(data.data()!, data.id);
-
-  static Future<JsonQuery> getAllForUser() {
-    return FirebaseFirestore.instance
-        .collection('Fathers')
-        .orderBy('Name')
-        .get(dataSource);
-  }
-}
-
-class StudyYear {
-  String? id;
-  String? name;
-  bool? isCollegeYear;
-  int? grade;
-
-  StudyYear(this.id, this.name, this.grade);
-  StudyYear._createFromData(Json data, this.id) {
-    name = data['Name'];
-    grade = data['Grade'];
-    isCollegeYear = data['IsCollegeYear'];
-  }
-
-  StudyYear.createNew() {
-    id = FirebaseFirestore.instance.collection('StudyYears').doc().id;
-    name = '';
-    grade = 0;
-    isCollegeYear = false;
-  }
-
-  @override
-  int get hashCode => hashValues(id, name, grade);
-
-  JsonRef get ref =>
-      FirebaseFirestore.instance.collection('StudyYears').doc(id);
-
-  @override
-  bool operator ==(dynamic other) {
-    return other is StudyYear && hashCode == other.hashCode;
-  }
-
-  Json getMap() {
-    return {'Name': name, 'IsCollegeYear': isCollegeYear, 'Grade': grade};
-  }
-
-  static StudyYear fromDoc(JsonDoc data) =>
-      StudyYear._createFromData(data.data()!, data.id);
-
-  static Future<JsonQuery> getAllForUser() {
-    return FirebaseFirestore.instance
-        .collection('StudyYears')
-        .orderBy('Grade')
         .get(dataSource);
   }
 }

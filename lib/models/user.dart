@@ -9,7 +9,6 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_stream_notifiers/flutter_stream_notifiers.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hive/hive.dart';
 import 'package:meetinghelper/models/person.dart';
@@ -19,12 +18,14 @@ import 'package:rxdart/rxdart.dart';
 
 import 'super_classes.dart';
 
-class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
+class User extends Person {
   static final User instance = User._initInstance();
 
   Completer<bool> _initialized = Completer<bool>();
-
   Future<bool> get initialized => _initialized.future;
+
+  Stream<User> get stream => _streamSubject.stream;
+  final _streamSubject = BehaviorSubject<User>();
 
   @override
   bool get hasPhoto => uid != null;
@@ -380,6 +381,10 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
     notifyListeners();
   }
 
+  void notifyListeners() {
+    _streamSubject.add(this);
+  }
+
   Future<void> signOut() async {
     await recordLastSeen();
     await userTokenListener?.cancel();
@@ -449,14 +454,13 @@ class User extends Person with ChangeNotifier, ChangeNotifierStream<User> {
     return other is User && other.uid == uid;
   }
 
-  @override
-  Future dispose() async {
+  Future<void> dispose() async {
     await recordLastSeen();
     await userTokenListener?.cancel();
     await personListener?.cancel();
     await connectionListener?.cancel();
     await authListener?.cancel();
-    await super.dispose();
+    await _streamSubject.close();
   }
 
   Map<String, bool> getNotificationsPermissions() => {

@@ -90,7 +90,7 @@ class _SchoolsPageState extends State<SchoolsPage> {
                   await showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: Text(school.name!),
+                      title: Text(school.name),
                       content: Text('هل أنت متأكد من حذف ${school.name}؟'),
                       actions: <Widget>[
                         TextButton(
@@ -119,7 +119,7 @@ class _SchoolsPageState extends State<SchoolsPage> {
                 },
                 child: const Text('حذف'))
         ],
-        title: Text(school.name!),
+        title: Text(school.name),
         content: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -135,7 +135,7 @@ class _SchoolsPageState extends State<SchoolsPage> {
                   onChanged: (v) => school.name = v,
                 )
               else
-                Text(school.name!),
+                Text(school.name),
               DefaultTextStyle(
                 style: title,
                 child: const Text('العنوان:'),
@@ -208,7 +208,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                   await showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: Text(church.name!),
+                      title: Text(church.name),
                       content: Text('هل أنت متأكد من حذف ${church.name}؟'),
                       actions: <Widget>[
                         TextButton(
@@ -237,7 +237,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                 },
                 child: const Text('حذف'))
         ],
-        title: Text(church.name!),
+        title: Text(church.name),
         scrollable: true,
         content: SizedBox(
           width: 300,
@@ -256,7 +256,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                   onChanged: (v) => church.name = v,
                 )
               else
-                Text(church.name!),
+                Text(church.name),
               DefaultTextStyle(
                 style: title,
                 child: const Text('العنوان:'),
@@ -278,11 +278,12 @@ class _ChurchesPageState extends State<ChurchesPage> {
                         child: ListView.builder(
                           itemCount: data.data!.docs.length,
                           itemBuilder: (context, i) {
-                            var current = Father.fromDoc(data.data!.docs[i]);
+                            var current =
+                                Father.fromQueryDoc(data.data!.docs[i]);
                             return Card(
                               child: ListTile(
                                 onTap: () => fatherTap(current, false),
-                                title: Text(current.name!),
+                                title: Text(current.name),
                               ),
                             );
                           },
@@ -334,7 +335,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                   await showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: Text(father.name!),
+                      title: Text(father.name),
                       content: Text('هل أنت متأكد من حذف ${father.name}؟'),
                       actions: <Widget>[
                         TextButton(
@@ -363,7 +364,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                 },
                 child: const Text('حذف'))
         ],
-        title: Text(father.name!),
+        title: Text(father.name),
         content: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -376,7 +377,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                   onChanged: (v) => father.name = v,
                 )
               else
-                Text(father.name!),
+                Text(father.name),
               Text('داخل كنيسة', style: title),
               if (editMode)
                 FutureBuilder<JsonQuery>(
@@ -427,11 +428,13 @@ class _ChurchesPageState extends State<ChurchesPage> {
                       return name.hasData
                           ? Card(
                               child: ListTile(
-                                  title: Text(name.data!),
-                                  onTap: () async => churchTap(
-                                      Church.fromDoc(
-                                          await father.churchId!.get()),
-                                      false)))
+                                title: Text(name.data!),
+                                onTap: () async => churchTap(
+                                  Church.fromDoc(await father.churchId!.get())!,
+                                  false,
+                                ),
+                              ),
+                            )
                           : const LinearProgressIndicator();
                     }),
             ],
@@ -495,7 +498,7 @@ class _FathersPageState extends State<FathersPage> {
                   await showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
-                            title: Text(church.name!),
+                            title: Text(church.name),
                             content:
                                 Text('هل أنت متأكد من حذف ${church.name}؟'),
                             actions: <Widget>[
@@ -524,7 +527,7 @@ class _FathersPageState extends State<FathersPage> {
                 },
                 child: const Text('حذف'))
         ],
-        title: Text(church.name!),
+        title: Text(church.name),
         scrollable: true,
         content: SizedBox(
           width: 300,
@@ -543,7 +546,7 @@ class _FathersPageState extends State<FathersPage> {
                   onChanged: (v) => church.name = v,
                 )
               else
-                Text(church.name!),
+                Text(church.name),
               DefaultTextStyle(
                 style: title,
                 child: const Text('العنوان:'),
@@ -565,11 +568,12 @@ class _FathersPageState extends State<FathersPage> {
                         return ListView.builder(
                             itemCount: data.data!.docs.length,
                             itemBuilder: (context, i) {
-                              var current = Father.fromDoc(data.data!.docs[i]);
+                              var current =
+                                  Father.fromQueryDoc(data.data!.docs[i]);
                               return Card(
                                 child: ListTile(
                                   onTap: () => fatherTap(current, false),
-                                  title: Text(current.name!),
+                                  title: Text(current.name),
                                 ),
                               );
                             });
@@ -620,7 +624,7 @@ class _FathersPageState extends State<FathersPage> {
                   await showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
-                            title: Text(father.name!),
+                            title: Text(father.name),
                             content:
                                 Text('هل أنت متأكد من حذف ${father.name}؟'),
                             actions: <Widget>[
@@ -649,7 +653,7 @@ class _FathersPageState extends State<FathersPage> {
                 },
                 child: const Text('حذف'))
         ],
-        title: Text(father.name!),
+        title: Text(father.name),
         content: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -662,7 +666,7 @@ class _FathersPageState extends State<FathersPage> {
                   onChanged: (v) => father.name = v,
                 )
               else
-                Text(father.name!),
+                Text(father.name),
               Text('داخل كنيسة', style: title),
               if (editMode)
                 FutureBuilder<JsonQuery>(
@@ -713,11 +717,13 @@ class _FathersPageState extends State<FathersPage> {
                     return name.hasData
                         ? Card(
                             child: ListTile(
-                                title: Text(name.data!),
-                                onTap: () async => churchTap(
-                                    Church.fromDoc(
-                                        await father.churchId!.get()),
-                                    false)))
+                              title: Text(name.data!),
+                              onTap: () async => churchTap(
+                                Church.fromDoc(await father.churchId!.get())!,
+                                false,
+                              ),
+                            ),
+                          )
                         : const LinearProgressIndicator();
                   },
                 ),
@@ -782,7 +788,7 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
                   await showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
-                            title: Text(year.name!),
+                            title: Text(year.name),
                             content: Text('هل أنت متأكد من حذف ${year.name}؟'),
                             actions: <Widget>[
                               TextButton(
@@ -810,7 +816,7 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
                 },
                 child: const Text('حذف'))
         ],
-        title: Text(year.name!),
+        title: Text(year.name),
         content: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -826,7 +832,7 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
                   onChanged: (v) => year.name = v,
                 )
               else
-                Text(year.name!),
+                Text(year.name),
               DefaultTextStyle(
                 style: title,
                 child: const Text('ترتيب السنة:'),
