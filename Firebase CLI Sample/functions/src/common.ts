@@ -1,12 +1,11 @@
-import * as functions from "firebase-functions";
-import * as admin from "firebase-admin";
+import { https, Change } from "firebase-functions";
+import { database } from "firebase-admin";
 
 export async function getFCMTokensForUser(
   uid: string
 ): Promise<string[] | string> {
   const token = (
-    await admin
-      .database()
+    await database()
       .ref("Users/" + uid + "/FCM_Tokens")
       .once("value")
   ).val();
@@ -26,14 +25,14 @@ export function assertNotEmpty(
     variable === undefined ||
     typeof variable !== typeDef
   )
-    throw new functions.https.HttpsError(
+    throw new https.HttpsError(
       "invalid-argument",
       varName + " cannot be null or undefined and must be " + typeDef
     );
 }
 
 export function getChangeType(
-  change: functions.Change<FirebaseFirestore.DocumentSnapshot>
+  change: Change<FirebaseFirestore.DocumentSnapshot>
 ): "create" | "update" | "delete" {
   const before: boolean = change.before.exists;
   const after: boolean = change.after.exists;

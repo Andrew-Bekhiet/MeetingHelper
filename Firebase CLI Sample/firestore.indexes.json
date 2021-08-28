@@ -149,6 +149,20 @@
       ]
     },
     {
+      "collectionGroup": "Kodas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Time",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "Meeting",
       "queryScope": "COLLECTION_GROUP",
       "fields": [
@@ -191,6 +205,20 @@
         {
           "fieldPath": "Time",
           "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Meeting",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Time",
+          "order": "ASCENDING"
         }
       ]
     },
@@ -503,6 +531,20 @@
         {
           "fieldPath": "Time",
           "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Tanawol",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Time",
+          "order": "ASCENDING"
         }
       ]
     },

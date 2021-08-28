@@ -4,7 +4,7 @@ import { HttpsError } from "firebase-functions/lib/providers/https";
 import { auth, firestore, storage } from "firebase-admin";
 import { Timestamp } from "@google-cloud/firestore";
 
-import * as xlsx from "xlsx";
+import { utils, writeFile, readFile } from "xlsx";
 import * as download from "download";
 
 import { assertNotEmpty } from "./common";
@@ -19,8 +19,8 @@ export const exportToExcel = runWith({
   const currentUser = await auth().getUser(context.auth.uid);
   if (
     !(
-      currentUser.customClaims.approved &&
-      currentUser.customClaims.exportClasses
+      currentUser.customClaims?.approved &&
+      currentUser.customClaims?.exportClasses
     )
   ) {
     throw new HttpsError(
@@ -39,7 +39,7 @@ export const exportToExcel = runWith({
     if (!currentUser.customClaims.superAccess) {
       if (
         !_class.exists ||
-        !(_class.data().Allowed as string[]).includes(currentUser.uid)
+        !(_class.data()!.Allowed as string[]).includes(currentUser.uid)
       )
         throw new HttpsError(
           "permission-denied",
@@ -61,7 +61,8 @@ export const exportToExcel = runWith({
     (map, obj) => {
       map[obj.id] = obj.data().Name ?? "(غير معروف)";
       return map;
-    }
+    },
+    {} as Record<string, string>
   );
 
   const studyYears = (
@@ -69,61 +70,62 @@ export const exportToExcel = runWith({
   ).docs.reduce((map, obj) => {
     map[obj.id] = obj.data().Name ?? "(غير معروف)";
     return map;
-  });
+  }, {} as Record<string, string>);
   const schools = (await firestore().collection("Schools").get()).docs.reduce(
     (map, obj) => {
       map[obj.id] = obj.data().Name ?? "(غير معروف)";
       return map;
-    }
+    },
+    {} as Record<string, string>
   );
   const churches = (await firestore().collection("Churches").get()).docs.reduce(
     (map, obj) => {
       map[obj.id] = obj.data().Name ?? "(غير معروف)";
       return map;
-    }
+    },
+    {} as Record<string, string>
   );
   const cfathers = (await firestore().collection("Fathers").get()).docs.reduce(
     (map, obj) => {
       map[obj.id] = obj.data().Name ?? "(غير معروف)";
       return map;
-    }
+    },
+    {} as Record<string, string>
   );
 
-  let classes: Map<string, Map<string, any>> = new Map<
-    string,
-    Map<string, any>
-  >();
+  let classes: Record<string, Record<string, any>> = {};
   if (data?.onlyClass) {
-    const rslt = {};
-    rslt["Name"] = _class.data()["Name"];
-    rslt["ID"] = _class.id;
-    rslt["Color"] = _class.data()["Color"];
+    const _classData = _class!.data() ?? {};
+
+    const rslt: Record<string, string> = {};
+    rslt["Name"] = _classData["Name"];
+    rslt["ID"] = _class!.id;
+    rslt["Color"] = _classData["Color"];
     rslt["Study Year"] =
-      studyYears[
-        (_class.data()["StudyYear"] as firestore.DocumentReference)?.id
-      ];
+      studyYears[(_classData["StudyYear"] as firestore.DocumentReference)?.id];
     rslt["Class Gender"] =
-      _class.data()["Gender"] === true
+      _classData["Gender"] === true
         ? "بنين"
-        : _class.data()["Gender"] === false
+        : _classData["Gender"] === false
         ? "بنات"
         : "(غير معروف)";
-    rslt["Last Edit"] = users[_class.data()["LastEdit"]] ?? "";
+    rslt["Last Edit"] = users[_classData["LastEdit"]] ?? "";
     rslt["Allowed Users"] =
-      (_class.data()["Allowed"] as string[])
+      (_classData["Allowed"] as string[])
         ?.map((u) => users[u] ?? "(غير معروف)")
         ?.reduce((arr, o) => arr + "," + o) ?? "";
-    classes[_class.id] = rslt;
+    classes[_class!.id] = rslt;
   } else {
-    classes = (currentUser.customClaims.superAccess
-      ? await firestore().collection("Classes").orderBy("Name").get()
-      : await firestore()
-          .collection("Classes")
-          .where("Allowed", "array-contains", currentUser.uid)
-          .orderBy("Name")
-          .get()
-    ).docs.reduce<Map<string, Map<string, any>>>((map, c) => {
-      const rslt = {};
+    classes = (
+      currentUser.customClaims.superAccess
+        ? await firestore().collection("Classes").orderBy("Name").get()
+        : await firestore()
+            .collection("Classes")
+            .where("Allowed", "array-contains", currentUser.uid)
+            .orderBy("Name")
+            .get()
+    ).docs.reduce<Record<string, Record<string, any>>>((map, c) => {
+      const rslt: Record<string, string> = {};
       rslt["ID"] = c.id;
       rslt["Name"] = c.data()["Name"];
       rslt["Color"] = c.data()["Color"];
@@ -143,30 +145,31 @@ export const exportToExcel = runWith({
 
       map[c.id] = rslt;
       return map;
-    }, new Map<string, Map<string, any>>());
+    }, {});
   }
 
-  const persons = (data?.onlyClass
-    ? await firestore()
-        .collection("Persons")
-        .where("ClassId", "==", _class.ref)
-        .orderBy("Name")
-        .get()
-    : currentUser.customClaims.superAccess
-    ? await firestore().collection("Persons").orderBy("Name").get()
-    : await firestore()
-        .collection("Persons")
-        .where(
-          "ClassId",
-          "in",
-          Object.keys(classes).map((a) =>
-            firestore().collection("Classes").doc(a)
+  const persons = (
+    data?.onlyClass
+      ? await firestore()
+          .collection("Persons")
+          .where("ClassId", "==", _class!.ref)
+          .orderBy("Name")
+          .get()
+      : currentUser.customClaims.superAccess
+      ? await firestore().collection("Persons").orderBy("Name").get()
+      : await firestore()
+          .collection("Persons")
+          .where(
+            "ClassId",
+            "in",
+            Object.keys(classes).map((a) =>
+              firestore().collection("Classes").doc(a)
+            )
           )
-        )
-        .orderBy("Name")
-        .get()
-  ).docs.reduce<Map<string, Map<string, any>>>((map, p) => {
-    const rslt = {};
+          .orderBy("Name")
+          .get()
+  ).docs.reduce<Record<string, Record<string, any>>>((map, p) => {
+    const rslt: Record<string, string | Date> = {};
 
     rslt["ClassId"] = (p.data()["ClassId"] as firestore.DocumentReference)?.id;
     rslt["ID"] = p.id;
@@ -216,20 +219,20 @@ export const exportToExcel = runWith({
 
     map[p.id] = rslt;
     return map;
-  }, new Map<string, Map<string, any>>());
+  }, {});
 
-  const book = xlsx.utils.book_new();
-  xlsx.utils.book_append_sheet(
+  const book = utils.book_new();
+  utils.book_append_sheet(
     book,
-    xlsx.utils.json_to_sheet(Object.values(classes)),
+    utils.json_to_sheet(Object.values(classes)),
     "Classes"
   );
-  xlsx.utils.book_append_sheet(
+  utils.book_append_sheet(
     book,
-    xlsx.utils.json_to_sheet(Object.values(persons)),
+    utils.json_to_sheet(Object.values(persons)),
     "Persons"
   );
-  await xlsx.writeFile(book, "/tmp/Export.xlsx");
+  await writeFile(book, "/tmp/Export.xlsx");
   const file = (
     await storage()
       .bucket()
@@ -246,11 +249,10 @@ export const importFromExcel = runWith({
   memory: "512MB",
   timeoutSeconds: 540,
 }).https.onCall(async (data, context) => {
-  if (context.auth === undefined) {
-    throw new HttpsError("unauthenticated", "");
-  }
+  if (!context.auth) throw new HttpsError("unauthenticated", "");
+
   const currentUser = await auth().getUser(context.auth.uid);
-  if (!currentUser.customClaims.approved || !currentUser.customClaims.write) {
+  if (!currentUser.customClaims?.approved || !currentUser.customClaims?.write) {
     throw new HttpsError(
       "permission-denied",
       'Must be approved user with "write" permission'
@@ -274,7 +276,9 @@ export const importFromExcel = runWith({
   const _linkExpiry = new Date();
   _linkExpiry.setHours(_linkExpiry.getHours() + 1);
   await download(
-    (await file.getSignedUrl({ action: "read", expires: _linkExpiry }))[0],
+    (
+      await file.getSignedUrl({ action: "read", expires: _linkExpiry })
+    )[0],
     "/tmp/",
     { filename: "import.xlsx" }
   );
@@ -290,175 +294,183 @@ export const importFromExcel = runWith({
     (map, obj) => {
       map[obj.data().Name] = obj.id ?? "(غير معروف)";
       return map;
-    }
+    },
+    {} as Record<string, any>
   );
   const studyYears = (
     await firestore().collection("StudyYears").get()
   ).docs.reduce((map, obj) => {
     map[obj.data().Name] = obj.id ?? "(غير معروف)";
     return map;
-  });
+  }, {} as Record<string, any>);
   const schools = (await firestore().collection("Schools").get()).docs.reduce(
     (map, obj) => {
       map[obj.data().Name] = obj.id ?? "(غير معروف)";
       return map;
-    }
+    },
+    {} as Record<string, any>
   );
   const churches = (await firestore().collection("Churches").get()).docs.reduce(
     (map, obj) => {
       map[obj.data().Name] = obj.id ?? "(غير معروف)";
       return map;
-    }
+    },
+    {} as Record<string, any>
   );
   const cfathers = (await firestore().collection("Fathers").get()).docs.reduce(
     (map, obj) => {
       map[obj.data().Name] = obj.id ?? "(غير معروف)";
       return map;
-    }
+    },
+    {} as Record<string, any>
   );
 
-  const book = xlsx.readFile("/tmp/import.xlsx");
+  const book = readFile("/tmp/import.xlsx");
   if (!book.Sheets["Classes"] || !book.Sheets["Persons"])
     throw new HttpsError(
       "invalid-argument",
       "Workbook doesn't contain the required sheets"
     );
-  const classes = xlsx.utils
+  const classes = utils
     .sheet_to_json(book.Sheets["Classes"])
-    .reduce<Array<Map<string, string | Object>>>((arry, c) => {
-      const allowed = (c["Allowed Users"] as string)
-        ?.split(",")
-        .map((u) => users[u]) ?? [context.auth.uid];
-      if (!allowed.includes(context.auth.uid)) allowed.push(context.auth.uid);
+    .reduce<Array<Record<string, string | Record<string, any>>>>(
+      (arry, current) => {
+        const c = current as Record<string, string | Record<string, any>>;
 
-      const rslt = {};
-      rslt["Name"] = c["Name"];
-      rslt["Color"] = c["Color"];
-      if (!studyYears[c["Study Year"]])
-        throw new HttpsError(
-          "invalid-argument",
-          "Class " + c["Name"] + " doesnot have valid Study Year"
-        );
-      rslt["StudyYear"] = firestore()
-        .collection("StudyYears")
-        .doc(studyYears[c["Study Year"]]);
-      rslt["Gender"] =
-        c["Class Gender"] === "بنين"
-          ? true
-          : c["Class Gender"] === "بنات"
-          ? false
-          : null;
-      rslt["LastEdit"] = users[c["Last Edit"]] ?? "";
-      rslt["Allowed"] =
-        currentUser.customClaims.manageUsers ||
-        currentUser.customClaims.manageAllowedUsers
-          ? allowed
-          : [context.auth.uid];
+        const allowed = (c["Allowed Users"] as string)
+          ?.split(",")
+          .map((u) => users[u]) ?? [context.auth!.uid];
+        if (!allowed.includes(context.auth!.uid))
+          allowed.push(context.auth!.uid);
 
-      arry.push(
-        new Map<string, string | Object>(
-          Object.entries({ ID: c["ID"], data: rslt })
-        )
-      );
-      return arry;
-    }, new Array<Map<string, string | Object>>());
-  const persons = xlsx.utils
-    .sheet_to_json(book.Sheets["Persons"])
-    .reduce<Array<Map<string, string | Object>>>((arry, p) => {
-      const rslt = {};
-
-      rslt["ClassId"] = firestore().collection("Classes").doc(p["ClassId"]);
-      rslt["Name"] = p["Name"];
-      rslt["Phone"] = p["Phone Number"];
-      rslt["FatherPhone"] = p["Father Phone Number"];
-      rslt["MotherPhone"] = p["Mother Phone Number"];
-      rslt["Phones"] = {};
-
-      rslt["Address"] = p["Address"];
-      rslt["Color"] = p["Color"];
-      if (p["Birth Date"] !== "" && p["Birth Date"]) {
-        const _birthDay = dateFromExcelSerial(p["Birth Date"] as number);
-        rslt["BirthDate"] = Timestamp.fromDate(_birthDay);
-        _birthDay.setFullYear(1970);
-        rslt["BirthDay"] = Timestamp.fromDate(_birthDay);
-      } else {
-        rslt["BirthDate"] = null;
-        rslt["BirthDay"] = null;
-      }
-
-      function setTimestampProp(propName: string, mapPropName: string) {
-        if (p[mapPropName] !== "" && p[mapPropName]) {
-          rslt[propName] = Timestamp.fromDate(
-            dateFromExcelSerial(p[mapPropName] as number)
+        const rslt: Record<string, any> = {};
+        rslt["Name"] = c["Name"];
+        rslt["Color"] = c["Color"];
+        if (!studyYears[c["Study Year"] as string])
+          throw new HttpsError(
+            "invalid-argument",
+            "Class " + c["Name"] + " doesnot have valid Study Year"
           );
+        rslt["StudyYear"] = firestore()
+          .collection("StudyYears")
+          .doc(studyYears[c["Study Year"] as string]);
+        rslt["Gender"] =
+          c["Class Gender"] === "بنين"
+            ? true
+            : c["Class Gender"] === "بنات"
+            ? false
+            : null;
+        rslt["LastEdit"] = users[c["Last Edit"] as string] ?? "";
+        rslt["Allowed"] =
+          currentUser.customClaims?.manageUsers ||
+          currentUser.customClaims?.manageAllowedUsers
+            ? allowed
+            : [context.auth!.uid];
+
+        arry.push({ ID: c["ID"], data: rslt });
+        return arry;
+      },
+      []
+    );
+  const persons = utils
+    .sheet_to_json(book.Sheets["Persons"])
+    .reduce<Array<Record<string, string | Record<string, any>>>>(
+      (arry, currentPerson) => {
+        const rslt: Record<string, any> = {};
+        const person: Record<string, any> = {};
+
+        rslt["ClassId"] = firestore()
+          .collection("Classes")
+          .doc(person["ClassId"]);
+        rslt["Name"] = person["Name"];
+        rslt["Phone"] = person["Phone Number"];
+        rslt["FatherPhone"] = person["Father Phone Number"];
+        rslt["MotherPhone"] = person["Mother Phone Number"];
+        rslt["Phones"] = {};
+
+        rslt["Address"] = person["Address"];
+        rslt["Color"] = person["Color"];
+        if (person["Birth Date"] !== "" && person["Birth Date"]) {
+          const _birthDay = dateFromExcelSerial(person["Birth Date"] as number);
+          rslt["BirthDate"] = Timestamp.fromDate(_birthDay);
+          _birthDay.setFullYear(1970);
+          rslt["BirthDay"] = Timestamp.fromDate(_birthDay);
         } else {
-          rslt[propName] = null;
+          rslt["BirthDate"] = null;
+          rslt["BirthDay"] = null;
         }
-      }
 
-      rslt["Notes"] = p["Notes"];
-      rslt["Location"] = p["Location"]
-        ? new firestore.GeoPoint(
-            Number.parseFloat((p["Location"] as string).split(",")[1]),
-            Number.parseFloat((p["Location"] as string).split(",")[0])
-          )
-        : null;
-      rslt["School"] = firestore()
-        .collection("Schools")
-        .doc(schools[p["School"]] ?? "null");
-      rslt["Church"] = firestore()
-        .collection("Churches")
-        .doc(churches[p["Church"]] ?? "null");
-      rslt["CFather"] = firestore()
-        .collection("Fathers")
-        .doc(cfathers[p["Confession Father"]] ?? "null");
+        function setTimestampProp(propName: string, mapPropName: string) {
+          if (person[mapPropName] !== "" && person[mapPropName]) {
+            rslt[propName] = Timestamp.fromDate(
+              dateFromExcelSerial(person[mapPropName] as number)
+            );
+          } else {
+            rslt[propName] = null;
+          }
+        }
 
-      setTimestampProp("LastTanawol", "Last Tanawol");
-      setTimestampProp("LastConfession", "Last Confession");
-      setTimestampProp("LastKodas", "Last Kodas");
-      setTimestampProp("LastMeeting", "Last Meeting");
-      setTimestampProp("LastCall", "Last Call");
-      setTimestampProp("LastVisit", "Last Visit");
-      rslt["LastEdit"] = users[p["Last Edit"]];
+        rslt["Notes"] = person["Notes"];
+        rslt["Location"] = person["Location"]
+          ? new firestore.GeoPoint(
+              Number.parseFloat((person["Location"] as string).split(",")[1]),
+              Number.parseFloat((person["Location"] as string).split(",")[0])
+            )
+          : null;
+        rslt["School"] = firestore()
+          .collection("Schools")
+          .doc(schools[person["School"]] ?? "null");
+        rslt["Church"] = firestore()
+          .collection("Churches")
+          .doc(churches[person["Church"]] ?? "null");
+        rslt["CFather"] = firestore()
+          .collection("Fathers")
+          .doc(cfathers[person["Confession Father"]] ?? "null");
 
-      //Remove all known fields and keep others as phone numbers
-      Object.assign(rslt["Phones"], p);
-      delete rslt["Phones"]["ID"];
-      delete rslt["Phones"]["ClassId"];
-      delete rslt["Phones"]["Class Name"];
-      delete rslt["Phones"]["Name"];
-      delete rslt["Phones"]["Phone Number"];
-      delete rslt["Phones"]["Father Phone Number"];
-      delete rslt["Phones"]["Mother Phone Number"];
-      delete rslt["Phones"]["Phones"];
-      delete rslt["Phones"]["Color"];
-      delete rslt["Phones"]["Address"];
-      delete rslt["Phones"]["Birth Date"];
-      delete rslt["Phones"]["Notes"];
-      delete rslt["Phones"]["Location"];
-      delete rslt["Phones"]["School"];
-      delete rslt["Phones"]["Church"];
-      delete rslt["Phones"]["Confession Father"];
-      delete rslt["Phones"]["Study Year"];
-      delete rslt["Phones"]["Last Tanawol"];
-      delete rslt["Phones"]["Last Confession"];
-      delete rslt["Phones"]["Last Kodas"];
-      delete rslt["Phones"]["Last Meeting"];
-      delete rslt["Phones"]["Last Call"];
-      delete rslt["Phones"]["Last Visit"];
-      delete rslt["Phones"]["Last Edit"];
+        setTimestampProp("LastTanawol", "Last Tanawol");
+        setTimestampProp("LastConfession", "Last Confession");
+        setTimestampProp("LastKodas", "Last Kodas");
+        setTimestampProp("LastMeeting", "Last Meeting");
+        setTimestampProp("LastCall", "Last Call");
+        setTimestampProp("LastVisit", "Last Visit");
+        rslt["LastEdit"] = users[person["Last Edit"]];
 
-      for (const key in rslt["Phones"]) {
-        rslt["Phones"][key] = `${rslt["Phones"][key]}`;
-      }
+        //Remove all known fields and keep others as phone numbers
+        Object.assign(rslt["Phones"], person);
+        delete rslt["Phones"]["ID"];
+        delete rslt["Phones"]["ClassId"];
+        delete rslt["Phones"]["Class Name"];
+        delete rslt["Phones"]["Name"];
+        delete rslt["Phones"]["Phone Number"];
+        delete rslt["Phones"]["Father Phone Number"];
+        delete rslt["Phones"]["Mother Phone Number"];
+        delete rslt["Phones"]["Phones"];
+        delete rslt["Phones"]["Color"];
+        delete rslt["Phones"]["Address"];
+        delete rslt["Phones"]["Birth Date"];
+        delete rslt["Phones"]["Notes"];
+        delete rslt["Phones"]["Location"];
+        delete rslt["Phones"]["School"];
+        delete rslt["Phones"]["Church"];
+        delete rslt["Phones"]["Confession Father"];
+        delete rslt["Phones"]["Study Year"];
+        delete rslt["Phones"]["Last Tanawol"];
+        delete rslt["Phones"]["Last Confession"];
+        delete rslt["Phones"]["Last Kodas"];
+        delete rslt["Phones"]["Last Meeting"];
+        delete rslt["Phones"]["Last Call"];
+        delete rslt["Phones"]["Last Visit"];
+        delete rslt["Phones"]["Last Edit"];
 
-      arry.push(
-        new Map<string, string | Object>(
-          Object.entries({ ID: p["ID"], data: rslt })
-        )
-      );
-      return arry;
-    }, new Array<Map<string, string | Object>>());
+        for (const key in rslt["Phones"]) {
+          rslt["Phones"][key] = `${rslt["Phones"][key]}`;
+        }
+
+        arry.push({ ID: person["ID"], data: rslt });
+        return arry;
+      },
+      []
+    );
 
   let batch = firestore().batch();
   let batchCount = 0;
@@ -467,22 +479,18 @@ export const importFromExcel = runWith({
       await batch.commit();
       batch = firestore().batch();
     }
-    if (
-      item.get("ID") &&
-      item.get("ID") !== "" &&
-      typeof item.get("ID") === typeof ""
-    ) {
+    if (item["ID"] && item["ID"] !== "" && typeof item["ID"] === typeof "") {
       batch.set(
         firestore()
           .collection("Classes")
-          .doc(item.get("ID") as string),
-        item.get("data") as Object,
+          .doc(item["ID"] as string),
+        item["data"] as Object,
         { merge: true }
       );
     } else {
       batch.create(
         firestore().collection("Classes").doc(),
-        item.get("data") as Object
+        item["data"] as Object
       );
     }
     batchCount++;
@@ -493,22 +501,18 @@ export const importFromExcel = runWith({
       await batch.commit();
       batch = firestore().batch();
     }
-    if (
-      item.get("ID") &&
-      item.get("ID") !== "" &&
-      typeof item.get("ID") === typeof ""
-    ) {
+    if (item["ID"] && item["ID"] !== "" && typeof item["ID"] === typeof "") {
       batch.set(
         firestore()
           .collection("Persons")
-          .doc(item.get("ID") as string),
-        item.get("data") as Object,
+          .doc(item["ID"] as string),
+        item["data"] as Object,
         { merge: true }
       );
     } else {
       batch.create(
         firestore().collection("Persons").doc(),
-        item.get("data") as Object
+        item["data"] as Object
       );
     }
     batchCount++;

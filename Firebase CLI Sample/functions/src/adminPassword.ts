@@ -1,1 +1,1 @@
-export const adminPassword = "$Password#"; //TODO: Firebase CLI adminPassword
+export const adminPassword = process.env.AdminPassword;

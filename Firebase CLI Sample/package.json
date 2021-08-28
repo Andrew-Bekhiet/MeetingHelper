@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "firebase-functions": "^3.13.2",
-    "typescript": "^4.1.3"
-  }
-}

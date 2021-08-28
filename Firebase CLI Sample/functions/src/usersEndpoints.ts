@@ -17,7 +17,7 @@ export const registerWithLink = https.onCall(async (data, context) => {
     throw new https.HttpsError("unauthenticated", "");
   }
   const currentUser = await auth().getUser(context.auth.uid);
-  if (currentUser.customClaims.approved) {
+  if (currentUser.customClaims?.approved) {
     throw new https.HttpsError("aborted", "User already approved");
   }
   assertNotEmpty("link", data.link, typeof "");
@@ -32,27 +32,31 @@ export const registerWithLink = https.onCall(async (data, context) => {
     const doc = await firestore().collection("Invitations").doc(id).get();
     if (!doc.exists) throw new HttpsError("not-found", "Invitation not found");
     if (
-      (doc.data().ExpiryDate as Timestamp).toMillis() -
+      (doc.data()!.ExpiryDate as Timestamp).toMillis() -
         new Date().getMilliseconds() <=
       0
     )
       throw new HttpsError("failed-precondition", "Invitation expired");
-    if (doc.data().Link !== data.link)
+    if (doc.data()!.Link !== data.link)
       throw new HttpsError("failed-precondition", "");
-    if (doc.data().UsedBy) throw new HttpsError("failed-precondition", "");
+    if (doc.data()!.UsedBy) throw new HttpsError("failed-precondition", "");
     const batch = firestore().batch();
     batch.update(doc.ref, { UsedBy: context.auth.uid });
 
-    const newPermissions = doc.data().Permissions;
+    const newPermissions: Record<string, any> = doc.data()?.Permissions ?? {};
     if (
-      (await auth().getUser(doc.data().GeneratedBy)).customClaims[
-        "manageAllowedUsers"
-      ] === true
+      (await auth().getUser(doc.data()!.GeneratedBy)).customClaims
+        ?.manageAllowedUsers === true
     ) {
       delete newPermissions.manageUsers;
-      batch.update(firestore().collection("Users").doc(currentUser.uid), {
-        allowedUsers: FieldValue.arrayUnion(doc.data().GeneratedBy),
-      });
+      batch.update(
+        firestore()
+          .collection("UsersData")
+          .doc(currentUser.customClaims!.personId),
+        {
+          AllowedUsers: FieldValue.arrayUnion(doc.data()!.GeneratedBy),
+        }
+      );
     }
 
     delete newPermissions.password;
@@ -80,7 +84,7 @@ export const registerWithLink = https.onCall(async (data, context) => {
 export const registerAccount = https.onCall(async (data, context) => {
   if (context.auth === undefined) {
     throw new https.HttpsError("unauthenticated", "");
-  } else if (!(await auth().getUser(context.auth.uid)).customClaims.approved) {
+  } else if (!(await auth().getUser(context.auth.uid)).customClaims!.approved) {
     throw new https.HttpsError("unauthenticated", "Must be approved user");
   }
   assertNotEmpty("name", data.name, typeof "");
@@ -90,22 +94,22 @@ export const registerAccount = https.onCall(async (data, context) => {
   assertNotEmpty("fcmToken", data.fcmToken, typeof "");
 
   const currentUser = await auth().getUser(context.auth.uid);
-  const newCustomClaims = currentUser.customClaims;
+  const newCustomClaims: Record<string, any> = currentUser.customClaims ?? {};
 
   newCustomClaims["password"] = data.password;
   newCustomClaims["lastConfession"] = data.lastConfession;
   newCustomClaims["lastTanawol"] = data.lastTanawol;
   try {
     if (
-      currentUser.customClaims.approved &&
-      (currentUser.customClaims.manageUsers ||
-        currentUser.customClaims.manageAllowedUsers)
+      currentUser.customClaims?.approved &&
+      (currentUser.customClaims?.manageUsers ||
+        currentUser.customClaims?.manageAllowedUsers)
     ) {
       await messaging().subscribeToTopic(data.fcmToken, "ManagingUsers");
     }
     if (
-      currentUser.customClaims.approved &&
-      currentUser.customClaims.approveLocations
+      currentUser.customClaims?.approved &&
+      currentUser.customClaims?.approveLocations
     ) {
       await messaging().subscribeToTopic(data.fcmToken, "ApproveLocations");
     }
@@ -139,8 +143,8 @@ export const registerFCMToken = https.onCall(async (data, context) => {
   const currentUserClaims = (await auth().getUser(context.auth.uid))
     .customClaims;
   if (
-    currentUserClaims.approved &&
-    (currentUserClaims.manageUsers || currentUserClaims.manageAllowedUsers) &&
+    currentUserClaims?.approved &&
+    (currentUserClaims?.manageUsers || currentUserClaims?.manageAllowedUsers) &&
     (await getFCMTokensForUser(context.auth.uid))
   ) {
     await messaging().subscribeToTopic(
@@ -149,8 +153,8 @@ export const registerFCMToken = https.onCall(async (data, context) => {
     );
   }
   if (
-    currentUserClaims.approved &&
-    currentUserClaims.approveLocations &&
+    currentUserClaims?.approved &&
+    currentUserClaims?.approveLocations &&
     (await getFCMTokensForUser(context.auth.uid))
   ) {
     await messaging().subscribeToTopic(
@@ -162,50 +166,80 @@ export const registerFCMToken = https.onCall(async (data, context) => {
 });
 
 export const updateUserSpiritData = https.onCall(async (data, context) => {
-  if (context.auth || data.adminPassword === adminPassword) {
-    assertNotEmpty("lastTanawol", data.lastTanawol, typeof 0);
-    assertNotEmpty("lastConfession", data.lastConfession, typeof 0);
-    await auth().setCustomUserClaims(
-      context.auth.uid,
-      Object.assign((await auth().getUser(context.auth.uid)).customClaims, {
-        lastConfession: data.lastConfession,
-        lastTanawol: data.lastTanawol,
-      })
-    );
-    await database()
-      .ref()
-      .child("Users/" + context.auth.uid + "/forceRefresh")
-      .set(true);
-    return "OK";
-  }
-  throw new https.HttpsError("unauthenticated", "");
+  if (!context.auth) throw new https.HttpsError("unauthenticated", "");
+  assertNotEmpty("lastTanawol", data.lastTanawol, typeof 0);
+  assertNotEmpty("lastConfession", data.lastConfession, typeof 0);
+  const user = await auth().getUser(context.auth.uid);
+  await auth().setCustomUserClaims(
+    context.auth.uid,
+    Object.assign(user.customClaims, {
+      lastConfession: data.lastConfession,
+      lastTanawol: data.lastTanawol,
+    })
+  );
+  await firestore()
+    .doc("UsersData/" + user.customClaims!.personId)
+    .update({
+      LastTanawol: Timestamp.fromMillis(data.lastTanawol),
+      LastConfession: Timestamp.fromMillis(data.lastConfession),
+    });
+  await database()
+    .ref()
+    .child("Users/" + context.auth.uid + "/forceRefresh")
+    .set(true);
+  return "OK";
 });
 
 export const sendMessageToUsers = https.onCall(async (data, context) => {
   let from: string;
   if (context.auth === undefined) {
-    if (data.adminPassword === adminPassword) {
+    if (data.AdminPassword === adminPassword) {
       from = "";
     } else {
       throw new https.HttpsError("unauthenticated", "");
     }
-  } else if ((await auth().getUser(context.auth.uid)).customClaims.approved) {
+  } else if ((await auth().getUser(context.auth.uid)).customClaims!.approved) {
     from = context.auth.uid;
   } else {
     throw new https.HttpsError("unauthenticated", "");
   }
-  assertNotEmpty("users", data.users, typeof []);
+  if (
+    data.users === null ||
+    data.users === undefined ||
+    (typeof data.users !== typeof [] && data.users !== "all")
+  ) {
+    throw new https.HttpsError(
+      "invalid-argument",
+      "users cannot be null or undefined and must be " + typeof []
+    );
+  }
   assertNotEmpty("title", data.title, typeof "");
   assertNotEmpty("content", data.content, typeof "");
   assertNotEmpty("attachement", data.attachement, typeof "");
-  let usersToSend: string[] = await Promise.all(
-    data.users.map(
-      async (user: any, i: any, ary: any) => await getFCMTokensForUser(user)
-    )
-  );
-  usersToSend = usersToSend
-    .reduce((accumulator, value) => accumulator.concat(value), [])
-    .filter((v) => v !== null && v !== undefined);
+
+  let usersToSend: string[] = [];
+  if (typeof data.users === typeof []) {
+    usersToSend = await Promise.all(
+      data.users.map(
+        async (user: any, i: any, ary: any) => await getFCMTokensForUser(user)
+      )
+    );
+    usersToSend = usersToSend
+      .reduce<string[]>((accumulator, value) => accumulator.concat(value), [])
+      .filter((v) => v !== null && v !== undefined);
+  } else if (data.users === "all") {
+    usersToSend = await Promise.all(
+      ((await auth().listUsers()).users as any).map(
+        async (user: any, i: any, ary: any) =>
+          await getFCMTokensForUser(user.uid)
+      )
+    );
+    usersToSend = usersToSend
+      .reduce<string[]>((accumulator, value) => accumulator.concat(value), [])
+      .filter((v) => v !== null && v !== undefined);
+  } else {
+    throw new https.HttpsError("invalid-argument", "users");
+  }
   console.log("usersToSend[0]:" + usersToSend[0]);
   console.log("usersToSend" + usersToSend);
   await messaging().sendToDevice(
@@ -235,14 +269,19 @@ export const sendMessageToUsers = https.onCall(async (data, context) => {
 });
 
 export const changeUserName = https.onCall(async (data, context) => {
+  if (!context.auth) throw new HttpsError("unauthenticated", "unauthenticated");
+
   const currentUser = await auth().getUser(context.auth.uid);
+  const personId = (await auth().getUser(data.affectedUser)).customClaims!
+    .personId;
   if (
-    currentUser.customClaims.approved &&
-    (currentUser.customClaims.manageUsers ||
-      (currentUser.customClaims.manageAllowedUsers &&
-        ((
-          await firestore().collection("Users").doc(data.affectedUser).get()
-        ).data().allowedUsers as Array<string>).includes(currentUser.uid)))
+    currentUser.customClaims?.approved &&
+    (currentUser.customClaims?.manageUsers ||
+      (currentUser.customClaims?.manageAllowedUsers &&
+        (
+          (await firestore().collection("UsersData").doc(personId).get()).data()
+            ?.AllowedUsers as Array<string>
+        ).includes(currentUser.uid)))
   ) {
     assertNotEmpty("newName", data.newName, typeof "");
     if (data.affectedUser && typeof data.affectedUser === typeof "") {
@@ -251,10 +290,7 @@ export const changeUserName = https.onCall(async (data, context) => {
         .doc("Users/" + data.affectedUser)
         .update({ Name: data.newName });
       await firestore()
-        .doc(
-          "UsersData/" +
-            (await auth().getUser(data.affectedUser)).customClaims.personId
-        )
+        .doc("UsersData/" + personId)
         .update({ Name: data.newName });
       return "OK";
     } else {
@@ -267,7 +303,7 @@ export const changeUserName = https.onCall(async (data, context) => {
         .update({ Name: data.newName });
       return "OK";
     }
-  } else if (currentUser.customClaims.approved) {
+  } else if (currentUser.customClaims?.approved) {
     assertNotEmpty("newName", data.newName, typeof "");
     await auth().updateUser(context.auth.uid, { displayName: data.newName });
     await firestore()
@@ -288,22 +324,22 @@ export const changePassword = https.onCall(async (data, context) => {
   //ChangePassword
   try {
     if (context.auth === undefined) {
-      if (data.adminPassword !== adminPassword) {
+      if (data.AdminPassword !== adminPassword) {
         throw new https.HttpsError("unauthenticated", "unauthenticated");
       }
     } else if (
-      !(await auth().getUser(context.auth.uid)).customClaims.approved
+      !(await auth().getUser(context.auth.uid)).customClaims?.approved
     ) {
       throw new https.HttpsError("unauthenticated", "Must be approved user");
     }
-    const currentUser = await auth().getUser(context.auth.uid);
-    const newCustomClaims = currentUser.customClaims;
+    const currentUser = await auth().getUser(context.auth!.uid);
+    const newCustomClaims: Record<string, any> = currentUser.customClaims ?? {};
 
     assertNotEmpty("newPassword", data.newPassword, typeof "");
 
     if (
       data.oldPassword ||
-      (currentUser.customClaims.password === null && data.oldPassword === null)
+      (currentUser.customClaims?.password === null && data.oldPassword === null)
     ) {
       const crypto = require("sha3");
       const s265 = new crypto.SHA3(256);
@@ -314,8 +350,8 @@ export const changePassword = https.onCall(async (data, context) => {
       );
       const digest = s265.digest("base64");
       if (
-        currentUser.customClaims.password &&
-        digest !== currentUser.customClaims.password
+        currentUser.customClaims?.password &&
+        digest !== currentUser.customClaims?.password
       ) {
         throw new https.HttpsError(
           "permission-denied",
@@ -326,10 +362,10 @@ export const changePassword = https.onCall(async (data, context) => {
       throw new https.HttpsError("permission-denied", "Old Password is empty");
     }
     newCustomClaims["password"] = data.newPassword;
-    await auth().setCustomUserClaims(context.auth.uid, newCustomClaims);
+    await auth().setCustomUserClaims(context.auth!.uid, newCustomClaims);
     await database()
       .ref()
-      .child("Users/" + context.auth.uid + "/forceRefresh")
+      .child("Users/" + context.auth!.uid + "/forceRefresh")
       .set(true);
     return "OK";
   } catch (err) {
@@ -339,7 +375,7 @@ export const changePassword = https.onCall(async (data, context) => {
 });
 
 export const deleteImage = https.onCall(async (context) => {
-  await download((await auth().getUser(context.auth.uid)).photoURL, "/tmp/", {
+  await download((await auth().getUser(context.auth!.uid)).photoURL!, "/tmp/", {
     filename: "user.jpg",
   });
   return storage()
@@ -352,10 +388,10 @@ export const deleteImage = https.onCall(async (context) => {
 });
 
 export const recoverDoc = https.onCall(async (data, context) => {
-  const currentUser = await auth().getUser(context.auth.uid);
+  const currentUser = await auth().getUser(context.auth!.uid);
   if (
-    currentUser.customClaims.manageDeleted ||
-    (context.auth === undefined && data.adminPassword === adminPassword)
+    currentUser.customClaims?.manageDeleted ||
+    (context.auth === undefined && data.AdminPassword === adminPassword)
   ) {
     console.log(data);
     if (
@@ -367,18 +403,15 @@ export const recoverDoc = https.onCall(async (data, context) => {
     )
       throw new https.HttpsError("invalid-argument", "Invalid 'deletedPath'");
 
-    console.log("1");
-
     const documentToRecover = await firestore().doc(data.deletedPath).get();
 
     if (!documentToRecover.exists)
       throw new https.HttpsError("invalid-argument", "Invalid 'deletedPath'");
 
-    console.log("2");
-    if (!currentUser.customClaims.superAccess) {
+    if (!currentUser.customClaims?.superAccess) {
       if (
         documentToRecover.ref.path.startsWith("Deleted/Classes") &&
-        !(documentToRecover.data().Allowed as Array<string>).includes(
+        !(documentToRecover.data()!.Allowed as Array<string>).includes(
           currentUser.uid
         )
       )
@@ -387,9 +420,11 @@ export const recoverDoc = https.onCall(async (data, context) => {
           "User doesn't have permission to restore the specified document"
         );
       else if (
-        !((
-          await (documentToRecover.data().ClassId as DocumentReference).get()
-        ).data().Allowed as Array<string>).includes(currentUser.uid)
+        !(
+          (
+            await (documentToRecover.data()!.ClassId as DocumentReference).get()
+          ).data()!.Allowed as Array<string>
+        ).includes(currentUser.uid)
       ) {
         throw new https.HttpsError(
           "permission-denied",
@@ -397,7 +432,6 @@ export const recoverDoc = https.onCall(async (data, context) => {
         );
       }
     }
-    console.log("3");
 
     const documentToWrite = firestore().doc(
       (data.deletedPath as string).replace(
@@ -405,26 +439,45 @@ export const recoverDoc = https.onCall(async (data, context) => {
         ""
       )
     );
-    console.log("4");
 
     if (!data.nested) {
-      console.log("5");
-      await documentToWrite.set(documentToRecover.data(), { merge: true });
+      await documentToWrite.set(documentToRecover.data()!, { merge: true });
+      if (
+        await storage()
+          .bucket()
+          .file(
+            (data.deletedPath as String)
+              .replace("/Classes/", "/ClassesPhotos/")
+              .replace("/Persons/", "/PersonsPhotos/")
+          )
+          .exists()
+      )
+        await storage()
+          .bucket()
+          .file(
+            (data.deletedPath as String)
+              .replace("/Classes/", "/ClassesPhotos/")
+              .replace("/Persons/", "/PersonsPhotos/")
+          )
+          .move(
+            (data.deletedPath as string)
+              .replace(RegExp("Deleted/\\d{4}-\\d{2}-\\d{2}/"), "")
+              .replace("/Classes/", "/ClassesPhotos/")
+              .replace("/Persons/", "/PersonsPhotos/")
+          );
       if (!data.keepBackup) await firestore().doc(data.deletedPath).delete();
     } else {
-      console.log("6");
       const doc = (data.deletedPath as string).replace(
         RegExp("Deleted/\\d{4}-\\d{2}-\\d{2}/"),
         ""
       );
       let batch = firestore().batch();
       let count = 1;
-      batch.set(documentToWrite, documentToRecover.data(), { merge: true });
+      batch.set(documentToWrite, documentToRecover.data()!, { merge: true });
       if (!data.keepBackup) {
         batch.delete(firestore().doc(data.deletedPath));
         count++;
       }
-      console.log("7");
 
       if (doc.startsWith("Classes")) {
         for (const item of (
@@ -452,8 +505,17 @@ export const recoverDoc = https.onCall(async (data, context) => {
         }
       }
       await batch.commit();
+      if (await storage().bucket().file(data.deletedPath).exists())
+        await storage()
+          .bucket()
+          .file(data.deletedPath)
+          .move(
+            (data.deletedPath as string).replace(
+              RegExp("Deleted/\\d{4}-\\d{2}-\\d{2}/"),
+              ""
+            )
+          );
     }
-    console.log("8");
     return "OK";
   }
   if (context.auth)

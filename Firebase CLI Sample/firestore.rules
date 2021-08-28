@@ -1,26 +1,19 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-  
+
     function checkUserRegistered(){
-        return request.auth.uid != null && request.auth.token.approved
-          && (request.auth.token.lastTanawol == null || request.auth.token.lastConfession == null
-            || ((request.auth.token.lastTanawol + 2592000000) > request.time.toMillis()
-            && (request.auth.token.lastConfession + 5184000000) > request.time.toMillis()));
+      return request.auth.uid != null && request.auth.token.approved
+        && (request.auth.token.lastTanawol == null || request.auth.token.lastConfession == null
+        || ((request.auth.token.lastTanawol + 5184000000) > request.time.toMillis()
+        && (request.auth.token.lastConfession + 5184000000) > request.time.toMillis()));
     }
 
     function checkCanReadUser(user){
       return checkUserRegistered()
-      && (request.auth.token.manageUsers || request.auth.token.secretary || (request.auth.token.manageAllowedUsers && request.auth.uid in get(/databases/$(database)/documents/UsersData/$(user)).data.AllowedUsers));
+        && (request.auth.token.manageUsers || request.auth.token.secretary || (request.auth.token.manageAllowedUsers && request.auth.uid in get(/databases/$(database)/documents/UsersData/$(user)).data.AllowedUsers));
     }
 
-    function checkCanEditUser(user, classId){
-      return checkUserRegistered()
-      && (request.auth.token.manageUsers || (request.auth.token.manageAllowedUsers
-      && request.auth.uid in get(/databases/$(database)/documents/UsersData/$(user)).data.AllowedUsers))
-      && (request.auth.token.superAccess || request.auth.uid in get(/databases/$(database)/documents/Classes/$(classId)).data.Allowed);
-    }
-    
     function isTheSame(fieldName, create){
       return create || resource.data[fieldName] == request.resource.data[fieldName] || !request.resource.data.keys().hasAny([fieldName]);
     }
@@ -28,12 +21,12 @@ service cloud.firestore {
     match /Classes{
       allow list: if checkUserRegistered() && request.auth.token.superAccess;
       allow write: if checkUserRegistered() && request.auth.token.superAccess && request.auth.token.write;
-      
+
       match /null {
         allow write: if false;
         allow read: if checkUserRegistered();
       }
-      
+
       match /{class} {
         allow read: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in resource.data.Allowed);
         allow delete: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in resource.data.Allowed) && request.auth.token.write;
@@ -50,21 +43,21 @@ service cloud.firestore {
         }
       }
     }
-    
+
     match /Persons {
       allow list: if checkUserRegistered() && request.auth.token.superAccess;
       allow write: if checkUserRegistered() && request.auth.token.superAccess && request.auth.token.write;
-      
+
       match /null {
         allow write: if false;
         allow read: if checkUserRegistered();
       }
-      
+
       match /{person} {
         allow read: if checkUserRegistered() &&
-          (request.auth.token.superAccess || request.auth.uid in get(resource.data.ClassId).data.Allowed);
+        (request.auth.token.superAccess || request.auth.uid in get(resource.data.ClassId).data.Allowed);
         allow delete: if checkUserRegistered() &&
-          (request.auth.token.superAccess || request.auth.uid in get(resource.data.ClassId).data.Allowed) && request.auth.token.write;
+        (request.auth.token.superAccess || request.auth.uid in get(resource.data.ClassId).data.Allowed) && request.auth.token.write;
         allow update: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in get(resource.data.ClassId).data.Allowed) && request.auth.token.write;
         allow create: if checkUserRegistered();
 
@@ -87,31 +80,45 @@ service cloud.firestore {
     match /{path=**}/{parent}/{doc} {
       allow read: if checkUserRegistered()
         && (parent == 'Meeting'
-          || parent == 'Kodas'
-          || parent == 'Tanawol'
-          || parent == 'EditHistory'
-          || parent == 'VisitHistory'
-          || parent == 'CallHistory'
-          || parent == 'ConfessionHistory')
+        || parent == 'Kodas'
+        || parent == 'Tanawol'
+        || parent == 'EditHistory'
+        || parent == 'VisitHistory'
+        || parent == 'CallHistory'
+        || parent == 'ConfessionHistory')
         && (request.auth.token.superAccess || request.auth.uid in get(resource.data.ClassId).data.Allowed);
     }
 
     match /UsersData {
+      function checkCanEditUser(classId){
+        return checkUserRegistered()
+          && (request.auth.token.manageUsers || (request.auth.token.manageAllowedUsers
+          && request.auth.uid in resource.data.AllowedUsers))
+          && (request.auth.token.superAccess || request.auth.uid in get(classId).data.Allowed);
+      }
+
+      function checkCanCreateUser(classId){
+        return checkUserRegistered()
+          && (request.auth.token.manageUsers || (request.auth.token.manageAllowedUsers
+          && request.auth.uid in request.resource.data.AllowedUsers))
+          && (request.auth.token.superAccess || request.auth.uid in get(classId).data.Allowed);
+      }
+
       allow list: if checkUserRegistered() && request.auth.token.manageUsers;
       match /null {
         allow write: if false;
         allow read: if checkUserRegistered();
       }
-      
+
       match /{user} {
-        allow read: if checkCanReadUser(user, resource.data.ClassId) || (checkUserRegistered() && user == request.auth.token.personId);
-        
-        allow create: if checkCanEditUser(user, request.resource.data.ClassId)
+        allow read: if checkCanReadUser(user) || (checkUserRegistered() && user == request.auth.token.personId);
+
+        allow create: if checkCanCreateUser(request.resource.data.ClassId)
           && isTheSame('Permissions', true) && isTheSame('UID',true) && isTheSame('Email', true);
-        
-        allow update: if checkCanEditUser(user, resource.data.ClassId)
+
+        allow update: if (checkCanEditUser(resource.data.ClassId) || (checkUserRegistered() && user == request.auth.token.personId))
           && isTheSame('Permissions', false) && isTheSame('UID',false) && isTheSame('Email', false);
-        allow delete: if checkCanEditUser(user, resource.data.ClassId) && !resource.data.keys().hasAny(['UID']);
+        allow delete: if checkCanEditUser(resource.data.ClassId) && !resource.data.keys().hasAny(['UID']);
         match /{history=**} {
           allow read: if checkCanReadUser(user) || (checkUserRegistered() && user == request.auth.token.personId);
         }
@@ -148,42 +155,43 @@ service cloud.firestore {
         }
       }
     }
-    
+
     match /History {
       allow list: if checkUserRegistered();
-      
+
       match /{history} {
         allow read: if checkUserRegistered();
         allow delete: if checkUserRegistered() && request.auth.token.write;
         allow create: if checkUserRegistered() && (request.resource.data.Day.toMillis() % 86400000 == 0)
-        	&& request.resource.data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000) && request.auth.token.write;
+          && request.resource.data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000) && request.auth.token.write;
         allow update: if checkUserRegistered() && resource.data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000)
-					&& (!request.resource.data.keys().hasAny(['Day']) || request.resource.data.Day == resource.data.Day) && request.auth.token.write;
+          && (!request.resource.data.keys().hasAny(['Day']) || request.resource.data.Day == resource.data.Day) && request.auth.token.write;
         match /{record=**} {
           allow read: if checkUserRegistered();
           allow delete: if checkUserRegistered()
             && get(/databases/$(database)/documents/History/$(history)).data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000)
             && request.auth.token.write;
           allow update, create: if checkUserRegistered()
-            && get(/databases/$(database)/documents/History/$(history)).data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000)
+          && get(/databases/$(database)/documents/History/$(history)).data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000)
             && request.resource.data.ID == request.resource.id
+            && request.resource.data.RecordedBy == request.auth.uid
             && (request.resource.data.keys().hasAny(['ClassId']) || request.resource.data.ClassId == resource.data.ClassId)
-            && request.resource.data.Time.toMillis() - (request.resource.data.Time.toMillis() % 86400000) == request.time.toMillis() - (request.time.toMillis() % 86400000)
+          && request.resource.data.Time.toMillis() - (request.resource.data.Time.toMillis() % 86400000) == request.time.toMillis() - (request.time.toMillis() % 86400000)
             && request.auth.token.write;
         }
       }
     }
-    
+
     match /ServantsHistory {
       allow list: if checkUserRegistered() && request.auth.token.secretary;
-      
+
       match /{history} {
         allow read: if checkUserRegistered() && request.auth.token.secretary;
         allow delete: if checkUserRegistered() && request.auth.token.secretary && request.auth.token.write;
         allow create: if checkUserRegistered() && request.auth.token.secretary && (request.resource.data.Day.toMillis() % 86400000 == 0)
-        	&& request.resource.data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000) && request.auth.token.write;
+          && request.resource.data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000) && request.auth.token.write;
         allow update: if checkUserRegistered() && request.auth.token.secretary && resource.data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000)
-					&& (!request.resource.data.keys().hasAny(['Day']) || request.resource.data.Day == resource.data.Day) && request.auth.token.write;
+          && (!request.resource.data.keys().hasAny(['Day']) || request.resource.data.Day == resource.data.Day) && request.auth.token.write;
         match /{record=**} {
           allow read: if checkUserRegistered();
           allow delete: if checkUserRegistered() && get(/databases/$(database)/documents/ServantsHistory/$(history)).data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000)
@@ -191,12 +199,13 @@ service cloud.firestore {
           allow create, update: if checkUserRegistered() && get(/databases/$(database)/documents/ServantsHistory/$(history)).data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000)
             && request.auth.token.secretary
             && request.resource.data.ID == request.resource.id
+            && request.resource.data.RecordedBy == request.auth.uid
             && request.resource.data.Time.toMillis() - (request.resource.data.Time.toMillis() % 86400000) == request.time.toMillis() - (request.time.toMillis() % 86400000)
             && request.auth.token.write;
         }
       }
     }
-    
+
     match /Users {
       allow read: if checkUserRegistered();
       allow write: if false;
@@ -257,9 +266,9 @@ service cloud.firestore {
         allow write: if checkUserRegistered() && request.auth.token.admin;
       }
     }
-    // match /ServingTypes {
+  // match /ServingTypes {
     //   allow read, write: if checkUserRegistered();
-    //   match /{sType=**} {
+  //   match /{sType=**} {
     //     allow read, write: if checkUserRegistered();
     //   }
     // }

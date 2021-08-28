@@ -5,16 +5,8 @@
     "noUnusedLocals": true,
     "outDir": "lib",
     "sourceMap": true,
-    "strict": false,
-    "target": "es2017",
-    "declaration": true,
-    "experimentalDecorators": true,
-    "importHelpers": true,
-    "noImplicitAny": false,
-    "preserveConstEnums": true,
-    "removeComments": false,
-    "resolveJsonModule": true,
-    "skipLibCheck": true
+    "strict": true,
+    "target": "es2017"
   },
   "compileOnSave": true,
   "include": [

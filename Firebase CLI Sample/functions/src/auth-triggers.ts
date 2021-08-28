@@ -1,10 +1,10 @@
-import * as functions from "firebase-functions";
+import { auth as auth_1 } from "firebase-functions";
 
 import { firestore, database, storage, messaging, auth } from "firebase-admin";
 import { FieldValue } from "@google-cloud/firestore";
 import * as download from "download";
 
-export const onUserSignUp = functions.auth.user().onCreate(async (user) => {
+export const onUserSignUp = auth_1.user().onCreate(async (user) => {
   const doc = firestore().collection("UsersData").doc();
   const customClaims = {
     password: null, //Empty password
@@ -83,7 +83,7 @@ export const onUserSignUp = functions.auth.user().onCreate(async (user) => {
     .ref()
     .child("Users/" + user.uid + "/forceRefresh")
     .set(true);
-  await download(user.photoURL, "/tmp/", { filename: user.uid + ".jpg" });
+  await download(user.photoURL!, "/tmp/", { filename: user.uid + ".jpg" });
   await storage()
     .bucket()
     .upload("/tmp/" + user.uid + ".jpg", {
@@ -94,7 +94,7 @@ export const onUserSignUp = functions.auth.user().onCreate(async (user) => {
   return "OK";
 });
 
-export const onUserDeleted = functions.auth.user().onDelete(async (user) => {
+export const onUserDeleted = auth_1.user().onDelete(async (user) => {
   await database()
     .ref()
     .child("Users/" + user.uid)
@@ -105,8 +105,8 @@ export const onUserDeleted = functions.auth.user().onDelete(async (user) => {
     .delete();
   await firestore().collection("Users").doc(user.uid).delete();
   if (
-    user.customClaims.personId !== null &&
-    user.customClaims.personId !== undefined
+    user.customClaims?.personId !== null &&
+    user.customClaims?.personId !== undefined
   )
     await firestore()
       .collection("UsersData")
