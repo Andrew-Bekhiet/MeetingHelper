@@ -14,6 +14,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/foundation.dart' as f;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     hide Person;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -48,51 +49,51 @@ import '../views/notification.dart' as no;
 import '../views/search_query.dart';
 
 void changeTheme({required BuildContext context}) {
-  bool? darkTheme = Hive.box('Settings').get('DarkTheme');
+  bool isDark = Hive.box('Settings').get('DarkTheme',
+          defaultValue: WidgetsBinding.instance!.window.platformBrightness ==
+              Brightness.dark) ??
+      WidgetsBinding.instance!.window.platformBrightness == Brightness.dark;
   bool greatFeastTheme =
       Hive.box('Settings').get('GreatFeastTheme', defaultValue: true);
-  MaterialColor color = Colors.amber;
-  Color accent = Colors.amberAccent;
+  MaterialColor primary = Colors.amber;
+  Color secondary = Colors.amberAccent;
 
   final riseDay = getRiseDay();
   if (greatFeastTheme &&
       DateTime.now()
           .isAfter(riseDay.subtract(const Duration(days: 7, seconds: 20))) &&
       DateTime.now().isBefore(riseDay.subtract(const Duration(days: 1)))) {
-    color = black;
-    accent = blackAccent;
-    darkTheme = true;
+    primary = black;
+    secondary = blackAccent;
+    isDark = true;
   } else if (greatFeastTheme &&
       DateTime.now()
           .isBefore(riseDay.add(const Duration(days: 50, seconds: 20))) &&
       DateTime.now().isAfter(riseDay.subtract(const Duration(days: 1)))) {
-    darkTheme = false;
+    isDark = false;
   }
 
-  context.read<ThemeNotifier>().theme = ThemeData(
+  context.read<ThemeNotifier>().theme = ThemeData.from(
     colorScheme: ColorScheme.fromSwatch(
-      primarySwatch: color,
-      brightness: darkTheme != null
-          ? (darkTheme ? Brightness.dark : Brightness.light)
-          : WidgetsBinding.instance!.window.platformBrightness,
-      accentColor: accent,
+      backgroundColor: isDark ? Colors.grey[850]! : Colors.grey[50]!,
+      brightness: isDark ? Brightness.dark : Brightness.light,
+      primarySwatch: primary,
+      accentColor: secondary,
     ),
+  ).copyWith(
     inputDecorationTheme: InputDecorationTheme(
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15),
-        borderSide: BorderSide(color: color),
+        borderSide: BorderSide(color: primary),
       ),
     ),
     floatingActionButtonTheme:
-        FloatingActionButtonThemeData(backgroundColor: color),
+        FloatingActionButtonThemeData(backgroundColor: primary),
     visualDensity: VisualDensity.adaptivePlatformDensity,
-    brightness: darkTheme != null
-        ? (darkTheme ? Brightness.dark : Brightness.light)
-        : WidgetsBinding.instance!.window.platformBrightness,
-    primaryColor: color,
+    brightness: isDark ? Brightness.dark : Brightness.light,
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        primary: accent,
+        primary: secondary,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
         ),
@@ -100,7 +101,7 @@ void changeTheme({required BuildContext context}) {
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        primary: accent,
+        primary: secondary,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
         ),
@@ -108,14 +109,24 @@ void changeTheme({required BuildContext context}) {
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        primary: accent,
+        primary: secondary,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
         ),
       ),
     ),
+    appBarTheme: AppBarTheme(
+      backgroundColor: primary,
+      foregroundColor: (isDark
+              ? Typography.material2018().white
+              : Typography.material2018().black)
+          .headline6
+          ?.color,
+      systemOverlayStyle:
+          isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+    ),
     bottomAppBarTheme: BottomAppBarTheme(
-      color: accent,
+      color: secondary,
       shape: const CircularNotchedRectangle(),
     ),
   );
@@ -761,9 +772,8 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
                   .collection('Users')
                   .snapshots()
                   .map(
-                    (s) => s.docs
-                        .map((e) => User.fromDoc(e)..uid = e.id)
-                        .toList(),
+                    (s) =>
+                        s.docs.map((e) => User.fromDoc(e)..uid = e.id).toList(),
                   ),
             ),
             dispose: (context, c) => c.dispose(),

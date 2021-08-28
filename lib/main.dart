@@ -85,25 +85,25 @@ void main() {
       User user = User.instance;
       await _initConfigs();
 
-      bool? darkTheme = Hive.box('Settings').get('DarkTheme');
+      bool? darkSetting = Hive.box('Settings').get('DarkTheme');
       bool greatFeastTheme =
           Hive.box('Settings').get('GreatFeastTheme', defaultValue: true);
-      MaterialColor color = Colors.amber;
-      Color accent = Colors.amberAccent;
+      MaterialColor primary = Colors.amber;
+      Color secondary = Colors.amberAccent;
 
       final riseDay = getRiseDay();
       if (greatFeastTheme &&
           DateTime.now().isAfter(
               riseDay.subtract(const Duration(days: 7, seconds: 20))) &&
           DateTime.now().isBefore(riseDay.subtract(const Duration(days: 1)))) {
-        color = black;
-        accent = blackAccent;
-        darkTheme = true;
+        primary = black;
+        secondary = blackAccent;
+        darkSetting = true;
       } else if (greatFeastTheme &&
           DateTime.now()
               .isBefore(riseDay.add(const Duration(days: 50, seconds: 20))) &&
           DateTime.now().isAfter(riseDay.subtract(const Duration(days: 1)))) {
-        darkTheme = false;
+        darkSetting = false;
       }
 
       runApp(
@@ -111,59 +111,73 @@ void main() {
           providers: [
             StreamProvider<User>.value(value: user.stream, initialData: user),
             Provider<ThemeNotifier>(
-              create: (_) => ThemeNotifier(
-                ThemeData(
-                  colorScheme: ColorScheme.fromSwatch(
-                    primarySwatch: color,
-                    brightness: darkTheme != null
-                        ? (darkTheme ? Brightness.dark : Brightness.light)
-                        : WidgetsBinding.instance!.window.platformBrightness,
-                    accentColor: accent,
-                  ),
-                  inputDecorationTheme: InputDecorationTheme(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide(color: color),
+              create: (_) {
+                bool isDark = darkSetting ??
+                    WidgetsBinding.instance!.window.platformBrightness ==
+                        Brightness.dark;
+
+                return ThemeNotifier(
+                  ThemeData.from(
+                    colorScheme: ColorScheme.fromSwatch(
+                      backgroundColor:
+                          isDark ? Colors.grey[850]! : Colors.grey[50]!,
+                      brightness: isDark ? Brightness.dark : Brightness.light,
+                      primarySwatch: primary,
+                      accentColor: secondary,
                     ),
-                  ),
-                  floatingActionButtonTheme:
-                      FloatingActionButtonThemeData(backgroundColor: color),
-                  visualDensity: VisualDensity.adaptivePlatformDensity,
-                  brightness: darkTheme != null
-                      ? (darkTheme ? Brightness.dark : Brightness.light)
-                      : WidgetsBinding.instance!.window.platformBrightness,
-                  primaryColor: color,
-                  textButtonTheme: TextButtonThemeData(
-                    style: TextButton.styleFrom(
-                      primary: accent,
-                      shape: RoundedRectangleBorder(
+                  ).copyWith(
+                    inputDecorationTheme: InputDecorationTheme(
+                      border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(15),
+                        borderSide: BorderSide(color: primary),
                       ),
                     ),
-                  ),
-                  outlinedButtonTheme: OutlinedButtonThemeData(
-                    style: OutlinedButton.styleFrom(
-                      primary: accent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
+                    floatingActionButtonTheme:
+                        FloatingActionButtonThemeData(backgroundColor: primary),
+                    visualDensity: VisualDensity.adaptivePlatformDensity,
+                    brightness: isDark ? Brightness.dark : Brightness.light,
+                    textButtonTheme: TextButtonThemeData(
+                      style: TextButton.styleFrom(
+                        primary: secondary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
                       ),
                     ),
-                  ),
-                  elevatedButtonTheme: ElevatedButtonThemeData(
-                    style: ElevatedButton.styleFrom(
-                      primary: accent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
+                    outlinedButtonTheme: OutlinedButtonThemeData(
+                      style: OutlinedButton.styleFrom(
+                        primary: secondary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
                       ),
                     ),
+                    elevatedButtonTheme: ElevatedButtonThemeData(
+                      style: ElevatedButton.styleFrom(
+                        primary: secondary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                      ),
+                    ),
+                    appBarTheme: AppBarTheme(
+                      backgroundColor: primary,
+                      foregroundColor: (isDark
+                              ? Typography.material2018().white
+                              : Typography.material2018().black)
+                          .headline6
+                          ?.color,
+                      systemOverlayStyle: isDark
+                          ? SystemUiOverlayStyle.light
+                          : SystemUiOverlayStyle.dark,
+                    ),
+                    bottomAppBarTheme: BottomAppBarTheme(
+                      color: secondary,
+                      shape: const CircularNotchedRectangle(),
+                    ),
                   ),
-                  appBarTheme: AppBarTheme(backgroundColor: color),
-                  bottomAppBarTheme: BottomAppBarTheme(
-                    color: accent,
-                    shape: const CircularNotchedRectangle(),
-                  ),
-                ),
-              ),
+                );
+              },
             ),
           ],
           builder: (context, _) => const App(),
