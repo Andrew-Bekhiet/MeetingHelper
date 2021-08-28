@@ -302,7 +302,7 @@ class User extends Person {
           if (!_initialized.isCompleted) _initialized.complete(false);
           _initialized = Completer<bool>();
           await userTokenListener?.cancel();
-          uid = null;
+          _uid = null;
           notifyListeners();
         }
       },
@@ -391,7 +391,7 @@ class User extends Person {
     await personListener?.cancel();
     if (!_initialized.isCompleted) _initialized.complete(false);
     _initialized = Completer<bool>();
-    uid = null;
+    _uid = null;
     notifyListeners();
     await GoogleSignIn().signOut();
     await auth.FirebaseAuth.instance.signOut();

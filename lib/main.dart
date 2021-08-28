@@ -249,21 +249,31 @@ class AppState extends State<App> {
             showVersionInfo: true,
           );
 
-        if (snapshot.hasError && User.instance.password != null) {
+        if (snapshot.hasError) {
           if (snapshot.error.toString() ==
-              'Exception: Error Update User Data') {
+                  'Exception: Error Update User Data' &&
+              User.instance.password != null) {
             WidgetsBinding.instance!.addPostFrameCallback((_) {
               showErrorUpdateDataDialog(context: context);
             });
+          } else if (snapshot.error.toString() ==
+              'Exception: يجب التحديث لأخر إصدار لتشغيل البرنامج') {
+            Updates.showUpdateDialog(context, canCancel: false);
           }
-          return Loading(
-            error: true,
-            message: snapshot.error.toString(),
-            showVersionInfo: true,
-          );
+          if (snapshot.error.toString() !=
+                  'Exception: Error Update User Data' ||
+              User.instance.password != null)
+            return Loading(
+              error: true,
+              message: snapshot.error.toString(),
+              showVersionInfo: true,
+            );
         }
-        return Consumer<User>(
-          builder: (context, user, child) {
+        return StreamBuilder<User>(
+          initialData: User.instance,
+          stream: User.instance.stream,
+          builder: (context, userSnapshot) {
+            final user = userSnapshot.data!;
             if (user.uid == null) {
               return const LoginScreen();
             } else if (user.approved && user.password != null) {
