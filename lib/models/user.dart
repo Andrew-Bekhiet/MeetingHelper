@@ -212,6 +212,15 @@ class User extends Person {
   }
 
   void _initListeners() {
+    if (Hive.box<String>('User').toMap().isNotEmpty) {
+      _refreshFromIdToken(
+        Hive.box<String>('User').toMap(),
+        name: Hive.box<String>('User').get('Name'),
+        email: Hive.box<String>('User').get('Email'),
+        uid: Hive.box<String>('User').get('UID'),
+      );
+    }
+
     authListener = auth.FirebaseAuth.instance.userChanges().listen(
       (user) async {
         if (user != null) {
@@ -223,13 +232,14 @@ class User extends Person {
             auth.User currentUser = user;
             if (e.snapshot.value != true) return;
 
-            Map<dynamic, dynamic>? idTokenClaims;
+            late Map idTokenClaims;
             try {
-              var idToken = await currentUser.getIdTokenResult(true);
-              for (var item in idToken.claims!.entries) {
-                await flutterSecureStorage.write(
-                    key: item.key, value: item.value?.toString());
-              }
+              auth.IdTokenResult idToken =
+                  await currentUser.getIdTokenResult(true);
+
+              await Hive.box<String>('User')
+                  .putAll(idToken.claims?.cast() ?? {});
+
               await dbInstance
                   .reference()
                   .child('Users/${currentUser.uid}/forceRefresh')
@@ -251,24 +261,24 @@ class User extends Person {
                       .set('Active');
                 }
               });
-              idTokenClaims = idToken.claims;
+              idTokenClaims = idToken.claims ?? {};
             } on Exception {
-              idTokenClaims = await flutterSecureStorage.readAll();
+              idTokenClaims = Hive.box<String>('User').toMap();
               if (idTokenClaims.isEmpty) rethrow;
             }
-            _refreshFromIdToken(user, idTokenClaims!);
+            _refreshFromIdToken(idTokenClaims, user: user);
           });
 
           Map<dynamic, dynamic> idTokenClaims;
           try {
-            late var idToken;
+            late auth.IdTokenResult idToken;
             if ((await Connectivity().checkConnectivity()) !=
                 ConnectivityResult.none) {
               idToken = await user.getIdTokenResult();
-              for (var item in idToken.claims.entries) {
-                await flutterSecureStorage.write(
-                    key: item.key, value: item.value?.toString());
-              }
+
+              await Hive.box<String>('User')
+                  .putAll(idToken.claims?.cast() ?? {});
+
               await dbInstance
                   .reference()
                   .child('Users/${user.uid}/forceRefresh')
@@ -291,14 +301,13 @@ class User extends Person {
                     .set('Active');
               }
             });
-            idTokenClaims =
-                idToken?.claims ?? await flutterSecureStorage.readAll();
+            idTokenClaims = idToken.claims ?? Hive.box<String>('User').toMap();
           } on Exception {
-            idTokenClaims = await flutterSecureStorage.readAll();
+            idTokenClaims = Hive.box<String>('User').toMap();
             if (idTokenClaims.isEmpty) rethrow;
           }
 
-          _refreshFromIdToken(user, idTokenClaims);
+          _refreshFromIdToken(idTokenClaims, user: user);
         } else if (uid != null) {
           if (!_initialized.isCompleted) _initialized.complete(false);
           _initialized = Completer<bool>();
@@ -310,10 +319,11 @@ class User extends Person {
     );
   }
 
-  void _refreshFromIdToken(
-      auth.User user, Map<dynamic, dynamic> idTokenClaims) {
-    uid = user.uid;
-    name = user.displayName ?? '';
+  void _refreshFromIdToken(Map<dynamic, dynamic> idTokenClaims,
+      {auth.User? user, String? name, String? uid, String? email}) {
+    assert(user != null || (name != null && uid != null && email != null));
+    uid = user?.uid ?? uid!;
+    name = user?.displayName ?? name ?? '';
     if (idTokenClaims['personId'] != ref.id) {
       ref = FirebaseFirestore.instance
           .collection('UsersData')
@@ -346,7 +356,7 @@ class User extends Person {
         ? Timestamp.fromMillisecondsSinceEpoch(
             int.parse(idTokenClaims['lastTanawol'].toString()))
         : null;
-    email = user.email!;
+    email = user?.email ?? email!;
 
     notifyListeners();
   }
@@ -540,6 +550,7 @@ class User extends Person {
 
                     return url;
                   }
+                  // ignore: prefer_function_declarations_over_variables
                   void Function(String) _updateCache = (String cache) async {
                     String? url;
                     try {

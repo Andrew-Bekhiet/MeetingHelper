@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
@@ -19,6 +20,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     hide Day, Person;
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:meetinghelper/admin.dart';
@@ -192,6 +194,20 @@ Future _initConfigs() async {
   //Hive initialization:
   await Hive.initFlutter();
 
+  const FlutterSecureStorage secureStorage = FlutterSecureStorage();
+  final containsEncryptionKey = await secureStorage.containsKey(key: 'key');
+  if (!containsEncryptionKey)
+    await secureStorage.write(
+        key: 'key', value: base64Url.encode(Hive.generateSecureKey()));
+
+  final encryptionKey =
+      base64Url.decode((await secureStorage.read(key: 'key'))!);
+
+  await Hive.openBox<String>(
+    'User',
+    encryptionCipher: HiveAesCipher(encryptionKey),
+  );
+
   await Hive.openBox('Settings');
   await Hive.openBox<bool>('FeatureDiscovery');
   await Hive.openBox<Map>('NotificationsSettings');
@@ -212,7 +228,7 @@ Future _initConfigs() async {
           databaseURL:
               'http://' + kEmulatorsHost! + ':9000?ns=meetinghelper-2a869'),
     );
-    await auth.FirebaseAuth.instance.useAuthEmulator(kEmulatorsHost, 9099);
+    // await auth.FirebaseAuth.instance.useAuthEmulator(kEmulatorsHost, 9099);
     await FirebaseStorage.instance.useStorageEmulator(kEmulatorsHost, 9199);
     firestore.FirebaseFirestore.instance
         .useFirestoreEmulator(kEmulatorsHost, 8080, sslEnabled: false);
