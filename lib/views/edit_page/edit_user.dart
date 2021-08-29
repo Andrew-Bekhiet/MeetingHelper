@@ -607,7 +607,7 @@ class _EditUserState extends State<EditUser> {
           content: Text('جار الحفظ...'),
           duration: Duration(seconds: 15),
         ));
-        var update = widget.user.getUpdateMap()
+        final update = widget.user.getUpdateMap()
           ..removeWhere((key, value) => old[key] == value);
         if (old['name'] != widget.user.name) {
           await FirebaseFunctions.instance.httpsCallable('changeUserName').call(
@@ -675,7 +675,7 @@ class _EditUserState extends State<EditUser> {
   }
 
   Future<Timestamp> _selectDate(String helpText, DateTime initialDate) async {
-    DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showDatePicker(
       helpText: helpText,
       locale: const Locale('ar', 'EG'),
       context: context,
@@ -714,8 +714,7 @@ class _EditUserState extends State<EditUser> {
                 SearchFilters(0,
                     options: controller,
                     orderOptions: BehaviorSubject<OrderOptions>.seeded(
-                      OrderOptions(),
-                    ),
+                        const OrderOptions()),
                     textStyle: Theme.of(context).textTheme.bodyText2),
                 Expanded(
                   child: ServicesList(

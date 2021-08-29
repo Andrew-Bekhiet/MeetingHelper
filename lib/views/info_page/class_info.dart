@@ -31,7 +31,7 @@ class ClassInfo extends StatefulWidget {
 
 class _ClassInfoState extends State<ClassInfo> {
   final BehaviorSubject<OrderOptions> _orderOptions =
-      BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+      BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
   late final DataObjectListController<Person> _listOptions;
 
@@ -71,7 +71,7 @@ class _ClassInfoState extends State<ClassInfo> {
         initialData: widget.class$,
         stream: widget.class$.ref.snapshots().map(Class.fromDoc),
         builder: (context, data) {
-          Class? class$ = data.data;
+          final Class? class$ = data.data;
           if (class$ == null)
             return const Scaffold(
               body: Center(
@@ -171,7 +171,7 @@ class _ClassInfoState extends State<ClassInfo> {
                                       ),
                                     ),
                                     onPressed: () async {
-                                      dynamic result = await navigator
+                                      final dynamic result = await navigator
                                           .currentState!
                                           .pushNamed('Data/EditClass',
                                               arguments: class$);

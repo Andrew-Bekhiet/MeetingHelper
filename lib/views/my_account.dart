@@ -45,7 +45,7 @@ class _MyAccountState extends State<MyAccount> {
                 actions: [
                   IconButton(
                     onPressed: () async {
-                      var source = await showDialog(
+                      final source = await showDialog(
                         context: context,
                         builder: (context) => AlertDialog(
                           actions: <Widget>[
@@ -114,12 +114,12 @@ class _MyAccountState extends State<MyAccount> {
                           !(await Permission.camera.request()).isGranted)
                         return;
 
-                      var selectedImage = await ImagePicker().pickImage(
+                      final selectedImage = await ImagePicker().pickImage(
                           source: source
                               ? ImageSource.camera
                               : ImageSource.gallery);
                       if (selectedImage == null) return;
-                      var finalImage = await ImageCropper.cropImage(
+                      final finalImage = await ImageCropper.cropImage(
                           sourcePath: selectedImage.path,
                           cropStyle: CropStyle.circle,
                           androidUiSettings: AndroidUiSettings(
@@ -318,7 +318,7 @@ class _MyAccountState extends State<MyAccount> {
   }
 
   void changeName(String? oldName, String? uid) async {
-    var name = TextEditingController(text: oldName);
+    final name = TextEditingController(text: oldName);
     if (await showDialog(
           context: context,
           builder: (context) {
@@ -443,7 +443,7 @@ class _MyAccountState extends State<MyAccount> {
     ));
     if (textFields[2].text == textFields[1].text &&
         textFields[0].text.isNotEmpty) {
-      User user = User.instance;
+      final User user = User.instance;
       if (user.password == Encryption.encPswd(textFields[0].text)) {
         try {
           await FirebaseFunctions.instance

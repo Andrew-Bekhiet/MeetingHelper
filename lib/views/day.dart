@@ -34,7 +34,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
         if (widget.record is! ServantsHistoryDay)
           Provider<CheckListController<Person>>(
             create: (_) {
-              bool isSameDay = DateTime.now()
+              final bool isSameDay = DateTime.now()
                       .difference(widget.record.day.toDate())
                       .inDays ==
                   0;
@@ -55,7 +55,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
         else
           Provider<CheckListController<User>>(
             create: (_) {
-              bool isSameDay = DateTime.now()
+              final bool isSameDay = DateTime.now()
                       .difference(widget.record.day.toDate())
                       .inDays ==
                   0;
@@ -284,7 +284,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                           .read<CheckListController<User>>()
                           .originalObjectsData,
                   () {
-                    var rslt = widget.record is! ServantsHistoryDay
+                    final rslt = widget.record is! ServantsHistoryDay
                         ? context.read<CheckListController<Person>>()
                         : context.read<CheckListController<User>>();
                     if (_tabs!.index == 0) {
@@ -299,7 +299,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                   (Map a, Map b) => Tuple2<int, int>(a.length, b.length),
                 ),
                 builder: (context, snapshot) {
-                  TextTheme theme = Theme.of(context).primaryTextTheme;
+                  final TextTheme theme = Theme.of(context).primaryTextTheme;
                   return ExpansionTile(
                     expandedAlignment: Alignment.centerRight,
                     title: Text(
@@ -489,7 +489,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
       builder: (context2) => AlertDialog(
         insetPadding: const EdgeInsets.symmetric(vertical: 24.0),
         content: StatefulBuilder(builder: (innerContext, setState) {
-          var dayOptions = (widget.record is! ServantsHistoryDay
+          final dayOptions = (widget.record is! ServantsHistoryDay
                   ? context.read<CheckListController<Person>>()
                   : context.read<CheckListController<User>>())
               .dayOptions;

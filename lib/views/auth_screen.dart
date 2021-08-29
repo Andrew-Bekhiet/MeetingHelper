@@ -124,7 +124,7 @@ class _AuthScreenState extends State<AuthScreen> {
     try {
       if (!await _localAuthentication.canCheckBiometrics) return;
       _authCompleter = Completer<bool>();
-      bool value = await _localAuthentication.authenticate(
+      final bool value = await _localAuthentication.authenticate(
           localizedReason: 'برجاء التحقق للمتابعة',
           biometricOnly: true,
           useErrorDialogs: false);
@@ -146,7 +146,8 @@ class _AuthScreenState extends State<AuthScreen> {
       }
     } on Exception catch (e) {
       _authCompleter.completeError(e);
-      print(e);
+      // ignore: avoid_print
+      if (kDebugMode) print(e);
     }
   }
 

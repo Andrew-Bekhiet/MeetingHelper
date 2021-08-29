@@ -128,13 +128,13 @@ class _EditPersonState extends State<EditPerson> {
                     labelText: 'الاسم',
                     initialValue: person.name,
                     keyboardType: TextInputType.name,
-                    autoFillHints: [AutofillHints.name],
+                    autoFillHints: const [AutofillHints.name],
                     onChanged: (value) => person.name = value,
                   ),
                   DecoratedTextFormField(
                     labelText: 'موبايل (شخصي)',
                     keyboardType: TextInputType.phone,
-                    autoFillHints: [AutofillHints.telephoneNumber],
+                    autoFillHints: const [AutofillHints.telephoneNumber],
                     initialValue: person.phone,
                     onChanged: (v) => person.phone = v,
                     validator: (value) {
@@ -145,7 +145,7 @@ class _EditPersonState extends State<EditPerson> {
                     DecoratedTextFormField(
                       labelText: 'موبايل الأب',
                       keyboardType: TextInputType.phone,
-                      autoFillHints: [AutofillHints.telephoneNumber],
+                      autoFillHints: const [AutofillHints.telephoneNumber],
                       initialValue: person.fatherPhone,
                       onChanged: (v) => person.fatherPhone = v,
                       validator: (value) {
@@ -156,7 +156,7 @@ class _EditPersonState extends State<EditPerson> {
                     DecoratedTextFormField(
                       labelText: 'موبايل الأم',
                       keyboardType: TextInputType.phone,
-                      autoFillHints: [AutofillHints.telephoneNumber],
+                      autoFillHints: const [AutofillHints.telephoneNumber],
                       initialValue: person.motherPhone,
                       onChanged: (v) => person.motherPhone = v,
                       validator: (value) {
@@ -175,9 +175,9 @@ class _EditPersonState extends State<EditPerson> {
                               icon: const Icon(Icons.edit),
                               tooltip: 'تعديل اسم الهاتف',
                               onPressed: () async {
-                                TextEditingController name =
+                                final TextEditingController name =
                                     TextEditingController(text: e.key);
-                                var rslt = await showDialog(
+                                final rslt = await showDialog(
                                   context: context,
                                   builder: (context) => AlertDialog(
                                     actions: [
@@ -216,7 +216,7 @@ class _EditPersonState extends State<EditPerson> {
                             ),
                           ),
                           keyboardType: TextInputType.phone,
-                          autoFillHints: [AutofillHints.telephoneNumber],
+                          autoFillHints: const [AutofillHints.telephoneNumber],
                           initialValue: e.value,
                           onChanged: (s) => person.phones[e.key] = s,
                           validator: (value) {
@@ -229,7 +229,7 @@ class _EditPersonState extends State<EditPerson> {
                     icon: const Icon(Icons.add),
                     label: const Text('اضافة رقم هاتف أخر'),
                     onPressed: () async {
-                      TextEditingController name =
+                      final TextEditingController name =
                           TextEditingController(text: '');
                       if (await showDialog(
                             context: context,
@@ -290,7 +290,7 @@ class _EditPersonState extends State<EditPerson> {
                   DecoratedTextFormField(
                     labelText: 'العنوان',
                     keyboardType: TextInputType.streetAddress,
-                    autoFillHints: [AutofillHints.fullStreetAddress],
+                    autoFillHints: const [AutofillHints.fullStreetAddress],
                     initialValue: person.address,
                     textInputAction: TextInputAction.newline,
                     maxLines: null,
@@ -730,10 +730,10 @@ class _EditPersonState extends State<EditPerson> {
   }
 
   void _editLocation() async {
-    var oldPoint = person.location != null
+    final oldPoint = person.location != null
         ? GeoPoint(person.location!.latitude, person.location!.longitude)
         : null;
-    var rslt = await navigator.currentState!.push(
+    final rslt = await navigator.currentState!.push(
       MaterialPageRoute(
         builder: (context) => Scaffold(
           appBar: AppBar(
@@ -840,7 +840,7 @@ class _EditPersonState extends State<EditPerson> {
             duration: Duration(minutes: 1),
           ),
         );
-        var update = person.id != 'null';
+        final update = person.id != 'null';
         if (!update) {
           person.ref = FirebaseFirestore.instance.collection('Persons').doc();
         }
@@ -918,12 +918,13 @@ class _EditPersonState extends State<EditPerson> {
             body: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SearchFilters(0,
-                    options: controller,
-                    orderOptions: BehaviorSubject<OrderOptions>.seeded(
-                      OrderOptions(),
-                    ),
-                    textStyle: Theme.of(context).textTheme.bodyText2),
+                SearchFilters(
+                  0,
+                  options: controller,
+                  orderOptions: BehaviorSubject<OrderOptions>.seeded(
+                      const OrderOptions()),
+                  textStyle: Theme.of(context).textTheme.bodyText2,
+                ),
                 Expanded(
                   child: ServicesList(
                     options: controller,
@@ -966,7 +967,7 @@ class _EditPersonState extends State<EditPerson> {
   }
 
   Future<Timestamp?> _selectDate(String helpText, DateTime initialDate) async {
-    var picked = await showDatePicker(
+    final picked = await showDatePicker(
         helpText: helpText,
         locale: const Locale('ar', 'EG'),
         context: context,
@@ -980,7 +981,7 @@ class _EditPersonState extends State<EditPerson> {
   }
 
   Future<void> _selectImage() async {
-    var source = await showDialog(
+    final source = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
         actions: <Widget>[
@@ -1014,7 +1015,7 @@ class _EditPersonState extends State<EditPerson> {
     if (source as bool && !(await Permission.camera.request()).isGranted)
       return;
 
-    var selectedImage = await ImagePicker()
+    final selectedImage = await ImagePicker()
         .pickImage(source: source ? ImageSource.camera : ImageSource.gallery);
     if (selectedImage == null) return;
     changedImage = (await ImageCropper.cropImage(

@@ -29,7 +29,8 @@ class InnerListState extends State<_InnerSchoolsList> {
                 return ListView.builder(
                   itemCount: schools.data!.docs.length,
                   itemBuilder: (context, i) {
-                    School current = School.fromDoc(schools.data!.docs[i]);
+                    final School current =
+                        School.fromDoc(schools.data!.docs[i]);
                     return current.name.contains(filter)
                         ? Card(
                             child: ListTile(
@@ -111,7 +112,9 @@ class _InnerSchoolsList extends StatefulWidget {
   final List<School>? result;
   final Function(List<School>?)? finished;
   final Future<Stream<JsonQuery>>? list;
-  _InnerSchoolsList(this.data, this.result, this.list, this.finished);
+
+  const _InnerSchoolsList(this.data, this.result, this.list, this.finished);
+
   @override
   State<StatefulWidget> createState() => InnerListState();
 }
@@ -143,7 +146,7 @@ class _SchoolsEditListState extends State<SchoolsEditList> {
                   child: ListView.builder(
                     itemCount: data.data!.docs.length,
                     itemBuilder: (context, i) {
-                      School current = School.fromDoc(data.data!.docs[i]);
+                      final School current = School.fromDoc(data.data!.docs[i]);
                       return current.name.contains(filter)
                           ? Card(
                               child: ListTile(

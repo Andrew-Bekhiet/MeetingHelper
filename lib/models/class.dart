@@ -155,7 +155,8 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
 
   @override
   Future<String> getSecondLine() async {
-    String key = Hive.box('Settings').get('ClassSecondLine', defaultValue: '');
+    final String key =
+        Hive.box('Settings').get('ClassSecondLine', defaultValue: '');
     if (key == 'Members') {
       return getMembersString();
     } else if (key == 'StudyYear') {
@@ -163,8 +164,8 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
     } else if (key == 'Gender') {
       return getGenderName();
     } else if (key == 'Allowed') {
-      var rslt = <String>[];
-      for (var item in allowedUsers.take(3)) {
+      final rslt = <String>[];
+      for (final item in allowedUsers.take(3)) {
         rslt.add((await FirebaseFirestore.instance
                 .doc('Users/$item')
                 .get(dataSource))

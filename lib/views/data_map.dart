@@ -23,7 +23,7 @@ class MegaMap extends StatelessWidget {
   static const LatLng center = LatLng(30.0444, 31.2357); //Cairo Location
   final LatLng? initialLocation;
 
-  MegaMap({Key? key, this.initialLocation}) : super(key: key);
+  const MegaMap({Key? key, this.initialLocation}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +44,7 @@ class MegaMap extends StatelessWidget {
             if (data.connectionState != ConnectionState.done) {
               return const Center(child: CircularProgressIndicator());
             }
-            var persons = data.data!;
+            final persons = data.data!;
 
             return StatefulBuilder(
               builder: (context, setState) => GoogleMap(
@@ -118,11 +118,10 @@ class _DataMapState extends State<DataMap> {
         stream:
             widget.class$ == null ? Class.getAllForUser() : Stream.value([]),
         builder: (context, snapshot) {
-          if (snapshot.hasError)
-            return ErrorWidget.builder(snapshot.error as FlutterErrorDetails);
+          if (snapshot.hasError) return ErrorWidget(snapshot.error!);
           if (!snapshot.hasData && widget.class$ == null)
             return const Center(child: CircularProgressIndicator());
-          var selected = SelectedClasses(
+          final selected = SelectedClasses(
               widget.class$ == null ? snapshot.data : [widget.class$!]);
           return ListenableProvider<SelectedClasses>.value(
             value: selected,
@@ -177,7 +176,7 @@ class _DataMapState extends State<DataMap> {
                     ),
                     tooltip: 'اظهار/اخفاء فصول',
                     onPressed: () async {
-                      var rslt = await selectClasses(
+                      final rslt = await selectClasses(
                           context.read<SelectedClasses>().selected);
                       if (rslt?.isEmpty ?? false)
                         await showDialog(
@@ -205,7 +204,7 @@ class _DataMapState extends State<DataMap> {
                             )
                           : const Center(child: CircularProgressIndicator()),
                     );
-                  } else if (data.hasData) return MegaMap();
+                  } else if (data.hasData) return const MegaMap();
                   return const Center(child: CircularProgressIndicator());
                 },
               ),

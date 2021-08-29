@@ -31,12 +31,12 @@ class _UserInfoState extends State<UserInfo> {
     return Scaffold(
       body: StreamBuilder<User>(
         initialData: ModalRoute.of(context)!.settings.arguments as User?,
-        stream: (ModalRoute.of(context)!.settings.arguments as User)
+        stream: (ModalRoute.of(context)!.settings.arguments! as User)
             .ref
             .snapshots()
             .map(User.fromDoc),
         builder: (context, data) {
-          User user = data.data!;
+          final User user = data.data!;
           return NestedScrollView(
             headerSliverBuilder: (context, _) => <Widget>[
               SliverAppBar(
@@ -44,7 +44,7 @@ class _UserInfoState extends State<UserInfo> {
                   IconButton(
                     icon: const Icon(Icons.edit),
                     onPressed: () async {
-                      dynamic result = await navigator.currentState!.push(
+                      final dynamic result = await navigator.currentState!.push(
                         MaterialPageRoute(
                           builder: (co) => EditUser(user: user),
                         ),

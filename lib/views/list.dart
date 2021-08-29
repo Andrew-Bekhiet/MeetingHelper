@@ -140,7 +140,8 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                   icon: const Icon(Icons.sms),
                   onPressed: () {
                     navigator.currentState!.pop();
-                    List<Person> people = _listOptions.selected.value.values
+                    final List<Person> people = _listOptions
+                        .selected.value.values
                         .cast<Person>()
                         .toList()
                         .where((p) => p.phone != null && p.phone!.isNotEmpty)
@@ -178,7 +179,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                   icon: const ImageIcon(AssetImage('assets/whatsapp.png')),
                   onPressed: () async {
                     navigator.currentState!.pop();
-                    var con = TextEditingController();
+                    final con = TextEditingController();
                     String? msg = await showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
@@ -206,11 +207,11 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                     );
                     if (msg != null) {
                       msg = Uri.encodeComponent(msg);
-                      for (Person person in _listOptions.selected.value.values
+                      for (final person in _listOptions.selected.value.values
                           .cast<Person>()
                           .where(
                               (p) => p.phone != null && p.phone!.isNotEmpty)) {
-                        String phone = getPhone(person.phone!);
+                        final String phone = getPhone(person.phone!);
                         await launch('https://wa.me/$phone?text=$msg');
                       }
                     }
@@ -222,7 +223,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                   onPressed: () async {
                     navigator.currentState!.pop();
                     if ((await Permission.contacts.request()).isGranted) {
-                      for (Person item in _listOptions.selected.value.values
+                      for (final item in _listOptions.selected.value.values
                           .cast<Person>()
                           .where(
                               (p) => p.phone != null && p.phone!.isNotEmpty)) {
@@ -354,8 +355,8 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
                   child: DataObjectWidget<Class>(
                     groupedData.data!.values.elementAt(i).item1,
                     wrapInCard: false,
-                    showSubTitle: showSubtitle.data == true,
-                    subtitle: showSubtitle.data == true
+                    showSubTitle: showSubtitle.data ?? false,
+                    subtitle: showSubtitle.data ?? false
                         ? Text('يتم عرض ' +
                             groupedData.data!.values
                                 .elementAt(i)
@@ -410,7 +411,7 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
             );
           },
           itemBuilder: (context, i) {
-            T current = groupedData.data!.values
+            final T current = groupedData.data!.values
                 .elementAt(i.section)
                 .item2
                 .elementAt(i.index);
@@ -526,11 +527,11 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
   void _showRecordDialog(T current, HistoryRecord? oRecord) async {
     var record = oRecord != null
         ? HistoryRecord(
-            classId: current.classId!,
+            classId: current.classId,
             id: oRecord.id,
             notes: oRecord.notes,
             parent: oRecord.parent,
-            recordedBy: oRecord.recordedBy,
+            recordedBy: oRecord.recordedBy!,
             time: oRecord.time,
             type: oRecord.type,
             isServant: T == User)
@@ -556,7 +557,7 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
                                 ? (v) {
                                     if (v!) {
                                       record = HistoryRecord(
-                                          classId: current.classId!,
+                                          classId: current.classId,
                                           id: current.id,
                                           parent: _listOptions.day,
                                           type: _listOptions.type,
@@ -591,7 +592,7 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
                               enabled:
                                   record != null && (enabled.data ?? false),
                               onShowPicker: (context, initialValue) async {
-                                var selected = await showTimePicker(
+                                final selected = await showTimePicker(
                                   initialTime:
                                       TimeOfDay.fromDateTime(initialValue!),
                                   context: context,

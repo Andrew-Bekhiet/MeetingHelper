@@ -107,7 +107,7 @@ class EditHistoryProperty extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var icon = IconButton(
+    final icon = IconButton(
       tooltip: 'السجل',
       icon: const Icon(Icons.history),
       onPressed: () {
@@ -125,7 +125,7 @@ class EditHistoryProperty extends StatelessWidget {
                 return ListView.builder(
                   itemCount: history.data!.length,
                   itemBuilder: (context, i) => FutureBuilder<User>(
-                    future: User.fromID(history.data![i].byUser!),
+                    future: User.fromID(history.data![i].byUser),
                     builder: (context, user) {
                       return ListTile(
                         leading: user.hasData
@@ -152,7 +152,7 @@ class EditHistoryProperty extends StatelessWidget {
       },
     );
     return FutureBuilder<User>(
-        future: user != null ? User.fromID(user!) : null,
+        future: user != null ? User.fromID(user) : null,
         builder: (context, user) {
           return ListTile(
             isThreeLine: true,

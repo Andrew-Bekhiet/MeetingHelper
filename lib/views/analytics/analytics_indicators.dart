@@ -77,7 +77,7 @@ class AttendanceChart extends StatelessWidget {
         mergeSort(history.data!,
             compare: (dynamic o, dynamic n) => o.time.millisecondsSinceEpoch
                 .compareTo(n.time.millisecondsSinceEpoch));
-        Map<Timestamp, List<HistoryRecord>> historyMap =
+        final Map<Timestamp, List<HistoryRecord>> historyMap =
             groupBy<HistoryRecord, Timestamp>(
                 history.data!, (d) => tranucateToDay(time: d.time.toDate()));
 
@@ -175,7 +175,7 @@ class AttendancePercent extends StatelessWidget {
               Colors.amber[300]!,
               Colors.amber[700]!,
             ],
-            stops: [0, 1],
+            stops: const [0, 1],
           ),
         ),
         ListTile(
@@ -436,17 +436,17 @@ class HistoryAnalysisWidget extends StatelessWidget {
         if (daysData.data!.isEmpty)
           return const Center(child: Text('لا يوجد سجل'));
 
-        List<MinimalHistoryRecord> data =
+        final List<MinimalHistoryRecord> data =
             daysData.data!.map(MinimalHistoryRecord.fromQueryDoc).toList();
 
         mergeSort(data,
             compare: (dynamic o, dynamic n) => o.time.millisecondsSinceEpoch
                 .compareTo(n.time.millisecondsSinceEpoch));
-        Map<Timestamp, List<MinimalHistoryRecord>> groupedData =
+        final Map<Timestamp, List<MinimalHistoryRecord>> groupedData =
             groupBy<MinimalHistoryRecord, Timestamp>(
                 data, (d) => tranucateToDay(time: d.time.toDate()));
 
-        var list =
+        final list =
             groupBy<MinimalHistoryRecord, String>(data, (s) => s.classId!.path)
                 .entries
                 .toList();

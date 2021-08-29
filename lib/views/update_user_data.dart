@@ -56,6 +56,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                           DateFormat('yyyy/M/d').format(state.value!.toDate()))
                       : null;
                 },
+                // ignore: unnecessary_null_checks
                 onSaved: (v) => user.lastTanawol = v!,
                 validator: (value) => value == null
                     ? 'برجاء اختيار تاريخ أخر تناول'
@@ -89,6 +90,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                           DateFormat('yyyy/M/d').format(state.value!.toDate()))
                       : null;
                 },
+                // ignore: unnecessary_null_checks
                 onSaved: (v) => user.lastConfession = v!,
                 validator: (value) => value == null
                     ? 'برجاء اختيار تاريخ أخر اعتراف'
@@ -138,7 +140,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
   }
 
   Future<Timestamp?> _selectDate(String helpText, Timestamp initialDate) async {
-    var picked = await showDatePicker(
+    final picked = await showDatePicker(
         helpText: helpText,
         locale: const Locale('ar', 'EG'),
         context: context,

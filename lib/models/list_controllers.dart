@@ -445,7 +445,7 @@ class CheckListController<T extends Person>
             (g, n) => g.map(
               (k, v) => MapEntry(
                 k,
-                n[k] == true ? v : Tuple2<Class, List<T>>(v.item1, []),
+                (n[k] ?? false) ? v : Tuple2<Class, List<T>>(v.item1, []),
               ),
             ),
           )
@@ -491,8 +491,8 @@ class CheckListController<T extends Person>
     //<empty comment for readability>
 
     Map<String, HistoryRecord> _docsMapper(JsonQuery s) {
-      Map<String, T> tempSelected = {};
-      Map<String, HistoryRecord> snapshotMap =
+      final Map<String, T> tempSelected = {};
+      final Map<String, HistoryRecord> snapshotMap =
           Map<String, HistoryRecord>.fromIterable(
         s.docs,
         key: (d) {
@@ -534,8 +534,8 @@ class CheckListController<T extends Person>
           .where('ClassId', whereIn: c.map((e) => e.ref).toList())
           .orderBy('Time', descending: !v.item3!)
           .snapshots())).map((s) => s.expand((n) => n.docs)).map((s) {
-        Map<String, T> tempSelected = {};
-        Map<String, HistoryRecord> snapshotMap =
+        final Map<String, T> tempSelected = {};
+        final Map<String, HistoryRecord> snapshotMap =
             Map<String, HistoryRecord>.fromIterable(
           s,
           key: (d) {
@@ -552,8 +552,8 @@ class CheckListController<T extends Person>
     return Rx.combineLatestList<JsonQuery>(v.item2.split(10).map((c) => ref!
         .where('ClassId', whereIn: c.map((e) => e.ref).toList())
         .snapshots())).map((s) => s.expand((n) => n.docs)).map((s) {
-      Map<String, T> tempSelected = {};
-      Map<String, HistoryRecord> snapshotMap =
+      final Map<String, T> tempSelected = {};
+      final Map<String, HistoryRecord> snapshotMap =
           Map<String, HistoryRecord>.fromIterable(
         s,
         key: (d) {
@@ -706,8 +706,8 @@ class HistoryDayOptions {
   int get hashCode => hashValues(showOnly.value, grouped.value, enabled.value);
 
   @override
-  bool operator ==(dynamic o) =>
-      o is HistoryDayOptions && o.hashCode == hashCode;
+  bool operator ==(dynamic other) =>
+      other is HistoryDayOptions && other.hashCode == hashCode;
 }
 
 class ServicesListController
@@ -748,8 +748,8 @@ class ServicesListController
   @override
   Map<String, Class>? get selectedLatest => _selected.valueOrNull;
 
-  final Map<StudyYear?, List<Class>> Function(
-      Map<StudyYear?, List<Class>>, String) _filter = (o, filter) {
+  Map<StudyYear?, List<Class>> _filter(
+      Map<StudyYear?, List<Class>> o, String filter) {
     return {
       for (var it in o.entries.where(
         (e) =>
@@ -762,7 +762,8 @@ class ServicesListController
       ))
         it.key: it.value
     };
-  };
+  }
+
   @override
   final void Function(Class)? tap;
   @override

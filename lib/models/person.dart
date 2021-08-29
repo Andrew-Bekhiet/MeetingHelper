@@ -260,7 +260,8 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
 
   @override
   Future<String?> getSecondLine() async {
-    String key = Hive.box('Settings').get('PersonSecondLine', defaultValue: '');
+    final String key =
+        Hive.box('Settings').get('PersonSecondLine', defaultValue: '');
     if (key == 'Members') {
       return getMembersString();
     } else if (key == 'ClassId') {

@@ -150,9 +150,11 @@ class HistoryRecord {
       required this.id,
       required this.classId,
       required this.time,
-      required this.recordedBy,
+      required String recordedBy,
       this.notes,
-      this.isServant = false});
+      this.isServant = false})
+      // ignore: prefer_initializing_formals
+      : recordedBy = recordedBy;
 
   static HistoryRecord? fromDoc(HistoryDay? parent, JsonDoc doc) =>
       doc.exists ? HistoryRecord._fromDoc(parent, doc) : null;

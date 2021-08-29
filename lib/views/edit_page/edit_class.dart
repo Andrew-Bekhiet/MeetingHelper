@@ -248,7 +248,7 @@ class _EditClassState extends State<EditClass> {
   }
 
   Future<void> _selectImage() async {
-    var source = await showDialog(
+    final source = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
         actions: <Widget>[
@@ -282,7 +282,7 @@ class _EditClassState extends State<EditClass> {
     if (source as bool && !(await Permission.camera.request()).isGranted)
       return;
 
-    var selectedImage = await ImagePicker()
+    final selectedImage = await ImagePicker()
         .pickImage(source: source ? ImageSource.camera : ImageSource.gallery);
     if (selectedImage == null) return;
     changedImage = (await ImageCropper.cropImage(
@@ -370,7 +370,7 @@ class _EditClassState extends State<EditClass> {
             duration: Duration(minutes: 20),
           ),
         );
-        var update = class$.id != 'null';
+        final update = class$.id != 'null';
         if (!update) {
           class$.ref = FirebaseFirestore.instance.collection('Classes').doc();
         }

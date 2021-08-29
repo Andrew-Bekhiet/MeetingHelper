@@ -53,7 +53,8 @@ class InnerListState extends State<_InnerChurchsList> {
               return ListView.builder(
                 itemCount: churchs.data!.docs.length,
                 itemBuilder: (context, i) {
-                  Church current = Church.fromQueryDoc(churchs.data!.docs[i]);
+                  final Church current =
+                      Church.fromQueryDoc(churchs.data!.docs[i]);
                   return current.name.contains(filter)
                       ? Card(
                           child: ListTile(
@@ -133,7 +134,8 @@ class _ChurchesEditListState extends State<ChurchesEditList> {
                   child: ListView.builder(
                     itemCount: data.data!.docs.length,
                     itemBuilder: (context, i) {
-                      Church current = Church.fromQueryDoc(data.data!.docs[i]);
+                      final Church current =
+                          Church.fromQueryDoc(data.data!.docs[i]);
                       return current.name.contains(filter)
                           ? Card(
                               child: ListTile(
@@ -193,7 +195,9 @@ class _InnerChurchsList extends StatefulWidget {
   final List<Church> result;
   final Function(List<Church>?)? finished;
   final Future<Stream<JsonQuery>>? list;
-  _InnerChurchsList(this.data, this.result, this.list, this.finished);
+
+  const _InnerChurchsList(this.data, this.result, this.list, this.finished);
+
   @override
   State<StatefulWidget> createState() => InnerListState();
 }

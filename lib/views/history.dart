@@ -25,6 +25,7 @@ class _HistoryState extends State<History> {
   final BehaviorSubject<bool> _showSearch = BehaviorSubject<bool>.seeded(false);
   final FocusNode _searchFocus = FocusNode();
 
+  // ignore: prefer_typing_uninitialized_variables
   late final _listController;
 
   @override
@@ -120,7 +121,7 @@ class _HistoryState extends State<History> {
               tooltip: !data.hasData ? 'بحث بالتاريخ' : 'محو البحث',
               onPressed: () async {
                 if (!data.hasData) {
-                  DateTimeRange? result = await showDateRangePicker(
+                  final DateTimeRange? result = await showDateRangePicker(
                     builder: (context, dialog) => Theme(
                       data: Theme.of(context).copyWith(
                         textTheme: Theme.of(context).textTheme.copyWith(

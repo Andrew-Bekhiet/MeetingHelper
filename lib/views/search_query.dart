@@ -198,7 +198,7 @@ class _SearchQueryState extends State<SearchQuery> {
 
   @override
   Widget build(BuildContext context) {
-    var equal = IndexedStack(
+    final equal = IndexedStack(
       alignment: AlignmentDirectional.center,
       index: getWidgetIndex(),
       children: <Widget>[
@@ -471,7 +471,7 @@ class _SearchQueryState extends State<SearchQuery> {
                       queryValue = null;
                       queryText = 'فارغ';
                     } else {
-                      var now = DateTime.now().millisecondsSinceEpoch;
+                      final now = DateTime.now().millisecondsSinceEpoch;
                       queryValue = Timestamp.fromMillisecondsSinceEpoch(
                           now - (now % 86400000));
                       queryText = '';
@@ -728,12 +728,12 @@ class _SearchQueryState extends State<SearchQuery> {
                   child: DropdownButton(
                     isExpanded: true,
                     value: descending,
-                    items: [
-                      const DropdownMenuItem(
+                    items: const [
+                      DropdownMenuItem(
                         value: false,
                         child: Text('تصاعدي'),
                       ),
-                      const DropdownMenuItem(
+                      DropdownMenuItem(
                         value: true,
                         child: Text('تنازلي'),
                       ),
@@ -1319,8 +1319,8 @@ class _SearchQueryState extends State<SearchQuery> {
   }
 
   void _selectClass() async {
-    BehaviorSubject<OrderOptions> _orderOptions =
-        BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+    final BehaviorSubject<OrderOptions> _orderOptions =
+        BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
     final _listOptions = DataObjectListController<Class>(
       tap: (value) {
         navigator.currentState!.pop();
@@ -1364,7 +1364,7 @@ class _SearchQueryState extends State<SearchQuery> {
   }
 
   void _selectDate() async {
-    DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showDatePicker(
         context: context,
         initialDate:
             queryValue is! Timestamp ? DateTime.now() : queryValue.toDate(),

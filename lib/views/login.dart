@@ -25,10 +25,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var btnPdng = const EdgeInsets.fromLTRB(16.0, 16.0, 32.0, 16.0);
-    var btnShape = RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(10),
-    );
     return Scaffold(
       appBar: AppBar(
         title: const Text('تسجيل الدخول'),
@@ -43,16 +39,20 @@ class _LoginScreenState extends State<LoginScreen> {
             children: <Widget>[
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                    primary: Colors.white, shape: btnShape),
+                  primary: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
                 onPressed: () async {
-                  GoogleSignInAccount? googleUser =
+                  final GoogleSignInAccount? googleUser =
                       await GoogleSignIn().signIn();
                   if (googleUser != null) {
-                    GoogleSignInAuthentication googleAuth =
+                    final GoogleSignInAuthentication googleAuth =
                         await googleUser.authentication;
                     if (googleAuth.accessToken != null) {
                       try {
-                        AuthCredential credential =
+                        final AuthCredential credential =
                             GoogleAuthProvider.credential(
                                 idToken: googleAuth.idToken,
                                 accessToken: googleAuth.accessToken);
@@ -87,7 +87,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
                     Container(
-                      padding: btnPdng,
+                      padding:
+                          const EdgeInsets.fromLTRB(16.0, 16.0, 32.0, 16.0),
                       child: Image.asset(
                         'assets/google_logo.png',
                         width: 30,
@@ -353,8 +354,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<bool> setupSettings() async {
     try {
-      var user = User.instance;
-      var settings = Hive.box('Settings');
+      final user = User.instance;
+      final settings = Hive.box('Settings');
       settings.get('cacheSize') ?? await settings.put('cacheSize', 314572800);
 
       settings.get('ClassSecondLine') ??
@@ -362,7 +363,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       WidgetsBinding.instance!.addPostFrameCallback((_) async {
         if (user.getNotificationsPermissions().values.toList().any((e) => e)) {
-          var notificationsSettings =
+          final notificationsSettings =
               Hive.box<Map<dynamic, dynamic>>('NotificationsSettings');
           if (user.birthdayNotify) {
             if (notificationsSettings.get('BirthDayTime') == null) {

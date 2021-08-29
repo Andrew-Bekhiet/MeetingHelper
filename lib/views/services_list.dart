@@ -40,7 +40,7 @@ class _ServicesListState extends State<ServicesList>
         if (services.hasError) return ErrorWidget(services.error!);
         if (!services.hasData)
           return const Center(child: CircularProgressIndicator());
-        var groupedStudyYears = groupBy(services.data!.keys, (dynamic s) {
+        final groupedStudyYears = groupBy(services.data!.keys, (dynamic s) {
           switch (s.grade) {
             case -1:
             case 0:
@@ -99,7 +99,7 @@ class _ServicesListState extends State<ServicesList>
             }
           },
           itemBuilder: (context, index) {
-            var element = groupedStudyYears.values
+            final element = groupedStudyYears.values
                 .elementAt(index.section)
                 .elementAt(index.index);
             if (services.data![element]!.length > 1)
@@ -140,14 +140,16 @@ class _ServicesListState extends State<ServicesList>
                                           ? false
                                           : null,
                                   onChanged: (v) {
-                                    if (v == true) {
-                                      services.data![element]!.forEach(
-                                        (c) => widget.options.select(c),
-                                      );
+                                    if (v ?? false) {
+                                      for (final c
+                                          in services.data![element]!) {
+                                        widget.options.select(c);
+                                      }
                                     } else {
-                                      services.data![element]!.forEach(
-                                        (c) => widget.options.deselect(c),
-                                      );
+                                      for (final c
+                                          in services.data![element]!) {
+                                        widget.options.deselect(c);
+                                      }
                                     }
                                   },
                                 ),

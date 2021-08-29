@@ -148,11 +148,11 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
             child: FutureBuilder<String>(
               future: widget.object._photoUrlCache.fetch(
                 () async {
-                  String? cache = Hive.box<String?>('PhotosURLsCache')
+                  final String? cache = Hive.box<String?>('PhotosURLsCache')
                       .get(widget.object.photoRef.fullPath);
 
                   if (cache == null) {
-                    String url = await widget.object.photoRef
+                    final String url = await widget.object.photoRef
                         .getDownloadURL()
                         .catchError((onError) => '');
                     await Hive.box<String?>('PhotosURLsCache')
@@ -174,7 +174,7 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                   return Icon(widget.object.defaultIcon,
                       size: constrains.maxHeight);
                 else {
-                  var photo = Material(
+                  final photo = Material(
                     type: MaterialType.transparency,
                     child: InkWell(
                       onTap: () => showDialog(

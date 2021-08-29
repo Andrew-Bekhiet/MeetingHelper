@@ -704,14 +704,14 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
 }
 
 void takeScreenshot(GlobalKey key) async {
-  RenderRepaintBoundary? boundary =
+  final RenderRepaintBoundary? boundary =
       key.currentContext!.findRenderObject() as RenderRepaintBoundary?;
   WidgetsBinding.instance!.addPostFrameCallback(
     (_) async {
-      ui.Image image = await boundary!.toImage(pixelRatio: 2);
-      ByteData byteData =
+      final ui.Image image = await boundary!.toImage(pixelRatio: 2);
+      final ByteData byteData =
           (await image.toByteData(format: ui.ImageByteFormat.png))!;
-      Uint8List pngBytes = byteData.buffer.asUint8List();
+      final Uint8List pngBytes = byteData.buffer.asUint8List();
       await Share.shareFiles(
         [
           (await (await File((await getApplicationDocumentsDirectory()).path +

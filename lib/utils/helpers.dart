@@ -53,7 +53,7 @@ void changeTheme({required BuildContext context}) {
           defaultValue: WidgetsBinding.instance!.window.platformBrightness ==
               Brightness.dark) ??
       WidgetsBinding.instance!.window.platformBrightness == Brightness.dark;
-  bool greatFeastTheme =
+  final bool greatFeastTheme =
       Hive.box('Settings').get('GreatFeastTheme', defaultValue: true);
   MaterialColor primary = Colors.amber;
   Color secondary = Colors.amberAccent;
@@ -139,7 +139,7 @@ Stream<Map<StudyYear?, List<Class>>> classesByStudyYearRef() {
       .snapshots()
       .switchMap<Map<StudyYear?, List<Class>>>(
     (sys) {
-      Map<JsonRef, StudyYear> studyYears = {
+      final Map<JsonRef, StudyYear> studyYears = {
         for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
       };
       return User.instance.stream.switchMap(
@@ -183,7 +183,7 @@ Stream<Map<StudyYear, List<Class>>> classesByStudyYearRefForUser(String? uid) {
       .snapshots()
       .switchMap(
     (sys) {
-      Map<JsonRef, StudyYear> studyYears = {
+      final Map<JsonRef, StudyYear> studyYears = {
         for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
       };
       return FirebaseFirestore.instance
@@ -315,11 +315,11 @@ void historyTap(HistoryDay? history) async {
 
 DateTime getRiseDay([int? year]) {
   year ??= DateTime.now().year;
-  int a = year % 4;
-  int b = year % 7;
-  int c = year % 19;
-  int d = (19 * c + 15) % 30;
-  int e = (2 * a + 4 * b - d + 34) % 7;
+  final int a = year % 4;
+  final int b = year % 7;
+  final int c = year % 19;
+  final int d = (19 * c + 15) % 30;
+  final int e = (2 * a + 4 * b - d + 34) % 7;
 
   return DateTime(year, (d + e + 114) ~/ 31, ((d + e + 114) % 31) + 14);
 }
@@ -382,7 +382,7 @@ Future<void> onBackgroundMessage(RemoteMessage message) async {
 
 void onForegroundMessage(RemoteMessage message, [BuildContext? context]) async {
   context ??= mainScfld.currentContext;
-  bool opened = Hive.isBoxOpen('Notifications');
+  final bool opened = Hive.isBoxOpen('Notifications');
   if (!opened) await Hive.openBox<Map>('Notifications');
   await storeNotification(message);
   scaffoldMessenger.currentState!.showSnackBar(
@@ -410,7 +410,7 @@ Stream<Map<JsonRef, Tuple2<Class, List<User>>>> usersByClassRef(
       .snapshots()
       .switchMap(
     (sys) {
-      Map<JsonRef, StudyYear> studyYears = {
+      final Map<JsonRef, StudyYear> studyYears = {
         for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
       };
       studyYears[FirebaseFirestore.instance
@@ -484,7 +484,7 @@ Stream<Map<JsonRef, Tuple2<Class, List<Person>>>> personsByClassRef(
       .orderBy('Grade')
       .snapshots()
       .switchMap((sys) {
-    Map<JsonRef, StudyYear> studyYears = {
+    final Map<JsonRef, StudyYear> studyYears = {
       for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
     };
     if (persons != null) {
@@ -505,7 +505,7 @@ Stream<Map<JsonRef, Tuple2<Class, List<Person>>>> personsByClassRef(
                     .snapshots())
             .map(
           (cs) {
-            Map<JsonRef?, List<Person>> personsByClassRef =
+            final Map<JsonRef?, List<Person>> personsByClassRef =
                 groupBy(persons, (p) => p.classId);
             final classes = cs.docs
                 .map(Class.fromQueryDoc)
@@ -545,7 +545,7 @@ Stream<Map<JsonRef, Tuple2<Class, List<Person>>>> personsByClassRef(
                         .snapshots())
                 .map(
               (cs) {
-                Map<JsonRef?, List<Person>> personsByClassRef =
+                final Map<JsonRef?, List<Person>> personsByClassRef =
                     groupBy(persons, (p) => p.classId);
                 final classes = cs.docs
                     .map(Class.fromQueryDoc)
@@ -749,7 +749,7 @@ Future<void> processLink(Uri? deepLink) async {
 }
 
 Future<void> sendNotification(BuildContext context, dynamic attachement) async {
-  List<User>? users = await showDialog(
+  final List<User>? users = await showDialog(
     context: context,
     builder: (context) {
       return MultiProvider(
@@ -1450,7 +1450,7 @@ Future<void> showMessage(no.Notification notification) async {
   final attachement = await getLinkObject(
     Uri.parse(notification.attachement!),
   );
-  String scndLine = await attachement.getSecondLine() ?? '';
+  final String scndLine = await attachement.getSecondLine() ?? '';
   final user = notification.from != ''
       ? await FirebaseFirestore.instance
           .doc('Users/${notification.from}')
@@ -1620,7 +1620,7 @@ void userTap(User user) async {
   if (user.approved) {
     await navigator.currentState!.pushNamed('UserInfo', arguments: user);
   } else {
-    dynamic rslt = await showDialog(
+    final dynamic rslt = await showDialog(
         context: navigator.currentContext!,
         builder: (context) => AlertDialog(
               actions: <Widget>[
@@ -1707,7 +1707,7 @@ void userTap(User user) async {
 }
 
 class MessageIcon extends StatelessWidget {
-  MessageIcon(this.url, {Key? key}) : super(key: key);
+  const MessageIcon(this.url, {Key? key}) : super(key: key);
 
   final String? url;
 
@@ -1781,8 +1781,10 @@ class QueryIcon extends StatelessWidget {
 extension BoolComparison on bool? {
   int compareTo(bool? o) {
     if (this == o) return 0;
+    // ignore: use_if_null_to_convert_nulls_to_bools
     if (this == true) return -1;
     if (this == false) {
+      // ignore: use_if_null_to_convert_nulls_to_bools
       if (o == true) return 1;
       return -1;
     }
@@ -1792,7 +1794,7 @@ extension BoolComparison on bool? {
 
 extension SplitList<T> on List<T> {
   List<List<T>> split(int length) {
-    List<List<T>> chunks = [];
+    final List<List<T>> chunks = [];
     for (int i = 0; i < this.length; i += length) {
       chunks
           .add(sublist(i, i + length > this.length ? this.length : i + length));

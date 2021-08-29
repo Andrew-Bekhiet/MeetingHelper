@@ -26,7 +26,7 @@ class InvitationInfo extends StatelessWidget {
       initialData: invitation,
       stream: invitation!.ref.snapshots().map(Invitation.fromDoc),
       builder: (context, data) {
-        Invitation? invitation = data.data;
+        final Invitation? invitation = data.data;
         if (invitation == null)
           return const Scaffold(
             body: Center(
@@ -62,7 +62,7 @@ class InvitationInfo extends StatelessWidget {
                             ),
                           ),
                           onPressed: () async {
-                            dynamic result = await navigator.currentState!
+                            final dynamic result = await navigator.currentState!
                                 .pushNamed('EditInvitation',
                                     arguments: invitation);
                             if (result is JsonRef) {

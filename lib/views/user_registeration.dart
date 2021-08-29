@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
-import 'package:meetinghelper/main.dart';
 import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/encryption_keys.dart';
 import 'package:meetinghelper/utils/globals.dart';
@@ -270,20 +269,9 @@ class _UserRegistrationState extends State<UserRegistration> {
                       IconData(0xe9ba, fontFamily: 'MaterialIconsR')),
                   tooltip: 'تسجيل الخروج',
                   onPressed: () async {
-                    var user = User.instance;
                     await Hive.box('Settings')
                         .put('FCM_Token_Registered', false);
-                    // ignore: unawaited_futures
-                    navigator.currentState!.pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) {
-                          navigator.currentState!
-                              .popUntil((route) => route.isFirst);
-                          return const App();
-                        },
-                      ),
-                    );
-                    await user.signOut();
+                    await User.instance.signOut();
                   })
             ],
           ),
@@ -349,15 +337,15 @@ class _UserRegistrationState extends State<UserRegistration> {
           builder: (context, snapshot) {
             if (snapshot.hasError) {
               return Text(
-                  (snapshot.error as FirebaseFunctionsException).message!);
+                  (snapshot.error! as FirebaseFunctionsException).message!);
             } else if (snapshot.connectionState == ConnectionState.done) {
               navigator.currentState!.pop();
             }
             return Row(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const CircularProgressIndicator(),
-                const Text('جار تفعيل الحساب...'),
+              children: const [
+                CircularProgressIndicator(),
+                Text('جار تفعيل الحساب...'),
               ],
             );
           },
@@ -368,7 +356,7 @@ class _UserRegistrationState extends State<UserRegistration> {
 
   Future<int> _selectDate(String helpText, int initialDate,
       void Function(void Function()) setState) async {
-    var picked = await showDatePicker(
+    final picked = await showDatePicker(
         helpText: helpText,
         locale: const Locale('ar', 'EG'),
         context: context,
@@ -389,9 +377,9 @@ class _UserRegistrationState extends State<UserRegistration> {
       SnackBar(
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('جار انشاء حساب جديد'),
-            const LinearProgressIndicator(),
+          children: const [
+            Text('جار انشاء حساب جديد'),
+            LinearProgressIndicator(),
           ],
         ),
       ),

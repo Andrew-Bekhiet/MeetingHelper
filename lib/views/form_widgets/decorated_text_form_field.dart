@@ -71,7 +71,7 @@ class _DecoratedTextFormFieldState extends State<DecoratedTextFormField> {
         onChanged: widget.onChanged,
         onFieldSubmitted: (_) {
           FocusScope.of(context).nextFocus();
-          if (widget.onFieldSubmitted != null) widget.onFieldSubmitted!(_);
+          widget.onFieldSubmitted?.call(_);
         },
         obscureText: widget.obscureText,
         maxLines: widget.maxLines,

@@ -15,7 +15,7 @@ class UsersPage extends StatefulWidget {
 
 class _UsersPageState extends State<UsersPage> {
   bool _showSearch = false;
-  late final _listOptions;
+  late final DataObjectListController<User> _listOptions;
 
   @override
   Widget build(BuildContext context) {

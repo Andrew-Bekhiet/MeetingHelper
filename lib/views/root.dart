@@ -24,7 +24,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
-import '../main.dart';
 import '../models/list_controllers.dart';
 import '../models/models.dart';
 import '../models/order_options.dart';
@@ -60,7 +59,7 @@ class _RootState extends State<Root>
   final GlobalKey _map = GlobalKey();
 
   final BehaviorSubject<OrderOptions> _personsOrder =
-      BehaviorSubject.seeded(OrderOptions());
+      BehaviorSubject.seeded(const OrderOptions());
 
   final BehaviorSubject<String> _searchQuery =
       BehaviorSubject<String>.seeded('');
@@ -1203,7 +1202,7 @@ class _RootState extends State<Root>
                         title: const Text('تصدير فصل إلى ملف اكسل'),
                         onTap: () async {
                           mainScfld.currentState!.openEndDrawer();
-                          Class? rslt = await showDialog(
+                          final Class? rslt = await showDialog(
                             context: context,
                             builder: (context) => Dialog(
                               child: Column(
@@ -1243,12 +1242,12 @@ class _RootState extends State<Root>
                               ),
                             );
                             try {
-                              String filename = Uri.decodeComponent(
+                              final String filename = Uri.decodeComponent(
                                   (await FirebaseFunctions.instance
                                           .httpsCallable('exportToExcel')
                                           .call({'onlyClass': rslt.id}))
                                       .data);
-                              var file = await File(
+                              final file = await File(
                                       (await getApplicationDocumentsDirectory())
                                               .path +
                                           '/' +
@@ -1303,22 +1302,22 @@ class _RootState extends State<Root>
                               content: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
+                                children: const [
+                                  Text(
                                       'جار تصدير جميع البيانات...\nيرجى الانتظار...'),
-                                  const LinearProgressIndicator(),
+                                  LinearProgressIndicator(),
                                 ],
                               ),
                               duration: const Duration(minutes: 9),
                             ),
                           );
                           try {
-                            String filename = Uri.decodeComponent(
+                            final String filename = Uri.decodeComponent(
                                 (await FirebaseFunctions.instance
                                         .httpsCallable('exportToExcel')
                                         .call())
                                     .data);
-                            var file = await File(
+                            final file = await File(
                                     (await getApplicationDocumentsDirectory())
                                             .path +
                                         '/' +
@@ -1440,19 +1439,8 @@ class _RootState extends State<Root>
               title: const Text('تسجيل الخروج'),
               onTap: () async {
                 mainScfld.currentState!.openEndDrawer();
-                var user = User.instance;
                 await Hive.box('Settings').put('FCM_Token_Registered', false);
-                // ignore: unawaited_futures
-                navigator.currentState!.pushReplacement(
-                  MaterialPageRoute(
-                    builder: (context) {
-                      navigator.currentState!
-                          .popUntil((route) => route.isFirst);
-                      return const App();
-                    },
-                  ),
-                );
-                await user.signOut();
+                await User.instance.signOut();
               },
             ),
           ],
@@ -1561,7 +1549,6 @@ class _RootState extends State<Root>
               onPressed: () async {
                 navigator.currentState!.pop();
                 await AppSettings.openBatteryOptimizationSettings();
-                ;
               },
               child: const Text('الغاء حفظ الطاقة للبرنامج'),
             ),
@@ -1579,12 +1566,12 @@ class _RootState extends State<Root>
   }
 
   Future showDynamicLink() async {
-    PendingDynamicLinkData? data =
+    final PendingDynamicLinkData? data =
         await FirebaseDynamicLinks.instance.getInitialLink();
     FirebaseDynamicLinks.instance.onLink(
       onSuccess: (dynamicLink) async {
         if (dynamicLink == null) return;
-        Uri deepLink = dynamicLink.link;
+        final Uri deepLink = dynamicLink.link;
 
         await processLink(deepLink);
       },
@@ -1593,7 +1580,7 @@ class _RootState extends State<Root>
       },
     );
     if (data == null) return;
-    Uri deepLink = data.link;
+    final Uri deepLink = data.link;
     await processLink(deepLink);
   }
 

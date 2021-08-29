@@ -12,7 +12,7 @@ class NotificationSetting extends StatefulWidget {
   final int alarmId;
   final Function notificationCallback;
 
-  NotificationSetting(
+  const NotificationSetting(
       {Key? key,
       required this.label,
       required this.hiveKey,
@@ -99,7 +99,7 @@ class _NotificationSettingState extends State<NotificationSetting> {
             resetIcon: null,
             initialValue: DateTime(2021, 1, 1, time.hour, time.minute),
             onShowPicker: (context, initialValue) async {
-              var selected = await showTimePicker(
+              final selected = await showTimePicker(
                 initialTime: TimeOfDay.fromDateTime(initialValue!),
                 context: context,
               );
@@ -127,7 +127,7 @@ class _NotificationSettingState extends State<NotificationSetting> {
   }
 
   void onSave() async {
-    var current = notificationsSettings.get(widget.hiveKey, defaultValue: {
+    final current = notificationsSettings.get(widget.hiveKey, defaultValue: {
       'Hours': 11,
       'Minutes': 0,
       'Period': 7

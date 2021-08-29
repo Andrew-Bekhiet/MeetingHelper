@@ -36,12 +36,11 @@ class Exports extends StatelessWidget {
   }
 
   Future<List<FileSystemEntity>> dirContents(Directory dir) {
-    var files = <FileSystemEntity>[];
-    var completer = Completer<List<FileSystemEntity>>();
-    var lister = dir.list(recursive: false);
+    final files = <FileSystemEntity>[];
+    final completer = Completer<List<FileSystemEntity>>();
+    final lister = dir.list(recursive: false);
     // ignore: cascade_invocations
-    lister.listen((file) => files.add(file),
-        onDone: () => completer.complete(files));
+    lister.listen(files.add, onDone: () => completer.complete(files));
     return completer.future;
   }
 }

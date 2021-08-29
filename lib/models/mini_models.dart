@@ -50,11 +50,6 @@ class Church extends MiniModel with ParentObject<Father> {
   }
 
   @override
-  bool operator ==(dynamic other) {
-    return other is Church && id == other.id;
-  }
-
-  @override
   Json getMap() {
     return {'Name': name, 'Address': address};
   }
@@ -103,11 +98,6 @@ class PersonState extends MiniModel {
   PersonState.createNew() : super.createNew('States');
 
   @override
-  bool operator ==(dynamic other) {
-    return other is PersonState && id == other.id;
-  }
-
-  @override
   Json getMap() {
     return {'Name': name, 'Color': color};
   }
@@ -132,11 +122,6 @@ class College extends MiniModel {
       : super.createFromData('Colleges', data, id);
 
   College.createNew() : super.createNew('Colleges');
-
-  @override
-  bool operator ==(dynamic other) {
-    return other is College && id == other.id;
-  }
 
   @override
   Json getMap() {
@@ -166,11 +151,6 @@ class Father extends MiniModel with ChildObject<Church> {
   }
 
   Father.createNew() : super.createNew('Fathers');
-
-  @override
-  bool operator ==(dynamic other) {
-    return other is Father && id == other.id;
-  }
 
   Future<String?> getChurchName() async {
     if (churchId == null) return null;
@@ -214,11 +194,6 @@ class Job extends MiniModel {
   Job.createNew() : super.createNew('Jobs');
 
   @override
-  bool operator ==(dynamic other) {
-    return other is Job && id == other.id;
-  }
-
-  @override
   Json getMap() {
     return {'Name': name};
   }
@@ -243,11 +218,6 @@ class PersonType extends MiniModel {
       : super.createFromData('Types', data, id);
 
   PersonType.createNew() : super.createNew('Types');
-
-  @override
-  bool operator ==(dynamic other) {
-    return other is PersonType && id == other.id;
-  }
 
   @override
   Json getMap() {
@@ -276,11 +246,6 @@ class ServingType extends MiniModel {
   ServingType.createNew() : super.createNew('ServingTypes');
 
   @override
-  bool operator ==(dynamic other) {
-    return other is ServingType && id == other.id;
-  }
-
-  @override
   Json getMap() {
     return {'Name': name};
   }
@@ -299,15 +264,18 @@ class ServingType extends MiniModel {
   }
 }
 
-class StudyYear extends MiniModel{
+class StudyYear extends MiniModel {
   bool? isCollegeYear;
   int? grade;
 
-  StudyYear(String id, String name, this.grade, {this.isCollegeYear}):super('StudyYears', id, name);
-  StudyYear._createFromData(Json data, String id):grade = data['Grade'],
-    isCollegeYear = data['IsCollegeYear'],super.createFromData('StudyYears', data, id);
+  StudyYear(String id, String name, this.grade, {this.isCollegeYear})
+      : super('StudyYears', id, name);
+  StudyYear._createFromData(Json data, String id)
+      : grade = data['Grade'],
+        isCollegeYear = data['IsCollegeYear'],
+        super.createFromData('StudyYears', data, id);
 
-  StudyYear.createNew():super.createNew('StudyYears'){
+  StudyYear.createNew() : super.createNew('StudyYears') {
     grade = 0;
     isCollegeYear = false;
   }
@@ -344,14 +312,8 @@ class School extends MiniModel {
     address = data['Address'];
   }
 
-  School.createNew()
-      : super.createNew('Schools') {
+  School.createNew() : super.createNew('Schools') {
     address = '';
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return other is School && id == other.id;
   }
 
   @override

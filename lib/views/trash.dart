@@ -88,7 +88,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
   final FocusNode _searchFocus = FocusNode();
 
   final BehaviorSubject<OrderOptions> _personsOrder =
-      BehaviorSubject.seeded(OrderOptions());
+      BehaviorSubject.seeded(const OrderOptions());
   final BehaviorSubject<String> _searchQuery =
       BehaviorSubject<String>.seeded('');
 

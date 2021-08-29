@@ -487,7 +487,7 @@ class _EditInvitationState extends State<EditInvitation> {
             });
           }
         } else {
-          var update = widget.invitation.getMap()
+          final update = widget.invitation.getMap()
             ..removeWhere((key, value) => old[key] == value);
           if (update.isNotEmpty) {
             if (await Connectivity().checkConnectivity() !=
@@ -538,7 +538,7 @@ class _EditInvitationState extends State<EditInvitation> {
         firstDate: DateTime.now(),
         lastDate: DateTime.now().add(const Duration(days: 14)));
     if (picked != null && picked != initialDate) {
-      var time = await showTimePicker(
+      final time = await showTimePicker(
           context: context, initialTime: TimeOfDay.fromDateTime(initialDate));
       if (time != null)
         picked = picked.add(Duration(hours: time.hour, minutes: time.minute));

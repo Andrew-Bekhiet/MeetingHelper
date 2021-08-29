@@ -19,7 +19,7 @@ class Update extends StatefulWidget {
 class Updates {
   static Future showUpdateDialog(BuildContext context,
       {bool canCancel = true}) async {
-    Version latest =
+    final Version latest =
         Version.parse(RemoteConfig.instance.getString('LatestVersion'));
     if (latest > Version.parse((await PackageInfo.fromPlatform()).version) &&
         canCancel) {

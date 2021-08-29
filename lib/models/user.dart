@@ -229,12 +229,12 @@ class User extends Person {
               .child('Users/${user.uid}/forceRefresh')
               .onValue
               .listen((e) async {
-            auth.User currentUser = user;
+            final auth.User currentUser = user;
             if (e.snapshot.value != true) return;
 
             late Map idTokenClaims;
             try {
-              auth.IdTokenResult idToken =
+              final auth.IdTokenResult idToken =
                   await currentUser.getIdTokenResult(true);
 
               await Hive.box<String>('User')
@@ -538,11 +538,11 @@ class User extends Person {
             builder: (context, setState) => FutureBuilder<String>(
               future: _photoUrlCache.fetch(
                 () async {
-                  String? cache = Hive.box<String?>('PhotosURLsCache')
+                  final String? cache = Hive.box<String?>('PhotosURLsCache')
                       .get(photoRef.fullPath);
 
                   if (cache == null) {
-                    String url = await photoRef
+                    final String url = await photoRef
                         .getDownloadURL()
                         .catchError((onError) => '');
                     await Hive.box<String?>('PhotosURLsCache')
@@ -551,7 +551,8 @@ class User extends Person {
                     return url;
                   }
                   // ignore: prefer_function_declarations_over_variables
-                  void Function(String) _updateCache = (String cache) async {
+                  final void Function(String) _updateCache =
+                      (String cache) async {
                     String? url;
                     try {
                       url = await photoRef.getDownloadURL();

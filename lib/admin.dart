@@ -49,7 +49,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
   }
 
   void churchTap(Church church, bool editMode) async {
-    var title = TextStyle(
+    final title = TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.bold,
         color: Theme.of(context).textTheme.headline6!.color,
@@ -152,7 +152,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                         child: ListView.builder(
                           itemCount: data.data!.docs.length,
                           itemBuilder: (context, i) {
-                            var current =
+                            final current =
                                 Father.fromQueryDoc(data.data!.docs[i]);
                             return Card(
                               child: ListTile(
@@ -176,7 +176,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
   }
 
   void fatherTap(Father father, bool editMode) async {
-    var title = TextStyle(
+    final title = TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.bold,
         color: Theme.of(context).textTheme.headline6!.color,
@@ -339,7 +339,7 @@ class _FathersPageState extends State<FathersPage> {
   }
 
   void churchTap(Church church, bool editMode) async {
-    var title = TextStyle(
+    final title = TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.bold,
         color: Theme.of(context).textTheme.headline6!.color,
@@ -442,7 +442,7 @@ class _FathersPageState extends State<FathersPage> {
                         return ListView.builder(
                             itemCount: data.data!.docs.length,
                             itemBuilder: (context, i) {
-                              var current =
+                              final current =
                                   Father.fromQueryDoc(data.data!.docs[i]);
                               return Card(
                                 child: ListTile(
@@ -465,7 +465,7 @@ class _FathersPageState extends State<FathersPage> {
   }
 
   void fatherTap(Father father, bool editMode) async {
-    var title = TextStyle(
+    final title = TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.bold,
         color: Theme.of(context).textTheme.headline6!.color,
@@ -629,7 +629,7 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
   }
 
   void studyYearTap(StudyYear year, bool editMode) async {
-    var title = TextStyle(
+    final title = TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.bold,
         color: Theme.of(context).textTheme.headline6!.color,

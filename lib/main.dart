@@ -88,10 +88,10 @@ void main() async {
   if (auth.FirebaseAuth.instance.currentUser != null &&
       (await Connectivity().checkConnectivity()) != ConnectivityResult.none)
     await User.instance.initialized;
-  User user = User.instance;
+  final User user = User.instance;
 
   bool? darkSetting = Hive.box('Settings').get('DarkTheme');
-  bool greatFeastTheme =
+  final bool greatFeastTheme =
       Hive.box('Settings').get('GreatFeastTheme', defaultValue: true);
   MaterialColor primary = Colors.amber;
   Color secondary = Colors.amberAccent;
@@ -117,7 +117,7 @@ void main() async {
         StreamProvider<User>.value(value: user.stream, initialData: user),
         Provider<ThemeNotifier>(
           create: (_) {
-            bool isDark = darkSetting ??
+            final bool isDark = darkSetting ??
                 WidgetsBinding.instance!.window.platformBrightness ==
                     Brightness.dark;
 
@@ -434,12 +434,12 @@ class AppState extends State<App> {
                   return EditPerson(person: Person());
                 else if (ModalRoute.of(context)!.settings.arguments is Person)
                   return EditPerson(
-                      person:
-                          ModalRoute.of(context)!.settings.arguments as Person);
+                      person: ModalRoute.of(context)!.settings.arguments!
+                          as Person);
                 else {
-                  Person person = Person()
+                  final Person person = Person()
                     ..classId =
-                        ModalRoute.of(context)!.settings.arguments as JsonRef;
+                        ModalRoute.of(context)!.settings.arguments! as JsonRef;
                   return EditPerson(person: person);
                 }
               },
@@ -450,7 +450,7 @@ class AppState extends State<App> {
               'Day': (context) {
                 if (ModalRoute.of(context)?.settings.arguments != null)
                   return Day(
-                      record: ModalRoute.of(context)!.settings.arguments
+                      record: ModalRoute.of(context)!.settings.arguments!
                           as HistoryDay);
                 else
                   return Day(record: HistoryDay());
@@ -458,7 +458,7 @@ class AppState extends State<App> {
               'ServantsDay': (context) {
                 if (ModalRoute.of(context)?.settings.arguments != null)
                   return Day(
-                      record: ModalRoute.of(context)!.settings.arguments
+                      record: ModalRoute.of(context)!.settings.arguments!
                           as ServantsHistoryDay);
                 else
                   return Day(record: ServantsHistoryDay());
@@ -471,9 +471,9 @@ class AppState extends State<App> {
               'MyAccount': (context) => const MyAccount(),
               'Notifications': (context) => const NotificationsPage(),
               'ClassInfo': (context) => ClassInfo(
-                  class$: ModalRoute.of(context)!.settings.arguments as Class),
+                  class$: ModalRoute.of(context)!.settings.arguments! as Class),
               'PersonInfo': (context) => PersonInfo(
-                  person: ModalRoute.of(context)!.settings.arguments as Person,
+                  person: ModalRoute.of(context)!.settings.arguments! as Person,
                   converter: ModalRoute.of(context)!.settings.arguments is User
                       ? User.fromDoc
                       : Person.fromDoc,
@@ -481,8 +481,8 @@ class AppState extends State<App> {
                       ModalRoute.of(context)!.settings.arguments is! User),
               'UserInfo': (context) => const UserInfo(),
               'InvitationInfo': (context) => InvitationInfo(
-                  invitation:
-                      ModalRoute.of(context)!.settings.arguments as Invitation),
+                  invitation: ModalRoute.of(context)!.settings.arguments!
+                      as Invitation),
               'Update': (context) => const Update(),
               'Search': (context) => const SearchQuery(),
               'DataMap': (context) => const DataMap(),
@@ -520,20 +520,20 @@ class AppState extends State<App> {
               'Analytics': (context) {
                 if (ModalRoute.of(context)!.settings.arguments is Person)
                   return PersonAnalyticsPage(
-                      person:
-                          ModalRoute.of(context)!.settings.arguments as Person);
+                      person: ModalRoute.of(context)!.settings.arguments!
+                          as Person);
                 else if (ModalRoute.of(context)!.settings.arguments is Class)
                   return AnalyticsPage(classes: [
-                    ModalRoute.of(context)!.settings.arguments as Class
+                    ModalRoute.of(context)!.settings.arguments! as Class
                   ]);
                 else if (ModalRoute.of(context)!.settings.arguments
                     is HistoryDay)
                   return AnalyticsPage(
-                      day: ModalRoute.of(context)!.settings.arguments
+                      day: ModalRoute.of(context)!.settings.arguments!
                           as HistoryDay);
                 else {
                   final Json args =
-                      ModalRoute.of(context)!.settings.arguments as Json;
+                      ModalRoute.of(context)!.settings.arguments! as Json;
                   return AnalyticsPage(
                     historyColection: args['HistoryCollection'] ?? 'History',
                     classes: args['Classes'],
@@ -543,13 +543,13 @@ class AppState extends State<App> {
                 }
               },
             },
-            localizationsDelegates: [
+            localizationsDelegates: const [
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: [
-              const Locale('ar', 'EG'),
+            supportedLocales: const [
+              Locale('ar', 'EG'),
             ],
             themeMode: theme.data!.brightness == Brightness.dark
                 ? ThemeMode.dark

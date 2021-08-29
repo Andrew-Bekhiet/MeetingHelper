@@ -52,7 +52,8 @@ class InnerListState extends State<_InnerFathersList> {
               return ListView.builder(
                   itemCount: fathers.data!.docs.length,
                   itemBuilder: (context, i) {
-                    Father current = Father.fromQueryDoc(fathers.data!.docs[i]);
+                    final Father current =
+                        Father.fromQueryDoc(fathers.data!.docs[i]);
                     return current.name.contains(filter)
                         ? Card(
                             child: ListTile(
@@ -142,7 +143,8 @@ class _FathersEditListState extends State<FathersEditList> {
                   child: ListView.builder(
                     itemCount: data.data!.docs.length,
                     itemBuilder: (context, i) {
-                      Father current = Father.fromQueryDoc(data.data!.docs[i]);
+                      final Father current =
+                          Father.fromQueryDoc(data.data!.docs[i]);
                       return current.name.contains(filter)
                           ? Card(
                               child: ListTile(
@@ -211,7 +213,9 @@ class _InnerFathersList extends StatefulWidget {
   final List<Father> result;
   final Function(List<Father>?)? finished;
   final Future<Stream<JsonQuery>>? list;
-  _InnerFathersList(this.data, this.result, this.list, this.finished);
+
+  const _InnerFathersList(this.data, this.result, this.list, this.finished);
+
   @override
   State<StatefulWidget> createState() => InnerListState();
 }

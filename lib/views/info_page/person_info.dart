@@ -60,7 +60,7 @@ class _PersonInfoState extends State<PersonInfo> {
         initialData: widget.person,
         stream: widget.person.ref.snapshots().map(widget.converter),
         builder: (context, data) {
-          Person? person = data.data;
+          final Person? person = data.data;
           if (person == null)
             return const Scaffold(
               body: Center(
@@ -157,7 +157,8 @@ class _PersonInfoState extends State<PersonInfo> {
                                   ),
                                 ),
                                 onPressed: () async {
-                                  dynamic result = await navigator.currentState!
+                                  final dynamic result = await navigator
+                                      .currentState!
                                       .pushNamed('Data/EditPerson',
                                           arguments: person);
                                   if (result is JsonRef) {
@@ -523,7 +524,7 @@ class _PersonInfoState extends State<PersonInfo> {
   }
 
   void _phoneCall(BuildContext context, String? number) async {
-    var result = await showDialog(
+    final result = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
         content: const Text('هل تريد اجراء مكالمة الأن'),
@@ -545,7 +546,7 @@ class _PersonInfoState extends State<PersonInfo> {
     if (result) {
       await Permission.phone.request();
       await launch('tel:' + getPhone(number ?? '', false));
-      var recordLastCall = await showDialog(
+      final recordLastCall = await showDialog(
         context: context,
         builder: (context) => AlertDialog(
           content: const Text('هل تريد تسجيل تاريخ هذه المكالمة؟'),
@@ -581,7 +582,8 @@ class _PersonInfoState extends State<PersonInfo> {
   Future<void> _contactAdd(
       BuildContext context, String? phone, Person person) async {
     if ((await Permission.contacts.request()).isGranted) {
-      TextEditingController _name = TextEditingController(text: person.name);
+      final TextEditingController _name =
+          TextEditingController(text: person.name);
       if (await showDialog(
             context: context,
             builder: (context) => AlertDialog(

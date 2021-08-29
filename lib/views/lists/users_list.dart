@@ -45,7 +45,7 @@ class _UsersListState extends State<UsersList> {
         (g, n) => g.map(
           (k, v) => MapEntry(
             k,
-            n[k] == true ? v : Tuple2<Class, List<User>>(v.item1, []),
+            (n[k] ?? false) ? v : Tuple2<Class, List<User>>(v.item1, []),
           ),
         ),
       ),
@@ -120,7 +120,7 @@ class _UsersListState extends State<UsersList> {
             );
           },
           itemBuilder: (context, i) {
-            User current = groupedData.data!.values
+            final User current = groupedData.data!.values
                 .elementAt(i.section)
                 .item2
                 .elementAt(i.index);
