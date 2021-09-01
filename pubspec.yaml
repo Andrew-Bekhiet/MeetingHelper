@@ -27,7 +27,7 @@ dependencies:
   device_info_plus: ^2.1.0
   expandable: ^5.0.1
   feature_discovery: ^0.14.0
-  file_picker: ^4.0.0
+  file_picker: ^4.0.1
   firebase_analytics: ^8.3.1
   firebase_auth: ^3.1.0
   firebase_core: ^1.6.0
@@ -43,7 +43,7 @@ dependencies:
   flutter_colorpicker: ^0.5.0
   flutter_contacts: ^1.1.0+3
   flutter_dotenv: ^5.0.2
-  flutter_local_notifications: ^8.1.1+1
+  flutter_local_notifications: ^8.1.1+2
   flutter_localizations:
     sdk: flutter
   flutter_secure_storage: ^4.2.1
@@ -53,7 +53,7 @@ dependencies:
   hive: ^2.0.4
   hive_flutter: ^1.1.0
   image_cropper: ^1.4.1
-  image_picker: ^0.8.3+3
+  image_picker: ^0.8.4
   local_auth: ^1.1.6
   location: ^4.3.0
   open_file: ^3.2.1
@@ -67,12 +67,9 @@ dependencies:
   rxdart: ^0.27.1
   share_plus: ^2.1.4
   spreadsheet_decoder: ^2.0.0
-  syncfusion_flutter_charts: ^19.2.57
+  syncfusion_flutter_charts: ^19.2.59
   timeago: ^3.1.0
-  tinycolor:
-    git:
-      url: git://github.com/lslv1243/tinycolor.git
-      ref: master
+  tinycolor2: ^2.0.0
   tuple: ^2.0.0
   url_launcher: ^6.0.9
   version: ^2.0.0
