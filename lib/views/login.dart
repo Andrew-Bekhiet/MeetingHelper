@@ -4,8 +4,10 @@ import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_auth_platform_interface/firebase_auth_platform_interface.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hive/hive.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -21,336 +23,163 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  String pass = '';
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('تسجيل الدخول'),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          const Text('قم بتسجيل الدخول أو انشاء حساب'),
-          Container(height: 30),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: <Widget>[
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  primary: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+      body: SingleChildScrollView(
+        child: Column(
+          children: <Widget>[
+            Text('خدمة مدارس الأحد',
+                style: Theme.of(context).textTheme.headline4),
+            Container(height: MediaQuery.of(context).size.height / 19),
+            SizedBox(
+              height: MediaQuery.of(context).size.height / 7.6,
+              width: MediaQuery.of(context).size.width / 3.42,
+              child: Image.asset(
+                'assets/Logo.png',
+                fit: BoxFit.scaleDown,
+              ),
+            ),
+            Container(height: MediaQuery.of(context).size.height / 38),
+            const Text('قم بتسجيل الدخول أو انشاء حساب'),
+            Container(height: 30),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: <Widget>[
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    primary: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                ),
-                onPressed: () async {
-                  final GoogleSignInAccount? googleUser =
-                      await GoogleSignIn().signIn();
-                  if (googleUser != null) {
-                    final GoogleSignInAuthentication googleAuth =
-                        await googleUser.authentication;
-                    if (googleAuth.accessToken != null) {
-                      try {
-                        final AuthCredential credential =
-                            GoogleAuthProvider.credential(
-                                idToken: googleAuth.idToken,
-                                accessToken: googleAuth.accessToken);
-                        await auth.FirebaseAuth.instance
-                            .signInWithCredential(credential)
-                            .catchError((er) {
-                          if (er.toString().contains(
-                              'An account already exists with the same email address'))
-                            showDialog(
+                  onPressed: () async {
+                    final GoogleSignInAccount? googleUser =
+                        await GoogleSignIn().signIn();
+                    if (googleUser != null) {
+                      final GoogleSignInAuthentication googleAuth =
+                          await googleUser.authentication;
+                      if (googleAuth.accessToken != null) {
+                        try {
+                          final AuthCredential credential =
+                              GoogleAuthProvider.credential(
+                                  idToken: googleAuth.idToken,
+                                  accessToken: googleAuth.accessToken);
+                          await auth.FirebaseAuth.instance
+                              .signInWithCredential(credential)
+                              .catchError((er) {
+                            if (er.toString().contains(
+                                'An account already exists with the same email address'))
+                              showDialog(
                                 context: context,
                                 builder: (context) => const AlertDialog(
-                                      content: Text(
-                                          'هذا الحساب مسجل من قبل بنفس البريد الاكتروني'
-                                          '\n'
-                                          'جرب تسجيل الدخول بفيسبوك'),
-                                    ));
-                        }).then((user) {
-                          setupSettings();
-                        });
-                      } catch (err, stkTrace) {
-                        await FirebaseCrashlytics.instance
-                            .setCustomKey('LastErrorIn', 'Login.build');
-                        await FirebaseCrashlytics.instance
-                            .recordError(err, stkTrace);
-                        await showErrorDialog(context, err.toString());
+                                  content: Text(
+                                      'هذا الحساب مسجل من قبل بنفس البريد الاكتروني'
+                                      '\n'
+                                      'جرب تسجيل الدخول بفيسبوك'),
+                                ),
+                              );
+                          });
+                          await User.instance.initialized;
+                          await setupSettings();
+                        } catch (err, stkTrace) {
+                          await FirebaseCrashlytics.instance
+                              .setCustomKey('LastErrorIn', 'Login.build');
+                          await FirebaseCrashlytics.instance
+                              .recordError(err, stkTrace);
+                          await showErrorDialog(context, err.toString());
+                        }
                       }
                     }
-                  }
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    Container(
-                      padding:
-                          const EdgeInsets.fromLTRB(16.0, 16.0, 32.0, 16.0),
-                      child: Image.asset(
-                        'assets/google_logo.png',
-                        width: 30,
-                        height: 30,
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      Container(
+                        padding:
+                            const EdgeInsets.fromLTRB(16.0, 16.0, 32.0, 16.0),
+                        child: Image.asset(
+                          'assets/google_logo.png',
+                          width: 30,
+                          height: 30,
+                        ),
                       ),
-                    ),
-                    const Expanded(
-                      child: Text(
-                        'Google',
-                        style: TextStyle(color: Colors.black),
+                      const Expanded(
+                        child: Text(
+                          'Google',
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+                if (kDebugMode &&
+                    dotenv.env['kUseFirebaseEmulators']?.toString() == 'true')
+                  ElevatedButton(
+                    onPressed: () async {
+                      await auth.FirebaseAuth.instance
+                          .signInWithEmailAndPassword(
+                              email: 'admin@meetinghelper.org',
+                              password: 'admin@meetinghelper.org');
+                    },
+                    child: const Text('{debug only} Email and password'),
+                  ),
+                Container(height: MediaQuery.of(context).size.height / 38),
+                RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        style: Theme.of(context).textTheme.bodyText2,
+                        text: 'بتسجيل دخولك فإنك توافق على ',
                       ),
-                    )
-                  ],
+                      TextSpan(
+                        style: Theme.of(context).textTheme.bodyText2?.copyWith(
+                              color: Colors.blue,
+                            ),
+                        text: 'شروط الاستخدام',
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () async {
+                            const url =
+                                'https://church-data.flycricket.io/terms.html';
+                            if (await canLaunch(url)) {
+                              await launch(url);
+                            }
+                          },
+                      ),
+                      TextSpan(
+                        style: Theme.of(context).textTheme.bodyText2,
+                        text: ' و',
+                      ),
+                      TextSpan(
+                        style: Theme.of(context).textTheme.bodyText2?.copyWith(
+                              color: Colors.blue,
+                            ),
+                        text: 'سياسة الخصوصية',
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () async {
+                            const url =
+                                'https://church-data.flycricket.io/privacy.html';
+                            if (await canLaunch(url)) {
+                              await launch(url);
+                            }
+                          },
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Container(height: 10),
-              // ElevatedButton(
-              //   shape: btnShape,
-              //   color: Colors.blue.shade300,
-              //   child: Row(
-              //     mainAxisAlignment: MainAxisAlignment.center,
-              //     crossAxisAlignment: CrossAxisAlignment.center,
-              //     children: <Widget>[
-              //       Container(
-              //           padding: btnPdng,
-              //           child: Image.network(
-              //             'https://facebookbrand.com/wp-content/uploads/2019/04/f_logo_RGB-Hex-Blue_512.png',
-              //             width: 30,
-              //             height: 30,
-              //           )),
-              //       Expanded(
-              //         child: Text(
-              //           'Facebook',
-              //           style: TextStyle(color: Colors.white),
-              //         ),
-              //       )
-              //     ],
-              //   ),
-              //   onPressed: () async {
-              //     if ((await FacebookLogin().logIn(['email'])).status ==
-              //         FacebookLoginStatus.loggedIn) {
-              //       await auth.FirebaseAuth.instance
-              //           .signInWithCredential(
-              //         FacebookAuthCredential(
-              //           accessToken:
-              //               (await FacebookLogin().currentAccessToken)
-              //                   .token,
-              //         ),
-              //       )
-              //           .catchError((er) {
-              //         if (er.toString().contains(
-              //             'An account already exists with the same email address'))
-              //           showDialog(
-              //               context: context,
-              //               builder:(context)=>AlertDialog(
-              //                   content: const Text('هذا الحساب مسجل من ' +
-              //                       'قبل بنفس البريد ' +
-              //                       'الاكتروني' +
-              //                       '\n' +
-              //                       'جرب تسجيل الدخول بفيسبوك')));
-              //         return null;
-              //       });
-              //     }
-              //   },
-              // ),
-              Container(height: 10),
-              RichText(
-                textAlign: TextAlign.center,
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      style: Theme.of(context).textTheme.bodyText2,
-                      text: 'بتسجيل دخولك فإنك توافق على ',
-                    ),
-                    TextSpan(
-                      style: Theme.of(context).textTheme.bodyText2!.copyWith(
-                            color: Colors.blue,
-                          ),
-                      text: 'شروط الاستخدام',
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () async {
-                          const url =
-                              'https://church-data.flycricket.io/terms.html';
-                          if (await canLaunch(url)) {
-                            await launch(url);
-                          }
-                        },
-                    ),
-                    TextSpan(
-                      style: Theme.of(context).textTheme.bodyText2,
-                      text: ' و',
-                    ),
-                    TextSpan(
-                      style: Theme.of(context).textTheme.bodyText2!.copyWith(
-                            color: Colors.blue,
-                          ),
-                      text: 'سياسة الخصوصية',
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () async {
-                          const url =
-                              'https://church-data.flycricket.io/privacy.html';
-                          if (await canLaunch(url)) {
-                            await launch(url);
-                          }
-                        },
-                    ),
-                  ],
-                ),
-              ),
-              // ElevatedButton(
-              //   shape: btnShape,
-              //   color: Theme.of(context).colorScheme.primary,
-              //   child: Row(
-              //     mainAxisAlignment: MainAxisAlignment.center,
-              //     crossAxisAlignment: CrossAxisAlignment.center,
-              //     children: <Widget>[
-              //       Container(padding: btnPdng, child: const Icon(Icons.phone)),
-              //       Expanded(
-              //         child: Text(
-              //           'تسجيل الدخول برقم الهاتف',
-              //           style: TextStyle(color: Colors.grey.shade800),
-              //         ),
-              //       )
-              //     ],
-              //   ),
-              //   onPressed: () async {
-              //     await navigator.currentState.push(MaterialPageRoute(
-              //       builder: (context) {
-              //         var phone = TextEditingController();
-              //         var otp = TextEditingController();
-              //         String verificationId;
-
-              //         void submitOTP([AuthCredential credentials]) async {
-              //           await auth.FirebaseAuth.instance.signInWithCredential(
-              //             credentials ??
-              //                 PhoneAuthProvider.getCredential(
-              //                   verificationId: verificationId,
-              //                   smsCode: otp.text.trim(),
-              //                 ),
-              //           );
-              //           navigator.currentState.pop();
-              //           navigator.currentState.pop();
-              //         }
-
-              //         void sendOTP() async {
-              //           String phoneNumber = '';
-              //           if (phone.text.trim().length == 13) {
-              //             phoneNumber = phone.text.trim();
-              //           } else if (phone.text.trim().length == 12) {
-              //             phoneNumber = '+' + phone.text.trim();
-              //           } else if (phone.text.trim().length == 11) {
-              //             phoneNumber = '+2' + phone.text.trim();
-              //           } else if (phone.text.trim().length == 10) {
-              //             phoneNumber = '+20' + phone.text.trim();
-              //           }
-
-              //           await auth.FirebaseAuth.instance.verifyPhoneNumber(
-              //             phoneNumber: phoneNumber,
-              //             timeout: const Duration(milliseconds: 120000),
-              //             verificationCompleted: submitOTP,
-              //             verificationFailed: (_) {},
-              //             codeSent: (vid, [__]) => verificationId = vid,
-              //             codeAutoRetrievalTimeout: (_) {},
-              //           );
-
-              //           await navigator.currentState.push(
-              //             MaterialPageRoute(
-              //               builder: (context) {
-              //                 return Scaffold(
-              //                   appBar: AppBar(
-              //                       title: const Text('تسجيل الدخول بالهاتف')),
-              //                   body: Column(
-              //                     children: <Widget>[
-              //                       Container(
-              //                         padding: const EdgeInsets.symmetric(
-              //                             vertical: 4.0),
-              //                         child: TextFormField(
-              //                           decoration: InputDecoration(
-              //                               labelText: 'رمز التحقق',
-              //                               border: OutlineInputBorder(
-              //                                 borderSide: BorderSide(
-              //                                     color: Theme.of(context).colorScheme.primary),
-              //                               )),
-              //                           onFieldSubmitted: (_) =>
-              //                               submitOTP(),
-              //                           controller: otp,
-              //                           validator: (value) {
-              //                             if (value.isEmpty) {
-              //                               return 'برجاء كتابة رمز التحقق الذي تم ارساله الى $phoneNumber';
-              //                             }
-              //                             return null;
-              //                           },
-              //                         ),
-              //                       ),
-              //                       ElevatedButton(
-              //                           child: const Text('تسجيل الدخول'),
-              //                           onPressed: () => submitOTP()),
-              //                     ],
-              //                   ),
-              //                 );
-              //               },
-              //             ),
-              //           );
-              //         }
-
-              //         return Scaffold(
-              //           appBar:
-              //               AppBar(title: const Text('تسجيل الدخول بالهاتف')),
-              //           body: Column(
-              //             children: <Widget>[
-              //               Container(
-              //                 padding:
-              //                     const EdgeInsets.symmetric(vertical: 4.0),
-              //                 child: TextFormField(
-              //                   decoration: InputDecoration(
-              //                       labelText: 'رقم الهاتف',
-              //                       border: OutlineInputBorder(
-              //                         borderSide:
-              //                             BorderSide(color: Theme.of(context).colorScheme.primary),
-              //                       )),
-              //                   onFieldSubmitted: (_) => sendOTP(),
-              //                   controller: phone,
-              //                   validator: (value) {
-              //                     if (value.isEmpty) {
-              //                       return 'برجاء كتابة رقم الهاتف';
-              //                     }
-              //                     return null;
-              //                   },
-              //                 ),
-              //               ),
-              //               ElevatedButton(
-              //                   child: const Text('إرسال رمز تحقق'),
-              //                   onPressed: () => sendOTP()),
-              //             ],
-              //           ),
-              //         );
-              //       },
-              //     ));
-              //   },
-              // ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
-
-  // @override
-  // void dispose() {
-  //   killMe.cancel();
-  //   super.dispose();
-  // }
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   killMe = auth.FirebaseAuth.instance
-  //       .authStateChanges()
-  //       .listen((auth.User user) async {
-  //     setState(() {});
-  //   });
-  // }
 
   Future<bool> setupSettings() async {
     try {
