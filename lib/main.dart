@@ -203,7 +203,7 @@ Future _initConfigs() async {
   final encryptionKey =
       base64Url.decode((await secureStorage.read(key: 'key'))!);
 
-  await Hive.openBox<String>(
+  await Hive.openBox(
     'User',
     encryptionCipher: HiveAesCipher(encryptionKey),
   );

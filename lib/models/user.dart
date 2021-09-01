@@ -212,12 +212,12 @@ class User extends Person {
   }
 
   void _initListeners() {
-    if (Hive.box<String>('User').toMap().isNotEmpty) {
+    if (Hive.box('User').toMap().isNotEmpty) {
       _refreshFromIdToken(
-        Hive.box<String>('User').toMap(),
-        name: Hive.box<String>('User').get('Name'),
-        email: Hive.box<String>('User').get('Email'),
-        uid: Hive.box<String>('User').get('UID'),
+        Hive.box('User').toMap(),
+        name: Hive.box('User').get('name'),
+        email: Hive.box('User').get('email'),
+        uid: Hive.box('User').get('sub'),
       );
     }
 
@@ -237,8 +237,9 @@ class User extends Person {
               final auth.IdTokenResult idToken =
                   await currentUser.getIdTokenResult(true);
 
-              await Hive.box<String>('User')
-                  .putAll(idToken.claims?.cast() ?? {});
+              await Hive.box('User').putAll(
+                  idToken.claims?.map((k, v) => MapEntry(k.toString(), v)) ??
+                      {});
 
               await dbInstance
                   .reference()
@@ -263,7 +264,7 @@ class User extends Person {
               });
               idTokenClaims = idToken.claims ?? {};
             } on Exception {
-              idTokenClaims = Hive.box<String>('User').toMap();
+              idTokenClaims = Hive.box('User').toMap();
               if (idTokenClaims.isEmpty) rethrow;
             }
             _refreshFromIdToken(idTokenClaims, user: user);
@@ -276,8 +277,9 @@ class User extends Person {
                 ConnectivityResult.none) {
               idToken = await user.getIdTokenResult();
 
-              await Hive.box<String>('User')
-                  .putAll(idToken.claims?.cast() ?? {});
+              await Hive.box('User').putAll(
+                  idToken.claims?.map((k, v) => MapEntry(k.toString(), v)) ??
+                      {});
 
               await dbInstance
                   .reference()
@@ -301,9 +303,9 @@ class User extends Person {
                     .set('Active');
               }
             });
-            idTokenClaims = idToken.claims ?? Hive.box<String>('User').toMap();
+            idTokenClaims = idToken.claims ?? Hive.box('User').toMap();
           } on Exception {
-            idTokenClaims = Hive.box<String>('User').toMap();
+            idTokenClaims = Hive.box('User').toMap();
             if (idTokenClaims.isEmpty) rethrow;
           }
 
@@ -322,7 +324,7 @@ class User extends Person {
   void _refreshFromIdToken(Map<dynamic, dynamic> idTokenClaims,
       {auth.User? user, String? name, String? uid, String? email}) {
     assert(user != null || (name != null && uid != null && email != null));
-    uid = user?.uid ?? uid!;
+    this.uid = user?.uid ?? uid!;
     name = user?.displayName ?? name ?? '';
     if (idTokenClaims['personId'] != ref.id) {
       ref = FirebaseFirestore.instance
