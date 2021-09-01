@@ -21,7 +21,7 @@ import 'package:meetinghelper/views/form_widgets/decorated_text_form_field.dart'
 import 'package:meetinghelper/views/form_widgets/tapable_form_field.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:tinycolor/tinycolor.dart';
+import 'package:tinycolor2/tinycolor2.dart';
 
 import '../../models/mini_models.dart';
 import '../../models/models.dart';

@@ -9,7 +9,7 @@ import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:tinycolor/tinycolor.dart';
+import 'package:tinycolor2/tinycolor2.dart';
 
 import '../../models/history_property.dart';
 import '../../models/list_controllers.dart';

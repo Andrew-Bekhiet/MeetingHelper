@@ -228,7 +228,7 @@ Future _initConfigs() async {
           databaseURL:
               'http://' + kEmulatorsHost! + ':9000?ns=meetinghelper-2a869'),
     );
-    // await auth.FirebaseAuth.instance.useAuthEmulator(kEmulatorsHost, 9099);
+    await auth.FirebaseAuth.instance.useAuthEmulator(kEmulatorsHost, 9099);
     await FirebaseStorage.instance.useStorageEmulator(kEmulatorsHost, 9199);
     firestore.FirebaseFirestore.instance
         .useFirestoreEmulator(kEmulatorsHost, 8080, sslEnabled: false);

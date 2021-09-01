@@ -13,7 +13,7 @@ import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:tinycolor/tinycolor.dart';
+import 'package:tinycolor2/tinycolor2.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/copiable_property.dart';

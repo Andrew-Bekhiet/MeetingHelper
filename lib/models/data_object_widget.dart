@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/utils/helpers.dart';
-import 'package:tinycolor/tinycolor.dart';
+import 'package:tinycolor2/tinycolor2.dart';
 
 class DataObjectWidget<T extends DataObject> extends StatelessWidget {
   final T current;
