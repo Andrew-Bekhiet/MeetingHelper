@@ -263,7 +263,7 @@ class User extends Person {
                 }
               });
               idTokenClaims = idToken.claims ?? {};
-            } on Exception {
+            } on Exception catch (e) {
               idTokenClaims = Hive.box('User').toMap();
               if (idTokenClaims.isEmpty) rethrow;
             }
@@ -325,7 +325,7 @@ class User extends Person {
       {auth.User? user, String? name, String? uid, String? email}) {
     assert(user != null || (name != null && uid != null && email != null));
     this.uid = user?.uid ?? uid!;
-    name = user?.displayName ?? name ?? '';
+    this.name = user?.displayName ?? name ?? '';
     if (idTokenClaims['personId'] != ref.id) {
       ref = FirebaseFirestore.instance
           .collection('UsersData')
@@ -358,7 +358,7 @@ class User extends Person {
         ? Timestamp.fromMillisecondsSinceEpoch(
             int.parse(idTokenClaims['lastTanawol'].toString()))
         : null;
-    email = user?.email ?? email!;
+    this.email = user?.email ?? email!;
 
     notifyListeners();
   }
