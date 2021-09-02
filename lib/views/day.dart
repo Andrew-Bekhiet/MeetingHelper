@@ -264,7 +264,6 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
               tabs: const [
                 Tab(text: 'حضور الاجتماع'),
                 Tab(text: 'حضور القداس'),
-                Tab(text: 'التناول'),
               ],
             ),
           ),
@@ -289,11 +288,9 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                         : context.read<CheckListController<User>>();
                     if (_tabs!.index == 0) {
                       return rslt.copyWith(type: DayListType.Meeting).attended;
-                    } else if (_tabs!.index == 1) {
-                      return rslt.copyWith(type: DayListType.Kodas).attended;
                     } else {
-                      //if (_tabs.index == 2) {
-                      return rslt.copyWith(type: DayListType.Tanawol).attended;
+                      //if (_tabs!.index == 1) {
+                      return rslt.copyWith(type: DayListType.Kodas).attended;
                     }
                   }(),
                   (Map a, Map b) => Tuple2<int, int>(a.length, b.length),
@@ -431,17 +428,6 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                       return tmp;
                     }(),
                   ),
-                  DataObjectCheckList<Person>(
-                    autoDisposeController: false,
-                    key: PageStorageKey('PersonsTanawol' + widget.record.id),
-                    options: () {
-                      final tmp = context
-                          .read<CheckListController<Person>>()
-                          .copyWith(type: DayListType.Tanawol);
-                      _listControllers.add(tmp);
-                      return tmp;
-                    }(),
-                  ),
                 ]
               : [
                   DataObjectCheckList<User>(
@@ -462,17 +448,6 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                       final tmp = context
                           .read<CheckListController<User>>()
                           .copyWith(type: DayListType.Kodas);
-                      _listControllers.add(tmp);
-                      return tmp;
-                    }(),
-                  ),
-                  DataObjectCheckList<User>(
-                    autoDisposeController: false,
-                    key: PageStorageKey('UsersTanawol' + widget.record.id),
-                    options: () {
-                      final tmp = context
-                          .read<CheckListController<User>>()
-                          .copyWith(type: DayListType.Tanawol);
                       _listControllers.add(tmp);
                       return tmp;
                     }(),
@@ -656,7 +631,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _tabs = TabController(length: 3, vsync: this);
+    _tabs = TabController(length: 2, vsync: this);
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) async {
       if (DateTime.now().difference(widget.record.day.toDate()).inDays != 0)
         return;

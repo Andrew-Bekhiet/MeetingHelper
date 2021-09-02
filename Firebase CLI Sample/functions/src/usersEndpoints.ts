@@ -122,7 +122,7 @@ export const registerAccount = https.onCall(async (data, context) => {
     .doc("Users/" + currentUser.uid)
     .update({ Name: data.name });
   await database()
-    .ref("Users/" + currentUser.uid + "/FCM_Tokens/" + data.fcmtoken)
+    .ref("Users/" + currentUser.uid + "/FCM_Tokens/" + data.fcmToken)
     .set("token");
   await auth().setCustomUserClaims(currentUser.uid, newCustomClaims);
   await database()

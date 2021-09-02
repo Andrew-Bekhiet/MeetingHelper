@@ -382,19 +382,6 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
                     ),
                     DayHistoryProperty('تاريخ أخر حضور قداس:',
                         widget.person!.lastKodas, widget.person!.id, 'Kodas'),
-                    Container(height: 10),
-                    PersonAttendanceIndicator(
-                      id: widget.person!.id,
-                      range: range,
-                      total: data.data!.size,
-                      collectionGroup: 'Tanawol',
-                      label: 'التناول',
-                    ),
-                    DayHistoryProperty(
-                        'تاريخ أخر تناول:',
-                        widget.person!.lastTanawol,
-                        widget.person!.id,
-                        'Tanawol'),
                   ],
                 );
               },
@@ -643,15 +630,6 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                 isServant: widget.historyColection ==
                                     'ServantsHistory',
                               ),
-                              const Divider(),
-                              Text('التناول',
-                                  style: Theme.of(context).textTheme.headline6),
-                              ClassesAttendanceIndicator(
-                                classes: classes ?? [],
-                                collection: days.first.tanawol,
-                                isServant: widget.historyColection ==
-                                    'ServantsHistory',
-                              ),
                             ] else if (days!.isNotEmpty) ...[
                               AttendanceChart(
                                 title: 'حضور الاجتماع',
@@ -671,16 +649,6 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                 isServant: widget.historyColection ==
                                     'ServantsHistory',
                                 collectionGroup: 'Kodas',
-                              ),
-                              const Divider(),
-                              AttendanceChart(
-                                title: 'التناول',
-                                classes: classes ?? [],
-                                range: range,
-                                days: days,
-                                isServant: widget.historyColection ==
-                                    'ServantsHistory',
-                                collectionGroup: 'Tanawol',
                               ),
                             ] else
                               const Center(

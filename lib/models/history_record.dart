@@ -46,12 +46,10 @@ class HistoryDay extends DataObject with ChangeNotifier {
 
   JsonCollectionRef get kodas => ref.collection('Kodas');
   JsonCollectionRef get meeting => ref.collection('Meeting');
-  JsonCollectionRef get tanawol => ref.collection('Tanawol');
 
   Map<DayListType, JsonCollectionRef> get collections => {
         DayListType.Meeting: meeting,
         DayListType.Kodas: kodas,
-        DayListType.Tanawol: tanawol
       };
 
   @override
@@ -164,9 +162,7 @@ class HistoryRecord {
         classId = doc.data()!['ClassId'],
         type = doc.reference.parent.id == 'Meeting'
             ? DayListType.Meeting
-            : (doc.reference.parent.id == 'Kodas'
-                ? DayListType.Kodas
-                : DayListType.Tanawol),
+            : DayListType.Kodas,
         isServant = doc.data()!['IsServant'] ?? false,
         time = doc.data()!['Time'],
         recordedBy = doc.data()!['RecordedBy'],

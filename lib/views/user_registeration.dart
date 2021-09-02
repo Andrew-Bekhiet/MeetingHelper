@@ -42,6 +42,9 @@ class _UserRegistrationState extends State<UserRegistration> {
         if (user.approved) {
           lastTanawol ??= user.lastTanawol?.millisecondsSinceEpoch;
           lastConfession ??= user.lastConfession?.millisecondsSinceEpoch;
+          if (_userName.text.isEmpty)
+            WidgetsBinding.instance!
+                .addPostFrameCallback((_) => _userName.text = user.name);
           return Scaffold(
             resizeToAvoidBottomInset: !kIsWeb,
             appBar: AppBar(
@@ -68,7 +71,7 @@ class _UserRegistrationState extends State<UserRegistration> {
                     ),
                     textInputAction: TextInputAction.next,
                     autofocus: true,
-                    controller: _userName..text = user.name,
+                    controller: _userName,
                     validator: (value) {
                       if (value!.isEmpty) {
                         return 'لا يمكن أن يكون اسمك فارغًا';
