@@ -271,7 +271,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
     if (T == Person) return 'مخدومين';
     if (T == Invitation) return 'دعوات';
     if (T == TrashDay) return 'محذوفات';
-    throw UnimplementedError();
+    return 'عناصر';
   }
 
   @override
