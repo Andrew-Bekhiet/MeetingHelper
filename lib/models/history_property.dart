@@ -95,12 +95,12 @@ class HistoryProperty extends StatelessWidget {
 }
 
 class EditHistoryProperty extends StatelessWidget {
-  const EditHistoryProperty(this.name, this.user, this.historyRef,
+  const EditHistoryProperty(this.name, this.userUID, this.historyRef,
       {Key? key, this.showTime = true, this.discoverFeature = false})
       : super(key: key);
 
   final String name;
-  final String? user;
+  final String? userUID;
   final bool showTime;
   final bool discoverFeature;
   final JsonCollectionRef historyRef;
@@ -152,10 +152,9 @@ class EditHistoryProperty extends StatelessWidget {
       },
     );
     return FutureBuilder<User>(
-        future: user != null ? User.fromID(user) : null,
+        future: userUID != null ? User.fromID(userUID) : null,
         builder: (context, user) {
           return ListTile(
-            isThreeLine: true,
             title: Text(name),
             subtitle: FutureBuilder<JsonQuery>(
               future: historyRef
@@ -163,14 +162,17 @@ class EditHistoryProperty extends StatelessWidget {
                   .limit(1)
                   .get(dataSource),
               builder: (context, future) {
-                return future.hasData
-                    ? ListTile(
-                        leading: this.user != null
+                if (future.hasData) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ListTile(
+                        leading: userUID != null
                             ? IgnorePointer(
-                                child: User.photoFromUID(this.user!),
+                                child: User.photoFromUID(userUID!),
                               )
                             : null,
-                        title: this.user != null
+                        title: userUID != null
                             ? user.hasData
                                 ? Text(user.data!.name)
                                 : const LinearProgressIndicator()
@@ -189,7 +191,7 @@ class EditHistoryProperty extends StatelessWidget {
                                   )
                                 : const LinearProgressIndicator(),
                         subtitle: future.data!.docs.isNotEmpty &&
-                                this.user != null
+                                userUID != null
                             ? Text(
                                 DateFormat(
                                         showTime
@@ -201,8 +203,12 @@ class EditHistoryProperty extends StatelessWidget {
                                 ),
                               )
                             : null,
-                      )
-                    : const LinearProgressIndicator();
+                      ),
+                    ],
+                  );
+                } else {
+                  return const LinearProgressIndicator();
+                }
               },
             ),
             trailing: discoverFeature
