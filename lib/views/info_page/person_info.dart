@@ -1,19 +1,20 @@
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:feature_discovery/feature_discovery.dart';
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:intl/intl.dart';
+import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:tinycolor2/tinycolor2.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/copiable_property.dart';
@@ -39,16 +40,82 @@ class PersonInfo extends StatefulWidget {
 }
 
 class _PersonInfoState extends State<PersonInfo> {
+  final _edit = GlobalKey();
+  final _share = GlobalKey();
+  final _lastVisit = GlobalKey();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance!.addPostFrameCallback((_) async {
       await Future.delayed(const Duration(milliseconds: 300));
-      FeatureDiscovery.discoverFeatures(context, [
+
+      if (([
         if (User.instance.write) 'Person.Edit',
         'Person.Share',
         if (User.instance.write) 'Person.LastVisit'
-      ]);
+      ]..removeWhere(HivePersistenceProvider.instance.hasCompletedStep))
+          .isNotEmpty)
+        TutorialCoachMark(
+          context,
+          targets: [
+            if (User.instance.write)
+              TargetFocus(
+                enableOverlayTab: true,
+                contents: [
+                  TargetContent(
+                    child: Text(
+                      'تحديث بيانات المخدوم',
+                      style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                          color: Theme.of(context).colorScheme.onSecondary),
+                    ),
+                  ),
+                ],
+                identify: 'Person.Edit',
+                keyTarget: _edit,
+                color: Theme.of(context).colorScheme.secondary,
+              ),
+            TargetFocus(
+              enableOverlayTab: true,
+              contents: [
+                TargetContent(
+                  child: Text(
+                    'يمكنك مشاركة البيانات بلينك يفتح البيانات مباشرة داخل البرنامج',
+                    style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                        color: Theme.of(context).colorScheme.onSecondary),
+                  ),
+                ),
+              ],
+              identify: 'Person.Share',
+              keyTarget: _share,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+            if (User.instance.write)
+              TargetFocus(
+                enableOverlayTab: true,
+                contents: [
+                  TargetContent(
+                    child: Text(
+                      'يمكنك تسجيل أخر زيارة للمخدوم بسرعة من هنا',
+                      style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                          color: Theme.of(context).colorScheme.onSecondary),
+                    ),
+                  ),
+                ],
+                identify: 'Person.LastVisit',
+                keyTarget: _lastVisit,
+                color: Theme.of(context).colorScheme.secondary,
+              ),
+          ],
+          alignSkip: Alignment.bottomLeft,
+          textSkip: 'تخطي',
+          onClickOverlay: (t) async {
+            await HivePersistenceProvider.instance.completeStep(t.identify);
+          },
+          onClickTarget: (t) async {
+            await HivePersistenceProvider.instance.completeStep(t.identify);
+          },
+        ).show();
     });
   }
 
@@ -92,68 +159,19 @@ class _PersonInfoState extends State<PersonInfo> {
                         : <Widget>[
                             if (permission!)
                               IconButton(
-                                icon: DescribedFeatureOverlay(
-                                  barrierDismissible: false,
-                                  contentLocation: ContentLocation.below,
-                                  featureId: 'Person.Edit',
-                                  tapTarget: Icon(
-                                    Icons.edit,
-                                    color: IconTheme.of(context).color,
-                                  ),
-                                  title: const Text('تعديل'),
-                                  description: Column(
+                                key: _edit,
+                                icon: Builder(
+                                  builder: (context) => Stack(
                                     children: <Widget>[
-                                      const Text('يمكنك تعديل البيانات من هنا'),
-                                      OutlinedButton.icon(
-                                        icon: const Icon(Icons.forward),
-                                        label: Text(
-                                          'التالي',
-                                          style: TextStyle(
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .bodyText2!
-                                                .color,
-                                          ),
-                                        ),
-                                        onPressed: () => FeatureDiscovery
-                                            .completeCurrentStep(context),
+                                      const Positioned(
+                                        left: 1.0,
+                                        top: 2.0,
+                                        child: Icon(Icons.edit,
+                                            color: Colors.black54),
                                       ),
-                                      OutlinedButton(
-                                        onPressed: () =>
-                                            FeatureDiscovery.dismissAll(
-                                                context),
-                                        child: Text(
-                                          'تخطي',
-                                          style: TextStyle(
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .bodyText2!
-                                                .color,
-                                          ),
-                                        ),
-                                      ),
+                                      Icon(Icons.edit,
+                                          color: IconTheme.of(context).color),
                                     ],
-                                  ),
-                                  backgroundColor:
-                                      Theme.of(context).colorScheme.secondary,
-                                  targetColor: Colors.transparent,
-                                  textColor: Theme.of(context)
-                                      .primaryTextTheme
-                                      .bodyText1!
-                                      .color!,
-                                  child: Builder(
-                                    builder: (context) => Stack(
-                                      children: <Widget>[
-                                        const Positioned(
-                                          left: 1.0,
-                                          top: 2.0,
-                                          child: Icon(Icons.edit,
-                                              color: Colors.black54),
-                                        ),
-                                        Icon(Icons.edit,
-                                            color: IconTheme.of(context).color),
-                                      ],
-                                    ),
                                   ),
                                 ),
                                 onPressed: () async {
@@ -184,68 +202,19 @@ class _PersonInfoState extends State<PersonInfo> {
                                 tooltip: 'تعديل',
                               ),
                             IconButton(
-                              icon: DescribedFeatureOverlay(
-                                barrierDismissible: false,
-                                contentLocation: ContentLocation.below,
-                                featureId: 'Person.Share',
-                                tapTarget: const Icon(
-                                  Icons.share,
-                                ),
-                                title: const Text('مشاركة البيانات'),
-                                description: Column(
+                              key: _share,
+                              icon: Builder(
+                                builder: (context) => Stack(
                                   children: <Widget>[
-                                    const Text(
-                                        'يمكنك مشاركة البيانات بلينك يفتح البيانات مباشرة داخل البرنامج'),
-                                    OutlinedButton.icon(
-                                      icon: const Icon(Icons.forward),
-                                      label: Text(
-                                        'التالي',
-                                        style: TextStyle(
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .bodyText2!
-                                              .color,
-                                        ),
-                                      ),
-                                      onPressed: () =>
-                                          FeatureDiscovery.completeCurrentStep(
-                                              context),
+                                    const Positioned(
+                                      left: 1.0,
+                                      top: 2.0,
+                                      child: Icon(Icons.share,
+                                          color: Colors.black54),
                                     ),
-                                    OutlinedButton(
-                                      onPressed: () =>
-                                          FeatureDiscovery.dismissAll(context),
-                                      child: Text(
-                                        'تخطي',
-                                        style: TextStyle(
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .bodyText2!
-                                              .color,
-                                        ),
-                                      ),
-                                    ),
+                                    Icon(Icons.share,
+                                        color: IconTheme.of(context).color),
                                   ],
-                                ),
-                                backgroundColor:
-                                    Theme.of(context).colorScheme.secondary,
-                                targetColor: Colors.transparent,
-                                textColor: Theme.of(context)
-                                    .primaryTextTheme
-                                    .bodyText1!
-                                    .color!,
-                                child: Builder(
-                                  builder: (context) => Stack(
-                                    children: <Widget>[
-                                      const Positioned(
-                                        left: 1.0,
-                                        top: 2.0,
-                                        child: Icon(Icons.share,
-                                            color: Colors.black54),
-                                      ),
-                                      Icon(Icons.share,
-                                          color: IconTheme.of(context).color),
-                                    ],
-                                  ),
                                 ),
                               ),
                               onPressed: () async {
@@ -447,52 +416,15 @@ class _PersonInfoState extends State<PersonInfo> {
                 ],
               ),
             ),
-            floatingActionButton: permission! &&
-                    !person.ref.path.startsWith('Deleted')
-                ? FloatingActionButton(
-                    tooltip: 'تسجيل أخر زيارة اليوم',
-                    onPressed: () => recordLastVisit(context, person),
-                    child: DescribedFeatureOverlay(
-                      onBackgroundTap: () async {
-                        await FeatureDiscovery.completeCurrentStep(context);
-                        return true;
-                      },
-                      onDismiss: () async {
-                        await FeatureDiscovery.completeCurrentStep(context);
-                        return true;
-                      },
-                      backgroundDismissible: true,
-                      contentLocation: ContentLocation.above,
-                      featureId: 'Person.LastVisit',
-                      tapTarget: const Icon(Icons.update),
-                      title: const Text('تسجيل أخر زيارة'),
-                      description: Column(
-                        children: [
-                          const Text(
-                              'يمكنك تسجيل أخر زيارة للمخدوم بسرعة من هنا'),
-                          OutlinedButton(
-                            onPressed: () =>
-                                FeatureDiscovery.completeCurrentStep(context),
-                            child: Text(
-                              'تخطي',
-                              style: TextStyle(
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyText2!
-                                    .color,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      backgroundColor: Theme.of(context).colorScheme.secondary,
-                      targetColor: Theme.of(context).colorScheme.primary,
-                      textColor:
-                          Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                      child: const Icon(Icons.update),
-                    ),
-                  )
-                : null,
+            floatingActionButton:
+                permission! && !person.ref.path.startsWith('Deleted')
+                    ? FloatingActionButton(
+                        key: _lastVisit,
+                        tooltip: 'تسجيل أخر زيارة اليوم',
+                        onPressed: () => recordLastVisit(context, person),
+                        child: const Icon(Icons.update),
+                      )
+                    : null,
           );
         },
       ),

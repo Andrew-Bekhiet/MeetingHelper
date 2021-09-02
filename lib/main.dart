@@ -5,7 +5,6 @@ import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:feature_discovery/feature_discovery.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -35,7 +34,6 @@ import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart';
 
 import 'models/history_record.dart';
-import 'models/hive_persistence_provider.dart';
 import 'models/invitation.dart';
 import 'models/mini_models.dart' hide History;
 import 'models/models.dart';
@@ -412,154 +410,149 @@ class AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
-    return FeatureDiscovery.withProvider(
-      persistenceProvider: HivePersistenceProvider(),
-      child: StreamBuilder<ThemeData>(
-        initialData: context.read<ThemeNotifier>().theme,
-        stream: context.read<ThemeNotifier>().stream,
-        builder: (context, theme) {
-          return MaterialApp(
-            debugShowCheckedModeBanner: false,
-            scaffoldMessengerKey: scaffoldMessenger,
-            navigatorKey: navigator,
-            title: 'خدمة مدارس الأحد',
-            initialRoute: '/',
-            routes: {
-              '/': buildLoadAppWidget,
-              'Login': (context) => const LoginScreen(),
-              'Data/EditClass': (context) => EditClass(
-                  class$: ModalRoute.of(context)!.settings.arguments as Class?),
-              'Data/EditPerson': (context) {
-                if (ModalRoute.of(context)?.settings.arguments == null)
-                  return EditPerson(person: Person());
-                else if (ModalRoute.of(context)!.settings.arguments is Person)
-                  return EditPerson(
-                      person: ModalRoute.of(context)!.settings.arguments!
-                          as Person);
-                else {
-                  final Person person = Person()
-                    ..classId =
-                        ModalRoute.of(context)!.settings.arguments! as JsonRef;
-                  return EditPerson(person: person);
-                }
-              },
-              'EditInvitation': (context) => EditInvitation(
-                  invitation: ModalRoute.of(context)?.settings.arguments
-                          as Invitation? ??
-                      Invitation.empty()),
-              'Day': (context) {
-                if (ModalRoute.of(context)?.settings.arguments != null)
-                  return Day(
-                      record: ModalRoute.of(context)!.settings.arguments!
-                          as HistoryDay);
-                else
-                  return Day(record: HistoryDay());
-              },
-              'ServantsDay': (context) {
-                if (ModalRoute.of(context)?.settings.arguments != null)
-                  return Day(
-                      record: ModalRoute.of(context)!.settings.arguments!
-                          as ServantsHistoryDay);
-                else
-                  return Day(record: ServantsHistoryDay());
-              },
-              'Trash': (context) => const Trash(),
-              'History': (context) => const History(iServantsHistory: false),
-              'ExportOps': (context) => const Exports(),
-              'ServantsHistory': (context) =>
-                  const History(iServantsHistory: true),
-              'MyAccount': (context) => const MyAccount(),
-              'Notifications': (context) => const NotificationsPage(),
-              'ClassInfo': (context) => ClassInfo(
-                  class$: ModalRoute.of(context)!.settings.arguments! as Class),
-              'PersonInfo': (context) => PersonInfo(
-                  person: ModalRoute.of(context)!.settings.arguments! as Person,
-                  converter: ModalRoute.of(context)!.settings.arguments is User
-                      ? User.fromDoc
-                      : Person.fromDoc,
-                  showMotherAndFatherPhones:
-                      ModalRoute.of(context)!.settings.arguments is! User),
-              'UserInfo': (context) => const UserInfo(),
-              'InvitationInfo': (context) => InvitationInfo(
-                  invitation: ModalRoute.of(context)!.settings.arguments!
-                      as Invitation),
-              'Update': (context) => const Update(),
-              'Search': (context) => const SearchQuery(),
-              'DataMap': (context) => const DataMap(),
-              'Settings': (context) => const s.Settings(),
-              'Settings/Churches': (context) => const ChurchesPage(),
-              /*MiniList(
+    return StreamBuilder<ThemeData>(
+      initialData: context.read<ThemeNotifier>().theme,
+      stream: context.read<ThemeNotifier>().stream,
+      builder: (context, theme) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          scaffoldMessengerKey: scaffoldMessenger,
+          navigatorKey: navigator,
+          title: 'خدمة مدارس الأحد',
+          initialRoute: '/',
+          routes: {
+            '/': buildLoadAppWidget,
+            'Login': (context) => const LoginScreen(),
+            'Data/EditClass': (context) => EditClass(
+                class$: ModalRoute.of(context)!.settings.arguments as Class?),
+            'Data/EditPerson': (context) {
+              if (ModalRoute.of(context)?.settings.arguments == null)
+                return EditPerson(person: Person());
+              else if (ModalRoute.of(context)!.settings.arguments is Person)
+                return EditPerson(
+                    person:
+                        ModalRoute.of(context)!.settings.arguments! as Person);
+              else {
+                final Person person = Person()
+                  ..classId =
+                      ModalRoute.of(context)!.settings.arguments! as JsonRef;
+                return EditPerson(person: person);
+              }
+            },
+            'EditInvitation': (context) => EditInvitation(
+                invitation:
+                    ModalRoute.of(context)?.settings.arguments as Invitation? ??
+                        Invitation.empty()),
+            'Day': (context) {
+              if (ModalRoute.of(context)?.settings.arguments != null)
+                return Day(
+                    record: ModalRoute.of(context)!.settings.arguments!
+                        as HistoryDay);
+              else
+                return Day(record: HistoryDay());
+            },
+            'ServantsDay': (context) {
+              if (ModalRoute.of(context)?.settings.arguments != null)
+                return Day(
+                    record: ModalRoute.of(context)!.settings.arguments!
+                        as ServantsHistoryDay);
+              else
+                return Day(record: ServantsHistoryDay());
+            },
+            'Trash': (context) => const Trash(),
+            'History': (context) => const History(iServantsHistory: false),
+            'ExportOps': (context) => const Exports(),
+            'ServantsHistory': (context) =>
+                const History(iServantsHistory: true),
+            'MyAccount': (context) => const MyAccount(),
+            'Notifications': (context) => const NotificationsPage(),
+            'ClassInfo': (context) => ClassInfo(
+                class$: ModalRoute.of(context)!.settings.arguments! as Class),
+            'PersonInfo': (context) => PersonInfo(
+                person: ModalRoute.of(context)!.settings.arguments! as Person,
+                converter: ModalRoute.of(context)!.settings.arguments is User
+                    ? User.fromDoc
+                    : Person.fromDoc,
+                showMotherAndFatherPhones:
+                    ModalRoute.of(context)!.settings.arguments is! User),
+            'UserInfo': (context) => const UserInfo(),
+            'InvitationInfo': (context) => InvitationInfo(
+                invitation:
+                    ModalRoute.of(context)!.settings.arguments! as Invitation),
+            'Update': (context) => const Update(),
+            'Search': (context) => const SearchQuery(),
+            'DataMap': (context) => const DataMap(),
+            'Settings': (context) => const s.Settings(),
+            'Settings/Churches': (context) => const ChurchesPage(),
+            /*MiniList(
                 parent: FirebaseFirestore.instance.collection('Churches'),
                 pageTitle: 'الكنائس',
               ),*/
-              'Settings/Fathers': (context) => const FathersPage(),
-              /* MiniList(
+            'Settings/Fathers': (context) => const FathersPage(),
+            /* MiniList(
                 parent: FirebaseFirestore.instance.collection('Fathers'),
                 pageTitle: 'الأباء الكهنة',
               ) */
-              'Settings/StudyYears': (context) =>
-                  const StudyYearsPage() /* MiniList(
+            'Settings/StudyYears': (context) =>
+                const StudyYearsPage() /* MiniList(
                 parent: FirebaseFirestore.instance.collection('StudyYears'),
                 pageTitle: 'السنوات الدراسية',
               ) */
-              ,
-              'Settings/Schools': (context) => MiniModelList<School>(
-                    transformer: School.fromDoc,
-                    collection: firestore.FirebaseFirestore.instance
-                        .collection('Schools'),
-                    title: 'المدارس',
-                  ),
-              'UpdateUserDataError': (context) =>
-                  const UpdateUserDataErrorPage(),
-              'ManageUsers': (context) => const UsersPage(),
-              'Invitations': (context) => const InvitationsPage(),
-              'ActivityAnalysis': (context) => ActivityAnalysis(
-                    classes: ModalRoute.of(context)?.settings.arguments
-                        as List<Class>?,
-                  ),
-              'Analytics': (context) {
-                if (ModalRoute.of(context)!.settings.arguments is Person)
-                  return PersonAnalyticsPage(
-                      person: ModalRoute.of(context)!.settings.arguments!
-                          as Person);
-                else if (ModalRoute.of(context)!.settings.arguments is Class)
-                  return AnalyticsPage(classes: [
-                    ModalRoute.of(context)!.settings.arguments! as Class
-                  ]);
-                else if (ModalRoute.of(context)!.settings.arguments
-                    is HistoryDay)
-                  return AnalyticsPage(
-                      day: ModalRoute.of(context)!.settings.arguments!
-                          as HistoryDay);
-                else {
-                  final Json args =
-                      ModalRoute.of(context)!.settings.arguments! as Json;
-                  return AnalyticsPage(
-                    historyColection: args['HistoryCollection'] ?? 'History',
-                    classes: args['Classes'],
-                    day: args['Day'],
-                    range: args['Range'],
-                  );
-                }
-              },
+            ,
+            'Settings/Schools': (context) => MiniModelList<School>(
+                  transformer: School.fromDoc,
+                  collection: firestore.FirebaseFirestore.instance
+                      .collection('Schools'),
+                  title: 'المدارس',
+                ),
+            'UpdateUserDataError': (context) => const UpdateUserDataErrorPage(),
+            'ManageUsers': (context) => const UsersPage(),
+            'Invitations': (context) => const InvitationsPage(),
+            'ActivityAnalysis': (context) => ActivityAnalysis(
+                  classes: ModalRoute.of(context)?.settings.arguments
+                      as List<Class>?,
+                ),
+            'Analytics': (context) {
+              if (ModalRoute.of(context)!.settings.arguments is Person)
+                return PersonAnalyticsPage(
+                    person:
+                        ModalRoute.of(context)!.settings.arguments! as Person);
+              else if (ModalRoute.of(context)!.settings.arguments is Class)
+                return AnalyticsPage(classes: [
+                  ModalRoute.of(context)!.settings.arguments! as Class
+                ]);
+              else if (ModalRoute.of(context)!.settings.arguments is HistoryDay)
+                return AnalyticsPage(
+                    day: ModalRoute.of(context)!.settings.arguments!
+                        as HistoryDay);
+              else {
+                final Json args =
+                    ModalRoute.of(context)!.settings.arguments! as Json;
+                return AnalyticsPage(
+                  historyColection: args['HistoryCollection'] ?? 'History',
+                  classes: args['Classes'],
+                  day: args['Day'],
+                  range: args['Range'],
+                );
+              }
             },
-            localizationsDelegates: const [
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: const [
-              Locale('ar', 'EG'),
-            ],
-            themeMode: theme.data!.brightness == Brightness.dark
-                ? ThemeMode.dark
-                : ThemeMode.light,
-            locale: const Locale('ar', 'EG'),
-            theme: theme.data,
-            darkTheme: theme.data,
-          );
-        },
-      ),
+          },
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('ar', 'EG'),
+          ],
+          themeMode: theme.data!.brightness == Brightness.dark
+              ? ThemeMode.dark
+              : ThemeMode.light,
+          locale: const Locale('ar', 'EG'),
+          theme: theme.data,
+          darkTheme: theme.data,
+        );
+      },
     );
   }
 }

@@ -1,7 +1,7 @@
-import 'package:feature_discovery/feature_discovery.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/models/user.dart';
@@ -10,6 +10,7 @@ import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/views/list.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 class Day extends StatefulWidget {
   final HistoryDay record;
@@ -26,6 +27,10 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
   final FocusNode _searchFocus = FocusNode();
 
   final List<CheckListController> _listControllers = [];
+
+  final _sorting = GlobalKey();
+  final _analyticsToday = GlobalKey();
+  final _lockUnchecks = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -153,46 +158,9 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                     : Container(),
               ),
               IconButton(
+                key: _analyticsToday,
                 tooltip: 'تحليل بيانات كشف اليوم',
-                icon: DescribedFeatureOverlay(
-                  barrierDismissible: false,
-                  contentLocation: ContentLocation.below,
-                  featureId: 'AnalyticsToday',
-                  tapTarget: const Icon(Icons.analytics_outlined),
-                  title: const Text('عرض تحليل لبيانات كشف اليوم'),
-                  description: Column(
-                    children: <Widget>[
-                      const Text(
-                          'الأن يمكنك عرض تحليل لبيانات المخدومين خلال اليوم من هنا'),
-                      OutlinedButton.icon(
-                        icon: const Icon(Icons.forward),
-                        label: Text(
-                          'التالي',
-                          style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2!.color,
-                          ),
-                        ),
-                        onPressed: () {
-                          FeatureDiscovery.completeCurrentStep(context);
-                        },
-                      ),
-                      OutlinedButton(
-                        onPressed: () => FeatureDiscovery.dismissAll(context),
-                        child: Text(
-                          'تخطي',
-                          style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2!.color,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  backgroundColor: Theme.of(context).colorScheme.secondary,
-                  targetColor: Colors.transparent,
-                  textColor:
-                      Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                  child: const Icon(Icons.analytics_outlined),
-                ),
+                icon: const Icon(Icons.analytics_outlined),
                 onPressed: () {
                   navigator.currentState!.pushNamed('Analytics', arguments: {
                     'Day': widget.record,
@@ -200,63 +168,26 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                   });
                 },
               ),
-              DescribedFeatureOverlay(
-                barrierDismissible: false,
-                featureId: 'Sorting',
-                tapTarget: const Icon(Icons.library_add_check_outlined),
-                title: const Text('تنظيم الليستة'),
-                description: Column(
-                  children: <Widget>[
-                    const Text('يمكنك تقسيم المخدومين حسب الفصول أو'
-                        ' اظهار المخدومين الحاضرين فقط أو '
-                        'الغائبين والترتيب حسب وقت الحضور فقط من هنا'),
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.forward),
-                      label: Text(
-                        'التالي',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText2?.color,
-                        ),
-                      ),
-                      onPressed: () =>
-                          FeatureDiscovery.completeCurrentStep(context),
-                    ),
-                    OutlinedButton(
-                      onPressed: () => FeatureDiscovery.dismissAll(context),
-                      child: Text(
-                        'تخطي',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText2?.color,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                backgroundColor: Theme.of(context).colorScheme.secondary,
-                targetColor: Theme.of(context).colorScheme.primary,
-                textColor:
-                    Theme.of(context).primaryTextTheme.bodyText1?.color ??
-                        Colors.black,
-                child: PopupMenuButton(
-                  onSelected: (v) async {
-                    if (v == 'delete' && User.instance.superAccess) {
-                      await _delete();
-                    } else if (v == 'sorting') {
-                      await _showSortingOptions(context);
-                    }
-                  },
-                  itemBuilder: (context) => [
+              PopupMenuButton(
+                key: _sorting,
+                onSelected: (v) async {
+                  if (v == 'delete' && User.instance.superAccess) {
+                    await _delete();
+                  } else if (v == 'sorting') {
+                    await _showSortingOptions(context);
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'sorting',
+                    child: Text('تنظيم الليستة'),
+                  ),
+                  if (User.instance.superAccess)
                     const PopupMenuItem(
-                      value: 'sorting',
-                      child: Text('تنظيم الليستة'),
+                      value: 'delete',
+                      child: Text('حذف الكشف'),
                     ),
-                    if (User.instance.superAccess)
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Text('حذف الكشف'),
-                      ),
-                  ],
-                ),
+                ],
               ),
             ],
             bottom: TabBar(
@@ -307,81 +238,35 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                     ),
                     trailing:
                         Icon(Icons.expand_more, color: theme.bodyText2?.color),
-                    leading: DescribedFeatureOverlay(
-                      barrierDismissible: false,
-                      contentLocation: ContentLocation.above,
-                      featureId: 'LockUnchecks',
-                      tapTarget: const Icon(Icons.lock_open_outlined),
-                      title: const Text('تثبيت الحضور'),
-                      description: Column(
-                        children: <Widget>[
-                          const Text(
-                              'يقوم البرنامج تلقائيًا بطلب تأكيد لإزالة حضور مخدوم\nاذا اردت الغاء هذه الخاصية يمكنك الضغط هنا'),
-                          OutlinedButton.icon(
-                            icon: const Icon(Icons.forward),
-                            label: Text(
-                              'التالي',
-                              style: TextStyle(
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyText2
-                                    ?.color,
-                              ),
-                            ),
-                            onPressed: () {
-                              FeatureDiscovery.completeCurrentStep(context);
-                            },
-                          ),
-                          OutlinedButton(
-                            onPressed: () =>
-                                FeatureDiscovery.dismissAll(context),
-                            child: Text(
-                              'تخطي',
-                              style: TextStyle(
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyText2
-                                    ?.color,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      backgroundColor: Theme.of(context).colorScheme.secondary,
-                      targetColor: Colors.transparent,
-                      textColor:
-                          Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                      child: StreamBuilder<bool>(
-                        initialData: (widget.record is! ServantsHistoryDay
-                                ? context.read<CheckListController<Person>>()
-                                : context.read<CheckListController<User>>())
-                            .dayOptions
-                            .lockUnchecks
-                            .value,
-                        stream: (widget.record is! ServantsHistoryDay
-                                ? context.read<CheckListController<Person>>()
-                                : context.read<CheckListController<User>>())
-                            .dayOptions
-                            .lockUnchecks,
-                        builder: (context, data) {
-                          return IconButton(
-                            icon: Icon(
-                                !data.data!
-                                    ? Icons.lock_open
-                                    : Icons.lock_outlined,
-                                color: theme.bodyText2?.color),
-                            tooltip: 'تثبيت الحضور',
-                            onPressed: () => (widget.record
-                                        is! ServantsHistoryDay
-                                    ? context
-                                        .read<CheckListController<Person>>()
-                                    : context.read<CheckListController<User>>())
-                                .dayOptions
-                                .lockUnchecks
-                                .add(!data.data!),
-                          );
-                        },
-                      ),
+                    leading: StreamBuilder<bool>(
+                      initialData: (widget.record is! ServantsHistoryDay
+                              ? context.read<CheckListController<Person>>()
+                              : context.read<CheckListController<User>>())
+                          .dayOptions
+                          .lockUnchecks
+                          .value,
+                      stream: (widget.record is! ServantsHistoryDay
+                              ? context.read<CheckListController<Person>>()
+                              : context.read<CheckListController<User>>())
+                          .dayOptions
+                          .lockUnchecks,
+                      builder: (context, data) {
+                        return IconButton(
+                          key: _lockUnchecks,
+                          icon: Icon(
+                              !data.data!
+                                  ? Icons.lock_open
+                                  : Icons.lock_outlined,
+                              color: theme.bodyText2?.color),
+                          tooltip: 'تثبيت الحضور',
+                          onPressed: () => (widget.record is! ServantsHistoryDay
+                                  ? context.read<CheckListController<Person>>()
+                                  : context.read<CheckListController<User>>())
+                              .dayOptions
+                              .lockUnchecks
+                              .add(!data.data!),
+                        );
+                      },
                     ),
                     children: [
                       Text('الغياب: ' +
@@ -665,10 +550,73 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
             ],
           ),
         );
-        await Hive.box<bool>('FeatureDiscovery').put('DayInstructions', true);
+        await HivePersistenceProvider.instance.completeStep('DayInstructions');
       }
-      FeatureDiscovery.discoverFeatures(
-          context, ['Sorting', 'AnalyticsToday', 'LockUnchecks']);
+
+      if ((['Sorting', 'AnalyticsToday', 'LockUnchecks']
+            ..removeWhere(HivePersistenceProvider.instance.hasCompletedStep))
+          .isNotEmpty)
+        TutorialCoachMark(
+          context,
+          targets: [
+            TargetFocus(
+              enableOverlayTab: true,
+              contents: [
+                TargetContent(
+                  child: Text(
+                    'يمكنك تقسيم المخدومين حسب الفصول أو'
+                    ' اظهار المخدومين الحاضرين فقط أو '
+                    'الغائبين والترتيب حسب وقت الحضور فقط من هنا',
+                    style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                        color: Theme.of(context).colorScheme.onSecondary),
+                  ),
+                ),
+              ],
+              identify: 'Sorting',
+              keyTarget: _sorting,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+            TargetFocus(
+              enableOverlayTab: true,
+              contents: [
+                TargetContent(
+                  child: Text(
+                    'عرض تحليل واحصاء لعدد الحضور اليوم من هنا',
+                    style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                        color: Theme.of(context).colorScheme.onSecondary),
+                  ),
+                ),
+              ],
+              identify: 'AnalyticsToday',
+              keyTarget: _analyticsToday,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+            TargetFocus(
+              enableOverlayTab: true,
+              contents: [
+                TargetContent(
+                  child: Text(
+                    'يقوم البرنامج تلقائيًا بطلب تأكيد لإزالة حضور مخدوم'
+                    '\nاذا اردت الغاء هذه الخاصية يمكنك الضغط هنا',
+                    style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                        color: Theme.of(context).colorScheme.onSecondary),
+                  ),
+                ),
+              ],
+              identify: 'LockUnchecks',
+              keyTarget: _lockUnchecks,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+          ],
+          alignSkip: Alignment.bottomLeft,
+          textSkip: 'تخطي',
+          onClickOverlay: (t) async {
+            await HivePersistenceProvider.instance.completeStep(t.identify);
+          },
+          onClickTarget: (t) async {
+            await HivePersistenceProvider.instance.completeStep(t.identify);
+          },
+        ).show();
     });
   }
 

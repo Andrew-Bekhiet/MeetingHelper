@@ -263,7 +263,7 @@ class User extends Person {
                 }
               });
               idTokenClaims = idToken.claims ?? {};
-            } on Exception catch (e) {
+            } catch (e) {
               idTokenClaims = Hive.box('User').toMap();
               if (idTokenClaims.isEmpty) rethrow;
             }

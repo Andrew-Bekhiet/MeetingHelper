@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/history_record.dart';
@@ -96,164 +95,112 @@ class HistoryProperty extends StatelessWidget {
 
 class EditHistoryProperty extends StatelessWidget {
   const EditHistoryProperty(this.name, this.userUID, this.historyRef,
-      {Key? key, this.showTime = true, this.discoverFeature = false})
+      {Key? key, this.showTime = true})
       : super(key: key);
 
   final String name;
   final String? userUID;
   final bool showTime;
-  final bool discoverFeature;
   final JsonCollectionRef historyRef;
 
   @override
   Widget build(BuildContext context) {
-    final icon = IconButton(
-      tooltip: 'السجل',
-      icon: const Icon(Icons.history),
-      onPressed: () {
-        showDialog(
-          context: context,
-          builder: (context) => Dialog(
-            child: FutureBuilder<List<History>>(
-              future: History.getAllFromRef(historyRef),
-              builder: (context, history) {
-                if (!history.hasData)
-                  return const Center(child: CircularProgressIndicator());
-                if (history.hasError) return ErrorWidget(history.error!);
-                if (history.data!.isEmpty)
-                  return const Center(child: Text('لا يوجد سجل'));
-                return ListView.builder(
-                  itemCount: history.data!.length,
-                  itemBuilder: (context, i) => FutureBuilder<User>(
-                    future: User.fromID(history.data![i].byUser),
-                    builder: (context, user) {
-                      return ListTile(
-                        leading: user.hasData
-                            ? IgnorePointer(
-                                child:
-                                    User.photoFromUID(history.data![i].byUser!),
-                              )
-                            : const CircularProgressIndicator(),
-                        title: user.hasData
-                            ? Text(user.data!.name)
-                            : const LinearProgressIndicator(),
-                        subtitle: Text(DateFormat(
-                                showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d',
-                                'ar-EG')
-                            .format(history.data![i].time!.toDate())),
+    return FutureBuilder<User>(
+      future: userUID != null ? User.fromID(userUID) : null,
+      builder: (context, user) {
+        return ListTile(
+          title: Text(name),
+          subtitle: FutureBuilder<JsonQuery>(
+            future: historyRef
+                .orderBy('Time', descending: true)
+                .limit(1)
+                .get(dataSource),
+            builder: (context, future) {
+              if (future.hasData) {
+                return ListTile(
+                  leading: userUID != null
+                      ? IgnorePointer(
+                          child: User.photoFromUID(userUID!),
+                        )
+                      : null,
+                  title: userUID != null
+                      ? user.hasData
+                          ? Text(user.data!.name)
+                          : const Text('')
+                      : future.data!.docs.isNotEmpty
+                          ? Text(
+                              DateFormat(
+                                      showTime
+                                          ? 'yyyy/M/d   h:m a'
+                                          : 'yyyy/M/d',
+                                      'ar-EG')
+                                  .format(
+                                future.data!.docs[0].data()['Time'].toDate(),
+                              ),
+                            )
+                          : const Text(''),
+                  subtitle: future.data!.docs.isNotEmpty && userUID != null
+                      ? Text(
+                          DateFormat(showTime ? 'yyyy/M/d   h:m a' : 'yyyy/M/d',
+                                  'ar-EG')
+                              .format(
+                            future.data!.docs[0].data()['Time'].toDate(),
+                          ),
+                        )
+                      : null,
+                );
+              } else {
+                return const LinearProgressIndicator();
+              }
+            },
+          ),
+          trailing: IconButton(
+            tooltip: 'السجل',
+            icon: const Icon(Icons.history),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => Dialog(
+                  child: FutureBuilder<List<History>>(
+                    future: History.getAllFromRef(historyRef),
+                    builder: (context, history) {
+                      if (!history.hasData)
+                        return const Center(child: CircularProgressIndicator());
+                      if (history.hasError) return ErrorWidget(history.error!);
+                      if (history.data!.isEmpty)
+                        return const Center(child: Text('لا يوجد سجل'));
+                      return ListView.builder(
+                        itemCount: history.data!.length,
+                        itemBuilder: (context, i) => FutureBuilder<User>(
+                          future: User.fromID(history.data![i].byUser),
+                          builder: (context, user) {
+                            return ListTile(
+                              leading: user.hasData
+                                  ? IgnorePointer(
+                                      child: User.photoFromUID(
+                                          history.data![i].byUser!),
+                                    )
+                                  : const CircularProgressIndicator(),
+                              title: user.hasData
+                                  ? Text(user.data!.name)
+                                  : const Text(''),
+                              subtitle: Text(DateFormat(
+                                      showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d',
+                                      'ar-EG')
+                                  .format(history.data![i].time!.toDate())),
+                            );
+                          },
+                        ),
                       );
                     },
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
           ),
         );
       },
     );
-    return FutureBuilder<User>(
-        future: userUID != null ? User.fromID(userUID) : null,
-        builder: (context, user) {
-          return ListTile(
-            title: Text(name),
-            subtitle: FutureBuilder<JsonQuery>(
-              future: historyRef
-                  .orderBy('Time', descending: true)
-                  .limit(1)
-                  .get(dataSource),
-              builder: (context, future) {
-                if (future.hasData) {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ListTile(
-                        leading: userUID != null
-                            ? IgnorePointer(
-                                child: User.photoFromUID(userUID!),
-                              )
-                            : null,
-                        title: userUID != null
-                            ? user.hasData
-                                ? Text(user.data!.name)
-                                : const LinearProgressIndicator()
-                            : future.data!.docs.isNotEmpty
-                                ? Text(
-                                    DateFormat(
-                                            showTime
-                                                ? 'yyyy/M/d   h:m a'
-                                                : 'yyyy/M/d',
-                                            'ar-EG')
-                                        .format(
-                                      future.data!.docs[0]
-                                          .data()['Time']
-                                          .toDate(),
-                                    ),
-                                  )
-                                : const LinearProgressIndicator(),
-                        subtitle: future.data!.docs.isNotEmpty &&
-                                userUID != null
-                            ? Text(
-                                DateFormat(
-                                        showTime
-                                            ? 'yyyy/M/d   h:m a'
-                                            : 'yyyy/M/d',
-                                        'ar-EG')
-                                    .format(
-                                  future.data!.docs[0].data()['Time'].toDate(),
-                                ),
-                              )
-                            : null,
-                      ),
-                    ],
-                  );
-                } else {
-                  return const LinearProgressIndicator();
-                }
-              },
-            ),
-            trailing: discoverFeature
-                ? DescribedFeatureOverlay(
-                    barrierDismissible: false,
-                    contentLocation: ContentLocation.above,
-                    featureId: 'EditHistory',
-                    tapTarget: const Icon(Icons.history),
-                    title: const Text('سجل التعديل'),
-                    description: Column(
-                      children: <Widget>[
-                        const Text('يمكنك الاطلاع على سجل التعديلات من هنا'),
-                        OutlinedButton.icon(
-                          icon: const Icon(Icons.forward),
-                          label: Text(
-                            'التالي',
-                            style: TextStyle(
-                              color:
-                                  Theme.of(context).textTheme.bodyText2!.color,
-                            ),
-                          ),
-                          onPressed: () =>
-                              FeatureDiscovery.completeCurrentStep(context),
-                        ),
-                        OutlinedButton(
-                          onPressed: () => FeatureDiscovery.dismissAll(context),
-                          child: Text(
-                            'تخطي',
-                            style: TextStyle(
-                              color:
-                                  Theme.of(context).textTheme.bodyText2!.color,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    backgroundColor: Theme.of(context).colorScheme.secondary,
-                    targetColor: Colors.transparent,
-                    textColor:
-                        Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                    child: icon,
-                  )
-                : icon,
-          );
-        });
   }
 }
 

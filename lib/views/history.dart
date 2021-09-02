@@ -1,10 +1,11 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/material.dart';
+import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import '../models/list_controllers.dart';
 import '../models/models.dart';
@@ -24,6 +25,7 @@ class _HistoryState extends State<History> {
   final BehaviorSubject<Stream<JsonQuery>?> list = BehaviorSubject.seeded(null);
   final BehaviorSubject<bool> _showSearch = BehaviorSubject<bool>.seeded(false);
   final FocusNode _searchFocus = FocusNode();
+  final _searchByDateRange = GlobalKey();
 
   // ignore: prefer_typing_uninitialized_variables
   late final _listController;
@@ -80,44 +82,10 @@ class _HistoryState extends State<History> {
           StreamBuilder<Stream?>(
             stream: list,
             builder: (context, data) => IconButton(
-              icon: DescribedFeatureOverlay(
-                barrierDismissible: false,
-                featureId: 'SearchByDateRange',
-                tapTarget: const Icon(Icons.calendar_today),
-                title: const Text('بحث بالتاريخ'),
-                description: Column(
-                  children: <Widget>[
-                    const Text(
-                        'يمكنك البحث عن كشف عدة أيام معينة عن طريق الضغط هنا ثم تحديد تاريخ البداية وتاريخ النهاية'),
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.forward),
-                      label: Text(
-                        'التالي',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText2!.color,
-                        ),
-                      ),
-                      onPressed: () =>
-                          FeatureDiscovery.completeCurrentStep(context),
-                    ),
-                    OutlinedButton(
-                      onPressed: () => FeatureDiscovery.dismissAll(context),
-                      child: Text(
-                        'تخطي',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText2!.color,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                backgroundColor: Theme.of(context).colorScheme.secondary,
-                targetColor: Theme.of(context).colorScheme.primary,
-                textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                child: !data.hasData
-                    ? const Icon(Icons.calendar_today)
-                    : const Icon(Icons.clear),
-              ),
+              key: _searchByDateRange,
+              icon: !data.hasData
+                  ? const Icon(Icons.calendar_today)
+                  : const Icon(Icons.clear),
               tooltip: !data.hasData ? 'بحث بالتاريخ' : 'محو البحث',
               onPressed: () async {
                 if (!data.hasData) {
@@ -202,8 +170,39 @@ class _HistoryState extends State<History> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance!.addPostFrameCallback((_) =>
-        FeatureDiscovery.discoverFeatures(context, ['SearchByDateRange']));
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
+      if ((['SearchByDateRange']
+            ..removeWhere(HivePersistenceProvider.instance.hasCompletedStep))
+          .isNotEmpty)
+        TutorialCoachMark(
+          context,
+          targets: [
+            TargetFocus(
+              enableOverlayTab: true,
+              contents: [
+                TargetContent(
+                  child: Text(
+                    'يمكنك البحث عن كشف عدة أيام معينة عن طريق الضغط هنا ثم تحديد تاريخ البداية وتاريخ النهاية',
+                    style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                        color: Theme.of(context).colorScheme.onSecondary),
+                  ),
+                ),
+              ],
+              identify: 'SearchByDateRange',
+              keyTarget: _searchByDateRange,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+          ],
+          alignSkip: Alignment.bottomLeft,
+          textSkip: 'تخطي',
+          onClickOverlay: (t) async {
+            await HivePersistenceProvider.instance.completeStep(t.identify);
+          },
+          onClickTarget: (t) async {
+            await HivePersistenceProvider.instance.completeStep(t.identify);
+          },
+        ).show();
+    });
 
     _listController = widget.iServantsHistory
         ? DataObjectListController<ServantsHistoryDay>(

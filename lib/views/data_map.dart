@@ -1,12 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
+import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import '../models/models.dart';
 import '../utils/helpers.dart';
@@ -112,6 +114,8 @@ class SelectedClasses extends ChangeNotifier {
 }
 
 class _DataMapState extends State<DataMap> {
+  final _classesVisibility = GlobalKey();
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Class>>(
@@ -130,50 +134,8 @@ class _DataMapState extends State<DataMap> {
                 title: const Text('خريطة الافتقاد'),
                 actions: [
                   IconButton(
-                    icon: DescribedFeatureOverlay(
-                      barrierDismissible: false,
-                      featureId: 'ShowHideClasses',
-                      tapTarget: const Icon(Icons.visibility),
-                      title: const Text('إظهار / إخفاء فصول'),
-                      description: Column(
-                        children: <Widget>[
-                          const Text(
-                              'يمكنك اختيار الفصول التي تريد اظهار مواقع مخدوميها من هنا'),
-                          OutlinedButton.icon(
-                            icon: const Icon(Icons.forward),
-                            label: Text(
-                              'التالي',
-                              style: TextStyle(
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyText2!
-                                    .color,
-                              ),
-                            ),
-                            onPressed: () =>
-                                FeatureDiscovery.completeCurrentStep(context),
-                          ),
-                          OutlinedButton(
-                            onPressed: () =>
-                                FeatureDiscovery.dismissAll(context),
-                            child: Text(
-                              'تخطي',
-                              style: TextStyle(
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyText2!
-                                    .color,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      backgroundColor: Theme.of(context).colorScheme.secondary,
-                      targetColor: Theme.of(context).colorScheme.primary,
-                      textColor:
-                          Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                      child: const Icon(Icons.visibility),
-                    ),
+                    key: _classesVisibility,
+                    icon: const Icon(Icons.visibility),
                     tooltip: 'اظهار/اخفاء فصول',
                     onPressed: () async {
                       final rslt = await selectClasses(
@@ -216,6 +178,35 @@ class _DataMapState extends State<DataMap> {
   @override
   void initState() {
     super.initState();
-    FeatureDiscovery.discoverFeatures(context, ['ShowHideClasses']);
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
+      if (!HivePersistenceProvider.instance.hasCompletedStep('ShowHideClasses'))
+        TutorialCoachMark(
+          context,
+          targets: [
+            TargetFocus(
+              enableOverlayTab: true,
+              contents: [
+                TargetContent(
+                  child: Text(
+                    'اخفاء/اظهار فصول: يمكنك اختيار فصول محددة لاظهار مخدوميها',
+                    style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                        color: Theme.of(context).colorScheme.onSecondary),
+                  ),
+                ),
+              ],
+              identify: 'ShowHideClasses',
+              keyTarget: _classesVisibility,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+          ],
+          textSkip: 'تخطي',
+          onClickOverlay: (t) async {
+            await HivePersistenceProvider.instance.completeStep(t.identify);
+          },
+          onClickTarget: (t) async {
+            await HivePersistenceProvider.instance.completeStep(t.identify);
+          },
+        ).show();
+    });
   }
 }

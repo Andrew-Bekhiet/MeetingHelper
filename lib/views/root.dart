@@ -2,13 +2,11 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:app_settings/app_settings.dart';
-import 'package:battery_optimization/battery_optimization.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:feature_discovery/feature_discovery.dart';
+import 'package:disable_battery_optimization/disable_battery_optimization.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
@@ -17,12 +15,14 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/views/lists/lists.dart';
 import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import '../models/list_controllers.dart';
 import '../models/models.dart';
@@ -53,10 +53,7 @@ class _RootState extends State<Root>
   final BehaviorSubject<bool> _showSearch = BehaviorSubject<bool>.seeded(false);
   final FocusNode _searchFocus = FocusNode();
 
-  final GlobalKey _addHistory = GlobalKey();
-  final GlobalKey _history = GlobalKey();
-  final GlobalKey _search = GlobalKey();
-  final GlobalKey _map = GlobalKey();
+  final Map<String, GlobalKey> _features = {};
 
   final BehaviorSubject<OrderOptions> _personsOrder =
       BehaviorSubject.seeded(const OrderOptions());
@@ -91,6 +88,11 @@ class _RootState extends State<Root>
   late ServicesListController _servicesOptions;
   late DataObjectListController<Person> _personsOptions;
   late DataObjectListController<User> _usersOptions;
+
+  GlobalKey _createOrGetFeatureKey(String key) {
+    _features[key] ??= GlobalKey();
+    return _features[key]!;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -183,53 +185,8 @@ class _RootState extends State<Root>
                     ),
                   )
                 : IconButton(
-                    icon: DescribedFeatureOverlay(
-                      barrierDismissible: false,
-                      contentLocation: ContentLocation.below,
-                      featureId: 'Search',
-                      tapTarget: const Icon(Icons.search),
-                      title: const Text('البحث السريع'),
-                      description: Column(
-                        children: <Widget>[
-                          const Text(
-                              'يمكنك في أي وقت عمل بحث سريع بالاسم عن المخدومين'),
-                          OutlinedButton.icon(
-                            icon: const Icon(Icons.forward),
-                            label: Text(
-                              'التالي',
-                              style: TextStyle(
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyText2!
-                                    .color,
-                              ),
-                            ),
-                            onPressed: () {
-                              mainScfld.currentState!.openDrawer();
-                              FeatureDiscovery.completeCurrentStep(context);
-                            },
-                          ),
-                          OutlinedButton(
-                            onPressed: () =>
-                                FeatureDiscovery.dismissAll(context),
-                            child: Text(
-                              'تخطي',
-                              style: TextStyle(
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyText2!
-                                    .color,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      backgroundColor: Theme.of(context).colorScheme.secondary,
-                      targetColor: Colors.transparent,
-                      textColor:
-                          Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                      child: const Icon(Icons.search),
-                    ),
+                    key: _createOrGetFeatureKey('Search'),
+                    icon: const Icon(Icons.search),
                     onPressed: () {
                       _searchFocus.requestFocus();
                       _showSearch.add(true);
@@ -249,124 +206,19 @@ class _RootState extends State<Root>
           tabs: [
             if (User.instance.manageUsers || User.instance.manageAllowedUsers)
               Tab(
+                key: _createOrGetFeatureKey('Servants'),
                 text: 'الخدام',
-                icon: DescribedFeatureOverlay(
-                  barrierDismissible: false,
-                  contentLocation: ContentLocation.below,
-                  featureId: 'Servants',
-                  tapTarget: const Icon(Icons.person),
-                  title: const Text('الخدام'),
-                  description: Column(
-                    children: <Widget>[
-                      const Text(
-                          'في هذه الشاشة ستجد كل بيانات الخدام بالبرنامج'),
-                      OutlinedButton.icon(
-                        icon: const Icon(Icons.forward),
-                        label: Text(
-                          'التالي',
-                          style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2!.color,
-                          ),
-                        ),
-                        onPressed: () =>
-                            FeatureDiscovery.completeCurrentStep(context),
-                      ),
-                      OutlinedButton(
-                        onPressed: () => FeatureDiscovery.dismissAll(context),
-                        child: Text(
-                          'تخطي',
-                          style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2!.color,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  backgroundColor: Theme.of(context).colorScheme.secondary,
-                  targetColor: Colors.transparent,
-                  textColor:
-                      Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                  child: const Icon(Icons.person),
-                ),
+                icon: const Icon(Icons.person),
               ),
             Tab(
+              key: _createOrGetFeatureKey('Services'),
               text: 'الخدمات',
-              icon: DescribedFeatureOverlay(
-                barrierDismissible: false,
-                contentLocation: ContentLocation.below,
-                featureId: 'Services',
-                tapTarget: const Icon(Icons.miscellaneous_services),
-                title: const Text('الخدمات'),
-                description: Column(
-                  children: <Widget>[
-                    const Text(
-                        'هنا تجد قائمة بكل الفصول في البرنامج مقسمة الى الخدمات وسنوات الدراسة'),
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.forward),
-                      label: Text(
-                        'التالي',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText2!.color,
-                        ),
-                      ),
-                      onPressed: () =>
-                          FeatureDiscovery.completeCurrentStep(context),
-                    ),
-                    OutlinedButton(
-                      onPressed: () => FeatureDiscovery.dismissAll(context),
-                      child: Text(
-                        'تخطي',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText2!.color,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                backgroundColor: Theme.of(context).colorScheme.secondary,
-                targetColor: Colors.transparent,
-                textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                child: const Icon(Icons.miscellaneous_services),
-              ),
+              icon: const Icon(Icons.miscellaneous_services),
             ),
             Tab(
+              key: _createOrGetFeatureKey('Persons'),
               text: 'المخدومين',
-              icon: DescribedFeatureOverlay(
-                barrierDismissible: false,
-                contentLocation: ContentLocation.below,
-                featureId: 'Persons',
-                tapTarget: const Icon(Icons.person),
-                title: const Text('المخدومين'),
-                description: Column(
-                  children: <Widget>[
-                    const Text('هنا تجد قائمة بكل المخدومين بالبرنامج'),
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.forward),
-                      label: Text(
-                        'التالي',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText2!.color,
-                        ),
-                      ),
-                      onPressed: () =>
-                          FeatureDiscovery.completeCurrentStep(context),
-                    ),
-                    OutlinedButton(
-                      onPressed: () => FeatureDiscovery.dismissAll(context),
-                      child: Text(
-                        'تخطي',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText2!.color,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                backgroundColor: Theme.of(context).colorScheme.secondary,
-                targetColor: Colors.transparent,
-                textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                child: const Icon(Icons.person),
-              ),
+              icon: const Icon(Icons.person),
             ),
           ],
         ),
@@ -488,51 +340,12 @@ class _RootState extends State<Root>
               child: Container(),
             ),
             ListTile(
-              leading: Consumer<User>(
-                builder: (context, user, snapshot) {
-                  return DescribedFeatureOverlay(
-                    barrierDismissible: false,
-                    contentLocation: ContentLocation.below,
-                    featureId: 'MyAccount',
-                    tapTarget: user.getPhoto(true, false),
-                    title: const Text('حسابي'),
-                    description: Column(
-                      children: <Widget>[
-                        const Text(
-                            'يمكنك الاطلاع على حسابك بالبرنامج وجميع الصلاحيات التي تملكها من خلال حسابي'),
-                        OutlinedButton.icon(
-                          icon: const Icon(Icons.forward),
-                          label: Text(
-                            'التالي',
-                            style: TextStyle(
-                              color:
-                                  Theme.of(context).textTheme.bodyText2!.color,
-                            ),
-                          ),
-                          onPressed: () {
-                            Scrollable.ensureVisible(
-                                _addHistory.currentContext!);
-                            FeatureDiscovery.completeCurrentStep(context);
-                          },
-                        ),
-                        OutlinedButton(
-                          onPressed: () => FeatureDiscovery.dismissAll(context),
-                          child: Text(
-                            'تخطي',
-                            style: TextStyle(
-                              color:
-                                  Theme.of(context).textTheme.bodyText2!.color,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    backgroundColor: Theme.of(context).colorScheme.secondary,
-                    targetColor: Colors.transparent,
-                    textColor:
-                        Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                    child: user.getPhoto(true, false),
-                  );
+              key: _createOrGetFeatureKey('MyAccount'),
+              leading: StreamBuilder<User>(
+                stream: User.instance.stream,
+                initialData: User.instance,
+                builder: (context, snapshot) {
+                  return snapshot.data!.getPhoto(true, false);
                 },
               ),
               title: const Text('حسابي'),
@@ -542,6 +355,7 @@ class _RootState extends State<Root>
               },
             ),
             Selector<User, bool>(
+              key: _createOrGetFeatureKey('ManageUsers'),
               selector: (_, user) =>
                   user.manageUsers || user.manageAllowedUsers,
               builder: (c, permission, data) {
@@ -551,114 +365,34 @@ class _RootState extends State<Root>
                     height: 0,
                   );
                 return ListTile(
-                    leading: DescribedFeatureOverlay(
-                      barrierDismissible: false,
-                      featureId: 'ManageUsers',
-                      tapTarget: const Icon(Icons.admin_panel_settings),
-                      contentLocation: ContentLocation.below,
-                      title: const Text('إدارة المستخدمين'),
-                      description: Column(
-                        children: <Widget>[
-                          const Text(
-                              'يمكنك دائمًا الاطلاع على مستخدمي البرنامج وتعديل صلاحياتهم من هنا'),
-                          OutlinedButton.icon(
-                            icon: const Icon(Icons.forward),
-                            label: Text(
-                              'التالي',
-                              style: TextStyle(
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyText2!
-                                    .color,
-                              ),
-                            ),
-                            onPressed: () =>
-                                FeatureDiscovery.completeCurrentStep(context),
+                  leading: const Icon(Icons.admin_panel_settings),
+                  onTap: () async {
+                    mainScfld.currentState!.openEndDrawer();
+                    if (await Connectivity().checkConnectivity() !=
+                        ConnectivityResult.none) {
+                      // ignore: unawaited_futures
+                      navigator.currentState!.push(
+                        MaterialPageRoute(
+                          builder: (context) => const AuthScreen(
+                            nextRoute: 'ManageUsers',
                           ),
-                          OutlinedButton(
-                            onPressed: () =>
-                                FeatureDiscovery.dismissAll(context),
-                            child: Text(
-                              'تخطي',
-                              style: TextStyle(
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyText2!
-                                    .color,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      backgroundColor: Theme.of(context).colorScheme.secondary,
-                      targetColor: Colors.transparent,
-                      textColor:
-                          Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                      child: const Icon(Icons.admin_panel_settings),
-                    ),
-                    onTap: () async {
-                      mainScfld.currentState!.openEndDrawer();
-                      if (await Connectivity().checkConnectivity() !=
-                          ConnectivityResult.none) {
-                        // ignore: unawaited_futures
-                        navigator.currentState!.push(
-                          MaterialPageRoute(
-                            builder: (context) => const AuthScreen(
-                              nextRoute: 'ManageUsers',
-                            ),
-                          ),
-                        );
-                      } else {
-                        await showDialog(
-                            context: context,
-                            builder: (context) => const AlertDialog(
-                                content: Text('لا يوجد اتصال انترنت')));
-                      }
-                    },
-                    title: const Text('إدارة المستخدمين'));
+                        ),
+                      );
+                    } else {
+                      await showDialog(
+                          context: context,
+                          builder: (context) => const AlertDialog(
+                              content: Text('لا يوجد اتصال انترنت')));
+                    }
+                  },
+                  title: const Text('إدارة المستخدمين'),
+                );
               },
             ),
             const Divider(),
             ListTile(
-              key: _addHistory,
-              leading: DescribedFeatureOverlay(
-                barrierDismissible: false,
-                contentLocation: ContentLocation.below,
-                featureId: 'AddHistory',
-                tapTarget: const Icon(Icons.add),
-                title: const Text('اضافة / عرض كشف حضور المخدومين'),
-                description: Column(
-                  children: <Widget>[
-                    const Text('يمكنك تسجيل كشف حضور المخدومين لليوم من هنا'),
-                    const Text(
-                        'بالإضافة الى حضور القداس والتناول وامكانية وضع الملاحظات لكل مخدوم'),
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.forward),
-                      label: Text(
-                        'التالي',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText2!.color,
-                        ),
-                      ),
-                      onPressed: () =>
-                          FeatureDiscovery.completeCurrentStep(context),
-                    ),
-                    OutlinedButton(
-                      onPressed: () => FeatureDiscovery.dismissAll(context),
-                      child: Text(
-                        'تخطي',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText2!.color,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                backgroundColor: Theme.of(context).colorScheme.secondary,
-                targetColor: Colors.transparent,
-                textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                child: const Icon(Icons.add),
-              ),
+              key: _createOrGetFeatureKey('AddHistory'),
+              leading: const Icon(Icons.add),
               title: const Text('كشف حضور المخدومين'),
               onTap: () {
                 mainScfld.currentState!.openEndDrawer();
@@ -666,59 +400,11 @@ class _RootState extends State<Root>
               },
             ),
             Selector<User, bool?>(
+              key: _createOrGetFeatureKey('AddServantsHistory'),
               selector: (_, user) => user.secretary,
               builder: (c, permission, data) => permission!
                   ? ListTile(
-                      leading: DescribedFeatureOverlay(
-                        barrierDismissible: false,
-                        contentLocation: ContentLocation.below,
-                        featureId: 'AddServantsHistory',
-                        tapTarget: const Icon(Icons.add),
-                        title: const Text('اضافة / عرض كشف حضور الخدام'),
-                        description: Column(
-                          children: <Widget>[
-                            const Text(
-                                'يمكنك تسجيل كشف حضور الخدام لليوم من هنا'),
-                            const Text(
-                                'بالإضافة الى حضور القداس والتناول وامكانية وضع الملاحظات لكل خادم'),
-                            OutlinedButton.icon(
-                              icon: const Icon(Icons.forward),
-                              label: Text(
-                                'التالي',
-                                style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyText2!
-                                      .color,
-                                ),
-                              ),
-                              onPressed: () =>
-                                  FeatureDiscovery.completeCurrentStep(context),
-                            ),
-                            OutlinedButton(
-                              onPressed: () =>
-                                  FeatureDiscovery.dismissAll(context),
-                              child: Text(
-                                'تخطي',
-                                style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyText2!
-                                      .color,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        backgroundColor:
-                            Theme.of(context).colorScheme.secondary,
-                        targetColor: Colors.transparent,
-                        textColor: Theme.of(context)
-                            .primaryTextTheme
-                            .bodyText1!
-                            .color!,
-                        child: const Icon(Icons.add),
-                      ),
+                      leading: const Icon(Icons.add),
                       title: const Text('كشف حضور الخدام'),
                       onTap: () {
                         mainScfld.currentState!.openEndDrawer();
@@ -728,44 +414,8 @@ class _RootState extends State<Root>
                   : Container(),
             ),
             ListTile(
-              key: _history,
-              leading: DescribedFeatureOverlay(
-                barrierDismissible: false,
-                contentLocation: ContentLocation.below,
-                featureId: 'History',
-                tapTarget: const Icon(Icons.history),
-                title: const Text('عرض كشوفات المخدومين'),
-                description: Column(
-                  children: <Widget>[
-                    const Text('يمكنك عرض جميع كشوفات الحضور من هنا'),
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.forward),
-                      label: Text(
-                        'التالي',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText2!.color,
-                        ),
-                      ),
-                      onPressed: () {
-                        FeatureDiscovery.completeCurrentStep(context);
-                      },
-                    ),
-                    OutlinedButton(
-                      onPressed: () => FeatureDiscovery.dismissAll(context),
-                      child: Text(
-                        'تخطي',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText2!.color,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                backgroundColor: Theme.of(context).colorScheme.secondary,
-                targetColor: Colors.transparent,
-                textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                child: const Icon(Icons.history),
-              ),
+              key: _createOrGetFeatureKey('History'),
+              leading: const Icon(Icons.history),
               title: const Text('السجل'),
               onTap: () {
                 mainScfld.currentState!.openEndDrawer();
@@ -773,57 +423,11 @@ class _RootState extends State<Root>
               },
             ),
             Selector<User, bool?>(
+              key: _createOrGetFeatureKey('ServantsHistory'),
               selector: (_, user) => user.secretary,
               builder: (c, permission, data) => permission!
                   ? ListTile(
-                      leading: DescribedFeatureOverlay(
-                        barrierDismissible: false,
-                        contentLocation: ContentLocation.below,
-                        featureId: 'ServantsHistory',
-                        tapTarget: const Icon(Icons.history),
-                        title: const Text('عرض كشوفات الخدام'),
-                        description: Column(
-                          children: <Widget>[
-                            const Text(
-                                'يمكنك عرض جميع كشوفات الحضور للخدام من هنا'),
-                            OutlinedButton.icon(
-                              icon: const Icon(Icons.forward),
-                              label: Text(
-                                'التالي',
-                                style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyText2!
-                                      .color,
-                                ),
-                              ),
-                              onPressed: () =>
-                                  FeatureDiscovery.completeCurrentStep(context),
-                            ),
-                            OutlinedButton(
-                              onPressed: () =>
-                                  FeatureDiscovery.dismissAll(context),
-                              child: Text(
-                                'تخطي',
-                                style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyText2!
-                                      .color,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        backgroundColor:
-                            Theme.of(context).colorScheme.secondary,
-                        targetColor: Colors.transparent,
-                        textColor: Theme.of(context)
-                            .primaryTextTheme
-                            .bodyText1!
-                            .color!,
-                        child: const Icon(Icons.history),
-                      ),
+                      leading: const Icon(Icons.history),
                       title: const Text('سجل الخدام'),
                       onTap: () {
                         mainScfld.currentState!.openEndDrawer();
@@ -834,45 +438,8 @@ class _RootState extends State<Root>
             ),
             const Divider(),
             ListTile(
-              leading: DescribedFeatureOverlay(
-                barrierDismissible: false,
-                contentLocation: ContentLocation.below,
-                featureId: 'Analytics',
-                tapTarget: const Icon(Icons.analytics_outlined),
-                title: const Text('عرض تحليل لبيانات سجلات المخدومين'),
-                description: Column(
-                  children: <Widget>[
-                    const Text(
-                        'الأن يمكنك عرض تحليل لبيانات المخدومين خلال فترة معينة من هنا'),
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.forward),
-                      label: Text(
-                        'التالي',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText2!.color,
-                        ),
-                      ),
-                      onPressed: () {
-                        Scrollable.ensureVisible(_search.currentContext!);
-                        FeatureDiscovery.completeCurrentStep(context);
-                      },
-                    ),
-                    OutlinedButton(
-                      onPressed: () => FeatureDiscovery.dismissAll(context),
-                      child: Text(
-                        'تخطي',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText2!.color,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                backgroundColor: Theme.of(context).colorScheme.secondary,
-                targetColor: Colors.transparent,
-                textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                child: const Icon(Icons.analytics_outlined),
-              ),
+              key: _createOrGetFeatureKey('Analytics'),
+              leading: const Icon(Icons.analytics_outlined),
               title: const Text('تحليل سجل المخدومين'),
               onTap: () {
                 mainScfld.currentState!.openEndDrawer();
@@ -881,45 +448,7 @@ class _RootState extends State<Root>
               },
             ),
             ListTile(
-              leading: DescribedFeatureOverlay(
-                barrierDismissible: false,
-                contentLocation: ContentLocation.below,
-                featureId: 'ServantsAnalytics',
-                tapTarget: const Icon(Icons.analytics_outlined),
-                title: const Text('عرض تحليل لبيانات سجلات الحضور للخدام'),
-                description: Column(
-                  children: <Widget>[
-                    const Text(
-                        'الأن يمكنك عرض تحليل لبيانات الخدام خلال فترة معينة من هنا'),
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.forward),
-                      label: Text(
-                        'التالي',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText2!.color,
-                        ),
-                      ),
-                      onPressed: () {
-                        Scrollable.ensureVisible(_search.currentContext!);
-                        FeatureDiscovery.completeCurrentStep(context);
-                      },
-                    ),
-                    OutlinedButton(
-                      onPressed: () => FeatureDiscovery.dismissAll(context),
-                      child: Text(
-                        'تخطي',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText2!.color,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                backgroundColor: Theme.of(context).colorScheme.secondary,
-                targetColor: Colors.transparent,
-                textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                child: const Icon(Icons.analytics_outlined),
-              ),
+              leading: const Icon(Icons.analytics_outlined),
               title: const Text('تحليل بيانات سجل الخدام'),
               onTap: () {
                 mainScfld.currentState!.openEndDrawer();
@@ -928,59 +457,11 @@ class _RootState extends State<Root>
               },
             ),
             Consumer<User>(
+              key: _createOrGetFeatureKey('ActivityAnalysis'),
               builder: (context, user, _) => user.manageUsers ||
                       user.manageAllowedUsers
                   ? ListTile(
-                      leading: DescribedFeatureOverlay(
-                        backgroundDismissible: false,
-                        barrierDismissible: false,
-                        featureId: 'ActivityAnalysis',
-                        contentLocation: ContentLocation.below,
-                        tapTarget: const Icon(Icons.analytics_outlined),
-                        title: const Text('تحليل بيانات الخدمة'),
-                        description: Column(
-                          children: [
-                            const Text('يمكنك الأن تحليل بيانات خدمة الخدام'
-                                ' من حيث الافتقاد'
-                                ' وتحديث البيانات وبيانات المكالمات'),
-                            OutlinedButton.icon(
-                              icon: const Icon(Icons.forward),
-                              label: Text(
-                                'التالي',
-                                style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyText2!
-                                      .color,
-                                ),
-                              ),
-                              onPressed: () =>
-                                  FeatureDiscovery.completeCurrentStep(context),
-                            ),
-                            OutlinedButton(
-                              onPressed: () =>
-                                  FeatureDiscovery.dismissAll(context),
-                              child: Text(
-                                'تخطي',
-                                style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyText2!
-                                      .color,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        backgroundColor:
-                            Theme.of(context).colorScheme.secondary,
-                        targetColor: Colors.transparent,
-                        textColor: Theme.of(context)
-                            .primaryTextTheme
-                            .bodyText1!
-                            .color!,
-                        child: const Icon(Icons.analytics_outlined),
-                      ),
+                      leading: const Icon(Icons.analytics_outlined),
                       title: const Text('تحليل بيانات الخدمة'),
                       onTap: () {
                         mainScfld.currentState!.openEndDrawer();
@@ -991,46 +472,8 @@ class _RootState extends State<Root>
             ),
             const Divider(),
             ListTile(
-              key: _search,
-              leading: DescribedFeatureOverlay(
-                barrierDismissible: false,
-                contentLocation: ContentLocation.below,
-                featureId: 'AdvancedSearch',
-                tapTarget: const Icon(Icons.search),
-                title: const Text('البحث المفصل'),
-                description: Column(
-                  children: <Widget>[
-                    const Text(
-                        'يمكن عمل بحث مفصل عن البيانات بالبرنامج بالخصائص المطلوبة\nمثال: عرض كل المخدومين الذين يصادف عيد ميلادهم اليوم\nعرض كل المخدومين داخل منطقة معينة'),
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.forward),
-                      label: Text(
-                        'التالي',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText2!.color,
-                        ),
-                      ),
-                      onPressed: () {
-                        Scrollable.ensureVisible(_map.currentContext!);
-                        FeatureDiscovery.completeCurrentStep(context);
-                      },
-                    ),
-                    OutlinedButton(
-                      onPressed: () => FeatureDiscovery.dismissAll(context),
-                      child: Text(
-                        'تخطي',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText2!.color,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                backgroundColor: Theme.of(context).colorScheme.secondary,
-                targetColor: Colors.transparent,
-                textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                child: const Icon(Icons.search),
-              ),
+              key: _createOrGetFeatureKey('AdvancedSearch'),
+              leading: const Icon(Icons.search),
               title: const Text('بحث مفصل'),
               onTap: () {
                 mainScfld.currentState!.openEndDrawer();
@@ -1038,6 +481,7 @@ class _RootState extends State<Root>
               },
             ),
             Selector<User, bool?>(
+              key: _createOrGetFeatureKey('ManageDeleted'),
               selector: (_, user) => user.manageDeleted,
               builder: (context, permission, _) {
                 if (!permission!)
@@ -1046,47 +490,7 @@ class _RootState extends State<Root>
                     height: 0,
                   );
                 return ListTile(
-                  leading: DescribedFeatureOverlay(
-                    backgroundDismissible: false,
-                    barrierDismissible: false,
-                    featureId: 'ManageDeleted',
-                    tapTarget: const Icon(Icons.delete_outline),
-                    contentLocation: ContentLocation.below,
-                    title: const Text('سلة المحذوفات'),
-                    description: Column(
-                      children: <Widget>[
-                        const Text(
-                            'يمكنك الأن استرجاع المحذوفات خلال مدة شهر من حذفها من هنا'),
-                        OutlinedButton.icon(
-                          icon: const Icon(Icons.forward),
-                          label: Text(
-                            'التالي',
-                            style: TextStyle(
-                              color:
-                                  Theme.of(context).textTheme.bodyText2!.color,
-                            ),
-                          ),
-                          onPressed: () =>
-                              FeatureDiscovery.completeCurrentStep(context),
-                        ),
-                        OutlinedButton(
-                          onPressed: () => FeatureDiscovery.dismissAll(context),
-                          child: Text(
-                            'تخطي',
-                            style: TextStyle(
-                              color:
-                                  Theme.of(context).textTheme.bodyText2!.color,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    backgroundColor: Theme.of(context).colorScheme.secondary,
-                    targetColor: Colors.transparent,
-                    textColor:
-                        Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                    child: const Icon(Icons.delete_outline),
-                  ),
+                  leading: const Icon(Icons.delete_outline),
                   onTap: () {
                     mainScfld.currentState!.openEndDrawer();
                     navigator.currentState!.pushNamed('Trash');
@@ -1096,45 +500,8 @@ class _RootState extends State<Root>
               },
             ),
             ListTile(
-              key: _map,
-              leading: DescribedFeatureOverlay(
-                barrierDismissible: false,
-                featureId: 'DataMap',
-                contentLocation: ContentLocation.below,
-                tapTarget: const Icon(Icons.map),
-                title: const Text('خريطة الافتقاد'),
-                description: Column(
-                  children: [
-                    const Text(
-                        'يمكنك دائمًا الاطلاع على جميع مواقع العائلات بالبرنامج عن طريق خريطة الافتقاد'),
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.forward),
-                      label: Text(
-                        'التالي',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText2!.color,
-                        ),
-                      ),
-                      onPressed: () {
-                        FeatureDiscovery.completeCurrentStep(context);
-                      },
-                    ),
-                    OutlinedButton(
-                      onPressed: () => FeatureDiscovery.dismissAll(context),
-                      child: Text(
-                        'تخطي',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText2!.color,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                backgroundColor: Theme.of(context).colorScheme.secondary,
-                targetColor: Colors.transparent,
-                textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                child: const Icon(Icons.map),
-              ),
+              key: _createOrGetFeatureKey('DataMap'),
+              leading: const Icon(Icons.map),
               title: const Text('عرض خريطة الافتقاد'),
               onTap: () {
                 mainScfld.currentState!.openEndDrawer();
@@ -1143,41 +510,8 @@ class _RootState extends State<Root>
             ),
             const Divider(),
             ListTile(
-              leading: DescribedFeatureOverlay(
-                onBackgroundTap: () async {
-                  await FeatureDiscovery.completeCurrentStep(context);
-                  return true;
-                },
-                onDismiss: () async {
-                  await FeatureDiscovery.completeCurrentStep(context);
-                  return true;
-                },
-                backgroundDismissible: true,
-                contentLocation: ContentLocation.below,
-                featureId: 'Settings',
-                tapTarget: const Icon(Icons.settings),
-                title: const Text('الإعدادات'),
-                description: Column(
-                  children: <Widget>[
-                    const Text(
-                        'يمكنك ضبط بعض الاعدادات بالبرنامج مثل مظهر البرنامج ومظهر البيانات وبعض البيانات الاضافية مثل الوظائف والأباء الكهنة'),
-                    OutlinedButton(
-                      onPressed: () =>
-                          FeatureDiscovery.completeCurrentStep(context),
-                      child: Text(
-                        'تخطي',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText2!.color,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                backgroundColor: Theme.of(context).colorScheme.secondary,
-                targetColor: Colors.transparent,
-                textColor: Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                child: const Icon(Icons.settings),
-              ),
+              key: _createOrGetFeatureKey('Settings'),
+              leading: const Icon(Icons.settings),
               title: const Text('الإعدادات'),
               onTap: () {
                 mainScfld.currentState!.openEndDrawer();
@@ -1537,7 +871,8 @@ class _RootState extends State<Root>
 
   Future<void> showBatteryOptimizationDialog() async {
     if ((await DeviceInfoPlugin().androidInfo).version.sdkInt! >= 23 &&
-        (await BatteryOptimization.isIgnoringBatteryOptimizations() != true) &&
+        (await DisableBatteryOptimization.isIgnoringBatteryOptimizations() !=
+            true) &&
         Hive.box('Settings').get('ShowBatteryDialog', defaultValue: true)) {
       await showDialog(
         context: context,
@@ -1548,7 +883,7 @@ class _RootState extends State<Root>
             TextButton(
               onPressed: () async {
                 navigator.currentState!.pop();
-                await AppSettings.openBatteryOptimizationSettings();
+                await DisableBatteryOptimization.stopOptimizingBatteryUsage();
               },
               child: const Text('الغاء حفظ الطاقة للبرنامج'),
             ),
@@ -1584,20 +919,264 @@ class _RootState extends State<Root>
     await processLink(deepLink);
   }
 
-  void showPendingUIDialogs() async {
-    dialogsNotShown = false;
-    if (!await User.instance.userDataUpToDate()) {
-      await showErrorUpdateDataDialog(context: context, pushApp: false);
+  TargetFocus _getTarget(String key, GlobalKey v) {
+    const alignSkip = Alignment.bottomLeft;
+    late final List<TargetContent> contents;
+    ShapeLightFocus shape = ShapeLightFocus.Circle;
+
+    switch (key) {
+      case 'Services':
+        contents = [
+          TargetContent(
+            child: Text(
+              'هنا تجد قائمة بكل الفصول في'
+              ' البرنامج مقسمة الى الخدمات وسنوات الدراسة',
+              style: Theme.of(context)
+                  .textTheme
+                  .subtitle2
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+            ),
+          ),
+        ];
+        break;
+      case 'Servants':
+        contents = [
+          TargetContent(
+            child: Text(
+              'الخدام: قائمة الخدام الموجودين في التطبيق',
+              style: Theme.of(context)
+                  .textTheme
+                  .subtitle2
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+            ),
+          ),
+        ];
+        break;
+      case 'Persons':
+        contents = [
+          TargetContent(
+            child: Text(
+              'المخدومين: قائمة المخدومين الموجودين في التطبيق',
+              style: Theme.of(context)
+                  .textTheme
+                  .subtitle2
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+            ),
+          ),
+        ];
+        break;
+      case 'Search':
+        contents = [
+          TargetContent(
+            child: Text(
+              'البحث: يمكنك استخدام البحث السريع لإيجاد المخدومين او الفصول',
+              style: Theme.of(context)
+                  .textTheme
+                  .subtitle2
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+            ),
+          ),
+        ];
+        break;
+      case 'MyAccount':
+        contents = [
+          TargetContent(
+            child: Text(
+              'حسابي:من خلاله يمكنك رؤية صلاحياتك او تغيير تاريخ أخر تناول واخر اعتراف',
+              style: Theme.of(context)
+                  .textTheme
+                  .subtitle2
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+            ),
+          )
+        ];
+        shape = ShapeLightFocus.RRect;
+        break;
+      case 'ManageUsers':
+        contents = [
+          TargetContent(
+            child: Text(
+              'ادارة المستخدمين: يمكنك من خلالها تغيير وادارة صلاحيات الخدام في التطبيق',
+              style: Theme.of(context)
+                  .textTheme
+                  .subtitle2
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+            ),
+          )
+        ];
+        shape = ShapeLightFocus.RRect;
+        break;
+      case 'AddHistory':
+        contents = [
+          TargetContent(
+            child: Text(
+              'كشف حضور المخدومين: تسجيل كشف حضور جديد في كشوفات المخدومين',
+              style: Theme.of(context)
+                  .textTheme
+                  .subtitle2
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+            ),
+          )
+        ];
+        shape = ShapeLightFocus.RRect;
+        break;
+      case 'AddServantsHistory':
+        contents = [
+          TargetContent(
+            child: Text(
+              'كشف حضور الخدام: تسجيل كشف حضور جديد في كشوفات الخدام',
+              style: Theme.of(context)
+                  .textTheme
+                  .subtitle2
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+            ),
+          )
+        ];
+        shape = ShapeLightFocus.RRect;
+        break;
+      case 'History':
+        contents = [
+          TargetContent(
+            child: Text(
+              'سجل المخدومين: سجل كشوفات المخدومين لأي يوم تم تسجيله',
+              style: Theme.of(context)
+                  .textTheme
+                  .subtitle2
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+            ),
+          )
+        ];
+        shape = ShapeLightFocus.RRect;
+        break;
+      case 'ServantsHistory':
+        contents = [
+          TargetContent(
+            child: Text(
+              'سجل الخدام: سجل كشوفات الخدام لأي يوم تم تسجيله',
+              style: Theme.of(context)
+                  .textTheme
+                  .subtitle2
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+            ),
+          )
+        ];
+        shape = ShapeLightFocus.RRect;
+        break;
+      case 'Analytics':
+        contents = [
+          TargetContent(
+            child: Text(
+              'تحليل سجل المخدومين: يمكنك '
+              'من خلالها تحليل واحصاء '
+              'أعداد المخدومين الحاضرين خلال مدة معينة ',
+              style: Theme.of(context)
+                  .textTheme
+                  .subtitle2
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+            ),
+          )
+        ];
+        shape = ShapeLightFocus.RRect;
+        break;
+      case 'ActivityAnalysis':
+        contents = [
+          TargetContent(
+            child: Text(
+              'تحليل سجل الخدام: يمكنك '
+              'من خلالها تحليل واحصاء '
+              'أعداد الخدام الحاضرين خلال مدة معينة ',
+              style: Theme.of(context)
+                  .textTheme
+                  .subtitle2
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+            ),
+          ),
+        ];
+        shape = ShapeLightFocus.RRect;
+        break;
+      case 'AdvancedSearch':
+        contents = [
+          TargetContent(
+            child: Text(
+              'بحث متقدم: بحث عن البيانات بصورة دقيقة ومفصلة',
+              style: Theme.of(context)
+                  .textTheme
+                  .subtitle2
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+            ),
+          ),
+        ];
+        shape = ShapeLightFocus.RRect;
+        break;
+      case 'ManageDeleted':
+        contents = [
+          TargetContent(
+            child: Text(
+              'سلة المحذوفات: يمكنك '
+              'من خلالها استرجاع المحذوفات التي تم حذفها خلال الشهر الحالي ',
+              style: Theme.of(context)
+                  .textTheme
+                  .subtitle2
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+            ),
+          ),
+        ];
+        shape = ShapeLightFocus.RRect;
+        break;
+      case 'DataMap':
+        contents = [
+          TargetContent(
+            child: Text(
+              'خريطة الافتقاد: عرض لخريطة في موقعك'
+              ' الحالي ومواقع المخدومين ويمكنك ايضًا تحديد'
+              ' فصول معينة والذهاب لمكان المخدوم'
+              ' من خلال خرائط جوجل',
+              style: Theme.of(context)
+                  .textTheme
+                  .subtitle2
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+            ),
+          ),
+        ];
+        shape = ShapeLightFocus.RRect;
+        break;
+      case 'Settings':
+        contents = [
+          TargetContent(
+            child: Text(
+              'الاعدادات: ضبط بعض الاعدادات والتفضيلات وضبط مواعيد الاشعارت اليومية',
+              style: Theme.of(context)
+                  .textTheme
+                  .subtitle2
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+            ),
+          ),
+        ];
+        shape = ShapeLightFocus.RRect;
+        break;
+
+      default:
+        contents = [];
     }
-    await showDynamicLink();
-    await showPendingMessage();
-    await processClickedNotification(context);
-    await showBatteryOptimizationDialog();
-    FeatureDiscovery.discoverFeatures(context, [
+
+    return TargetFocus(
+      identify: key,
+      shape: shape,
+      alignSkip: alignSkip,
+      enableOverlayTab: true,
+      contents: contents,
+      keyTarget: v,
+      color: Theme.of(context).colorScheme.secondary,
+    );
+  }
+
+  Future<void> showFeatures() async {
+    final Completer<void> _completer = Completer();
+
+    final featuresInOrder = [
       'Services',
+      'Persons',
       'Servants',
-      if (User.instance.manageUsers || User.instance.manageAllowedUsers)
-        'Users',
       'Search',
       'MyAccount',
       if (User.instance.manageUsers || User.instance.manageAllowedUsers)
@@ -1609,11 +1188,63 @@ class _RootState extends State<Root>
       'Analytics',
       if (User.instance.manageUsers || User.instance.manageAllowedUsers)
         'ActivityAnalysis',
-      'DataMap',
       'AdvancedSearch',
       if (User.instance.manageDeleted) 'ManageDeleted',
+      'DataMap',
       'Settings'
-    ]);
+    ]..removeWhere(HivePersistenceProvider.instance.hasCompletedStep);
+
+    bool drawerOpened = false;
+    Future<void> _next(TargetFocus t) async {
+      await HivePersistenceProvider.instance.completeStep(t.identify);
+      if (!['Services', 'Persons', 'Servants'].contains(t.identify)) {
+        if (!drawerOpened) {
+          mainScfld.currentState!.openDrawer();
+          drawerOpened = true;
+          await Future.delayed(const Duration(seconds: 1));
+        }
+        await Scrollable.ensureVisible(_features[t.identify]!.currentContext!);
+      }
+    }
+
+    if (featuresInOrder.isNotEmpty) {
+      if (!['Services', 'Persons', 'Servants'].contains(featuresInOrder[0])) {
+        if (!drawerOpened) {
+          mainScfld.currentState!.openDrawer();
+          drawerOpened = true;
+          await Future.delayed(const Duration(seconds: 1));
+        }
+        await Scrollable.ensureVisible(
+            _features[featuresInOrder[0]]!.currentContext!);
+      }
+
+      TutorialCoachMark(
+        context,
+        targets:
+            featuresInOrder.map((k) => _getTarget(k, _features[k]!)).toList(),
+        alignSkip: Alignment.bottomLeft,
+        textSkip: 'تخطي',
+        onClickOverlay: _next,
+        onClickTarget: _next,
+        onFinish: _completer.complete,
+        onSkip: _completer.complete,
+      ).show();
+    } else {
+      _completer.complete();
+    }
+    return _completer.future;
+  }
+
+  void showPendingUIDialogs() async {
+    dialogsNotShown = false;
+    if (!await User.instance.userDataUpToDate()) {
+      await showErrorUpdateDataDialog(context: context, pushApp: false);
+    }
+    await showDynamicLink();
+    await showPendingMessage();
+    await processClickedNotification(context);
+    await showBatteryOptimizationDialog();
+    await showFeatures();
   }
 
   void _keepAlive(bool visible) {
