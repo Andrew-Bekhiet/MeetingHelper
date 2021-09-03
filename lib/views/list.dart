@@ -456,7 +456,8 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
 
   Widget _buildItem(T current) {
     return StreamBuilder<Map<String, HistoryRecord>>(
-      stream: _listOptions.attended,
+      stream: _listOptions.dayOptions.enabled
+          .switchMap((_) => _listOptions.attended),
       builder: (context, attended) => _listOptions.buildItem(
         current,
         onLongPress: _listOptions.onLongPress ??

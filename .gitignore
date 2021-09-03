@@ -100,3 +100,4 @@ Users.txt
 logs/
 MeetingHelper.code-workspace
 .env
+lib/secrets.dart

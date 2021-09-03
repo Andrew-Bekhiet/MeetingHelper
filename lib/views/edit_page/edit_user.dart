@@ -253,6 +253,17 @@ class _EditUserState extends State<EditUser> {
                 ),
                 ListTile(
                   trailing: Checkbox(
+                    value: widget.user.changeHistory,
+                    onChanged: (v) =>
+                        setState(() => widget.user.changeHistory = v!),
+                  ),
+                  leading: const Icon(Icons.history),
+                  title: const Text('تعديل الكشوفات القديمة'),
+                  onTap: () => setState(() =>
+                      widget.user.changeHistory = !widget.user.changeHistory),
+                ),
+                ListTile(
+                  trailing: Checkbox(
                     value: widget.user.secretary,
                     onChanged: (v) =>
                         setState(() => widget.user.secretary = v!),

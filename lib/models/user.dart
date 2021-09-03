@@ -55,6 +55,7 @@ class User extends Person {
   bool manageDeleted = false;
   bool write = false;
   bool secretary = false;
+  bool changeHistory = false;
 
   bool manageUsers = false;
   bool manageAllowedUsers = false;
@@ -91,6 +92,7 @@ class User extends Person {
       bool superAccess = false,
       bool write = false,
       bool secretary = false,
+      bool changeHistory = false,
       bool exportClasses = false,
       bool birthdayNotify = false,
       bool confessionsNotify = false,
@@ -116,6 +118,7 @@ class User extends Person {
       manageDeleted: manageDeleted,
       write: write,
       secretary: secretary,
+      changeHistory: changeHistory,
       exportClasses: exportClasses,
       birthdayNotify: birthdayNotify,
       confessionsNotify: confessionsNotify,
@@ -148,6 +151,7 @@ class User extends Person {
       required this.manageDeleted,
       required this.write,
       required this.secretary,
+      required this.changeHistory,
       required this.exportClasses,
       required this.birthdayNotify,
       required this.confessionsNotify,
@@ -342,6 +346,7 @@ class User extends Person {
     manageDeleted = idTokenClaims['manageDeleted'].toString() == 'true';
     write = idTokenClaims['write'].toString() == 'true';
     secretary = idTokenClaims['secretary'].toString() == 'true';
+    changeHistory = idTokenClaims['changeHistory'].toString() == 'true';
     exportClasses = idTokenClaims['exportClasses'].toString() == 'true';
     birthdayNotify = idTokenClaims['birthdayNotify'].toString() == 'true';
     confessionsNotify = idTokenClaims['confessionsNotify'].toString() == 'true';
@@ -405,6 +410,7 @@ class User extends Person {
     if (!_initialized.isCompleted) _initialized.complete(false);
     _initialized = Completer<bool>();
     _uid = null;
+    await Hive.box('User').clear();
     notifyListeners();
     await GoogleSignIn().signOut();
     await auth.FirebaseAuth.instance.signOut();
@@ -424,6 +430,7 @@ class User extends Person {
     manageDeleted = permissions['ManageDeleted'] ?? false;
     write = permissions['Write'] ?? false;
     secretary = permissions['Secretary'] ?? false;
+    changeHistory = permissions['ChangeHistory'] ?? false;
     exportClasses = permissions['ExportClasses'] ?? false;
     birthdayNotify = permissions['BirthdayNotify'] ?? false;
     confessionsNotify = permissions['ConfessionsNotify'] ?? false;
@@ -451,6 +458,7 @@ class User extends Person {
           manageDeleted,
           write,
           secretary,
+          changeHistory,
           exportClasses,
           birthdayNotify,
           confessionsNotify,
@@ -492,6 +500,7 @@ class User extends Person {
       if (superAccess) permissions += 'رؤية جميع البيانات،';
       if (manageDeleted) permissions += 'استرجاع المحئوفات،';
       if (secretary) permissions += 'تسجيل حضور الخدام،';
+      if (changeHistory) permissions += 'تعديل كشوفات القديمة';
       if (exportClasses) permissions += 'تصدير فصل،';
       if (birthdayNotify) permissions += 'اشعار أعياد الميلاد،';
       if (confessionsNotify) permissions += 'اشعار الاعتراف،';
@@ -624,6 +633,7 @@ class User extends Person {
       'manageDeleted': manageDeleted,
       'write': write,
       'secretary': secretary,
+      'changeHistory': changeHistory,
       'exportClasses': exportClasses,
       'birthdayNotify': birthdayNotify,
       'confessionsNotify': confessionsNotify,

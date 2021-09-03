@@ -1607,7 +1607,7 @@ Timestamp tranucateToDay({DateTime? time}) {
   time = time ?? DateTime.now();
   return Timestamp.fromMillisecondsSinceEpoch(
     time.millisecondsSinceEpoch -
-        time.millisecondsSinceEpoch.remainder(Duration.millisecondsPerDay),
+        (time.millisecondsSinceEpoch % Duration.millisecondsPerDay),
   );
 }
 

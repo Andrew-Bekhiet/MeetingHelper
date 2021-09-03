@@ -85,62 +85,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
             title: StreamBuilder<bool>(
               initialData: _showSearch.value,
               stream: _showSearch,
-              builder: (context, data) => data.requireData
-                  ? TextField(
-                      focusNode: _searchFocus,
-                      style: Theme.of(context).textTheme.headline6!.copyWith(
-                          color: Theme.of(context)
-                              .primaryTextTheme
-                              .headline6!
-                              .color),
-                      decoration: InputDecoration(
-                          suffixIcon: IconButton(
-                            icon: Icon(Icons.close,
-                                color: Theme.of(context)
-                                    .primaryTextTheme
-                                    .headline6!
-                                    .color),
-                            onPressed: () => setState(
-                              () {
-                                if (widget.record is! ServantsHistoryDay)
-                                  context
-                                      .read<CheckListController<Person>>()
-                                      .searchQuery
-                                      .add('');
-                                else
-                                  context
-                                      .read<CheckListController<User>>()
-                                      .searchQuery
-                                      .add('');
-                                _showSearch.add(false);
-                              },
-                            ),
-                          ),
-                          hintStyle: Theme.of(context)
-                              .textTheme
-                              .headline6!
-                              .copyWith(
-                                  color: Theme.of(context)
-                                      .primaryTextTheme
-                                      .headline6!
-                                      .color),
-                          icon: Icon(Icons.search,
-                              color: Theme.of(context)
-                                  .primaryTextTheme
-                                  .headline6!
-                                  .color),
-                          hintText: 'بحث ...'),
-                      onChanged: widget.record is! ServantsHistoryDay
-                          ? context
-                              .read<CheckListController<Person>>()
-                              .searchQuery
-                              .add
-                          : context
-                              .read<CheckListController<User>>()
-                              .searchQuery
-                              .add,
-                    )
-                  : const Text('كشف الحضور'),
+              builder: _buildSearchBar,
             ),
             actions: [
               StreamBuilder<bool>(
@@ -175,6 +120,14 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                     await _delete();
                   } else if (v == 'sorting') {
                     await _showSortingOptions(context);
+                  } else if (v == 'edit') {
+                    final dayOptions = (widget.record is! ServantsHistoryDay
+                            ? context.read<CheckListController<Person>>()
+                            : context.read<CheckListController<User>>())
+                        .dayOptions;
+                    dayOptions.enabled.add(!dayOptions.enabled.value);
+                    dayOptions.sortByTimeASC.add(null);
+                    dayOptions.showOnly.add(null);
                   }
                 },
                 itemBuilder: (context) => [
@@ -182,6 +135,22 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                     value: 'sorting',
                     child: Text('تنظيم الليستة'),
                   ),
+                  if (User.instance.changeHistory &&
+                      DateTime.now()
+                              .difference(widget.record.day.toDate())
+                              .inDays !=
+                          0)
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: (widget.record is! ServantsHistoryDay
+                                  ? context.read<CheckListController<Person>>()
+                                  : context.read<CheckListController<User>>())
+                              .dayOptions
+                              .enabled
+                              .value
+                          ? const Text('اغلاق وضع التعديل')
+                          : const Text('تعديل الكشف'),
+                    ),
                   if (User.instance.superAccess)
                     const PopupMenuItem(
                       value: 'delete',
@@ -341,6 +310,46 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
         );
       }),
     );
+  }
+
+  Widget _buildSearchBar(BuildContext context, AsyncSnapshot<bool> data) {
+    if (data.requireData) {
+      return TextField(
+        focusNode: _searchFocus,
+        style: Theme.of(context).textTheme.headline6!.copyWith(
+            color: Theme.of(context).primaryTextTheme.headline6!.color),
+        decoration: InputDecoration(
+            suffixIcon: IconButton(
+              icon: Icon(Icons.close,
+                  color: Theme.of(context).primaryTextTheme.headline6!.color),
+              onPressed: () => setState(
+                () {
+                  if (widget.record is! ServantsHistoryDay)
+                    context
+                        .read<CheckListController<Person>>()
+                        .searchQuery
+                        .add('');
+                  else
+                    context
+                        .read<CheckListController<User>>()
+                        .searchQuery
+                        .add('');
+                  _showSearch.add(false);
+                },
+              ),
+            ),
+            hintStyle: Theme.of(context).textTheme.headline6!.copyWith(
+                color: Theme.of(context).primaryTextTheme.headline6!.color),
+            icon: Icon(Icons.search,
+                color: Theme.of(context).primaryTextTheme.headline6!.color),
+            hintText: 'بحث ...'),
+        onChanged: widget.record is! ServantsHistoryDay
+            ? context.read<CheckListController<Person>>().searchQuery.add
+            : context.read<CheckListController<User>>().searchQuery.add,
+      );
+    } else {
+      return const Text('كشف الحضور');
+    }
   }
 
   Future<void> _showSortingOptions(BuildContext context) async {

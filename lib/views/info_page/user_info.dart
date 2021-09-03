@@ -19,7 +19,9 @@ import 'package:share_plus/share_plus.dart';
 import '../edit_page/edit_user.dart';
 
 class UserInfo extends StatefulWidget {
-  const UserInfo({Key? key}) : super(key: key);
+  const UserInfo({Key? key, required this.user}) : super(key: key);
+
+  final User user;
 
   @override
   _UserInfoState createState() => _UserInfoState();
@@ -30,11 +32,8 @@ class _UserInfoState extends State<UserInfo> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: StreamBuilder<User>(
-        initialData: ModalRoute.of(context)!.settings.arguments as User?,
-        stream: (ModalRoute.of(context)!.settings.arguments! as User)
-            .ref
-            .snapshots()
-            .map(User.fromDoc),
+        initialData: widget.user,
+        stream: widget.user.ref.snapshots().map(User.fromDoc),
         builder: (context, data) {
           final User user = data.data!;
           return NestedScrollView(
@@ -204,6 +203,11 @@ class _UserInfoState extends State<UserInfo> {
                         const ListTile(
                           leading: Icon(Icons.delete_outlined),
                           title: Text('استرجاع المحذوفات'),
+                        ),
+                      if (user.changeHistory == true)
+                        const ListTile(
+                          leading: Icon(Icons.history),
+                          title: Text('تعديل الكشوفات القديمة'),
                         ),
                       if (user.secretary == true)
                         const ListTile(

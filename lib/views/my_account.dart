@@ -251,6 +251,11 @@ class _MyAccountState extends State<MyAccount> {
                     leading: Icon(Icons.delete_outlined),
                     title: Text('استرجاع المحذوفات'),
                   ),
+                if (user.changeHistory == true)
+                  const ListTile(
+                    leading: Icon(Icons.history),
+                    title: Text('تعديل الكشوفات القديمة'),
+                  ),
                 if (user.secretary == true)
                   const ListTile(
                     leading: Icon(Icons.shield),

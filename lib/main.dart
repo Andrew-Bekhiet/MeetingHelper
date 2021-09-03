@@ -23,6 +23,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:meetinghelper/admin.dart';
+import 'package:meetinghelper/secrets.dart';
 import 'package:meetinghelper/views/day.dart';
 import 'package:meetinghelper/views/edit_page/edit_invitation.dart';
 import 'package:meetinghelper/views/edit_users.dart';
@@ -31,6 +32,7 @@ import 'package:meetinghelper/views/invitations_page.dart';
 import 'package:meetinghelper/views/trash.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:timeago/timeago.dart';
 
 import 'models/history_record.dart';
@@ -65,11 +67,22 @@ import 'views/update_user_data.dart';
 import 'views/user_registeration.dart';
 
 void main() async {
+  await SentryFlutter.init(
+    (options) => options
+      ..dsn = sentryDSN
+      ..debug = !kReleaseMode
+      ..environment = kReleaseMode ? 'Production' : 'Debug',
+  );
+
   FlutterError.onError = (flutterError) {
+    Sentry.captureException(flutterError.exception,
+        stackTrace: flutterError.stack, hint: flutterError);
     FirebaseCrashlytics.instance.recordFlutterError(flutterError);
   };
   ErrorWidget.builder = (error) {
     if (kReleaseMode) {
+      Sentry.captureException(error.exception,
+          stackTrace: error.stack, hint: error);
       FirebaseCrashlytics.instance.recordFlutterError(error);
     }
     return Material(
@@ -475,7 +488,8 @@ class AppState extends State<App> {
                     : Person.fromDoc,
                 showMotherAndFatherPhones:
                     ModalRoute.of(context)!.settings.arguments is! User),
-            'UserInfo': (context) => const UserInfo(),
+            'UserInfo': (context) => UserInfo(
+                user: ModalRoute.of(context)!.settings.arguments! as User),
             'InvitationInfo': (context) => InvitationInfo(
                 invitation:
                     ModalRoute.of(context)!.settings.arguments! as Invitation),
