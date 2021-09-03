@@ -1,23 +1,28 @@
 {
-    "name": "meetinghelper",
-    "short_name": "meetinghelper",
-    "start_url": ".",
-    "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
-    "prefer_related_applications": false,
-    "icons": [
-        {
-            "src": "icons/Icon-192.png",
-            "sizes": "192x192",
-            "type": "image/png"
-        },
-        {
-            "src": "icons/Icon-512.png",
-            "sizes": "512x512",
-            "type": "image/png"
-        }
-    ]
+  "name": "خدمة مدارس الأحد",
+  "short_name": "مدارس الأحد",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffce3a",
+  "theme_color": "#ffc107",
+  "description": "تطبيق خدمة مدارس الأحد",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": true,
+  "icons": [
+    {
+      "src": "icons/Icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/Icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/Icon-1203.png",
+      "sizes": "1203x1203",
+      "type": "image/png"
+    }
+  ]
 }
