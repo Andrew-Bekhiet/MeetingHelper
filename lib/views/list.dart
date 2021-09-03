@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart'
+    if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
+    if (dart.library.html) 'package:meetinghelper/crashlytics_web.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:group_list_view/group_list_view.dart';

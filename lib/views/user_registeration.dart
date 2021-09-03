@@ -1,5 +1,7 @@
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart'
+    if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
+    if (dart.library.html) 'package:meetinghelper/crashlytics_web.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';

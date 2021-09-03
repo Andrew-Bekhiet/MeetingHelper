@@ -2,12 +2,15 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
+import 'package:async/async.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart'
+    if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
+    if (dart.library.html) 'package:meetinghelper/crashlytics_web.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
@@ -224,34 +227,42 @@ Future _initConfigs() async {
   await Hive.openBox<Map>('NotificationsSettings');
   await Hive.openBox<String?>('PhotosURLsCache');
   await Hive.openBox<Map>('Notifications');
+  try {
+    await dotenv.load(fileName: '.env');
 
-  await dotenv.load(fileName: '.env');
-
-  final String? kEmulatorsHost = dotenv.env['kEmulatorsHost'];
-  //Firebase initialization
-  if (kDebugMode && dotenv.env['kUseFirebaseEmulators']?.toString() == 'true') {
-    await Firebase.initializeApp(
-      options: FirebaseOptions(
-          apiKey: dotenv.env['apiKey']!,
-          appId: dotenv.env['appId']!,
-          messagingSenderId: 'messagingSenderId',
-          projectId: dotenv.env['projectId']!,
-          databaseURL:
-              'http://' + kEmulatorsHost! + ':9000?ns=meetinghelper-2a869'),
-    );
-    await auth.FirebaseAuth.instance.useAuthEmulator(kEmulatorsHost, 9099);
-    await FirebaseStorage.instance.useStorageEmulator(kEmulatorsHost, 9199);
-    firestore.FirebaseFirestore.instance
-        .useFirestoreEmulator(kEmulatorsHost, 8080, sslEnabled: false);
-    FirebaseFunctions.instance.useFunctionsEmulator(kEmulatorsHost, 5001);
-    dbInstance =
-        FirebaseDatabase(databaseURL: 'http://' + kEmulatorsHost + ':9000');
-  } else {
+    final String? kEmulatorsHost = dotenv.env['kEmulatorsHost'];
+    //Firebase initialization
+    if (kDebugMode &&
+        dotenv.env['kUseFirebaseEmulators']?.toString() == 'true') {
+      await Firebase.initializeApp(
+        options: FirebaseOptions(
+            apiKey: dotenv.env['apiKey']!,
+            appId: dotenv.env['appId']!,
+            messagingSenderId: 'messagingSenderId',
+            projectId: dotenv.env['projectId']!,
+            databaseURL: 'http://' +
+                kEmulatorsHost! +
+                ':9000?ns=' +
+                dotenv.env['projectId']!),
+      );
+      await auth.FirebaseAuth.instance.useAuthEmulator(kEmulatorsHost, 9099);
+      await FirebaseStorage.instance.useStorageEmulator(kEmulatorsHost, 9199);
+      firestore.FirebaseFirestore.instance
+          .useFirestoreEmulator(kEmulatorsHost, 8080, sslEnabled: false);
+      FirebaseFunctions.instance.useFunctionsEmulator(kEmulatorsHost, 5001);
+      dbInstance = FirebaseDatabase(
+          databaseURL: 'http://' +
+              kEmulatorsHost +
+              ':9000?ns=' +
+              dotenv.env['projectId']!);
+    } else {
+      await Firebase.initializeApp();
+    }
+  } catch (e) {
     await Firebase.initializeApp();
   }
 
-  //Notifications:
-  await AndroidAlarmManager.initialize();
+  if (!kIsWeb) await AndroidAlarmManager.initialize();
 
   await FlutterLocalNotificationsPlugin().initialize(
       const InitializationSettings(
@@ -270,6 +281,7 @@ class AppState extends State<App> {
   bool configureMessaging = true;
   StreamSubscription<ConnectivityResult>? connection;
   StreamSubscription? userTokenListener;
+  final AsyncMemoizer<void> _appLoader = AsyncMemoizer();
 
   @override
   void dispose() {
@@ -310,7 +322,7 @@ class AppState extends State<App> {
 
   Widget buildLoadAppWidget(BuildContext context) {
     return FutureBuilder<void>(
-      future: loadApp(context),
+      future: _appLoader.runOnce(() => loadApp(context)),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done)
           return const Loading(
@@ -406,7 +418,7 @@ class AppState extends State<App> {
       // ignore: empty_catches
     } catch (err) {}
 
-    if (RemoteConfig.instance.getString('LoadApp') == 'false') {
+    if (!kIsWeb && RemoteConfig.instance.getString('LoadApp') == 'false') {
       await Updates.showUpdateDialog(context, canCancel: false);
       throw Exception('يجب التحديث لأخر إصدار لتشغيل البرنامج');
     } else {

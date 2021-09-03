@@ -4,7 +4,7 @@ description: null
 # The following line prevents the package from being accidentally published to
 # pub.dev using `pub publish`. This is preferred for private packages.
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
-version: 6.0.1+6
+version: 6.2.0+7
 
 environment:
   sdk: ">=2.13.0 <3.0.0"
@@ -42,8 +42,9 @@ dependencies:
   flutter_local_notifications: ^8.1.1+2
   flutter_localizations:
     sdk: flutter
-  flutter_secure_storage: ^4.2.1
-  google_maps_flutter: ^2.0.6
+  flutter_secure_storage: ^5.0.0-beta.5
+  google_maps_flutter: ^2.0.8
+  google_maps_flutter_web: ^0.3.0+4
   google_sign_in: ^5.0.7
   group_list_view: ^1.1.1
   hive: ^2.0.4
