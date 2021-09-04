@@ -18,7 +18,7 @@ class Service extends DataObject with PhotoObject {
     this.showInHistory = true,
     bool hasPhoto = false,
   }) : super(ref, name, null) {
-    hasPhoto = hasPhoto;
+    this.hasPhoto = hasPhoto;
     defaultIcon = Icons.miscellaneous_services;
   }
 
