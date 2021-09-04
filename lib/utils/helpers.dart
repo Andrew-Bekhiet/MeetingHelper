@@ -163,9 +163,12 @@ Stream<Map<StudyYear?, List<DataObject>>> servicesByStudyYearRef() {
                   .snapshots())
           .map((cs) => cs.docs.map(Class.fromQueryDoc).toList())),
       User.instance.stream.switchMap(
-        (user) => Rx.combineLatestList(
-          user.adminServices.map((r) => r.snapshots().map(Service.fromDoc)),
-        ),
+        (user) => user.adminServices.isEmpty
+            ? Stream.value([])
+            : Rx.combineLatestList(
+                user.adminServices
+                    .map((r) => r.snapshots().map(Service.fromDoc)),
+              ),
       ), (studyYears, classes, services) {
     final combined = <DataObject>[...classes, ...services];
 
@@ -221,9 +224,11 @@ Stream<Map<StudyYear?, List<DataObject>>> servicesByStudyYearRefForUser(
           .orderBy('Gender')
           .snapshots()
           .map((cs) => cs.docs.map(Class.fromQueryDoc).toList()),
-      Rx.combineLatestList(
-        adminServices.map((r) => r.snapshots().map(Service.fromDoc)),
-      ), (studyYears, classes, services) {
+      adminServices.isEmpty
+          ? Stream.value([])
+          : Rx.combineLatestList(
+              adminServices.map((r) => r.snapshots().map(Service.fromDoc)),
+            ), (studyYears, classes, services) {
     final combined = <DataObject>[...classes, ...services];
 
     mergeSort<DataObject>(combined, compare: (c, c2) {

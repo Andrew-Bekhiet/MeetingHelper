@@ -2,7 +2,6 @@ import 'package:collection/collection.dart';
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:group_list_view/group_list_view.dart';
-import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data_object_widget.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/super_classes.dart';
