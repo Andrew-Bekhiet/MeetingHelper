@@ -5,6 +5,7 @@ import 'package:group_list_view/group_list_view.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data_object_widget.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
+import 'package:meetinghelper/models/super_classes.dart';
 
 import '../models/mini_models.dart';
 import '../utils/helpers.dart';
@@ -34,14 +35,16 @@ class _ServicesListState extends State<ServicesList>
   Widget build(BuildContext context) {
     super.build(context);
 
-    return StreamBuilder<Map<StudyYear?, List<Class>>?>(
+    return StreamBuilder<Map<StudyYear?, List<DataObject>>?>(
       stream: widget.options.objectsData,
       builder: (context, services) {
         if (services.hasError) return ErrorWidget(services.error!);
         if (!services.hasData)
           return const Center(child: CircularProgressIndicator());
-        final groupedStudyYears = groupBy(services.data!.keys, (dynamic s) {
-          switch (s.grade) {
+
+        final groupedStudyYears =
+            groupBy<StudyYear?, int>(services.data!.keys, (StudyYear? s) {
+          switch (s?.grade) {
             case -1:
             case 0:
               return 0;
@@ -95,7 +98,7 @@ class _ServicesListState extends State<ServicesList>
               case 4:
                 return const ListTile(title: Text('جامعة'));
               default:
-                return const ListTile(title: Text('أخرى'));
+                return const ListTile(title: Text('خدمات أخرى'));
             }
           },
           itemBuilder: (context, index) {
@@ -117,7 +120,7 @@ class _ServicesListState extends State<ServicesList>
                               .toggle(),
                       leading: const Icon(Icons.miscellaneous_services),
                       title: Text(element?.name ?? ''),
-                      trailing: StreamBuilder<Map<String?, Class?>?>(
+                      trailing: StreamBuilder<Map<String, DataObject>>(
                         stream: widget.options.selected,
                         builder: (context, snapshot) {
                           if (snapshot.hasData &&
@@ -165,42 +168,42 @@ class _ServicesListState extends State<ServicesList>
                     padding: const EdgeInsets.fromLTRB(3, 0, 9, 0),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: services.data![element]!
-                          .map(
-                            (c) => DataObjectWidget<Class>(
-                              c,
-                              showSubTitle: false,
-                              onTap: () {
-                                if (!widget.options.selectionModeLatest) {
-                                  widget.options.tap == null
-                                      ? dataObjectTap(c)
-                                      : widget.options.tap!(c);
-                                } else {
-                                  widget.options.toggleSelected(c);
+                      children: services.data![element]!.map(
+                        (c) {
+                          return DataObjectWidget(
+                            c,
+                            showSubTitle: false,
+                            onTap: () {
+                              if (!widget.options.selectionModeLatest) {
+                                widget.options.tap == null
+                                    ? dataObjectTap(c)
+                                    : widget.options.tap!(c);
+                              } else {
+                                widget.options.toggleSelected(c);
+                              }
+                            },
+                            trailing: StreamBuilder<Map<String, DataObject>>(
+                              stream: widget.options.selected,
+                              builder: (context, snapshot) {
+                                if (snapshot.hasData &&
+                                    widget.options.selectionModeLatest) {
+                                  return Checkbox(
+                                    value: snapshot.data!.containsKey(c.id),
+                                    onChanged: (v) {
+                                      if (v!) {
+                                        widget.options.select(c);
+                                      } else {
+                                        widget.options.deselect(c);
+                                      }
+                                    },
+                                  );
                                 }
+                                return const SizedBox(width: 1, height: 1);
                               },
-                              trailing: StreamBuilder<Map<String?, Class?>?>(
-                                stream: widget.options.selected,
-                                builder: (context, snapshot) {
-                                  if (snapshot.hasData &&
-                                      widget.options.selectionModeLatest) {
-                                    return Checkbox(
-                                      value: snapshot.data!.containsKey(c.id),
-                                      onChanged: (v) {
-                                        if (v!) {
-                                          widget.options.select(c);
-                                        } else {
-                                          widget.options.deselect(c);
-                                        }
-                                      },
-                                    );
-                                  }
-                                  return const SizedBox(width: 1, height: 1);
-                                },
-                              ),
                             ),
-                          )
-                          .toList(),
+                          );
+                        },
+                      ).toList(),
                     ),
                   ),
                   theme: const ExpandableThemeData(
@@ -212,10 +215,10 @@ class _ServicesListState extends State<ServicesList>
             else
               return Padding(
                 padding: const EdgeInsets.fromLTRB(3, 0, 9, 0),
-                child: DataObjectWidget<Class>(
+                child: DataObjectWidget(
                   services.data![element]![0],
                   showSubTitle: false,
-                  trailing: StreamBuilder<Map<String?, Class?>?>(
+                  trailing: StreamBuilder<Map<String, DataObject>>(
                     stream: widget.options.selected,
                     builder: (context, snapshot) {
                       if (snapshot.hasData &&

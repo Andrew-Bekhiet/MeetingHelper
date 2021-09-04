@@ -930,7 +930,7 @@ class _EditPersonState extends State<EditPerson> {
         state.didChange(person.classId = class$.ref);
         FocusScope.of(context).nextFocus();
       },
-      itemsStream: classesByStudyYearRef(),
+      itemsStream: servicesByStudyYearRef(),
     );
     await showDialog(
       context: context,

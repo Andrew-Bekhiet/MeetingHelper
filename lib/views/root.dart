@@ -556,7 +556,7 @@ class _RootState extends State<Root>
                                             navigator.currentState!.pop(
                                           _class,
                                         ),
-                                        itemsStream: classesByStudyYearRef(),
+                                        itemsStream: servicesByStudyYearRef(),
                                       ),
                                     ),
                                   ),
@@ -843,8 +843,8 @@ class _RootState extends State<Root>
     );
     _servicesOptions = ServicesListController(
       searchQuery: _searchQuery,
-      itemsStream: classesByStudyYearRef(),
-      tap: classTap,
+      itemsStream: servicesByStudyYearRef(),
+      tap: dataObjectTap,
     );
     _personsOptions = DataObjectListController<Person>(
       searchQuery: _searchQuery,

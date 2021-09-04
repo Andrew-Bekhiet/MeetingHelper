@@ -24,6 +24,7 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
+import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data_object_widget.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
@@ -134,82 +135,126 @@ void changeTheme({required BuildContext context}) {
   );
 }
 
-Stream<Map<StudyYear?, List<Class>>> classesByStudyYearRef() {
-  return FirebaseFirestore.instance
-      .collection('StudyYears')
-      .orderBy('Grade')
-      .snapshots()
-      .switchMap<Map<StudyYear?, List<Class>>>(
-    (sys) {
-      final Map<JsonRef, StudyYear> studyYears = {
-        for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
-      };
-      return User.instance.stream.switchMap(
-        (user) => (user.superAccess
-                ? FirebaseFirestore.instance
-                    .collection('Classes')
-                    .orderBy('StudyYear')
-                    .orderBy('Gender')
-                    .snapshots()
-                : FirebaseFirestore.instance
-                    .collection('Classes')
-                    .where('Allowed',
-                        arrayContains:
-                            auth.FirebaseAuth.instance.currentUser!.uid)
-                    .orderBy('StudyYear')
-                    .orderBy('Gender')
-                    .snapshots())
-            .map(
-          (cs) {
-            final classes = cs.docs.map(Class.fromQueryDoc).toList();
-            mergeSort<Class>(classes, compare: (c, c2) {
-              if (c.studyYear == c2.studyYear)
-                return c.gender.compareTo(c2.gender);
-              return studyYears[c.studyYear]!
-                  .grade!
-                  .compareTo(studyYears[c2.studyYear]!.grade!);
-            });
-            return groupBy<Class, StudyYear?>(
-                classes, (c) => studyYears[c.studyYear]);
-          },
+Stream<Map<StudyYear?, List<DataObject>>> servicesByStudyYearRef() {
+  return Rx.combineLatest3<Map<JsonRef, StudyYear>, List<Class>, List<Service>,
+          Map<StudyYear?, List<DataObject>>>(
+      FirebaseFirestore.instance
+          .collection('StudyYears')
+          .orderBy('Grade')
+          .snapshots()
+          .map<Map<JsonRef, StudyYear>>(
+            (sys) => {
+              for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
+            },
+          ),
+      User.instance.stream.switchMap((user) => (user.superAccess
+              ? FirebaseFirestore.instance
+                  .collection('Classes')
+                  .orderBy('StudyYear')
+                  .orderBy('Gender')
+                  .snapshots()
+              : FirebaseFirestore.instance
+                  .collection('Classes')
+                  .where('Allowed',
+                      arrayContains:
+                          auth.FirebaseAuth.instance.currentUser!.uid)
+                  .orderBy('StudyYear')
+                  .orderBy('Gender')
+                  .snapshots())
+          .map((cs) => cs.docs.map(Class.fromQueryDoc).toList())),
+      User.instance.stream.switchMap(
+        (user) => Rx.combineLatestList(
+          user.adminServices.map((r) => r.snapshots().map(Service.fromDoc)),
         ),
-      );
-    },
-  );
+      ), (studyYears, classes, services) {
+    final combined = <DataObject>[...classes, ...services];
+
+    mergeSort<DataObject>(combined, compare: (c, c2) {
+      if (c is Class && c2 is Class) {
+        if (c.studyYear == c2.studyYear) return c.gender.compareTo(c2.gender);
+        return studyYears[c.studyYear]!
+            .grade!
+            .compareTo(studyYears[c2.studyYear]!.grade!);
+      } else if (c is Service && c2 is Service) {
+        return ((studyYears[c.studyYearRange?.from]?.grade ?? 0) -
+                (studyYears[c.studyYearRange?.to]?.grade ?? 0))
+            .compareTo((studyYears[c2.studyYearRange?.from]?.grade ?? 0) -
+                (studyYears[c2.studyYearRange?.to]?.grade ?? 0));
+      } else if (c is Class &&
+          c2 is Service &&
+          c2.studyYearRange?.from != c2.studyYearRange?.to)
+        return -1;
+      else if (c2 is Class &&
+          c is Service &&
+          c.studyYearRange?.from != c.studyYearRange?.to) return 1;
+      return 0;
+    });
+
+    return groupBy<DataObject, StudyYear?>(combined, (c) {
+      if (c is Class)
+        return studyYears[c.studyYear];
+      else if (c is Service && c.studyYearRange?.from == c.studyYearRange?.to)
+        return studyYears[c.studyYearRange?.from];
+      return null;
+    });
+  });
 }
 
-Stream<Map<StudyYear, List<Class>>> classesByStudyYearRefForUser(String? uid) {
-  return FirebaseFirestore.instance
-      .collection('StudyYears')
-      .orderBy('Grade')
-      .snapshots()
-      .switchMap(
-    (sys) {
-      final Map<JsonRef, StudyYear> studyYears = {
-        for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
-      };
-      return FirebaseFirestore.instance
+Stream<Map<StudyYear?, List<DataObject>>> servicesByStudyYearRefForUser(
+    String? uid, List<JsonRef> adminServices) {
+  return Rx.combineLatest3<Map<JsonRef, StudyYear>, List<Class>, List<Service>,
+          Map<StudyYear?, List<DataObject>>>(
+      FirebaseFirestore.instance
+          .collection('StudyYears')
+          .orderBy('Grade')
+          .snapshots()
+          .map<Map<JsonRef, StudyYear>>(
+            (sys) => {
+              for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
+            },
+          ),
+      FirebaseFirestore.instance
           .collection('Classes')
-          .where('Allowed', arrayContains: uid)
+          .where('Allowed',
+              arrayContains: auth.FirebaseAuth.instance.currentUser!.uid)
           .orderBy('StudyYear')
           .orderBy('Gender')
           .snapshots()
-          .map(
-        (cs) {
-          final classes = cs.docs.map(Class.fromQueryDoc).toList();
-          mergeSort<Class>(classes, compare: (c, c2) {
-            if (c.studyYear == c2.studyYear)
-              return c.gender.compareTo(c2.gender);
-            return studyYears[c.studyYear]!
-                .grade!
-                .compareTo(studyYears[c2.studyYear]!.grade!);
-          });
-          return groupBy<Class, StudyYear>(
-              classes, (c) => studyYears[c.studyYear]!);
-        },
-      );
-    },
-  );
+          .map((cs) => cs.docs.map(Class.fromQueryDoc).toList()),
+      Rx.combineLatestList(
+        adminServices.map((r) => r.snapshots().map(Service.fromDoc)),
+      ), (studyYears, classes, services) {
+    final combined = <DataObject>[...classes, ...services];
+
+    mergeSort<DataObject>(combined, compare: (c, c2) {
+      if (c is Class && c2 is Class) {
+        if (c.studyYear == c2.studyYear) return c.gender.compareTo(c2.gender);
+        return studyYears[c.studyYear]!
+            .grade!
+            .compareTo(studyYears[c2.studyYear]!.grade!);
+      } else if (c is Service && c2 is Service) {
+        return ((studyYears[c.studyYearRange?.from]?.grade ?? 0) -
+                (studyYears[c.studyYearRange?.to]?.grade ?? 0))
+            .compareTo((studyYears[c2.studyYearRange?.from]?.grade ?? 0) -
+                (studyYears[c2.studyYearRange?.to]?.grade ?? 0));
+      } else if (c is Class &&
+          c2 is Service &&
+          c2.studyYearRange?.from != c2.studyYearRange?.to)
+        return -1;
+      else if (c2 is Class &&
+          c is Service &&
+          c.studyYearRange?.from != c.studyYearRange?.to) return 1;
+      return 0;
+    });
+
+    return groupBy<DataObject, StudyYear?>(combined, (c) {
+      if (c is Class)
+        return studyYears[c.studyYear];
+      else if (c is Service && c.studyYearRange?.from == c.studyYearRange?.to)
+        return studyYears[c.studyYearRange?.from];
+      return null;
+    });
+  });
 }
 
 void classTap(Class? _class) {
@@ -1141,7 +1186,7 @@ void showBirthDayNotification() async {
 
 Future<List<Class>?> selectClasses(List<Class>? classes) async {
   final _controller = ServicesListController(
-    itemsStream: classesByStudyYearRef(),
+    itemsStream: servicesByStudyYearRef(),
     selectionMode: true,
     selected: classes,
     searchQuery: Stream.value(''),
@@ -1173,7 +1218,7 @@ Future<List<Class>?> selectClasses(List<Class>? classes) async {
       ) ==
       true) {
     await _controller.dispose();
-    return _controller.selectedLatest!.values.toList();
+    return _controller.selectedLatest!.values.whereType<Class>().toList();
   }
   await _controller.dispose();
   return null;

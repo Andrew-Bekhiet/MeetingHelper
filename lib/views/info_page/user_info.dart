@@ -263,16 +263,17 @@ class _UserInfoState extends State<UserInfo> {
                           Text(
                             'يستطيع ' +
                                 user.name +
-                                ' رؤية ${user.write ? 'وتعديل ' : ''}الفصول التالية:',
+                                ' رؤية ${user.write ? 'وتعديل ' : ''}الخدمات التالية:',
                             style: Theme.of(context).textTheme.headline6,
                           ),
                           Expanded(
                             child: ServicesList(
                               options: ServicesListController(
-                                tap: classTap,
+                                tap: dataObjectTap,
                                 itemsStream: user.superAccess
-                                    ? classesByStudyYearRef()
-                                    : classesByStudyYearRefForUser(user.uid),
+                                    ? servicesByStudyYearRef()
+                                    : servicesByStudyYearRefForUser(
+                                        user.uid, user.adminServices),
                               ),
                               autoDisposeController: true,
                             ),

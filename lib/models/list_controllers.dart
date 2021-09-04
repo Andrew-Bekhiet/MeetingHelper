@@ -711,19 +711,21 @@ class HistoryDayOptions {
       other is HistoryDayOptions && other.hashCode == hashCode;
 }
 
+/// BaseListController<Map<StudyYear?, List<Class | Service>>, Class | Service>
 class ServicesListController
-    implements BaseListController<Map<StudyYear?, List<Class>>, Class> {
+    implements
+        BaseListController<Map<StudyYear?, List<DataObject>>, DataObject> {
   @override
-  final BehaviorSubject<Map<StudyYear?, List<Class>>> _objectsData =
+  final BehaviorSubject<Map<StudyYear?, List<DataObject>>> _objectsData =
       BehaviorSubject();
   @override
-  ValueStream<Map<StudyYear?, List<Class>>> get objectsData =>
+  ValueStream<Map<StudyYear?, List<DataObject>>> get objectsData =>
       _objectsData.stream;
   @override
-  Map<StudyYear?, List<Class>> get items => _objectsData.value;
+  Map<StudyYear?, List<DataObject>> get items => _objectsData.value;
 
   @override
-  StreamSubscription<Map<StudyYear?, List<Class>>>? _objectsDataListener;
+  StreamSubscription<Map<StudyYear?, List<DataObject>>>? _objectsDataListener;
 
   @override
   final BehaviorSubject<String> _searchQuery;
@@ -743,14 +745,14 @@ class ServicesListController
   BehaviorSubject<bool> get selectionMode => _selectionMode;
 
   @override
-  final BehaviorSubject<Map<String, Class>> _selected;
+  final BehaviorSubject<Map<String, DataObject>> _selected;
   @override
-  ValueStream<Map<String, Class>> get selected => _selected;
+  ValueStream<Map<String, DataObject>> get selected => _selected;
   @override
-  Map<String, Class>? get selectedLatest => _selected.valueOrNull;
+  Map<String, DataObject>? get selectedLatest => _selected.valueOrNull;
 
-  Map<StudyYear?, List<Class>> _filter(
-      Map<StudyYear?, List<Class>> o, String filter) {
+  Map<StudyYear?, List<DataObject>> _filter(
+      Map<StudyYear?, List<DataObject>> o, String filter) {
     return {
       for (var it in o.entries.where(
         (e) =>
@@ -766,12 +768,12 @@ class ServicesListController
   }
 
   @override
-  final void Function(Class)? tap;
+  final void Function(DataObject)? tap;
   @override
-  final void Function(Class)? onLongPress;
+  final void Function(DataObject)? onLongPress;
 
   @override
-  Class? get empty => null;
+  DataObject? get empty => null;
 
   @override
   bool get showNull => false;
@@ -779,24 +781,26 @@ class ServicesListController
   ServicesListController({
     this.onLongPress,
     this.tap,
-    List<Class>? selected,
+    List<DataObject>? selected,
     bool selectionMode = false,
-    Stream<Map<StudyYear?, List<Class>>>? itemsStream,
-    Map<StudyYear, List<Class>>? items,
+    Stream<Map<StudyYear?, List<DataObject>>>? itemsStream,
+    Map<StudyYear, List<DataObject>>? items,
     Stream<String>? searchQuery,
   })  : assert(itemsStream != null || items != null),
         _searchQuery = searchQuery != null
             ? BehaviorSubject<String>()
             : BehaviorSubject<String>.seeded(''),
         _selectionMode = BehaviorSubject<bool>.seeded(selectionMode),
-        _selected = BehaviorSubject<Map<String, Class>>.seeded(
+        _selected = BehaviorSubject<Map<String, DataObject>>.seeded(
             {for (var item in selected ?? []) item.id: item}) {
 //
     _searchQueryListener =
         searchQuery?.listen(_searchQuery.add, onError: _searchQuery.addError);
 
-    _objectsDataListener = Rx.combineLatest2<String,
-                Map<StudyYear?, List<Class>>, Map<StudyYear?, List<Class>>>(
+    _objectsDataListener = Rx.combineLatest2<
+                String,
+                Map<StudyYear?, List<DataObject>>,
+                Map<StudyYear?, List<DataObject>>>(
             _searchQuery,
             itemsStream ?? BehaviorSubject.seeded(items!),
             (search, items) =>
@@ -819,7 +823,7 @@ class ServicesListController
   }
 
   @override
-  void toggleSelected(Class item) {
+  void toggleSelected(DataObject item) {
     if (_selected.value.containsKey(item.id)) {
       deselect(item);
     } else {
@@ -828,12 +832,12 @@ class ServicesListController
   }
 
   @override
-  void select(Class item) {
+  void select(DataObject item) {
     _selected.add({..._selected.value, item.id: item});
   }
 
   @override
-  void deselect(Class item) {
+  void deselect(DataObject item) {
     _selected.add(_selected.value..remove(item.id));
   }
 
