@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:async/async.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
@@ -712,11 +713,28 @@ class _EditUserState extends State<EditUser> {
           }
           await batch.commit();
         }
-        if (old.classId != user.classId) {
+
+        if (old.classId != user.classId &&
+            !const DeepCollectionEquality.unordered()
+                .equals(user.adminServices, old.adminServices)) {
+          await FirebaseFirestore.instance
+              .collection('UsersData')
+              .doc(user.refId)
+              .update({
+            'ClassId': user.classId,
+            'AdminServices': user.adminServices,
+          });
+        } else if (old.classId != user.classId) {
           await FirebaseFirestore.instance
               .collection('UsersData')
               .doc(user.refId)
               .update({'ClassId': user.classId});
+        } else if (!const DeepCollectionEquality.unordered()
+            .equals(user.adminServices, old.adminServices)) {
+          await FirebaseFirestore.instance
+              .collection('UsersData')
+              .doc(user.refId)
+              .update({'AdminServices': user.adminServices});
         }
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
         navigator.currentState!.pop(user);
