@@ -11,7 +11,7 @@ import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:rxdart/rxdart.dart';
 
-import 'models.dart';
+import 'person.dart';
 import 'user.dart';
 
 class Class extends DataObject with PhotoObject, ParentObject<Person> {

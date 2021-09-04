@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:meetinghelper/models/invitation.dart';
+import 'package:meetinghelper/models/data/invitation.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/views/list.dart';

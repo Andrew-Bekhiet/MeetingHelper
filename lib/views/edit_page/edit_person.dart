@@ -12,10 +12,11 @@ import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
-import 'package:meetinghelper/models/order_options.dart';
-import 'package:meetinghelper/models/search_filters.dart';
-import 'package:meetinghelper/models/user.dart';
+import 'package:meetinghelper/models/search/order_options.dart';
+import 'package:meetinghelper/models/search/search_filters.dart';
+import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
@@ -25,7 +26,6 @@ import 'package:rxdart/rxdart.dart';
 import 'package:tinycolor2/tinycolor2.dart';
 
 import '../../models/mini_models.dart';
-import '../../models/models.dart';
 import '../../views/mini_lists/colors_list.dart';
 import '../services_list.dart';
 

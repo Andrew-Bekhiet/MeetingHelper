@@ -1,9 +1,10 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:meetinghelper/models/data/class.dart';
+import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data_object_widget.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
-import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:provider/provider.dart';
@@ -12,11 +13,11 @@ import 'package:share_plus/share_plus.dart';
 import 'package:tinycolor2/tinycolor2.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
-import '../../models/history_property.dart';
+import '../../models/data/user.dart';
+import '../../models/history/history_property.dart';
 import '../../models/list_controllers.dart';
-import '../../models/order_options.dart';
-import '../../models/search_filters.dart';
-import '../../models/user.dart';
+import '../../models/search/order_options.dart';
+import '../../models/search/search_filters.dart';
 import '../../utils/helpers.dart';
 import '../data_map.dart';
 import '../list.dart';

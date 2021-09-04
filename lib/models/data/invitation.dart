@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/super_classes.dart';
-import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 
 class Invitation extends DataObject {

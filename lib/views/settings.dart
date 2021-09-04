@@ -4,11 +4,12 @@ import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
+import 'package:meetinghelper/models/data/class.dart';
+import 'package:meetinghelper/models/data/person.dart';
 import 'package:provider/provider.dart';
 
-import '../models/models.dart';
+import '../models/data/user.dart';
 import '../models/notification_setting.dart';
-import '../models/user.dart';
 import '../utils/globals.dart';
 import '../utils/helpers.dart';
 

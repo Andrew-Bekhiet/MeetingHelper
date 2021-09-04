@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meetinghelper/models/super_classes.dart';
 
-import '../models/user.dart';
+import '../models/data/user.dart';
 import '../utils/helpers.dart';
 
 class Notification extends StatelessWidget {

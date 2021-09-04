@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/views/form_widgets/tapable_form_field.dart';
 
-import '../models/user.dart';
+import '../models/data/user.dart';
 import '../utils/helpers.dart';
 
 class UpdateUserDataErrorPage extends StatefulWidget {

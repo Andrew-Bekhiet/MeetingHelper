@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
-import 'package:meetinghelper/models/user.dart';
+import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 

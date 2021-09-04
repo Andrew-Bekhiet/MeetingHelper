@@ -38,12 +38,13 @@ import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:timeago/timeago.dart';
 
-import 'models/history_record.dart';
-import 'models/invitation.dart';
+import 'models/data/class.dart';
+import 'models/data/invitation.dart';
+import 'models/data/person.dart';
+import 'models/data/user.dart';
+import 'models/history/history_record.dart';
 import 'models/mini_models.dart' hide History;
-import 'models/models.dart';
 import 'models/theme_notifier.dart';
-import 'models/user.dart';
 import 'updates.dart';
 import 'utils/globals.dart';
 import 'utils/helpers.dart';

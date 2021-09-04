@@ -7,12 +7,12 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:meetinghelper/crashlytics_web.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:meetinghelper/models/invitation.dart';
+import 'package:meetinghelper/models/data/invitation.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 
 import '../../models/mini_models.dart';
-import '../../models/user.dart';
+import '../../models/data/user.dart';
 
 class EditInvitation extends StatefulWidget {
   final Invitation invitation;

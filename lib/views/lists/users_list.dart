@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:group_list_view/group_list_view.dart';
-import 'package:meetinghelper/models/class.dart';
+import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data_object_widget.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/super_classes.dart';
-import 'package:meetinghelper/models/user.dart';
+import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:provider/provider.dart';

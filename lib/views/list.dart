@@ -8,12 +8,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:group_list_view/group_list_view.dart';
 import 'package:intl/intl.dart';
+import 'package:meetinghelper/models/data/class.dart';
+import 'package:meetinghelper/models/data/invitation.dart';
+import 'package:meetinghelper/models/data/person.dart';
+import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/data_object_widget.dart';
-import 'package:meetinghelper/models/invitation.dart';
+import 'package:meetinghelper/models/history/history_record.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
-import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/models/super_classes.dart';
-import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:meetinghelper/views/trash.dart';
@@ -26,7 +28,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../utils/helpers.dart';
 
-export 'package:meetinghelper/models/order_options.dart';
+export 'package:meetinghelper/models/search/order_options.dart';
 export 'package:tuple/tuple.dart';
 
 ///Constructs a [DataObject] [ListView]

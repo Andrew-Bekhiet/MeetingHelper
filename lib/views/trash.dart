@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:meetinghelper/models/data/class.dart';
+import 'package:meetinghelper/models/data/person.dart';
+import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
-import 'package:meetinghelper/models/models.dart';
-import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/utils/typedefs.dart';

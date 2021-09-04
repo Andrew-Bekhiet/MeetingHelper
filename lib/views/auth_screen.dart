@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:meetinghelper/utils/globals.dart';
 
-import '../models/user.dart';
+import '../models/data/user.dart';
 import '../utils/encryption_keys.dart';
 import '../utils/helpers.dart';
 

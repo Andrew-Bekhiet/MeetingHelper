@@ -14,7 +14,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hive/hive.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../models/user.dart';
+import '../models/data/user.dart';
 import '../utils/helpers.dart';
 
 class LoginScreen extends StatefulWidget {

@@ -12,12 +12,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hive/hive.dart';
-import 'package:meetinghelper/models/person.dart';
+import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:rxdart/rxdart.dart';
 
-import 'super_classes.dart';
+import '../super_classes.dart';
 
 class User extends Person {
   static final User instance = User._initInstance();

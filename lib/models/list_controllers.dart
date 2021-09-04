@@ -2,16 +2,18 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/data_object_widget.dart';
-import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/models/super_classes.dart';
-import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tuple/tuple.dart';
 
+import 'data/class.dart';
+import 'data/person.dart';
+import 'history/history_record.dart';
 import 'mini_models.dart';
 
 abstract class BaseListController<L, U> {

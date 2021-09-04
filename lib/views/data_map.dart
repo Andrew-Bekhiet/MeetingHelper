@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
+import 'package:meetinghelper/models/data/class.dart';
+import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
@@ -10,7 +12,6 @@ import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
-import '../models/models.dart';
 import '../utils/helpers.dart';
 
 class DataMap extends StatefulWidget {

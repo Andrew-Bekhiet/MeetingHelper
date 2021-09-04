@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:meetinghelper/models/history/history_record.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import '../models/list_controllers.dart';
-import '../models/models.dart';
 import '../utils/globals.dart';
 import '../utils/helpers.dart';
 import 'list.dart';

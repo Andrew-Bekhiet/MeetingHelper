@@ -7,7 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
-import 'package:meetinghelper/models/user.dart';
+import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/utils/encryption_keys.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';

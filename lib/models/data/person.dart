@@ -8,7 +8,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart';
-import 'package:meetinghelper/models/models.dart';
 import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
@@ -17,6 +16,7 @@ import 'package:meetinghelper/views/map_view.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tuple/tuple.dart';
 
+import 'class.dart';
 import 'user.dart';
 
 class Person extends DataObject with PhotoObject, ChildObject<Class> {

@@ -11,6 +11,7 @@ import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data_object_widget.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/utils/globals.dart';
@@ -20,10 +21,9 @@ import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 import 'package:tinycolor2/tinycolor2.dart';
 
+import '../../models/data/user.dart';
 import '../../models/mini_models.dart';
-import '../../models/models.dart';
-import '../../models/search_filters.dart';
-import '../../models/user.dart';
+import '../../models/search/search_filters.dart';
 import '../lists/users_list.dart';
 import '../mini_lists/colors_list.dart';
 

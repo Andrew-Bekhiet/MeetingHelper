@@ -11,7 +11,7 @@ import 'package:meetinghelper/utils/globals.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
-import '../models/user.dart';
+import '../models/data/user.dart';
 import '../utils/encryption_keys.dart';
 import '../utils/helpers.dart';
 

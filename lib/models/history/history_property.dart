@@ -1,13 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:meetinghelper/models/history_record.dart';
-import 'package:meetinghelper/models/user.dart';
+import 'package:meetinghelper/models/data/user.dart';
+import 'package:meetinghelper/models/history/history_record.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 
-import 'mini_models.dart';
+import '../mini_models.dart';
 
 class HistoryProperty extends StatelessWidget {
   const HistoryProperty(this.name, this.value, this.historyRef,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/mini_models.dart';
-import 'package:meetinghelper/models/user.dart';
+import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:meetinghelper/views/list.dart';

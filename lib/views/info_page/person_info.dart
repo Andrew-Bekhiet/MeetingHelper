@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:intl/intl.dart';
+import 'package:meetinghelper/models/data/class.dart';
+import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
@@ -20,10 +22,9 @@ import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/copiable_property.dart';
+import '../../models/data/user.dart';
 import '../../models/data_object_widget.dart';
-import '../../models/history_property.dart';
-import '../../models/models.dart';
-import '../../models/user.dart';
+import '../../models/history/history_property.dart';
 import '../../utils/helpers.dart';
 
 class PersonInfo extends StatefulWidget {

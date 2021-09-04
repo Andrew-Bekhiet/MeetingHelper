@@ -3,10 +3,11 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:meetinghelper/crashlytics_web.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:meetinghelper/models/data/person.dart';
+import 'package:meetinghelper/models/data/user.dart';
+import 'package:meetinghelper/models/history/history_record.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
-import 'package:meetinghelper/models/models.dart';
-import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/views/list.dart';

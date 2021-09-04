@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:rxdart/rxdart.dart';
 
-import '../utils/helpers.dart';
-import 'list_controllers.dart';
+import '../../utils/helpers.dart';
+import '../list_controllers.dart';
 import 'order_options.dart';
 
 class FilterButton extends StatelessWidget {
