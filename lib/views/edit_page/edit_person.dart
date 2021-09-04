@@ -19,7 +19,6 @@ import 'package:meetinghelper/models/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
-import 'package:meetinghelper/views/form_widgets/decorated_text_form_field.dart';
 import 'package:meetinghelper/views/form_widgets/tapable_form_field.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rxdart/rxdart.dart';
@@ -126,50 +125,69 @@ class _EditPersonState extends State<EditPerson> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  DecoratedTextFormField(
-                    labelText: 'الاسم',
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'الاسم',
+                    ),
                     initialValue: person.name,
                     keyboardType: TextInputType.name,
-                    autoFillHints: const [AutofillHints.name],
+                    autofillHints: const [AutofillHints.name],
                     onChanged: (value) => person.name = value,
+                    textInputAction: TextInputAction.next,
+                    textCapitalization: TextCapitalization.words,
+                    validator: (value) {
+                      if (value?.isEmpty ?? true) {
+                        return 'يجب ملئ اسم الفصل';
+                      }
+                      return null;
+                    },
                   ),
-                  DecoratedTextFormField(
-                    labelText: 'موبايل (شخصي)',
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'موبايل (شخصي)',
+                    ),
                     keyboardType: TextInputType.phone,
-                    autoFillHints: const [AutofillHints.telephoneNumber],
+                    autofillHints: const [AutofillHints.telephoneNumber],
                     initialValue: person.phone,
                     onChanged: (v) => person.phone = v,
                     validator: (value) {
                       return null;
                     },
+                    textInputAction: TextInputAction.next,
                   ),
                   if (widget.showMotherAndFatherPhones)
-                    DecoratedTextFormField(
-                      labelText: 'موبايل الأب',
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: 'موبايل الأب',
+                      ),
                       keyboardType: TextInputType.phone,
-                      autoFillHints: const [AutofillHints.telephoneNumber],
+                      autofillHints: const [AutofillHints.telephoneNumber],
                       initialValue: person.fatherPhone,
                       onChanged: (v) => person.fatherPhone = v,
                       validator: (value) {
                         return null;
                       },
+                      textInputAction: TextInputAction.next,
                     ),
                   if (widget.showMotherAndFatherPhones)
-                    DecoratedTextFormField(
-                      labelText: 'موبايل الأم',
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: 'موبايل الأم',
+                      ),
                       keyboardType: TextInputType.phone,
-                      autoFillHints: const [AutofillHints.telephoneNumber],
+                      autofillHints: const [AutofillHints.telephoneNumber],
                       initialValue: person.motherPhone,
                       onChanged: (v) => person.motherPhone = v,
                       validator: (value) {
                         return null;
                       },
+                      textInputAction: TextInputAction.next,
                     ),
                   if (person.phones.isNotEmpty)
                     ...person.phones.entries.map(
                       (e) => Container(
                         padding: const EdgeInsets.symmetric(vertical: 10),
-                        child: DecoratedTextFormField(
+                        child: TextFormField(
                           decoration: InputDecoration(
                             labelText: e.key,
                             hintText: 'مثال: 01234...',
@@ -218,12 +236,13 @@ class _EditPersonState extends State<EditPerson> {
                             ),
                           ),
                           keyboardType: TextInputType.phone,
-                          autoFillHints: const [AutofillHints.telephoneNumber],
+                          autofillHints: const [AutofillHints.telephoneNumber],
                           initialValue: e.value,
                           onChanged: (s) => person.phones[e.key] = s,
                           validator: (value) {
                             return null;
                           },
+                          textInputAction: TextInputAction.next,
                         ),
                       ),
                     ),
@@ -289,10 +308,12 @@ class _EditPersonState extends State<EditPerson> {
                     },
                     validator: (_) => null,
                   ),
-                  DecoratedTextFormField(
-                    labelText: 'العنوان',
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'العنوان',
+                    ),
                     keyboardType: TextInputType.streetAddress,
-                    autoFillHints: const [AutofillHints.fullStreetAddress],
+                    autofillHints: const [AutofillHints.fullStreetAddress],
                     initialValue: person.address,
                     textInputAction: TextInputAction.newline,
                     maxLines: null,
@@ -691,8 +712,10 @@ class _EditPersonState extends State<EditPerson> {
                     },
                     validator: (_) => null,
                   ),
-                  DecoratedTextFormField(
-                    labelText: 'ملاحظات',
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'ملاحظات',
+                    ),
                     textInputAction: TextInputAction.newline,
                     initialValue: person.notes,
                     onChanged: (v) => person.notes = v,

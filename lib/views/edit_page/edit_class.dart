@@ -15,7 +15,6 @@ import 'package:meetinghelper/models/data_object_widget.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
-import 'package:meetinghelper/views/form_widgets/decorated_text_form_field.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
@@ -113,10 +112,18 @@ class _EditClassState extends State<EditClass> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  DecoratedTextFormField(
-                    labelText: 'اسم الفصل',
+                  TextFormField(
+                    decoration: const InputDecoration(labelText: 'اسم الفصل'),
                     initialValue: class$.name,
                     onChanged: (v) => class$.name = v,
+                    textInputAction: TextInputAction.next,
+                    textCapitalization: TextCapitalization.words,
+                    validator: (value) {
+                      if (value?.isEmpty ?? true) {
+                        return 'يجب ملئ اسم الفصل';
+                      }
+                      return null;
+                    },
                   ),
                   FutureBuilder<JsonQuery>(
                     future: StudyYear.getAllForUser(),
