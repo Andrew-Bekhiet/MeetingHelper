@@ -102,7 +102,7 @@ List<Color?> primaries = <Color?>[
 ];
 
 String uriPrefix = 'https://meetinghelper.page.link';
-enum DayListType { Meeting, Kodas }
+
 enum PhoneCallAction { AddToContacts, Call, Message, Whatsapp }
 
 const MaterialColor white = MaterialColor(0xFFD8D8D8, <int, Color>{

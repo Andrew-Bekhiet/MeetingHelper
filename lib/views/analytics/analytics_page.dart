@@ -619,7 +619,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                   style: Theme.of(context).textTheme.headline6),
                               ClassesAttendanceIndicator(
                                 classes: classes ?? [],
-                                collection: days.first.meeting,
+                                collection:
+                                    days.single.subcollection('Meeting')!,
                                 isServant: widget.historyColection ==
                                     'ServantsHistory',
                               ),
@@ -628,7 +629,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                   style: Theme.of(context).textTheme.headline6),
                               ClassesAttendanceIndicator(
                                 classes: classes ?? [],
-                                collection: days.first.kodas,
+                                collection: days.single.subcollection('Kodas')!,
                                 isServant: widget.historyColection ==
                                     'ServantsHistory',
                               ),

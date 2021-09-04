@@ -28,7 +28,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
   String? phone;
   String? fatherPhone;
   String? motherPhone;
-  late Json phones;
+  Json phones;
 
   Timestamp? birthDate;
 
@@ -45,6 +45,16 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
   Timestamp? lastVisit;
   String? lastEdit;
   String? notes;
+
+  bool isShammas;
+
+  /// IsMale?
+  bool gender;
+  String? shammasLevel;
+  JsonRef? studyYear;
+
+  ///List of services this person is participant
+  List<JsonRef> services;
 
   Person(
       {String? id,
@@ -70,8 +80,15 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
       this.school,
       this.church,
       this.cFather,
+      this.isShammas = false,
+      this.gender = true,
+      this.shammasLevel,
+      this.studyYear,
+      List<JsonRef>? services,
       Color color = Colors.transparent})
-      : super(
+      : services = services ?? [],
+        phones = phones ?? {},
+        super(
             ref ??
                 FirebaseFirestore.instance
                     .collection('Persons')
@@ -79,40 +96,36 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
             name,
             color) {
     this.hasPhoto = hasPhoto;
-    this.phones = phones ?? {};
     defaultIcon = Icons.person;
   }
 
   Person.createFromData(Map<dynamic, dynamic> data, JsonRef ref)
-      : super.createFromData(data, ref) {
-    classId = data['ClassId'];
-
-    phone = data['Phone'];
-    fatherPhone = data['FatherPhone'];
-    motherPhone = data['MotherPhone'];
-    phones = data['Phones']?.cast<String, dynamic>() ?? {};
-
-    address = data['Address'];
-    location = data['Location'];
-
+      : classId = data['ClassId'],
+        phone = data['Phone'],
+        fatherPhone = data['FatherPhone'],
+        motherPhone = data['MotherPhone'],
+        phones = data['Phones']?.cast<String, dynamic>() ?? {},
+        address = data['Address'],
+        location = data['Location'],
+        birthDate = data['BirthDate'],
+        lastConfession = data['LastConfession'],
+        lastTanawol = data['LastTanawol'],
+        lastKodas = data['LastKodas'],
+        lastMeeting = data['LastMeeting'],
+        lastCall = data['LastCall'],
+        lastVisit = data['LastVisit'],
+        lastEdit = data['LastEdit'],
+        notes = data['Notes'],
+        school = data['School'],
+        church = data['Church'],
+        cFather = data['CFather'],
+        isShammas = data['IsShammas'] ?? false,
+        gender = data['Gender'] ?? true,
+        shammasLevel = data['ShammasLevel'],
+        studyYear = data['StudyYear'],
+        services = data['Services'] ?? [],
+        super.createFromData(data, ref) {
     hasPhoto = data['HasPhoto'] ?? false;
-
-    birthDate = data['BirthDate'];
-    lastConfession = data['LastConfession'];
-    lastTanawol = data['LastTanawol'];
-    lastKodas = data['LastKodas'];
-    lastMeeting = data['LastMeeting'];
-    lastCall = data['LastCall'];
-
-    lastVisit = data['LastVisit'];
-    lastEdit = data['LastEdit'];
-
-    notes = data['Notes'];
-
-    school = data['School'];
-    church = data['Church'];
-    cFather = data['CFather'];
-
     defaultIcon = Icons.person;
   }
 
@@ -158,6 +171,9 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
         'LastMeeting': toDurationString(lastMeeting),
         'LastVisit': toDurationString(lastVisit),
         'Notes': notes ?? '',
+        'IsShammas': isShammas ? 'تعم' : 'لا',
+        'Gender': gender ? 'ذكر' : 'أنثى',
+        'ShammasLevel': shammasLevel,
       };
 
   @override
@@ -185,7 +201,12 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
         'School': school,
         'Church': church,
         'CFather': cFather,
-        'Location': location
+        'Location': location,
+        'IsShammas': isShammas,
+        'Gender': gender,
+        'ShammasLevel': shammasLevel,
+        'StudyYear': studyYear,
+        'Services': services,
       };
 
   Widget getMapView({bool useGPSIfNull = false, bool editMode = false}) {
@@ -226,8 +247,6 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
     return MapView(editMode: editMode, person: this, childrenDepth: 3);
   }
 
-  String? getMembersString() => phone;
-
   @override
   Future<String> getParentName() {
     return getClassName();
@@ -262,9 +281,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
   Future<String?> getSecondLine() async {
     final String key =
         Hive.box('Settings').get('PersonSecondLine', defaultValue: '');
-    if (key == 'Members') {
-      return getMembersString();
-    } else if (key == 'ClassId') {
+    if (key == 'ClassId') {
       return getClassName();
     } else if (key == 'School') {
       return getSchoolName();

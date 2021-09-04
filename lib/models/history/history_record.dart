@@ -8,7 +8,6 @@ import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/super_classes.dart';
-import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:rxdart/rxdart.dart';
@@ -44,13 +43,8 @@ class HistoryDay extends DataObject with ChangeNotifier {
   @override
   int get hashCode => hashValues(id, day, notes);
 
-  JsonCollectionRef get kodas => ref.collection('Kodas');
-  JsonCollectionRef get meeting => ref.collection('Meeting');
-
-  Map<DayListType, JsonCollectionRef> get collections => {
-        DayListType.Meeting: meeting,
-        DayListType.Kodas: kodas,
-      };
+  JsonCollectionRef? subcollection(String? name) =>
+      name != null ? ref.collection(name) : null;
 
   @override
   bool operator ==(dynamic other) =>
@@ -142,6 +136,17 @@ class ServantsHistoryDay extends HistoryDay {
 }
 
 class HistoryRecord {
+  final String? type;
+
+  HistoryDay? parent;
+  String id;
+  Timestamp time;
+  String? recordedBy;
+  String? notes;
+  String? serviceId;
+  JsonRef? classId;
+  bool isServant;
+
   HistoryRecord(
       {required this.type,
       this.parent,
@@ -149,6 +154,7 @@ class HistoryRecord {
       required this.classId,
       required this.time,
       required String recordedBy,
+      this.serviceId,
       this.notes,
       this.isServant = false})
       // ignore: prefer_initializing_formals
@@ -160,9 +166,8 @@ class HistoryRecord {
   HistoryRecord._fromDoc(this.parent, JsonDoc doc)
       : id = doc.id,
         classId = doc.data()!['ClassId'],
-        type = doc.reference.parent.id == 'Meeting'
-            ? DayListType.Meeting
-            : DayListType.Kodas,
+        serviceId = doc.data()!['ServiceId'],
+        type = doc.reference.parent.id,
         isServant = doc.data()!['IsServant'] ?? false,
         time = doc.data()!['Time'],
         recordedBy = doc.data()!['RecordedBy'],
@@ -172,17 +177,8 @@ class HistoryRecord {
     return HistoryRecord.fromDoc(parent, doc)!;
   }
 
-  final DayListType type;
-
-  HistoryDay? parent;
-  String id;
-  Timestamp time;
-  String? recordedBy;
-  String? notes;
-  JsonRef? classId;
-  bool isServant;
-
-  JsonRef? get ref => parent?.collections[type]?.doc(id);
+  JsonRef? get ref =>
+      type != null ? parent?.subcollection(type)?.doc(id) : null;
 
   Future<void> set() async {
     return await ref?.set(getMap());
@@ -199,6 +195,7 @@ class HistoryRecord {
       'RecordedBy': recordedBy,
       'Notes': notes,
       'ClassId': classId,
+      'ServiceId': serviceId,
       'IsServant': isServant,
     };
   }
@@ -212,6 +209,7 @@ class HistoryRecord {
       (other is DataObject && other.id == id);
 }
 
+/// Used in EditHistory, CallHistory, etc...
 class MinimalHistoryRecord {
   MinimalHistoryRecord(
       {required this.ref,

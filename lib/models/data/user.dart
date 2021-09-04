@@ -70,6 +70,8 @@ class User extends Person {
 
   bool approved = false;
 
+  List<JsonRef> adminServices = [];
+
   DateTime? get lastConfessionDate => lastConfession?.toDate();
   DateTime? get lastTanawolDate => lastTanawol?.toDate();
 
@@ -103,6 +105,7 @@ class User extends Person {
       Timestamp? lastConfession,
       Timestamp? lastTanawol,
       List<String>? allowedUsers,
+      List<JsonRef>? adminServices,
       required String email}) {
     if (uid == auth.FirebaseAuth.instance.currentUser!.uid) {
       return instance;
@@ -129,13 +132,12 @@ class User extends Person {
       lastConfession: lastConfession,
       lastTanawol: lastTanawol,
       allowedUsers: allowedUsers,
+      adminServices: adminServices,
       email: email,
     );
   }
 
-  User._initInstance()
-      : allowedUsers = [],
-        super() {
+  User._initInstance() : super() {
     defaultIcon = Icons.account_circle;
     _initListeners();
   }
@@ -162,6 +164,7 @@ class User extends Person {
       Timestamp? lastConfession,
       Timestamp? lastTanawol,
       List<String>? allowedUsers,
+      List<JsonRef>? adminServices,
       required this.email,
       JsonRef? ref,
       JsonRef? classId,
@@ -213,6 +216,7 @@ class User extends Person {
     defaultIcon = Icons.account_circle;
     this.manageAllowedUsers = manageAllowedUsers ?? false;
     this.allowedUsers = allowedUsers ?? [];
+    this.adminServices = adminServices ?? [];
   }
 
   void _initListeners() {
@@ -395,6 +399,7 @@ class User extends Person {
     cFather = data['CFather'];
 
     allowedUsers = data['AllowedUsers']?.cast<String>() ?? [];
+    adminServices = data['AdminServices']?.cast<JsonRef>() ?? [];
 
     notifyListeners();
   }
@@ -424,6 +429,7 @@ class User extends Person {
 
     final permissions = data['Permissions'] ?? {};
     allowedUsers = data['AllowedUsers']?.cast<String>() ?? [];
+    adminServices = data['AdminServices']?.cast<JsonRef>() ?? [];
     manageUsers = permissions['ManageUsers'] ?? false;
     manageAllowedUsers = permissions['ManageAllowedUsers'] ?? false;
     superAccess = permissions['SuperAccess'] ?? false;
@@ -647,7 +653,11 @@ class User extends Person {
   }
 
   @override
-  Json getMap() => {...super.getMap(), 'AllowedUsers': allowedUsers};
+  Json getMap() => {
+        ...super.getMap(),
+        'AllowedUsers': allowedUsers,
+        'AdminServices': adminServices,
+      };
 
   static User fromDoc(JsonDoc data) =>
       User._createFromData(data.data()!, data.reference);

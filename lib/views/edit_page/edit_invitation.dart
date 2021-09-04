@@ -11,8 +11,8 @@ import 'package:meetinghelper/models/data/invitation.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 
-import '../../models/mini_models.dart';
 import '../../models/data/user.dart';
+import '../../models/mini_models.dart';
 
 class EditInvitation extends StatefulWidget {
   final Invitation invitation;

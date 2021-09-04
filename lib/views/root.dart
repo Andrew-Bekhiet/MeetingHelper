@@ -1286,12 +1286,14 @@ class _RootState extends State<Root>
             ConnectivityResult.none) {
           await person.ref.set(
             person.getMap(),
+            SetOptions(merge: true),
           );
         } else {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
           person.ref.set(
             person.getMap(),
+            SetOptions(merge: true),
           );
         }
         scaffoldMessenger.currentState!.hideCurrentSnackBar();

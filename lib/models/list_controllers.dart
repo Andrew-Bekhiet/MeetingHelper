@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/data_object_widget.dart';
 import 'package:meetinghelper/models/super_classes.dart';
-import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:rxdart/rxdart.dart';
@@ -272,7 +271,7 @@ class DataObjectListController<T extends DataObject>
 class CheckListController<T extends Person>
     implements DataObjectListController<T> {
   final HistoryDay day;
-  final DayListType type;
+  final String type;
   final HistoryDayOptions dayOptions;
   final BehaviorSubject<Map<JsonRef, bool?>> openedNodes =
       BehaviorSubject.seeded({});
@@ -332,7 +331,7 @@ class CheckListController<T extends Person>
   final Stream<Map<JsonRef, Tuple2<Class, List<T>>>> Function(List<T> data)?
       _groupBy;
 
-  JsonCollectionRef? get ref => day.collections[type];
+  JsonCollectionRef? get ref => day.subcollection(type);
 
   @override
   bool get selectionModeLatest => true;
@@ -630,7 +629,7 @@ class CheckListController<T extends Person>
     Stream<Map<JsonRef, Tuple2<Class, List<T>>>> Function(List<T?> data)?
         groupBy,
     HistoryDay? day,
-    DayListType? type,
+    String? type,
     HistoryDayOptions? dayOptions,
     Widget Function(T?, void Function(T)? onLongPress, void Function(T)? onTap,
             Widget? trailing, Widget? subtitle)?

@@ -47,16 +47,17 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                       .inDays ==
                   0;
               return CheckListController(
-                  itemsStream: Person.getAllForUser(orderBy: 'Name'),
-                  day: widget.record,
-                  dayOptions: HistoryDayOptions(
-                    grouped: !isSameDay,
-                    showOnly: isSameDay ? null : true,
-                    enabled: isSameDay,
-                    sortByTimeASC: isSameDay ? null : true,
-                  ),
-                  groupBy: personsByClassRef,
-                  type: DayListType.Meeting);
+                itemsStream: Person.getAllForUser(orderBy: 'Name'),
+                day: widget.record,
+                dayOptions: HistoryDayOptions(
+                  grouped: !isSameDay,
+                  showOnly: isSameDay ? null : true,
+                  enabled: isSameDay,
+                  sortByTimeASC: isSameDay ? null : true,
+                ),
+                groupBy: personsByClassRef,
+                type: 'Meeting',
+              );
             },
             dispose: (context, c) => c.dispose(),
           )
@@ -68,16 +69,17 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                       .inDays ==
                   0;
               return CheckListController(
-                  itemsStream: User.getAllForUser(),
-                  day: widget.record,
-                  dayOptions: HistoryDayOptions(
-                    grouped: !isSameDay,
-                    showOnly: isSameDay ? null : true,
-                    enabled: isSameDay,
-                    sortByTimeASC: isSameDay ? null : true,
-                  ),
-                  groupBy: usersByClassRef,
-                  type: DayListType.Meeting);
+                itemsStream: User.getAllForUser(),
+                day: widget.record,
+                dayOptions: HistoryDayOptions(
+                  grouped: !isSameDay,
+                  showOnly: isSameDay ? null : true,
+                  enabled: isSameDay,
+                  sortByTimeASC: isSameDay ? null : true,
+                ),
+                groupBy: usersByClassRef,
+                type: 'Meeting',
+              );
             },
             dispose: (context, c) => c.dispose(),
           ),
@@ -190,10 +192,10 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                         ? context.read<CheckListController<Person>>()
                         : context.read<CheckListController<User>>();
                     if (_tabs!.index == 0) {
-                      return rslt.copyWith(type: DayListType.Meeting).attended;
+                      return rslt.copyWith(type: 'Meeting').attended;
                     } else {
                       //if (_tabs!.index == 1) {
-                      return rslt.copyWith(type: DayListType.Kodas).attended;
+                      return rslt.copyWith(type: 'Kodas').attended;
                     }
                   }(),
                   (Map a, Map b) => Tuple2<int, int>(a.length, b.length),
@@ -269,7 +271,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                     options: () {
                       final tmp = context
                           .read<CheckListController<Person>>()
-                          .copyWith(type: DayListType.Meeting);
+                          .copyWith(type: 'Meeting');
                       _listControllers.add(tmp);
                       return tmp;
                     }(),
@@ -280,7 +282,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                     options: () {
                       final tmp = context
                           .read<CheckListController<Person>>()
-                          .copyWith(type: DayListType.Kodas);
+                          .copyWith(type: 'Kodas');
                       _listControllers.add(tmp);
                       return tmp;
                     }(),
@@ -293,7 +295,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                     options: () {
                       final tmp = context
                           .read<CheckListController<User>>()
-                          .copyWith(type: DayListType.Meeting);
+                          .copyWith(type: 'Meeting');
                       _listControllers.add(tmp);
                       return tmp;
                     }(),
@@ -304,7 +306,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                     options: () {
                       final tmp = context
                           .read<CheckListController<User>>()
-                          .copyWith(type: DayListType.Kodas);
+                          .copyWith(type: 'Kodas');
                       _listControllers.add(tmp);
                       return tmp;
                     }(),
