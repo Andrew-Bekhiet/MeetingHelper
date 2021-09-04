@@ -34,9 +34,9 @@ abstract class DataObject {
 
   Json getMap();
 
-  Json getHumanReadableMap();
+  Json getHumanReadableMap() => {};
 
-  Future<String?> getSecondLine();
+  Future<String?> getSecondLine() async => null;
 
   int _fullyHash(dynamic e) {
     if (e is Map)
