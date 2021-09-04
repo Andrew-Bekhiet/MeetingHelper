@@ -1,21 +1,47 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 
 import '../super_classes.dart';
 
-class Service extends DataObject {
+class Service extends DataObject with PhotoObject {
   StudyYearRange? studyYearRange;
   DateTimeRange? validity;
   bool showInHistory;
 
-  Service(
-      {required JsonRef ref,
-      required String name,
-      this.studyYearRange,
-      this.validity,
-      this.showInHistory = true})
-      : super(ref, name, null);
+  Service({
+    required JsonRef ref,
+    required String name,
+    this.studyYearRange,
+    this.validity,
+    this.showInHistory = true,
+    bool hasPhoto = false,
+  }) : super(ref, name, null) {
+    hasPhoto = hasPhoto;
+    defaultIcon = Icons.miscellaneous_services;
+  }
+
+  static Service fromDoc(JsonDoc doc) =>
+      Service.fromJson(doc.data()!, doc.reference);
+
+  Service.fromJson(Json json, JsonRef ref)
+      : this(
+          ref: ref,
+          name: json['Name'],
+          studyYearRange: json['StudyYearRange'] != null
+              ? StudyYearRange(
+                  from: json['StudyYearRange']['From'],
+                  to: json['StudyYearRange']['To'])
+              : null,
+          validity: json['Validity'] != null
+              ? DateTimeRange(
+                  start: json['Validity']['From'].toDate(),
+                  end: json['Validity']['To'].toDate())
+              : null,
+          showInHistory: json['ShowInHistory'],
+          hasPhoto: json['HasPhoto'],
+        );
 
   @override
   Service copyWith(
@@ -40,8 +66,13 @@ class Service extends DataObject {
       'StudyYearRange': studyYearRange?.toJson(),
       'Validity': validity?.toJson(),
       'ShowInHistory': showInHistory,
+      'HasPhoto': hasPhoto,
     };
   }
+
+  @override
+  Reference get photoRef =>
+      FirebaseStorage.instance.ref().child('ServicesPhotos/$id');
 }
 
 class StudyYearRange {
