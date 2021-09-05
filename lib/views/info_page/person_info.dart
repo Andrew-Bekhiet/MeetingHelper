@@ -11,6 +11,7 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
+import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
@@ -315,6 +316,20 @@ class _PersonInfoState extends State<PersonInfo> {
                       ],
                     ),
                   ),
+                  ListTile(
+                    title: const Text('السنة الدراسية:'),
+                    subtitle: FutureBuilder<String>(
+                      future: person.getStudyYearName(),
+                      builder: (context, data) {
+                        if (data.hasData) return Text(data.data!);
+                        return const LinearProgressIndicator();
+                      },
+                    ),
+                  ),
+                  ListTile(
+                    title: const Text('النوع:'),
+                    subtitle: Text(person.gender ? 'ذكر' : 'أنثى'),
+                  ),
                   CopiableProperty('العنوان:', person.address),
                   if (person.location != null &&
                       !person.ref.path.startsWith('Deleted'))
@@ -360,6 +375,17 @@ class _PersonInfoState extends State<PersonInfo> {
                       },
                     ),
                   ),
+                  if (person.gender)
+                    ListTile(
+                      title: const Text('شماس؟'),
+                      subtitle: Text(person.isShammas ? 'نعم' : 'لا'),
+                    ),
+                  if (person.gender && person.isShammas)
+                    ListTile(
+                      title: const Text('رتبة الشموسية:'),
+                      subtitle: Text(person.shammasLevel ?? ''),
+                    ),
+                  _PersonServices(person: person),
                   CopiableProperty('ملاحظات', person.notes),
                   const Divider(thickness: 1),
                   if (!person.ref.path.startsWith('Deleted'))
@@ -559,5 +585,91 @@ class _PersonInfoState extends State<PersonInfo> {
         await c.insert();
       }
     }
+  }
+}
+
+class _PersonServices extends StatelessWidget {
+  const _PersonServices({
+    Key? key,
+    required this.person,
+  }) : super(key: key);
+
+  final Person person;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: const Text('الخدمات المشارك بها'),
+      subtitle: person.services.isNotEmpty
+          ? FutureBuilder<List<String>>(
+              future: Future.wait(
+                person.services.take(2).map(
+                      (s) async => Service.fromDoc(
+                        await s.get(dataSource),
+                      ).name,
+                    ),
+              ),
+              builder: (context, servicesSnapshot) {
+                if (!servicesSnapshot.hasData)
+                  return const LinearProgressIndicator();
+
+                if (person.services.length > 2)
+                  return Text(
+                    servicesSnapshot.requireData.take(2).join(' و') +
+                        'و ' +
+                        (person.services.length - 2).toString() +
+                        ' أخرين',
+                  );
+
+                return Text(servicesSnapshot.requireData.join(' و'));
+              },
+            )
+          : const Text('لا يوجد خدمات'),
+      trailing: person.services.isNotEmpty
+          ? IconButton(
+              icon: const Icon(Icons.info),
+              tooltip: 'اظهار الخدمات',
+              onPressed: () async {
+                await showDialog(
+                  context: context,
+                  builder: (context) => Dialog(
+                    child: FutureBuilder<List<Service>>(
+                      future: Future.wait(
+                        person.services.map(
+                          (s) async => Service.fromDoc(
+                            await s.get(dataSource),
+                          ),
+                        ),
+                      ),
+                      builder: (context, data) {
+                        if (data.hasError) return ErrorWidget(data.error!);
+                        if (!data.hasData)
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+
+                        return ListView.builder(
+                          padding: const EdgeInsetsDirectional.all(8),
+                          shrinkWrap: true,
+                          itemCount: person.services.length,
+                          itemBuilder: (context, i) {
+                            return Container(
+                              margin: const EdgeInsets.symmetric(vertical: 5),
+                              child: DataObjectWidget(
+                                data.requireData[i],
+                                showSubTitle: false,
+                                wrapInCard: false,
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                );
+              },
+            )
+          : null,
+    );
   }
 }

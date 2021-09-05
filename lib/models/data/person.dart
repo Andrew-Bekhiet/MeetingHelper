@@ -145,6 +145,19 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
     return (await cFather?.get(dataSource))?.data()?['Name'] ?? '';
   }
 
+  Future<String> getStudyYearName() async {
+    return (await studyYear?.get(dataSource))?.data()?['Name'] ??
+        getClassStudyYearName();
+  }
+
+  Future<String> getClassStudyYearName() async {
+    return (await ((await classId?.get(dataSource))?.data()?['StudyYear']
+                    as JsonRef?)
+                ?.get(dataSource))
+            ?.data()?['Name'] ??
+        '';
+  }
+
   Future<String> getChurchName() async {
     return (await church?.get(dataSource))?.data()?['Name'] ?? '';
   }
