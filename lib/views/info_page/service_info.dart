@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/person.dart';
@@ -506,7 +507,18 @@ class _ServiceServants extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<User>>(
-      stream: null,
+      stream: User.instance.stream
+          .switchMap((u) => u.manageUsers
+              ? FirebaseFirestore.instance
+                  .collection('UsersData')
+                  .where('AdminServices', arrayContains: service.ref)
+                  .snapshots()
+              : FirebaseFirestore.instance
+                  .collection('UsersData')
+                  .where('AllowedUsers', arrayContains: User.instance.ref)
+                  .where('AdminServices', arrayContains: service.ref)
+                  .snapshots())
+          .map((s) => s.docs.map(User.fromDoc).toList()),
       builder: (context, usersSnashot) {
         if (!usersSnashot.hasData) return const LinearProgressIndicator();
 
