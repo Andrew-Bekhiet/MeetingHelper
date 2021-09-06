@@ -97,16 +97,24 @@ class PhoneNumberProperty extends StatelessWidget {
                   onPressed: () =>
                       launch('whatsapp://send?phone=+' + getPhone(value!)),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.message),
-                  tooltip: 'ارسال رسالة',
-                  onPressed: () => launch('sms:' + getPhone(value!, false)),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.copy),
-                  tooltip: 'نسخ',
-                  onPressed: () =>
-                      Clipboard.setData(ClipboardData(text: value)),
+                PopupMenuButton(
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(
+                      value: 'SMS',
+                      child: Text('ارسال رسالة'),
+                    ),
+                    PopupMenuItem(
+                      value: 'Copy',
+                      child: Text('نسخ'),
+                    ),
+                  ],
+                  onSelected: (v) {
+                    if (v == 'SMS') {
+                      launch('sms:' + getPhone(value!, false));
+                    } else if (v == 'Copy') {
+                      Clipboard.setData(ClipboardData(text: value));
+                    }
+                  },
                 ),
               ],
             )
