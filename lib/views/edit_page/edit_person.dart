@@ -12,7 +12,9 @@ import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
+import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/search/order_options.dart';
@@ -21,7 +23,9 @@ import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:meetinghelper/views/form_widgets/tapable_form_field.dart';
+import 'package:meetinghelper/views/list.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tinycolor2/tinycolor2.dart';
 
@@ -31,7 +35,7 @@ import '../services_list.dart';
 
 class EditPerson extends StatefulWidget {
   final Person? person;
-  final Function(FormState, Person)? save;
+  final Function(FormState, Person, Person?)? save;
   final bool showMotherAndFatherPhones;
 
   const EditPerson(
@@ -308,6 +312,95 @@ class _EditPersonState extends State<EditPerson> {
                     },
                     validator: (_) => null,
                   ),
+                  if (person.classId == null)
+                    FutureBuilder<JsonQuery>(
+                      future: StudyYear.getAllForUser(),
+                      builder: (conext, data) {
+                        if (data.hasData) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(vertical: 4.0),
+                            child: DropdownButtonFormField(
+                              validator: (dynamic v) {
+                                if (person.classId == null && v == null) {
+                                  return 'هذا الحقل مطلوب';
+                                } else {
+                                  return null;
+                                }
+                              },
+                              value: person.studyYear?.path,
+                              items: data.data!.docs
+                                  .map(
+                                    (item) => DropdownMenuItem(
+                                      value: item.reference.path,
+                                      child: Text(item.data()['Name']),
+                                    ),
+                                  )
+                                  .toList()
+                                ..insert(
+                                  0,
+                                  const DropdownMenuItem(
+                                    value: null,
+                                    child: Text(''),
+                                  ),
+                                ),
+                              onChanged: (dynamic value) {
+                                setState(() {});
+                                person.studyYear = value != null
+                                    ? FirebaseFirestore.instance.doc(value)
+                                    : null;
+                                FocusScope.of(context).nextFocus();
+                              },
+                              decoration: const InputDecoration(
+                                labelText: 'السنة الدراسية',
+                              ),
+                            ),
+                          );
+                        } else {
+                          return const SizedBox(width: 1, height: 1);
+                        }
+                      },
+                    ),
+                  if (person.classId == null)
+                    FormField<bool>(
+                      initialValue: person.gender,
+                      builder: (state) => InputDecorator(
+                        decoration: InputDecoration(errorText: state.errorText),
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text('النوع'),
+                          subtitle: Row(
+                            children: [
+                              ...[true, false]
+                                  .map(
+                                    (i) => Expanded(
+                                      child: Row(
+                                        children: [
+                                          Radio<bool>(
+                                            value: i,
+                                            groupValue: state.value,
+                                            onChanged: (v) => setState(
+                                                () => person.gender = v!),
+                                          ),
+                                          GestureDetector(
+                                            onTap: () => setState(
+                                                () => person.gender = i),
+                                            child: Text(i ? 'ذكر' : 'أنثى'),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                            ],
+                          ),
+                        ),
+                      ),
+                      onSaved: (value) => person.gender = value!,
+                      validator: (value) =>
+                          person.classId == null && value == null
+                              ? 'يجب اختيار النوع'
+                              : null,
+                    ),
                   TextFormField(
                     decoration: const InputDecoration(
                       labelText: 'العنوان',
@@ -513,10 +606,24 @@ class _EditPersonState extends State<EditPerson> {
                       ),
                     ],
                   ),
-                  TapableFormField<DocumentReference?>(
-                    labelText: 'داخل فصل',
+                  TapableFormField<JsonRef?>(
                     initialValue: person.classId,
                     onTap: _selectClass,
+                    decoration: (context, state) => InputDecoration(
+                      labelText: 'داخل فصل',
+                      errorText: state.errorText,
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.delete),
+                        tooltip: 'ازالة الفصل المحدد',
+                        onPressed: () {
+                          setState(() => person.classId = null);
+                        },
+                      ),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.primary),
+                      ),
+                    ),
                     builder: (context, state) {
                       return state.value == null
                           ? null
@@ -535,6 +642,112 @@ class _EditPersonState extends State<EditPerson> {
                                 }
                               },
                             );
+                    },
+                  ),
+                  if (person.gender)
+                    FormField<bool>(
+                      initialValue: person.isShammas,
+                      builder: (state) => InputDecorator(
+                        decoration: InputDecoration(errorText: state.errorText),
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text('شماس'),
+                          subtitle: Row(
+                            children: [
+                              ...[true, false]
+                                  .map(
+                                    (i) => Expanded(
+                                      child: Row(
+                                        children: [
+                                          Radio<bool>(
+                                            value: i,
+                                            groupValue: state.value,
+                                            onChanged: (v) => setState(
+                                                () => person.isShammas = v!),
+                                          ),
+                                          GestureDetector(
+                                            onTap: () => setState(
+                                                () => person.isShammas = i),
+                                            child: Text(i ? 'نعم' : 'لا'),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                            ],
+                          ),
+                        ),
+                      ),
+                      onSaved: (value) => person.gender = value!,
+                    ),
+                  if (person.gender && person.isShammas)
+                    DropdownButtonFormField(
+                      isExpanded: true,
+                      items: [
+                        'ابصالتس',
+                        'اغأناغنوستيس',
+                        'أيبودياكون',
+                        'دياكون',
+                        'أرشيدياكون'
+                      ]
+                          .map(
+                            (item) => DropdownMenuItem(
+                              value: item,
+                              child: Text(item),
+                            ),
+                          )
+                          .toList()
+                        ..insert(
+                          0,
+                          const DropdownMenuItem(
+                            value: null,
+                            child: Text(''),
+                          ),
+                        ),
+                      onChanged: (dynamic value) {
+                        person.cFather = value != null
+                            ? FirebaseFirestore.instance.doc(value)
+                            : null;
+                        FocusScope.of(context).nextFocus();
+                      },
+                      decoration: const InputDecoration(
+                        labelText: 'رتبة الشموسية',
+                      ),
+                    ),
+                  TapableFormField<List<JsonRef>>(
+                    labelText: 'الخدمات المشارك بها',
+                    initialValue: person.services,
+                    onTap: _selectServices,
+                    builder: (context, state) {
+                      return state.value != null && state.value!.isNotEmpty
+                          ? FutureBuilder<List<String>>(
+                              future: Future.wait(
+                                state.value!.take(2).map(
+                                      (s) async => Service.fromDoc(
+                                        await s.get(dataSource),
+                                      ).name,
+                                    ),
+                              ),
+                              builder: (context, servicesSnapshot) {
+                                if (!servicesSnapshot.hasData)
+                                  return const LinearProgressIndicator();
+
+                                if (state.value!.length > 2)
+                                  return Text(
+                                    servicesSnapshot.requireData
+                                            .take(2)
+                                            .join(' و') +
+                                        'و ' +
+                                        (state.value!.length - 2).toString() +
+                                        ' أخرين',
+                                  );
+
+                                return Text(
+                                    servicesSnapshot.requireData.join(' و'));
+                              },
+                            )
+                          : const Text('لا يوجد خدمات');
                     },
                   ),
                   TapableFormField<Timestamp?>(
@@ -745,7 +958,7 @@ class _EditPersonState extends State<EditPerson> {
         tooltip: 'حفظ',
         onPressed: () {
           if (widget.save != null)
-            widget.save!(_form.currentState!, person);
+            widget.save!(_form.currentState!, person, widget.person);
           else
             _save();
         },
@@ -857,7 +1070,8 @@ class _EditPersonState extends State<EditPerson> {
 
   Future _save() async {
     try {
-      if (_form.currentState!.validate() && person.classId != null) {
+      if (_form.currentState!.validate() &&
+          (person.classId != null || person.services.isNotEmpty)) {
         _form.currentState!.save();
         scaffoldMessenger.currentState!.showSnackBar(
           const SnackBar(
@@ -884,6 +1098,22 @@ class _EditPersonState extends State<EditPerson> {
 
         person.lastEdit = auth.FirebaseAuth.instance.currentUser!.uid;
 
+        if (person.classId != null &&
+            person.classId != widget.person?.classId) {
+          final class$ = Class.fromDoc(await person.classId!.get(dataSource))!;
+          person
+            ..gender = class$.gender
+            ..studyYear = class$.studyYear
+            ..isShammas = class$.gender ? person.isShammas : false
+            ..shammasLevel = class$.gender ? person.shammasLevel : null;
+        } else {
+          person
+            ..gender = widget.person?.gender ?? person.gender
+            ..studyYear = widget.person?.studyYear ?? person.studyYear
+            ..isShammas = widget.person?.isShammas ?? person.isShammas
+            ..shammasLevel = widget.person?.shammasLevel ?? person.shammasLevel;
+        }
+
         if (update &&
             await Connectivity().checkConnectivity() !=
                 ConnectivityResult.none) {
@@ -903,9 +1133,17 @@ class _EditPersonState extends State<EditPerson> {
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
         navigator.currentState!.pop(person.ref);
       } else {
-        scaffoldMessenger.currentState!.showSnackBar(
-          const SnackBar(
-            content: Text('يرجى التحقق من الييانات المدخلة'),
+        if (person.classId != null || person.services.isNotEmpty)
+          scaffoldMessenger.currentState!.showSnackBar(
+            const SnackBar(
+              content: Text('يرجى التحقق من الييانات المدخلة'),
+            ),
+          );
+        await showDialog(
+          context: context,
+          builder: (context) => const AlertDialog(
+            title: Text('بيانات غير كاملة'),
+            content: Text('يجب تحديد الفصل او اختيار خدمة واحدة على الأقل'),
           ),
         );
       }
@@ -923,11 +1161,11 @@ class _EditPersonState extends State<EditPerson> {
     }
   }
 
-  void _selectClass(FormFieldState<DocumentReference?> state) async {
+  void _selectClass(FormFieldState<JsonRef?> state) async {
     final controller = ServicesListController(
       tap: (class$) {
         navigator.currentState!.pop();
-        state.didChange(person.classId = class$.ref);
+        setState(() => person.classId = class$.ref);
         FocusScope.of(context).nextFocus();
       },
       itemsStream: servicesByStudyYearRef(),
@@ -1003,6 +1241,79 @@ class _EditPersonState extends State<EditPerson> {
       return Timestamp.fromDate(picked);
     }
     return null;
+  }
+
+  Future<void> _selectServices(FormFieldState<List<JsonRef>> state) async {
+    state.didChange(
+      person.services = await navigator.currentState!.push(
+            MaterialPageRoute(
+              builder: (context) {
+                return FutureBuilder<Map<String, Service>>(
+                  future: () async {
+                    return {
+                      for (final s in await Future.wait(
+                        person.services.map(
+                          (e) async => Service.fromDoc(await e.get(dataSource)),
+                        ),
+                      ))
+                        s.id: s
+                    };
+                  }(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData)
+                      return const Center(child: CircularProgressIndicator());
+
+                    return Provider<DataObjectListController<Service>>(
+                      create: (_) => DataObjectListController<Service>(
+                        selectionMode: true,
+                        itemsStream: FirebaseFirestore.instance
+                            .collection('Services')
+                            .orderBy('Name')
+                            .snapshots()
+                            .map(
+                              (value) =>
+                                  value.docs.map(Service.fromDoc).toList(),
+                            ),
+                        selected: snapshot.requireData,
+                      ),
+                      dispose: (context, c) => c.dispose(),
+                      builder: (context, child) {
+                        return Scaffold(
+                          persistentFooterButtons: [
+                            TextButton(
+                              onPressed: () {
+                                navigator.currentState!.pop(context
+                                    .read<DataObjectListController<Service>>()
+                                    .selectedLatest
+                                    ?.values
+                                    .map((s) => s.ref)
+                                    .toList());
+                              },
+                              child: const Text('تم'),
+                            )
+                          ],
+                          appBar: AppBar(
+                            title: SearchField(
+                                showSuffix: false,
+                                searchStream: context
+                                    .read<DataObjectListController<Service>>()
+                                    .searchQuery,
+                                textStyle:
+                                    Theme.of(context).textTheme.bodyText2),
+                          ),
+                          body: const DataObjectList<Service>(
+                            disposeController: false,
+                          ),
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ) ??
+          person.services,
+    );
   }
 
   Future<void> _selectImage() async {

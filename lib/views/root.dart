@@ -1270,7 +1270,7 @@ class _RootState extends State<Root>
     await User.instance.recordLastSeen();
   }
 
-  Future<void> _saveUser(FormState form, Person person) async {
+  Future<void> _saveUser(FormState form, Person person, Person? old) async {
     try {
       if (form.validate() && person.classId != null) {
         scaffoldMessenger.currentState!.showSnackBar(
@@ -1281,6 +1281,21 @@ class _RootState extends State<Root>
         );
 
         person.lastEdit = User.instance.uid;
+
+        if (person.classId != null && person.classId != old?.classId) {
+          final class$ = Class.fromDoc(await person.classId!.get(dataSource))!;
+          person
+            ..gender = class$.gender
+            ..studyYear = class$.studyYear
+            ..isShammas = class$.gender ? person.isShammas : false
+            ..shammasLevel = class$.gender ? person.shammasLevel : null;
+        } else {
+          person
+            ..gender = old?.gender ?? person.gender
+            ..studyYear = old?.studyYear ?? person.studyYear
+            ..isShammas = old?.isShammas ?? person.isShammas
+            ..shammasLevel = old?.shammasLevel ?? person.shammasLevel;
+        }
 
         if (await Connectivity().checkConnectivity() !=
             ConnectivityResult.none) {
