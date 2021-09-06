@@ -233,8 +233,10 @@ class _PersonInfoState extends State<PersonInfo> {
                               itemBuilder: (BuildContext context) {
                                 return [
                                   const PopupMenuItem(
-                                      child: Text(
-                                          'ارسال إشعار للمستخدمين عن المخدوم'))
+                                    value: '',
+                                    child: Text(
+                                        'ارسال إشعار للمستخدمين عن المخدوم'),
+                                  )
                                 ];
                               },
                             ),
