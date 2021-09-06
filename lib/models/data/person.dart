@@ -123,7 +123,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
         gender = data['Gender'] ?? true,
         shammasLevel = data['ShammasLevel'],
         studyYear = data['StudyYear'],
-        services = data['Services'] ?? [],
+        services = (data['Services'] as List?)?.cast<JsonRef>() ?? [],
         super.createFromData(data, ref) {
     hasPhoto = data['HasPhoto'] ?? false;
     defaultIcon = Icons.person;
