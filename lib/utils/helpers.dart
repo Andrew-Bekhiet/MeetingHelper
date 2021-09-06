@@ -1687,10 +1687,8 @@ String toDurationString(Timestamp? date, {appendSince = true}) {
 
 Timestamp tranucateToDay({DateTime? time}) {
   time = time ?? DateTime.now();
-  return Timestamp.fromMillisecondsSinceEpoch(
-    time.millisecondsSinceEpoch -
-        (time.millisecondsSinceEpoch % Duration.millisecondsPerDay),
-  );
+  return Timestamp.fromDate(
+      DateTime.utc(time.year, time.month, time.day).toLocal());
 }
 
 Timestamp mergeDayWithTime(DateTime day, DateTime time) {
