@@ -266,9 +266,15 @@ void classTap(Class? _class) {
   navigator.currentState!.pushNamed('ClassInfo', arguments: _class);
 }
 
+void serviceTap(Service? service) {
+  navigator.currentState!.pushNamed('ServiceInfo', arguments: service);
+}
+
 void dataObjectTap(DataObject? obj) {
   if (obj is Class)
     classTap(obj);
+  else if (obj is Service)
+    serviceTap(obj);
   else if (obj is Person)
     personTap(obj);
   else if (obj is User)

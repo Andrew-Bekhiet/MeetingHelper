@@ -41,6 +41,7 @@ import 'package:timeago/timeago.dart';
 import 'models/data/class.dart';
 import 'models/data/invitation.dart';
 import 'models/data/person.dart';
+import 'models/data/service.dart';
 import 'models/data/user.dart';
 import 'models/history/history_record.dart';
 import 'models/mini_models.dart' hide History;
@@ -54,10 +55,12 @@ import 'views/auth_screen.dart';
 import 'views/data_map.dart';
 import 'views/edit_page/edit_class.dart';
 import 'views/edit_page/edit_person.dart';
+import 'views/edit_page/edit_service.dart';
 import 'views/history.dart';
 import 'views/info_page/class_info.dart';
 import 'views/info_page/invitation_info.dart';
 import 'views/info_page/person_info.dart';
+import 'views/info_page/service_info.dart';
 import 'views/info_page/user_info.dart';
 import 'views/loading_widget.dart';
 import 'views/login.dart';
@@ -451,6 +454,9 @@ class AppState extends State<App> {
             'Login': (context) => const LoginScreen(),
             'Data/EditClass': (context) => EditClass(
                 class$: ModalRoute.of(context)!.settings.arguments as Class?),
+            'Data/EditService': (context) => EditService(
+                service:
+                    ModalRoute.of(context)!.settings.arguments as Service?),
             'Data/EditPerson': (context) {
               if (ModalRoute.of(context)?.settings.arguments == null)
                 return EditPerson(person: Person());
@@ -494,6 +500,9 @@ class AppState extends State<App> {
             'Notifications': (context) => const NotificationsPage(),
             'ClassInfo': (context) => ClassInfo(
                 class$: ModalRoute.of(context)!.settings.arguments! as Class),
+            'ServiceInfo': (context) => ServiceInfo(
+                service:
+                    ModalRoute.of(context)!.settings.arguments! as Service),
             'PersonInfo': (context) => PersonInfo(
                 person: ModalRoute.of(context)!.settings.arguments! as Person,
                 converter: ModalRoute.of(context)!.settings.arguments is User

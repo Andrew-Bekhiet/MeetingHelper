@@ -64,13 +64,35 @@ class _RootState extends State<Root>
   final BehaviorSubject<String> _searchQuery =
       BehaviorSubject<String>.seeded('');
 
-  void addTap() {
+  void addTap() async {
     if (_tabController!.index == _tabController!.length - 2) {
-      navigator.currentState!.pushNamed('Data/EditClass');
+      if (User.instance.manageUsers || User.instance.manageAllowedUsers) {
+        final rslt = await showDialog(
+          context: context,
+          builder: (context) => SimpleDialog(
+            children: [
+              SimpleDialogOption(
+                child: const Text('اضافة فصل'),
+                onPressed: () => navigator.currentState!.pop(true),
+              ),
+              SimpleDialogOption(
+                child: const Text('اضافة خدمة'),
+                onPressed: () => navigator.currentState!.pop(false),
+              ),
+            ],
+          ),
+        );
+        if (rslt == true)
+          unawaited(navigator.currentState!.pushNamed('Data/EditClass'));
+        else if (rslt == false)
+          unawaited(navigator.currentState!.pushNamed('Data/EditService'));
+      } else {
+        unawaited(navigator.currentState!.pushNamed('Data/EditClass'));
+      }
     } else if (_tabController!.index == _tabController!.length - 1) {
-      navigator.currentState!.pushNamed('Data/EditPerson');
+      unawaited(navigator.currentState!.pushNamed('Data/EditPerson'));
     } else {
-      navigator.currentState!.push(
+      unawaited(navigator.currentState!.push(
         MaterialPageRoute(
           builder: (context) {
             return EditPerson(
@@ -84,7 +106,7 @@ class _RootState extends State<Root>
             );
           },
         ),
-      );
+      ));
     }
   }
 
