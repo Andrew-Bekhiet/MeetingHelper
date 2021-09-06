@@ -1031,6 +1031,21 @@ Future<String> shareClassRaw(String? id) async {
       .toString();
 }
 
+Future<String> shareService(Service service) async =>
+    shareServiceRaw(service.id);
+
+Future<String> shareServiceRaw(String? id) async {
+  return (await DynamicLinkParameters(
+    uriPrefix: uriPrefix,
+    link: Uri.parse('https://meetinghelper.com/viewService?ServiceId=$id'),
+    androidParameters: androidParameters,
+    dynamicLinkParametersOptions: dynamicLinkParametersOptions,
+    iosParameters: iosParameters,
+  ).buildShortLink())
+      .shortUrl
+      .toString();
+}
+
 Future<String> shareDataObject(DataObject? obj) async {
   if (obj is HistoryDay) return shareHistory(obj);
   if (obj is Class) return shareClass(obj);
@@ -1189,13 +1204,22 @@ void showBirthDayNotification() async {
         payload: 'Birthday');
 }
 
-Future<List<Class>?> selectClasses(List<Class>? classes) async {
+Future<List<T>?> selectServices<T extends DataObject>(List<T>? selected) async {
   final _controller = ServicesListController(
-    itemsStream: servicesByStudyYearRef(),
+    itemsStream: servicesByStudyYearRef().map(
+      (s) {
+        if (T == DataObject) return s;
+        return {
+          for (final record in s.entries)
+            if (record.value.whereType<T>().isNotEmpty) record.key: record.value
+        };
+      },
+    ),
     selectionMode: true,
-    selected: classes,
+    selected: selected,
     searchQuery: Stream.value(''),
   );
+
   if (await navigator.currentState!.push(
         MaterialPageRoute(
           builder: (context) => Scaffold(
@@ -1223,7 +1247,7 @@ Future<List<Class>?> selectClasses(List<Class>? classes) async {
       ) ==
       true) {
     await _controller.dispose();
-    return _controller.selectedLatest!.values.whereType<Class>().toList();
+    return _controller.selectedLatest!.values.whereType<T>().toList();
   }
   await _controller.dispose();
   return null;
@@ -1852,5 +1876,16 @@ extension SplitList<T> on List<T> {
           .add(sublist(i, i + length > this.length ? this.length : i + length));
     }
     return chunks;
+  }
+}
+
+extension SplitIterable<T> on Iterable<T> {
+  Iterable<Iterable<T>> split(int length) sync* {
+    for (int i = 0; i < this.length; i += length) {
+      splitBetweenIndexed((index, first, second) =>
+          index == i ||
+          index ==
+              (i + length > this.length ? this.length - 1 : i + length - 1));
+    }
   }
 }
