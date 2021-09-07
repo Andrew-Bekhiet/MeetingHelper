@@ -3,6 +3,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../super_classes.dart';
 import 'person.dart';
@@ -35,8 +36,35 @@ class Service extends DataObject with PhotoObject {
     );
   }
 
-  static Service fromDoc(JsonDoc doc) =>
-      Service.fromJson(doc.data()!, doc.reference);
+  static Service? fromDoc(JsonDoc doc) =>
+      doc.data() != null ? Service.fromJson(doc.data()!, doc.reference) : null;
+
+  static Service fromQueryDoc(JsonQueryDoc doc) =>
+      Service.fromJson(doc.data(), doc.reference);
+
+  static Stream<List<Service>> getAllForUser({
+    String orderBy = 'Name',
+    bool descending = false,
+  }) {
+    return User.instance.stream.switchMap((u) {
+      if (u.manageUsers || u.manageAllowedUsers) {
+        return FirebaseFirestore.instance
+            .collection('Services')
+            .orderBy(orderBy, descending: descending)
+            .snapshots()
+            .map((c) => c.docs.map(fromQueryDoc).toList());
+      } else {
+        return u.adminServices.isEmpty
+            ? Stream.value([])
+            : Rx.combineLatestList(
+                u.adminServices.map(
+                  (r) =>
+                      r.snapshots().map(Service.fromDoc).whereType<Service>(),
+                ),
+              );
+      }
+    });
+  }
 
   Service.fromJson(Json json, JsonRef ref)
       : this(
