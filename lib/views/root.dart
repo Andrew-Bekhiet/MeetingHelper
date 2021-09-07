@@ -19,7 +19,9 @@ import 'package:hive/hive.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
+import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
+import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/views/lists/lists.dart';
 import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -553,7 +555,7 @@ class _RootState extends State<Root>
               },
             ),
             Selector<User, bool?>(
-              selector: (_, user) => user.exportClasses,
+              selector: (_, user) => user.export,
               builder: (context2, permission, _) {
                 return permission!
                     ? ListTile(
@@ -561,12 +563,12 @@ class _RootState extends State<Root>
                         title: const Text('تصدير فصل إلى ملف اكسل'),
                         onTap: () async {
                           mainScfld.currentState!.openEndDrawer();
-                          final Class? rslt = await showDialog(
+                          final DataObject? rslt = await showDialog(
                             context: context,
                             builder: (context) => Dialog(
                               child: Column(
                                 children: [
-                                  Text('برجاء اختيار الفصل الذي تريد تصديره:',
+                                  Text('برجاء اختيار الفصل او الخدمة للتصدير:',
                                       style: Theme.of(context)
                                           .textTheme
                                           .headline5),
@@ -604,7 +606,14 @@ class _RootState extends State<Root>
                               final String filename = Uri.decodeComponent(
                                   (await FirebaseFunctions.instance
                                           .httpsCallable('exportToExcel')
-                                          .call({'onlyClass': rslt.id}))
+                                          .call(
+                                {
+                                  if (rslt is Class)
+                                    'onlyClass': rslt.id
+                                  else if (rslt is Service)
+                                    'onlyService': rslt.id
+                                },
+                              ))
                                       .data);
                               final file = await File(
                                       (await getApplicationDocumentsDirectory())
@@ -648,7 +657,7 @@ class _RootState extends State<Root>
               },
             ),
             Selector<User, bool?>(
-              selector: (_, user) => user.exportClasses,
+              selector: (_, user) => user.export,
               builder: (context2, permission, _) {
                 return permission!
                     ? ListTile(
@@ -716,7 +725,7 @@ class _RootState extends State<Root>
               },
             ),
             Selector<User, bool?>(
-              selector: (_, user) => user.exportClasses,
+              selector: (_, user) => user.export,
               builder: (context, user, _) => ListTile(
                 leading: const Icon(Icons.list_alt),
                 title: const Text('عمليات التصدير السابقة'),

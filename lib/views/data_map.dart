@@ -10,6 +10,7 @@ import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:provider/provider.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import '../utils/helpers.dart';
@@ -38,7 +39,7 @@ class MegaMap extends StatelessWidget {
         return FutureBuilder<List<Person>>(
           future: Future.wait(
             [
-              ...selected.selected!.whereType<Class>().split(10).map(
+              ...selected.selected!.whereType<Class>().toList().split(10).map(
                 (c) {
                   return FirebaseFirestore.instance
                       .collection('Persons')
@@ -46,7 +47,7 @@ class MegaMap extends StatelessWidget {
                       .get(dataSource);
                 },
               ),
-              ...selected.selected!.whereType<Service>().split(10).map(
+              ...selected.selected!.whereType<Service>().toList().split(10).map(
                 (s) {
                   return FirebaseFirestore.instance
                       .collection('Persons')
@@ -143,10 +144,16 @@ class _DataMapState extends State<DataMap> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<Class>>(
-      stream: widget.class$ == null
-          ? Class.getAllForUser()
-          : Stream.value([widget.class$!]),
+    return StreamBuilder<List<DataObject>>(
+      stream: widget.class$ == null && widget.service == null
+          ? Rx.combineLatest2<List<Class>, List<Service>, List<DataObject>>(
+              Class.getAllForUser(),
+              Service.getAllForUser(),
+              (c, s) => [...c, ...s])
+          : Stream.value([
+              if (widget.class$ != null) widget.class$!,
+              if (widget.service != null) widget.service!
+            ]),
       builder: (context, snapshot) {
         if (snapshot.hasError) return ErrorWidget(snapshot.error!);
         if (!snapshot.hasData)

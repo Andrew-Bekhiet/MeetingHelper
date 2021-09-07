@@ -104,6 +104,51 @@ class _ServicesListState extends State<ServicesList>
             final element = groupedStudyYears.values
                 .elementAt(index.section)
                 .elementAt(index.index);
+
+            if (element == null)
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(3, 0, 9, 0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: services.data![element]!.map(
+                    (c) {
+                      return DataObjectWidget(
+                        c,
+                        showSubTitle: false,
+                        onTap: () {
+                          if (!widget.options.selectionModeLatest) {
+                            widget.options.tap == null
+                                ? dataObjectTap(c)
+                                : widget.options.tap!(c);
+                          } else {
+                            widget.options.toggleSelected(c);
+                          }
+                        },
+                        trailing: StreamBuilder<Map<String, DataObject>>(
+                          stream: widget.options.selected,
+                          builder: (context, snapshot) {
+                            if (snapshot.hasData &&
+                                widget.options.selectionModeLatest) {
+                              return Checkbox(
+                                value: snapshot.data!.containsKey(c.id),
+                                onChanged: (v) {
+                                  if (v!) {
+                                    widget.options.select(c);
+                                  } else {
+                                    widget.options.deselect(c);
+                                  }
+                                },
+                              );
+                            }
+                            return const SizedBox(width: 1, height: 1);
+                          },
+                        ),
+                      );
+                    },
+                  ).toList(),
+                ),
+              );
+
             if (services.data![element]!.length > 1)
               return Padding(
                 padding: const EdgeInsets.fromLTRB(3, 0, 9, 0),
@@ -118,7 +163,7 @@ class _ServicesListState extends State<ServicesList>
                           _controllers[hashValues(index.index, index.section)]!
                               .toggle(),
                       leading: const Icon(Icons.miscellaneous_services),
-                      title: Text(element?.name ?? ''),
+                      title: Text(element.name),
                       trailing: StreamBuilder<Map<String, DataObject>>(
                         stream: widget.options.selected,
                         builder: (context, snapshot) {

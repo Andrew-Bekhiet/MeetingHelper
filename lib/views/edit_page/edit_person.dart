@@ -765,9 +765,11 @@ class _EditPersonState extends State<EditPerson> {
                           ? FutureBuilder<List<String>>(
                               future: Future.wait(
                                 state.value!.take(2).map(
-                                      (s) async => Service.fromDoc(
-                                        await s.get(dataSource),
-                                      ).name,
+                                      (s) async =>
+                                          Service.fromDoc(
+                                            await s.get(dataSource),
+                                          )?.name ??
+                                          '',
                                     ),
                               ),
                               builder: (context, servicesSnapshot) {
@@ -1207,23 +1209,18 @@ class _EditPersonState extends State<EditPerson> {
   }
 
   void _selectClass(FormFieldState<JsonRef?> state) async {
-    final controller = ServicesListController(
+    final controller = ServicesListController<Class>(
       tap: (class$) {
         navigator.currentState!.pop();
         setState(() {
           person
             ..classId = class$.ref
-            ..gender = (class$ as Class).gender
+            ..gender = class$.gender
             ..isShammas = class$.gender ? person.isShammas : false;
         });
         FocusScope.of(context).nextFocus();
       },
-      itemsStream: servicesByStudyYearRef().map(
-        (s) => {
-          for (final kv in s.entries)
-            if (kv.value.whereType<Class>().isNotEmpty) kv.key: kv.value
-        },
-      ),
+      itemsStream: servicesByStudyYearRef(),
     );
     await showDialog(
       context: context,
@@ -1313,7 +1310,7 @@ class _EditPersonState extends State<EditPerson> {
                           (e) async => Service.fromDoc(await e.get(dataSource)),
                         ),
                       ))
-                        s.id: s
+                        if (s != null) s.id: s
                     };
                   }(),
                   builder: (context, snapshot) {
@@ -1329,7 +1326,7 @@ class _EditPersonState extends State<EditPerson> {
                             .snapshots()
                             .map(
                               (value) =>
-                                  value.docs.map(Service.fromDoc).toList(),
+                                  value.docs.map(Service.fromQueryDoc).toList(),
                             ),
                         selected: snapshot.requireData,
                       ),

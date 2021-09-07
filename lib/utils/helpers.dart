@@ -135,9 +135,12 @@ void changeTheme({required BuildContext context}) {
   );
 }
 
-Stream<Map<StudyYear?, List<DataObject>>> servicesByStudyYearRef() {
+Stream<Map<StudyYear?, List<T>>>
+    servicesByStudyYearRef<T extends DataObject>() {
+  assert(T == Class || T == Service);
+
   return Rx.combineLatest3<Map<JsonRef, StudyYear>, List<Class>, List<Service>,
-          Map<StudyYear?, List<DataObject>>>(
+          Map<StudyYear?, List<T>>>(
       FirebaseFirestore.instance
           .collection('StudyYears')
           .orderBy('Grade')
@@ -147,32 +150,26 @@ Stream<Map<StudyYear?, List<DataObject>>> servicesByStudyYearRef() {
               for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
             },
           ),
-      User.instance.stream.switchMap((user) => (user.superAccess
-              ? FirebaseFirestore.instance
-                  .collection('Classes')
-                  .orderBy('StudyYear')
-                  .orderBy('Gender')
-                  .snapshots()
-              : FirebaseFirestore.instance
-                  .collection('Classes')
-                  .where('Allowed',
-                      arrayContains:
-                          auth.FirebaseAuth.instance.currentUser!.uid)
-                  .orderBy('StudyYear')
-                  .orderBy('Gender')
-                  .snapshots())
-          .map((cs) => cs.docs.map(Class.fromQueryDoc).toList())),
-      User.instance.stream.switchMap(
-        (user) => user.adminServices.isEmpty
-            ? Stream.value([])
-            : Rx.combineLatestList(
-                user.adminServices
-                    .map((r) => r.snapshots().map(Service.fromDoc)),
-              ),
-      ), (studyYears, classes, services) {
-    final combined = <DataObject>[...classes, ...services];
+      T == Service
+          ? Stream.value([])
+          : User.instance.stream.switchMap((user) => (user.superAccess
+                  ? FirebaseFirestore.instance
+                      .collection('Classes')
+                      .orderBy('StudyYear')
+                      .orderBy('Gender')
+                      .snapshots()
+                  : FirebaseFirestore.instance
+                      .collection('Classes')
+                      .where('Allowed', arrayContains: User.instance.uid)
+                      .orderBy('StudyYear')
+                      .orderBy('Gender')
+                      .snapshots())
+              .map((cs) => cs.docs.map(Class.fromQueryDoc).toList())),
+      T == Class ? Stream.value([]) : Service.getAllForUser(),
+      (studyYears, classes, services) {
+    final combined = [...classes, ...services];
 
-    mergeSort<DataObject>(combined, compare: (c, c2) {
+    mergeSort<T>(combined.cast<T>(), compare: (c, c2) {
       if (c is Class && c2 is Class) {
         if (c.studyYear == c2.studyYear) return c.gender.compareTo(c2.gender);
         return studyYears[c.studyYear]!
@@ -193,7 +190,7 @@ Stream<Map<StudyYear?, List<DataObject>>> servicesByStudyYearRef() {
       return 0;
     });
 
-    return groupBy<DataObject, StudyYear?>(combined, (c) {
+    return groupBy<T, StudyYear?>(combined.cast<T>(), (c) {
       if (c is Class)
         return studyYears[c.studyYear];
       else if (c is Service && c.studyYearRange?.from == c.studyYearRange?.to)
@@ -203,10 +200,13 @@ Stream<Map<StudyYear?, List<DataObject>>> servicesByStudyYearRef() {
   });
 }
 
-Stream<Map<StudyYear?, List<DataObject>>> servicesByStudyYearRefForUser(
-    String? uid, List<JsonRef> adminServices) {
+Stream<Map<StudyYear?, List<T>>>
+    servicesByStudyYearRefForUser<T extends DataObject>(
+        String? uid, List<JsonRef> adminServices) {
+  assert(T == Class || T == Service);
+
   return Rx.combineLatest3<Map<JsonRef, StudyYear>, List<Class>, List<Service>,
-          Map<StudyYear?, List<DataObject>>>(
+          Map<StudyYear?, List<T>>>(
       FirebaseFirestore.instance
           .collection('StudyYears')
           .orderBy('Grade')
@@ -216,18 +216,20 @@ Stream<Map<StudyYear?, List<DataObject>>> servicesByStudyYearRefForUser(
               for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
             },
           ),
-      FirebaseFirestore.instance
-          .collection('Classes')
-          .where('Allowed',
-              arrayContains: auth.FirebaseAuth.instance.currentUser!.uid)
-          .orderBy('StudyYear')
-          .orderBy('Gender')
-          .snapshots()
-          .map((cs) => cs.docs.map(Class.fromQueryDoc).toList()),
-      adminServices.isEmpty
+      T == Service
+          ? Stream.value([])
+          : FirebaseFirestore.instance
+              .collection('Classes')
+              .where('Allowed', arrayContains: uid)
+              .orderBy('StudyYear')
+              .orderBy('Gender')
+              .snapshots()
+              .map((cs) => cs.docs.map(Class.fromQueryDoc).toList()),
+      adminServices.isEmpty || T == Class
           ? Stream.value([])
           : Rx.combineLatestList(
-              adminServices.map((r) => r.snapshots().map(Service.fromDoc)),
+              adminServices.map((r) =>
+                  r.snapshots().map(Service.fromDoc).whereType<Service>()),
             ), (studyYears, classes, services) {
     final combined = <DataObject>[...classes, ...services];
 
@@ -252,7 +254,7 @@ Stream<Map<StudyYear?, List<DataObject>>> servicesByStudyYearRefForUser(
       return 0;
     });
 
-    return groupBy<DataObject, StudyYear?>(combined, (c) {
+    return groupBy<T, StudyYear?>(combined.cast<T>(), (c) {
       if (c is Class)
         return studyYears[c.studyYear];
       else if (c is Service && c.studyYearRange?.from == c.studyYearRange?.to)
@@ -1880,16 +1882,5 @@ extension SplitList<T> on List<T> {
           .add(sublist(i, i + length > this.length ? this.length : i + length));
     }
     return chunks;
-  }
-}
-
-extension SplitIterable<T> on Iterable<T> {
-  Iterable<Iterable<T>> split(int length) sync* {
-    for (int i = 0; i < this.length; i += length) {
-      splitBetweenIndexed((index, first, second) =>
-          index == i ||
-          index ==
-              (i + length > this.length ? this.length - 1 : i + length - 1));
-    }
   }
 }
