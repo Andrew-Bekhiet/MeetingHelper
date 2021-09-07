@@ -16,7 +16,6 @@ import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
-import 'package:meetinghelper/views/form_widgets/tapable_form_field.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
@@ -114,135 +113,138 @@ class _EditServiceState extends State<EditService> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  TextFormField(
-                    decoration: const InputDecoration(labelText: 'اسم الخدمة'),
-                    initialValue: service.name,
-                    onChanged: (v) => service.name = v,
-                    textInputAction: TextInputAction.next,
-                    textCapitalization: TextCapitalization.words,
-                    validator: (value) {
-                      if (value?.isEmpty ?? true) {
-                        return 'يجب ملئ اسم الخدمة';
-                      }
-                      return null;
-                    },
-                  ),
-                  InputDecorator(
-                    decoration: InputDecoration(
-                      labelText: 'السنوات الدراسية',
-                      suffixIcon: IconButton(
-                        icon: const Icon(Icons.delete),
-                        tooltip: 'ازالة',
-                        onPressed: () {
-                          setState(() => service.studyYearRange = null);
-                        },
-                      ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: TextFormField(
+                      decoration:
+                          const InputDecoration(labelText: 'اسم الخدمة'),
+                      initialValue: service.name,
+                      onChanged: (v) => service.name = v,
+                      textInputAction: TextInputAction.next,
+                      textCapitalization: TextCapitalization.words,
+                      validator: (value) {
+                        if (value?.isEmpty ?? true) {
+                          return 'يجب ملئ اسم الخدمة';
+                        }
+                        return null;
+                      },
                     ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
                     child: FutureBuilder<JsonQuery>(
                       future: StudyYear.getAllForUser(),
                       builder: (conext, data) {
                         if (!data.hasData)
                           return const LinearProgressIndicator();
 
-                        return Row(
-                          children: [
-                            Flexible(
-                              child: DropdownButtonFormField<JsonRef?>(
-                                value: service.studyYearRange?.from,
-                                items: data.data!.docs
-                                    .map(
-                                      (item) => DropdownMenuItem(
-                                        value: item.reference,
-                                        child: Text(item.data()['Name']),
+                        return InputDecorator(
+                          decoration: InputDecoration(
+                            labelText: 'السنوات الدراسية',
+                            suffixIcon: IconButton(
+                              icon: const Icon(Icons.delete),
+                              tooltip: 'ازالة',
+                              onPressed: () {
+                                setState(() => service.studyYearRange = null);
+                              },
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: DropdownButtonFormField<JsonRef?>(
+                                  isExpanded: true,
+                                  value: service.studyYearRange?.from,
+                                  items: data.data!.docs
+                                      .map(
+                                        (item) => DropdownMenuItem(
+                                          value: item.reference,
+                                          child: Text(item.data()['Name']),
+                                        ),
+                                      )
+                                      .toList()
+                                    ..insert(
+                                      0,
+                                      const DropdownMenuItem(
+                                        value: null,
+                                        child: Text(''),
                                       ),
-                                    )
-                                    .toList()
-                                  ..insert(
-                                    0,
-                                    const DropdownMenuItem(
-                                      value: null,
-                                      child: Text(''),
                                     ),
+                                  onChanged: (value) {
+                                    if (service.studyYearRange == null)
+                                      service.studyYearRange =
+                                          StudyYearRange(from: value, to: null);
+                                    else
+                                      service.studyYearRange!.from = value;
+
+                                    setState(() {});
+
+                                    FocusScope.of(context).nextFocus();
+                                  },
+                                  decoration: const InputDecoration(
+                                    labelText: 'من',
+                                    border: InputBorder.none,
                                   ),
-                                onChanged: (value) {
-                                  if (service.studyYearRange == null)
-                                    service.studyYearRange =
-                                        StudyYearRange(from: value, to: null);
-                                  else
-                                    service.studyYearRange!.from = value;
-
-                                  setState(() {});
-
-                                  FocusScope.of(context).nextFocus();
-                                },
-                                decoration: const InputDecoration(
-                                  labelText: 'من',
-                                  border: InputBorder.none,
                                 ),
                               ),
-                            ),
-                            Flexible(
-                              child: DropdownButtonFormField<JsonRef?>(
-                                value: service.studyYearRange?.to,
-                                items: data.data!.docs
-                                    .map(
-                                      (item) => DropdownMenuItem(
-                                        value: item.reference,
-                                        child: Text(item.data()['Name']),
+                              Expanded(
+                                child: DropdownButtonFormField<JsonRef?>(
+                                  isExpanded: true,
+                                  value: service.studyYearRange?.to,
+                                  items: data.data!.docs
+                                      .map(
+                                        (item) => DropdownMenuItem(
+                                          value: item.reference,
+                                          child: Text(item.data()['Name']),
+                                        ),
+                                      )
+                                      .toList()
+                                    ..insert(
+                                      0,
+                                      const DropdownMenuItem(
+                                        value: null,
+                                        child: Text(''),
                                       ),
-                                    )
-                                    .toList()
-                                  ..insert(
-                                    0,
-                                    const DropdownMenuItem(
-                                      value: null,
-                                      child: Text(''),
                                     ),
+                                  onChanged: (value) {
+                                    if (service.studyYearRange == null)
+                                      service.studyYearRange =
+                                          StudyYearRange(from: null, to: value);
+                                    else
+                                      service.studyYearRange!.to = value;
+
+                                    setState(() {});
+
+                                    FocusScope.of(context).nextFocus();
+                                  },
+                                  decoration: const InputDecoration(
+                                    labelText: 'الى',
+                                    border: InputBorder.none,
                                   ),
-                                onChanged: (value) {
-                                  if (service.studyYearRange == null)
-                                    service.studyYearRange =
-                                        StudyYearRange(from: null, to: value);
-                                  else
-                                    service.studyYearRange!.to = value;
-
-                                  setState(() {});
-
-                                  FocusScope.of(context).nextFocus();
-                                },
-                                decoration: const InputDecoration(
-                                  labelText: 'الى',
-                                  border: InputBorder.none,
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         );
                       },
                     ),
                   ),
-                  InputDecorator(
-                    decoration: InputDecoration(
-                      labelText: 'مدة الصلاحية',
-                      suffixIcon: IconButton(
-                        icon: const Icon(Icons.delete),
-                        tooltip: 'ازالة',
-                        onPressed: () {
-                          setState(() => service.validity = null);
-                        },
-                      ),
-                    ),
+                  Text(
+                    'مدة الصلاحية',
+                    style: Theme.of(context).textTheme.subtitle2,
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
                     child: Row(
                       children: [
-                        Flexible(
-                          child: TapableFormField<DateTime?>(
-                            initialValue: service.validity?.start,
-                            onTap: (state) async {
+                        Expanded(
+                          child: InkWell(
+                            onTap: () async {
                               final from = await _selectDate(
                                     'الصلاحية: من',
-                                    state.value ?? DateTime.now(),
+                                    service.validity?.end ?? DateTime.now(),
                                   ) ??
-                                  state.value;
+                                  service.validity?.end;
                               if (from == null) return;
 
                               service.validity = DateTimeRange(
@@ -250,32 +252,28 @@ class _EditServiceState extends State<EditService> {
                                 end: service.validity?.end ??
                                     from.add(const Duration(days: 365)),
                               );
-
-                              state.didChange(from);
+                              setState(() {});
                             },
-                            decoration: (context, state) => InputDecoration(
-                              labelText: 'من',
-                              errorText: state.errorText,
-                              border: InputBorder.none,
-                            ),
-                            builder: (context, state) {
-                              return state.value != null
+                            child: InputDecorator(
+                              decoration: const InputDecoration(
+                                labelText: 'من',
+                                border: InputBorder.none,
+                              ),
+                              child: service.validity?.end != null
                                   ? Text(DateFormat('yyyy/M/d')
-                                      .format(state.value!))
-                                  : null;
-                            },
-                            validator: (_) => null,
+                                      .format(service.validity!.end))
+                                  : Container(),
+                            ),
                           ),
                         ),
-                        Flexible(
-                          child: TapableFormField<DateTime?>(
-                            initialValue: service.validity?.end,
-                            onTap: (state) async {
+                        Expanded(
+                          child: InkWell(
+                            onTap: () async {
                               final to = await _selectDate(
                                     'الصلاحية: الى',
-                                    state.value ?? DateTime.now(),
+                                    service.validity?.start ?? DateTime.now(),
                                   ) ??
-                                  state.value;
+                                  service.validity?.start;
                               if (to == null) return;
 
                               service.validity = DateTimeRange(
@@ -283,31 +281,38 @@ class _EditServiceState extends State<EditService> {
                                 start: service.validity?.start ??
                                     to.subtract(const Duration(days: 365)),
                               );
-
-                              state.didChange(to);
+                              setState(() {});
                             },
-                            decoration: (context, state) => InputDecoration(
-                              labelText: 'الى',
-                              errorText: state.errorText,
-                              border: InputBorder.none,
-                            ),
-                            builder: (context, state) {
-                              return state.value != null
+                            child: InputDecorator(
+                              decoration: const InputDecoration(
+                                labelText: 'الى',
+                                border: InputBorder.none,
+                              ),
+                              child: service.validity?.start != null
                                   ? Text(DateFormat('yyyy/M/d')
-                                      .format(state.value!))
-                                  : null;
-                            },
-                            validator: (_) => null,
+                                      .format(service.validity!.start))
+                                  : Container(),
+                            ),
                           ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          tooltip: 'ازالة',
+                          onPressed: () {
+                            setState(() => service.validity = null);
+                          },
                         ),
                       ],
                     ),
                   ),
-                  CheckboxListTile(
-                    title: const Text('اظهار كبند في السجل'),
-                    value: service.showInHistory,
-                    onChanged: (v) =>
-                        setState(() => service.showInHistory = v!),
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: CheckboxListTile(
+                      title: const Text('اظهار كبند في السجل'),
+                      value: service.showInHistory,
+                      onChanged: (v) =>
+                          setState(() => service.showInHistory = v!),
+                    ),
                   ),
                   ElevatedButton.icon(
                     style: service.color != Colors.transparent
@@ -396,7 +401,6 @@ class _EditServiceState extends State<EditService> {
     if (selectedImage == null) return;
     changedImage = (await ImageCropper.cropImage(
             sourcePath: selectedImage.path,
-            cropStyle: CropStyle.circle,
             androidUiSettings: AndroidUiSettings(
                 toolbarTitle: 'قص الصورة',
                 toolbarColor: Theme.of(context).colorScheme.primary,
