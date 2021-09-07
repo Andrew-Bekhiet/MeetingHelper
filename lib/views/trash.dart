@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
+import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/utils/globals.dart';
@@ -95,6 +96,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
 
   late final DataObjectListController<Person> _personsOptions;
   late final DataObjectListController<Class> _classesOptions;
+  late final DataObjectListController<Service> _servicesOptions;
 
   @override
   Widget build(BuildContext context) {
@@ -202,6 +204,10 @@ class _TrashDayScreenState extends State<TrashDayScreen>
               icon: Icon(Icons.miscellaneous_services),
             ),
             Tab(
+              text: 'الفصول',
+              icon: Icon(Icons.group),
+            ),
+            Tab(
               text: 'المخدومين',
               icon: Icon(Icons.person),
             ),
@@ -254,13 +260,15 @@ class _TrashDayScreenState extends State<TrashDayScreen>
           animation: _tabController!,
           builder: (context, _) => StreamBuilder<List>(
             stream: _tabController!.index == 0
-                ? _classesOptions.objectsData
-                : _personsOptions.objectsData,
+                ? _servicesOptions.objectsData
+                : _tabController!.index == 1
+                    ? _classesOptions.objectsData
+                    : _personsOptions.objectsData,
             builder: (context, snapshot) {
               return Text(
                 (snapshot.data?.length ?? 0).toString() +
                     ' ' +
-                    (_tabController!.index == 0 ? 'خدمة' : 'مخدوم'),
+                    (_tabController!.index != 2 ? 'خدمة' : 'مخدوم'),
                 textAlign: TextAlign.center,
                 strutStyle:
                     StrutStyle(height: IconTheme.of(context).size! / 7.5),
@@ -273,6 +281,15 @@ class _TrashDayScreenState extends State<TrashDayScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
+          if (User.instance.superAccess)
+            DataObjectList<Service>(
+              disposeController: true,
+              options: _servicesOptions,
+            )
+          else
+            const Center(
+              child: Text('يلزم صلاحية رؤية جميع البيانات لاسترجاع الخدمات'),
+            ),
           DataObjectList<Class>(
             disposeController: true,
             options: _classesOptions,
@@ -289,8 +306,17 @@ class _TrashDayScreenState extends State<TrashDayScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(vsync: this, length: 2);
+    _tabController = TabController(vsync: this, length: 3, initialIndex: 1);
     WidgetsBinding.instance!.addObserver(this);
+
+    _servicesOptions = DataObjectListController<Service>(
+      searchQuery: _searchQuery,
+      tap: serviceTap,
+      itemsStream: widget.day.ref.collection('Services').snapshots().map(
+            (s) => s.docs.map(Service.fromQueryDoc).toList(),
+          ),
+    );
+
     _classesOptions = DataObjectListController<Class>(
       searchQuery: _searchQuery,
       tap: classTap,
