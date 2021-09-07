@@ -59,7 +59,7 @@ class User extends Person {
 
   bool manageUsers = false;
   bool manageAllowedUsers = false;
-  bool exportClasses = false;
+  bool export = false;
   List<String> allowedUsers = [];
 
   bool birthdayNotify = false;
@@ -95,7 +95,7 @@ class User extends Person {
       bool write = false,
       bool secretary = false,
       bool changeHistory = false,
-      bool exportClasses = false,
+      bool export = false,
       bool birthdayNotify = false,
       bool confessionsNotify = false,
       bool tanawolNotify = false,
@@ -122,7 +122,7 @@ class User extends Person {
       write: write,
       secretary: secretary,
       changeHistory: changeHistory,
-      exportClasses: exportClasses,
+      export: export,
       birthdayNotify: birthdayNotify,
       confessionsNotify: confessionsNotify,
       tanawolNotify: tanawolNotify,
@@ -154,7 +154,7 @@ class User extends Person {
       required this.write,
       required this.secretary,
       required this.changeHistory,
-      required this.exportClasses,
+      required this.export,
       required this.birthdayNotify,
       required this.confessionsNotify,
       required this.tanawolNotify,
@@ -351,7 +351,7 @@ class User extends Person {
     write = idTokenClaims['write'].toString() == 'true';
     secretary = idTokenClaims['secretary'].toString() == 'true';
     changeHistory = idTokenClaims['changeHistory'].toString() == 'true';
-    exportClasses = idTokenClaims['exportClasses'].toString() == 'true';
+    export = idTokenClaims['export'].toString() == 'true';
     birthdayNotify = idTokenClaims['birthdayNotify'].toString() == 'true';
     confessionsNotify = idTokenClaims['confessionsNotify'].toString() == 'true';
     tanawolNotify = idTokenClaims['tanawolNotify'].toString() == 'true';
@@ -437,7 +437,7 @@ class User extends Person {
     write = permissions['Write'] ?? false;
     secretary = permissions['Secretary'] ?? false;
     changeHistory = permissions['ChangeHistory'] ?? false;
-    exportClasses = permissions['ExportClasses'] ?? false;
+    export = permissions['export'] ?? false;
     birthdayNotify = permissions['BirthdayNotify'] ?? false;
     confessionsNotify = permissions['ConfessionsNotify'] ?? false;
     tanawolNotify = permissions['TanawolNotify'] ?? false;
@@ -465,7 +465,7 @@ class User extends Person {
           write,
           secretary,
           changeHistory,
-          exportClasses,
+          export,
           birthdayNotify,
           confessionsNotify,
           tanawolNotify,
@@ -507,7 +507,7 @@ class User extends Person {
       if (manageDeleted) permissions += 'استرجاع المحئوفات،';
       if (secretary) permissions += 'تسجيل حضور الخدام،';
       if (changeHistory) permissions += 'تعديل كشوفات القديمة';
-      if (exportClasses) permissions += 'تصدير فصل،';
+      if (export) permissions += 'تصدير فصل،';
       if (birthdayNotify) permissions += 'اشعار أعياد الميلاد،';
       if (confessionsNotify) permissions += 'اشعار الاعتراف،';
       if (tanawolNotify) permissions += 'اشعار التناول،';
@@ -640,7 +640,7 @@ class User extends Person {
       'write': write,
       'secretary': secretary,
       'changeHistory': changeHistory,
-      'exportClasses': exportClasses,
+      'export': export,
       'birthdayNotify': birthdayNotify,
       'confessionsNotify': confessionsNotify,
       'tanawolNotify': tanawolNotify,
@@ -814,7 +814,7 @@ class User extends Person {
     bool? write,
     bool? secretary,
     bool? changeHistory,
-    bool? exportClasses,
+    bool? export,
     bool? birthdayNotify,
     bool? confessionsNotify,
     bool? tanawolNotify,
@@ -858,7 +858,7 @@ class User extends Person {
       write: write ?? this.write,
       secretary: secretary ?? this.secretary,
       changeHistory: changeHistory ?? this.changeHistory,
-      exportClasses: exportClasses ?? this.exportClasses,
+      export: export ?? this.export,
       birthdayNotify: birthdayNotify ?? this.birthdayNotify,
       confessionsNotify: confessionsNotify ?? this.confessionsNotify,
       tanawolNotify: tanawolNotify ?? this.tanawolNotify,

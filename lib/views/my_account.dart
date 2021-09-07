@@ -268,7 +268,7 @@ class _MyAccountState extends State<MyAccount> {
                     leading: Icon(Icons.edit),
                     title: Text('تعديل البيانات'),
                   ),
-                if (user.exportClasses == true)
+                if (user.export == true)
                   const ListTile(
                     leading: Icon(Icons.cloud_download),
                     title: Text('تصدير فصل لملف إكسل'),

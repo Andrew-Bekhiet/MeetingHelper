@@ -296,7 +296,6 @@ class _EditClassState extends State<EditClass> {
     if (selectedImage == null) return;
     changedImage = (await ImageCropper.cropImage(
             sourcePath: selectedImage.path,
-            cropStyle: CropStyle.circle,
             androidUiSettings: AndroidUiSettings(
                 toolbarTitle: 'قص الصورة',
                 toolbarColor: Theme.of(context).colorScheme.primary,

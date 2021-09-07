@@ -606,9 +606,11 @@ class _PersonServices extends StatelessWidget {
           ? FutureBuilder<List<String>>(
               future: Future.wait(
                 person.services.take(2).map(
-                      (s) async => Service.fromDoc(
-                        await s.get(dataSource),
-                      ).name,
+                      (s) async =>
+                          Service.fromDoc(
+                            await s.get(dataSource),
+                          )?.name ??
+                          '',
                     ),
               ),
               builder: (context, servicesSnapshot) {
@@ -637,11 +639,13 @@ class _PersonServices extends StatelessWidget {
                   builder: (context) => Dialog(
                     child: FutureBuilder<List<Service>>(
                       future: Future.wait(
-                        person.services.map(
-                          (s) async => Service.fromDoc(
-                            await s.get(dataSource),
-                          ),
-                        ),
+                        person.services
+                            .map(
+                              (s) async => Service.fromDoc(
+                                await s.get(dataSource),
+                              ),
+                            )
+                            .whereType<Future<Service>>(),
                       ),
                       builder: (context, data) {
                         if (data.hasError) return ErrorWidget(data.error!);

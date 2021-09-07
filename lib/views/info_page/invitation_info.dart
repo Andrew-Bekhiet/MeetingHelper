@@ -235,7 +235,7 @@ class InvitationInfo extends StatelessWidget {
                             leading: Icon(Icons.edit),
                             title: Text('تعديل البيانات'),
                           ),
-                        if (invitation.permissions!['exportClasses'] == true)
+                        if (invitation.permissions!['export'] == true)
                           const ListTile(
                             leading: Icon(Icons.cloud_download),
                             title: Text('تصدير فصل لملف إكسل'),

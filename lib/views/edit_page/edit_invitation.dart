@@ -296,17 +296,15 @@ class _EditInvitationState extends State<EditInvitation> {
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: widget.invitation.permissions!['exportClasses'] ??
-                        false,
-                    onChanged: (v) => setState(() =>
-                        widget.invitation.permissions!['exportClasses'] = v),
+                    value: widget.invitation.permissions!['export'] ?? false,
+                    onChanged: (v) => setState(
+                        () => widget.invitation.permissions!['export'] = v),
                   ),
                   leading: const Icon(Icons.cloud_download),
                   title: const Text('تصدير فصل لملف إكسل'),
                   onTap: () => setState(() =>
-                      widget.invitation.permissions!['exportClasses'] =
-                          !(widget.invitation.permissions!['exportClasses'] ??
-                              false)),
+                      widget.invitation.permissions!['export'] =
+                          !(widget.invitation.permissions!['export'] ?? false)),
                 ),
                 ListTile(
                   trailing: Checkbox(

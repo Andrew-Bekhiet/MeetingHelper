@@ -10,6 +10,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:meetinghelper/crashlytics_web.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/search/order_options.dart';
@@ -258,13 +259,12 @@ class _EditUserState extends State<EditUser> {
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: user.exportClasses,
-                    onChanged: (v) => setState(() => user.exportClasses = v!),
+                    value: user.export,
+                    onChanged: (v) => setState(() => user.export = v!),
                   ),
                   leading: const Icon(Icons.cloud_download),
                   title: const Text('تصدير فصل لملف إكسل'),
-                  onTap: () =>
-                      setState(() => user.exportClasses = !user.exportClasses),
+                  onTap: () => setState(() => user.export = !user.export),
                 ),
                 ListTile(
                   trailing: Checkbox(
@@ -433,7 +433,7 @@ class _EditUserState extends State<EditUser> {
                       (e) async => Service.fromDoc(await e.get(dataSource)),
                     ),
                   ))
-                    s.id: s
+                    if (s != null) s.id: s
                 };
               }(), builder: (context, snapshot) {
                 if (!snapshot.hasData)
@@ -450,7 +450,7 @@ class _EditUserState extends State<EditUser> {
                             .snapshots()
                             .map(
                               (value) =>
-                                  value.docs.map(Service.fromDoc).toList(),
+                                  value.docs.map(Service.fromQueryDoc).toList(),
                             ),
                         selected: snapshot.requireData,
                       ),
@@ -774,7 +774,7 @@ class _EditUserState extends State<EditUser> {
   }
 
   void _selectClass() async {
-    final controller = ServicesListController(
+    final controller = ServicesListController<Class>(
       tap: (class$) {
         navigator.currentState!.pop();
         user.classId = class$.ref;
