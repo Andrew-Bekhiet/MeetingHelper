@@ -96,9 +96,11 @@ class _PersonInfoState extends State<PersonInfo> {
             ),
             if (User.instance.write)
               TargetFocus(
+                alignSkip: Alignment.topRight,
                 enableOverlayTab: true,
                 contents: [
                   TargetContent(
+                    align: ContentAlign.top,
                     child: Text(
                       'يمكنك تسجيل أخر زيارة للمخدوم بسرعة من هنا',
                       style: Theme.of(context).textTheme.subtitle1?.copyWith(

@@ -607,8 +607,10 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
             ),
             TargetFocus(
               enableOverlayTab: true,
+              alignSkip: Alignment.topLeft,
               contents: [
                 TargetContent(
+                  align: ContentAlign.top,
                   child: Text(
                     'يقوم البرنامج تلقائيًا بطلب تأكيد لإزالة حضور مخدوم'
                     '\nاذا اردت الغاء هذه الخاصية يمكنك الضغط هنا',

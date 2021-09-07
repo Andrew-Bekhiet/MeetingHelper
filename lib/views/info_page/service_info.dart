@@ -83,7 +83,7 @@ class _ServiceInfoState extends State<ServiceInfo> {
                 contents: [
                   TargetContent(
                     child: Text(
-                      'تعديل بيانات الفصل',
+                      'تعديل بيانات الخدمة',
                       style: Theme.of(context).textTheme.subtitle1?.copyWith(
                           color: Theme.of(context).colorScheme.onSecondary),
                     ),
@@ -113,7 +113,7 @@ class _ServiceInfoState extends State<ServiceInfo> {
               contents: [
                 TargetContent(
                   child: Text(
-                    'يمكنك ايجاد المزيد من الخيارات من هنا مثل: اشعار المستخدمين عن الفصل',
+                    'يمكنك ايجاد المزيد من الخيارات من هنا مثل: اشعار المستخدمين عن الخدمة',
                     style: Theme.of(context).textTheme.subtitle1?.copyWith(
                         color: Theme.of(context).colorScheme.onSecondary),
                   ),
@@ -128,8 +128,9 @@ class _ServiceInfoState extends State<ServiceInfo> {
               enableOverlayTab: true,
               contents: [
                 TargetContent(
+                  align: ContentAlign.top,
                   child: Text(
-                    'الاطلاع على سجل التعديلات في بيانات الفصل',
+                    'الاطلاع على سجل التعديلات في بيانات الخدمة',
                     style: Theme.of(context).textTheme.subtitle1?.copyWith(
                         color: Theme.of(context).colorScheme.onSecondary),
                   ),
@@ -144,8 +145,9 @@ class _ServiceInfoState extends State<ServiceInfo> {
               enableOverlayTab: true,
               contents: [
                 TargetContent(
+                  align: ContentAlign.top,
                   child: Text(
-                    'الأن يمكنك عرض تحليل لبيانات حضور مخدومين الفصل خلال فترة معينة من هنا',
+                    'الأن يمكنك عرض تحليل لبيانات حضور مخدومين في الخدمة خلال فترة معينة من هنا',
                     style: Theme.of(context).textTheme.subtitle1?.copyWith(
                         color: Theme.of(context).colorScheme.onSecondary),
                   ),
@@ -160,8 +162,9 @@ class _ServiceInfoState extends State<ServiceInfo> {
                 enableOverlayTab: true,
                 contents: [
                   TargetContent(
+                    align: ContentAlign.top,
                     child: Text(
-                      'يمكنك اضافة مخدوم داخل الفصل بسرعة وسهولة من هنا',
+                      'يمكنك اضافة مخدوم داخل الخدمة بسرعة وسهولة من هنا',
                       style: Theme.of(context).textTheme.subtitle1?.copyWith(
                           color: Theme.of(context).colorScheme.onSecondary),
                     ),
@@ -195,7 +198,7 @@ class _ServiceInfoState extends State<ServiceInfo> {
           if (data.data == null)
             return const Scaffold(
               body: Center(
-                child: Text('تم حذف الفصل'),
+                child: Text('تم حذف الخدمة'),
               ),
             );
 
@@ -302,7 +305,7 @@ class _ServiceInfoState extends State<ServiceInfo> {
                                 const PopupMenuItem(
                                   value: '',
                                   child:
-                                      Text('ارسال إشعار للمستخدمين عن الفصل'),
+                                      Text('ارسال إشعار للمستخدمين عن الخدمة'),
                                 ),
                               ];
                             },

@@ -124,6 +124,7 @@ class _ClassInfoState extends State<ClassInfo> {
               enableOverlayTab: true,
               contents: [
                 TargetContent(
+                  align: ContentAlign.top,
                   child: Text(
                     'الاطلاع على سجل التعديلات في بيانات الفصل',
                     style: Theme.of(context).textTheme.subtitle1?.copyWith(
@@ -140,6 +141,7 @@ class _ClassInfoState extends State<ClassInfo> {
               enableOverlayTab: true,
               contents: [
                 TargetContent(
+                  align: ContentAlign.top,
                   child: Text(
                     'الأن يمكنك عرض تحليل لبيانات حضور مخدومين الفصل خلال فترة معينة من هنا',
                     style: Theme.of(context).textTheme.subtitle1?.copyWith(
@@ -156,6 +158,7 @@ class _ClassInfoState extends State<ClassInfo> {
                 enableOverlayTab: true,
                 contents: [
                   TargetContent(
+                    align: ContentAlign.top,
                     child: Text(
                       'يمكنك اضافة مخدوم داخل الفصل بسرعة وسهولة من هنا',
                       style: Theme.of(context).textTheme.subtitle1?.copyWith(
@@ -163,6 +166,7 @@ class _ClassInfoState extends State<ClassInfo> {
                     ),
                   ),
                 ],
+                alignSkip: Alignment.topRight,
                 identify: 'Add',
                 keyTarget: _add,
                 color: Theme.of(context).colorScheme.secondary,
