@@ -137,7 +137,7 @@ void changeTheme({required BuildContext context}) {
 
 Stream<Map<StudyYear?, List<T>>>
     servicesByStudyYearRef<T extends DataObject>() {
-  assert(T == Class || T == Service);
+  assert(T == Class || T == Service || T == DataObject);
 
   return Rx.combineLatest3<Map<JsonRef, StudyYear>, List<Class>, List<Service>,
           Map<StudyYear?, List<T>>>(
