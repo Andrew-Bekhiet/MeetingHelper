@@ -47,7 +47,7 @@ class Service extends DataObject with PhotoObject {
     bool descending = false,
   }) {
     return User.instance.stream.switchMap((u) {
-      if (u.manageUsers || u.manageAllowedUsers) {
+      if (u.superAccess) {
         return FirebaseFirestore.instance
             .collection('Services')
             .orderBy(orderBy, descending: descending)
