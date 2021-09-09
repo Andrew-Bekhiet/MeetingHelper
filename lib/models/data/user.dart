@@ -246,7 +246,7 @@ class User extends Person {
                   await currentUser.getIdTokenResult(true);
 
               await Hive.box('User').putAll(
-                  idToken.claims?.map((k, v) => MapEntry(k.toString(), v)) ??
+                  idToken.claims?.map((k, v) => MapEntry(k, v)) ??
                       {});
 
               await dbInstance
@@ -286,7 +286,7 @@ class User extends Person {
               idToken = await user.getIdTokenResult();
 
               await Hive.box('User').putAll(
-                  idToken.claims?.map((k, v) => MapEntry(k.toString(), v)) ??
+                  idToken.claims?.map((k, v) => MapEntry(k, v)) ??
                       {});
 
               await dbInstance
