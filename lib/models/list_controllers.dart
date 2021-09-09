@@ -269,7 +269,7 @@ class DataObjectListController<T extends DataObject>
   }
 }
 
-class CheckListController<T extends Person>
+class CheckListController<T extends Person, P extends DataObject>
     implements DataObjectListController<T> {
   final HistoryDay day;
   final String type;
@@ -327,9 +327,9 @@ class CheckListController<T extends Person>
 
   StreamSubscription<Map<String, HistoryRecord>>? _attendedListener;
 
-  late final Stream<Map<JsonRef, Tuple2<Class, List<T>>>>? groupedData;
+  late final Stream<Map<JsonRef, Tuple2<P, List<T>>>>? groupedData;
 
-  final Stream<Map<JsonRef, Tuple2<Class, List<T>>>> Function(List<T> data)?
+  final Stream<Map<JsonRef, Tuple2<P, List<T>>>> Function(List<T> data)?
       _groupBy;
 
   JsonCollectionRef? get ref => day.subcollection(type);
@@ -361,8 +361,7 @@ class CheckListController<T extends Person>
       Widget? subtitle}) buildItem;
 
   CheckListController({
-    Stream<Map<JsonRef, Tuple2<Class, List<T>>>> Function(List<T> data)?
-        groupBy,
+    Stream<Map<JsonRef, Tuple2<P, List<T>>>> Function(List<T> data)? groupBy,
     required this.day,
     required this.type,
     required this.dayOptions,
@@ -417,12 +416,14 @@ class CheckListController<T extends Person>
     };
 
     _attendedListener = (ref != null
-            ? Rx.combineLatest3<User, List<Class>, bool?,
-                        Tuple3<User, List<Class>, bool?>>(
+            ? Rx.combineLatest3<User, List<P>, bool?,
+                        Tuple3<User, List<P>, bool?>>(
                     User.instance.stream,
-                    Class.getAllForUser(),
+                    P == Class
+                        ? Class.getAllForUser().map((c) => c.cast())
+                        : Stream.value([]),
                     dayOptions.sortByTimeASC,
-                    (a, b, c) => Tuple3<User, List<Class>, bool?>(a, b, c))
+                    (a, b, c) => Tuple3<User, List<P>, bool?>(a, b, c))
                 .switchMap(_attendedMapping)
             : Stream<Map<String, HistoryRecord>>.value({}))
         .listen(_attended.add, onError: _attended.addError);
@@ -440,14 +441,14 @@ class CheckListController<T extends Person>
     ).listen(_objectsData.add, onError: _objectsData.addError);
 
     groupedData = _groupBy != null
-        ? Rx.combineLatest2<Map<JsonRef, Tuple2<Class, List<T>>>,
-            Map<JsonRef, bool?>, Map<JsonRef, Tuple2<Class, List<T>>>>(
+        ? Rx.combineLatest2<Map<JsonRef, Tuple2<P, List<T>>>,
+            Map<JsonRef, bool?>, Map<JsonRef, Tuple2<P, List<T>>>>(
             _objectsData.switchMap(_groupBy!),
             openedNodes,
             (g, n) => g.map(
               (k, v) => MapEntry(
                 k,
-                (n[k] ?? false) ? v : Tuple2<Class, List<T>>(v.item1, []),
+                (n[k] ?? false) ? v : Tuple2<P, List<T>>(v.item1, []),
               ),
             ),
           )
@@ -488,7 +489,7 @@ class CheckListController<T extends Person>
   }
 
   Stream<Map<String, HistoryRecord>> _attendedMapping(
-      Tuple3<User, List<Class>, bool?> v) {
+      Tuple3<User, List<P>, bool?> v) {
     //
     //<empty comment for readability>
 
@@ -509,7 +510,8 @@ class CheckListController<T extends Person>
     }
 
     if (v.item1.superAccess ||
-        (day is ServantsHistoryDay && v.item1.secretary)) {
+        (day is ServantsHistoryDay && v.item1.secretary) ||
+        P == StudyYear) {
       if (v.item3 != null) {
         return ref!
             .orderBy('Time', descending: !v.item3!)
@@ -596,6 +598,7 @@ class CheckListController<T extends Person>
             parent: day,
             id: item.id,
             classId: item.classId,
+            serviceId: type == 'Meeting' || type == 'Kodas' ? null : type,
             time: time ??
                 mergeDayWithTime(
                   day.day.toDate(),
@@ -619,6 +622,7 @@ class CheckListController<T extends Person>
             parent: day,
             id: item.id,
             classId: item.classId,
+            serviceId: type == 'Meeting' || type == 'Kodas' ? null : type,
             time: time ?? mergeDayWithTime(day.day.toDate(), DateTime.now()),
             recordedBy: User.instance.uid!,
             notes: notes,
@@ -626,9 +630,8 @@ class CheckListController<T extends Person>
         .update();
   }
 
-  CheckListController<T> copyWith({
-    Stream<Map<JsonRef, Tuple2<Class, List<T>>>> Function(List<T?> data)?
-        groupBy,
+  CheckListController<T, P> copyWith({
+    Stream<Map<JsonRef, Tuple2<P, List<T>>>> Function(List<T?> data)? groupBy,
     HistoryDay? day,
     String? type,
     HistoryDayOptions? dayOptions,
@@ -642,7 +645,7 @@ class CheckListController<T extends Person>
     Map<String, T>? selected,
     Stream<String>? searchQuery,
   }) {
-    return CheckListController<T>(
+    return CheckListController<T, P>(
       groupBy: groupBy ?? _groupBy,
       day: day ?? this.day,
       type: type ?? this.type,

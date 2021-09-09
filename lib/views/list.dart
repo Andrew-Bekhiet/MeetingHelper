@@ -285,8 +285,9 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
   }
 }
 
-class DataObjectCheckList<T extends Person> extends StatefulWidget {
-  final CheckListController<T>? options;
+class DataObjectCheckList<T extends Person, P extends DataObject>
+    extends StatefulWidget {
+  final CheckListController<T, P>? options;
   final bool autoDisposeController;
 
   const DataObjectCheckList(
@@ -294,13 +295,14 @@ class DataObjectCheckList<T extends Person> extends StatefulWidget {
       : super(key: key);
 
   @override
-  _CheckListState<T> createState() => _CheckListState<T>();
+  _CheckListState<T, P> createState() => _CheckListState<T, P>();
 }
 
-class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
-    with AutomaticKeepAliveClientMixin<DataObjectCheckList<T>> {
+class _CheckListState<T extends Person, P extends DataObject>
+    extends State<DataObjectCheckList<T, P>>
+    with AutomaticKeepAliveClientMixin<DataObjectCheckList<T, P>> {
   bool _builtOnce = false;
-  late CheckListController<T> _listOptions;
+  late CheckListController<T, P> _listOptions;
 
   @override
   bool get wantKeepAlive => _builtOnce && ModalRoute.of(context)!.isCurrent;
@@ -328,7 +330,7 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
   }
 
   Widget buildGroupedListView() {
-    return StreamBuilder<Map<JsonRef, Tuple2<Class, List<T>>>>(
+    return StreamBuilder<Map<JsonRef, Tuple2<P, List<T>>>>(
       stream: _listOptions.groupedData,
       builder: (context, groupedData) {
         if (groupedData.hasError) return ErrorWidget(groupedData.error!);
@@ -356,7 +358,7 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
               builder: (context, showSubtitle) {
                 return Container(
                   margin: const EdgeInsets.symmetric(vertical: 4),
-                  child: DataObjectWidget<Class>(
+                  child: DataObjectWidget<P>(
                     groupedData.data!.values.elementAt(i).item1,
                     wrapInCard: false,
                     showSubTitle: showSubtitle.data ?? false,
@@ -402,7 +404,7 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
                         ),
                         IconButton(
                           onPressed: () {
-                            classTap(
+                            dataObjectTap(
                                 groupedData.data!.values.elementAt(i).item1);
                           },
                           icon: const Icon(Icons.info_outlined),
@@ -526,7 +528,7 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _listOptions = widget.options ?? context.read<CheckListController<T>>();
+    _listOptions = widget.options ?? context.read<CheckListController<T, P>>();
   }
 
   void _showRecordDialog(T current, HistoryRecord? oRecord) async {
@@ -539,6 +541,9 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
             recordedBy: oRecord.recordedBy!,
             time: oRecord.time,
             type: oRecord.type,
+            serviceId: oRecord.type == 'Meeting' || oRecord.type == 'Kodas'
+                ? null
+                : oRecord.type,
             isServant: T == User)
         : null;
     if (await showDialog(
@@ -567,6 +572,11 @@ class _CheckListState<T extends Person> extends State<DataObjectCheckList<T>>
                                           parent: _listOptions.day,
                                           type: _listOptions.type,
                                           recordedBy: User.instance.uid!,
+                                          serviceId: _listOptions.type ==
+                                                      'Meeting' ||
+                                                  _listOptions.type == 'Kodas'
+                                              ? null
+                                              : _listOptions.type,
                                           time: mergeDayWithTime(
                                             _listOptions.day.day.toDate(),
                                             DateTime.now(),

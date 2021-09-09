@@ -3,11 +3,14 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:meetinghelper/crashlytics_web.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
+import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/history/history_record.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
+import 'package:meetinghelper/models/mini_models.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/views/list.dart';
@@ -24,12 +27,12 @@ class Day extends StatefulWidget {
   State<Day> createState() => _DayState();
 }
 
-class _DayState extends State<Day> with SingleTickerProviderStateMixin {
-  TabController? _tabs;
+class _DayState extends State<Day> with TickerProviderStateMixin {
+  TabController? _previous;
   final BehaviorSubject<bool> _showSearch = BehaviorSubject<bool>.seeded(false);
   final FocusNode _searchFocus = FocusNode();
 
-  final List<CheckListController> _listControllers = [];
+  final Map<String, CheckListController> _listControllers = {};
 
   final _sorting = GlobalKey();
   final _analyticsToday = GlobalKey();
@@ -37,283 +40,378 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        if (widget.record is! ServantsHistoryDay)
-          Provider<CheckListController<Person>>(
-            create: (_) {
-              final bool isSameDay = DateTime.now()
-                      .difference(widget.record.day.toDate())
-                      .inDays ==
-                  0;
-              return CheckListController(
-                itemsStream: Person.getAllForUser(orderBy: 'Name'),
-                day: widget.record,
-                dayOptions: HistoryDayOptions(
-                  grouped: !isSameDay,
-                  showOnly: isSameDay ? null : true,
-                  enabled: isSameDay,
-                  sortByTimeASC: isSameDay ? null : true,
-                ),
-                groupBy: personsByClassRef,
-                type: 'Meeting',
-              );
-            },
-            dispose: (context, c) => c.dispose(),
-          )
-        else
-          Provider<CheckListController<User>>(
-            create: (_) {
-              final bool isSameDay = DateTime.now()
-                      .difference(widget.record.day.toDate())
-                      .inDays ==
-                  0;
-              return CheckListController(
-                itemsStream: User.getAllForUser(),
-                day: widget.record,
-                dayOptions: HistoryDayOptions(
-                  grouped: !isSameDay,
-                  showOnly: isSameDay ? null : true,
-                  enabled: isSameDay,
-                  sortByTimeASC: isSameDay ? null : true,
-                ),
-                groupBy: usersByClassRef,
-                type: 'Meeting',
-              );
-            },
-            dispose: (context, c) => c.dispose(),
-          ),
-      ],
-      builder: (context, body) {
-        return Scaffold(
-          appBar: AppBar(
-            title: StreamBuilder<bool>(
-              initialData: _showSearch.value,
-              stream: _showSearch,
-              builder: _buildSearchBar,
-            ),
-            actions: [
-              StreamBuilder<bool>(
-                initialData: _showSearch.value,
-                stream: _showSearch,
-                builder: (context, data) => !data.requireData
-                    ? IconButton(
-                        icon: const Icon(Icons.search),
-                        onPressed: () => setState(() {
-                          _searchFocus.requestFocus();
-                          _showSearch.add(true);
-                        }),
-                        tooltip: 'بحث',
-                      )
-                    : Container(),
-              ),
-              IconButton(
-                key: _analyticsToday,
-                tooltip: 'تحليل بيانات كشف اليوم',
-                icon: const Icon(Icons.analytics_outlined),
-                onPressed: () {
-                  navigator.currentState!.pushNamed('Analytics', arguments: {
-                    'Day': widget.record,
-                    'HistoryCollection': widget.record.ref.parent.id
-                  });
-                },
-              ),
-              PopupMenuButton(
-                key: _sorting,
-                onSelected: (v) async {
-                  if (v == 'delete' && User.instance.superAccess) {
-                    await _delete();
-                  } else if (v == 'sorting') {
-                    await _showSortingOptions(context);
-                  } else if (v == 'edit') {
-                    final dayOptions = (widget.record is! ServantsHistoryDay
-                            ? context.read<CheckListController<Person>>()
-                            : context.read<CheckListController<User>>())
-                        .dayOptions;
-                    dayOptions.enabled.add(!dayOptions.enabled.value);
-                    dayOptions.sortByTimeASC.add(null);
-                    dayOptions.showOnly.add(null);
-                  }
-                },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'sorting',
-                    child: Text('تنظيم الليستة'),
-                  ),
-                  if (User.instance.changeHistory &&
-                      DateTime.now()
-                              .difference(widget.record.day.toDate())
-                              .inDays !=
-                          0)
-                    PopupMenuItem(
-                      value: 'edit',
-                      child: (widget.record is! ServantsHistoryDay
-                                  ? context.read<CheckListController<Person>>()
-                                  : context.read<CheckListController<User>>())
-                              .dayOptions
-                              .enabled
-                              .value
-                          ? const Text('اغلاق وضع التعديل')
-                          : const Text('تعديل الكشف'),
+    return StreamBuilder<Tuple2<TabController, List<Service>>>(
+      initialData: Tuple2(_previous!, []),
+      stream: Service.getAllForUserForHistory().map((snapshot) {
+        if (snapshot.length + 2 != _previous?.length)
+          _previous = TabController(
+              length: snapshot.length + 2,
+              vsync: this,
+              initialIndex: _previous?.index ?? 0);
+
+        return Tuple2(_previous!, snapshot);
+      }),
+      builder: (context, snapshot) {
+        return MultiProvider(
+          providers: [
+            if (widget.record is! ServantsHistoryDay)
+              Provider<CheckListController<Person, Class>>(
+                create: (_) {
+                  final bool isSameDay = DateTime.now()
+                          .difference(widget.record.day.toDate())
+                          .inDays ==
+                      0;
+                  return CheckListController(
+                    itemsStream: Person.getAllForUser(orderBy: 'Name'),
+                    day: widget.record,
+                    dayOptions: HistoryDayOptions(
+                      grouped: !isSameDay,
+                      showOnly: isSameDay ? null : true,
+                      enabled: isSameDay,
+                      sortByTimeASC: isSameDay ? null : true,
                     ),
-                  if (User.instance.superAccess)
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Text('حذف الكشف'),
-                    ),
-                ],
-              ),
-            ],
-            bottom: TabBar(
-              controller: _tabs,
-              tabs: const [
-                Tab(text: 'حضور الاجتماع'),
-                Tab(text: 'حضور القداس'),
-              ],
-            ),
-          ),
-          body: body,
-          bottomNavigationBar: BottomAppBar(
-            color: Theme.of(context).colorScheme.primary,
-            shape: const CircularNotchedRectangle(),
-            child: AnimatedBuilder(
-              animation: _tabs!,
-              builder: (context, _) => StreamBuilder<Tuple2<int, int>>(
-                stream: Rx.combineLatest2<Map, Map, Tuple2<int, int>>(
-                  widget.record is! ServantsHistoryDay
-                      ? context
-                          .read<CheckListController<Person>>()
-                          .originalObjectsData
-                      : context
-                          .read<CheckListController<User>>()
-                          .originalObjectsData,
-                  () {
-                    final rslt = widget.record is! ServantsHistoryDay
-                        ? context.read<CheckListController<Person>>()
-                        : context.read<CheckListController<User>>();
-                    if (_tabs!.index == 0) {
-                      return rslt.copyWith(type: 'Meeting').attended;
-                    } else {
-                      //if (_tabs!.index == 1) {
-                      return rslt.copyWith(type: 'Kodas').attended;
-                    }
-                  }(),
-                  (Map a, Map b) => Tuple2<int, int>(a.length, b.length),
-                ),
-                builder: (context, snapshot) {
-                  final TextTheme theme = Theme.of(context).primaryTextTheme;
-                  return ExpansionTile(
-                    expandedAlignment: Alignment.centerRight,
-                    title: Text(
-                      'الحضور: ' +
-                          (snapshot.data?.item2 ?? 0).toString() +
-                          ' مخدوم',
-                      style: theme.bodyText2,
-                    ),
-                    trailing:
-                        Icon(Icons.expand_more, color: theme.bodyText2?.color),
-                    leading: StreamBuilder<bool>(
-                      initialData: (widget.record is! ServantsHistoryDay
-                              ? context.read<CheckListController<Person>>()
-                              : context.read<CheckListController<User>>())
-                          .dayOptions
-                          .lockUnchecks
-                          .value,
-                      stream: (widget.record is! ServantsHistoryDay
-                              ? context.read<CheckListController<Person>>()
-                              : context.read<CheckListController<User>>())
-                          .dayOptions
-                          .lockUnchecks,
-                      builder: (context, data) {
-                        return IconButton(
-                          key: _lockUnchecks,
-                          icon: Icon(
-                              !data.data!
-                                  ? Icons.lock_open
-                                  : Icons.lock_outlined,
-                              color: theme.bodyText2?.color),
-                          tooltip: 'تثبيت الحضور',
-                          onPressed: () => (widget.record is! ServantsHistoryDay
-                                  ? context.read<CheckListController<Person>>()
-                                  : context.read<CheckListController<User>>())
-                              .dayOptions
-                              .lockUnchecks
-                              .add(!data.data!),
-                        );
-                      },
-                    ),
-                    children: [
-                      Text('الغياب: ' +
-                          ((snapshot.data?.item1 ?? 0) -
-                                  (snapshot.data?.item2 ?? 0))
-                              .toString() +
-                          ' مخدوم'),
-                      Text('اجمالي: ' +
-                          (snapshot.data?.item1 ?? 0).toString() +
-                          ' مخدوم'),
-                    ],
+                    groupBy: personsByClassRef,
+                    type: 'Meeting',
                   );
                 },
+                dispose: (context, c) => c.dispose(),
+              )
+            else
+              Provider<CheckListController<User, Class>>(
+                create: (_) {
+                  final bool isSameDay = DateTime.now()
+                          .difference(widget.record.day.toDate())
+                          .inDays ==
+                      0;
+                  return CheckListController(
+                    itemsStream: User.getAllForUser(),
+                    day: widget.record,
+                    dayOptions: HistoryDayOptions(
+                      grouped: !isSameDay,
+                      showOnly: isSameDay ? null : true,
+                      enabled: isSameDay,
+                      sortByTimeASC: isSameDay ? null : true,
+                    ),
+                    groupBy: usersByClassRef,
+                    type: 'Meeting',
+                  );
+                },
+                dispose: (context, c) => c.dispose(),
               ),
-            ),
-          ),
-          extendBody: true,
-        );
-      },
-      child: Builder(builder: (context) {
-        return TabBarView(
-          controller: _tabs,
-          children: widget.record is! ServantsHistoryDay
-              ? [
-                  DataObjectCheckList<Person>(
-                    autoDisposeController: false,
-                    key: PageStorageKey('PersonsMeeting' + widget.record.id),
-                    options: () {
-                      final tmp = context
-                          .read<CheckListController<Person>>()
-                          .copyWith(type: 'Meeting');
-                      _listControllers.add(tmp);
-                      return tmp;
-                    }(),
+          ],
+          builder: (context, body) {
+            return Scaffold(
+              appBar: AppBar(
+                title: StreamBuilder<bool>(
+                  initialData: _showSearch.value,
+                  stream: _showSearch,
+                  builder: _buildSearchBar,
+                ),
+                actions: [
+                  StreamBuilder<bool>(
+                    initialData: _showSearch.value,
+                    stream: _showSearch,
+                    builder: (context, data) => !data.requireData
+                        ? IconButton(
+                            icon: const Icon(Icons.search),
+                            onPressed: () => setState(() {
+                              _searchFocus.requestFocus();
+                              _showSearch.add(true);
+                            }),
+                            tooltip: 'بحث',
+                          )
+                        : Container(),
                   ),
-                  DataObjectCheckList<Person>(
-                    autoDisposeController: false,
-                    key: PageStorageKey('PersonsKodas' + widget.record.id),
-                    options: () {
-                      final tmp = context
-                          .read<CheckListController<Person>>()
-                          .copyWith(type: 'Kodas');
-                      _listControllers.add(tmp);
-                      return tmp;
-                    }(),
+                  IconButton(
+                    key: _analyticsToday,
+                    tooltip: 'تحليل بيانات كشف اليوم',
+                    icon: const Icon(Icons.analytics_outlined),
+                    onPressed: () {
+                      navigator.currentState!.pushNamed('Analytics',
+                          arguments: {
+                            'Day': widget.record,
+                            'HistoryCollection': widget.record.ref.parent.id
+                          });
+                    },
                   ),
-                ]
-              : [
-                  DataObjectCheckList<User>(
-                    autoDisposeController: false,
-                    key: PageStorageKey('UsersMeeting' + widget.record.id),
-                    options: () {
-                      final tmp = context
-                          .read<CheckListController<User>>()
-                          .copyWith(type: 'Meeting');
-                      _listControllers.add(tmp);
-                      return tmp;
-                    }(),
-                  ),
-                  DataObjectCheckList<User>(
-                    autoDisposeController: false,
-                    key: PageStorageKey('UsersKodas' + widget.record.id),
-                    options: () {
-                      final tmp = context
-                          .read<CheckListController<User>>()
-                          .copyWith(type: 'Kodas');
-                      _listControllers.add(tmp);
-                      return tmp;
-                    }(),
+                  PopupMenuButton(
+                    key: _sorting,
+                    onSelected: (v) async {
+                      if (v == 'delete' && User.instance.superAccess) {
+                        await _delete();
+                      } else if (v == 'sorting') {
+                        await _showSortingOptions(context);
+                      } else if (v == 'edit') {
+                        final dayOptions = (widget.record is! ServantsHistoryDay
+                                ? context
+                                    .read<CheckListController<Person, Class>>()
+                                : context
+                                    .read<CheckListController<User, Class>>())
+                            .dayOptions;
+                        dayOptions.enabled.add(!dayOptions.enabled.value);
+                        dayOptions.sortByTimeASC.add(null);
+                        dayOptions.showOnly.add(null);
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'sorting',
+                        child: Text('تنظيم الليستة'),
+                      ),
+                      if (User.instance.changeHistory &&
+                          DateTime.now()
+                                  .difference(widget.record.day.toDate())
+                                  .inDays !=
+                              0)
+                        PopupMenuItem(
+                          value: 'edit',
+                          child: (widget.record is! ServantsHistoryDay
+                                      ? context.read<
+                                          CheckListController<Person, Class>>()
+                                      : context.read<
+                                          CheckListController<User, Class>>())
+                                  .dayOptions
+                                  .enabled
+                                  .value
+                              ? const Text('اغلاق وضع التعديل')
+                              : const Text('تعديل الكشف'),
+                        ),
+                      if (User.instance.superAccess)
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Text('حذف الكشف'),
+                        ),
+                    ],
                   ),
                 ],
+                bottom: TabBar(
+                  isScrollable: true,
+                  controller: snapshot.requireData.item1,
+                  tabs: [
+                    const Tab(text: 'حضور الاجتماع'),
+                    const Tab(text: 'حضور القداس'),
+                    ...snapshot.requireData.item2.map(
+                      (service) => Tab(text: service.name),
+                    ),
+                  ],
+                ),
+              ),
+              body: body,
+              bottomNavigationBar: BottomAppBar(
+                color: Theme.of(context).colorScheme.primary,
+                shape: const CircularNotchedRectangle(),
+                child: AnimatedBuilder(
+                  animation: snapshot.requireData.item1,
+                  builder: (context, _) => StreamBuilder<Tuple2<int, int>>(
+                    stream: Rx.combineLatest2<Map, Map, Tuple2<int, int>>(
+                      snapshot.requireData.item1.index <= 1
+                          ? _listControllers[
+                                  snapshot.requireData.item1.index == 0
+                                      ? 'Meeting'
+                                      : 'Kodas']!
+                              .originalObjectsData
+                          : _listControllers[snapshot
+                                  .requireData
+                                  .item2[snapshot.requireData.item1.index - 2]
+                                  .id]!
+                              .originalObjectsData,
+                      snapshot.requireData.item1.index <= 1
+                          ? _listControllers[
+                                  snapshot.requireData.item1.index == 0
+                                      ? 'Meeting'
+                                      : 'Kodas']!
+                              .attended
+                          : _listControllers[snapshot
+                                  .requireData
+                                  .item2[snapshot.requireData.item1.index - 2]
+                                  .id]!
+                              .attended,
+                      (Map a, Map b) => Tuple2<int, int>(a.length, b.length),
+                    ),
+                    builder: (context, snapshot) {
+                      final TextTheme theme =
+                          Theme.of(context).primaryTextTheme;
+                      return ExpansionTile(
+                        expandedAlignment: Alignment.centerRight,
+                        title: Text(
+                          'الحضور: ' +
+                              snapshot.requireData.item2.toString() +
+                              ' مخدوم',
+                          style: theme.bodyText2,
+                        ),
+                        trailing: Icon(Icons.expand_more,
+                            color: theme.bodyText2?.color),
+                        leading: StreamBuilder<bool>(
+                          initialData: (widget.record is! ServantsHistoryDay
+                                  ? context.read<
+                                      CheckListController<Person, Class>>()
+                                  : context
+                                      .read<CheckListController<User, Class>>())
+                              .dayOptions
+                              .lockUnchecks
+                              .value,
+                          stream: (widget.record is! ServantsHistoryDay
+                                  ? context.read<
+                                      CheckListController<Person, Class>>()
+                                  : context
+                                      .read<CheckListController<User, Class>>())
+                              .dayOptions
+                              .lockUnchecks,
+                          builder: (context, data) {
+                            return IconButton(
+                              key: _lockUnchecks,
+                              icon: Icon(
+                                  !data.data!
+                                      ? Icons.lock_open
+                                      : Icons.lock_outlined,
+                                  color: theme.bodyText2?.color),
+                              tooltip: 'تثبيت الحضور',
+                              onPressed: () => (widget.record
+                                          is! ServantsHistoryDay
+                                      ? context.read<
+                                          CheckListController<Person, Class>>()
+                                      : context.read<
+                                          CheckListController<User, Class>>())
+                                  .dayOptions
+                                  .lockUnchecks
+                                  .add(!data.data!),
+                            );
+                          },
+                        ),
+                        children: [
+                          Text('الغياب: ' +
+                              (snapshot.requireData.item1 -
+                                      snapshot.requireData.item2)
+                                  .toString() +
+                              ' مخدوم'),
+                          Text('اجمالي: ' +
+                              snapshot.requireData.item1.toString() +
+                              ' مخدوم'),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ),
+              extendBody: true,
+            );
+          },
+          child: Builder(
+            builder: (context) {
+              return TabBarView(
+                controller: snapshot.requireData.item1,
+                children: widget.record is! ServantsHistoryDay
+                    ? [
+                        DataObjectCheckList<Person, Class>(
+                          autoDisposeController: false,
+                          key: PageStorageKey(
+                              'PersonsMeeting' + widget.record.id),
+                          options: () {
+                            final tmp = context
+                                .read<CheckListController<Person, Class>>()
+                                .copyWith(type: 'Meeting');
+                            _listControllers['Meeting'] = tmp;
+                            return tmp;
+                          }(),
+                        ),
+                        DataObjectCheckList<Person, Class>(
+                          autoDisposeController: false,
+                          key:
+                              PageStorageKey('PersonsKodas' + widget.record.id),
+                          options: () {
+                            final tmp = context
+                                .read<CheckListController<Person, Class>>()
+                                .copyWith(type: 'Kodas');
+                            _listControllers['Kodas'] = tmp;
+                            return tmp;
+                          }(),
+                        ),
+                        ...snapshot.requireData.item2.map(
+                          (service) => DataObjectCheckList<Person, StudyYear>(
+                            autoDisposeController: false,
+                            key: PageStorageKey(
+                                'Persons' + service.id + widget.record.id),
+                            options: () {
+                              final parent = context
+                                  .read<CheckListController<Person, Class>>();
+
+                              final tmp =
+                                  CheckListController<Person, StudyYear>(
+                                day: parent.day,
+                                dayOptions: parent.dayOptions,
+                                type: service.id,
+                                groupBy: personsByStudyYearRef,
+                                itemBuilder: parent.itemBuilder,
+                                items: parent.items,
+                                itemsStream: service.getPersonsMembersLive(),
+                                onLongPress: parent.onLongPress,
+                                searchQuery: parent.searchQuery,
+                                tap: parent.tap,
+                              );
+
+                              _listControllers[service.id] = tmp;
+                              return tmp;
+                            }(),
+                          ),
+                        )
+                      ]
+                    : [
+                        DataObjectCheckList<User, Class>(
+                          autoDisposeController: false,
+                          key:
+                              PageStorageKey('UsersMeeting' + widget.record.id),
+                          options: () {
+                            final tmp = context
+                                .read<CheckListController<User, Class>>()
+                                .copyWith(type: 'Meeting');
+                            _listControllers['Meeting'] = tmp;
+                            return tmp;
+                          }(),
+                        ),
+                        DataObjectCheckList<User, Class>(
+                          autoDisposeController: false,
+                          key: PageStorageKey('UsersKodas' + widget.record.id),
+                          options: () {
+                            final tmp = context
+                                .read<CheckListController<User, Class>>()
+                                .copyWith(type: 'Kodas');
+                            _listControllers['Kodas'] = tmp;
+                            return tmp;
+                          }(),
+                        ),
+                        ...snapshot.requireData.item2.map(
+                          (service) => DataObjectCheckList<User, StudyYear>(
+                            autoDisposeController: false,
+                            key: PageStorageKey(
+                                'Users' + service.id + widget.record.id),
+                            options: () {
+                              final parent = context
+                                  .read<CheckListController<User, Class>>();
+
+                              final tmp = CheckListController<User, StudyYear>(
+                                day: parent.day,
+                                dayOptions: parent.dayOptions,
+                                type: service.id,
+                                groupBy: personsByStudyYearRef,
+                                itemBuilder: parent.itemBuilder,
+                                items: parent.items,
+                                itemsStream: service.getUsersMembersLive(),
+                                onLongPress: parent.onLongPress,
+                                searchQuery: parent.searchQuery,
+                                tap: parent.tap,
+                              );
+
+                              _listControllers[service.id] = tmp;
+                              return tmp;
+                            }(),
+                          ),
+                        )
+                      ],
+              );
+            },
+          ),
         );
-      }),
+      },
     );
   }
 
@@ -331,12 +429,12 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                 () {
                   if (widget.record is! ServantsHistoryDay)
                     context
-                        .read<CheckListController<Person>>()
+                        .read<CheckListController<Person, Class>>()
                         .searchQuery
                         .add('');
                   else
                     context
-                        .read<CheckListController<User>>()
+                        .read<CheckListController<User, Class>>()
                         .searchQuery
                         .add('');
                   _showSearch.add(false);
@@ -349,8 +447,8 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                 color: Theme.of(context).primaryTextTheme.headline6!.color),
             hintText: 'بحث ...'),
         onChanged: widget.record is! ServantsHistoryDay
-            ? context.read<CheckListController<Person>>().searchQuery.add
-            : context.read<CheckListController<User>>().searchQuery.add,
+            ? context.read<CheckListController<Person, Class>>().searchQuery.add
+            : context.read<CheckListController<User, Class>>().searchQuery.add,
       );
     } else {
       return const Text('كشف الحضور');
@@ -364,8 +462,8 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
         insetPadding: const EdgeInsets.symmetric(vertical: 24.0),
         content: StatefulBuilder(builder: (innerContext, setState) {
           final dayOptions = (widget.record is! ServantsHistoryDay
-                  ? context.read<CheckListController<Person>>()
-                  : context.read<CheckListController<User>>())
+                  ? context.read<CheckListController<Person, Class>>()
+                  : context.read<CheckListController<User, Class>>())
               .dayOptions;
           return SizedBox(
             width: 350,
@@ -386,7 +484,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                         dayOptions.grouped.add(!dayOptions.grouped.value);
                         setState(() {});
                       },
-                      child: const Text('تقسيم حسب الفصول'),
+                      child: const Text('تقسيم حسب الفصول/السنوات الدراسية'),
                     ),
                   ],
                 ),
@@ -530,7 +628,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _tabs = TabController(length: 2, vsync: this);
+    _previous = TabController(length: 2, vsync: this);
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) async {
       if (DateTime.now().difference(widget.record.day.toDate()).inDays != 0)
         return;
@@ -579,6 +677,7 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
                 TargetContent(
                   child: Text(
                     'يمكنك تقسيم المخدومين حسب الفصول أو'
+                    ' السنوات الدراسية أو '
                     ' اظهار المخدومين الحاضرين فقط أو '
                     'الغائبين والترتيب حسب وقت الحضور فقط من هنا',
                     style: Theme.of(context).textTheme.subtitle1?.copyWith(
@@ -640,6 +739,6 @@ class _DayState extends State<Day> with SingleTickerProviderStateMixin {
   Future<void> dispose() async {
     super.dispose();
     await _showSearch.close();
-    await Future.wait(_listControllers.map((c) => c.dispose()));
+    await Future.wait(_listControllers.values.map((c) => c.dispose()));
   }
 }
