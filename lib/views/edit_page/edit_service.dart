@@ -16,6 +16,7 @@ import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
+import 'package:meetinghelper/views/form_widgets/tapable_form_field.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
@@ -229,81 +230,54 @@ class _EditServiceState extends State<EditService> {
                       },
                     ),
                   ),
-                  Text(
-                    'مدة الصلاحية',
-                    style: Theme.of(context).textTheme.subtitle2,
-                  ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: InkWell(
-                            onTap: () async {
-                              final from = await _selectDate(
-                                    'الصلاحية: من',
-                                    service.validity?.end ?? DateTime.now(),
-                                  ) ??
-                                  service.validity?.end;
-                              if (from == null) return;
-
-                              service.validity = DateTimeRange(
-                                start: from,
-                                end: service.validity?.end ??
-                                    from.add(const Duration(days: 365)),
-                              );
-                              setState(() {});
-                            },
-                            child: InputDecorator(
-                              decoration: const InputDecoration(
-                                labelText: 'من',
-                                border: InputBorder.none,
-                              ),
-                              child: service.validity?.end != null
-                                  ? Text(DateFormat('yyyy/M/d')
-                                      .format(service.validity!.end))
-                                  : Container(),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: InkWell(
-                            onTap: () async {
-                              final to = await _selectDate(
-                                    'الصلاحية: الى',
-                                    service.validity?.start ?? DateTime.now(),
-                                  ) ??
-                                  service.validity?.start;
-                              if (to == null) return;
-
-                              service.validity = DateTimeRange(
-                                end: to,
-                                start: service.validity?.start ??
-                                    to.subtract(const Duration(days: 365)),
-                              );
-                              setState(() {});
-                            },
-                            child: InputDecorator(
-                              decoration: const InputDecoration(
-                                labelText: 'الى',
-                                border: InputBorder.none,
-                              ),
-                              child: service.validity?.start != null
-                                  ? Text(DateFormat('yyyy/M/d')
-                                      .format(service.validity!.start))
-                                  : Container(),
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          tooltip: 'ازالة',
-                          onPressed: () {
-                            setState(() => service.validity = null);
-                          },
-                        ),
-                      ],
+                  TapableFormField<DateTimeRange?>(
+                    decoration: (context, state) => InputDecoration(
+                      labelText: 'الصلاحية',
+                      errorText: state.errorText,
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.delete),
+                        tooltip: 'ازالة',
+                        onPressed: () {
+                          state.didChange(null);
+                          setState(() => service.validity = null);
+                        },
+                      ),
                     ),
+                    initialValue: service.validity,
+                    onTap: (state) async {
+                      state.didChange(await showDateRangePicker(
+                            context: context,
+                            builder: (context, dialog) => Theme(
+                              data: Theme.of(context).copyWith(
+                                textTheme: Theme.of(context).textTheme.copyWith(
+                                      overline: const TextStyle(
+                                        fontSize: 0,
+                                      ),
+                                    ),
+                              ),
+                              child: dialog!,
+                            ),
+                            helpText: null,
+                            confirmText: 'تم',
+                            saveText: 'تم',
+                            firstDate: DateTime(2020),
+                            lastDate:
+                                DateTime.now().add(const Duration(days: 2191)),
+                            initialDateRange: service.validity,
+                          ) ??
+                          state.value);
+                    },
+                    builder: (context, state) {
+                      if (state.value == null) return null;
+                      return Text(
+                        'من ' +
+                            DateFormat('yyyy/M/d', 'ar-EG')
+                                .format(state.value!.start) +
+                            ' الى ' +
+                            DateFormat('yyyy/M/d', 'ar-EG')
+                                .format(state.value!.end),
+                      );
+                    },
                   ),
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 8),
@@ -622,19 +596,5 @@ class _EditServiceState extends State<EditService> {
           ),
         ) ??
         allowedUsers;
-  }
-
-  Future<DateTime?> _selectDate(String helpText, DateTime initialDate) async {
-    final picked = await showDatePicker(
-        helpText: helpText,
-        locale: const Locale('ar', 'EG'),
-        context: context,
-        initialDate: initialDate,
-        firstDate: DateTime(1500),
-        lastDate: DateTime.now());
-    if (picked != null && picked != initialDate) {
-      return picked;
-    }
-    return null;
   }
 }
