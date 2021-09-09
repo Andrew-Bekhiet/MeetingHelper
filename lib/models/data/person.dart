@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -330,21 +331,55 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
               .orderBy(orderBy, descending: descending)
               .snapshots()
               .map((p) => p.docs.map(fromQueryDoc).toList());
-        } else if (u.item2.length <= 10) {
-          return FirebaseFirestore.instance
-              .collection('Persons')
-              .where('ClassId', whereIn: u.item2.map((e) => e.ref).toList())
-              .orderBy(orderBy, descending: descending)
-              .snapshots()
-              .map((p) => p.docs.map(fromQueryDoc).toList());
         }
-        return Rx.combineLatestList<JsonQuery>(u.item2.split(10).map((c) =>
-                FirebaseFirestore.instance
-                    .collection('Persons')
-                    .where('ClassId', whereIn: c.map((e) => e.ref).toList())
-                    .orderBy(orderBy, descending: descending)
-                    .snapshots()))
-            .map((s) => s.expand((n) => n.docs).map(fromQueryDoc).toList());
+
+        return Rx.combineLatest2<List<Person>, List<Person>, List<Person>>(
+          //Persons from Classes
+          u.item2.length <= 10
+              ? FirebaseFirestore.instance
+                  .collection('Persons')
+                  .where('ClassId', whereIn: u.item2.map((e) => e.ref).toList())
+                  .orderBy(orderBy, descending: descending)
+                  .snapshots()
+                  .map((p) => p.docs.map(fromQueryDoc).toList())
+              : Rx.combineLatestList<JsonQuery>(u.item2.split(10).map((c) =>
+                  FirebaseFirestore.instance
+                      .collection('Persons')
+                      .where('ClassId', whereIn: c.map((e) => e.ref).toList())
+                      .orderBy(orderBy, descending: descending)
+                      .snapshots())).map(
+                  (s) => s.expand((n) => n.docs).map(fromQueryDoc).toList()),
+          //Persons from Services
+          u.item1.adminServices.length <= 10
+              ? FirebaseFirestore.instance
+                  .collection('Persons')
+                  .where('ServiceId', arrayContainsAny: u.item1.adminServices)
+                  .orderBy(orderBy, descending: descending)
+                  .snapshots()
+                  .map((p) => p.docs.map(fromQueryDoc).toList())
+              : Rx.combineLatestList<JsonQuery>(u.item1.adminServices
+                  .split(10)
+                  .map((c) => FirebaseFirestore.instance
+                      .collection('Persons')
+                      .where('ServiceId', arrayContainsAny: c)
+                      .orderBy(orderBy, descending: descending)
+                      .snapshots())).map(
+                  (s) => s.expand((n) => n.docs).map(fromQueryDoc).toList()),
+          (a, b) => {...a, ...b}.sortedByCompare(
+            (p) => p.getMap()[orderBy],
+            (o, n) {
+              if (o is String && n is String)
+                return descending ? -o.compareTo(n) : o.compareTo(n);
+              if (o is int && n is int)
+                return descending ? -o.compareTo(n) : o.compareTo(n);
+              if (o is Timestamp && n is Timestamp)
+                return descending ? -o.compareTo(n) : o.compareTo(n);
+              if (o is Timestamp && n is Timestamp)
+                return descending ? -o.compareTo(n) : o.compareTo(n);
+              return 0;
+            },
+          ),
+        );
       },
     );
   }
