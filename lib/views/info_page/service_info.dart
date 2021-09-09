@@ -58,7 +58,7 @@ class _ServiceInfoState extends State<ServiceInfo> {
     _listOptions = DataObjectListController<Person>(
       tap: personTap,
       itemsStream: _orderOptions.switchMap(
-        (order) => widget.service.getMembersLive(
+        (order) => widget.service.getPersonsMembersLive(
           orderBy: order.orderBy ?? 'Name',
           descending: !order.asc!,
         ),

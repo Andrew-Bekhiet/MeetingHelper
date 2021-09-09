@@ -66,6 +66,45 @@ class Service extends DataObject with PhotoObject {
     });
   }
 
+  static Stream<List<Service>> getAllForUserForHistory({
+    String orderBy = 'Name',
+    bool descending = false,
+  }) {
+    return User.instance.stream.switchMap((u) {
+      if (u.superAccess) {
+        return FirebaseFirestore.instance
+            .collection('Services')
+            .where('ShowInHistory', isEqualTo: true)
+            .orderBy(orderBy, descending: descending)
+            .snapshots()
+            .map(
+              (c) => c.docs
+                  .map(fromQueryDoc)
+                  .where(
+                    (service) =>
+                        service.validity == null ||
+                        (DateTime.now().isAfter(service.validity!.start) &&
+                            DateTime.now().isBefore(service.validity!.end)),
+                  )
+                  .toList(),
+            );
+      } else {
+        return u.adminServices.isEmpty
+            ? Stream.value([])
+            : Rx.combineLatestList(
+                u.adminServices.map(
+                  (r) => r.snapshots().map(fromDoc).whereType<Service>().where(
+                        (service) =>
+                            service.validity == null ||
+                            (DateTime.now().isAfter(service.validity!.start) &&
+                                DateTime.now().isBefore(service.validity!.end)),
+                      ),
+                ),
+              );
+      }
+    });
+  }
+
   Service.fromJson(Json json, JsonRef ref)
       : this(
           ref: ref,
@@ -85,7 +124,7 @@ class Service extends DataObject with PhotoObject {
           hasPhoto: json['HasPhoto'],
         );
 
-  Stream<List<Person>> getMembersLive(
+  Stream<List<Person>> getPersonsMembersLive(
       {bool descending = false, String orderBy = 'Name'}) {
     return FirebaseFirestore.instance
         .collection('Persons')
@@ -93,6 +132,16 @@ class Service extends DataObject with PhotoObject {
         .orderBy(orderBy, descending: descending)
         .snapshots()
         .map((p) => p.docs.map(Person.fromQueryDoc).toList());
+  }
+
+  Stream<List<User>> getUsersMembersLive(
+      {bool descending = false, String orderBy = 'Name'}) {
+    return FirebaseFirestore.instance
+        .collection('UsersData')
+        .where('Services', arrayContains: ref)
+        .orderBy(orderBy, descending: descending)
+        .snapshots()
+        .map((p) => p.docs.map(User.fromDoc).toList());
   }
 
   @override
