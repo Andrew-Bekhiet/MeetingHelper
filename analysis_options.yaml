@@ -45,6 +45,7 @@ linter:
     library_names: true
     library_prefixes: true
     list_remove_unrelated_type: true
+    noop_primitive_operations: true
     no_duplicate_case_values: true
     no_logic_in_create_state: true
     non_constant_identifier_names: true
