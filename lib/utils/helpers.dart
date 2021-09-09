@@ -539,97 +539,78 @@ Stream<Map<JsonRef, Tuple2<Class, List<User>>>> usersByClassRef(
 
 Stream<Map<JsonRef, Tuple2<Class, List<Person>>>> personsByClassRef(
     [List<Person>? persons]) {
-  return FirebaseFirestore.instance
-      .collection('StudyYears')
-      .orderBy('Grade')
-      .snapshots()
-      .switchMap((sys) {
-    final Map<JsonRef, StudyYear> studyYears = {
-      for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
-    };
-    if (persons != null) {
-      return User.instance.stream.switchMap(
-        (user) => (user.superAccess
-                ? FirebaseFirestore.instance
-                    .collection('Classes')
-                    .orderBy('StudyYear')
-                    .orderBy('Gender')
-                    .snapshots()
-                : FirebaseFirestore.instance
-                    .collection('Classes')
-                    .where('Allowed',
-                        arrayContains:
-                            auth.FirebaseAuth.instance.currentUser!.uid)
-                    .orderBy('StudyYear')
-                    .orderBy('Gender')
-                    .snapshots())
-            .map(
-          (cs) {
-            final Map<JsonRef?, List<Person>> personsByClassRef =
-                groupBy(persons, (p) => p.classId);
-            final classes = cs.docs
-                .map(Class.fromQueryDoc)
-                .where((c) => personsByClassRef[c.ref] != null)
-                .toList();
-            mergeSort<Class>(classes, compare: (c, c2) {
-              if (c.studyYear == c2.studyYear)
-                return c.gender.compareTo(c2.gender);
-              return studyYears[c.studyYear]!
-                  .grade!
-                  .compareTo(studyYears[c2.studyYear]!.grade!);
-            });
-            return {
-              for (final c in classes)
-                c.ref: Tuple2<Class, List<Person>>(c, personsByClassRef[c.ref]!)
-            };
-          },
+  return Rx.combineLatest3<Map<JsonRef, StudyYear>, List<Person>, JsonQuery,
+      Map<JsonRef, Tuple2<Class, List<Person>>>>(
+    FirebaseFirestore.instance
+        .collection('StudyYears')
+        .orderBy('Grade')
+        .snapshots()
+        .map(
+          (sys) =>
+              {for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)},
         ),
-      );
-    } else {
-      return Person.getAllForUser().switchMap(
-        (persons) {
-          return User.instance.stream.switchMap(
-            (user) => (user.superAccess
-                    ? FirebaseFirestore.instance
-                        .collection('Classes')
-                        .orderBy('StudyYear')
-                        .orderBy('Gender')
-                        .snapshots()
-                    : FirebaseFirestore.instance
-                        .collection('Classes')
-                        .where('Allowed',
-                            arrayContains:
-                                auth.FirebaseAuth.instance.currentUser!.uid)
-                        .orderBy('StudyYear')
-                        .orderBy('Gender')
-                        .snapshots())
-                .map(
-              (cs) {
-                final Map<JsonRef?, List<Person>> personsByClassRef =
-                    groupBy(persons, (p) => p.classId);
-                final classes = cs.docs
-                    .map(Class.fromQueryDoc)
-                    .where((c) => personsByClassRef[c.ref] != null)
-                    .toList();
-                mergeSort<Class>(classes, compare: (c, c2) {
-                  if (c.studyYear == c2.studyYear)
-                    return c.gender.compareTo(c2.gender);
-                  return studyYears[c.studyYear]!
-                      .grade!
-                      .compareTo(studyYears[c2.studyYear]!.grade!);
-                });
-                return {
-                  for (final c in classes)
-                    c.ref: Tuple2<Class, List<Person>>(
-                        c, personsByClassRef[c.ref]!)
-                };
-              },
-            ),
-          );
-        },
-      );
-    }
-  });
+    persons != null ? Stream.value(persons) : Person.getAllForUser(),
+    User.instance.stream.switchMap((user) => user.superAccess
+        ? FirebaseFirestore.instance
+            .collection('Classes')
+            .orderBy('StudyYear')
+            .orderBy('Gender')
+            .snapshots()
+        : FirebaseFirestore.instance
+            .collection('Classes')
+            .where('Allowed',
+                arrayContains: auth.FirebaseAuth.instance.currentUser!.uid)
+            .orderBy('StudyYear')
+            .orderBy('Gender')
+            .snapshots()),
+    (studyYears, persons, cs) {
+      final Map<JsonRef?, List<Person>> personsByClassRef =
+          groupBy(persons, (p) => p.classId);
+
+      final classes = cs.docs
+          .map(Class.fromQueryDoc)
+          .where((c) => personsByClassRef[c.ref] != null)
+          .toList();
+
+      mergeSort<Class>(classes, compare: (c, c2) {
+        if (c.studyYear == c2.studyYear) return c.gender.compareTo(c2.gender);
+        return studyYears[c.studyYear]!
+            .grade!
+            .compareTo(studyYears[c2.studyYear]!.grade!);
+      });
+
+      return {
+        for (final c in classes)
+          c.ref: Tuple2<Class, List<Person>>(c, personsByClassRef[c.ref]!)
+      };
+    },
+  );
+}
+
+Stream<Map<JsonRef, Tuple2<StudyYear, List<T>>>>
+    personsByStudyYearRef<T extends Person>([List<T>? persons]) {
+  assert(T == Person || persons != null);
+
+  return Rx.combineLatest2<Map<JsonRef, StudyYear>, List<T>,
+      Map<JsonRef, Tuple2<StudyYear, List<T>>>>(
+    FirebaseFirestore.instance
+        .collection('StudyYears')
+        .orderBy('Grade')
+        .snapshots()
+        .map(
+          (sys) =>
+              {for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)},
+        ),
+    (persons != null ? Stream.value(persons) : Person.getAllForUser())
+        .map((p) => p.whereType<T>().toList()),
+    (studyYears, persons) {
+      return {
+        for (final person in persons.groupListsBy((p) => p.studyYear).entries)
+          if (person.key != null && studyYears[person.key] != null)
+            person.key!: Tuple2(studyYears[person.key]!, person.value)
+      };
+    },
+  );
 }
 
 void personTap(Person? person) {
