@@ -45,6 +45,7 @@ import 'models/data/service.dart';
 import 'models/data/user.dart';
 import 'models/history/history_record.dart';
 import 'models/mini_models.dart' hide History;
+import 'models/super_classes.dart';
 import 'models/theme_notifier.dart';
 import 'updates.dart';
 import 'utils/globals.dart';
@@ -77,7 +78,6 @@ void main() async {
   await SentryFlutter.init(
     (options) => options
       ..dsn = sentryDSN
-      ..debug = !kReleaseMode
       ..environment = kReleaseMode ? 'Production' : 'Debug',
   );
 
@@ -464,12 +464,23 @@ class AppState extends State<App> {
                 return EditPerson(
                     person:
                         ModalRoute.of(context)!.settings.arguments! as Person);
-              else {
-                final Person person = Person()
-                  ..classId =
-                      ModalRoute.of(context)!.settings.arguments! as JsonRef;
+              else if (ModalRoute.of(context)!.settings.arguments is JsonRef) {
+                final parent =
+                    ModalRoute.of(context)!.settings.arguments! as JsonRef;
+                final Person person = Person();
+
+                if (parent.parent.id == 'Classes') {
+                  person.classId = parent;
+                } else if (parent.parent.id == 'Services') {
+                  person.services.add(parent);
+                }
+
                 return EditPerson(person: person);
               }
+              throw ArgumentError.value(
+                  ModalRoute.of(context)!.settings.arguments,
+                  'modal route args',
+                  'passed arg is neither Person nor JsonRef');
             },
             'EditInvitation': (context) => EditInvitation(
                 invitation:
@@ -546,16 +557,16 @@ class AppState extends State<App> {
             'Invitations': (context) => const InvitationsPage(),
             'ActivityAnalysis': (context) => ActivityAnalysis(
                   classes: ModalRoute.of(context)?.settings.arguments
-                      as List<Class>?,
+                      as List<DataObject>?,
                 ),
             'Analytics': (context) {
               if (ModalRoute.of(context)!.settings.arguments is Person)
                 return PersonAnalyticsPage(
                     person:
                         ModalRoute.of(context)!.settings.arguments! as Person);
-              else if (ModalRoute.of(context)!.settings.arguments is Class)
-                return AnalyticsPage(classes: [
-                  ModalRoute.of(context)!.settings.arguments! as Class
+              else if (ModalRoute.of(context)!.settings.arguments is DataObject)
+                return AnalyticsPage(parents: [
+                  ModalRoute.of(context)!.settings.arguments! as DataObject
                 ]);
               else if (ModalRoute.of(context)!.settings.arguments is HistoryDay)
                 return AnalyticsPage(
@@ -566,7 +577,7 @@ class AppState extends State<App> {
                     ModalRoute.of(context)!.settings.arguments! as Json;
                 return AnalyticsPage(
                   historyColection: args['HistoryCollection'] ?? 'History',
-                  classes: args['Classes'],
+                  parents: args['Classes'],
                   day: args['Day'],
                   range: args['Range'],
                 );
