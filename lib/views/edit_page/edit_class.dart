@@ -107,106 +107,115 @@ class _EditClassState extends State<EditClass> {
         body: Form(
           key: form,
           child: Padding(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  TextFormField(
-                    decoration: const InputDecoration(labelText: 'اسم الفصل'),
-                    initialValue: class$.name,
-                    onChanged: (v) => class$.name = v,
-                    textInputAction: TextInputAction.next,
-                    textCapitalization: TextCapitalization.words,
-                    validator: (value) {
-                      if (value?.isEmpty ?? true) {
-                        return 'يجب ملئ اسم الفصل';
-                      }
-                      return null;
-                    },
-                  ),
-                  FutureBuilder<JsonQuery>(
-                    future: StudyYear.getAllForUser(),
-                    builder: (conext, data) {
-                      if (data.hasData) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: DropdownButtonFormField(
-                            validator: (dynamic v) {
-                              if (v == null) {
-                                return 'هذا الحقل مطلوب';
-                              } else {
-                                return null;
-                              }
-                            },
-                            value: class$.studyYear?.path,
-                            items: data.data!.docs
-                                .map(
-                                  (item) => DropdownMenuItem(
-                                    value: item.reference.path,
-                                    child: Text(item.data()['Name']),
-                                  ),
-                                )
-                                .toList()
-                              ..insert(
-                                0,
-                                const DropdownMenuItem(
-                                  value: null,
-                                  child: Text(''),
-                                ),
-                              ),
-                            onChanged: (dynamic value) {
-                              setState(() {});
-                              class$.studyYear = value != null
-                                  ? FirebaseFirestore.instance.doc(value)
-                                  : null;
-                              FocusScope.of(context).nextFocus();
-                            },
-                            decoration: InputDecoration(
-                                labelText: 'السنة الدراسية',
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary),
-                                )),
-                          ),
-                        );
-                      } else {
-                        return const SizedBox(width: 1, height: 1);
-                      }
-                    },
-                  ),
-                  DropdownButtonFormField(
-                    validator: (dynamic v) {
-                      if (v == null) {
-                        return 'هذا الحقل مطلوب';
-                      } else {
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: TextFormField(
+                      decoration: const InputDecoration(labelText: 'اسم الفصل'),
+                      initialValue: class$.name,
+                      onChanged: (v) => class$.name = v,
+                      textInputAction: TextInputAction.next,
+                      textCapitalization: TextCapitalization.words,
+                      validator: (value) {
+                        if (value?.isEmpty ?? true) {
+                          return 'يجب ملئ اسم الفصل';
+                        }
                         return null;
-                      }
-                    },
-                    value: class$.gender,
-                    items: [null, true, false]
-                        .map(
-                          (item) => DropdownMenuItem(
-                            value: item,
-                            child: Text(item == null
-                                ? ''
-                                : item
-                                    ? 'بنين'
-                                    : 'بنات'),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (dynamic value) {
-                      setState(() {});
-                      class$.gender = value;
-                    },
-                    decoration: InputDecoration(
-                      labelText: 'نوع الفصل',
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(
-                            color: Theme.of(context).colorScheme.primary),
+                      },
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: FutureBuilder<JsonQuery>(
+                      future: StudyYear.getAllForUser(),
+                      builder: (conext, data) {
+                        if (data.hasData) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(vertical: 4.0),
+                            child: DropdownButtonFormField(
+                              validator: (dynamic v) {
+                                if (v == null) {
+                                  return 'هذا الحقل مطلوب';
+                                } else {
+                                  return null;
+                                }
+                              },
+                              value: class$.studyYear?.path,
+                              items: data.data!.docs
+                                  .map(
+                                    (item) => DropdownMenuItem(
+                                      value: item.reference.path,
+                                      child: Text(item.data()['Name']),
+                                    ),
+                                  )
+                                  .toList()
+                                ..insert(
+                                  0,
+                                  const DropdownMenuItem(
+                                    value: null,
+                                    child: Text(''),
+                                  ),
+                                ),
+                              onChanged: (dynamic value) {
+                                setState(() {});
+                                class$.studyYear = value != null
+                                    ? FirebaseFirestore.instance.doc(value)
+                                    : null;
+                                FocusScope.of(context).nextFocus();
+                              },
+                              decoration: InputDecoration(
+                                  labelText: 'السنة الدراسية',
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary),
+                                  )),
+                            ),
+                          );
+                        } else {
+                          return const SizedBox(width: 1, height: 1);
+                        }
+                      },
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: DropdownButtonFormField(
+                      validator: (dynamic v) {
+                        if (v == null) {
+                          return 'هذا الحقل مطلوب';
+                        } else {
+                          return null;
+                        }
+                      },
+                      value: class$.gender,
+                      items: [null, true, false]
+                          .map(
+                            (item) => DropdownMenuItem(
+                              value: item,
+                              child: Text(item == null
+                                  ? ''
+                                  : item
+                                      ? 'بنين'
+                                      : 'بنات'),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (dynamic value) {
+                        setState(() {});
+                        class$.gender = value;
+                      },
+                      decoration: InputDecoration(
+                        labelText: 'نوع الفصل',
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.primary),
+                        ),
                       ),
                     ),
                   ),
