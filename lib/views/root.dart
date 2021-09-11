@@ -336,17 +336,17 @@ class _RootState extends State<Root>
           if (User.instance.manageUsers || User.instance.manageAllowedUsers)
             UsersList(
               key: const PageStorageKey('mainUsersList'),
-              autoDisposeController: true,
+              autoDisposeController: false,
               listOptions: _usersOptions,
             ),
           ServicesList(
             key: const PageStorageKey('mainClassesList'),
-            autoDisposeController: true,
+            autoDisposeController: false,
             options: _servicesOptions,
           ),
           DataObjectList<Person>(
             key: const PageStorageKey('mainPersonsList'),
-            disposeController: true,
+            disposeController: false,
             options: _personsOptions,
           ),
         ],
@@ -861,6 +861,9 @@ class _RootState extends State<Root>
     await _showSearch.close();
     await _personsOrder.close();
     await _searchQuery.close();
+    await _usersOptions.dispose();
+    await _servicesOptions.dispose();
+    await _personsOptions.dispose();
   }
 
   @override
@@ -1254,6 +1257,7 @@ class _RootState extends State<Root>
 
       TutorialCoachMark(
         context,
+        focusAnimationDuration: const Duration(milliseconds: 200),
         targets:
             featuresInOrder.map((k) => _getTarget(k, _features[k]!)).toList(),
         alignSkip: Alignment.bottomLeft,
