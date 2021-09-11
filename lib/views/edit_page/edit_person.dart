@@ -1190,7 +1190,8 @@ class _EditPersonState extends State<EditPerson> {
           context: context,
           builder: (context) => const AlertDialog(
             title: Text('بيانات غير كاملة'),
-            content: Text('يجب تحديد الفصل او اختيار خدمة واحدة على الأقل'),
+            content: Text(
+                'يجب تحديد الفصل او اختيار خدمة واحدة مع تحديد السنة الدراسية على الأقل'),
           ),
         );
       }
@@ -1241,7 +1242,7 @@ class _EditPersonState extends State<EditPerson> {
                   textStyle: Theme.of(context).textTheme.bodyText2,
                 ),
                 Expanded(
-                  child: ServicesList(
+                  child: ServicesList<Class>(
                     options: controller,
                     autoDisposeController: false,
                   ),
