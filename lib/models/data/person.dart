@@ -37,11 +37,14 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
   JsonRef? church;
   JsonRef? cFather;
 
-  Timestamp? lastConfession;
-  Timestamp? lastTanawol;
-  Timestamp? lastKodas;
   Timestamp? lastMeeting;
+  Timestamp? lastKodas;
+
+  Timestamp? lastTanawol;
+  Timestamp? lastConfession;
   Timestamp? lastCall;
+
+  Map<String, Timestamp> last;
 
   Timestamp? lastVisit;
   String? lastEdit;
@@ -86,9 +89,11 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
       this.shammasLevel,
       this.studyYear,
       List<JsonRef>? services,
+      Map<String, Timestamp>? last,
       Color color = Colors.transparent})
       : services = services ?? [],
         phones = phones ?? {},
+        last = last ?? {},
         super(
             ref ??
                 FirebaseFirestore.instance
@@ -105,7 +110,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
         phone = data['Phone'],
         fatherPhone = data['FatherPhone'],
         motherPhone = data['MotherPhone'],
-        phones = data['Phones']?.cast<String, dynamic>() ?? {},
+        phones = (data['Phones'] as Map?)?.cast() ?? {},
         address = data['Address'],
         location = data['Location'],
         birthDate = data['BirthDate'],
@@ -116,6 +121,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
         lastCall = data['LastCall'],
         lastVisit = data['LastVisit'],
         lastEdit = data['LastEdit'],
+        last = (data['Last'] as Map?)?.cast() ?? {},
         notes = data['Notes'],
         school = data['School'],
         church = data['Church'],
@@ -184,6 +190,8 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
         'LastKodas': toDurationString(lastKodas),
         'LastMeeting': toDurationString(lastMeeting),
         'LastVisit': toDurationString(lastVisit),
+        ...last.map(
+            (key, value) => MapEntry('Last' + key, toDurationString(value))),
         'Notes': notes ?? '',
         'IsShammas': isShammas ? 'تعم' : 'لا',
         'Gender': gender ? 'ذكر' : 'أنثى',
@@ -211,6 +219,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
         'LastCall': lastCall,
         'LastVisit': lastVisit,
         'LastEdit': lastEdit,
+        'Last': last,
         'Notes': notes,
         'School': school,
         'Church': church,
@@ -319,6 +328,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
   static Stream<List<Person>> getAllForUser({
     String orderBy = 'Name',
     bool descending = false,
+    bool onlyInClasses = false,
   }) {
     return Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
         User.instance.stream,
@@ -350,21 +360,24 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
                       .snapshots())).map(
                   (s) => s.expand((n) => n.docs).map(fromQueryDoc).toList()),
           //Persons from Services
-          u.item1.adminServices.length <= 10
-              ? FirebaseFirestore.instance
-                  .collection('Persons')
-                  .where('ServiceId', arrayContainsAny: u.item1.adminServices)
-                  .orderBy(orderBy, descending: descending)
-                  .snapshots()
-                  .map((p) => p.docs.map(fromQueryDoc).toList())
-              : Rx.combineLatestList<JsonQuery>(u.item1.adminServices
-                  .split(10)
-                  .map((c) => FirebaseFirestore.instance
+          onlyInClasses
+              ? Stream.value([])
+              : u.item1.adminServices.length <= 10
+                  ? FirebaseFirestore.instance
                       .collection('Persons')
-                      .where('ServiceId', arrayContainsAny: c)
+                      .where('ServiceId',
+                          arrayContainsAny: u.item1.adminServices)
                       .orderBy(orderBy, descending: descending)
-                      .snapshots())).map(
-                  (s) => s.expand((n) => n.docs).map(fromQueryDoc).toList()),
+                      .snapshots()
+                      .map((p) => p.docs.map(fromQueryDoc).toList())
+                  : Rx.combineLatestList<JsonQuery>(u.item1.adminServices
+                      .split(10)
+                      .map((c) => FirebaseFirestore.instance
+                          .collection('Persons')
+                          .where('ServiceId', arrayContainsAny: c)
+                          .orderBy(orderBy, descending: descending)
+                          .snapshots())).map((s) =>
+                      s.expand((n) => n.docs).map(fromQueryDoc).toList()),
           (a, b) => {...a, ...b}.sortedByCompare(
             (p) => p.getMap()[orderBy],
             (o, n) {

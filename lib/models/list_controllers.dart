@@ -597,6 +597,7 @@ class CheckListController<T extends Person, P extends DataObject>
             type: type,
             parent: day,
             id: item.id,
+            studyYear: item.studyYear,
             classId: item.classId,
             serviceId: type == 'Meeting' || type == 'Kodas' ? null : type,
             time: time ??
@@ -621,6 +622,7 @@ class CheckListController<T extends Person, P extends DataObject>
             type: type,
             parent: day,
             id: item.id,
+            studyYear: item.studyYear,
             classId: item.classId,
             serviceId: type == 'Meeting' || type == 'Kodas' ? null : type,
             time: time ?? mergeDayWithTime(day.day.toDate(), DateTime.now()),

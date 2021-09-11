@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
+import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/utils/helpers.dart';
@@ -144,6 +145,7 @@ class HistoryRecord {
   String? recordedBy;
   String? notes;
   String? serviceId;
+  JsonRef? studyYear;
   JsonRef? classId;
   bool isServant;
 
@@ -155,6 +157,7 @@ class HistoryRecord {
       required this.time,
       required String recordedBy,
       this.serviceId,
+      this.studyYear,
       this.notes,
       this.isServant = false})
       // ignore: prefer_initializing_formals
@@ -167,6 +170,7 @@ class HistoryRecord {
       : id = doc.id,
         classId = doc.data()!['ClassId'],
         serviceId = doc.data()!['ServiceId'],
+        studyYear = doc.data()!['StudyYear'],
         type = doc.reference.parent.id,
         isServant = doc.data()!['IsServant'] ?? false,
         time = doc.data()!['Time'],
@@ -196,6 +200,7 @@ class HistoryRecord {
       'Notes': notes,
       'ClassId': classId,
       'ServiceId': serviceId,
+      'StudyYear': studyYear,
       'IsServant': isServant,
     };
   }
@@ -215,6 +220,7 @@ class MinimalHistoryRecord {
       {required this.ref,
       this.classId,
       this.personId,
+      this.services,
       required this.time,
       required this.by});
 
@@ -224,6 +230,7 @@ class MinimalHistoryRecord {
       ref: doc.reference,
       classId: doc.data()!['ClassId'],
       personId: doc.data()!['PersonId'],
+      services: (doc.data()!['Services'] as List?)?.cast(),
       time: doc.data()!['Time'],
       by: doc.data()!['By'],
     );
@@ -234,24 +241,81 @@ class MinimalHistoryRecord {
       ref: doc.reference,
       classId: doc.data()['ClassId'],
       personId: doc.data()['PersonId'],
+      services: (doc.data()['Services'] as List?)?.cast(),
       time: doc.data()['Time'],
       by: doc.data()['By'],
     );
   }
 
-  static Stream<List<JsonQueryDoc>> getAllForUser(
-      {required String collectionGroup,
-      DateTimeRange? range,
-      List<Class>? classes}) {
-    return Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
+  static Stream<List<JsonQueryDoc>> getAllForUser({
+    required String collectionGroup,
+    DateTimeRange? range,
+    List<Class>? classes,
+    List<Service>? services,
+  }) {
+    return Rx.combineLatest3<User, List<Class>, List<Service>,
+            Tuple3<User, List<Class>, List<Service>>>(
         User.instance.stream,
-        Class.getAllForUser(),
-        (a, b) => Tuple2<User, List<Class>>(a, b)).switchMap((value) {
-      if (range != null && classes != null) {
+        classes == null ? Class.getAllForUser() : Stream.value([]),
+        services == null ? Service.getAllForUser() : Stream.value([]),
+        (a, b, c) => Tuple3(a, b, c)).switchMap((value) {
+      if (range != null && classes != null && services != null) {
+        return Rx.combineLatestList<JsonQuery>([
+          ...classes
+              .split(10)
+              .map((a) => FirebaseFirestore.instance
+                  .collectionGroup(collectionGroup)
+                  .where('ClassId', whereIn: a.map((c) => c.ref).toList())
+                  .where(
+                    'Time',
+                    isLessThanOrEqualTo: Timestamp.fromDate(
+                        range.end.add(const Duration(days: 1))),
+                  )
+                  .where('Time',
+                      isGreaterThanOrEqualTo: Timestamp.fromDate(
+                          range.start.subtract(const Duration(days: 1))))
+                  .orderBy('Time', descending: true)
+                  .snapshots())
+              .toList(),
+          ...services.split(10).map((a) => FirebaseFirestore.instance
+              .collectionGroup(collectionGroup)
+              .where('Services', arrayContainsAny: a.map((c) => c.ref).toList())
+              .where(
+                'Time',
+                isLessThanOrEqualTo:
+                    Timestamp.fromDate(range.end.add(const Duration(days: 1))),
+              )
+              .where('Time',
+                  isGreaterThanOrEqualTo: Timestamp.fromDate(
+                      range.start.subtract(const Duration(days: 1))))
+              .orderBy('Time', descending: true)
+              .snapshots())
+        ]).map((s) => s.expand((n) => n.docs).toList());
+      } else if (range != null && classes != null) {
         return Rx.combineLatestList<JsonQuery>(classes
+                .split(10)
                 .map((a) => FirebaseFirestore.instance
                     .collectionGroup(collectionGroup)
-                    .where('ClassId', isEqualTo: a.ref)
+                    .where('ClassId', whereIn: a.map((c) => c.ref).toList())
+                    .where(
+                      'Time',
+                      isLessThanOrEqualTo: Timestamp.fromDate(
+                          range.end.add(const Duration(days: 1))),
+                    )
+                    .where('Time',
+                        isGreaterThanOrEqualTo: Timestamp.fromDate(
+                            range.start.subtract(const Duration(days: 1))))
+                    .orderBy('Time', descending: true)
+                    .snapshots())
+                .toList())
+            .map((s) => s.expand((n) => n.docs).toList());
+      } else if (range != null && services != null) {
+        return Rx.combineLatestList<JsonQuery>(services
+                .split(10)
+                .map((a) => FirebaseFirestore.instance
+                    .collectionGroup(collectionGroup)
+                    .where('Services',
+                        arrayContainsAny: a.map((c) => c.ref).toList())
                     .where(
                       'Time',
                       isLessThanOrEqualTo: Timestamp.fromDate(
@@ -280,23 +344,41 @@ class MinimalHistoryRecord {
               .snapshots()
               .map((s) => s.docs);
         } else {
-          return Rx.combineLatestList<JsonQuery>(value.item2
-                  .split(10)
-                  .map((a) => FirebaseFirestore.instance
-                      .collectionGroup(collectionGroup)
-                      .where('ClassId', whereIn: a.map((c) => c.ref).toList())
-                      .where(
-                        'Time',
-                        isLessThanOrEqualTo: Timestamp.fromDate(
-                            range.end.add(const Duration(days: 1))),
-                      )
-                      .where('Time',
-                          isGreaterThanOrEqualTo: Timestamp.fromDate(
-                              range.start.subtract(const Duration(days: 1))))
-                      .orderBy('Time', descending: true)
-                      .snapshots())
-                  .toList())
-              .map((s) => s.expand((n) => n.docs).toList());
+          return Rx.combineLatestList<JsonQuery>([
+            ...value.item2
+                .split(10)
+                .map((a) => FirebaseFirestore.instance
+                    .collectionGroup(collectionGroup)
+                    .where('ClassId', whereIn: a.map((c) => c.ref).toList())
+                    .where(
+                      'Time',
+                      isLessThanOrEqualTo: Timestamp.fromDate(
+                          range.end.add(const Duration(days: 1))),
+                    )
+                    .where('Time',
+                        isGreaterThanOrEqualTo: Timestamp.fromDate(
+                            range.start.subtract(const Duration(days: 1))))
+                    .orderBy('Time', descending: true)
+                    .snapshots())
+                .toList(),
+            ...value.item3
+                .split(10)
+                .map((a) => FirebaseFirestore.instance
+                    .collectionGroup(collectionGroup)
+                    .where('Services',
+                        arrayContainsAny: a.map((c) => c.ref).toList())
+                    .where(
+                      'Time',
+                      isLessThanOrEqualTo: Timestamp.fromDate(
+                          range.end.add(const Duration(days: 1))),
+                    )
+                    .where('Time',
+                        isGreaterThanOrEqualTo: Timestamp.fromDate(
+                            range.start.subtract(const Duration(days: 1))))
+                    .orderBy('Time', descending: true)
+                    .snapshots())
+                .toList()
+          ]).map((s) => s.expand((n) => n.docs).toList());
         }
       } else if (classes != null) {
         return Rx.combineLatestList<JsonQuery>(classes
@@ -304,6 +386,17 @@ class MinimalHistoryRecord {
                 .map((a) => FirebaseFirestore.instance
                     .collectionGroup(collectionGroup)
                     .where('ClassId', whereIn: a.map((c) => c.ref).toList())
+                    .orderBy('Time', descending: true)
+                    .snapshots())
+                .toList())
+            .map((s) => s.expand((n) => n.docs).toList());
+      } else if (services != null) {
+        return Rx.combineLatestList<JsonQuery>(services
+                .split(10)
+                .map((a) => FirebaseFirestore.instance
+                    .collectionGroup(collectionGroup)
+                    .where('Services',
+                        arrayContainsAny: a.map((c) => c.ref).toList())
                     .orderBy('Time', descending: true)
                     .snapshots())
                 .toList())
@@ -324,6 +417,7 @@ class MinimalHistoryRecord {
 
   JsonRef? classId;
   JsonRef? personId;
+  List<JsonRef>? services;
   JsonRef ref;
 
   Json getMap() {
@@ -332,12 +426,13 @@ class MinimalHistoryRecord {
       'Time': time,
       'RecordedBy': by,
       'ClassId': classId,
+      'Services': services,
       'PersonId': personId
     };
   }
 
   @override
-  int get hashCode => hashValues(id, time, by, classId, personId);
+  int get hashCode => hashValues(id, time, by, classId, personId, services);
 
   @override
   bool operator ==(Object other) =>

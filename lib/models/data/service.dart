@@ -21,8 +21,9 @@ class Service extends DataObject with PhotoObject {
     this.studyYearRange,
     this.validity,
     this.showInHistory = true,
+    Color? color,
     bool hasPhoto = false,
-  }) : super(ref, name, null) {
+  }) : super(ref, name, color) {
     this.hasPhoto = hasPhoto;
     defaultIcon = Icons.miscellaneous_services;
   }
@@ -120,6 +121,7 @@ class Service extends DataObject with PhotoObject {
                   end: json['Validity']['To'].toDate())
               : null,
           showInHistory: json['ShowInHistory'],
+          color: json['Color']!=null?Color(json['Color']):null,
           lastEdit: json['LastEdit'],
           hasPhoto: json['HasPhoto'],
         );
@@ -151,6 +153,7 @@ class Service extends DataObject with PhotoObject {
     StudyYearRange? studyYearRange,
     DateTimeRange? validity,
     bool? showInHistory,
+    Color? color,
     String? lastEdit,
   }) {
     return Service(
@@ -159,6 +162,7 @@ class Service extends DataObject with PhotoObject {
       studyYearRange: studyYearRange ?? this.studyYearRange,
       validity: validity ?? this.validity,
       showInHistory: showInHistory ?? this.showInHistory,
+      color: color ?? this.color,
       lastEdit: lastEdit ?? this.lastEdit,
     );
   }
@@ -172,6 +176,7 @@ class Service extends DataObject with PhotoObject {
       'ShowInHistory': showInHistory,
       'LastEdit': lastEdit,
       'HasPhoto': hasPhoto,
+      'Color': color.value,
     };
   }
 

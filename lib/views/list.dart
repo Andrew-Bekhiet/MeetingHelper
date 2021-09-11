@@ -402,13 +402,15 @@ class _CheckListState<T extends Person, P extends DataObject>
                                 : Icons.arrow_drop_down,
                           ),
                         ),
-                        IconButton(
-                          onPressed: () {
-                            dataObjectTap(
-                                groupedData.data!.values.elementAt(i).item1);
-                          },
-                          icon: const Icon(Icons.info_outlined),
-                        ),
+                        if (groupedData.data!.values.elementAt(i).item1
+                            is Class)
+                          IconButton(
+                            onPressed: () {
+                              dataObjectTap(
+                                  groupedData.data!.values.elementAt(i).item1);
+                            },
+                            icon: const Icon(Icons.info_outlined),
+                          ),
                       ],
                     ),
                   ),
@@ -541,6 +543,7 @@ class _CheckListState<T extends Person, P extends DataObject>
             recordedBy: oRecord.recordedBy!,
             time: oRecord.time,
             type: oRecord.type,
+            studyYear: oRecord.studyYear,
             serviceId: oRecord.type == 'Meeting' || oRecord.type == 'Kodas'
                 ? null
                 : oRecord.type,
@@ -577,6 +580,7 @@ class _CheckListState<T extends Person, P extends DataObject>
                                                   _listOptions.type == 'Kodas'
                                               ? null
                                               : _listOptions.type,
+                                          studyYear: current.studyYear,
                                           time: mergeDayWithTime(
                                             _listOptions.day.day.toDate(),
                                             DateTime.now(),

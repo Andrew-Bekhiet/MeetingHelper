@@ -62,7 +62,8 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                           .inDays ==
                       0;
                   return CheckListController(
-                    itemsStream: Person.getAllForUser(orderBy: 'Name'),
+                    itemsStream: Person.getAllForUser(
+                        orderBy: 'Name', onlyInClasses: true),
                     day: widget.record,
                     dayOptions: HistoryDayOptions(
                       grouped: !isSameDay,
@@ -84,7 +85,8 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                           .inDays ==
                       0;
                   return CheckListController(
-                    itemsStream: User.getAllForUser(),
+                    itemsStream: User.getAllForUser().map((users) =>
+                        users.where((u) => u.classId != null).toList()),
                     day: widget.record,
                     dayOptions: HistoryDayOptions(
                       grouped: !isSameDay,
@@ -204,28 +206,32 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                   animation: snapshot.requireData.item1,
                   builder: (context, _) => StreamBuilder<Tuple2<int, int>>(
                     stream: Rx.combineLatest2<Map, Map, Tuple2<int, int>>(
-                      snapshot.requireData.item1.index <= 1
-                          ? _listControllers[
-                                  snapshot.requireData.item1.index == 0
-                                      ? 'Meeting'
-                                      : 'Kodas']!
-                              .originalObjectsData
-                          : _listControllers[snapshot
-                                  .requireData
-                                  .item2[snapshot.requireData.item1.index - 2]
-                                  .id]!
-                              .originalObjectsData,
-                      snapshot.requireData.item1.index <= 1
-                          ? _listControllers[
-                                  snapshot.requireData.item1.index == 0
-                                      ? 'Meeting'
-                                      : 'Kodas']!
-                              .attended
-                          : _listControllers[snapshot
-                                  .requireData
-                                  .item2[snapshot.requireData.item1.index - 2]
-                                  .id]!
-                              .attended,
+                      (snapshot.requireData.item1.index <= 1
+                              ? _listControllers[
+                                      snapshot.requireData.item1.index == 0
+                                          ? 'Meeting'
+                                          : 'Kodas']
+                                  ?.originalObjectsData
+                              : _listControllers[snapshot
+                                      .requireData
+                                      .item2[
+                                          snapshot.requireData.item1.index - 2]
+                                      .id]
+                                  ?.originalObjectsData) ??
+                          Stream.value({}),
+                      (snapshot.requireData.item1.index <= 1
+                              ? _listControllers[
+                                      snapshot.requireData.item1.index == 0
+                                          ? 'Meeting'
+                                          : 'Kodas']
+                                  ?.attended
+                              : _listControllers[snapshot
+                                      .requireData
+                                      .item2[
+                                          snapshot.requireData.item1.index - 2]
+                                      .id]
+                                  ?.attended) ??
+                          Stream.value({}),
                       (Map a, Map b) => Tuple2<int, int>(a.length, b.length),
                     ),
                     builder: (context, snapshot) {
@@ -235,7 +241,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                         expandedAlignment: Alignment.centerRight,
                         title: Text(
                           'الحضور: ' +
-                              snapshot.requireData.item2.toString() +
+                              (snapshot.data?.item2.toString() ?? '0') +
                               ' مخدوم',
                           style: theme.bodyText2,
                         ),
@@ -280,12 +286,12 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                         ),
                         children: [
                           Text('الغياب: ' +
-                              (snapshot.requireData.item1 -
-                                      snapshot.requireData.item2)
+                              ((snapshot.data?.item1 ?? 0) -
+                                      (snapshot.data?.item2 ?? 0))
                                   .toString() +
                               ' مخدوم'),
                           Text('اجمالي: ' +
-                              snapshot.requireData.item1.toString() +
+                              (snapshot.data?.item1 ?? 0).toString() +
                               ' مخدوم'),
                         ],
                       );
@@ -670,6 +676,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
           .isNotEmpty)
         TutorialCoachMark(
           context,
+          focusAnimationDuration: const Duration(milliseconds: 200),
           targets: [
             TargetFocus(
               enableOverlayTab: true,

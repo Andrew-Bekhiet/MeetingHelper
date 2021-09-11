@@ -245,9 +245,8 @@ class User extends Person {
               final auth.IdTokenResult idToken =
                   await currentUser.getIdTokenResult(true);
 
-              await Hive.box('User').putAll(
-                  idToken.claims?.map((k, v) => MapEntry(k, v)) ??
-                      {});
+              await Hive.box('User')
+                  .putAll(idToken.claims?.map((k, v) => MapEntry(k, v)) ?? {});
 
               await dbInstance
                   .reference()
@@ -285,9 +284,8 @@ class User extends Person {
                 ConnectivityResult.none) {
               idToken = await user.getIdTokenResult();
 
-              await Hive.box('User').putAll(
-                  idToken.claims?.map((k, v) => MapEntry(k, v)) ??
-                      {});
+              await Hive.box('User')
+                  .putAll(idToken.claims?.map((k, v) => MapEntry(k, v)) ?? {});
 
               await dbInstance
                   .reference()
@@ -415,7 +413,12 @@ class User extends Person {
     if (!_initialized.isCompleted) _initialized.complete(false);
     _initialized = Completer<bool>();
     _uid = null;
+
     await Hive.box('User').clear();
+    await Hive.box('User').compact();
+    await Hive.box('User').close();
+    await Hive.openBox('User');
+
     notifyListeners();
     await GoogleSignIn().signOut();
     await auth.FirebaseAuth.instance.signOut();

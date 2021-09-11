@@ -5,18 +5,23 @@ import 'dart:ui' as ui;
 
 import 'package:async/async.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
+import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/history/history_property.dart';
 import 'package:meetinghelper/models/history/history_record.dart';
+import 'package:meetinghelper/models/mini_models.dart';
+import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'analytics_indicators.dart';
@@ -24,13 +29,13 @@ import 'analytics_indicators.dart';
 class AnalyticsPage extends StatefulWidget {
   const AnalyticsPage(
       {Key? key,
-      this.classes,
+      this.parents,
       this.range,
       this.historyColection = 'History',
       this.day})
       : super(key: key);
 
-  final List<Class>? classes;
+  final List<DataObject>? parents;
   final HistoryDay? day;
   final String historyColection;
   final DateTimeRange? range;
@@ -40,11 +45,12 @@ class AnalyticsPage extends StatefulWidget {
 }
 
 class PersonAnalyticsPage extends StatefulWidget {
-  const PersonAnalyticsPage({Key? key, this.person, this.colection = 'History'})
+  const PersonAnalyticsPage(
+      {Key? key, required this.person, this.colection = 'History'})
       : super(key: key);
 
   final String colection;
-  final Person? person;
+  final Person person;
 
   @override
   _PersonAnalyticsPageState createState() => _PersonAnalyticsPageState();
@@ -53,19 +59,21 @@ class PersonAnalyticsPage extends StatefulWidget {
 class ActivityAnalysis extends StatefulWidget {
   const ActivityAnalysis({Key? key, this.classes}) : super(key: key);
 
-  final List<Class>? classes;
+  final List<DataObject>? classes;
 
   @override
   _ActivityAnalysisState createState() => _ActivityAnalysisState();
 }
 
 class _ActivityAnalysisState extends State<ActivityAnalysis> {
-  List<Class>? classes;
+  List<DataObject>? parents;
   DateTime minAvaliable = DateTime.now().subtract(const Duration(days: 30));
   bool minAvaliableSet = false;
   DateTimeRange range = DateTimeRange(
       start: DateTime.now().subtract(const Duration(days: 30)),
       end: DateTime.now());
+
+  final AsyncMemoizer<void> _rangeStart = AsyncMemoizer<void>();
 
   final _screenKey = GlobalKey();
 
@@ -73,28 +81,30 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
     if (minAvaliableSet) return;
     if (User.instance.superAccess)
       minAvaliable = ((await FirebaseFirestore.instance
-                  .collectionGroup('EditHistory')
-                  .orderBy('Time')
-                  .limit(1)
-                  .get(dataSource))
-              .docs
-              .first
-              .data()['Time'] as Timestamp)
-          .toDate();
+                      .collectionGroup('EditHistory')
+                      .orderBy('Time')
+                      .limit(1)
+                      .get(dataSource))
+                  .docs
+                  .firstOrNull
+                  ?.data()['Time'] as Timestamp?)
+              ?.toDate() ??
+          minAvaliable;
     else {
       final allowed = await Class.getAllForUser().first;
       if (allowed.length <= 10) {
         minAvaliable = ((await FirebaseFirestore.instance
-                    .collectionGroup('EditHistory')
-                    .where('ClassId',
-                        whereIn: allowed.map((c) => c.ref).toList())
-                    .orderBy('Time')
-                    .limit(1)
-                    .get(dataSource))
-                .docs
-                .first
-                .data()['Time'] as Timestamp)
-            .toDate();
+                        .collectionGroup('EditHistory')
+                        .where('ClassId',
+                            whereIn: allowed.map((c) => c.ref).toList())
+                        .orderBy('Time')
+                        .limit(1)
+                        .get(dataSource))
+                    .docs
+                    .firstOrNull
+                    ?.data()['Time'] as Timestamp?)
+                ?.toDate() ??
+            minAvaliable;
       } else {
         minAvaliable = DateTime.fromMillisecondsSinceEpoch((await Future.wait(
           allowed.map(
@@ -131,11 +141,11 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
             ),
           ],
         ),
-        body: FutureBuilder(
-          future: _setRangeStart(),
+        body: FutureBuilder<void>(
+          future: _rangeStart.runOnce(_setRangeStart),
           builder: (context, _) {
             if (_.connectionState == ConnectionState.done) {
-              return StreamBuilder<List<Class>>(
+              return StreamBuilder<List<DataObject>>(
                 initialData: widget.classes,
                 stream: Class.getAllForUser(),
                 builder: (context, snapshot) {
@@ -143,10 +153,8 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                   if (!snapshot.hasData)
                     return const Center(child: CircularProgressIndicator());
 
-                  classes ??= snapshot.data;
-                  final classesByRef = {
-                    for (final a in classes!) a.ref.path: a
-                  };
+                  parents ??= snapshot.data;
+                  final classesByRef = {for (final a in parents!) a.ref: a};
 
                   return SingleChildScrollView(
                     child: Column(
@@ -179,9 +187,8 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                                 context: context,
                                 confirmText: 'حفظ',
                                 saveText: 'حفظ',
-                                initialDateRange: range
-                                            .start.millisecondsSinceEpoch <=
-                                        minAvaliable.millisecondsSinceEpoch
+                                initialDateRange: !range.start
+                                        .isBefore(minAvaliable)
                                     ? range
                                     : DateTimeRange(
                                         start: DateTime.now()
@@ -198,9 +205,9 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                           ),
                         ),
                         ListTile(
-                          title: const Text('لفصول: '),
+                          title: const Text('الفصول والخدمات: '),
                           subtitle: Text(
-                            classes!.map((c) => c.name).toList().join(', '),
+                            parents!.map((c) => c.name).toList().join(', '),
                             maxLines: 4,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -208,9 +215,9 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                             icon: const Icon(Icons.list_alt),
                             tooltip: 'اختيار الفصول',
                             onPressed: () async {
-                              final rslt = await selectServices<Class>(classes);
+                              final rslt = await selectServices(parents);
                               if (rslt != null && rslt.isNotEmpty)
-                                setState(() => classes = rslt);
+                                setState(() => parents = rslt);
                               else if (rslt != null)
                                 await showDialog(
                                   context: context,
@@ -224,7 +231,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                         ),
                         HistoryAnalysisWidget(
                           range: range,
-                          classes: classes ?? [],
+                          parents: parents ?? [],
                           classesByRef: classesByRef,
                           collectionGroup: 'VisitHistory',
                           title: 'خدمة الافتقاد',
@@ -232,7 +239,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                         const Divider(),
                         HistoryAnalysisWidget(
                           range: range,
-                          classes: classes ?? [],
+                          parents: parents ?? [],
                           classesByRef: classesByRef,
                           collectionGroup: 'EditHistory',
                           title: 'تحديث البيانات',
@@ -240,7 +247,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                         const Divider(),
                         HistoryAnalysisWidget(
                           range: range,
-                          classes: classes ?? [],
+                          parents: parents ?? [],
                           classesByRef: classesByRef,
                           collectionGroup: 'CallHistory',
                           title: 'خدمة المكالمات',
@@ -267,19 +274,22 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
       start: DateTime.now().subtract(const Duration(days: 30)),
       end: DateTime.now());
 
+  final AsyncMemoizer<void> _rangeStart = AsyncMemoizer<void>();
+
   final _screenKey = GlobalKey();
 
   Future<void> _setRangeStart() async {
     if (minAvaliableSet) return;
     minAvaliable = ((await FirebaseFirestore.instance
-                .collection(widget.colection)
-                .orderBy('Day')
-                .limit(1)
-                .get(dataSource))
-            .docs
-            .first
-            .data()['Day'] as Timestamp)
-        .toDate();
+                    .collection(widget.colection)
+                    .orderBy('Day')
+                    .limit(1)
+                    .get(dataSource))
+                .docs
+                .firstOrNull
+                ?.data()['Day'] as Timestamp?)
+            ?.toDate() ??
+        minAvaliable;
     minAvaliableSet = true;
 
     range = DateTimeRange(start: minAvaliable, end: DateTime.now());
@@ -300,11 +310,17 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
             ),
           ],
         ),
-        body: FutureBuilder(
-          future: _setRangeStart(),
-          builder: (context, _) {
-            if (_.connectionState != ConnectionState.done)
+        body: FutureBuilder<Map<JsonRef, Service>>(
+          future: _rangeStart.runOnce(_setRangeStart).then((_) async {
+            return {
+              for (final service in await Service.getAllForUser().first)
+                service.ref: service
+            };
+          }),
+          builder: (context, servicesSnapshot) {
+            if (servicesSnapshot.connectionState != ConnectionState.done)
               return const Center(child: CircularProgressIndicator());
+
             return StreamBuilder<JsonQuery>(
               stream: FirebaseFirestore.instance
                   .collection(widget.colection)
@@ -321,70 +337,99 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
                 if (data.hasError) return ErrorWidget(data.error!);
                 if (!data.hasData)
                   return const Center(child: CircularProgressIndicator());
+
                 if (data.data!.docs.isEmpty)
                   return const Center(child: Text('لا يوجد سجل'));
-                return ListView(
-                  children: [
-                    ListTile(
-                      title: Text(
-                          'احصائيات الحضور من ' +
-                              DateFormat.yMMMEd('ar_EG').format(range.start) +
-                              ' الى ' +
-                              DateFormat.yMMMEd('ar_EG').format(range.end),
-                          style: Theme.of(context).textTheme.bodyText1),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.date_range),
-                        tooltip: 'اختيار نطاق السجل',
-                        onPressed: () async {
-                          final rslt = await showDateRangePicker(
-                            builder: (context, dialog) => Theme(
-                              data: Theme.of(context).copyWith(
-                                textTheme: Theme.of(context).textTheme.copyWith(
-                                      overline: const TextStyle(
-                                        fontSize: 0,
-                                      ),
-                                    ),
+
+                return SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      ListTile(
+                        title: Text(
+                            'احصائيات الحضور من ' +
+                                DateFormat.yMMMEd('ar_EG').format(range.start) +
+                                ' الى ' +
+                                DateFormat.yMMMEd('ar_EG').format(range.end),
+                            style: Theme.of(context).textTheme.bodyText1),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.date_range),
+                          tooltip: 'اختيار نطاق السجل',
+                          onPressed: () async {
+                            final rslt = await showDateRangePicker(
+                              builder: (context, dialog) => Theme(
+                                data: Theme.of(context).copyWith(
+                                  textTheme:
+                                      Theme.of(context).textTheme.copyWith(
+                                            overline: const TextStyle(
+                                              fontSize: 0,
+                                            ),
+                                          ),
+                                ),
+                                child: dialog!,
                               ),
-                              child: dialog!,
-                            ),
-                            helpText: null,
-                            context: context,
-                            confirmText: 'حفظ',
-                            saveText: 'حفظ',
-                            initialDateRange: range,
-                            firstDate: minAvaliable,
-                            lastDate: DateTime.now(),
-                          );
-                          if (rslt != null) {
-                            range = rslt;
-                            setState(() {});
-                          }
-                        },
+                              helpText: null,
+                              context: context,
+                              confirmText: 'حفظ',
+                              saveText: 'حفظ',
+                              initialDateRange: range,
+                              firstDate: minAvaliable,
+                              lastDate: DateTime.now(),
+                            );
+                            if (rslt != null) {
+                              range = rslt;
+                              setState(() {});
+                            }
+                          },
+                        ),
                       ),
-                    ),
-                    PersonAttendanceIndicator(
-                      id: widget.person!.id,
-                      range: range,
-                      total: data.data!.size,
-                      collectionGroup: 'Meeting',
-                      label: 'حضور الاجتماع',
-                    ),
-                    DayHistoryProperty(
-                        'تاريخ أخر حضور اجتماع:',
-                        widget.person!.lastMeeting,
-                        widget.person!.id,
-                        'Meeting'),
-                    Container(height: 10),
-                    PersonAttendanceIndicator(
-                      id: widget.person!.id,
-                      range: range,
-                      total: data.data!.size,
-                      collectionGroup: 'Kodas',
-                      label: 'حضور القداس',
-                    ),
-                    DayHistoryProperty('تاريخ أخر حضور قداس:',
-                        widget.person!.lastKodas, widget.person!.id, 'Kodas'),
-                  ],
+                      PersonAttendanceIndicator(
+                        id: widget.person.id,
+                        range: range,
+                        total: data.data!.size,
+                        collectionGroup: 'Meeting',
+                        label: 'حضور الاجتماع',
+                      ),
+                      DayHistoryProperty(
+                          'تاريخ أخر حضور اجتماع:',
+                          widget.person.lastMeeting,
+                          widget.person.id,
+                          'Meeting'),
+                      Container(height: 10),
+                      PersonAttendanceIndicator(
+                        id: widget.person.id,
+                        range: range,
+                        total: data.data!.size,
+                        collectionGroup: 'Kodas',
+                        label: 'حضور القداس',
+                      ),
+                      DayHistoryProperty('تاريخ أخر حضور قداس:',
+                          widget.person.lastKodas, widget.person.id, 'Kodas'),
+                      ...widget.person.services
+                          .map(
+                            (s) => [
+                              Container(height: 10),
+                              PersonAttendanceIndicator(
+                                id: widget.person.id,
+                                range: range,
+                                total: data.data!.size,
+                                collectionGroup: s.id,
+                                label:
+                                    'حضور ' + servicesSnapshot.data![s]!.name,
+                              ),
+                              DayHistoryProperty(
+                                'تاريخ أخر حضور ' +
+                                    servicesSnapshot.data![s]!.name +
+                                    ':',
+                                widget.person.last[s.id],
+                                widget.person.id,
+                                s.id,
+                              ),
+                            ],
+                          )
+                          .expand((e) => e)
+                          .toList(),
+                    ],
+                  ),
                 );
               },
             );
@@ -396,7 +441,7 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
 }
 
 class _AnalyticsPageState extends State<AnalyticsPage> {
-  List<Class>? classes;
+  List<DataObject>? parents;
   DateTime day = DateTime.now();
   DateTimeRange range = DateTimeRange(
       start: DateTime.now().subtract(const Duration(days: 30)),
@@ -411,14 +456,15 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   Future<void> _setRangeStart() async {
     if (widget.range != null) range = widget.range!;
     _minAvaliable = ((await FirebaseFirestore.instance
-                .collection(widget.historyColection)
-                .orderBy('Day')
-                .limit(1)
-                .get(dataSource))
-            .docs
-            .first
-            .data()['Day'] as Timestamp)
-        .toDate();
+                    .collection(widget.historyColection)
+                    .orderBy('Day')
+                    .limit(1)
+                    .get(dataSource))
+                .docs
+                .firstOrNull
+                ?.data()['Day'] as Timestamp?)
+            ?.toDate() ??
+        _minAvaliable;
   }
 
   Future<void> _selectRange() async {
@@ -437,9 +483,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
       helpText: null,
       confirmText: 'حفظ',
       saveText: 'حفظ',
-      initialDateRange: range.start.millisecondsSinceEpoch <=
-                  range.end.millisecondsSinceEpoch &&
-              !_isOneDay
+      initialDateRange: !range.start.isBefore(_minAvaliable) && !_isOneDay
           ? range
           : DateTimeRange(
               start: day.subtract(const Duration(days: 1)), end: day),
@@ -505,18 +549,28 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
             ),
           ],
         ),
-        body: FutureBuilder(
-          future: _rangeStart.runOnce(_setRangeStart),
-          builder: (context, _) {
-            if (_.connectionState == ConnectionState.done) {
-              return StreamBuilder<List<Class>>(
-                initialData: widget.classes,
-                stream: Class.getAllForUser(),
+        body: FutureBuilder<List<StudyYear>>(
+          future: _rangeStart.runOnce(_setRangeStart).then((_) async {
+            return (await StudyYear.getAllForUser())
+                .docs
+                .map(StudyYear.fromDoc)
+                .toList();
+          }),
+          builder: (context, studyYearsData) {
+            if (studyYearsData.connectionState == ConnectionState.done) {
+              return StreamBuilder<List<DataObject>>(
+                initialData: widget.parents,
+                stream: Rx.combineLatest2<List<Class>, List<Service>,
+                    List<DataObject>>(
+                  Class.getAllForUser(),
+                  Service.getAllForUserForHistory(),
+                  (c, s) => [...c, ...s],
+                ),
                 builder: (context, snapshot) {
                   if (snapshot.hasError) return ErrorWidget(snapshot.error!);
                   if (!snapshot.hasData)
                     return const Center(child: CircularProgressIndicator());
-                  classes ??= snapshot.data;
+                  parents ??= snapshot.data;
 
                   return StreamBuilder<List<HistoryDay>>(
                     initialData: widget.day != null ? [widget.day!] : null,
@@ -589,9 +643,9 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                               ),
                             ),
                             ListTile(
-                              title: const Text('الفصول: '),
+                              title: const Text('الفصول والخدمات: '),
                               subtitle: Text(
-                                classes!.map((c) => c.name).toList().join(', '),
+                                parents!.map((c) => c.name).toList().join(', '),
                                 maxLines: 4,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -599,11 +653,10 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                 icon: const Icon(Icons.list_alt),
                                 tooltip: 'اختيار الفصول',
                                 onPressed: () async {
-                                  final rslt =
-                                      await selectServices<Class>(classes);
+                                  final rslt = await selectServices(parents);
                                   if (rslt != null && rslt.isNotEmpty) {
                                     _sourceChanged = true;
-                                    setState(() => classes = rslt);
+                                    setState(() => parents = rslt);
                                   } else if (rslt != null)
                                     await showDialog(
                                       context: context,
@@ -616,44 +669,107 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                               ),
                             ),
                             if (_isOneDay && days!.isNotEmpty) ...[
-                              Text('حضور الاجتماع',
-                                  style: Theme.of(context).textTheme.headline6),
-                              ClassesAttendanceIndicator(
-                                classes: classes ?? [],
-                                collection:
-                                    days.single.subcollection('Meeting')!,
-                                isServant: widget.historyColection ==
-                                    'ServantsHistory',
-                              ),
-                              const Divider(),
-                              Text('حضور القداس',
-                                  style: Theme.of(context).textTheme.headline6),
-                              ClassesAttendanceIndicator(
-                                classes: classes ?? [],
-                                collection: days.single.subcollection('Kodas')!,
-                                isServant: widget.historyColection ==
-                                    'ServantsHistory',
-                              ),
+                              if ((parents?.whereType<Class>() ?? [])
+                                  .isNotEmpty) ...[
+                                Text('حضور الاجتماع',
+                                    style:
+                                        Theme.of(context).textTheme.headline6),
+                                ClassesAttendanceIndicator(
+                                  classes:
+                                      parents?.whereType<Class>().toList() ??
+                                          [],
+                                  collection:
+                                      days.single.subcollection('Meeting')!,
+                                  isServant: widget.historyColection ==
+                                      'ServantsHistory',
+                                ),
+                              ],
+                              if ((parents?.whereType<Class>() ?? [])
+                                  .isNotEmpty) ...[
+                                const Divider(),
+                                Text('حضور القداس',
+                                    style:
+                                        Theme.of(context).textTheme.headline6),
+                                ClassesAttendanceIndicator(
+                                  classes:
+                                      parents?.whereType<Class>().toList() ??
+                                          [],
+                                  collection:
+                                      days.single.subcollection('Kodas')!,
+                                  isServant: widget.historyColection ==
+                                      'ServantsHistory',
+                                ),
+                              ],
+                              ...parents
+                                      ?.whereType<Service>()
+                                      .map(
+                                        (s) => [
+                                          const Divider(),
+                                          Text('حضور ' + s.name,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .headline6),
+                                          ClassesAttendanceIndicator(
+                                            collection: days.single
+                                                .subcollection(s.id)!,
+                                            isServant:
+                                                widget.historyColection ==
+                                                    'ServantsHistory',
+                                            studyYears: studyYearsData.data,
+                                          ),
+                                        ],
+                                      )
+                                      .expand((w) => w) ??
+                                  []
                             ] else if (days!.isNotEmpty) ...[
-                              AttendanceChart(
-                                title: 'حضور الاجتماع',
-                                classes: classes ?? [],
-                                range: range,
-                                days: days,
-                                isServant: widget.historyColection ==
-                                    'ServantsHistory',
-                                collectionGroup: 'Meeting',
-                              ),
-                              const Divider(),
-                              AttendanceChart(
-                                title: 'حضور القداس',
-                                classes: classes ?? [],
-                                range: range,
-                                days: days,
-                                isServant: widget.historyColection ==
-                                    'ServantsHistory',
-                                collectionGroup: 'Kodas',
-                              ),
+                              if ((parents?.whereType<Class>() ?? [])
+                                  .isNotEmpty) ...[
+                                AttendanceChart(
+                                  title: 'حضور الاجتماع',
+                                  classes:
+                                      parents?.whereType<Class>().toList() ??
+                                          [],
+                                  range: range,
+                                  days: days,
+                                  isServant: widget.historyColection ==
+                                      'ServantsHistory',
+                                  collectionGroup: 'Meeting',
+                                ),
+                                const Divider(),
+                              ],
+                              if ((parents?.whereType<Class>() ?? [])
+                                  .isNotEmpty) ...[
+                                AttendanceChart(
+                                  title: 'حضور القداس',
+                                  classes:
+                                      parents?.whereType<Class>().toList() ??
+                                          [],
+                                  range: range,
+                                  days: days,
+                                  isServant: widget.historyColection ==
+                                      'ServantsHistory',
+                                  collectionGroup: 'Kodas',
+                                ),
+                              ],
+                              ...parents
+                                      ?.whereType<Service>()
+                                      .map(
+                                        (s) => [
+                                          const Divider(),
+                                          AttendanceChart(
+                                            title: 'حضور ' + s.name,
+                                            range: range,
+                                            days: days,
+                                            isServant:
+                                                widget.historyColection ==
+                                                    'ServantsHistory',
+                                            collectionGroup: s.id,
+                                            studyYears: studyYearsData.data,
+                                          )
+                                        ],
+                                      )
+                                      .expand((w) => w) ??
+                                  []
                             ] else
                               const Center(
                                 child: Text('لا يوجد سجل في المدة المحددة'),
