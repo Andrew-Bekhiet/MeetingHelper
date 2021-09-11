@@ -76,6 +76,7 @@ class _ServiceInfoState extends State<ServiceInfo> {
           .isNotEmpty)
         TutorialCoachMark(
           context,
+          focusAnimationDuration: const Duration(milliseconds: 200),
           targets: [
             if (User.instance.write)
               TargetFocus(

@@ -218,6 +218,7 @@ class _DataMapState extends State<DataMap> {
       if (!HivePersistenceProvider.instance.hasCompletedStep('ShowHideClasses'))
         TutorialCoachMark(
           context,
+          focusAnimationDuration: const Duration(milliseconds: 200),
           targets: [
             TargetFocus(
               enableOverlayTab: true,

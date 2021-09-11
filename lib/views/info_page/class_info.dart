@@ -72,6 +72,7 @@ class _ClassInfoState extends State<ClassInfo> {
           .isNotEmpty)
         TutorialCoachMark(
           context,
+          focusAnimationDuration: const Duration(milliseconds: 200),
           targets: [
             if (User.instance.write)
               TargetFocus(

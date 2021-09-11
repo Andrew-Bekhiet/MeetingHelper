@@ -176,6 +176,7 @@ class _HistoryState extends State<History> {
           .isNotEmpty)
         TutorialCoachMark(
           context,
+          focusAnimationDuration: const Duration(milliseconds: 200),
           targets: [
             TargetFocus(
               enableOverlayTab: true,
