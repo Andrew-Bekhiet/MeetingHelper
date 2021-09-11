@@ -800,7 +800,7 @@ class _EditUserState extends State<EditUser> {
                         const OrderOptions()),
                     textStyle: Theme.of(context).textTheme.bodyText2),
                 Expanded(
-                  child: ServicesList(
+                  child: ServicesList<Class>(
                     options: controller,
                     autoDisposeController: false,
                   ),

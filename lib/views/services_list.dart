@@ -12,19 +12,19 @@ import '../utils/helpers.dart';
 export 'package:meetinghelper/models/list_controllers.dart'
     show ServicesListController;
 
-class ServicesList extends StatefulWidget {
-  final ServicesListController options;
+class ServicesList<T extends DataObject> extends StatefulWidget {
+  final ServicesListController<T> options;
   final bool autoDisposeController;
 
   const ServicesList(
       {Key? key, required this.options, required this.autoDisposeController})
       : super(key: key);
   @override
-  _ServicesListState createState() => _ServicesListState();
+  _ServicesListState<T> createState() => _ServicesListState<T>();
 }
 
-class _ServicesListState extends State<ServicesList>
-    with AutomaticKeepAliveClientMixin<ServicesList> {
+class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
+    with AutomaticKeepAliveClientMixin<ServicesList<T>> {
   final Map<int, ExpandableController> _controllers = {};
 
   @override
@@ -34,7 +34,7 @@ class _ServicesListState extends State<ServicesList>
   Widget build(BuildContext context) {
     super.build(context);
 
-    return StreamBuilder<Map<StudyYear?, List<DataObject>>?>(
+    return StreamBuilder<Map<StudyYear?, List<T>>?>(
       stream: widget.options.objectsData,
       builder: (context, services) {
         if (services.hasError) return ErrorWidget(services.error!);

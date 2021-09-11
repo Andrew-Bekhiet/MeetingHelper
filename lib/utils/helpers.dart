@@ -1194,16 +1194,8 @@ void showBirthDayNotification() async {
 }
 
 Future<List<T>?> selectServices<T extends DataObject>(List<T>? selected) async {
-  final _controller = ServicesListController(
-    itemsStream: servicesByStudyYearRef().map(
-      (s) {
-        if (T == DataObject) return s;
-        return {
-          for (final record in s.entries)
-            if (record.value.whereType<T>().isNotEmpty) record.key: record.value
-        };
-      },
-    ),
+  final _controller = ServicesListController<T>(
+    itemsStream: servicesByStudyYearRef<T>(),
     selectionMode: true,
     selected: selected,
     searchQuery: Stream.value(''),
@@ -1229,7 +1221,7 @@ Future<List<T>?> selectServices<T extends DataObject>(List<T>? selected) async {
                     tooltip: 'تم'),
               ],
             ),
-            body: ServicesList(
+            body: ServicesList<T>(
                 options: _controller, autoDisposeController: false),
           ),
         ),

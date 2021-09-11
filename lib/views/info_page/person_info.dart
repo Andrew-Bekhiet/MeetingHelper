@@ -62,6 +62,7 @@ class _PersonInfoState extends State<PersonInfo> {
           .isNotEmpty)
         TutorialCoachMark(
           context,
+          focusAnimationDuration: const Duration(milliseconds: 200),
           targets: [
             if (User.instance.write)
               TargetFocus(
@@ -640,15 +641,17 @@ class _PersonServices extends StatelessWidget {
                   context: context,
                   builder: (context) => Dialog(
                     child: FutureBuilder<List<Service>>(
-                      future: Future.wait(
-                        person.services
-                            .map(
-                              (s) async => Service.fromDoc(
-                                await s.get(dataSource),
-                              ),
-                            )
-                            .whereType<Future<Service>>(),
-                      ),
+                      future: () async {
+                        return (await Future.wait(
+                          person.services.map(
+                            (s) async => Service.fromDoc(
+                              await s.get(dataSource),
+                            ),
+                          ),
+                        ))
+                            .whereType<Service>()
+                            .toList();
+                      }(),
                       builder: (context, data) {
                         if (data.hasError) return ErrorWidget(data.error!);
                         if (!data.hasData)
