@@ -243,6 +243,7 @@ class _EditServiceState extends State<EditService> {
                         },
                       ),
                     ),
+                    validator: (_) => null,
                     initialValue: service.validity,
                     onTap: (state) async {
                       state.didChange(await showDateRangePicker(
