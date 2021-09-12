@@ -1,11 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:meetinghelper/models/data/class.dart';
+import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/history/history_record.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../mini_models.dart';
 
@@ -304,18 +308,98 @@ class DayHistoryProperty extends StatelessWidget {
             builder: (context) => Dialog(
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               child: StreamBuilder<List<HistoryRecord>>(
-                stream: FirebaseFirestore.instance
-                    .collectionGroup(collection)
-                    .where('ID', isEqualTo: id)
-                    .orderBy('Time', descending: true)
-                    .snapshots()
-                    .asyncMap((s) => Future.wait(s.docs
-                        .map((d) async => HistoryRecord.fromDoc(
-                            await HistoryDay.fromId(
-                                d.reference.parent.parent!.id),
-                            d))
-                        .toList()))
-                    .map((event) => event.whereType<HistoryRecord>().toList()),
+                stream: User.instance.stream.switchMap(
+                  (user) {
+                    Stream<List<HistoryRecord>> _completeQuery(
+                        Query<Json> query) {
+                      return query
+                          .orderBy('Time', descending: true)
+                          .snapshots()
+                          .asyncMap((s) => Future.wait(s.docs
+                              .map((d) async => HistoryRecord.fromDoc(
+                                  d.reference.parent.parent!.parent.id ==
+                                          'ServantsHistory'
+                                      ? await ServantsHistoryDay.fromId(
+                                          d.reference.parent.parent!.id)
+                                      : await HistoryDay.fromId(
+                                          d.reference.parent.parent!.id),
+                                  d))
+                              .toList()))
+                          .map((event) =>
+                              event.whereType<HistoryRecord>().toList());
+                    }
+
+                    final query = FirebaseFirestore.instance
+                        .collectionGroup(collection)
+                        .where('ID', isEqualTo: id);
+
+                    if (!user.superAccess) {
+                      if (collection == 'Meeting' || collection == 'Kodas') {
+                        return Class.getAllForUser().switchMap(
+                          (classes) {
+                            if (classes.isEmpty) return Stream.value([]);
+                            if (classes.length <= 10)
+                              return _completeQuery(
+                                query.where(
+                                  'ClassId',
+                                  whereIn: classes.map((c) => c.ref).toList(),
+                                ),
+                              );
+
+                            return Rx.combineLatest<List<HistoryRecord>,
+                                List<HistoryRecord>>(
+                              classes.split(10).map(
+                                    (chunk) => _completeQuery(
+                                      query.where(
+                                        'ClassId',
+                                        whereIn:
+                                            chunk.map((c) => c.ref).toList(),
+                                      ),
+                                    ),
+                                  ),
+                              (values) => values
+                                  .expand((e) => e)
+                                  .sortedByCompare<Timestamp>(
+                                      (r) => r.time, (o, n) => -o.compareTo(n))
+                                  .toList(),
+                            );
+                          },
+                        );
+                      }
+                      return Service.getAllForUser().switchMap(
+                        (services) {
+                          if (services.isEmpty) return Stream.value([]);
+                          if (services.length <= 10)
+                            return _completeQuery(
+                              query.where(
+                                'ServiceId',
+                                whereIn: services.map((c) => c.id).toList(),
+                              ),
+                            );
+
+                          return Rx.combineLatest<List<HistoryRecord>,
+                              List<HistoryRecord>>(
+                            services.split(10).map(
+                                  (chunk) => _completeQuery(
+                                    query.where(
+                                      'ServiceId',
+                                      whereIn: chunk.map((c) => c.id).toList(),
+                                    ),
+                                  ),
+                                ),
+                            (values) => values
+                                .expand((e) => e)
+                                .sortedByCompare<Timestamp>(
+                                    (r) => r.time, (o, n) => -o.compareTo(n))
+                                .toList(),
+                          );
+                        },
+                      );
+                    }
+
+                    return _completeQuery(query);
+                  },
+                ),
                 builder: (context, history) {
                   if (history.hasError) return ErrorWidget(history.error!);
                   if (!history.hasData)

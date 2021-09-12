@@ -127,6 +127,10 @@ class ServantsHistoryDay extends HistoryDay {
   ServantsHistoryDay._createFromData(Json data, JsonRef ref)
       : super._createFromData(data, ref);
 
+  static Future<ServantsHistoryDay?> fromId(String id) async =>
+      ServantsHistoryDay.fromDoc(
+          await FirebaseFirestore.instance.doc('ServantsHistory/$id').get());
+
   static Future<Stream<JsonQuery>> getAllForUser(
       {String orderBy = 'Day', bool descending = false}) async {
     return FirebaseFirestore.instance

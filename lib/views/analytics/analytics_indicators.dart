@@ -45,7 +45,9 @@ class AttendanceChart extends StatelessWidget {
 
   Stream<List<HistoryRecord>> _getStream() {
     if (classes == null) {
-      var query = FirebaseFirestore.instance.collectionGroup(collectionGroup);
+      var query = FirebaseFirestore.instance
+          .collectionGroup(collectionGroup)
+          .where('ServiceId', isEqualTo: collectionGroup);
 
       query = query
           .where('Time',
@@ -449,6 +451,10 @@ class PersonAttendanceIndicator extends StatelessWidget {
             .orderBy('Time', descending: true)
             .snapshots()
             .map((s) => s.docs);
+      } else if (collectionGroup == 'Meeting' || collectionGroup == 'Kodas'
+          ? u.item2.isEmpty
+          : u.item3.isEmpty) {
+        return Stream.value([]);
       } else {
         return Rx.combineLatestList<JsonQuery>(
                 (collectionGroup == 'Meeting' || collectionGroup == 'Kodas'
@@ -462,7 +468,10 @@ class PersonAttendanceIndicator extends StatelessWidget {
                   collectionGroup == 'Meeting' || collectionGroup == 'Kodas'
                       ? 'ClassId'
                       : 'ServiceId',
-                  whereIn: o.map((e) => (e as DataObject).ref).toList())
+                  whereIn:
+                      collectionGroup == 'Meeting' || collectionGroup == 'Kodas'
+                          ? o.map((e) => (e as DataObject).ref).toList()
+                          : o.map((e) => (e as DataObject).id).toList())
               .where('ID', isEqualTo: id)
               .where(
                 'Time',
@@ -487,6 +496,7 @@ class PersonAttendanceIndicator extends StatelessWidget {
         if (history.hasError) return ErrorWidget(history.error!);
         if (!history.hasData)
           return const Center(child: CircularProgressIndicator());
+
         return AttendancePercent(
           label: label,
           attendanceLabel: attendanceLabel,
