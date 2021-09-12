@@ -77,7 +77,8 @@ class _UsersPageState extends State<UsersPage> {
     super.initState();
 
     _listOptions = DataObjectListController<User>(
-      itemsStream: User.getAllForUserForEdit(),
+      itemsStream: User.getAllForUserForEdit()
+          .map((users) => users.where((u) => u.uid != null).toList()),
       tap: userTap,
     );
   }
