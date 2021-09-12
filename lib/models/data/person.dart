@@ -345,27 +345,30 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
 
         return Rx.combineLatest2<List<Person>, List<Person>, List<Person>>(
           //Persons from Classes
-          u.item2.length <= 10
-              ? FirebaseFirestore.instance
-                  .collection('Persons')
-                  .where('ClassId', whereIn: u.item2.map((e) => e.ref).toList())
-                  .orderBy(orderBy, descending: descending)
-                  .snapshots()
-                  .map((p) => p.docs.map(fromQueryDoc).toList())
-              : Rx.combineLatestList<JsonQuery>(u.item2.split(10).map((c) =>
-                  FirebaseFirestore.instance
-                      .collection('Persons')
-                      .where('ClassId', whereIn: c.map((e) => e.ref).toList())
-                      .orderBy(orderBy, descending: descending)
-                      .snapshots())).map(
-                  (s) => s.expand((n) => n.docs).map(fromQueryDoc).toList()),
-          //Persons from Services
-          onlyInClasses
-              ? Stream.value([])
-              : u.item1.adminServices.length <= 10
+          u.item2.isNotEmpty
+              ? u.item2.length <= 10
                   ? FirebaseFirestore.instance
                       .collection('Persons')
-                      .where('ServiceId',
+                      .where('ClassId',
+                          whereIn: u.item2.map((e) => e.ref).toList())
+                      .orderBy(orderBy, descending: descending)
+                      .snapshots()
+                      .map((p) => p.docs.map(fromQueryDoc).toList())
+                  : Rx.combineLatestList<JsonQuery>(u.item2.split(10).map((c) =>
+                      FirebaseFirestore.instance
+                          .collection('Persons')
+                          .where('ClassId',
+                              whereIn: c.map((e) => e.ref).toList())
+                          .orderBy(orderBy, descending: descending)
+                          .snapshots())).map(
+                      (s) => s.expand((n) => n.docs).map(fromQueryDoc).toList())
+              : Stream.value([]),
+          //Persons from Services
+          !onlyInClasses && u.item1.adminServices.isNotEmpty
+              ? u.item1.adminServices.length <= 10
+                  ? FirebaseFirestore.instance
+                      .collection('Persons')
+                      .where('Services',
                           arrayContainsAny: u.item1.adminServices)
                       .orderBy(orderBy, descending: descending)
                       .snapshots()
@@ -374,10 +377,11 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
                       .split(10)
                       .map((c) => FirebaseFirestore.instance
                           .collection('Persons')
-                          .where('ServiceId', arrayContainsAny: c)
+                          .where('Services', arrayContainsAny: c)
                           .orderBy(orderBy, descending: descending)
-                          .snapshots())).map((s) =>
-                      s.expand((n) => n.docs).map(fromQueryDoc).toList()),
+                          .snapshots())).map(
+                      (s) => s.expand((n) => n.docs).map(fromQueryDoc).toList())
+              : Stream.value([]),
           (a, b) => {...a, ...b}.sortedByCompare(
             (p) => p.getMap()[orderBy],
             (o, n) {
