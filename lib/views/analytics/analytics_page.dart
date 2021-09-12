@@ -57,9 +57,9 @@ class PersonAnalyticsPage extends StatefulWidget {
 }
 
 class ActivityAnalysis extends StatefulWidget {
-  const ActivityAnalysis({Key? key, this.classes}) : super(key: key);
+  const ActivityAnalysis({Key? key, this.parents}) : super(key: key);
 
-  final List<DataObject>? classes;
+  final List<DataObject>? parents;
 
   @override
   _ActivityAnalysisState createState() => _ActivityAnalysisState();
@@ -92,6 +92,8 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
           minAvaliable;
     else {
       final allowed = await Class.getAllForUser().first;
+      if (allowed.isEmpty) return;
+
       if (allowed.length <= 10) {
         minAvaliable = ((await FirebaseFirestore.instance
                         .collectionGroup('EditHistory')
@@ -146,8 +148,13 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
           builder: (context, _) {
             if (_.connectionState == ConnectionState.done) {
               return StreamBuilder<List<DataObject>>(
-                initialData: widget.classes,
-                stream: Class.getAllForUser(),
+                initialData: widget.parents,
+                stream: Rx.combineLatest2<List<Class>, List<Service>,
+                    List<DataObject>>(
+                  Class.getAllForUser(),
+                  Service.getAllForUser(),
+                  (c, s) => [...c, ...s],
+                ),
                 builder: (context, snapshot) {
                   if (snapshot.hasError) return ErrorWidget(snapshot.error!);
                   if (!snapshot.hasData)
