@@ -556,7 +556,7 @@ class AppState extends State<App> {
             'ManageUsers': (context) => const UsersPage(),
             'Invitations': (context) => const InvitationsPage(),
             'ActivityAnalysis': (context) => ActivityAnalysis(
-                  classes: ModalRoute.of(context)?.settings.arguments
+                  parents: ModalRoute.of(context)?.settings.arguments
                       as List<DataObject>?,
                 ),
             'Analytics': (context) {
