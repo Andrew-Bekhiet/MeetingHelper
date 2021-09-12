@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:async/async.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_database/firebase_database.dart';
@@ -44,7 +45,7 @@ class User extends Person {
   }
 
   @override
-  String get id => uid!;
+  String get id => uid ?? 'null';
 
   String get refId => ref.id;
 
@@ -440,7 +441,7 @@ class User extends Person {
     write = permissions['Write'] ?? false;
     secretary = permissions['Secretary'] ?? false;
     changeHistory = permissions['ChangeHistory'] ?? false;
-    export = permissions['export'] ?? false;
+    export = permissions['Export'] ?? false;
     birthdayNotify = permissions['BirthdayNotify'] ?? false;
     confessionsNotify = permissions['ConfessionsNotify'] ?? false;
     tanawolNotify = permissions['TanawolNotify'] ?? false;
@@ -671,6 +672,19 @@ class User extends Person {
         .doc(uid)
         .get(dataSource))
       ..uid = uid;
+  }
+
+  static Future<User?> fromUsersData(String? uid) async {
+    final user = (await FirebaseFirestore.instance
+            .collection('UsersData')
+            .where('UID', isEqualTo: uid)
+            .get(dataSource))
+        .docs
+        .singleOrNull;
+
+    if (user == null) return null;
+
+    return fromDoc(user);
   }
 
   static Future<List<User>> getUsers(List<String> users) async {
