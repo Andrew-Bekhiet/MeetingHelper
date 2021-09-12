@@ -18,18 +18,23 @@ export const exportToExcel = runWith({
   }
   const currentUser = await auth().getUser(context.auth.uid);
   if (
-    !(
-      currentUser.customClaims?.approved &&
-      currentUser.customClaims?.exportClasses
-    )
+    !(currentUser.customClaims?.approved && currentUser.customClaims?.export)
   ) {
     throw new HttpsError(
       "permission-denied",
-      'Must be approved user with "Export Classes" permission'
+      "Must be approved user with 'Export' permission"
     );
   }
 
+  const userDocData = (
+    await firestore()
+      .collection("UsersData")
+      .doc(currentUser.customClaims.personId)
+      .get()
+  ).data();
+
   let _class: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>;
+  let _service: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>;
   console.log(currentUser);
   console.log(data);
 
@@ -46,6 +51,23 @@ export const exportToExcel = runWith({
           "User doesn't have permission to export the required class"
         );
     }
+  } else if (data?.onlyService) {
+    assertNotEmpty("onlyService", data?.onlyService, typeof "");
+
+    _service = await firestore()
+      .collection("Services")
+      .doc(data?.onlyService)
+      .get();
+    if (!currentUser.customClaims.superAccess) {
+      if (
+        !_service.exists ||
+        !userDocData?.AdminServices?.includes(_service.ref)
+      )
+        throw new HttpsError(
+          "permission-denied",
+          "User doesn't have permission to export the required service"
+        );
+    }
   }
 
   console.log(
@@ -54,12 +76,14 @@ export const exportToExcel = runWith({
       " for " +
       (data?.onlyClass
         ? "class: " + data?.onlyClass
+        : data?.onlyService
+        ? "service: " + data?.onlyService
         : "all data avaliable for the user")
   );
 
   const users = (await firestore().collection("Users").get()).docs.reduce(
     (map, obj) => {
-      map[obj.id] = obj.data().Name ?? "(غير معروف)";
+      map[obj.id] = obj.data()?.Name ? obj.data().Name : "(غير معروف)";
       return map;
     },
     {} as Record<string, string>
@@ -68,34 +92,68 @@ export const exportToExcel = runWith({
   const studyYears = (
     await firestore().collection("StudyYears").get()
   ).docs.reduce((map, obj) => {
-    map[obj.id] = obj.data().Name ?? "(غير معروف)";
+    map[obj.id] = obj.data()?.Name ? obj.data().Name : "(غير معروف)";
     return map;
   }, {} as Record<string, string>);
   const schools = (await firestore().collection("Schools").get()).docs.reduce(
     (map, obj) => {
-      map[obj.id] = obj.data().Name ?? "(غير معروف)";
+      map[obj.id] = obj.data()?.Name ? obj.data().Name : "(غير معروف)";
       return map;
     },
     {} as Record<string, string>
   );
   const churches = (await firestore().collection("Churches").get()).docs.reduce(
     (map, obj) => {
-      map[obj.id] = obj.data().Name ?? "(غير معروف)";
+      map[obj.id] = obj.data()?.Name ? obj.data().Name : "(غير معروف)";
       return map;
     },
     {} as Record<string, string>
   );
   const cfathers = (await firestore().collection("Fathers").get()).docs.reduce(
     (map, obj) => {
-      map[obj.id] = obj.data().Name ?? "(غير معروف)";
+      map[obj.id] = obj.data()?.Name ? obj.data().Name : "(غير معروف)";
       return map;
     },
     {} as Record<string, string>
   );
 
   let classes: Record<string, Record<string, any>> = {};
-  if (data?.onlyClass) {
-    const _classData = _class!.data() ?? {};
+  let services: Record<string, Record<string, any>> = {};
+
+  if (data?.onlyService) {
+    const _serviceData = _service!.data() ? _service!.data()! : {};
+
+    const rslt: Record<string, string | Date> = {};
+
+    rslt["Name"] = _serviceData["Name"];
+    rslt["ID"] = _service!.id;
+    rslt["Study Years: From"] =
+      studyYears[
+        (
+          _serviceData["StudyYearRange"]["From"] as firestore.DocumentReference
+        )?.id
+      ];
+    rslt["Study Years: To"] =
+      studyYears[
+        (
+          _serviceData["StudyYearRange"]["To"] as firestore.DocumentReference
+        )?.id
+      ];
+    rslt["Validity: From"] = (
+      _serviceData["Validity"]["From"] as firestore.Timestamp
+    )?.toDate();
+    rslt["Validity: To"] = (
+      _serviceData["Validity"]["To"] as firestore.Timestamp
+    )?.toDate();
+
+    rslt["Last Edit"] = users[_serviceData["LastEdit"]]
+      ? users[_serviceData["LastEdit"]]
+      : "";
+    rslt["Show In History"] = _serviceData["ShowInHistory"];
+
+    services[_service!.id] = rslt;
+  } else if (data?.onlyClass) {
+    const _classData = _class!.data() ? _class!.data()! : {};
 
     const rslt: Record<string, string> = {};
     rslt["Name"] = _classData["Name"];
@@ -109,11 +167,13 @@ export const exportToExcel = runWith({
         : _classData["Gender"] === false
         ? "بنات"
         : "(غير معروف)";
-    rslt["Last Edit"] = users[_classData["LastEdit"]] ?? "";
+    rslt["Last Edit"] = users[_classData["LastEdit"]]
+      ? users[_classData["LastEdit"]]
+      : "";
     rslt["Allowed Users"] =
       (_classData["Allowed"] as string[])
-        ?.map((u) => users[u] ?? "(غير معروف)")
-        ?.reduce((arr, o) => arr + "," + o) ?? "";
+        ?.map((u) => (users[u] ? users[u] : "(غير معروف)"))
+        ?.reduce((arr, o) => arr + "," + o, "") ?? "";
     classes[_class!.id] = rslt;
   } else {
     classes = (
@@ -137,45 +197,127 @@ export const exportToExcel = runWith({
           : c.data()["Gender"] === false
           ? "بنات"
           : "(غير معروف)";
-      rslt["Last Edit"] = users[c.data()["LastEdit"]] ?? "";
+      rslt["Last Edit"] = users[c.data()["LastEdit"]]
+        ? users[c.data()["LastEdit"]]
+        : "";
       rslt["Allowed Users"] =
         (c.data()["Allowed"] as string[])
-          ?.map((u) => users[u] ?? "(غير معروف)")
-          ?.reduce((arr, o) => arr + "," + o) ?? "";
+          ?.map((u) => (users[u] ? users[u] : "(غير معروف)"))
+          ?.reduce((arr, o) => arr + "," + o, "") ?? "";
 
       map[c.id] = rslt;
+      return map;
+    }, {});
+
+    services = (
+      currentUser.customClaims.superAccess
+        ? (await firestore().collection("Services").orderBy("Name").get()).docs
+        : await Promise.all(
+            (
+              userDocData?.AdminServices as Array<firestore.DocumentReference>
+            )?.map(async (r) => await r.get())
+          )
+    ).reduce<Record<string, Record<string, any>>>((map, s) => {
+      const rslt: Record<string, string | Date> = {};
+
+      rslt["Name"] = s.data()?.Name;
+      rslt["ID"] = _service!.id;
+      rslt["Study Years: From"] =
+        studyYears[
+          (s.data()?.StudyYearRange?.From as firestore.DocumentReference)?.id
+        ];
+      rslt["Study Years: To"] =
+        studyYears[
+          (s.data()?.StudyYearRange?.To as firestore.DocumentReference)?.id
+        ];
+      rslt["Validity: From"] = (
+        s.data()?.Validity?.From as firestore.Timestamp
+      )?.toDate();
+      rslt["Validity: To"] = (
+        s.data()?.Validity?.To as firestore.Timestamp
+      )?.toDate();
+
+      rslt["Last Edit"] = users[s.data()?.LastEdit]
+        ? users[s.data()?.LastEdit]
+        : "";
+      rslt["Show In History"] = s.data()?.ShowInHistory;
+
+      map[s.id] = rslt;
       return map;
     }, {});
   }
 
   const persons = (
-    data?.onlyClass
-      ? await firestore()
-          .collection("Persons")
-          .where("ClassId", "==", _class!.ref)
-          .orderBy("Name")
-          .get()
-      : currentUser.customClaims.superAccess
-      ? await firestore().collection("Persons").orderBy("Name").get()
-      : await firestore()
-          .collection("Persons")
-          .where(
-            "ClassId",
-            "in",
-            Object.keys(classes).map((a) =>
-              firestore().collection("Classes").doc(a)
+    data?.onlyService
+      ? (
+          await Promise.all(
+            split(Object.keys(services), 10).map(
+              async (chunk) =>
+                await firestore()
+                  .collection("Persons")
+                  .where(
+                    "Services",
+                    "array-contains-any",
+                    chunk.map((a) => firestore().collection("Services").doc(a))
+                  )
+                  .orderBy("Name")
+                  .get()
             )
           )
-          .orderBy("Name")
-          .get()
-  ).docs.reduce<Record<string, Record<string, any>>>((map, p) => {
+        ).reduce((ary, current) => {
+          ary.push(current);
+          return ary;
+        }, new Array<firestore.DocumentData>())
+      : data?.onlyClass
+      ? (
+          await firestore()
+            .collection("Persons")
+            .where("ClassId", "==", _class!.ref)
+            .orderBy("Name")
+            .get()
+        ).docs
+      : currentUser.customClaims.superAccess
+      ? (await firestore().collection("Persons").orderBy("Name").get()).docs
+      : (
+          await Promise.all(
+            split(Object.keys(classes), 10).map(
+              async (chunk) =>
+                await firestore()
+                  .collection("Persons")
+                  .where(
+                    "ClassId",
+                    "in",
+                    chunk.map((a) => firestore().collection("Classes").doc(a))
+                  )
+                  .orderBy("Name")
+                  .get()
+            )
+          )
+        ).reduce((ary, current) => {
+          ary.push(current);
+          return ary;
+        }, new Array<firestore.DocumentData>())
+  ).reduce<Record<string, Record<string, any>>>((map, p) => {
     const rslt: Record<string, string | Date> = {};
 
     rslt["ClassId"] = (p.data()["ClassId"] as firestore.DocumentReference)?.id;
+    rslt["Participant In Services"] =
+      (p.data()["Services"] as Array<firestore.DocumentReference>)
+        ?.map((s) =>
+          services[s.id]?.Name ? services[s.id].Name : "(غير معروف)"
+        )
+        ?.reduce((arr, o) => arr + "," + o, "") ?? "";
+    rslt["Services"] = JSON.stringify(
+      (p.data()["Services"] as Array<firestore.DocumentReference>)?.map(
+        (s) => s.id
+      )
+    );
     rslt["ID"] = p.id;
-    rslt["Class Name"] =
-      classes[(p.data()["ClassId"] as firestore.DocumentReference)?.id]?.Name ??
-      "(غير موجود)";
+    rslt["Class Name"] = classes[
+      (p.data()["ClassId"] as firestore.DocumentReference)?.id
+    ]?.Name
+      ? classes[(p.data()["ClassId"] as firestore.DocumentReference)?.id]?.Name
+      : "(غير موجود)";
     rslt["Name"] = p.data()["Name"];
     rslt["Color"] = p.data()["Color"];
     rslt["Phone Number"] = p.data()["Phone"];
@@ -189,7 +331,9 @@ export const exportToExcel = runWith({
           (p.data()["Location"] as firestore.GeoPoint).latitude
         }`
       : "";
-    rslt["Birth Date"] = (p.data()["BirthDate"] as Timestamp)?.toDate() ?? "";
+    rslt["Birth Date"] = (p.data()["BirthDate"] as Timestamp)?.toDate()
+      ? (p.data()["BirthDate"] as Timestamp)?.toDate()
+      : "";
     rslt["Study Year"] = classes[
       (p.data()["ClassId"] as firestore.DocumentReference)?.id
     ]
@@ -206,22 +350,40 @@ export const exportToExcel = runWith({
     rslt["Confession Father"] =
       cfathers[(p.data()["CFather"] as firestore.DocumentReference)?.id];
 
-    rslt["Last Tanawol"] =
-      (p.data()["LastTanawol"] as Timestamp)?.toDate() ?? "";
-    rslt["Last Confession"] =
-      (p.data()["LastConfession"] as Timestamp)?.toDate() ?? "";
-    rslt["Last Kodas"] = (p.data()["LastKodas"] as Timestamp)?.toDate() ?? "";
-    rslt["Last Meeting"] =
-      (p.data()["LastMeeting"] as Timestamp)?.toDate() ?? "";
-    rslt["Last Call"] = (p.data()["LastCall"] as Timestamp)?.toDate() ?? "";
-    rslt["Last Visit"] = (p.data()["LastVisit"] as Timestamp)?.toDate() ?? "";
-    rslt["Last Edit"] = users[p.data()["LastEdit"]] ?? "";
+    rslt["Last Tanawol"] = (p.data()["LastTanawol"] as Timestamp)?.toDate()
+      ? (p.data()["LastTanawol"] as Timestamp)?.toDate()
+      : "";
+    rslt["Last Confession"] = (
+      p.data()["LastConfession"] as Timestamp
+    )?.toDate()
+      ? (p.data()["LastConfession"] as Timestamp)?.toDate()
+      : "";
+    rslt["Last Kodas"] = (p.data()["LastKodas"] as Timestamp)?.toDate()
+      ? (p.data()["LastKodas"] as Timestamp)?.toDate()
+      : "";
+    rslt["Last Meeting"] = (p.data()["LastMeeting"] as Timestamp)?.toDate()
+      ? (p.data()["LastMeeting"] as Timestamp)?.toDate()
+      : "";
+    rslt["Last Call"] = (p.data()["LastCall"] as Timestamp)?.toDate()
+      ? (p.data()["LastCall"] as Timestamp)?.toDate()
+      : "";
+    rslt["Last Visit"] = (p.data()["LastVisit"] as Timestamp)?.toDate()
+      ? (p.data()["LastVisit"] as Timestamp)?.toDate()
+      : "";
+    rslt["Last Edit"] = users[p.data()["LastEdit"]]
+      ? users[p.data()["LastEdit"]]
+      : "";
 
     map[p.id] = rslt;
     return map;
   }, {});
 
   const book = utils.book_new();
+  utils.book_append_sheet(
+    book,
+    utils.json_to_sheet(Object.values(services)),
+    "Services"
+  );
   utils.book_append_sheet(
     book,
     utils.json_to_sheet(Object.values(classes)),
@@ -255,7 +417,7 @@ export const importFromExcel = runWith({
   if (!currentUser.customClaims?.approved || !currentUser.customClaims?.write) {
     throw new HttpsError(
       "permission-denied",
-      'Must be approved user with "write" permission'
+      "Must be approved user with 'write' permission"
     );
   }
 
@@ -292,7 +454,7 @@ export const importFromExcel = runWith({
 
   const users = (await firestore().collection("Users").get()).docs.reduce(
     (map, obj) => {
-      map[obj.data().Name] = obj.id ?? "(غير معروف)";
+      map[obj.data().Name] = obj.id ? obj.id : "(غير معروف)";
       return map;
     },
     {} as Record<string, any>
@@ -300,26 +462,26 @@ export const importFromExcel = runWith({
   const studyYears = (
     await firestore().collection("StudyYears").get()
   ).docs.reduce((map, obj) => {
-    map[obj.data().Name] = obj.id ?? "(غير معروف)";
+    map[obj.data().Name] = obj.id ? obj.id : "(غير معروف)";
     return map;
   }, {} as Record<string, any>);
   const schools = (await firestore().collection("Schools").get()).docs.reduce(
     (map, obj) => {
-      map[obj.data().Name] = obj.id ?? "(غير معروف)";
+      map[obj.data().Name] = obj.id ? obj.id : "(غير معروف)";
       return map;
     },
     {} as Record<string, any>
   );
   const churches = (await firestore().collection("Churches").get()).docs.reduce(
     (map, obj) => {
-      map[obj.data().Name] = obj.id ?? "(غير معروف)";
+      map[obj.data().Name] = obj.id ? obj.id : "(غير معروف)";
       return map;
     },
     {} as Record<string, any>
   );
   const cfathers = (await firestore().collection("Fathers").get()).docs.reduce(
     (map, obj) => {
-      map[obj.data().Name] = obj.id ?? "(غير معروف)";
+      map[obj.data().Name] = obj.id ? obj.id : "(غير معروف)";
       return map;
     },
     {} as Record<string, any>
@@ -339,7 +501,7 @@ export const importFromExcel = runWith({
 
         const allowed = (c["Allowed Users"] as string)
           ?.split(",")
-          .map((u) => users[u]) ?? [context.auth!.uid];
+          ?.map((u) => users[u]) ?? [context.auth!.uid];
         if (!allowed.includes(context.auth!.uid))
           allowed.push(context.auth!.uid);
 
@@ -360,7 +522,9 @@ export const importFromExcel = runWith({
             : c["Class Gender"] === "بنات"
             ? false
             : null;
-        rslt["LastEdit"] = users[c["Last Edit"] as string] ?? "";
+        rslt["LastEdit"] = users[c["Last Edit"] as string]
+          ? users[c["Last Edit"] as string]
+          : "";
         rslt["Allowed"] =
           currentUser.customClaims?.manageUsers ||
           currentUser.customClaims?.manageAllowedUsers
@@ -374,19 +538,25 @@ export const importFromExcel = runWith({
     );
   const persons = utils
     .sheet_to_json(book.Sheets["Persons"])
-    .reduce<Array<Record<string, string | Record<string, any>>>>(
+    .reduce<Array<Record<string, string | number | Record<string, any>>>>(
       (arry, currentPerson) => {
         const rslt: Record<string, any> = {};
-        const person: Record<string, any> = {};
+        const person = currentPerson as Record<
+          string,
+          string | number | Record<string, any>
+        >;
 
         rslt["ClassId"] = firestore()
           .collection("Classes")
-          .doc(person["ClassId"]);
+          .doc(person["ClassId"] as string);
         rslt["Name"] = person["Name"];
         rslt["Phone"] = person["Phone Number"];
         rslt["FatherPhone"] = person["Father Phone Number"];
         rslt["MotherPhone"] = person["Mother Phone Number"];
         rslt["Phones"] = {};
+        rslt["Services"] = JSON.parse(person["Services"] as string, (k, v) =>
+          firestore().collection("Services").doc(v)
+        );
 
         rslt["Address"] = person["Address"];
         rslt["Color"] = person["Color"];
@@ -419,13 +589,25 @@ export const importFromExcel = runWith({
           : null;
         rslt["School"] = firestore()
           .collection("Schools")
-          .doc(schools[person["School"]] ?? "null");
+          .doc(
+            schools[person["School"] as string]
+              ? schools[person["School"] as string]
+              : "null"
+          );
         rslt["Church"] = firestore()
           .collection("Churches")
-          .doc(churches[person["Church"]] ?? "null");
+          .doc(
+            churches[person["Church"] as string]
+              ? churches[person["Church"] as string]
+              : "null"
+          );
         rslt["CFather"] = firestore()
           .collection("Fathers")
-          .doc(cfathers[person["Confession Father"]] ?? "null");
+          .doc(
+            cfathers[person["Confession Father"] as string]
+              ? cfathers[person["Confession Father"] as string]
+              : "null"
+          );
 
         setTimestampProp("LastTanawol", "Last Tanawol");
         setTimestampProp("LastConfession", "Last Confession");
@@ -433,7 +615,7 @@ export const importFromExcel = runWith({
         setTimestampProp("LastMeeting", "Last Meeting");
         setTimestampProp("LastCall", "Last Call");
         setTimestampProp("LastVisit", "Last Visit");
-        rslt["LastEdit"] = users[person["Last Edit"]];
+        rslt["LastEdit"] = users[person["Last Edit"] as string];
 
         //Remove all known fields and keep others as phone numbers
         Object.assign(rslt["Phones"], person);
@@ -461,6 +643,8 @@ export const importFromExcel = runWith({
         delete rslt["Phones"]["Last Call"];
         delete rslt["Phones"]["Last Visit"];
         delete rslt["Phones"]["Last Edit"];
+        delete rslt["Phones"]["Services"];
+        delete rslt["Phones"]["Participant In Services"];
 
         for (const key in rslt["Phones"]) {
           rslt["Phones"][key] = `${rslt["Phones"][key]}`;
@@ -484,13 +668,13 @@ export const importFromExcel = runWith({
         firestore()
           .collection("Classes")
           .doc(item["ID"] as string),
-        item["data"] as Object,
+        item["data"] as Record<string, any>,
         { merge: true }
       );
     } else {
       batch.create(
         firestore().collection("Classes").doc(),
-        item["data"] as Object
+        item["data"] as Record<string, any>
       );
     }
     batchCount++;
@@ -506,13 +690,13 @@ export const importFromExcel = runWith({
         firestore()
           .collection("Persons")
           .doc(item["ID"] as string),
-        item["data"] as Object,
+        item["data"] as Record<string, any>,
         { merge: true }
       );
     } else {
       batch.create(
         firestore().collection("Persons").doc(),
-        item["data"] as Object
+        item["data"] as Record<string, any>
       );
     }
     batchCount++;
@@ -535,4 +719,15 @@ function dateFromExcelSerial(param: number): Date {
       Math.ceil(date < 1.0 ? date : date % Math.floor(date)) * 24 * 60 * 60
     )
   );
+}
+
+function split<T>(arry: Array<T>, length: number): Array<Array<T>> {
+  const chunks: Array<Array<T>> = [];
+
+  for (let i = 0; i < arry.length; i++) {
+    chunks.push(
+      arry.splice(i, i + length > arry.length ? arry.length : i + length)
+    );
+  }
+  return chunks;
 }

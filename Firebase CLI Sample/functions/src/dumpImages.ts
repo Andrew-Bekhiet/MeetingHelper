@@ -8,11 +8,35 @@ export const dumpImages = runWith({
   timeoutSeconds: 540,
 }).https.onCall(async (data) => {
   if (data.AdminPassword !== adminPassword) return null;
-  const classId: String = data.classId;
-  const persons: Array<String> = data.persons;
+  const serviceId: string = data.serviceId;
+  const classId: string = data.classId;
+  const persons: Array<string> = data.persons;
+
   const _linkExpiry = new Date();
   _linkExpiry.setHours(_linkExpiry.getHours() + 1);
-  if (classId) {
+  if (serviceId) {
+    const ids = await firestore()
+      .collection("Persons")
+      .where(
+        "Services",
+        "array-contains",
+        firestore().collection("Services").doc(serviceId.toString())
+      )
+      .get();
+    for (const item of ids.docs) {
+      if (!item.data()["HasPhoto"]) continue;
+      console.log("Downloading " + item.id + ", Name: " + item.data()["Name"]);
+      await download(
+        (
+          await storage()
+            .bucket()
+            .file("PersonsPhotos/" + item.id)
+            .getSignedUrl({ action: "read", expires: _linkExpiry })
+        )[0],
+        "/tmp/"
+      );
+    }
+  } else if (classId) {
     const ids = await firestore()
       .collection("Persons")
       .where(

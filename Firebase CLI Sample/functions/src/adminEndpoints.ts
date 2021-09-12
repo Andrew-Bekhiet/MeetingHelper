@@ -5,7 +5,6 @@ import { auth, firestore, database, messaging } from "firebase-admin";
 import { assertNotEmpty, getFCMTokensForUser } from "./common";
 import { adminPassword } from "./adminPassword";
 import { Timestamp } from "@google-cloud/firestore";
-import { HttpsError } from "firebase-functions/v1/https";
 
 export const getUsers = https.onCall(async (data, context) => {
   if (context.auth === undefined) {
@@ -34,7 +33,7 @@ export const getUsers = https.onCall(async (data, context) => {
         return !user.disabled;
       })
       .map((user) => {
-        const customClaims = user.customClaims ?? {};
+        const customClaims = user.customClaims ? user.customClaims : {};
         delete customClaims.password;
         return Object.assign(customClaims, {
           uid: user.uid,
@@ -57,7 +56,7 @@ export const getUsers = https.onCall(async (data, context) => {
     return (await auth().listUsers()).users
       .filter((user) => !user.disabled && allowedUsers.includes(user.uid))
       .map((user) => {
-        const customClaims = user.customClaims ?? {};
+        const customClaims = user.customClaims ? user.customClaims : {};
         delete customClaims.password;
         return Object.assign(customClaims, {
           uid: user.uid,
@@ -75,7 +74,8 @@ export const getUsers = https.onCall(async (data, context) => {
 });
 
 export const approveUser = https.onCall(async (data, context) => {
-  if (!context.auth) throw new HttpsError("unauthenticated", "unauthenticated");
+  if (!context.auth)
+    throw new https.HttpsError("unauthenticated", "unauthenticated");
 
   const currentUser = await auth().getUser(context.auth.uid);
   if (
@@ -87,9 +87,9 @@ export const approveUser = https.onCall(async (data, context) => {
     if (!user.customClaims?.personId) {
       console.error("User " + data.affectedUser + " doesn't have personId");
       console.log(user);
-      throw new HttpsError("internal", "Internal error");
+      throw new https.HttpsError("internal", "Internal error");
     }
-    const newClaims = user.customClaims ?? {};
+    const newClaims = user.customClaims ? user.customClaims : {};
     newClaims.approved = true;
     await auth().setCustomUserClaims(user.uid, newClaims);
     await database()
@@ -117,7 +117,8 @@ export const approveUser = https.onCall(async (data, context) => {
 });
 
 export const unApproveUser = https.onCall(async (data, context) => {
-  if (!context.auth) throw new HttpsError("unauthenticated", "unauthenticated");
+  if (!context.auth)
+    throw new https.HttpsError("unauthenticated", "unauthenticated");
 
   const currentUser = await auth().getUser(context.auth.uid);
   if (
@@ -147,13 +148,13 @@ export const unApproveUser = https.onCall(async (data, context) => {
       superAccess: false, //Can read everything
       write: true, //Can write avalibale data
       secretary: false, //Can write servants history
-      exportClasses: true, //Can Export individual Classes to Excel sheet
+      export: true, //Can Export individual Classes to Excel sheet
       birthdayNotify: true, //Can receive Birthday notifications
       confessionsNotify: true,
       tanawolNotify: true,
       kodasNotify: true,
       meetingNotify: true,
-      approveLocations: false,
+      visitNotify: true,
       approved: false, //A User with 'Manage Users' permission must approve new users
       lastConfession: null, //Last Confession in millis for the user
       lastTanawol: null, //Last Tanawol in millis for the user
@@ -175,7 +176,8 @@ export const unApproveUser = https.onCall(async (data, context) => {
 });
 
 export const deleteUser = https.onCall(async (data, context) => {
-  if (!context.auth) throw new HttpsError("unauthenticated", "unauthenticated");
+  if (!context.auth)
+    throw new https.HttpsError("unauthenticated", "unauthenticated");
   const currentUser = await auth().getUser(context.auth.uid);
   if (
     currentUser.customClaims?.approved &&
@@ -197,9 +199,6 @@ export const deleteUser = https.onCall(async (data, context) => {
     assertNotEmpty("affectedUser", data.affectedUser, typeof "");
     await auth().getUser(data.affectedUser);
     await auth().deleteUser(data.affectedUser);
-    await firestore()
-      .doc("Users/" + data.affectedUser)
-      .delete();
     return "OK";
   }
   throw new https.HttpsError(
@@ -209,7 +208,8 @@ export const deleteUser = https.onCall(async (data, context) => {
 });
 
 export const resetPassword = https.onCall(async (data, context) => {
-  if (!context.auth) throw new HttpsError("unauthenticated", "unauthenticated");
+  if (!context.auth)
+    throw new https.HttpsError("unauthenticated", "unauthenticated");
   const currentUser = await auth().getUser(context.auth.uid);
   if (
     currentUser.customClaims?.approved &&
@@ -230,7 +230,7 @@ export const resetPassword = https.onCall(async (data, context) => {
   ) {
     assertNotEmpty("affectedUser", data.affectedUser, typeof "");
     const user = await auth().getUser(data.affectedUser);
-    const newClaims = user.customClaims ?? {};
+    const newClaims = user.customClaims ? user.customClaims : {};
     newClaims.password = null;
     await auth().setCustomUserClaims(user.uid, newClaims);
     await database()
@@ -246,7 +246,8 @@ export const resetPassword = https.onCall(async (data, context) => {
 });
 
 export const updatePermissions = https.onCall(async (data, context) => {
-  if (!context.auth) throw new HttpsError("unauthenticated", "unauthenticated");
+  if (!context.auth)
+    throw new https.HttpsError("unauthenticated", "unauthenticated");
   const currentUser = await auth().getUser(context.auth.uid);
   if (
     currentUser.customClaims?.approved &&
@@ -303,6 +304,12 @@ export const updatePermissions = https.onCall(async (data, context) => {
         data.permissions.secretary,
         typeof true
       );
+    if (data.permissions.changeHistory !== undefined)
+      assertNotEmpty(
+        "permissions.changeHistory",
+        data.permissions.changeHistory,
+        typeof true
+      );
     if (data.permissions.approveLocations !== undefined)
       assertNotEmpty(
         "permissions.approveLocations",
@@ -332,11 +339,11 @@ export const updatePermissions = https.onCall(async (data, context) => {
     if (!user.customClaims?.personId) {
       console.error("User " + data.affectedUser + " doesn't have personId");
       console.log(user);
-      throw new HttpsError("internal", "Internal error");
+      throw new https.HttpsError("internal", "Internal error");
     }
 
     const newPermissions: Record<string, any> = {};
-    const oldPermissions = user.customClaims ?? {};
+    const oldPermissions = user.customClaims ? user.customClaims : {};
 
     console.log(oldPermissions);
     console.log(newPermissions);
@@ -362,11 +369,10 @@ export const updatePermissions = https.onCall(async (data, context) => {
       data.permissions.confessionsNotify !== undefined
         ? data.permissions.confessionsNotify
         : oldPermissions.confessionsNotify;
-    newPermissions["exportClasses"] =
-      data.permissions.exportClasses !== null &&
-      data.permissions.exportClasses !== undefined
-        ? data.permissions.exportClasses
-        : oldPermissions.exportClasses;
+    newPermissions["export"] =
+      data.permissions.export !== null && data.permissions.export !== undefined
+        ? data.permissions.export
+        : oldPermissions.export;
     newPermissions["kodasNotify"] =
       data.permissions.kodasNotify !== null &&
       data.permissions.kodasNotify !== undefined
@@ -392,11 +398,21 @@ export const updatePermissions = https.onCall(async (data, context) => {
       data.permissions.meetingNotify !== undefined
         ? data.permissions.meetingNotify
         : oldPermissions.meetingNotify;
+    newPermissions["visitNotify"] =
+      data.permissions.visitNotify !== null &&
+      data.permissions.visitNotify !== undefined
+        ? data.permissions.visitNotify
+        : oldPermissions.visitNotify;
     newPermissions["secretary"] =
       data.permissions.secretary !== null &&
       data.permissions.secretary !== undefined
         ? data.permissions.secretary
         : oldPermissions.secretary;
+    newPermissions["changeHistory"] =
+      data.permissions.changeHistory !== null &&
+      data.permissions.changeHistory !== undefined
+        ? data.permissions.changeHistory
+        : oldPermissions.changeHistory;
     newPermissions["superAccess"] =
       data.permissions.superAccess !== null &&
       data.permissions.superAccess !== undefined
@@ -558,7 +574,7 @@ export const tempUpdateUserData = https.onCall(async (data) => {
     const user = await auth().getUser(data.affectedUser);
 
     const newPermissions = data.permissions;
-    const oldPermissions = user.customClaims ?? {};
+    const oldPermissions = user.customClaims ? user.customClaims : {};
 
     newPermissions["approved"] =
       data.permissions.approved ?? user.customClaims?.approved ?? false;
@@ -570,10 +586,8 @@ export const tempUpdateUserData = https.onCall(async (data) => {
       data.permissions.confessionsNotify ??
       user.customClaims?.confessionsNotify ??
       false;
-    newPermissions["exportClasses"] =
-      data.permissions.exportClasses ??
-      user.customClaims?.exportClasses ??
-      false;
+    newPermissions["export"] =
+      data.permissions.export ?? user.customClaims?.export ?? false;
     newPermissions["kodasNotify"] =
       data.permissions.kodasNotify ?? user.customClaims?.kodasNotify ?? false;
     newPermissions["manageAllowedUsers"] =
@@ -590,6 +604,8 @@ export const tempUpdateUserData = https.onCall(async (data) => {
       data.permissions.meetingNotify ??
       user.customClaims?.meetingNotify ??
       false;
+    newPermissions["visitNotify"] =
+      data.permissions.visitNotify ?? user.customClaims?.visitNotify ?? false;
     newPermissions["secretary"] =
       data.permissions.secretary ?? user.customClaims?.secretary ?? false;
     newPermissions["superAccess"] =
@@ -680,9 +696,9 @@ function toCamel(o: any): any {
       return invalue;
     });
   } else {
-    let newO: Record<string, any> = {};
+    const newO: Record<string, any> = {};
     for (origKey in o) {
-      if (o.hasOwnProperty(origKey)) {
+      if (Object.prototype.hasOwnProperty.call(o, origKey)) {
         newKey = (
           origKey.charAt(0).toUpperCase() + origKey.slice(1) || origKey
         ).toString();

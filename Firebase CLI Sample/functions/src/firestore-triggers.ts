@@ -18,7 +18,9 @@ export const onClassUpdated = firestore_1
       if (changeType === "update" || changeType === "create") {
         const batch = firestore().batch();
         batch.create(change.after.ref.collection("EditHistory").doc(), {
-          By: change.after.data()!.LastEdit,
+          By: change.after.data()!.LastEdit
+            ? change.after.data()!.LastEdit
+            : null,
           Time: FieldValue.serverTimestamp(),
           ClassId: change.after.ref,
         });
@@ -56,8 +58,9 @@ export const onClassUpdated = firestore_1
           .collection("Classes")
           .doc(change.before.id)
           .set(change.before.data()!);
+        await pendingChanges.commit();
         if (
-          storage()
+          await storage()
             .bucket()
             .file("ClassesPhotos/" + change.before.id)
             .exists()
@@ -66,12 +69,60 @@ export const onClassUpdated = firestore_1
             .bucket()
             .file("ClassesPhotos/" + change.before.id)
             .move("Deleted/" + dayID + "/ClassesPhotos/" + change.before.id);
-        return pendingChanges.commit();
       }
     } catch (err) {
       console.error(err);
       console.error(
         `Error occured while executing Class.onWrite on Class: ${
+          change.after.data()?.Name
+        }, ${change.after.id}`
+      );
+    }
+    return null;
+  });
+
+export const onServiceUpdated = firestore_1
+  .document("Services/{service}")
+  .onWrite(async (change) => {
+    try {
+      const changeType = getChangeType(change);
+      if (changeType === "update" || changeType === "create") {
+        const batch = firestore().batch();
+        batch.create(change.after.ref.collection("EditHistory").doc(), {
+          By: change.after.data()!.LastEdit
+            ? change.after.data()!.LastEdit
+            : null,
+          Time: FieldValue.serverTimestamp(),
+          Services: [change.after.ref],
+        });
+        return await batch.commit();
+      } else {
+        const dayID = new Date().toISOString().split("T")[0];
+        await firestore()
+          .collection("Deleted")
+          .doc(dayID)
+          .set({ Time: Timestamp.now() });
+        await firestore()
+          .collection("Deleted")
+          .doc(dayID)
+          .collection("Services")
+          .doc(change.before.id)
+          .set(change.before.data()!);
+        if (
+          await storage()
+            .bucket()
+            .file("ServicesPhotos/" + change.before.id)
+            .exists()
+        )
+          await storage()
+            .bucket()
+            .file("ServicesPhotos/" + change.before.id)
+            .move("Deleted/" + dayID + "/ServicesPhotos/" + change.before.id);
+      }
+    } catch (err) {
+      console.error(err);
+      console.error(
+        `Error occured while executing Service.onWrite on Service: ${
           change.after.data()?.Name
         }, ${change.after.id}`
       );
@@ -89,16 +140,6 @@ export const onPersonUpdated = firestore_1
           .collection("Deleted")
           .doc(dayID)
           .set({ Time: Timestamp.now() });
-        if (
-          storage()
-            .bucket()
-            .file("PersonsPhotos/" + change.before.id)
-            .exists()
-        )
-          await storage()
-            .bucket()
-            .file("PersonsPhotos/" + change.before.id)
-            .move("Deleted/" + dayID + "/PersonsPhotos/" + change.before.id);
         await firestore()
           .collection("Deleted")
           .doc(dayID)
@@ -138,6 +179,16 @@ export const onPersonUpdated = firestore_1
           deleteBatch.delete(historyToDelete[i].ref);
         }
         await deleteBatch.commit();
+        if (
+          await storage()
+            .bucket()
+            .file("PersonsPhotos/" + change.before.id)
+            .exists()
+        )
+          await storage()
+            .bucket()
+            .file("PersonsPhotos/" + change.before.id)
+            .move("Deleted/" + dayID + "/PersonsPhotos/" + change.before.id);
         return "OK";
       }
 
@@ -147,10 +198,15 @@ export const onPersonUpdated = firestore_1
         (change.before?.data()?.LastVisit as Timestamp)?.seconds
       ) {
         batch.create(change.after.ref.collection("VisitHistory").doc(), {
-          By: change.after.data()?.LastEdit,
+          By: change.after.data()?.LastEdit
+            ? change.after.data()?.LastEdit
+            : null,
           Time: change.after.data()?.LastVisit,
           ClassId: change.after.data()?.ClassId,
           PersonId: change.after.ref,
+          Services: change.after.data()?.Services
+            ? change.after.data()?.Services
+            : null,
         });
       }
       if (
@@ -161,6 +217,9 @@ export const onPersonUpdated = firestore_1
           Time: change.after.data()?.LastConfession,
           ClassId: change.after.data()?.ClassId,
           PersonId: change.after.ref,
+          Services: change.after.data()?.Services
+            ? change.after.data()?.Services
+            : null,
         });
       }
       if (
@@ -168,17 +227,27 @@ export const onPersonUpdated = firestore_1
         (change.before?.data()?.LastCall as Timestamp)?.seconds
       ) {
         batch.create(change.after.ref.collection("CallHistory").doc(), {
-          By: change.after.data()?.LastEdit,
+          By: change.after.data()?.LastEdit
+            ? change.after.data()?.LastEdit
+            : null,
           Time: change.after.data()?.LastCall,
           ClassId: change.after.data()?.ClassId,
           PersonId: change.after.ref,
+          Services: change.after.data()?.Services
+            ? change.after.data()?.Services
+            : null,
         });
       }
       batch.create(change.after.ref.collection("EditHistory").doc(), {
-        By: change.after.data()?.LastEdit,
+        By: change.after.data()?.LastEdit
+          ? change.after.data()?.LastEdit
+          : null,
         Time: FieldValue.serverTimestamp(),
         ClassId: change.after.data()?.ClassId,
         PersonId: change.after.ref,
+        Services: change.after.data()?.Services
+          ? change.after.data()?.Services
+          : null,
       });
 
       batch.update(change.after.data()?.ClassId, {
@@ -198,7 +267,7 @@ export const onPersonUpdated = firestore_1
         let batchCount = 0;
 
         let snapshot: firestore.QuerySnapshot<firestore.DocumentData>;
-        for (const collection of ["Meeting", "Tanawol", "Kodas"]) {
+        for (const collection of ["Meeting", "Kodas"]) {
           snapshot = await firestore()
             .collectionGroup(collection)
             .where("ID", "==", change.after.id)
@@ -311,10 +380,15 @@ export const onUserUpdated = firestore_1
         (change.before?.data()?.LastVisit as Timestamp)?.seconds
       ) {
         batch.create(change.after.ref.collection("VisitHistory").doc(), {
-          By: change.after.data()?.LastEdit,
+          By: change.after.data()?.LastEdit
+            ? change.after.data()?.LastEdit
+            : null,
           Time: change.after.data()?.LastVisit,
           ClassId: change.after.data()?.ClassId,
           PersonId: change.after.ref,
+          Services: change.after.data()?.Services
+            ? change.after.data()?.Services
+            : null,
         });
       }
       if (
@@ -325,6 +399,9 @@ export const onUserUpdated = firestore_1
           Time: change.after.data()?.LastConfession,
           ClassId: change.after.data()?.ClassId,
           PersonId: change.after.ref,
+          Services: change.after.data()?.Services
+            ? change.after.data()?.Services
+            : null,
         });
       }
       if (
@@ -332,23 +409,34 @@ export const onUserUpdated = firestore_1
         (change.before?.data()?.LastCall as Timestamp)?.seconds
       ) {
         batch.create(change.after.ref.collection("CallHistory").doc(), {
-          By: change.after.data()?.LastEdit,
+          By: change.after.data()?.LastEdit
+            ? change.after.data()?.LastEdit
+            : null,
           Time: change.after.data()?.LastCall,
           ClassId: change.after.data()?.ClassId,
           PersonId: change.after.ref,
+          Services: change.after.data()?.Services
+            ? change.after.data()?.Services
+            : null,
         });
       }
       batch.create(change.after.ref.collection("EditHistory").doc(), {
-        By: change.after.data()?.LastEdit,
+        By: change.after.data()?.LastEdit
+          ? change.after.data()?.LastEdit
+          : null,
         Time: FieldValue.serverTimestamp(),
         ClassId: change.after.data()?.ClassId,
         PersonId: change.after.ref,
+        Services: change.after.data()?.Services
+          ? change.after.data()?.Services
+          : null,
       });
 
-      batch.update(change.after.data()?.ClassId, {
-        LastEdit: change.after.data()?.LastEdit,
-        LastEditTime: FieldValue.serverTimestamp(),
-      });
+      if (change.after.data()?.ClassId)
+        batch.update(change.after.data()?.ClassId, {
+          LastEdit: change.after.data()?.LastEdit,
+          LastEditTime: FieldValue.serverTimestamp(),
+        });
       await batch.commit();
 
       if (
@@ -363,7 +451,7 @@ export const onUserUpdated = firestore_1
         let batchCount = 0;
 
         let snapshot: firestore.QuerySnapshot<firestore.DocumentData>;
-        for (const collection of ["Meeting", "Tanawol", "Kodas"]) {
+        for (const collection of ["Meeting", "Kodas"]) {
           snapshot = await firestore()
             .collectionGroup(collection)
             .where("ID", "==", change.after.id)
@@ -431,11 +519,18 @@ export const onHistoryRecordWrite = firestore_1
       const data: Record<string, any> = {
         LastEdit: change.after.data()?.RecordedBy,
       };
-      data["Last" + context.params.type] = change.after.data()?.Time;
+
+      if (context.params.type == "Meeting" || context.params.type == "Kodas")
+        data["Last" + context.params.type] = change.after.data()?.Time;
+      else {
+        data["Last"] = {};
+        data["Last"][context.params.type] = change.after.data()?.Time;
+      }
+
       return await firestore()
         .collection("Persons")
         .doc(change.after.data()?.ID)
-        .update(data);
+        .set(data, { merge: true });
     } else {
       const batch = firestore().batch();
       const queryRes = await firestore()
@@ -457,13 +552,24 @@ export const onHistoryRecordWrite = firestore_1
         LastEdit: queryRes.docs[1].data()?.By,
       };
       if (queryRes2.empty) {
-        data["Last" + context.params.type] = null;
+        if (context.params.type == "Meeting" || context.params.type == "Kodas")
+          data["Last" + context.params.type] = null;
+        else {
+          data["Last"] = {};
+          data["Last"][context.params.type] = null;
+        }
       } else {
-        data["Last" + context.params.type] = queryRes2.docs[0].data()?.Time;
+        if (context.params.type == "Meeting" || context.params.type == "Kodas")
+          data["Last" + context.params.type] = queryRes2.docs[0].data()?.Time;
+        else {
+          data["Last"] = {};
+          data["Last"][context.params.type] = queryRes2.docs[0].data()?.Time;
+        }
       }
-      batch.update(
+      batch.set(
         firestore().collection("Persons").doc(change.before.data()?.ID),
-        data
+        data,
+        { merge: true }
       );
       return await batch.commit();
     }
@@ -473,7 +579,7 @@ export const onServantsHistoryRecordWrite = firestore_1
   .document("ServantsHistory/{day}/{type}/{doc}")
   .onWrite(async (change, context) => {
     const currentUser = await auth().getUser(
-      change.after?.id ?? change.before.id
+      change.after?.id ? change.after?.id : change.before.id
     );
     if (getChangeType(change) !== "delete") {
       if (
@@ -493,11 +599,17 @@ export const onServantsHistoryRecordWrite = firestore_1
       const data: Record<string, any> = {
         LastEdit: change.after.data()?.RecordedBy,
       };
-      data["Last" + context.params.type] = change.after.data()?.Time;
+      if (context.params.type == "Meeting" || context.params.type == "Kodas")
+        data["Last" + context.params.type] = change.after.data()?.Time;
+      else {
+        data["Last"] = {};
+        data["Last"][context.params.type] = change.after.data()?.Time;
+      }
+
       return await firestore()
         .collection("UsersData")
         .doc(currentUser.customClaims!.personId)
-        .update(data);
+        .set(data, { merge: true });
     } else {
       const batch = firestore().batch();
       const queryRes = await firestore()
@@ -519,15 +631,24 @@ export const onServantsHistoryRecordWrite = firestore_1
         LastEdit: queryRes.docs[1].data()?.By,
       };
       if (queryRes2.empty) {
-        data["Last" + context.params.type] = null;
+        if (context.params.type == "Meeting" || context.params.type == "Kodas")
+          data["Last" + context.params.type] = null;
+        else {
+          data["Last"] = {};
+          data["Last"][context.params.type] = null;
+        }
       } else {
-        data["Last" + context.params.type] = queryRes2.docs[0].data()?.Time;
+        if (context.params.type == "Meeting" || context.params.type == "Kodas")
+          data["Last" + context.params.type] = queryRes2.docs[0].data()?.Time;
+        else {
+          data["Last"] = {};
+          data["Last"][context.params.type] = queryRes2.docs[0].data()?.Time;
+        }
       }
-      batch.update(
-        firestore()
-          .collection("UsersData")
-          .doc(currentUser.customClaims!.personId),
-        data
+      batch.set(
+        firestore().collection("Persons").doc(change.before.data()?.ID),
+        data,
+        { merge: true }
       );
       return await batch.commit();
     }

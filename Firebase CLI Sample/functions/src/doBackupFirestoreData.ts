@@ -1,13 +1,13 @@
 import { pubsub } from "firebase-functions";
 import { storage, firestore } from "firebase-admin";
+import { v1 } from "@google-cloud/firestore";
 
 export const doBackupFirestoreData = pubsub
   .schedule("0 0 * * 0")
   .onRun(async () => {
-    const gcp_firestore = require("@google-cloud/firestore");
-    const client = new gcp_firestore.v1.FirestoreAdminClient();
+    const client = new v1.FirestoreAdminClient();
     const projectId = process.env.GCP_PROJECT || process.env.GCLOUD_PROJECT;
-    const databaseName = client.databasePath(projectId, "(default)");
+    const databaseName = client.databasePath(projectId!, "(default)");
     const timestamp = new Date().toISOString();
 
     console.log(

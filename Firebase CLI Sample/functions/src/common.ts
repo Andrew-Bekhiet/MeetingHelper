@@ -19,7 +19,7 @@ export function assertNotEmpty(
   varName: string,
   variable: string,
   typeDef: string
-) {
+): void {
   if (
     variable === null ||
     variable === undefined ||

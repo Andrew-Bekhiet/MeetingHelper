@@ -1,5 +1,6 @@
 import { https } from "firebase-functions";
-
+import { SHA3 } from "sha3";
+import * as nf from "node-fetch";
 import { auth, firestore, database, storage, messaging } from "firebase-admin";
 import {
   Timestamp,
@@ -23,8 +24,8 @@ export const registerWithLink = https.onCall(async (data, context) => {
   assertNotEmpty("link", data.link, typeof "");
   if ((data.link as string).startsWith("https://meetinghelper.page.link")) {
     const deeplink = (
-      await require("node-fetch")(data.link, { redirect: "manual" })
-    ).headers.get("location");
+      await nf.default(data.link, { redirect: "manual" })
+    ).headers.get("location")!;
     const id = deeplink.replace(
       "https://meetinghelper.com/register?InvitationId=",
       ""
@@ -43,7 +44,21 @@ export const registerWithLink = https.onCall(async (data, context) => {
     const batch = firestore().batch();
     batch.update(doc.ref, { UsedBy: context.auth.uid });
 
-    const newPermissions: Record<string, any> = doc.data()?.Permissions ?? {};
+    const newPermissions: Record<string, any> = doc.data()?.Permissions
+      ? doc.data()?.Permissions
+      : {};
+
+    if (
+      newPermissions.personId &&
+      (
+        await firestore()
+          .collection("UsersData")
+          .doc(newPermissions.personId)
+          .get()
+      ).data()?.UID
+    )
+      throw new HttpsError("failed-precondition", "personId");
+
     if (
       (await auth().getUser(doc.data()!.GeneratedBy)).customClaims
         ?.manageAllowedUsers === true
@@ -71,9 +86,16 @@ export const registerWithLink = https.onCall(async (data, context) => {
       .ref()
       .child("Users/" + currentUser.uid + "/forceRefresh")
       .set(true);
-    batch.set(firestore().doc("Users/" + currentUser.uid), {
-      Name: currentUser.displayName,
-    });
+    batch.set(
+      firestore().doc("Users/" + currentUser.uid),
+      {
+        Name: currentUser.displayName,
+      },
+      { merge: true }
+    );
+    await firestore()
+      .doc("UsersData/" + currentUser.customClaims!.personId)
+      .update({ Name: currentUser.displayName });
     await batch.commit();
     return "OK";
   }
@@ -94,7 +116,9 @@ export const registerAccount = https.onCall(async (data, context) => {
   assertNotEmpty("fcmToken", data.fcmToken, typeof "");
 
   const currentUser = await auth().getUser(context.auth.uid);
-  const newCustomClaims: Record<string, any> = currentUser.customClaims ?? {};
+  const newCustomClaims: Record<string, any> = currentUser.customClaims
+    ? currentUser.customClaims
+    : {};
 
   newCustomClaims["password"] = data.password;
   newCustomClaims["lastConfession"] = data.lastConfession;
@@ -120,7 +144,14 @@ export const registerAccount = https.onCall(async (data, context) => {
   await auth().updateUser(currentUser.uid, { displayName: data.name });
   await firestore()
     .doc("Users/" + currentUser.uid)
-    .update({ Name: data.name });
+    .set({ Name: data.name }, { merge: true });
+  await firestore()
+    .doc("UsersData/" + currentUser.customClaims!.personId)
+    .update({
+      Name: data.name,
+      LastTanawol: Timestamp.fromMillis(data.lastTanawol),
+      LastConfession: Timestamp.fromMillis(data.lastConfession),
+    });
   await database()
     .ref("Users/" + currentUser.uid + "/FCM_Tokens/" + data.fcmToken)
     .set("token");
@@ -220,9 +251,7 @@ export const sendMessageToUsers = https.onCall(async (data, context) => {
   let usersToSend: string[] = [];
   if (typeof data.users === typeof []) {
     usersToSend = await Promise.all(
-      data.users.map(
-        async (user: any, i: any, ary: any) => await getFCMTokensForUser(user)
-      )
+      data.users.map(async (user: any) => await getFCMTokensForUser(user))
     );
     usersToSend = usersToSend
       .reduce<string[]>((accumulator, value) => accumulator.concat(value), [])
@@ -230,8 +259,7 @@ export const sendMessageToUsers = https.onCall(async (data, context) => {
   } else if (data.users === "all") {
     usersToSend = await Promise.all(
       ((await auth().listUsers()).users as any).map(
-        async (user: any, i: any, ary: any) =>
-          await getFCMTokensForUser(user.uid)
+        async (user: any) => await getFCMTokensForUser(user.uid)
       )
     );
     usersToSend = usersToSend
@@ -333,7 +361,9 @@ export const changePassword = https.onCall(async (data, context) => {
       throw new https.HttpsError("unauthenticated", "Must be approved user");
     }
     const currentUser = await auth().getUser(context.auth!.uid);
-    const newCustomClaims: Record<string, any> = currentUser.customClaims ?? {};
+    const newCustomClaims: Record<string, any> = currentUser.customClaims
+      ? currentUser.customClaims
+      : {};
 
     assertNotEmpty("newPassword", data.newPassword, typeof "");
 
@@ -341,9 +371,8 @@ export const changePassword = https.onCall(async (data, context) => {
       data.oldPassword ||
       (currentUser.customClaims?.password === null && data.oldPassword === null)
     ) {
-      const crypto = require("sha3");
-      const s265 = new crypto.SHA3(256);
-      const s512 = new crypto.SHA3(512);
+      const s265 = new SHA3(256);
+      const s512 = new SHA3(512);
       s512.update(data.oldPassword + "o$!hP64J^7c");
       s265.update(
         s512.digest("base64") + "fKLpdlk1px5ZwvF^YuIb9252C08@aQ4qDRZz5h2"
@@ -398,7 +427,9 @@ export const recoverDoc = https.onCall(async (data, context) => {
       !data.deletedPath ||
       !(data.deletedPath as string).startsWith("Deleted") ||
       !(data.deletedPath as string).match(
-        RegExp("Deleted/\\d{4}-\\d{2}-\\d{2}/((Classes)|(Persons)).+")
+        RegExp(
+          "Deleted/\\d{4}-\\d{2}-\\d{2}/((Classes)|(Services)|(Persons)).+"
+        )
       )
     )
       throw new https.HttpsError("invalid-argument", "Invalid 'deletedPath'");
@@ -432,6 +463,16 @@ export const recoverDoc = https.onCall(async (data, context) => {
         );
       }
     }
+    if (
+      !currentUser.customClaims?.manageUsers &&
+      !currentUser.customClaims?.manageAllowedUsers &&
+      documentToRecover.ref.parent.id == "Services"
+    ) {
+      throw new HttpsError(
+        "permission-denied",
+        "To recover a service the calling user must have 'manageUsers' permission"
+      );
+    }
 
     const documentToWrite = firestore().doc(
       (data.deletedPath as string).replace(
@@ -446,7 +487,7 @@ export const recoverDoc = https.onCall(async (data, context) => {
         await storage()
           .bucket()
           .file(
-            (data.deletedPath as String)
+            (data.deletedPath as string)
               .replace("/Classes/", "/ClassesPhotos/")
               .replace("/Persons/", "/PersonsPhotos/")
           )
@@ -455,7 +496,7 @@ export const recoverDoc = https.onCall(async (data, context) => {
         await storage()
           .bucket()
           .file(
-            (data.deletedPath as String)
+            (data.deletedPath as string)
               .replace("/Classes/", "/ClassesPhotos/")
               .replace("/Persons/", "/PersonsPhotos/")
           )

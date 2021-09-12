@@ -298,7 +298,7 @@ export const onServantsHistoryRecordWrite = functions.firestore
   .document("ServantsHistory/{day}/{type}/{doc}")
   .onWrite(async (change, context) => {
     const currentUser = await auth().getUser(
-      change.after?.id ?? change.before.id
+      change.after?.id ? change.after?.id : change.before.id
     );
     if (getChangeType(change) !== "delete") {
       if (

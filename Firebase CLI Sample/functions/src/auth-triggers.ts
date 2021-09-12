@@ -5,29 +5,58 @@ import { FieldValue } from "@google-cloud/firestore";
 import * as download from "download";
 
 export const onUserSignUp = auth_1.user().onCreate(async (user) => {
+  let customClaims: Record<string, any>;
+
   const doc = firestore().collection("UsersData").doc();
-  const customClaims = {
-    password: null, //Empty password
-    manageUsers: false, //Can manage Users' names, reset passwords and permissions
-    manageAllowedUsers: false, //Can manage specific Users' names, reset passwords and permissions
-    manageDeleted: false, //Can read deleted items and restore them
-    superAccess: false, //Can read everything
-    write: true, //Can write avalibale data
-    secretary: false, //Can write servants history
-    exportClasses: true, //Can Export individual Classes to Excel sheet
-    birthdayNotify: true, //Can receive Birthday notifications
-    confessionsNotify: true,
-    tanawolNotify: true,
-    kodasNotify: true,
-    meetingNotify: true,
-    approveLocations: false,
-    approved: false, //A User with 'Manage Users' permission must approve new users
-    lastConfession: null, //Last Confession in millis for the user
-    lastTanawol: null, //Last Tanawol in millis for the user
-    servingStudyYear: null,
-    servingStudyGender: null,
-    personId: doc.id,
-  };
+  if ((await auth().listUsers(2)).users.length === 1) {
+    customClaims = {
+      password: null, //Empty password
+      manageUsers: true, //Can manage Users' names, reset passwords and permissions
+      manageAllowedUsers: true, //Can manage specific Users' names, reset passwords and permissions
+      manageDeleted: true, //Can read deleted items and restore them
+      superAccess: true, //Can read everything
+      write: true, //Can write avalibale data
+      secretary: true, //Can write servants history
+      changeHistory: true, //Can edit old history
+      export: true, //Can Export individual Classes to Excel sheet
+      birthdayNotify: true, //Can receive Birthday notifications
+      confessionsNotify: true,
+      tanawolNotify: true,
+      kodasNotify: true,
+      meetingNotify: true,
+      visitNotify: true,
+      approved: true, //A User with 'Manage Users' permission must approve new users
+      lastConfession: null, //Last Confession in millis for the user
+      lastTanawol: null, //Last Tanawol in millis for the user
+      servingStudyYear: null,
+      servingStudyGender: null,
+      personId: doc.id,
+    };
+  } else {
+    customClaims = {
+      password: null, //Empty password
+      manageUsers: false, //Can manage Users' names, reset passwords and permissions
+      manageAllowedUsers: false, //Can manage specific Users' names, reset passwords and permissions
+      manageDeleted: false, //Can read deleted items and restore them
+      superAccess: false, //Can read everything
+      write: true, //Can write avalibale data
+      secretary: false, //Can write servants history
+      changeHistory: false,
+      export: true, //Can Export individual Classes to Excel sheet
+      birthdayNotify: true, //Can receive Birthday notifications
+      confessionsNotify: true,
+      tanawolNotify: true,
+      kodasNotify: true,
+      meetingNotify: true,
+      visitNotify: true,
+      approved: false, //A User with 'Manage Users' permission must approve new users
+      lastConfession: null, //Last Confession in millis for the user
+      lastTanawol: null, //Last Tanawol in millis for the user
+      servingStudyYear: null,
+      servingStudyGender: null,
+      personId: doc.id,
+    };
+  }
   await messaging().sendToTopic(
     "ManagingUsers",
     {
@@ -55,27 +84,28 @@ export const onUserSignUp = auth_1.user().onCreate(async (user) => {
   );
   await doc.set({
     UID: user.uid,
-    Name: user.displayName ?? null,
-    Email: user.email ?? null,
+    Name: user.displayName ? user.displayName : null,
+    Email: user.email ? user.email : null,
     ClassId: null,
     AllowedUsers: [],
     LastTanawol: null,
     LastConfession: null,
     Permissions: {
-      ManageUsers: false,
-      ManageAllowedUsers: false,
-      ManageDeleted: false,
-      SuperAccess: false,
-      Write: true,
-      Secretary: false,
-      ExportClasses: true,
-      BirthdayNotify: true,
-      ConfessionsNotify: true,
-      TanawolNotify: true,
-      KodasNotify: true,
-      MeetingNotify: true,
-      ApproveLocations: false,
-      Approved: false,
+      ManageUsers: customClaims.manageUsers,
+      ManageAllowedUsers: customClaims.manageAllowedUsers,
+      ManageDeleted: customClaims.manageDeleted,
+      SuperAccess: customClaims.superAccess,
+      Write: customClaims.write,
+      Secretary: customClaims.secretary,
+      ChangeHistory: customClaims.changeHistory,
+      export: customClaims.export,
+      BirthdayNotify: customClaims.birthdayNotify,
+      ConfessionsNotify: customClaims.confessionsNotify,
+      TanawolNotify: customClaims.tanawolNotify,
+      KodasNotify: customClaims.kodasNotify,
+      MeetingNotify: customClaims.meetingNotify,
+      ApproveLocations: customClaims.approveLocations,
+      Approved: customClaims.approved,
     },
   });
   await auth().setCustomUserClaims(user.uid, customClaims);
