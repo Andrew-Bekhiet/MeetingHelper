@@ -778,6 +778,7 @@ class _EditUserState extends State<EditUser> {
       tap: (class$) {
         navigator.currentState!.pop();
         user.classId = class$.ref;
+        className.invalidate();
         setState(() {});
         FocusScope.of(context).nextFocus();
       },
