@@ -2,154 +2,340 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function historyRecordFields(){
+      return ['ID','Time','RecordedBy','Notes','ClassId','ServiceId','IsServant', 'StudyYear'].toSet();
+    }
+
+    function classFields(){
+      return ['Name','StudyYear','Gender','HasPhoto','Color','LastEdit','Allowed'].toSet();
+    }
+
+    function personFields(){
+      return ['ClassId','Name','Phone','FatherPhone','MotherPhone','Phones','Address','HasPhoto',
+            'Color','BirthDate','BirthDay','Last','LastTanawol','LastConfession','LastKodas',
+            'LastMeeting','LastCall','LastVisit','LastEdit','Notes','School','Church','CFather',
+            'Location','IsShammas','Gender','ShammasLevel','StudyYear','Services'
+          ].toSet();
+    }
+
     function checkUserRegistered(){
-      return request.auth.uid != null && request.auth.token.approved
-        && (request.auth.token.lastTanawol == null || request.auth.token.lastConfession == null
-        || ((request.auth.token.lastTanawol + 5184000000) > request.time.toMillis()
-        && (request.auth.token.lastConfession + 5184000000) > request.time.toMillis()));
+      return request.auth.uid != null
+        && request.auth.token.approved
+        && (
+          request.auth.token.lastTanawol == null
+          || request.auth.token.lastConfession == null
+          || (
+            (request.auth.token.lastTanawol + 5184000000) > request.time.toMillis()
+            && (request.auth.token.lastConfession + 5184000000) > request.time.toMillis()
+          )
+        );
     }
 
     function checkCanReadUser(user){
       return checkUserRegistered()
-        && (request.auth.token.manageUsers || request.auth.token.secretary || (request.auth.token.manageAllowedUsers && request.auth.uid in get(/databases/$(database)/documents/UsersData/$(user)).data.AllowedUsers));
-    }
-
-    function isTheSame(fieldName, create){
-      return create || resource.data[fieldName] == request.resource.data[fieldName] || !request.resource.data.keys().hasAny([fieldName]);
+        && (
+          request.auth.token.manageUsers
+          || request.auth.token.secretary
+          || (
+            request.auth.token.manageAllowedUsers
+            && request.auth.uid in get(/databases/$(database)/documents/UsersData/$(user)).data.AllowedUsers
+          )
+        );
     }
 
     match /Classes{
-      allow list: if checkUserRegistered() && request.auth.token.superAccess;
-      allow write: if checkUserRegistered() && request.auth.token.superAccess && request.auth.token.write;
+      allow list: if checkUserRegistered()
+        && request.auth.token.superAccess;
 
       match /null {
-        allow write: if false;
         allow read: if checkUserRegistered();
       }
 
       match /{class} {
-        allow read: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in resource.data.Allowed);
-        allow delete: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in resource.data.Allowed) && request.auth.token.write;
+        function canAccessClass() {
+          return request.auth.token.superAccess
+            || request.auth.uid in resource.data.Allowed;
+        }
+
+        allow read: if checkUserRegistered()
+          && canAccessClass();
+        
+        allow delete: if checkUserRegistered()
+          && canAccessClass()
+          && request.auth.token.write;
+        
         allow update: if checkUserRegistered()
-          && (request.auth.token.superAccess || request.auth.uid in resource.data.Allowed)
-          && (request.resource.data.Allowed == resource.data.Allowed || (request.auth.token.manageUsers || (request.auth.token.manageAllowedUsers && (request.resource.data.Allowed.removeAll(resource.data.Allowed).hasOnly(get(/databases/$(database)/documents/UsersData/$(request.auth.uid)).data.AllowedUsers) || resource.data.Allowed.removeAll(request.resource.data.Allowed).hasOnly(get(/databases/$(database)/documents/UsersData/$(request.auth.uid)).data.AllowedUsers)))))
-          && request.auth.token.write;
+          && canAccessClass()
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['Allowed'])
+            || request.auth.token.manageUsers
+            || request.auth.token.manageAllowedUsers
+          )
+          && request.auth.token.write
+          && classFields().hasAll(request.resource.data.diff(resource.data).affectedKeys());
+
         allow create: if checkUserRegistered()
-          && (request.resource.data.Allowed.hasOnly([request.auth.uid]) || (request.auth.token.manageUsers || (request.auth.token.manageAllowedUsers && request.resource.data.Allowed.hasOnly(get(/databases/$(database)/documents/UsersData/$(request.auth.uid)).data.AllowedUsers))))
-          && request.auth.token.write;
+          && ([request.auth.uid].hasAll(request.resource.data.Allowed)
+            || request.auth.token.manageUsers
+            || request.auth.token.manageAllowedUsers
+          )
+          && request.auth.token.write
+          && classFields().hasAll(request.resource.data.keys().toSet());
 
         match /{history=**} {
-          allow read: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in (get(/databases/$(database)/documents/Classes/$(class))).data.Allowed);
+          allow read: if checkUserRegistered()
+            && (request.auth.token.superAccess
+              || request.auth.uid in (get(/databases/$(database)/documents/Classes/$(class))).data.Allowed
+            );
         }
       }
     }
 
     match /Persons {
-      allow list: if checkUserRegistered() && request.auth.token.superAccess;
-      allow write: if checkUserRegistered() && request.auth.token.superAccess && request.auth.token.write;
-
       match /null {
-        allow write: if false;
         allow read: if checkUserRegistered();
       }
 
       match /{person} {
-        allow read: if checkUserRegistered() &&
-        (request.auth.token.superAccess || request.auth.uid in get(resource.data.ClassId).data.Allowed);
-        allow delete: if checkUserRegistered() &&
-        (request.auth.token.superAccess || request.auth.uid in get(resource.data.ClassId).data.Allowed) && request.auth.token.write;
-        allow update: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in get(resource.data.ClassId).data.Allowed) && request.auth.token.write;
-        allow create: if checkUserRegistered();
+
+        function canAccessPerson(resource) {
+          return request.auth.token.superAccess
+            || (!resource.data.keys().hasAny(['ClassId'])
+                ? false
+                : request.auth.uid in get(resource.data.ClassId).data.Allowed
+            )
+            || (!resource.data.keys().hasAny(['Services'])
+                ? false
+                : resource.data.Services
+                    .hasAny(get(/databases/$(database)/documents/UsersData/$(request.auth.token.personId))
+                    .data
+                    .AdminServices)
+            );
+        }
+
+        allow read: if checkUserRegistered()
+          && canAccessPerson(resource);
+
+        allow delete: if checkUserRegistered()
+          && canAccessPerson(resource)
+          && request.auth.token.write;
+
+        allow update: if checkUserRegistered()
+          && canAccessPerson(resource)
+          && request.auth.token.write
+          && personFields().hasAll(request.resource.data.diff(resource.data).affectedKeys())
+          && ((!request.resource.data.keys().hasAny(['ClassId'])
+              && get(/databases/$(database)/documents/UsersData/$(request.auth.token.personId))
+                .data
+                .AdminServices
+                .hasAll(request.resource.data.Services.toSet()
+                  .union(resource.data.Services.toSet())
+                  .difference(request.resource.data.Services.toSet()
+                    .intersection(resource.data.Services.toSet())
+                  )
+                )
+              )
+            || request.auth.uid in get(request.resource.data.ClassId).data.Allowed);
+
+        allow create: if checkUserRegistered()
+          && personFields().hasAll(request.resource.data.keys().toSet())
+          && request.auth.token.write
+          && (request.auth.token.superAccess
+            || ((!request.resource.data.keys().hasAny(['ClassId'])
+                || request.resource.data.ClassId == null
+              )
+              && get(/databases/$(database)/documents/UsersData/$(request.auth.token.personId))
+                .data
+                .AdminServices
+                .hasAll(request.resource.data.Services.toSet())
+              )
+            || request.auth.uid in get(request.resource.data.ClassId).data.Allowed
+          );
 
         match /{history=**} {
-          allow read: if checkUserRegistered() &&
-          (request.auth.token.superAccess || request.auth.uid in get(get(/databases/$(database)/documents/Persons/$(person)).data.ClassId).data.Allowed);
+          allow read: if checkUserRegistered()
+            && canAccessPerson(get(/databases/$(database)/documents/Persons/$(person)));
         }
       }
     }
 
     match /Invitations {
-      allow list: if checkUserRegistered() && (request.auth.token.manageUsers || request.auth.token.manageAllowedUsers);
+      allow list: if checkUserRegistered()
+        && (request.auth.token.manageUsers
+          || request.auth.token.manageAllowedUsers
+        );
+
       match /{invitation} {
-        allow read: if checkUserRegistered() && (request.auth.token.manageUsers || request.auth.token.manageAllowedUsers);
-        allow create: if checkUserRegistered() && (request.auth.token.manageUsers || request.auth.token.manageAllowedUsers) && request.resource.data.GeneratedBy == request.auth.uid && request.resource.data.GeneratedOn.toMillis() == request.time.toMillis();
-        allow delete, update: if checkUserRegistered() && (request.auth.token.manageUsers || request.auth.token.manageAllowedUsers) && resource.data.GeneratedBy == request.auth.uid;
+        function invitationFields(){
+          return ['Title','UsedBy','GeneratedBy','Permissions','GeneratedOn','ExpiryDate'].toSet();
+        }
+
+        function personIdChecks(doc){
+          return doc.data != null
+            && (!doc.data.keys().hasAny(['UID'])
+              || doc.data.UID == null);
+        }
+
+        allow read: if checkUserRegistered()
+          && (request.auth.token.manageUsers
+            || request.auth.token.manageAllowedUsers
+          );
+
+        allow create: if checkUserRegistered()
+          && (request.auth.token.manageUsers
+            || request.auth.token.manageAllowedUsers)
+          && invitationFields().hasAll(request.resource.data.keys().toSet())
+          && request.resource.data.GeneratedBy == request.auth.uid
+          && request.resource.data.GeneratedOn.toMillis() == request.time.toMillis()
+          && (!request.resource.data.keys().hasAny(['Permissions'])
+            ? true
+            : (!request.resource.data.Permissions.keys().hasAny(['personId'])
+              ? true
+              : personIdChecks(get(path('/databases/'+database+'/documents/UsersData/'+request.resource.data.Permissions.personId)))
+            )
+          );
+
+        allow update: if checkUserRegistered()
+          && (request.auth.token.manageUsers
+            || request.auth.token.manageAllowedUsers)
+          && resource.data.GeneratedBy == request.auth.uid
+          && invitationFields().hasAll(request.resource.data.diff(resource.data).affectedKeys());
+          
+        allow delete: if checkUserRegistered()
+          && (request.auth.token.manageUsers
+            || request.auth.token.manageAllowedUsers)
+          && resource.data.GeneratedBy == request.auth.uid;
       }
     }
 
     match /{path=**}/{parent}/{doc} {
       allow read: if checkUserRegistered()
         && (parent == 'Meeting'
-        || parent == 'Kodas'
-        || parent == 'Tanawol'
-        || parent == 'EditHistory'
-        || parent == 'VisitHistory'
-        || parent == 'CallHistory'
-        || parent == 'ConfessionHistory')
-        && (request.auth.token.superAccess || request.auth.uid in get(resource.data.ClassId).data.Allowed);
+          || parent == 'Kodas'
+          || parent == 'EditHistory'
+          || parent == 'VisitHistory'
+          || parent == 'CallHistory'
+          || parent == 'ConfessionHistory'
+          || exists(/databases/$(database)/documents/Services/$(parent))
+        )
+        && (request.auth.token.superAccess
+          || (resource.data.keys().hasAny(['ClassId'])
+            && request.auth.uid in get(resource.data.ClassId).data.Allowed)
+          || (resource.data.keys().hasAny(['ServiceId'])
+            && /databases/$(database)/documents/Services/$(resource.data.ServiceId)
+              in get(/databases/$(database)/documents/UsersData/$(request.auth.token.personId)).data.AdminServices
+          )
+          || (resource.data.keys().hasAny(['Services'])
+            && resource.data.Services
+              .hasAny(get(/databases/$(database)/documents/UsersData/$(request.auth.token.personId))
+                .data.AdminServices)
+          )
+        );
     }
 
     match /UsersData {
       function checkCanEditUser(classId){
         return checkUserRegistered()
-          && (request.auth.token.manageUsers || (request.auth.token.manageAllowedUsers
-          && request.auth.uid in resource.data.AllowedUsers))
-          && (request.auth.token.superAccess || request.auth.uid in get(classId).data.Allowed);
+          && (request.auth.token.manageUsers
+            || (request.auth.token.manageAllowedUsers
+              && request.auth.uid in resource.data.AllowedUsers
+            )
+          )
+          && (request.auth.token.superAccess
+            || request.auth.uid in get(classId).data.Allowed
+          );
       }
 
       function checkCanCreateUser(classId){
         return checkUserRegistered()
-          && (request.auth.token.manageUsers || (request.auth.token.manageAllowedUsers
-          && request.auth.uid in request.resource.data.AllowedUsers))
-          && (request.auth.token.superAccess || request.auth.uid in get(classId).data.Allowed);
+          && (request.auth.token.manageUsers
+            || (request.auth.token.manageAllowedUsers
+              && request.auth.uid in request.resource.data.AllowedUsers
+            )
+          )
+          && (request.auth.token.superAccess
+            || request.auth.uid in get(classId).data.Allowed
+          );
       }
 
-      allow list: if checkUserRegistered() && request.auth.token.manageUsers;
+      allow list: if checkUserRegistered()
+        && request.auth.token.manageUsers;
+
       match /null {
-        allow write: if false;
         allow read: if checkUserRegistered();
       }
 
       match /{user} {
-        allow read: if checkCanReadUser(user) || (checkUserRegistered() && user == request.auth.token.personId);
+        allow read: if checkUserRegistered()
+          && (user == request.auth.token.personId
+            || checkCanReadUser(user)
+          );
 
         allow create: if checkCanCreateUser(request.resource.data.ClassId)
-          && isTheSame('Permissions', true) && isTheSame('UID',true) && isTheSame('Email', true);
+          && !request.resource.data.keys().hasAny(['Permissions', 'UID', 'Email'])
+          && personFields().union(['AdminServices','AllowedUsers'].toSet()).hasAll(request.resource.data.keys().toSet());
 
-        allow update: if (checkCanEditUser(resource.data.ClassId) || (checkUserRegistered() && user == request.auth.token.personId))
-          && isTheSame('Permissions', false) && isTheSame('UID',false) && isTheSame('Email', false);
-        allow delete: if checkCanEditUser(resource.data.ClassId) && !resource.data.keys().hasAny(['UID']);
+        allow update: if checkUserRegistered()
+          && (user == request.auth.token.personId
+            || checkCanEditUser(resource.data.ClassId)
+          )
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['Permissions', 'UID', 'Email'])
+          && personFields().union(['AdminServices', 'AllowedUsers'].toSet()).hasAll(request.resource.data.diff(resource.data).affectedKeys());
+
+        allow delete: if checkCanEditUser(resource.data.ClassId)
+          && !resource.data.keys().hasAny(['UID']);
+
         match /{history=**} {
-          allow read: if checkCanReadUser(user) || (checkUserRegistered() && user == request.auth.token.personId);
+          allow read: if checkUserRegistered()
+            && (user == request.auth.token.personId
+              || checkCanReadUser(user)
+            );
         }
       }
     }
 
     match /Deleted {
-      allow list: if checkUserRegistered() && request.auth.token.manageDeleted == true;
-      allow write: if false;
+      allow list: if checkUserRegistered()
+        && request.auth.token.manageDeleted == true;
+
       match /{date} {
-        allow read: if checkUserRegistered() && request.auth.token.manageDeleted == true;
+        allow read: if checkUserRegistered()
+          && request.auth.token.manageDeleted == true;
+        
         match /Classes {
-          allow list: if checkUserRegistered() && request.auth.token.superAccess && request.auth.token.manageDeleted == true;
+          allow list: if checkUserRegistered()
+            && request.auth.token.superAccess
+            && request.auth.token.manageDeleted == true;
+          
           match /{class}{  
-            allow write: if false;
-            allow read: if checkUserRegistered() && request.auth.token.manageDeleted == true
-              && (request.auth.token.superAccess || request.auth.uid in resource.data.Allowed);
+            allow read: if checkUserRegistered()
+              && request.auth.token.manageDeleted == true
+              && (request.auth.token.superAccess
+                || request.auth.uid in resource.data.Allowed);
+            
             match /{history=**} {
-              allow read: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in (get(/databases/$(database)/documents/Classes/$(class))).data.Allowed);
+              allow read: if checkUserRegistered()
+                && (request.auth.token.superAccess
+                  || request.auth.uid in (get(/databases/$(database)/documents/Deleted/$(date)/Classes/$(class))).data.Allowed);
             }
           }
         }
         match /Persons {
-          allow list: if checkUserRegistered() && request.auth.token.superAccess && request.auth.token.manageDeleted == true;
+          allow list: if checkUserRegistered()
+            && request.auth.token.superAccess
+            && request.auth.token.manageDeleted == true;
+          
           match /{person}{
-            allow write: if false;
-            allow read: if checkUserRegistered() && request.auth.token.manageDeleted == true
-              && (request.auth.token.superAccess || resource.data.ClassId == null || request.auth.uid in get(resource.data.ClassId).data.Allowed);
+            allow read: if checkUserRegistered()
+              && request.auth.token.manageDeleted == true
+              && (request.auth.token.superAccess
+                || request.auth.uid in get(resource.data.ClassId).data.Allowed
+              );
+            
             match /{history=**} {
-              allow read: if checkUserRegistered() &&
-              (request.auth.token.superAccess || request.auth.uid in get(get(/databases/$(database)/documents/Persons/$(person)).data.ClassId).data.Allowed);
+              allow read: if checkUserRegistered()
+                && (request.auth.token.superAccess
+                  || request.auth.uid in get(get(/databases/$(database)/documents/Deleted/$(date)/Persons/$(person)).data.ClassId).data.Allowed
+                );
             }
           }
         }
@@ -159,118 +345,337 @@ service cloud.firestore {
     match /History {
       allow list: if checkUserRegistered();
 
-      match /{history} {
+      match /{historyDay} {
         allow read: if checkUserRegistered();
-        allow delete: if checkUserRegistered() && request.auth.token.write;
-        allow create: if checkUserRegistered() && (request.resource.data.Day.toMillis() % 86400000 == 0)
-          && request.resource.data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000) && request.auth.token.write;
-        allow update: if checkUserRegistered() && resource.data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000)
-          && (!request.resource.data.keys().hasAny(['Day']) || request.resource.data.Day == resource.data.Day) && request.auth.token.write;
-        match /{record=**} {
-          allow read: if checkUserRegistered();
-          allow delete: if checkUserRegistered()
-            && get(/databases/$(database)/documents/History/$(history)).data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000)
-            && request.auth.token.write;
-          allow update, create: if checkUserRegistered()
-          && get(/databases/$(database)/documents/History/$(history)).data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000)
-            && request.resource.data.ID == request.resource.id
-            && request.resource.data.RecordedBy == request.auth.uid
-            && (request.resource.data.keys().hasAny(['ClassId']) || request.resource.data.ClassId == resource.data.ClassId)
-          && request.resource.data.Time.toMillis() - (request.resource.data.Time.toMillis() % 86400000) == request.time.toMillis() - (request.time.toMillis() % 86400000)
-            && request.auth.token.write;
+
+        allow delete: if checkUserRegistered()
+          && request.auth.token.write;
+        
+        allow create: if checkUserRegistered()
+          && historyRecordFields().hasAll(request.resource.data)
+          && (request.resource.data.Day.toMillis() % 86400000 == 0)
+          && request.resource.data.Day.date().toMillis() == request.time.date().toMillis()
+          && historyDay == string(request.resource.data.Day.year()) + '-' + (request.resource.data.Day.month() > 9 ? '' : '0') + string(request.resource.data.Day.month()) + '-' + (request.resource.data.Day.day() > 9 ? '' : '0') + string(request.resource.data.Day.day())
+          && request.auth.token.write;
+        
+        allow update: if checkUserRegistered()
+          && resource.data.Day.date().toMillis() == request.time.date().toMillis()
+          && (!request.resource.data.keys().hasAny(['Day']) || request.resource.data.Day == resource.data.Day)
+          && request.auth.token.write;
+        
+        match /{section} {
+
+          match /{record} {
+            function canAccessRecord() {
+              return request.auth.token.superAccess
+                || (section == 'Meeting' || section == 'Kodas'
+                    ? request.auth.uid in get(resource.data.ClassId).data.Allowed
+                    : /databases/$(database)/documents/Services/$(section)
+                      in get(/databases/$(database)/documents/UsersData/$(request.auth.token.personId))
+                        .data
+                        .AdminServices
+                );
+            }
+
+            allow read: if checkUserRegistered()
+              && (section == 'Meeting'
+                || section == 'Kodas'
+                || exists(/databases/$(database)/documents/Services/$(section))
+              )
+              && canAccessRecord();
+            
+            allow delete: if checkUserRegistered()
+              && ((request.auth.token.keys().hasAny(['changeHistory'])
+                  && request.auth.token.changeHistory
+                )
+                || get(/databases/$(database)/documents/History/$(historyDay)).data.Day.date().toMillis() == request.time.date().toMillis()
+              )
+              && request.auth.token.write
+              && canAccessRecord();
+            
+            allow update, create: if checkUserRegistered()
+              && exists(/databases/$(database)/documents/History/$(historyDay))
+              && ((request.auth.token.keys().hasAny(['changeHistory'])
+                  && request.auth.token.changeHistory
+                )
+                || get(/databases/$(database)/documents/History/$(historyDay)).data.Day.date().toMillis() == request.time.date().toMillis()
+              )
+              && historyRecordFields().hasAll(request.resource.data.diff(request.method == 'create' ? {} : resource.data).affectedKeys())
+              && request.resource.data.ID == request.resource.id
+              && request.resource.data.RecordedBy == request.auth.uid
+              && (request.method == 'update'
+                ? (section == 'Meeting' || section == 'Kodas'
+                  ? !request.resource.data.diff(resource.data).affectedKeys().hasAny(['ClassId'])
+                    || request.resource.data.ClassId == resource.data.ClassId
+                  : (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['ServiceId'])
+                      || request.resource.data.ServiceId == resource.data.ServiceId)
+                    && request.resource.data.ServiceId == section
+                )
+                : true
+              )
+              && ((request.auth.token.keys().hasAny(['changeHistory'])
+                  && request.auth.token.changeHistory
+                )
+                || request.resource.data.Time.date().toMillis() == request.time.date().toMillis()
+              )
+              && (section == 'Meeting' || section == 'Kodas'
+                ? (request.auth.token.superAccess
+                    || ((request.method == 'create'
+                      ? true
+                      : request.auth.uid in get(resource.data.ClassId).data.Allowed
+                    )
+                    && request.auth.uid in get(request.resource.data.ClassId).data.Allowed)
+                )
+                : (request.auth.token.superAccess
+                    || ((request.method == 'create'
+                      ? true
+                      : /databases/$(database)/documents/Services/$(resource.data.ServiceId)
+                          in get(/databases/$(database)/documents/UsersData/$(request.auth.token.personId))
+                            .data
+                            .AdminServices)
+                        && /databases/$(database)/documents/Services/$(request.resource.data.ServiceId)
+                            in get(/databases/$(database)/documents/UsersData/$(request.auth.token.personId))
+                              .data
+                              .AdminServices
+                      )
+                )
+              )
+              && (section == 'Meeting' || section == 'Kodas'
+                ? get(/databases/$(database)/documents/Persons/$(request.resource.data.ID)).data.ClassId
+                    == request.resource.data.ClassId
+                : get(/databases/$(database)/documents/Persons/$(request.resource.data.ID)).data.Services
+                    .hasAny([/databases/$(database)/documents/Services/$(request.resource.data.ServiceId)])
+              )
+              && request.auth.token.write;
+          }
         }
       }
     }
 
     match /ServantsHistory {
-      allow list: if checkUserRegistered() && request.auth.token.secretary;
+      allow list: if checkUserRegistered()
+        && request.auth.token.secretary;
 
-      match /{history} {
-        allow read: if checkUserRegistered() && request.auth.token.secretary;
-        allow delete: if checkUserRegistered() && request.auth.token.secretary && request.auth.token.write;
-        allow create: if checkUserRegistered() && request.auth.token.secretary && (request.resource.data.Day.toMillis() % 86400000 == 0)
-          && request.resource.data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000) && request.auth.token.write;
-        allow update: if checkUserRegistered() && request.auth.token.secretary && resource.data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000)
-          && (!request.resource.data.keys().hasAny(['Day']) || request.resource.data.Day == resource.data.Day) && request.auth.token.write;
-        match /{record=**} {
-          allow read: if checkUserRegistered();
-          allow delete: if checkUserRegistered() && get(/databases/$(database)/documents/ServantsHistory/$(history)).data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000)
-            && request.auth.token.secretary && request.auth.token.write;
-          allow create, update: if checkUserRegistered() && get(/databases/$(database)/documents/ServantsHistory/$(history)).data.Day.toMillis() == request.time.toMillis() - (request.time.toMillis() % 86400000)
-            && request.auth.token.secretary
-            && request.resource.data.ID == request.resource.id
-            && request.resource.data.RecordedBy == request.auth.uid
-            && request.resource.data.Time.toMillis() - (request.resource.data.Time.toMillis() % 86400000) == request.time.toMillis() - (request.time.toMillis() % 86400000)
-            && request.auth.token.write;
+      match /{historyDay} {
+        allow read: if checkUserRegistered()
+          && request.auth.token.secretary;
+
+        allow delete: if checkUserRegistered()
+          && request.auth.token.secretary
+          && request.auth.token.write;
+        
+        allow create: if checkUserRegistered()
+          && request.auth.token.secretary
+          && (request.resource.data.Day.toMillis() % 86400000 == 0)
+          && request.resource.data.Day.date().toMillis() == request.time.date().toMillis()
+          && historyDay == string(request.resource.data.Day.year()) + '-' + (request.resource.data.Day.month() > 9 ? '' : '0') + string(request.resource.data.Day.month()) + '-' + (request.resource.data.Day.day() > 9 ? '' : '0') + string(request.resource.data.Day.day())
+          && request.auth.token.write;
+        
+        allow update: if checkUserRegistered()
+          && request.auth.token.secretary
+          && resource.data.Day.date().toMillis() == request.time.date().toMillis()
+          && (!request.resource.data.keys().hasAny(['Day'])
+            || request.resource.data.Day == resource.data.Day)
+          && request.auth.token.write;
+        
+        match /{section} {
+
+          match /{record} {
+            function canAccessRecord() {
+              return request.auth.token.superAccess
+                || request.auth.token.secretary;
+            }
+
+            allow read: if checkUserRegistered()
+              && (section == 'Meeting'
+                || section == 'Kodas'
+                || exists(/databases/$(database)/documents/Services/$(section))
+              )
+              && canAccessRecord();
+            
+            allow delete: if checkUserRegistered()
+              && ((request.auth.token.keys().hasAny(['changeHistory'])
+                  && request.auth.token.changeHistory
+                )
+                || get(/databases/$(database)/documents/History/$(historyDay)).data.Day.date().toMillis() == request.time.date().toMillis()
+              )
+              && request.auth.token.write
+              && canAccessRecord();
+            
+            allow update, create: if (checkUserRegistered() && request.auth.token.secretary)
+              && exists(/databases/$(database)/documents/History/$(historyDay))
+              && ((request.auth.token.keys().hasAny(['changeHistory'])
+                  && request.auth.token.changeHistory
+                )
+                || get(/databases/$(database)/documents/History/$(historyDay)).data.Day.date().toMillis() == request.time.date().toMillis()
+              )
+              && historyRecordFields().hasAll(request.resource.data.diff(request.method == 'create' ? {} : resource.data).affectedKeys())
+              && request.resource.data.ID == request.resource.id
+              && request.resource.data.RecordedBy == request.auth.uid
+              && (request.method == 'update'
+                ? (section == 'Meeting' || section == 'Kodas'
+                  ? !request.resource.data.diff(resource.data).affectedKeys().hasAny(['ClassId'])
+                    || request.resource.data.ClassId == resource.data.ClassId
+                  : (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['ServiceId'])
+                      || request.resource.data.ServiceId == resource.data.ServiceId)
+                    && request.resource.data.ServiceId == section
+                )
+                : true
+              )
+              && ((request.auth.token.keys().hasAny(['changeHistory'])
+                  && request.auth.token.changeHistory
+                )
+                || request.resource.data.Time.date().toMillis() == request.time.date().toMillis()
+              )
+              && request.auth.token.write;
+          }
         }
       }
     }
 
     match /Users {
       allow read: if checkUserRegistered();
-      allow write: if false;
+      
       match /null {
-        allow write: if false;
         allow read: if checkUserRegistered();
       }
-      match /{user=**} {
-        allow write: if checkUserRegistered() && (request.auth.token.manageUsers || request.auth.token.manageAllowedUsers);
+      
+      match /{user} {
+        allow write: if checkUserRegistered()
+          && (request.auth.token.manageUsers
+            || request.auth.token.manageAllowedUsers
+          )
+          && ['Name'].hasAll(request.resource.data.keys());
+        
         allow read: if checkUserRegistered();
       }
     }
+
+    
+    match /Services {
+      allow read: if checkUserRegistered();
+      
+      match /Meeting {
+        allow write: if false;
+      }
+
+      match /Kodas {
+        allow write: if false;
+      }
+      
+      match /{_service} {
+        allow create: if checkUserRegistered()
+          && (request.auth.token.manageUsers
+            || request.auth.token.manageAllowedUsers
+          )
+          && request.auth.token.write
+          && ['Name','StudyYearRange','Validity','ShowInHistory','LastEdit','HasPhoto', 'Color']
+            .toSet().hasAll(request.resource.data.keys())
+          && (!request.resource.data.keys().hasAny(['Validity'])
+            || request.resource.data.Validity == null
+            || (request.resource.data.Validity.keys().hasOnly(['From', 'To'])
+              && request.resource.data.Validity.From is timestamp
+              && request.resource.data.Validity.To is timestamp
+            )
+          )
+          && (!request.resource.data.keys().hasAny(['StudyYearRange'])
+            || request.resource.data.StudyYearRange == null
+            || (request.resource.data.StudyYearRange.keys().hasOnly(['From', 'To'])
+              && exists(request.resource.data.StudyYearRange.From)
+              && exists(request.resource.data.StudyYearRange.To)
+            )
+          );
+
+        allow update: if checkUserRegistered()
+          && request.auth.token.write
+          && ['Name','StudyYearRange','Validity','ShowInHistory','LastEdit','HasPhoto','Color']
+            .toSet().hasAll(request.resource.data.diff(resource.data).affectedKeys())
+          && (!request.resource.data.keys().hasAny(['Validity'])
+            || request.resource.data.Validity == null
+            || (request.resource.data.Validity.keys().hasOnly(['From', 'To'])
+              && request.resource.data.Validity.From is timestamp
+              && request.resource.data.Validity.To is timestamp
+            )
+          )
+          && (!request.resource.data.keys().hasAny(['StudyYearRange'])
+            || request.resource.data.StudyYearRange == null
+            || (request.resource.data.StudyYearRange.keys().hasOnly(['From', 'To'])
+              && exists(request.resource.data.StudyYearRange.From)
+              && exists(request.resource.data.StudyYearRange.To)
+            )
+          )
+          && (request.auth.token.manageUsers 
+            || request.auth.token.manageAllowedUsers
+            || /databases/$(database)/documents/Services/$(_service)
+              in get(/databases/$(database)/documents/UsersData/$(request.auth.token.personId)).data.AdminServices
+          );
+        
+        allow read: if checkUserRegistered();
+
+        match /{history=**} {
+          allow read: if checkUserRegistered()
+            && (request.auth.token.superAccess
+              || /databases/$(database)/documents/Services/$(_service)
+                in get(/databases/$(database)/documents/UsersData/$(request.auth.token.personId)).data.AdminServices
+            );
+        }
+      }
+    }
+
     match /Fathers {
       allow read: if checkUserRegistered();
-      allow write: if checkUserRegistered() && request.auth.token.write;
-      match /{item=**} {
+      allow write: if checkUserRegistered()
+        && request.auth.token.write;
+      
+      match /{item} {
         allow read: if checkUserRegistered();
-        allow write: if checkUserRegistered() && request.auth.token.write;
+        allow write: if checkUserRegistered()
+          && request.auth.token.write;
       }
     }
     match /Jobs {
       allow read: if checkUserRegistered();
-      allow write: if checkUserRegistered() && request.auth.token.write;
-      match /{item=**} {
+      allow write: if checkUserRegistered()
+        && request.auth.token.write;
+      
+      match /{item} {
         allow read: if checkUserRegistered();
-        allow write: if checkUserRegistered() && request.auth.token.write;
+        allow write: if checkUserRegistered()
+          && request.auth.token.write;
       }
     }
     match /StudyYears {
       allow read: if checkUserRegistered();
-      allow write: if checkUserRegistered() && request.auth.token.write;
-      match /{item=**} {
+      allow write: if checkUserRegistered()
+        && request.auth.token.write;
+      
+      match /{item} {
         allow read: if checkUserRegistered();
-        allow write: if checkUserRegistered() && request.auth.token.write;
+        allow write: if checkUserRegistered()
+          && request.auth.token.write;
       }
     }
     match /Schools {
       allow read: if checkUserRegistered();
-      allow write: if checkUserRegistered() && request.auth.token.write;
-      match /{item=**} {
+      allow write: if checkUserRegistered()
+        && request.auth.token.write;
+      
+      match /{item} {
         allow read: if checkUserRegistered();
-        allow write: if checkUserRegistered() && request.auth.token.write;
+        allow write: if checkUserRegistered()
+          && request.auth.token.write;
       }
     }
     match /Churches {
       allow read: if checkUserRegistered();
-      allow write: if checkUserRegistered() && request.auth.token.write;
-      match /{item=**} {
+      allow write: if checkUserRegistered()
+        && request.auth.token.write;
+      
+      match /{item} {
         allow read: if checkUserRegistered();
-        allow write: if checkUserRegistered() && request.auth.token.write;
+        allow write: if checkUserRegistered()
+          && request.auth.token.write;
       }
     }
-    match /States {
-      allow read: if checkUserRegistered();
-      allow write: if checkUserRegistered() && request.auth.token.admin;
-      match /{state=**} {
-        allow read: if checkUserRegistered();
-        allow write: if checkUserRegistered() && request.auth.token.admin;
-      }
-    }
-  // match /ServingTypes {
-    //   allow read, write: if checkUserRegistered();
-  //   match /{sType=**} {
-    //     allow read, write: if checkUserRegistered();
-    //   }
-    // }
   }
 }
