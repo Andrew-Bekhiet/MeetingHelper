@@ -225,6 +225,11 @@ class InvitationInfo extends StatelessWidget {
                             leading: Icon(Icons.delete_outline),
                             title: Text('استرجاع المحذوفات'),
                           ),
+                        if (invitation.permissions!['changeHistory'] == true)
+                          const ListTile(
+                            leading: Icon(Icons.history),
+                            title: Text('تعديل الكشوفات القديمة'),
+                          ),
                         if (invitation.permissions!['secretary'] == true)
                           const ListTile(
                             leading: Icon(Icons.shield),

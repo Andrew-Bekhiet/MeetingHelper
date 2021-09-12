@@ -72,7 +72,7 @@ class Invitation extends DataObject {
   Invitation.empty()
       : link = '',
         generatedBy = User.instance.uid!,
-        super(FirebaseFirestore.instance.collection('Invitations').doc(), '',
+        super(FirebaseFirestore.instance.collection('Invitations').doc('null'), '',
             null) {
     name = '';
     expiryDate = Timestamp.fromDate(

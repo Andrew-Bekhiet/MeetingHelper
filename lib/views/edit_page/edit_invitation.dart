@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:async/async.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
@@ -8,11 +9,15 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart'
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/invitation.dart';
+import 'package:meetinghelper/models/list_controllers.dart';
+import 'package:meetinghelper/models/search/order_options.dart';
+import 'package:meetinghelper/models/search/search_filters.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
+import 'package:meetinghelper/views/list.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../../models/data/user.dart';
-import '../../models/mini_models.dart';
 
 class EditInvitation extends StatefulWidget {
   final Invitation invitation;
@@ -23,16 +28,9 @@ class EditInvitation extends StatefulWidget {
 }
 
 class _EditInvitationState extends State<EditInvitation> {
-  List<FocusNode> foci = [
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode()
-  ];
   late Json old;
+
+  AsyncCache<String?> personName = AsyncCache(const Duration(minutes: 1));
 
   GlobalKey<FormState> form = GlobalKey<FormState>();
 
@@ -86,9 +84,8 @@ class _EditInvitationState extends State<EditInvitation> {
                           borderSide: BorderSide(
                               color: Theme.of(context).colorScheme.primary),
                         )),
-                    focusNode: foci[0],
                     textInputAction: TextInputAction.next,
-                    onFieldSubmitted: (_) => foci[1].requestFocus(),
+                    onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
                     initialValue: widget.invitation.name,
                     onChanged: nameChanged,
                     validator: (value) {
@@ -101,112 +98,64 @@ class _EditInvitationState extends State<EditInvitation> {
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
-                  child: Focus(
-                    focusNode: foci[6],
-                    child: GestureDetector(
-                      onTap: () async => widget.invitation.expiryDate =
-                          await _selectDateTime('تاريخ الانتهاء',
-                              widget.invitation.expiryDate.toDate()),
-                      child: InputDecorator(
-                        decoration: InputDecoration(
-                            labelText: 'تاريخ انتهاء الدعوة',
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Theme.of(context).colorScheme.primary),
-                            )),
-                        child: Text(DateFormat('h:m a yyyy/M/d', 'ar-EG')
-                            .format(widget.invitation.expiryDate.toDate())),
-                      ),
+                  child: GestureDetector(
+                    onTap: () async => widget.invitation.expiryDate =
+                        await _selectDateTime('تاريخ الانتهاء',
+                            widget.invitation.expiryDate.toDate()),
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                          labelText: 'تاريخ انتهاء الدعوة',
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Theme.of(context).colorScheme.primary),
+                          )),
+                      child: Text(DateFormat('h:m a yyyy/M/d', 'ar-EG')
+                          .format(widget.invitation.expiryDate.toDate())),
                     ),
                   ),
                 ),
-                FutureBuilder<JsonQuery>(
-                  future: StudyYear.getAllForUser(),
-                  builder: (conext, data) {
-                    if (data.hasData) {
-                      return Container(
-                        padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: DropdownButtonFormField(
-                          validator: (dynamic v) {
-                            return null;
-                          },
-                          value: widget.invitation
-                                      .permissions!['servingStudyYear'] !=
-                                  null
-                              ? 'StudyYears/' +
-                                  widget.invitation
-                                      .permissions!['servingStudyYear']
-                              : null,
-                          items: data.data!.docs
-                              .map(
-                                (item) => DropdownMenuItem(
-                                  value: item.reference.path,
-                                  child: Text(item.data()['Name']),
-                                ),
-                              )
-                              .toList()
-                            ..insert(
-                              0,
-                              const DropdownMenuItem(
-                                value: null,
-                                child: Text(''),
-                              ),
-                            ),
-                          onChanged: (dynamic value) {
-                            setState(() {});
-                            widget.invitation.permissions!['servingStudyYear'] =
-                                value != null
-                                    ? value.split('/')[1].toString()
-                                    : null;
-                            foci[2].requestFocus();
-                          },
-                          decoration: InputDecoration(
-                              labelText: 'صف الخدمة',
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color:
-                                        Theme.of(context).colorScheme.primary),
-                              )),
-                        ),
-                      );
-                    } else {
-                      return Container();
-                    }
-                  },
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 4.0),
-                  child: DropdownButtonFormField(
-                    validator: (dynamic v) {
-                      return null;
-                    },
-                    value: widget.invitation.permissions!['servingStudyGender'],
-                    items: [true, false]
-                        .map(
-                          (item) => DropdownMenuItem(
-                            value: item,
-                            child: Text(item ? 'بنين' : 'بنات'),
-                          ),
-                        )
-                        .toList()
-                      ..insert(
-                          0,
-                          const DropdownMenuItem(
-                            value: null,
-                            child: Text(''),
-                          )),
-                    onChanged: (dynamic value) {
-                      setState(() {});
-                      widget.invitation.permissions!['servingStudyGender'] =
-                          value;
-                      foci[2].requestFocus();
-                    },
-                    decoration: InputDecoration(
-                        labelText: 'نوع الخدمة',
+                GestureDetector(
+                  onTap: _selectPerson,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
+                    child: InputDecorator(
+                      isEmpty:
+                          widget.invitation.permissions?['personId'] == null,
+                      decoration: InputDecoration(
+                        labelText: 'ربط بخادم',
                         border: OutlineInputBorder(
                           borderSide: BorderSide(
                               color: Theme.of(context).colorScheme.primary),
-                        )),
+                        ),
+                      ),
+                      child: FutureBuilder<String?>(
+                        future: personName.fetch(
+                          () async {
+                            if (widget.invitation.permissions?['personId'] ==
+                                null) {
+                              return null;
+                            } else {
+                              return (await FirebaseFirestore.instance
+                                      .collection('UsersData')
+                                      .doc(widget
+                                          .invitation.permissions!['personId'])
+                                      .get(dataSource))
+                                  .data()?['Name'];
+                            }
+                          },
+                        ),
+                        builder: (con, data) {
+                          if (data.hasData) {
+                            return Text(data.data!);
+                          } else if (data.connectionState ==
+                              ConnectionState.waiting) {
+                            return const LinearProgressIndicator();
+                          } else {
+                            return Container();
+                          }
+                        },
+                      ),
+                    ),
                   ),
                 ),
                 if (User.instance.manageUsers)
@@ -268,6 +217,20 @@ class _EditInvitationState extends State<EditInvitation> {
                   onTap: () => setState(() =>
                       widget.invitation.permissions!['manageDeleted'] =
                           !(widget.invitation.permissions!['manageDeleted'] ??
+                              false)),
+                ),
+                ListTile(
+                  trailing: Checkbox(
+                    value: widget.invitation.permissions!['changeHistory'] ??
+                        false,
+                    onChanged: (v) => setState(() =>
+                        widget.invitation.permissions!['changeHistory'] = v),
+                  ),
+                  leading: const Icon(Icons.history),
+                  title: const Text('تعديل الكشوفات القديمة'),
+                  onTap: () => setState(() =>
+                      widget.invitation.permissions!['changeHistory'] =
+                          !(widget.invitation.permissions!['changeHistory'] ??
                               false)),
                 ),
                 ListTile(
@@ -543,8 +506,67 @@ class _EditInvitationState extends State<EditInvitation> {
       if (time != null)
         picked = picked.add(Duration(hours: time.hour, minutes: time.minute));
       setState(() {});
+      FocusScope.of(context).nextFocus();
       return Timestamp.fromDate(picked);
     }
     return Timestamp.fromDate(initialDate);
+  }
+
+  void _selectPerson() async {
+    final controller = DataObjectListController<User>(
+      tap: (person) {
+        navigator.currentState!.pop();
+        widget.invitation.permissions ??= {};
+        widget.invitation.permissions!['personId'] = person.ref.id;
+        personName.invalidate();
+        setState(() {});
+        FocusScope.of(context).nextFocus();
+      },
+      itemsStream: User.getAllForUserForEdit()
+          .map((users) => users.where((u) => u.uid == null).toList()),
+    );
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          child: Scaffold(
+            extendBody: true,
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.endDocked,
+            body: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SearchFilters(0,
+                    options: controller,
+                    orderOptions: BehaviorSubject<OrderOptions>.seeded(
+                        const OrderOptions()),
+                    textStyle: Theme.of(context).textTheme.bodyText2),
+                Expanded(
+                  child: DataObjectList<User>(
+                    options: controller,
+                    disposeController: false,
+                  ),
+                ),
+              ],
+            ),
+            bottomNavigationBar: BottomAppBar(
+              color: Theme.of(context).colorScheme.primary,
+              shape: const CircularNotchedRectangle(),
+              child: StreamBuilder<List?>(
+                stream: controller.objectsData,
+                builder: (context, snapshot) {
+                  return Text((snapshot.data?.length ?? 0).toString() + ' خادم',
+                      textAlign: TextAlign.center,
+                      strutStyle:
+                          StrutStyle(height: IconTheme.of(context).size! / 7.5),
+                      style: Theme.of(context).primaryTextTheme.bodyText1);
+                },
+              ),
+            ),
+          ),
+        );
+      },
+    );
+    await controller.dispose();
   }
 }
