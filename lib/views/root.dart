@@ -1335,14 +1335,20 @@ class _RootState extends State<Root>
         if (await Connectivity().checkConnectivity() !=
             ConnectivityResult.none) {
           await person.ref.set(
-            person.getMap(),
+            {
+              ...person.getMap(),
+              'AllowedUsers': [User.instance.uid],
+            },
             SetOptions(merge: true),
           );
         } else {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
           person.ref.set(
-            person.getMap(),
+            {
+              ...person.getMap(),
+              'AllowedUsers': [User.instance.uid],
+            },
             SetOptions(merge: true),
           );
         }
