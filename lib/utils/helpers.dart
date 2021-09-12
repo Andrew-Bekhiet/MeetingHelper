@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -19,6 +20,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     hide Person;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -303,7 +305,8 @@ Future<dynamic> getLinkObject(Uri deepLink) async {
       return await Person.fromId(
           deepLink.queryParameters['PersonId'] ?? 'null');
     } else if (deepLink.pathSegments[0] == 'viewUser') {
-      return await User.fromID(deepLink.queryParameters['UID'] ?? 'null');
+      return await User.fromUsersData(
+          deepLink.queryParameters['UID'] ?? 'null');
     } else if (deepLink.pathSegments[0] == 'viewQuery') {
       return const QueryIcon();
     }
@@ -769,7 +772,7 @@ Future<void> processLink(Uri? deepLink) async {
         );
       } else if (deepLink.pathSegments[0] == 'viewUser') {
         if (User.instance.manageUsers) {
-          userTap(await User.fromID(deepLink.queryParameters['UID']));
+          userTap((await User.fromUsersData(deepLink.queryParameters['UID']))!);
         } else {
           await showErrorDialog(navigator.currentContext!,
               'ليس لديك الصلاحية لرؤية محتويات الرابط!');
@@ -1103,17 +1106,38 @@ Future<String> shareUserRaw(String? uid) async {
 void showBirthDayNotification() async {
   await Firebase.initializeApp();
   if (auth.FirebaseAuth.instance.currentUser == null) return;
+
+  await Hive.initFlutter();
+
+  const FlutterSecureStorage secureStorage = FlutterSecureStorage();
+  final containsEncryptionKey = await secureStorage.containsKey(key: 'key');
+  if (!containsEncryptionKey)
+    await secureStorage.write(
+        key: 'key', value: base64Url.encode(Hive.generateSecureKey()));
+
+  final encryptionKey =
+      base64Url.decode((await secureStorage.read(key: 'key'))!);
+
+  await Hive.openBox(
+    'User',
+    encryptionCipher: HiveAesCipher(encryptionKey),
+  );
+
   await User.instance.initialized;
-  final user = User.instance;
   final source = GetOptions(
       source:
           (await Connectivity().checkConnectivity()) == ConnectivityResult.none
               ? Source.cache
               : Source.serverAndCache);
+
   final classes = await Class.getAllForUser().first;
-  List<String?> persons;
-  if (user.superAccess) {
-    persons = (await FirebaseFirestore.instance
+
+  await Future.delayed(const Duration(seconds: 4));
+
+  final List<String> persons = [];
+
+  if (User.instance.superAccess) {
+    persons.addAll((await FirebaseFirestore.instance
             .collection('Persons')
             .where(
               'BirthDay',
@@ -1131,52 +1155,104 @@ void showBirthDayNotification() async {
             .get(source))
         .docs
         .map((e) => e.data()['Name'] as String)
-        .toList();
-  } else if (classes.length <= 10) {
-    persons = (await FirebaseFirestore.instance
-            .collection('Persons')
-            .where('ClassId', whereIn: classes.map((c) => c.ref).toList())
-            .where(
-              'BirthDay',
-              isGreaterThanOrEqualTo: Timestamp.fromDate(
-                DateTime(1970, DateTime.now().month, DateTime.now().day),
-              ),
-            )
-            .where(
-              'BirthDay',
-              isLessThan: Timestamp.fromDate(
-                DateTime(1970, DateTime.now().month, DateTime.now().day + 1),
-              ),
-            )
-            .limit(20)
-            .get(source))
-        .docs
-        .map((e) => e.data()['Name'] as String)
-        .toList();
+        .toList());
   } else {
-    persons = (await Future.wait(
-            classes.split(10).map((cs) => FirebaseFirestore.instance
-                .collection('Persons')
-                .where('ClassId', whereIn: cs.map((c) => c.ref).toList())
-                .where(
-                  'BirthDay',
-                  isGreaterThanOrEqualTo: Timestamp.fromDate(
-                    DateTime(1970, DateTime.now().month, DateTime.now().day),
-                  ),
-                )
-                .where(
-                  'BirthDay',
-                  isLessThan: Timestamp.fromDate(
-                    DateTime(
-                        1970, DateTime.now().month, DateTime.now().day + 1),
-                  ),
-                )
-                .limit(20)
-                .get(source))))
-        .map((e) => e.docs.map((e) => e.data()['Name'] as String))
-        .expand((e) => e)
-        .toList();
+    //Persons from Classes
+    if (classes.isNotEmpty) if (classes.length <= 10) {
+      persons.addAll((await FirebaseFirestore.instance
+              .collection('Persons')
+              .where('ClassId', whereIn: classes.map((e) => e.ref).toList())
+              .where(
+                'BirthDay',
+                isGreaterThanOrEqualTo: Timestamp.fromDate(
+                  DateTime(1970, DateTime.now().month, DateTime.now().day),
+                ),
+              )
+              .where(
+                'BirthDay',
+                isLessThan: Timestamp.fromDate(
+                  DateTime(1970, DateTime.now().month, DateTime.now().day + 1),
+                ),
+              )
+              .limit(20)
+              .get(source))
+          .docs
+          .map((d) => d.data()['Name'] as String)
+          .toList());
+    } else {
+      persons.addAll((await Future.wait(
+              classes.split(10).map((c) => FirebaseFirestore.instance
+                  .collection('Persons')
+                  .where('ClassId', whereIn: c.map((e) => e.ref).toList())
+                  .where(
+                    'BirthDay',
+                    isGreaterThanOrEqualTo: Timestamp.fromDate(
+                      DateTime(1970, DateTime.now().month, DateTime.now().day),
+                    ),
+                  )
+                  .where(
+                    'BirthDay',
+                    isLessThan: Timestamp.fromDate(
+                      DateTime(
+                          1970, DateTime.now().month, DateTime.now().day + 1),
+                    ),
+                  )
+                  .limit(20)
+                  .get(source))))
+          .expand((e) => e.docs)
+          .map((d) => d.data()['Name'] as String)
+          .toList());
+    }
+    //Persons from Services
+    if (User.instance.adminServices
+        .isNotEmpty) if (User.instance.adminServices.length <= 10) {
+      persons.addAll((await FirebaseFirestore.instance
+              .collection('Persons')
+              .where('Services', arrayContainsAny: User.instance.adminServices)
+              .where(
+                'BirthDay',
+                isGreaterThanOrEqualTo: Timestamp.fromDate(
+                  DateTime(1970, DateTime.now().month, DateTime.now().day),
+                ),
+              )
+              .where(
+                'BirthDay',
+                isLessThan: Timestamp.fromDate(
+                  DateTime(1970, DateTime.now().month, DateTime.now().day + 1),
+                ),
+              )
+              .limit(20)
+              .get(source))
+          .docs
+          .map((d) => d.data()['Name'] as String)
+          .toList());
+    } else {
+      persons.addAll((await Future.wait(User.instance.adminServices
+              .split(10)
+              .map((c) => FirebaseFirestore.instance
+                  .collection('Persons')
+                  .where('Services', arrayContainsAny: c)
+                  .where(
+                    'BirthDay',
+                    isGreaterThanOrEqualTo: Timestamp.fromDate(
+                      DateTime(1970, DateTime.now().month, DateTime.now().day),
+                    ),
+                  )
+                  .where(
+                    'BirthDay',
+                    isLessThan: Timestamp.fromDate(
+                      DateTime(
+                          1970, DateTime.now().month, DateTime.now().day + 1),
+                    ),
+                  )
+                  .limit(20)
+                  .get(source))))
+          .expand((e) => e.docs)
+          .map((d) => d.data()['Name'] as String)
+          .toList());
+    }
   }
+
   if (persons.isNotEmpty || !f.kReleaseMode)
     await FlutterLocalNotificationsPlugin().show(
         2,
@@ -1237,17 +1313,38 @@ Future<List<T>?> selectServices<T extends DataObject>(List<T>? selected) async {
 void showConfessionNotification() async {
   await Firebase.initializeApp();
   if (auth.FirebaseAuth.instance.currentUser == null) return;
+
+  await Hive.initFlutter();
+
+  const FlutterSecureStorage secureStorage = FlutterSecureStorage();
+  final containsEncryptionKey = await secureStorage.containsKey(key: 'key');
+  if (!containsEncryptionKey)
+    await secureStorage.write(
+        key: 'key', value: base64Url.encode(Hive.generateSecureKey()));
+
+  final encryptionKey =
+      base64Url.decode((await secureStorage.read(key: 'key'))!);
+
+  await Hive.openBox(
+    'User',
+    encryptionCipher: HiveAesCipher(encryptionKey),
+  );
+
   await User.instance.initialized;
-  final user = User.instance;
   final source = GetOptions(
       source:
           (await Connectivity().checkConnectivity()) == ConnectivityResult.none
               ? Source.cache
               : Source.serverAndCache);
+
   final classes = await Class.getAllForUser().first;
-  List<String?> persons;
-  if (user.superAccess) {
-    persons = (await FirebaseFirestore.instance
+
+  await Future.delayed(const Duration(seconds: 4));
+
+  final List<String> persons = [];
+
+  if (User.instance.superAccess) {
+    persons.addAll((await FirebaseFirestore.instance
             .collection('Persons')
             .where('LastConfession',
                 isLessThan: Timestamp.fromDate(
@@ -1256,33 +1353,66 @@ void showConfessionNotification() async {
             .get(source))
         .docs
         .map((e) => e.data()['Name'] as String)
-        .toList();
-  } else if (classes.length <= 10) {
-    persons = (await FirebaseFirestore.instance
-            .collection('Persons')
-            .where('ClassId', whereIn: classes.map((c) => c.ref).toList())
-            .where('LastConfession',
-                isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(const Duration(days: 7))))
-            .limit(20)
-            .get(source))
-        .docs
-        .map((e) => e.data()['Name'] as String)
-        .toList();
+        .toList());
   } else {
-    persons = (await Future.wait(classes.split(10).map((cs) => FirebaseFirestore
-            .instance
-            .collection('Persons')
-            .where('ClassId', whereIn: cs.map((c) => c.ref).toList())
-            .where('LastConfession',
-                isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(const Duration(days: 7))))
-            .limit(20)
-            .get(source))))
-        .map((e) => e.docs.map((e) => e.data()['Name'] as String))
-        .expand((e) => e)
-        .toList();
+    //Persons from Classes
+    if (classes.isNotEmpty) if (classes.length <= 10) {
+      persons.addAll((await FirebaseFirestore.instance
+              .collection('Persons')
+              .where('ClassId', whereIn: classes.map((e) => e.ref).toList())
+              .where('LastConfession',
+                  isLessThan: Timestamp.fromDate(
+                      DateTime.now().subtract(const Duration(days: 7))))
+              .limit(20)
+              .get(source))
+          .docs
+          .map((d) => d.data()['Name'] as String)
+          .toList());
+    } else {
+      persons.addAll((await Future.wait(classes.split(10).map((c) =>
+              FirebaseFirestore.instance
+                  .collection('Persons')
+                  .where('ClassId', whereIn: c.map((e) => e.ref).toList())
+                  .where('LastConfession',
+                      isLessThan: Timestamp.fromDate(
+                          DateTime.now().subtract(const Duration(days: 7))))
+                  .limit(20)
+                  .get(source))))
+          .expand((e) => e.docs)
+          .map((d) => d.data()['Name'] as String)
+          .toList());
+    }
+    //Persons from Services
+    if (User.instance.adminServices
+        .isNotEmpty) if (User.instance.adminServices.length <= 10) {
+      persons.addAll((await FirebaseFirestore.instance
+              .collection('Persons')
+              .where('Services', arrayContainsAny: User.instance.adminServices)
+              .where('LastConfession',
+                  isLessThan: Timestamp.fromDate(
+                      DateTime.now().subtract(const Duration(days: 7))))
+              .limit(20)
+              .get(source))
+          .docs
+          .map((d) => d.data()['Name'] as String)
+          .toList());
+    } else {
+      persons.addAll((await Future.wait(User.instance.adminServices
+              .split(10)
+              .map((c) => FirebaseFirestore.instance
+                  .collection('Persons')
+                  .where('Services', arrayContainsAny: c)
+                  .where('LastConfession',
+                      isLessThan: Timestamp.fromDate(
+                          DateTime.now().subtract(const Duration(days: 7))))
+                  .limit(20)
+                  .get(source))))
+          .expand((e) => e.docs)
+          .map((d) => d.data()['Name'] as String)
+          .toList());
+    }
   }
+
   if (persons.isNotEmpty || !f.kReleaseMode)
     await FlutterLocalNotificationsPlugin().show(
         0,
@@ -1374,18 +1504,38 @@ Future<void> showErrorUpdateDataDialog(
 void showKodasNotification() async {
   await Firebase.initializeApp();
   if (auth.FirebaseAuth.instance.currentUser == null) return;
+
+  await Hive.initFlutter();
+
+  const FlutterSecureStorage secureStorage = FlutterSecureStorage();
+  final containsEncryptionKey = await secureStorage.containsKey(key: 'key');
+  if (!containsEncryptionKey)
+    await secureStorage.write(
+        key: 'key', value: base64Url.encode(Hive.generateSecureKey()));
+
+  final encryptionKey =
+      base64Url.decode((await secureStorage.read(key: 'key'))!);
+
+  await Hive.openBox(
+    'User',
+    encryptionCipher: HiveAesCipher(encryptionKey),
+  );
+
   await User.instance.initialized;
-  final user = User.instance;
   final source = GetOptions(
       source:
           (await Connectivity().checkConnectivity()) == ConnectivityResult.none
               ? Source.cache
               : Source.serverAndCache);
+
   final classes = await Class.getAllForUser().first;
-  await Future.delayed(const Duration(seconds: 3));
-  List<String> persons;
-  if (user.superAccess) {
-    persons = (await FirebaseFirestore.instance
+
+  await Future.delayed(const Duration(seconds: 4));
+
+  final List<String> persons = [];
+
+  if (User.instance.superAccess) {
+    persons.addAll((await FirebaseFirestore.instance
             .collection('Persons')
             .where('LastKodas',
                 isLessThan: Timestamp.fromDate(
@@ -1394,33 +1544,66 @@ void showKodasNotification() async {
             .get(source))
         .docs
         .map((e) => e.data()['Name'] as String)
-        .toList();
-  } else if (classes.length <= 10) {
-    persons = (await FirebaseFirestore.instance
-            .collection('Persons')
-            .where('ClassId', whereIn: classes.map((c) => c.ref).toList())
-            .where('LastKodas',
-                isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(const Duration(days: 7))))
-            .limit(20)
-            .get(source))
-        .docs
-        .map((e) => e.data()['Name'] as String)
-        .toList();
+        .toList());
   } else {
-    persons = (await Future.wait(classes.split(10).map((cs) => FirebaseFirestore
-            .instance
-            .collection('Persons')
-            .where('ClassId', whereIn: cs.map((c) => c.ref).toList())
-            .where('LastKodas',
-                isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(const Duration(days: 7))))
-            .limit(20)
-            .get(source))))
-        .map((e) => e.docs.map((e) => e.data()['Name'] as String))
-        .expand((e) => e)
-        .toList();
+    //Persons from Classes
+    if (classes.isNotEmpty) if (classes.length <= 10) {
+      persons.addAll((await FirebaseFirestore.instance
+              .collection('Persons')
+              .where('ClassId', whereIn: classes.map((e) => e.ref).toList())
+              .where('LastKodas',
+                  isLessThan: Timestamp.fromDate(
+                      DateTime.now().subtract(const Duration(days: 7))))
+              .limit(20)
+              .get(source))
+          .docs
+          .map((d) => d.data()['Name'] as String)
+          .toList());
+    } else {
+      persons.addAll((await Future.wait(classes.split(10).map((c) =>
+              FirebaseFirestore.instance
+                  .collection('Persons')
+                  .where('ClassId', whereIn: c.map((e) => e.ref).toList())
+                  .where('LastKodas',
+                      isLessThan: Timestamp.fromDate(
+                          DateTime.now().subtract(const Duration(days: 7))))
+                  .limit(20)
+                  .get(source))))
+          .expand((e) => e.docs)
+          .map((d) => d.data()['Name'] as String)
+          .toList());
+    }
+    //Persons from Services
+    if (User.instance.adminServices
+        .isNotEmpty) if (User.instance.adminServices.length <= 10) {
+      persons.addAll((await FirebaseFirestore.instance
+              .collection('Persons')
+              .where('Services', arrayContainsAny: User.instance.adminServices)
+              .where('LastKodas',
+                  isLessThan: Timestamp.fromDate(
+                      DateTime.now().subtract(const Duration(days: 7))))
+              .limit(20)
+              .get(source))
+          .docs
+          .map((d) => d.data()['Name'] as String)
+          .toList());
+    } else {
+      persons.addAll((await Future.wait(User.instance.adminServices
+              .split(10)
+              .map((c) => FirebaseFirestore.instance
+                  .collection('Persons')
+                  .where('Services', arrayContainsAny: c)
+                  .where('LastKodas',
+                      isLessThan: Timestamp.fromDate(
+                          DateTime.now().subtract(const Duration(days: 7))))
+                  .limit(20)
+                  .get(source))))
+          .expand((e) => e.docs)
+          .map((d) => d.data()['Name'] as String)
+          .toList());
+    }
   }
+
   if (persons.isNotEmpty || !f.kReleaseMode)
     await FlutterLocalNotificationsPlugin().show(
         4,
@@ -1440,18 +1623,38 @@ void showKodasNotification() async {
 void showMeetingNotification() async {
   await Firebase.initializeApp();
   if (auth.FirebaseAuth.instance.currentUser == null) return;
+
+  await Hive.initFlutter();
+
+  const FlutterSecureStorage secureStorage = FlutterSecureStorage();
+  final containsEncryptionKey = await secureStorage.containsKey(key: 'key');
+  if (!containsEncryptionKey)
+    await secureStorage.write(
+        key: 'key', value: base64Url.encode(Hive.generateSecureKey()));
+
+  final encryptionKey =
+      base64Url.decode((await secureStorage.read(key: 'key'))!);
+
+  await Hive.openBox(
+    'User',
+    encryptionCipher: HiveAesCipher(encryptionKey),
+  );
+
   await User.instance.initialized;
-  final user = User.instance;
   final source = GetOptions(
       source:
           (await Connectivity().checkConnectivity()) == ConnectivityResult.none
               ? Source.cache
               : Source.serverAndCache);
+
   final classes = await Class.getAllForUser().first;
+
   await Future.delayed(const Duration(seconds: 4));
-  List<String> persons;
-  if (user.superAccess) {
-    persons = (await FirebaseFirestore.instance
+
+  final List<String> persons = [];
+
+  if (User.instance.superAccess) {
+    persons.addAll((await FirebaseFirestore.instance
             .collection('Persons')
             .where('LastMeeting',
                 isLessThan: Timestamp.fromDate(
@@ -1460,33 +1663,66 @@ void showMeetingNotification() async {
             .get(source))
         .docs
         .map((e) => e.data()['Name'] as String)
-        .toList();
-  } else if (classes.length <= 10) {
-    persons = (await FirebaseFirestore.instance
-            .collection('Persons')
-            .where('ClassId', whereIn: classes.map((c) => c.ref).toList())
-            .where('LastMeeting',
-                isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(const Duration(days: 7))))
-            .limit(20)
-            .get(source))
-        .docs
-        .map((e) => e.data()['Name'] as String)
-        .toList();
+        .toList());
   } else {
-    persons = (await Future.wait(classes.split(10).map((cs) => FirebaseFirestore
-            .instance
-            .collection('Persons')
-            .where('ClassId', whereIn: cs.map((c) => c.ref).toList())
-            .where('LastMeeting',
-                isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(const Duration(days: 7))))
-            .limit(20)
-            .get(source))))
-        .map((e) => e.docs.map((e) => e.data()['Name'] as String))
-        .expand((e) => e)
-        .toList();
+    //Persons from Classes
+    if (classes.isNotEmpty) if (classes.length <= 10) {
+      persons.addAll((await FirebaseFirestore.instance
+              .collection('Persons')
+              .where('ClassId', whereIn: classes.map((e) => e.ref).toList())
+              .where('LastMeeting',
+                  isLessThan: Timestamp.fromDate(
+                      DateTime.now().subtract(const Duration(days: 7))))
+              .limit(20)
+              .get(source))
+          .docs
+          .map((d) => d.data()['Name'] as String)
+          .toList());
+    } else {
+      persons.addAll((await Future.wait(classes.split(10).map((c) =>
+              FirebaseFirestore.instance
+                  .collection('Persons')
+                  .where('ClassId', whereIn: c.map((e) => e.ref).toList())
+                  .where('LastMeeting',
+                      isLessThan: Timestamp.fromDate(
+                          DateTime.now().subtract(const Duration(days: 7))))
+                  .limit(20)
+                  .get(source))))
+          .expand((e) => e.docs)
+          .map((d) => d.data()['Name'] as String)
+          .toList());
+    }
+    //Persons from Services
+    if (User.instance.adminServices
+        .isNotEmpty) if (User.instance.adminServices.length <= 10) {
+      persons.addAll((await FirebaseFirestore.instance
+              .collection('Persons')
+              .where('Services', arrayContainsAny: User.instance.adminServices)
+              .where('LastMeeting',
+                  isLessThan: Timestamp.fromDate(
+                      DateTime.now().subtract(const Duration(days: 7))))
+              .limit(20)
+              .get(source))
+          .docs
+          .map((d) => d.data()['Name'] as String)
+          .toList());
+    } else {
+      persons.addAll((await Future.wait(User.instance.adminServices
+              .split(10)
+              .map((c) => FirebaseFirestore.instance
+                  .collection('Persons')
+                  .where('Services', arrayContainsAny: c)
+                  .where('LastMeeting',
+                      isLessThan: Timestamp.fromDate(
+                          DateTime.now().subtract(const Duration(days: 7))))
+                  .limit(20)
+                  .get(source))))
+          .expand((e) => e.docs)
+          .map((d) => d.data()['Name'] as String)
+          .toList());
+    }
   }
+
   if (persons.isNotEmpty || !f.kReleaseMode)
     await FlutterLocalNotificationsPlugin().show(
         3,
@@ -1587,18 +1823,38 @@ Future<void> showPendingMessage() async {
 void showTanawolNotification() async {
   await Firebase.initializeApp();
   if (auth.FirebaseAuth.instance.currentUser == null) return;
+
+  await Hive.initFlutter();
+
+  const FlutterSecureStorage secureStorage = FlutterSecureStorage();
+  final containsEncryptionKey = await secureStorage.containsKey(key: 'key');
+  if (!containsEncryptionKey)
+    await secureStorage.write(
+        key: 'key', value: base64Url.encode(Hive.generateSecureKey()));
+
+  final encryptionKey =
+      base64Url.decode((await secureStorage.read(key: 'key'))!);
+
+  await Hive.openBox(
+    'User',
+    encryptionCipher: HiveAesCipher(encryptionKey),
+  );
+
   await User.instance.initialized;
-  final user = User.instance;
   final source = GetOptions(
       source:
           (await Connectivity().checkConnectivity()) == ConnectivityResult.none
               ? Source.cache
               : Source.serverAndCache);
+
   final classes = await Class.getAllForUser().first;
-  await Future.delayed(const Duration(seconds: 5));
-  List<String> persons;
-  if (user.superAccess) {
-    persons = (await FirebaseFirestore.instance
+
+  await Future.delayed(const Duration(seconds: 4));
+
+  final List<String> persons = [];
+
+  if (User.instance.superAccess) {
+    persons.addAll((await FirebaseFirestore.instance
             .collection('Persons')
             .where('LastTanawol',
                 isLessThan: Timestamp.fromDate(
@@ -1607,33 +1863,66 @@ void showTanawolNotification() async {
             .get(source))
         .docs
         .map((e) => e.data()['Name'] as String)
-        .toList();
-  } else if (classes.length <= 10) {
-    persons = (await FirebaseFirestore.instance
-            .collection('Persons')
-            .where('ClassId', whereIn: classes.map((c) => c.ref).toList())
-            .where('LastTanawol',
-                isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(const Duration(days: 7))))
-            .limit(20)
-            .get(source))
-        .docs
-        .map((e) => e.data()['Name'] as String)
-        .toList();
+        .toList());
   } else {
-    persons = (await Future.wait(classes.split(10).map((cs) => FirebaseFirestore
-            .instance
-            .collection('Persons')
-            .where('ClassId', whereIn: cs.map((c) => c.ref).toList())
-            .where('LastTanawol',
-                isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(const Duration(days: 7))))
-            .limit(20)
-            .get(source))))
-        .map((e) => e.docs.map((e) => e.data()['Name'] as String))
-        .expand((e) => e)
-        .toList();
+    //Persons from Classes
+    if (classes.isNotEmpty) if (classes.length <= 10) {
+      persons.addAll((await FirebaseFirestore.instance
+              .collection('Persons')
+              .where('ClassId', whereIn: classes.map((e) => e.ref).toList())
+              .where('LastTanawol',
+                  isLessThan: Timestamp.fromDate(
+                      DateTime.now().subtract(const Duration(days: 7))))
+              .limit(20)
+              .get(source))
+          .docs
+          .map((d) => d.data()['Name'] as String)
+          .toList());
+    } else {
+      persons.addAll((await Future.wait(classes.split(10).map((c) =>
+              FirebaseFirestore.instance
+                  .collection('Persons')
+                  .where('ClassId', whereIn: c.map((e) => e.ref).toList())
+                  .where('LastTanawol',
+                      isLessThan: Timestamp.fromDate(
+                          DateTime.now().subtract(const Duration(days: 7))))
+                  .limit(20)
+                  .get(source))))
+          .expand((e) => e.docs)
+          .map((d) => d.data()['Name'] as String)
+          .toList());
+    }
+    //Persons from Services
+    if (User.instance.adminServices
+        .isNotEmpty) if (User.instance.adminServices.length <= 10) {
+      persons.addAll((await FirebaseFirestore.instance
+              .collection('Persons')
+              .where('Services', arrayContainsAny: User.instance.adminServices)
+              .where('LastTanawol',
+                  isLessThan: Timestamp.fromDate(
+                      DateTime.now().subtract(const Duration(days: 7))))
+              .limit(20)
+              .get(source))
+          .docs
+          .map((d) => d.data()['Name'] as String)
+          .toList());
+    } else {
+      persons.addAll((await Future.wait(User.instance.adminServices
+              .split(10)
+              .map((c) => FirebaseFirestore.instance
+                  .collection('Persons')
+                  .where('Services', arrayContainsAny: c)
+                  .where('LastTanawol',
+                      isLessThan: Timestamp.fromDate(
+                          DateTime.now().subtract(const Duration(days: 7))))
+                  .limit(20)
+                  .get(source))))
+          .expand((e) => e.docs)
+          .map((d) => d.data()['Name'] as String)
+          .toList());
+    }
   }
+
   if (persons.isNotEmpty || !f.kReleaseMode)
     await FlutterLocalNotificationsPlugin().show(
         1,
@@ -1692,7 +1981,7 @@ void userTap(User user) async {
                 TextButton.icon(
                   icon: const Icon(Icons.close),
                   label: const Text('حذف المستخدم'),
-                  onPressed: () => navigator.currentState!.pop('deleted'),
+                  onPressed: () => navigator.currentState!.pop('delete'),
                 ),
               ],
               title: Text('${user.name} غير مُنشط هل تريد تنشيطه؟'),
