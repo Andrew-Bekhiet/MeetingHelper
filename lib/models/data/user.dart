@@ -68,6 +68,7 @@ class User extends Person {
   bool tanawolNotify = false;
   bool kodasNotify = false;
   bool meetingNotify = false;
+  bool visitNotify = false;
 
   bool approved = false;
 
@@ -102,6 +103,7 @@ class User extends Person {
       bool tanawolNotify = false,
       bool kodasNotify = false,
       bool meetingNotify = false,
+      bool visitNotify = false,
       bool approved = false,
       Timestamp? lastConfession,
       Timestamp? lastTanawol,
@@ -129,6 +131,7 @@ class User extends Person {
       tanawolNotify: tanawolNotify,
       kodasNotify: kodasNotify,
       meetingNotify: meetingNotify,
+      visitNotify: visitNotify,
       approved: approved,
       lastConfession: lastConfession,
       lastTanawol: lastTanawol,
@@ -161,6 +164,7 @@ class User extends Person {
       required this.tanawolNotify,
       required this.kodasNotify,
       required this.meetingNotify,
+      required this.visitNotify,
       required this.approved,
       Timestamp? lastConfession,
       Timestamp? lastTanawol,
@@ -356,6 +360,7 @@ class User extends Person {
     tanawolNotify = idTokenClaims['tanawolNotify'].toString() == 'true';
     kodasNotify = idTokenClaims['kodasNotify'].toString() == 'true';
     meetingNotify = idTokenClaims['meetingNotify'].toString() == 'true';
+    visitNotify = idTokenClaims['visitNotify'].toString() == 'true';
     approved = idTokenClaims['approved'].toString() == 'true';
 
     lastConfession = idTokenClaims['lastConfession'] != null
@@ -447,6 +452,7 @@ class User extends Person {
     tanawolNotify = permissions['TanawolNotify'] ?? false;
     kodasNotify = permissions['KodasNotify'] ?? false;
     meetingNotify = permissions['MeetingNotify'] ?? false;
+    visitNotify = permissions['VisitNotify'] ?? false;
     approved = permissions['Approved'] ?? false;
 
     defaultIcon = Icons.account_circle;
@@ -458,26 +464,30 @@ class User extends Person {
   @override
   int get hashCode =>
       hashValues(
-          email,
-          uid,
-          name,
-          password,
-          manageUsers,
-          manageAllowedUsers,
-          superAccess,
-          manageDeleted,
-          write,
-          secretary,
-          changeHistory,
-          export,
+        email,
+        uid,
+        name,
+        password,
+        manageUsers,
+        manageAllowedUsers,
+        superAccess,
+        manageDeleted,
+        write,
+        secretary,
+        changeHistory,
+        export,
+        approved,
+        lastConfession,
+        lastTanawol,
+        hashValues(
           birthdayNotify,
           confessionsNotify,
           tanawolNotify,
           kodasNotify,
           meetingNotify,
-          approved,
-          lastConfession,
-          lastTanawol) ^
+          visitNotify,
+        ),
+      ) ^
       super.hashCode;
 
   @override
@@ -500,6 +510,7 @@ class User extends Person {
         'tanawolNotify': tanawolNotify,
         'kodasNotify': kodasNotify,
         'meetingNotify': meetingNotify,
+        'visitNotify': visitNotify,
       };
 
   String getPermissions() {
@@ -517,6 +528,7 @@ class User extends Person {
       if (tanawolNotify) permissions += 'اشعار التناول،';
       if (kodasNotify) permissions += 'اشعار القداس';
       if (meetingNotify) permissions += 'اشعار حضور الاجتماع';
+      if (visitNotify) permissions += 'اشعار الافتقاد';
       if (write) permissions += 'تعديل البيانات،';
       return permissions;
     }
@@ -650,6 +662,7 @@ class User extends Person {
       'tanawolNotify': tanawolNotify,
       'kodasNotify': kodasNotify,
       'meetingNotify': meetingNotify,
+      'visitNotify': visitNotify,
       'approved': approved,
       'lastConfession': lastConfession?.millisecondsSinceEpoch,
       'lastTanawol': lastTanawol?.millisecondsSinceEpoch,
@@ -837,6 +850,7 @@ class User extends Person {
     bool? tanawolNotify,
     bool? kodasNotify,
     bool? meetingNotify,
+    bool? visitNotify,
     bool? approved,
     Timestamp? lastConfession,
     Timestamp? lastTanawol,
@@ -881,6 +895,7 @@ class User extends Person {
       tanawolNotify: tanawolNotify ?? this.tanawolNotify,
       kodasNotify: kodasNotify ?? this.kodasNotify,
       meetingNotify: meetingNotify ?? this.meetingNotify,
+      visitNotify: visitNotify ?? this.visitNotify,
       approved: approved ?? this.approved,
       lastConfession: lastConfession ?? this.lastConfession,
       lastTanawol: lastTanawol ?? this.lastTanawol,

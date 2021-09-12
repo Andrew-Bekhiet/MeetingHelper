@@ -1939,6 +1939,125 @@ void showTanawolNotification() async {
         payload: 'Tanawol');
 }
 
+void showVisitNotification() async {
+  await Firebase.initializeApp();
+  if (auth.FirebaseAuth.instance.currentUser == null) return;
+
+  await Hive.initFlutter();
+
+  const FlutterSecureStorage secureStorage = FlutterSecureStorage();
+  final containsEncryptionKey = await secureStorage.containsKey(key: 'key');
+  if (!containsEncryptionKey)
+    await secureStorage.write(
+        key: 'key', value: base64Url.encode(Hive.generateSecureKey()));
+
+  final encryptionKey =
+      base64Url.decode((await secureStorage.read(key: 'key'))!);
+
+  await Hive.openBox(
+    'User',
+    encryptionCipher: HiveAesCipher(encryptionKey),
+  );
+
+  await User.instance.initialized;
+  final source = GetOptions(
+      source:
+          (await Connectivity().checkConnectivity()) == ConnectivityResult.none
+              ? Source.cache
+              : Source.serverAndCache);
+
+  final classes = await Class.getAllForUser().first;
+
+  await Future.delayed(const Duration(seconds: 4));
+
+  final List<String> persons = [];
+
+  if (User.instance.superAccess) {
+    persons.addAll((await FirebaseFirestore.instance
+            .collection('Persons')
+            .where('LastVisit',
+                isLessThan: Timestamp.fromDate(
+                    DateTime.now().subtract(const Duration(days: 7))))
+            .limit(20)
+            .get(source))
+        .docs
+        .map((e) => e.data()['Name'] as String)
+        .toList());
+  } else {
+    //Persons from Classes
+    if (classes.isNotEmpty) if (classes.length <= 10) {
+      persons.addAll((await FirebaseFirestore.instance
+              .collection('Persons')
+              .where('ClassId', whereIn: classes.map((e) => e.ref).toList())
+              .where('LastVisit',
+                  isLessThan: Timestamp.fromDate(
+                      DateTime.now().subtract(const Duration(days: 7))))
+              .limit(20)
+              .get(source))
+          .docs
+          .map((d) => d.data()['Name'] as String)
+          .toList());
+    } else {
+      persons.addAll((await Future.wait(classes.split(10).map((c) =>
+              FirebaseFirestore.instance
+                  .collection('Persons')
+                  .where('ClassId', whereIn: c.map((e) => e.ref).toList())
+                  .where('LastVisit',
+                      isLessThan: Timestamp.fromDate(
+                          DateTime.now().subtract(const Duration(days: 7))))
+                  .limit(20)
+                  .get(source))))
+          .expand((e) => e.docs)
+          .map((d) => d.data()['Name'] as String)
+          .toList());
+    }
+    //Persons from Services
+    if (User.instance.adminServices
+        .isNotEmpty) if (User.instance.adminServices.length <= 10) {
+      persons.addAll((await FirebaseFirestore.instance
+              .collection('Persons')
+              .where('Services', arrayContainsAny: User.instance.adminServices)
+              .where('LastVisit',
+                  isLessThan: Timestamp.fromDate(
+                      DateTime.now().subtract(const Duration(days: 7))))
+              .limit(20)
+              .get(source))
+          .docs
+          .map((d) => d.data()['Name'] as String)
+          .toList());
+    } else {
+      persons.addAll((await Future.wait(User.instance.adminServices
+              .split(10)
+              .map((c) => FirebaseFirestore.instance
+                  .collection('Persons')
+                  .where('Services', arrayContainsAny: c)
+                  .where('LastVisit',
+                      isLessThan: Timestamp.fromDate(
+                          DateTime.now().subtract(const Duration(days: 7))))
+                  .limit(20)
+                  .get(source))))
+          .expand((e) => e.docs)
+          .map((d) => d.data()['Name'] as String)
+          .toList());
+    }
+  }
+
+  if (persons.isNotEmpty || !f.kReleaseMode)
+    await FlutterLocalNotificationsPlugin().show(
+        5,
+        'انذار الافتقاد',
+        persons.join(', '),
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+              'Visit', 'إشعارات الافتقاد', 'إشعارات الافتقاد',
+              icon: 'warning',
+              autoCancel: false,
+              visibility: NotificationVisibility.secret,
+              showWhen: false),
+        ),
+        payload: 'Visit');
+}
+
 Future<int> storeNotification(RemoteMessage message) async {
   return Hive.box<Map<dynamic, dynamic>>('Notifications').add(message.data);
 }

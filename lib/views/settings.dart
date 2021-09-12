@@ -413,7 +413,7 @@ class SettingsState extends State<Settings> {
         if (notifications['tanawolNotify']!)
           NotificationSetting(
             label: 'ارسال انذار التناول كل ',
-            hiveKey: 'TtanawolTime',
+            hiveKey: 'TanawolTime',
             alarmId: 'Tanawol'.hashCode,
             notificationCallback: showTanawolNotification,
           ),
@@ -440,6 +440,18 @@ class SettingsState extends State<Settings> {
             hiveKey: 'MeetingTime',
             alarmId: 'Meeting'.hashCode,
             notificationCallback: showMeetingNotification,
+          ),
+        if (notifications['visitNotify']!)
+          const Divider(
+            thickness: 2,
+            height: 30,
+          ),
+        if (notifications['visitNotify']!)
+          NotificationSetting(
+            label: 'ارسال انذار الافتقاد كل ',
+            hiveKey: 'VisitTime',
+            alarmId: 'Visit'.hashCode,
+            notificationCallback: showVisitNotification,
           ),
       ],
     );
