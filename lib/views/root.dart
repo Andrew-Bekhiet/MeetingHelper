@@ -6,7 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:disable_battery_optimization/disable_battery_optimization.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:meetinghelper/crashlytics_web.dart';
@@ -26,6 +25,7 @@ import 'package:meetinghelper/views/lists/lists.dart';
 import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
@@ -908,8 +908,7 @@ class _RootState extends State<Root>
 
   Future<void> showBatteryOptimizationDialog() async {
     if ((await DeviceInfoPlugin().androidInfo).version.sdkInt! >= 23 &&
-        (await DisableBatteryOptimization.isIgnoringBatteryOptimizations() !=
-            true) &&
+        !(await Permission.ignoreBatteryOptimizations.status).isGranted &&
         Hive.box('Settings').get('ShowBatteryDialog', defaultValue: true)) {
       await showDialog(
         context: context,
@@ -920,7 +919,7 @@ class _RootState extends State<Root>
             TextButton(
               onPressed: () async {
                 navigator.currentState!.pop();
-                await DisableBatteryOptimization.stopOptimizingBatteryUsage();
+                await Permission.ignoreBatteryOptimizations.request();
               },
               child: const Text('الغاء حفظ الطاقة للبرنامج'),
             ),

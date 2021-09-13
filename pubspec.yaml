@@ -19,10 +19,6 @@ dependencies:
   cupertino_icons: ^1.0.3
   datetime_picker_formfield: ^2.0.0
   device_info_plus: ^2.1.0
-  disable_battery_optimization:
-    git:
-      url: https://github.com/Andrew-Bekhiet/disable_battery_optimization
-      ref: e0bd4a6dc0ed3e411beb822a31b29e331416df86
   expandable: ^5.0.1
   file_picker: ^4.0.1
   firebase_auth: ^3.1.0
