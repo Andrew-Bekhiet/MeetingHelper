@@ -45,7 +45,7 @@ class User extends Person {
   }
 
   @override
-  String get id => uid ?? 'null';
+  String get id => uid ?? refId;
 
   String get refId => ref.id;
 
