@@ -1016,7 +1016,7 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
       'title': title.text,
       'body': 'أرسل إليك ${User.instance.name} رسالة',
       'content': content.text,
-      'attachement': 'https://meetinghelper.page.link/view$link'
+      'attachement': 'https://'+uriPrefix+'/view$link'
     });
   }
 }
