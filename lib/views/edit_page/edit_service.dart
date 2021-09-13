@@ -443,6 +443,7 @@ class _EditServiceState extends State<EditService> {
   void initState() {
     super.initState();
     service = (widget.service ?? Service.empty()).copyWith();
+    if (service.id == 'null') allowedUsers = [User.instance];
   }
 
   void nameChanged(String value) {
@@ -494,6 +495,33 @@ class _EditServiceState extends State<EditService> {
           // ignore: unawaited_futures
           service.set();
         }
+
+        if (allowedUsers != null) {
+          final batch = FirebaseFirestore.instance.batch();
+          final oldAllowed = (await FirebaseFirestore.instance
+                  .collection('UsersData')
+                  .where('AdminServices', arrayContains: service.ref)
+                  .get())
+              .docs
+              .map(User.fromDoc)
+              .toList();
+          for (final item in oldAllowed) {
+            if (!allowedUsers!.contains(item)) {
+              batch.update(item.ref, {
+                'AdminServices': FieldValue.arrayRemove([service.ref])
+              });
+            }
+          }
+          for (final item in allowedUsers!) {
+            if (!oldAllowed.contains(item)) {
+              batch.update(item.ref, {
+                'AdminServices': FieldValue.arrayUnion([service.ref])
+              });
+            }
+          }
+          await batch.commit();
+        }
+
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
         navigator.currentState!.pop(service.ref);
       }
