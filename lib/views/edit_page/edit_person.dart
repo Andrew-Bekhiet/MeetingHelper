@@ -316,10 +316,6 @@ class _EditPersonState extends State<EditPerson> {
                           state.didChange(person.birthDate = null);
                         },
                       ),
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(
-                            color: Theme.of(context).colorScheme.primary),
-                      ),
                     ),
                     builder: (context, state) {
                       return state.value != null
@@ -376,6 +372,88 @@ class _EditPersonState extends State<EditPerson> {
                         }
                       },
                     ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: TapableFormField<JsonRef?>(
+                      initialValue: person.classId,
+                      onTap: _selectClass,
+                      validator: (c) => person.services.isEmpty && c == null
+                          ? 'برجاء ادخال الفصل او خدمة واحدة على الأقل'
+                          : null,
+                      decoration: (context, state) => InputDecoration(
+                        labelText: 'داخل فصل',
+                        errorText: state.errorText,
+                        errorMaxLines: 2,
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.delete),
+                          tooltip: 'ازالة الفصل المحدد',
+                          onPressed: () {
+                            setState(() => person.classId = null);
+                          },
+                        ),
+                      ),
+                      builder: (context, state) {
+                        return state.value == null
+                            ? null
+                            : FutureBuilder<String>(
+                                future: person.classId == null
+                                    ? null
+                                    : person.getClassName(),
+                                builder: (con, data) {
+                                  if (data.hasData) {
+                                    return Text(data.data!);
+                                  } else if (data.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return const LinearProgressIndicator();
+                                  } else {
+                                    return const Text('');
+                                  }
+                                },
+                              );
+                      },
+                    ),
+                  ),
+                  TapableFormField<List<JsonRef>>(
+                    labelText: 'الخدمات المشارك بها',
+                    initialValue: person.services,
+                    onTap: _selectServices,
+                    validator: (s) =>
+                        (s?.isEmpty ?? true) && person.classId == null
+                            ? 'برجاء ادخال الفصل او خدمة واحدة على الأقل'
+                            : null,
+                    builder: (context, state) {
+                      return state.value != null && state.value!.isNotEmpty
+                          ? FutureBuilder<List<String>>(
+                              future: Future.wait(
+                                state.value!.take(2).map(
+                                      (s) async =>
+                                          Service.fromDoc(
+                                            await s.get(dataSource),
+                                          )?.name ??
+                                          '',
+                                    ),
+                              ),
+                              builder: (context, servicesSnapshot) {
+                                if (!servicesSnapshot.hasData)
+                                  return const LinearProgressIndicator();
+
+                                if (state.value!.length > 2)
+                                  return Text(
+                                    servicesSnapshot.requireData
+                                            .take(2)
+                                            .join(' و') +
+                                        'و ' +
+                                        (state.value!.length - 2).toString() +
+                                        ' أخرين',
+                                  );
+
+                                return Text(
+                                    servicesSnapshot.requireData.join(' و'));
+                              },
+                            )
+                          : const Text('لا يوجد خدمات');
+                    },
+                  ),
                   if (person.classId == null)
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -417,268 +495,6 @@ class _EditPersonState extends State<EditPerson> {
                                 : null,
                       ),
                     ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'العنوان',
-                      ),
-                      keyboardType: TextInputType.streetAddress,
-                      autofillHints: const [AutofillHints.fullStreetAddress],
-                      initialValue: person.address,
-                      textInputAction: TextInputAction.newline,
-                      maxLines: null,
-                      onChanged: (v) => person.address = v,
-                      onFieldSubmitted: _nextFocus,
-                      validator: (value) {
-                        return null;
-                      },
-                    ),
-                  ),
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.map),
-                    label: const Text('تعديل مكان المنزل على الخريطة'),
-                    onPressed: _editLocation,
-                  ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.max,
-                      children: <Widget>[
-                        Expanded(
-                          child: FutureBuilder<JsonQuery>(
-                            key: ValueKey(person.school),
-                            future: School.getAllForUser(),
-                            builder: (context, data) {
-                              if (data.hasData) {
-                                return Container(
-                                  margin:
-                                      const EdgeInsets.symmetric(vertical: 8),
-                                  child: DropdownButtonFormField<JsonRef?>(
-                                    isExpanded: true,
-                                    value: person.school,
-                                    items: data.data!.docs
-                                        .map(
-                                          (item) => DropdownMenuItem(
-                                            value: item.reference,
-                                            child: Text(item.data()['Name']),
-                                          ),
-                                        )
-                                        .toList()
-                                      ..insert(
-                                        0,
-                                        const DropdownMenuItem(
-                                          value: null,
-                                          child: Text(''),
-                                        ),
-                                      ),
-                                    onChanged: (value) {
-                                      person.school = value;
-                                      FocusScope.of(context).nextFocus();
-                                    },
-                                    decoration: InputDecoration(
-                                      labelText: 'المدرسة',
-                                      border: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              } else {
-                                return const SizedBox(width: 1, height: 1);
-                              }
-                            },
-                          ),
-                        ),
-                        TextButton.icon(
-                          icon: const Icon(Icons.add),
-                          label: const Text('اضافة'),
-                          onPressed: () async {
-                            await navigator.currentState!
-                                .pushNamed('Settings/Schools');
-                            setState(() {});
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.max,
-                      children: <Widget>[
-                        Expanded(
-                          child: FutureBuilder<JsonQuery>(
-                            key: ValueKey(person.church),
-                            future: Church.getAllForUser(),
-                            builder: (context, data) {
-                              if (data.hasData) {
-                                return Container(
-                                  margin:
-                                      const EdgeInsets.symmetric(vertical: 8),
-                                  child: DropdownButtonFormField<JsonRef?>(
-                                    value: person.church,
-                                    isExpanded: true,
-                                    items: data.data!.docs
-                                        .map(
-                                          (item) => DropdownMenuItem(
-                                            value: item.reference,
-                                            child: Text(item.data()['Name']),
-                                          ),
-                                        )
-                                        .toList()
-                                      ..insert(
-                                        0,
-                                        const DropdownMenuItem(
-                                          value: null,
-                                          child: Text(''),
-                                        ),
-                                      ),
-                                    onChanged: (value) {
-                                      person.church = value;
-                                      FocusScope.of(context).nextFocus();
-                                    },
-                                    decoration: InputDecoration(
-                                      labelText: 'الكنيسة',
-                                      border: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              } else {
-                                return const SizedBox(width: 1, height: 1);
-                              }
-                            },
-                          ),
-                        ),
-                        TextButton.icon(
-                          icon: const Icon(Icons.add),
-                          label: const Text('اضافة'),
-                          onPressed: () async {
-                            await navigator.currentState!
-                                .pushNamed('Settings/Churches');
-                            setState(() {});
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: FutureBuilder<JsonQuery>(
-                            key: ValueKey(person.cFather),
-                            future: Father.getAllForUser(),
-                            builder: (context, data) {
-                              if (data.hasData) {
-                                return DropdownButtonFormField<JsonRef?>(
-                                  value: person.cFather,
-                                  isExpanded: true,
-                                  items: data.data!.docs
-                                      .map(
-                                        (item) => DropdownMenuItem(
-                                          value: item.reference,
-                                          child: Text(item.data()['Name']),
-                                        ),
-                                      )
-                                      .toList()
-                                    ..insert(
-                                      0,
-                                      const DropdownMenuItem(
-                                        value: null,
-                                        child: Text(''),
-                                      ),
-                                    ),
-                                  onChanged: (value) {
-                                    person.cFather = value;
-                                    FocusScope.of(context).nextFocus();
-                                  },
-                                  decoration: InputDecoration(
-                                    labelText: 'أب الاعتراف',
-                                    border: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .primary),
-                                    ),
-                                  ),
-                                );
-                              } else {
-                                return const SizedBox(width: 1, height: 1);
-                              }
-                            },
-                          ),
-                        ),
-                        TextButton.icon(
-                          icon: const Icon(Icons.add),
-                          label: const Text('اضافة'),
-                          onPressed: () async {
-                            await navigator.currentState!
-                                .pushNamed('Settings/Fathers');
-                            setState(() {});
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: TapableFormField<JsonRef?>(
-                      initialValue: person.classId,
-                      onTap: _selectClass,
-                      validator: (c) => person.services.isEmpty && c == null
-                          ? 'برجاء ادخال الفصل او خدمة واحدة على الأقل'
-                          : null,
-                      decoration: (context, state) => InputDecoration(
-                        labelText: 'داخل فصل',
-                        errorText: state.errorText,
-                        errorMaxLines: 2,
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.delete),
-                          tooltip: 'ازالة الفصل المحدد',
-                          onPressed: () {
-                            setState(() => person.classId = null);
-                          },
-                        ),
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: Theme.of(context).colorScheme.primary),
-                        ),
-                      ),
-                      builder: (context, state) {
-                        return state.value == null
-                            ? null
-                            : FutureBuilder<String>(
-                                future: person.classId == null
-                                    ? null
-                                    : person.getClassName(),
-                                builder: (con, data) {
-                                  if (data.hasData) {
-                                    return Text(data.data!);
-                                  } else if (data.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return const LinearProgressIndicator();
-                                  } else {
-                                    return const Text('');
-                                  }
-                                },
-                              );
-                      },
-                    ),
-                  ),
                   if (person.gender)
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -752,46 +568,204 @@ class _EditPersonState extends State<EditPerson> {
                         ),
                       ),
                     ),
-                  TapableFormField<List<JsonRef>>(
-                    labelText: 'الخدمات المشارك بها',
-                    initialValue: person.services,
-                    onTap: _selectServices,
-                    validator: (s) =>
-                        (s?.isEmpty ?? true) && person.classId == null
-                            ? 'برجاء ادخال الفصل او خدمة واحدة على الأقل'
-                            : null,
-                    builder: (context, state) {
-                      return state.value != null && state.value!.isNotEmpty
-                          ? FutureBuilder<List<String>>(
-                              future: Future.wait(
-                                state.value!.take(2).map(
-                                      (s) async =>
-                                          Service.fromDoc(
-                                            await s.get(dataSource),
-                                          )?.name ??
-                                          '',
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: 'العنوان',
+                      ),
+                      keyboardType: TextInputType.streetAddress,
+                      autofillHints: const [AutofillHints.fullStreetAddress],
+                      initialValue: person.address,
+                      textInputAction: TextInputAction.newline,
+                      maxLines: null,
+                      onChanged: (v) => person.address = v,
+                      onFieldSubmitted: _nextFocus,
+                      validator: (value) {
+                        return null;
+                      },
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.map),
+                    label: const Text('تعديل مكان المنزل على الخريطة'),
+                    onPressed: _editLocation,
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.max,
+                      children: <Widget>[
+                        Expanded(
+                          child: FutureBuilder<JsonQuery>(
+                            key: ValueKey(person.school),
+                            future: School.getAllForUser(),
+                            builder: (context, data) {
+                              if (data.hasData) {
+                                return Container(
+                                  margin:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                  child: DropdownButtonFormField<JsonRef?>(
+                                    isExpanded: true,
+                                    value: person.school,
+                                    items: data.data!.docs
+                                        .map(
+                                          (item) => DropdownMenuItem(
+                                            value: item.reference,
+                                            child: Text(item.data()['Name']),
+                                          ),
+                                        )
+                                        .toList()
+                                      ..insert(
+                                        0,
+                                        const DropdownMenuItem(
+                                          value: null,
+                                          child: Text(''),
+                                        ),
+                                      ),
+                                    onChanged: (value) {
+                                      person.school = value;
+                                      FocusScope.of(context).nextFocus();
+                                    },
+                                    decoration: const InputDecoration(
+                                      labelText: 'المدرسة',
                                     ),
-                              ),
-                              builder: (context, servicesSnapshot) {
-                                if (!servicesSnapshot.hasData)
-                                  return const LinearProgressIndicator();
-
-                                if (state.value!.length > 2)
-                                  return Text(
-                                    servicesSnapshot.requireData
-                                            .take(2)
-                                            .join(' و') +
-                                        'و ' +
-                                        (state.value!.length - 2).toString() +
-                                        ' أخرين',
-                                  );
-
-                                return Text(
-                                    servicesSnapshot.requireData.join(' و'));
-                              },
-                            )
-                          : const Text('لا يوجد خدمات');
-                    },
+                                  ),
+                                );
+                              } else {
+                                return const SizedBox(width: 1, height: 1);
+                              }
+                            },
+                          ),
+                        ),
+                        TextButton.icon(
+                          icon: const Icon(Icons.add),
+                          label: const Text('اضافة'),
+                          onPressed: () async {
+                            await navigator.currentState!
+                                .pushNamed('Settings/Schools');
+                            setState(() {});
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.max,
+                      children: <Widget>[
+                        Expanded(
+                          child: FutureBuilder<JsonQuery>(
+                            key: ValueKey(person.church),
+                            future: Church.getAllForUser(),
+                            builder: (context, data) {
+                              if (data.hasData) {
+                                return Container(
+                                  margin:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                  child: DropdownButtonFormField<JsonRef?>(
+                                    value: person.church,
+                                    isExpanded: true,
+                                    items: data.data!.docs
+                                        .map(
+                                          (item) => DropdownMenuItem(
+                                            value: item.reference,
+                                            child: Text(item.data()['Name']),
+                                          ),
+                                        )
+                                        .toList()
+                                      ..insert(
+                                        0,
+                                        const DropdownMenuItem(
+                                          value: null,
+                                          child: Text(''),
+                                        ),
+                                      ),
+                                    onChanged: (value) {
+                                      person.church = value;
+                                      FocusScope.of(context).nextFocus();
+                                    },
+                                    decoration: const InputDecoration(
+                                      labelText: 'الكنيسة',
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                return const SizedBox(width: 1, height: 1);
+                              }
+                            },
+                          ),
+                        ),
+                        TextButton.icon(
+                          icon: const Icon(Icons.add),
+                          label: const Text('اضافة'),
+                          onPressed: () async {
+                            await navigator.currentState!
+                                .pushNamed('Settings/Churches');
+                            setState(() {});
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: FutureBuilder<JsonQuery>(
+                            key: ValueKey(person.cFather),
+                            future: Father.getAllForUser(),
+                            builder: (context, data) {
+                              if (data.hasData) {
+                                return DropdownButtonFormField<JsonRef?>(
+                                  value: person.cFather,
+                                  isExpanded: true,
+                                  items: data.data!.docs
+                                      .map(
+                                        (item) => DropdownMenuItem(
+                                          value: item.reference,
+                                          child: Text(item.data()['Name']),
+                                        ),
+                                      )
+                                      .toList()
+                                    ..insert(
+                                      0,
+                                      const DropdownMenuItem(
+                                        value: null,
+                                        child: Text(''),
+                                      ),
+                                    ),
+                                  onChanged: (value) {
+                                    person.cFather = value;
+                                    FocusScope.of(context).nextFocus();
+                                  },
+                                  decoration: const InputDecoration(
+                                    labelText: 'أب الاعتراف',
+                                  ),
+                                );
+                              } else {
+                                return const SizedBox(width: 1, height: 1);
+                              }
+                            },
+                          ),
+                        ),
+                        TextButton.icon(
+                          icon: const Icon(Icons.add),
+                          label: const Text('اضافة'),
+                          onPressed: () async {
+                            await navigator.currentState!
+                                .pushNamed('Settings/Fathers');
+                            setState(() {});
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                   TapableFormField<Timestamp?>(
                     labelText: 'تاريخ أخر تناول',
@@ -814,10 +788,6 @@ class _EditPersonState extends State<EditPerson> {
                         onPressed: () {
                           state.didChange(person.lastTanawol = null);
                         },
-                      ),
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(
-                            color: Theme.of(context).colorScheme.primary),
                       ),
                     ),
                     builder: (context, state) {
@@ -850,10 +820,6 @@ class _EditPersonState extends State<EditPerson> {
                           state.didChange(person.lastConfession = null);
                         },
                       ),
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(
-                            color: Theme.of(context).colorScheme.primary),
-                      ),
                     ),
                     builder: (context, state) {
                       return state.value != null
@@ -884,10 +850,6 @@ class _EditPersonState extends State<EditPerson> {
                         onPressed: () {
                           state.didChange(person.lastKodas = null);
                         },
-                      ),
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(
-                            color: Theme.of(context).colorScheme.primary),
                       ),
                     ),
                     builder: (context, state) {
@@ -920,10 +882,6 @@ class _EditPersonState extends State<EditPerson> {
                           state.didChange(person.lastVisit = null);
                         },
                       ),
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(
-                            color: Theme.of(context).colorScheme.primary),
-                      ),
                     ),
                     builder: (context, state) {
                       return state.value != null
@@ -954,10 +912,6 @@ class _EditPersonState extends State<EditPerson> {
                         onPressed: () {
                           state.didChange(person.lastCall = null);
                         },
-                      ),
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(
-                            color: Theme.of(context).colorScheme.primary),
                       ),
                     ),
                     builder: (context, state) {

@@ -332,9 +332,38 @@ class _PersonInfoState extends State<PersonInfo> {
                     ),
                   ),
                   ListTile(
+                    title: const Text('داخل فصل:'),
+                    subtitle: person.classId != null &&
+                            person.classId!.parent.id != 'null'
+                        ? FutureBuilder<Class?>(
+                            future: Class.fromId(person.classId!.id),
+                            builder: (context, _class) => _class
+                                            .connectionState ==
+                                        ConnectionState.done &&
+                                    _class.hasData
+                                ? DataObjectWidget<Class>(_class.data!,
+                                    isDense: true)
+                                : _class.connectionState == ConnectionState.done
+                                    ? const Text('لا يمكن ايجاد الفصل')
+                                    : const LinearProgressIndicator(),
+                          )
+                        : const Text('غير موجود'),
+                  ),
+                  _PersonServices(person: person),
+                  ListTile(
                     title: const Text('النوع:'),
                     subtitle: Text(person.gender ? 'ذكر' : 'أنثى'),
                   ),
+                  if (person.gender)
+                    ListTile(
+                      title: const Text('شماس؟'),
+                      subtitle: Text(person.isShammas ? 'نعم' : 'لا'),
+                    ),
+                  if (person.gender && person.isShammas)
+                    ListTile(
+                      title: const Text('رتبة الشموسية:'),
+                      subtitle: Text(person.shammasLevel ?? ''),
+                    ),
                   CopiableProperty('العنوان:', person.address),
                   if (person.location != null &&
                       !person.ref.path.startsWith('Deleted'))
@@ -380,17 +409,6 @@ class _PersonInfoState extends State<PersonInfo> {
                       },
                     ),
                   ),
-                  if (person.gender)
-                    ListTile(
-                      title: const Text('شماس؟'),
-                      subtitle: Text(person.isShammas ? 'نعم' : 'لا'),
-                    ),
-                  if (person.gender && person.isShammas)
-                    ListTile(
-                      title: const Text('رتبة الشموسية:'),
-                      subtitle: Text(person.shammasLevel ?? ''),
-                    ),
-                  _PersonServices(person: person),
                   CopiableProperty('ملاحظات', person.notes),
                   const Divider(thickness: 1),
                   if (!person.ref.path.startsWith('Deleted'))
@@ -428,24 +446,6 @@ class _PersonInfoState extends State<PersonInfo> {
                     'أخر تحديث للبيانات:',
                     person.lastEdit,
                     person.ref.collection('EditHistory'),
-                  ),
-                  ListTile(
-                    title: const Text('داخل فصل:'),
-                    subtitle: person.classId != null &&
-                            person.classId!.parent.id != 'null'
-                        ? FutureBuilder<Class?>(
-                            future: Class.fromId(person.classId!.id),
-                            builder: (context, _class) => _class
-                                            .connectionState ==
-                                        ConnectionState.done &&
-                                    _class.hasData
-                                ? DataObjectWidget<Class>(_class.data!,
-                                    isDense: true)
-                                : _class.connectionState == ConnectionState.done
-                                    ? const Text('لا يمكن ايجاد الفصل')
-                                    : const LinearProgressIndicator(),
-                          )
-                        : const Text('غير موجود'),
                   ),
                 ],
               ),
