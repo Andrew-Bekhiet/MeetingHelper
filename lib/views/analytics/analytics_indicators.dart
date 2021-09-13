@@ -638,7 +638,7 @@ class HistoryAnalysisWidget extends StatelessWidget {
                     total: data.length,
                     pieData: pieData
                         .map((e) => Tuple2<int, String?>(
-                            e.value.length, usersByID[e.key!]?.name))
+                            e.value.length, usersByID[e.key]?.name))
                         .toList(),
                   );
                 },

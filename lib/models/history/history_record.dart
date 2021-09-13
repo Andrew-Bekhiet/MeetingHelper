@@ -417,7 +417,7 @@ class MinimalHistoryRecord {
   String get id => ref.id;
 
   Timestamp time;
-  String by;
+  String? by;
 
   JsonRef? classId;
   JsonRef? personId;
