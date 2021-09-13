@@ -304,6 +304,21 @@ class StudyYear extends MiniModel {
   }
 }
 
+class PreferredStudyYear extends StudyYear {
+  double? preferredGroup;
+
+  PreferredStudyYear.fromStudyYear(StudyYear sy, [this.preferredGroup])
+      : super(sy.id, sy.name, sy.grade, isCollegeYear: sy.isCollegeYear);
+
+  @override
+  int get hashCode => hashValues(id, name, grade, preferredGroup);
+
+  @override
+  bool operator ==(dynamic other) {
+    return other is PreferredStudyYear && hashCode == other.hashCode;
+  }
+}
+
 class School extends MiniModel {
   String? address;
   School(String id, String name, {this.address}) : super('Schools', id, name);

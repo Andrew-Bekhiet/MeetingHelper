@@ -717,19 +717,20 @@ class HistoryDayOptions {
       other is HistoryDayOptions && other.hashCode == hashCode;
 }
 
-/// BaseListController<Map<StudyYear?, List<Class | Service>>, Class | Service>
+/// BaseListController<Map<PreferredStudyYear?, List<Class | Service>>, Class | Service>
 class ServicesListController<T extends DataObject>
-    implements BaseListController<Map<StudyYear?, List<T>>, T> {
+    implements BaseListController<Map<PreferredStudyYear?, List<T>>, T> {
   @override
-  final BehaviorSubject<Map<StudyYear?, List<T>>> _objectsData =
+  final BehaviorSubject<Map<PreferredStudyYear?, List<T>>> _objectsData =
       BehaviorSubject();
   @override
-  ValueStream<Map<StudyYear?, List<T>>> get objectsData => _objectsData.stream;
+  ValueStream<Map<PreferredStudyYear?, List<T>>> get objectsData =>
+      _objectsData.stream;
   @override
-  Map<StudyYear?, List<T>> get items => _objectsData.value;
+  Map<PreferredStudyYear?, List<T>> get items => _objectsData.value;
 
   @override
-  StreamSubscription<Map<StudyYear?, List<T>>>? _objectsDataListener;
+  StreamSubscription<Map<PreferredStudyYear?, List<T>>>? _objectsDataListener;
 
   @override
   final BehaviorSubject<String> _searchQuery;
@@ -755,7 +756,8 @@ class ServicesListController<T extends DataObject>
   @override
   Map<String, T>? get selectedLatest => _selected.valueOrNull;
 
-  Map<StudyYear?, List<T>> _filter(Map<StudyYear?, List<T>> o, String filter) {
+  Map<PreferredStudyYear?, List<T>> _filter(
+      Map<PreferredStudyYear?, List<T>> o, String filter) {
     return {
       for (var it in o.entries.where(
         (e) =>
@@ -786,8 +788,8 @@ class ServicesListController<T extends DataObject>
     this.tap,
     List<T>? selected,
     bool selectionMode = false,
-    Stream<Map<StudyYear?, List<T>>>? itemsStream,
-    Map<StudyYear, List<T>>? items,
+    Stream<Map<PreferredStudyYear?, List<T>>>? itemsStream,
+    Map<PreferredStudyYear, List<T>>? items,
     Stream<String>? searchQuery,
   })  : assert(T == Class || T == Service || T == DataObject),
         assert(itemsStream != null || items != null),
@@ -801,8 +803,10 @@ class ServicesListController<T extends DataObject>
     _searchQueryListener =
         searchQuery?.listen(_searchQuery.add, onError: _searchQuery.addError);
 
-    _objectsDataListener = Rx.combineLatest2<String, Map<StudyYear?, List<T>>,
-                Map<StudyYear?, List<T>>>(
+    _objectsDataListener = Rx.combineLatest2<
+                String,
+                Map<PreferredStudyYear?, List<T>>,
+                Map<PreferredStudyYear?, List<T>>>(
             _searchQuery,
             itemsStream ?? BehaviorSubject.seeded(items!),
             (search, items) =>

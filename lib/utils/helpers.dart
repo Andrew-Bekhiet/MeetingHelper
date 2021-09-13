@@ -137,12 +137,12 @@ void changeTheme({required BuildContext context}) {
   );
 }
 
-Stream<Map<StudyYear?, List<T>>>
+Stream<Map<PreferredStudyYear?, List<T>>>
     servicesByStudyYearRef<T extends DataObject>() {
   assert(T == Class || T == Service || T == DataObject);
 
   return Rx.combineLatest3<Map<JsonRef, StudyYear>, List<Class>, List<Service>,
-          Map<StudyYear?, List<T>>>(
+          Map<PreferredStudyYear?, List<T>>>(
       FirebaseFirestore.instance
           .collection('StudyYears')
           .orderBy('Grade')
@@ -192,23 +192,68 @@ Stream<Map<StudyYear?, List<T>>>
       return 0;
     });
 
-    return groupBy<T, StudyYear?>(combined.cast<T>(), (c) {
+    double? _getPreferredGrade(int? grade) {
+      if (grade == null) return null;
+      switch (grade) {
+        case -1:
+        case 0:
+          return 0.1;
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        case 6:
+          return 1.2;
+        case 7:
+        case 8:
+        case 9:
+          return 2.3;
+        case 10:
+        case 11:
+        case 12:
+          return 3.4;
+        case 13:
+        case 14:
+        case 15:
+        case 16:
+        case 17:
+        case 18:
+          return 4.5;
+        default:
+          return -1;
+      }
+    }
+
+    return groupBy<T, PreferredStudyYear?>(combined.cast<T>(), (c) {
       if (c is Class)
-        return studyYears[c.studyYear];
+        return studyYears[c.studyYear] != null
+            ? PreferredStudyYear.fromStudyYear(studyYears[c.studyYear]!)
+            : null;
       else if (c is Service && c.studyYearRange?.from == c.studyYearRange?.to)
-        return studyYears[c.studyYearRange?.from];
+        return studyYears[c.studyYearRange?.from] != null
+            ? PreferredStudyYear.fromStudyYear(
+                studyYears[c.studyYearRange?.from]!)
+            : null;
+      else if (c is Service)
+        return studyYears[c.studyYearRange?.to] != null
+            ? PreferredStudyYear.fromStudyYear(
+                studyYears[c.studyYearRange?.to]!,
+                _getPreferredGrade(studyYears[c.studyYearRange?.to]!.grade))
+            : null;
+
       return null;
     });
   });
 }
 
-Stream<Map<StudyYear?, List<T>>>
+Stream<Map<PreferredStudyYear?, List<T>>>
     servicesByStudyYearRefForUser<T extends DataObject>(
         String? uid, List<JsonRef> adminServices) {
   assert(T == Class || T == Service);
 
   return Rx.combineLatest3<Map<JsonRef, StudyYear>, List<Class>, List<Service>,
-          Map<StudyYear?, List<T>>>(
+          Map<PreferredStudyYear?, List<T>>>(
       FirebaseFirestore.instance
           .collection('StudyYears')
           .orderBy('Grade')
@@ -256,11 +301,39 @@ Stream<Map<StudyYear?, List<T>>>
       return 0;
     });
 
-    return groupBy<T, StudyYear?>(combined.cast<T>(), (c) {
+    double? _getPreferredGrade(int? from, int? to) {
+      if (from == null || to == null) return null;
+
+      if (from == -1 && to == 0)
+        return 0.1;
+      else if (from >= 1 && to <= 6)
+        return 1.1;
+      else if (from >= 7 && to <= 9)
+        return 2.1;
+      else if (from >= 10 && to <= 12)
+        return 3.1;
+      else if (from >= 13 && to <= 18) return 4.1;
+      return null;
+    }
+
+    return groupBy<T, PreferredStudyYear?>(combined.cast<T>(), (c) {
       if (c is Class)
-        return studyYears[c.studyYear];
+        return studyYears[c.studyYear] != null
+            ? PreferredStudyYear.fromStudyYear(studyYears[c.studyYear]!)
+            : null;
       else if (c is Service && c.studyYearRange?.from == c.studyYearRange?.to)
-        return studyYears[c.studyYearRange?.from];
+        return studyYears[c.studyYearRange?.from] != null
+            ? PreferredStudyYear.fromStudyYear(
+                studyYears[c.studyYearRange?.from]!)
+            : null;
+      else if (c is Service)
+        return studyYears[c.studyYearRange?.to] != null
+            ? PreferredStudyYear.fromStudyYear(
+                studyYears[c.studyYearRange?.to]!,
+                _getPreferredGrade(studyYears[c.studyYearRange?.from]!.grade,
+                    studyYears[c.studyYearRange?.to]!.grade))
+            : null;
+
       return null;
     });
   });
