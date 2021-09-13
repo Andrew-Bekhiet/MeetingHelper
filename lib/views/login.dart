@@ -60,42 +60,55 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   onPressed: () async {
-                    final GoogleSignInAccount? googleUser =
-                        await GoogleSignIn().signIn();
-                    if (googleUser != null) {
-                      final GoogleSignInAuthentication googleAuth =
-                          await googleUser.authentication;
-                      if (googleAuth.accessToken != null) {
-                        try {
-                          final AuthCredential credential =
-                              GoogleAuthProvider.credential(
-                                  idToken: googleAuth.idToken,
-                                  accessToken: googleAuth.accessToken);
-                          await auth.FirebaseAuth.instance
-                              .signInWithCredential(credential)
-                              .catchError((er) {
-                            if (er.toString().contains(
-                                'An account already exists with the same email address'))
-                              showDialog(
-                                context: context,
-                                builder: (context) => const AlertDialog(
-                                  content: Text(
-                                      'هذا الحساب مسجل من قبل بنفس البريد الاكتروني'
-                                      '\n'
-                                      'جرب تسجيل الدخول بفيسبوك'),
-                                ),
-                              );
-                          });
-                          await User.instance.initialized;
-                          await setupSettings();
-                        } catch (err, stkTrace) {
-                          await FirebaseCrashlytics.instance
-                              .setCustomKey('LastErrorIn', 'Login.build');
-                          await FirebaseCrashlytics.instance
-                              .recordError(err, stkTrace);
-                          await showErrorDialog(context, err.toString());
+                    try {
+                      Future<auth.UserCredential>? signInFuture;
+                      if (kIsWeb) {
+                        final credential = (await auth.FirebaseAuth.instance
+                                .signInWithPopup(GoogleAuthProvider()))
+                            .credential;
+                        if (credential != null) {
+                          signInFuture = auth.FirebaseAuth.instance
+                              .signInWithCredential(credential);
+                        }
+                      } else {
+                        final GoogleSignInAccount? googleUser =
+                            await GoogleSignIn().signIn();
+                        if (googleUser != null) {
+                          final GoogleSignInAuthentication googleAuth =
+                              await googleUser.authentication;
+                          if (googleAuth.accessToken != null) {
+                            final AuthCredential credential =
+                                GoogleAuthProvider.credential(
+                                    idToken: googleAuth.idToken,
+                                    accessToken: googleAuth.accessToken);
+                            signInFuture = auth.FirebaseAuth.instance
+                                .signInWithCredential(credential);
+                          }
                         }
                       }
+                      if (signInFuture != null) {
+                        await signInFuture.catchError((er) {
+                          if (er.toString().contains(
+                              'An account already exists with the same email address'))
+                            showDialog(
+                              context: context,
+                              builder: (context) => const AlertDialog(
+                                content: Text(
+                                    'هذا الحساب مسجل من قبل بنفس البريد الاكتروني'
+                                    '\n'
+                                    'جرب تسجيل الدخول بفيسبوك'),
+                              ),
+                            );
+                        });
+                        await User.instance.initialized;
+                        await setupSettings();
+                      }
+                    } catch (err, stkTrace) {
+                      await FirebaseCrashlytics.instance
+                          .setCustomKey('LastErrorIn', 'Login.build');
+                      await FirebaseCrashlytics.instance
+                          .recordError(err, stkTrace);
+                      await showErrorDialog(context, err.toString());
                     }
                   },
                   child: Row(
