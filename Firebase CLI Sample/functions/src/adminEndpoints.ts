@@ -10,7 +10,7 @@ export const getUsers = https.onCall(async (data, context) => {
   if (context.auth === undefined) {
     if (data.AdminPassword === adminPassword) {
       return (await auth().listUsers()).users.map((user) => {
-        const customClaims = user.customClaims;
+        const customClaims = user.customClaims ?? {};
         return Object.assign(customClaims, {
           uid: user.uid,
           name: user.displayName,
@@ -308,12 +308,6 @@ export const updatePermissions = https.onCall(async (data, context) => {
       assertNotEmpty(
         "permissions.changeHistory",
         data.permissions.changeHistory,
-        typeof true
-      );
-    if (data.permissions.approveLocations !== undefined)
-      assertNotEmpty(
-        "permissions.approveLocations",
-        data.permissions.approveLocations,
         typeof true
       );
     if (data.permissions.birthdayNotify !== undefined)

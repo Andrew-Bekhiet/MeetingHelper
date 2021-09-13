@@ -9,6 +9,7 @@ import {
 import { FirebaseDynamicLinks } from "firebase-dynamic-links";
 
 import { getChangeType } from "./common";
+import { firebase_dynamic_links_key } from "./adminPassword";
 
 export const onClassUpdated = firestore_1
   .document("Classes/{class}")
@@ -658,9 +659,7 @@ export const onInvitationCreated = firestore_1
   .onCreate(async (change) => {
     await change.ref.update({
       Link: (
-        await new FirebaseDynamicLinks(
-          process.env.FirebaseDynamicLinksKey!
-        ).createLink({
+        await new FirebaseDynamicLinks(firebase_dynamic_links_key).createLink({
           dynamicLinkInfo: {
             domainUriPrefix: "https://meetinghelper.page.link",
             link:

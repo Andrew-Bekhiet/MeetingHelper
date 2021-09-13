@@ -95,7 +95,26 @@ export const registerWithLink = https.onCall(async (data, context) => {
     );
     await firestore()
       .doc("UsersData/" + currentUser.customClaims!.personId)
-      .update({ Name: currentUser.displayName });
+      .update({
+        Name: currentUser.displayName,
+        Permissions: {
+          ManageUsers: newPermissions.manageUsers,
+          ManageAllowedUsers: newPermissions.manageAllowedUsers,
+          ManageDeleted: newPermissions.manageDeleted,
+          SuperAccess: newPermissions.superAccess,
+          Write: newPermissions.write,
+          Secretary: newPermissions.secretary,
+          ChangeHistory: newPermissions.changeHistory,
+          Export: newPermissions.export,
+          BirthdayNotify: newPermissions.birthdayNotify,
+          ConfessionsNotify: newPermissions.confessionsNotify,
+          TanawolNotify: newPermissions.tanawolNotify,
+          KodasNotify: newPermissions.kodasNotify,
+          MeetingNotify: newPermissions.meetingNotify,
+          VisitNotify: newPermissions.visitNotify,
+          Approved: newPermissions.approved,
+        },
+      });
     await batch.commit();
     return "OK";
   }
@@ -130,12 +149,6 @@ export const registerAccount = https.onCall(async (data, context) => {
         currentUser.customClaims?.manageAllowedUsers)
     ) {
       await messaging().subscribeToTopic(data.fcmToken, "ManagingUsers");
-    }
-    if (
-      currentUser.customClaims?.approved &&
-      currentUser.customClaims?.approveLocations
-    ) {
-      await messaging().subscribeToTopic(data.fcmToken, "ApproveLocations");
     }
   } catch (e) {
     throw new https.HttpsError("not-found", "FCM Token not found");
@@ -181,16 +194,6 @@ export const registerFCMToken = https.onCall(async (data, context) => {
     await messaging().subscribeToTopic(
       await getFCMTokensForUser(context.auth.uid),
       "ManagingUsers"
-    );
-  }
-  if (
-    currentUserClaims?.approved &&
-    currentUserClaims?.approveLocations &&
-    (await getFCMTokensForUser(context.auth.uid))
-  ) {
-    await messaging().subscribeToTopic(
-      await getFCMTokensForUser(context.auth.uid),
-      "ApproveLocations"
     );
   }
   return "OK";
