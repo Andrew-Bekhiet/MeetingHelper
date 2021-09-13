@@ -12,7 +12,7 @@ environment:
 dependencies:
   android_alarm_manager_plus: ^1.2.0
   cached_network_image: ^3.1.0
-  cloud_firestore: ^2.5.1
+  cloud_firestore: ^2.5.2
   cloud_functions: ^3.0.2
   collection: ^1.15.0
   connectivity_plus: ^1.1.0
@@ -27,38 +27,38 @@ dependencies:
   firebase_database: ^7.2.1
   firebase_dynamic_links: ^2.0.9
   firebase_in_app_messaging: ^0.5.0+9
-  firebase_messaging: ^10.0.6
-  firebase_remote_config: ^0.10.0+5
+  firebase_messaging: ^10.0.7
+  firebase_remote_config: ^0.11.0
   firebase_storage: ^10.0.3
   flutter:
     sdk: flutter
-  flutter_colorpicker: ^0.5.0
+  flutter_colorpicker: ^0.6.0
   flutter_contacts: ^1.1.0+3
   flutter_dotenv: ^5.0.2
-  flutter_local_notifications: ^8.1.1+2
+  flutter_local_notifications: ^8.2.0
   flutter_localizations:
     sdk: flutter
   flutter_secure_storage: ^5.0.0-beta.5
   google_maps_flutter: ^2.0.8
-  google_maps_flutter_web: ^0.3.0+4
-  google_sign_in: ^5.0.7
+  google_maps_flutter_web: ^0.3.1
+  google_sign_in: ^5.1.0
   group_list_view: ^1.1.1
   hive: ^2.0.4
   hive_flutter: ^1.1.0
   image_cropper: ^1.4.1
   image_picker: ^0.8.4
-  local_auth: ^1.1.6
+  local_auth: ^1.1.7
   location: ^4.3.0
   open_file: ^3.2.1
   package_info_plus: ^1.0.6
-  path_provider: ^2.0.2
+  path_provider: ^2.0.3
   percent_indicator: ^3.3.0-nullsafety.1
-  permission_handler: ^8.1.4+2
+  permission_handler: ^8.1.6
   photo_view: ^0.12.0
-  pointycastle: ^3.3.2
+  pointycastle: ^3.3.4
   provider: ^6.0.0
   random_color: ^1.0.6-nullsafety
-  rxdart: ^0.27.1
+  rxdart: ^0.27.2
   sentry_flutter: ^6.0.0
   share_plus: ^2.1.4
   spreadsheet_decoder: ^2.0.0
@@ -67,7 +67,7 @@ dependencies:
   tinycolor2: ^2.0.0
   tuple: ^2.0.0
   tutorial_coach_mark: ^1.1.1
-  url_launcher: ^6.0.9
+  url_launcher: ^6.0.10
   version: ^2.0.0
 
 dev_dependencies:
