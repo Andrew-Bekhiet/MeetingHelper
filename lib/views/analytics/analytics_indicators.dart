@@ -48,7 +48,11 @@ class AttendanceChart extends StatelessWidget {
     if (classes == null) {
       var query = FirebaseFirestore.instance
           .collectionGroup(collectionGroup)
-          .where('ServiceId', isEqualTo: collectionGroup);
+          .where(
+              'Services',
+              arrayContains: FirebaseFirestore.instance
+                  .collection('Services')
+                  .doc(collectionGroup));
 
       query = query
           .where('Time',
@@ -321,7 +325,7 @@ class ClassesAttendanceIndicator extends StatelessWidget {
                               .snapshots()
                           : FirebaseFirestore.instance
                               .collection('Persons')
-                              .where(classes != null ? 'ClassId' : 'ServiceId',
+                              .where('ClassId',
                                   whereIn: o.map((e) => e.ref).toList())
                               .snapshots())
                       .toList())
@@ -472,16 +476,22 @@ class PersonAttendanceIndicator extends StatelessWidget {
           return FirebaseFirestore.instance
               .collectionGroup(collectionGroup)
               .where(
-                  collectionGroup == 'Meeting' ||
-                          collectionGroup == 'Kodas' ||
-                          collectionGroup == 'Confession'
-                      ? 'ClassId'
-                      : 'ServiceId',
-                  whereIn: collectionGroup == 'Meeting' ||
-                          collectionGroup == 'Kodas' ||
-                          collectionGroup == 'Confession'
-                      ? o.map((e) => (e as DataObject).ref).toList()
-                      : o.map((e) => (e as DataObject).id).toList())
+                collectionGroup == 'Meeting' ||
+                        collectionGroup == 'Kodas' ||
+                        collectionGroup == 'Confession'
+                    ? 'ClassId'
+                    : 'Services',
+                whereIn: collectionGroup == 'Meeting' ||
+                        collectionGroup == 'Kodas' ||
+                        collectionGroup == 'Confession'
+                    ? o.map((e) => (e as DataObject).ref).toList()
+                    : null,
+                arrayContainsAny: collectionGroup == 'Meeting' ||
+                        collectionGroup == 'Kodas' ||
+                        collectionGroup == 'Confession'
+                    ? null
+                    : o.map((e) => (e as DataObject).ref).toList(),
+              )
               .where('ID', isEqualTo: id)
               .where(
                 'Time',
@@ -632,7 +642,7 @@ class HistoryAnalysisWidget extends StatelessWidget {
                   if (usersData.hasError) return ErrorWidget(usersData.error!);
                   if (!usersData.hasData)
                     return const Center(child: CircularProgressIndicator());
-                  final usersByID = {for (var u in usersData.data!) u.refId: u};
+                  final usersByID = {for (var u in usersData.data!) u.docId: u};
                   final pieData =
                       groupBy<MinimalHistoryRecord, String?>(data, (s) => s.by)
                           .entries

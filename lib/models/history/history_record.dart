@@ -148,7 +148,7 @@ class HistoryRecord {
   Timestamp time;
   String? recordedBy;
   String? notes;
-  String? serviceId;
+  List<JsonRef> services;
   JsonRef? studyYear;
   JsonRef? classId;
   bool isServant;
@@ -160,12 +160,13 @@ class HistoryRecord {
       required this.classId,
       required this.time,
       required String recordedBy,
-      this.serviceId,
+      List<JsonRef>? services,
       this.studyYear,
       this.notes,
       this.isServant = false})
-      // ignore: prefer_initializing_formals
-      : recordedBy = recordedBy;
+      : services = services ?? [],
+        // ignore: prefer_initializing_formals
+        recordedBy = recordedBy;
 
   static HistoryRecord? fromDoc(HistoryDay? parent, JsonDoc doc) =>
       doc.exists ? HistoryRecord._fromDoc(parent, doc) : null;
@@ -173,7 +174,7 @@ class HistoryRecord {
   HistoryRecord._fromDoc(this.parent, JsonDoc doc)
       : id = doc.id,
         classId = doc.data()!['ClassId'],
-        serviceId = doc.data()!['ServiceId'],
+        services = (doc.data()!['Services'] as List?)?.cast() ?? [],
         studyYear = doc.data()!['StudyYear'],
         type = doc.reference.parent.id,
         isServant = doc.data()!['IsServant'] ?? false,
@@ -203,7 +204,7 @@ class HistoryRecord {
       'RecordedBy': recordedBy,
       'Notes': notes,
       'ClassId': classId,
-      'ServiceId': serviceId,
+      'Services': services,
       'StudyYear': studyYear,
       'IsServant': isServant,
     };

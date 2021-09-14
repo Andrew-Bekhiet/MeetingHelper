@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
@@ -544,11 +545,15 @@ class _CheckListState<T extends Person, P extends DataObject>
             time: oRecord.time,
             type: oRecord.type,
             studyYear: oRecord.studyYear,
-            serviceId: oRecord.type == 'Meeting' ||
+            services: oRecord.type == 'Meeting' ||
                     oRecord.type == 'Kodas' ||
                     oRecord.type == 'Confession'
-                ? null
-                : oRecord.type,
+                ? current.services
+                : [
+                    FirebaseFirestore.instance
+                        .collection('Services')
+                        .doc(oRecord.type)
+                  ],
             isServant: T == User)
         : null;
     if (await showDialog(
@@ -577,14 +582,18 @@ class _CheckListState<T extends Person, P extends DataObject>
                                           parent: _listOptions.day,
                                           type: _listOptions.type,
                                           recordedBy: User.instance.uid!,
-                                          serviceId:
-                                              _listOptions.type == 'Meeting' ||
-                                                      _listOptions.type ==
-                                                          'Kodas' ||
-                                                      _listOptions.type ==
-                                                          'Confession'
-                                                  ? null
-                                                  : _listOptions.type,
+                                          services: _listOptions.type ==
+                                                      'Meeting' ||
+                                                  _listOptions.type ==
+                                                      'Kodas' ||
+                                                  _listOptions.type ==
+                                                      'Confession'
+                                              ? current.services
+                                              : [
+                                                  FirebaseFirestore.instance
+                                                      .collection('Services')
+                                                      .doc(_listOptions.type)
+                                                ],
                                           studyYear: current.studyYear,
                                           time: mergeDayWithTime(
                                             _listOptions.day.day.toDate(),

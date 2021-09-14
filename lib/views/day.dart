@@ -62,8 +62,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                           .inDays ==
                       0;
                   return CheckListController(
-                    itemsStream: Person.getAllForUser(
-                        orderBy: 'Name', onlyInClasses: true),
+                    itemsStream: Person.getAllForUser(orderBy: 'Name'),
                     day: widget.record,
                     dayOptions: HistoryDayOptions(
                       grouped: !isSameDay,
@@ -85,8 +84,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                           .inDays ==
                       0;
                   return CheckListController(
-                    itemsStream: User.getAllForUser().map((users) =>
-                        users.where((u) => u.classId != null).toList()),
+                    itemsStream: User.getAllForUser(),
                     day: widget.record,
                     dayOptions: HistoryDayOptions(
                       grouped: !isSameDay,

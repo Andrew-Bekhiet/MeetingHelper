@@ -374,8 +374,9 @@ class DayHistoryProperty extends StatelessWidget {
                           if (services.length <= 10)
                             return _completeQuery(
                               query.where(
-                                'ServiceId',
-                                whereIn: services.map((c) => c.id).toList(),
+                                'Services',
+                                arrayContainsAny:
+                                    services.map((c) => c.ref).toList(),
                               ),
                             );
 
@@ -384,8 +385,9 @@ class DayHistoryProperty extends StatelessWidget {
                             services.split(10).map(
                                   (chunk) => _completeQuery(
                                     query.where(
-                                      'ServiceId',
-                                      whereIn: chunk.map((c) => c.id).toList(),
+                                      'Services',
+                                      arrayContainsAny:
+                                          chunk.map((c) => c.ref).toList(),
                                     ),
                                   ),
                                 ),
