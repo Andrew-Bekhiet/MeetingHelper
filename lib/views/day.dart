@@ -43,9 +43,9 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
     return StreamBuilder<Tuple2<TabController, List<Service>>>(
       initialData: Tuple2(_previous!, []),
       stream: Service.getAllForUserForHistory().map((snapshot) {
-        if (snapshot.length + 2 != _previous?.length)
+        if (snapshot.length + 3 != _previous?.length)
           _previous = TabController(
-              length: snapshot.length + 2,
+              length: snapshot.length + 3,
               vsync: this,
               initialIndex: _previous?.index ?? 0);
 
@@ -192,6 +192,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                   tabs: [
                     const Tab(text: 'حضور الاجتماع'),
                     const Tab(text: 'حضور القداس'),
+                    const Tab(text: 'الاعتراف'),
                     ...snapshot.requireData.item2.map(
                       (service) => Tab(text: service.name),
                     ),
@@ -206,29 +207,35 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                   animation: snapshot.requireData.item1,
                   builder: (context, _) => StreamBuilder<Tuple2<int, int>>(
                     stream: Rx.combineLatest2<Map, Map, Tuple2<int, int>>(
-                      (snapshot.requireData.item1.index <= 1
-                              ? _listControllers[
-                                      snapshot.requireData.item1.index == 0
-                                          ? 'Meeting'
-                                          : 'Kodas']
+                      (snapshot.requireData.item1.index <= 2
+                              ? _listControllers[snapshot
+                                              .requireData.item1.index ==
+                                          0
+                                      ? 'Meeting'
+                                      : snapshot.requireData.item1.index == 1
+                                          ? 'Kodas'
+                                          : 'Confesion']
                                   ?.originalObjectsData
                               : _listControllers[snapshot
                                       .requireData
                                       .item2[
-                                          snapshot.requireData.item1.index - 2]
+                                          snapshot.requireData.item1.index - 3]
                                       .id]
                                   ?.originalObjectsData) ??
                           Stream.value({}),
-                      (snapshot.requireData.item1.index <= 1
-                              ? _listControllers[
-                                      snapshot.requireData.item1.index == 0
-                                          ? 'Meeting'
-                                          : 'Kodas']
+                      (snapshot.requireData.item1.index <= 2
+                              ? _listControllers[snapshot
+                                              .requireData.item1.index ==
+                                          0
+                                      ? 'Meeting'
+                                      : snapshot.requireData.item1.index == 1
+                                          ? 'Kodas'
+                                          : 'Confession']
                                   ?.attended
                               : _listControllers[snapshot
                                       .requireData
                                       .item2[
-                                          snapshot.requireData.item1.index - 2]
+                                          snapshot.requireData.item1.index - 3]
                                       .id]
                                   ?.attended) ??
                           Stream.value({}),
@@ -332,6 +339,18 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                             return tmp;
                           }(),
                         ),
+                        DataObjectCheckList<Person, Class>(
+                          autoDisposeController: false,
+                          key: PageStorageKey(
+                              'PersonsConfession' + widget.record.id),
+                          options: () {
+                            final tmp = context
+                                .read<CheckListController<Person, Class>>()
+                                .copyWith(type: 'Confession');
+                            _listControllers['Confession'] = tmp;
+                            return tmp;
+                          }(),
+                        ),
                         ...snapshot.requireData.item2.map(
                           (service) => DataObjectCheckList<Person, StudyYear>(
                             autoDisposeController: false,
@@ -382,6 +401,18 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                                 .read<CheckListController<User, Class>>()
                                 .copyWith(type: 'Kodas');
                             _listControllers['Kodas'] = tmp;
+                            return tmp;
+                          }(),
+                        ),
+                        DataObjectCheckList<User, Class>(
+                          autoDisposeController: false,
+                          key: PageStorageKey(
+                              'UsersConfession' + widget.record.id),
+                          options: () {
+                            final tmp = context
+                                .read<CheckListController<User, Class>>()
+                                .copyWith(type: 'Confession');
+                            _listControllers['Confession'] = tmp;
                             return tmp;
                           }(),
                         ),
@@ -634,7 +665,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _previous = TabController(length: 2, vsync: this);
+    _previous = TabController(length: 3, vsync: this);
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) async {
       if (DateTime.now().difference(widget.record.day.toDate()).inDays != 0)
         return;

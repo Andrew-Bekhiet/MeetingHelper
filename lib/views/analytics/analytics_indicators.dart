@@ -30,6 +30,7 @@ class AttendanceChart extends StatelessWidget {
       : assert(classes != null ||
             (collectionGroup != 'Meeting' &&
                 collectionGroup != 'Kodas' &&
+                collectionGroup != 'Confession' &&
                 studyYears != null)),
         super(key: key);
 
@@ -69,7 +70,9 @@ class AttendanceChart extends StatelessWidget {
     return Rx.combineLatestList<JsonQuery>(classes!.split(10).map((c) {
       var query = FirebaseFirestore.instance.collectionGroup(collectionGroup);
 
-      if (collectionGroup == 'Kodas' || collectionGroup == 'Meeting')
+      if (collectionGroup == 'Kodas' ||
+          collectionGroup == 'Meeting' ||
+          collectionGroup == 'Confession')
         query = query.where('ClassId', whereIn: c.map((e) => e.ref).toList());
       query = query
           .where('Time',
@@ -273,6 +276,7 @@ class ClassesAttendanceIndicator extends StatelessWidget {
   })  : assert(classes != null ||
             (collection.id != 'Meeting' &&
                 collection.id != 'Kodas' &&
+                collection.id != 'Confession' &&
                 studyYears != null)),
         super(key: key);
 
@@ -451,27 +455,33 @@ class PersonAttendanceIndicator extends StatelessWidget {
             .orderBy('Time', descending: true)
             .snapshots()
             .map((s) => s.docs);
-      } else if (collectionGroup == 'Meeting' || collectionGroup == 'Kodas'
+      } else if (collectionGroup == 'Meeting' ||
+              collectionGroup == 'Kodas' ||
+              collectionGroup == 'Confession'
           ? u.item2.isEmpty
           : u.item3.isEmpty) {
         return Stream.value([]);
       } else {
-        return Rx.combineLatestList<JsonQuery>(
-                (collectionGroup == 'Meeting' || collectionGroup == 'Kodas'
-                        ? u.item2
-                        : u.item3)
-                    .split(10)
-                    .map((o) {
+        return Rx.combineLatestList<JsonQuery>((collectionGroup == 'Meeting' ||
+                        collectionGroup == 'Kodas' ||
+                        collectionGroup == 'Confession'
+                    ? u.item2
+                    : u.item3)
+                .split(10)
+                .map((o) {
           return FirebaseFirestore.instance
               .collectionGroup(collectionGroup)
               .where(
-                  collectionGroup == 'Meeting' || collectionGroup == 'Kodas'
+                  collectionGroup == 'Meeting' ||
+                          collectionGroup == 'Kodas' ||
+                          collectionGroup == 'Confession'
                       ? 'ClassId'
                       : 'ServiceId',
-                  whereIn:
-                      collectionGroup == 'Meeting' || collectionGroup == 'Kodas'
-                          ? o.map((e) => (e as DataObject).ref).toList()
-                          : o.map((e) => (e as DataObject).id).toList())
+                  whereIn: collectionGroup == 'Meeting' ||
+                          collectionGroup == 'Kodas' ||
+                          collectionGroup == 'Confession'
+                      ? o.map((e) => (e as DataObject).ref).toList()
+                      : o.map((e) => (e as DataObject).id).toList())
               .where('ID', isEqualTo: id)
               .where(
                 'Time',

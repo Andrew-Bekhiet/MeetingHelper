@@ -544,7 +544,9 @@ class _CheckListState<T extends Person, P extends DataObject>
             time: oRecord.time,
             type: oRecord.type,
             studyYear: oRecord.studyYear,
-            serviceId: oRecord.type == 'Meeting' || oRecord.type == 'Kodas'
+            serviceId: oRecord.type == 'Meeting' ||
+                    oRecord.type == 'Kodas' ||
+                    oRecord.type == 'Confession'
                 ? null
                 : oRecord.type,
             isServant: T == User)
@@ -575,11 +577,14 @@ class _CheckListState<T extends Person, P extends DataObject>
                                           parent: _listOptions.day,
                                           type: _listOptions.type,
                                           recordedBy: User.instance.uid!,
-                                          serviceId: _listOptions.type ==
-                                                      'Meeting' ||
-                                                  _listOptions.type == 'Kodas'
-                                              ? null
-                                              : _listOptions.type,
+                                          serviceId:
+                                              _listOptions.type == 'Meeting' ||
+                                                      _listOptions.type ==
+                                                          'Kodas' ||
+                                                      _listOptions.type ==
+                                                          'Confession'
+                                                  ? null
+                                                  : _listOptions.type,
                                           studyYear: current.studyYear,
                                           time: mergeDayWithTime(
                                             _listOptions.day.day.toDate(),

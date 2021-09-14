@@ -334,7 +334,9 @@ class DayHistoryProperty extends StatelessWidget {
                         .where('ID', isEqualTo: id);
 
                     if (!user.superAccess) {
-                      if (collection == 'Meeting' || collection == 'Kodas') {
+                      if (collection == 'Meeting' ||
+                          collection == 'Kodas' ||
+                          collection == 'Confession') {
                         return Class.getAllForUser().switchMap(
                           (classes) {
                             if (classes.isEmpty) return Stream.value([]);

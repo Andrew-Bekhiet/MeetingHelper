@@ -411,6 +411,20 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
                       ),
                       DayHistoryProperty('تاريخ أخر حضور قداس:',
                           widget.person.lastKodas, widget.person.id, 'Kodas'),
+                      Container(height: 10),
+                      PersonAttendanceIndicator(
+                        id: widget.person.id,
+                        range: range,
+                        total: data.data!.size,
+                        collectionGroup: 'Confession',
+                        label: 'الاعتراف',
+                      ),
+                      DayHistoryProperty(
+                          'تاريخ أخر اعتراف:',
+                          widget.person.lastConfession,
+                          widget.person.id,
+                          'Confession'),
+                      Container(height: 10),
                       ...widget.person.services
                           .map(
                             (s) => [
@@ -690,9 +704,6 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                   isServant: widget.historyColection ==
                                       'ServantsHistory',
                                 ),
-                              ],
-                              if ((parents?.whereType<Class>() ?? [])
-                                  .isNotEmpty) ...[
                                 const Divider(),
                                 Text('حضور القداس',
                                     style:
@@ -703,6 +714,19 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                           [],
                                   collection:
                                       days.single.subcollection('Kodas')!,
+                                  isServant: widget.historyColection ==
+                                      'ServantsHistory',
+                                ),
+                                const Divider(),
+                                Text('الاعتراف',
+                                    style:
+                                        Theme.of(context).textTheme.headline6),
+                                ClassesAttendanceIndicator(
+                                  classes:
+                                      parents?.whereType<Class>().toList() ??
+                                          [],
+                                  collection:
+                                      days.single.subcollection('Confession')!,
                                   isServant: widget.historyColection ==
                                       'ServantsHistory',
                                 ),
@@ -743,9 +767,6 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                   collectionGroup: 'Meeting',
                                 ),
                                 const Divider(),
-                              ],
-                              if ((parents?.whereType<Class>() ?? [])
-                                  .isNotEmpty) ...[
                                 AttendanceChart(
                                   title: 'حضور القداس',
                                   classes:
@@ -756,6 +777,18 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                   isServant: widget.historyColection ==
                                       'ServantsHistory',
                                   collectionGroup: 'Kodas',
+                                ),
+                                const Divider(),
+                                AttendanceChart(
+                                  title: 'الاعتراف',
+                                  classes:
+                                      parents?.whereType<Class>().toList() ??
+                                          [],
+                                  range: range,
+                                  days: days,
+                                  isServant: widget.historyColection ==
+                                      'ServantsHistory',
+                                  collectionGroup: 'Confession',
                                 ),
                               ],
                               ...parents

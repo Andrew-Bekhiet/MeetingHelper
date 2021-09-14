@@ -599,7 +599,10 @@ class CheckListController<T extends Person, P extends DataObject>
             id: item.id,
             studyYear: item.studyYear,
             classId: item.classId,
-            serviceId: type == 'Meeting' || type == 'Kodas' ? null : type,
+            serviceId:
+                type == 'Meeting' || type == 'Kodas' || type == 'Confession'
+                    ? null
+                    : type,
             time: time ??
                 mergeDayWithTime(
                   day.day.toDate(),
@@ -624,7 +627,10 @@ class CheckListController<T extends Person, P extends DataObject>
             id: item.id,
             studyYear: item.studyYear,
             classId: item.classId,
-            serviceId: type == 'Meeting' || type == 'Kodas' ? null : type,
+            serviceId:
+                type == 'Meeting' || type == 'Kodas' || type == 'Confession'
+                    ? null
+                    : type,
             time: time ?? mergeDayWithTime(day.day.toDate(), DateTime.now()),
             recordedBy: User.instance.uid!,
             notes: notes,
