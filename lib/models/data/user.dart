@@ -421,7 +421,6 @@ class User extends Person {
     _uid = null;
 
     await Hive.box('User').clear();
-    await Hive.box('User').compact();
     await Hive.box('User').close();
     await Hive.openBox('User');
 
