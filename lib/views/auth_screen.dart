@@ -50,7 +50,9 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<bool>(
-      future: _localAuthentication.canCheckBiometrics,
+      future: () async {
+        return !kIsWeb && (await _localAuthentication.canCheckBiometrics);
+      }(),
       builder: (context, future) {
         bool? canCheckBio = false;
         if (future.hasData) canCheckBio = future.data;
@@ -122,7 +124,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
   void _authenticate() async {
     try {
-      if (!await _localAuthentication.canCheckBiometrics) return;
+      if (kIsWeb || !await _localAuthentication.canCheckBiometrics) return;
       _authCompleter = Completer<bool>();
       final bool value = await _localAuthentication.authenticate(
           localizedReason: 'برجاء التحقق للمتابعة',
