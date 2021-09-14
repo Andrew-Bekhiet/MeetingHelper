@@ -587,7 +587,7 @@ class _EditServiceState extends State<EditService> {
                           selectionMode: true,
                           itemsStream: User.getAllForUser(),
                           selected: {
-                            for (final item in users.data!) item.id: item
+                            for (final item in users.data!) item.docId: item
                           },
                         ),
                         dispose: (context, c) => c.dispose(),

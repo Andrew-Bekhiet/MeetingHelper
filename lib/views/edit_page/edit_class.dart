@@ -490,8 +490,9 @@ class _EditClassState extends State<EditClass> {
                       showSubTitle: false,
                     ),
                     selectionMode: true,
-                    selected: {for (var item in users.data!) item.id: item},
-                    itemsStream: User.getAllForUser(),
+                    selected: {for (final item in users.data!) item.uid!: item},
+                    itemsStream: User.getAllForUser().map(
+                        (users) => users.where((u) => u.uid != null).toList()),
                   ),
                   dispose: (context, c) => c.dispose(),
                   builder: (context, _) => Scaffold(

@@ -44,10 +44,11 @@ class User extends Person {
     if (!_initialized.isCompleted) _initialized.complete(uid != null);
   }
 
+  @Deprecated('Use either docId or uid')
   @override
-  String get id => uid ?? refId;
+  String get id => uid ?? docId;
 
-  String get refId => ref.id;
+  String get docId => ref.id;
 
   late String email;
   String? password;
@@ -833,7 +834,6 @@ class User extends Person {
   @override
   User copyWith({
     String? uid,
-    String? id,
     String? name,
     String? password,
     bool? manageUsers,
@@ -878,7 +878,6 @@ class User extends Person {
   }) {
     return User._new(
       uid: uid ?? this.uid,
-      id: id ?? this.id,
       name: name ?? this.name,
       password: password ?? this.password,
       manageUsers: manageUsers ?? this.manageUsers,

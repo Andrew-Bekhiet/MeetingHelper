@@ -382,7 +382,7 @@ class _EditUserState extends State<EditUser> {
                           selectionMode: true,
                           itemsStream: User.getAllForUser(),
                           selected: {
-                            for (final item in users.data!) item.id: item
+                            for (final item in users.data!) item.docId: item
                           },
                         ),
                         dispose: (context, c) => c.dispose(),
@@ -719,7 +719,7 @@ class _EditUserState extends State<EditUser> {
                 .equals(user.adminServices, old.adminServices)) {
           await FirebaseFirestore.instance
               .collection('UsersData')
-              .doc(user.refId)
+              .doc(user.docId)
               .update({
             'ClassId': user.classId,
             'AdminServices': user.adminServices,
@@ -727,13 +727,13 @@ class _EditUserState extends State<EditUser> {
         } else if (old.classId != user.classId) {
           await FirebaseFirestore.instance
               .collection('UsersData')
-              .doc(user.refId)
+              .doc(user.docId)
               .update({'ClassId': user.classId});
         } else if (!const DeepCollectionEquality.unordered()
             .equals(user.adminServices, old.adminServices)) {
           await FirebaseFirestore.instance
               .collection('UsersData')
-              .doc(user.refId)
+              .doc(user.docId)
               .update({'AdminServices': user.adminServices});
         }
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
