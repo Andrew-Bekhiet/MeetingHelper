@@ -809,6 +809,7 @@ class _RootState extends State<Root>
                 mainScfld.currentState!.openEndDrawer();
                 await Hive.box('Settings').put('FCM_Token_Registered', false);
                 await User.instance.signOut();
+                unawaited(navigator.currentState!.pushReplacementNamed('/'));
               },
             ),
           ],
