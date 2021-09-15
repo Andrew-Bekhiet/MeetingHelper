@@ -2,9 +2,6 @@ import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
-import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.html) 'package:meetinghelper/crashlytics_web.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -17,6 +14,7 @@ import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:tinycolor2/tinycolor2.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
@@ -491,10 +489,11 @@ class _PersonInfoState extends State<PersonInfo> {
       scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
         content: Text('تم بنجاح'),
       ));
-    } catch (err, stkTrace) {
-      await FirebaseCrashlytics.instance
-          .setCustomKey('LastErrorIn', 'PersonInfo.recordLastVisit');
-      await FirebaseCrashlytics.instance.recordError(err, stkTrace);
+    } catch (err, stack) {
+      await Sentry.captureException(err,
+          stackTrace: stack,
+          withScope: (scope) =>
+              scope.setTag('LasErrorIn', '_PersonInfoState.recordLastVisit'));
       await showErrorDialog(context, 'حدث خطأ أثناء تحديث تاريخ اخر زيارة!');
     }
   }

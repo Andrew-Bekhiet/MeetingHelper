@@ -1,6 +1,3 @@
-import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.html) 'package:meetinghelper/crashlytics_web.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:meetinghelper/models/data/class.dart';
@@ -16,6 +13,7 @@ import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/views/list.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 class Day extends StatefulWidget {
@@ -671,8 +669,14 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
         if (!(await widget.record.ref.get(dataSource)).exists) {
           await widget.record.ref.set(widget.record.getMap());
         }
-      } catch (err, stkTrace) {
-        await FirebaseCrashlytics.instance.recordError(err, stkTrace);
+      } catch (err, stack) {
+        await Sentry.captureException(
+          err,
+          stackTrace: stack,
+          withScope: (scope) => scope
+            ..setTag('LasErrorIn', 'Day.initState')
+            ..setExtra('Record', widget.record.getMap()),
+        );
         await showErrorDialog(context, err.toString(), title: 'حدث خطأ');
       }
       if (!(Hive.box<bool>('FeatureDiscovery').get('DayInstructions') ??

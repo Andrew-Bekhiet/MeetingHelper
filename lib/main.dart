@@ -299,6 +299,7 @@ class AppState extends State<App> {
     super.initState();
     connection = Connectivity()
         .onConnectivityChanged
+        .distinct()
         .listen((ConnectivityResult result) {
       if (result == ConnectivityResult.mobile ||
           result == ConnectivityResult.wifi) {
@@ -389,10 +390,11 @@ class AppState extends State<App> {
             .httpsCallable('registerFCMToken')
             .call({'token': await FirebaseMessaging.instance.getToken()});
         await Hive.box('Settings').put('FCM_Token_Registered', true);
-      } catch (err, stkTrace) {
-        await FirebaseCrashlytics.instance
-            .setCustomKey('LastErrorIn', 'AppState.initState');
-        await FirebaseCrashlytics.instance.recordError(err, stkTrace);
+      } catch (err, stack) {
+        await Sentry.captureException(err,
+            stackTrace: stack,
+            withScope: (scope) =>
+                scope.setTag('LasErrorIn', 'AppState.configureMessaging'));
       }
     }
     if (configureMessaging) {
@@ -428,8 +430,10 @@ class AppState extends State<App> {
     } else {
       if (User.instance.uid != null) {
         await configureFirebaseMessaging();
-        await FirebaseCrashlytics.instance
-            .setCustomKey('UID', User.instance.uid!);
+        Sentry.configureScope((scope) => scope.user = SentryUser(
+            id: User.instance.uid,
+            email: User.instance.email,
+            extras: User.instance.getUpdateMap()));
         if (!await User.instance.userDataUpToDate()) {
           throw Exception('Error Update User Data');
         }

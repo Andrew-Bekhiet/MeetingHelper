@@ -2,9 +2,6 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.html) 'package:meetinghelper/crashlytics_web.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:group_list_view/group_list_view.dart';
@@ -23,6 +20,7 @@ import 'package:meetinghelper/views/trash.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -241,12 +239,11 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                               phones: [Phone(item.phone!)])
                             ..name.first = item.name;
                           await c.insert();
-                        } catch (err, stkTrace) {
-                          await FirebaseCrashlytics.instance.setCustomKey(
-                              'LastErrorIn',
-                              'InnerPersonListState.build.addToContacts.tap');
-                          await FirebaseCrashlytics.instance
-                              .recordError(err, stkTrace);
+                        } catch (err, stack) {
+                          await Sentry.captureException(err,
+                              stackTrace: stack,
+                              withScope: (scope) => scope.setTag('LasErrorIn',
+                                  '_ListState._defaultLongPress.person_add'));
                         }
                       }
                     }

@@ -1,12 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.html) 'package:meetinghelper/crashlytics_web.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/views/form_widgets/tapable_form_field.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../models/data/user.dart';
 import '../utils/helpers.dart';
@@ -132,12 +130,13 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
         'lastTanawol': user.lastTanawol!.millisecondsSinceEpoch
       });
       navigator.currentState!.pop();
-    } catch (err, stkTrace) {
+    } catch (err, stack) {
       await showErrorDialog(context, err.toString());
-      await FirebaseCrashlytics.instance
-          .setCustomKey('LastErrorIn', 'UpdateUserDataError.save');
-      await FirebaseCrashlytics.instance.setCustomKey('User', user.uid!);
-      await FirebaseCrashlytics.instance.recordError(err, stkTrace);
+      await Sentry.captureException(err,
+          stackTrace: stack,
+          withScope: (scope) => scope
+            ..setTag('LasErrorIn', '_UpdateUserDataErrorState.save')
+            ..setExtra('User', {'UID': user.uid, ...user.getUpdateMap()}));
     }
   }
 

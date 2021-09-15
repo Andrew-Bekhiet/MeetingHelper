@@ -5,9 +5,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.html) 'package:meetinghelper/crashlytics_web.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
@@ -23,6 +20,7 @@ import 'package:meetinghelper/views/lists/users_list.dart';
 import 'package:meetinghelper/views/services_list.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../models/data/user.dart';
 
@@ -524,10 +522,11 @@ class _EditUserState extends State<EditUser> {
                     duration: Duration(seconds: 15),
                   ),
                 );
-              } catch (err, stkTrace) {
-                await FirebaseCrashlytics.instance
-                    .setCustomKey('LastErrorIn', 'UserPState.delete');
-                await FirebaseCrashlytics.instance.recordError(err, stkTrace);
+              } catch (err, stack) {
+                await Sentry.captureException(err,
+                    stackTrace: stack,
+                    withScope: (scope) => scope.setTag(
+                        'LasErrorIn', '_EditUserState.deleteUser'));
                 scaffoldMessenger.currentState!.hideCurrentSnackBar();
                 scaffoldMessenger.currentState!.showSnackBar(
                   SnackBar(
@@ -576,10 +575,11 @@ class _EditUserState extends State<EditUser> {
                   content: Text('تم بنجاح'),
                   duration: Duration(seconds: 15),
                 ));
-              } catch (err, stkTrace) {
-                await FirebaseCrashlytics.instance
-                    .setCustomKey('LastErrorIn', 'UserPState.delete');
-                await FirebaseCrashlytics.instance.recordError(err, stkTrace);
+              } catch (err, stack) {
+                await Sentry.captureException(err,
+                    stackTrace: stack,
+                    withScope: (scope) => scope.setTag(
+                        'LasErrorIn', '_EditUserState.unApproveUser'));
                 scaffoldMessenger.currentState!.hideCurrentSnackBar();
                 scaffoldMessenger.currentState!.showSnackBar(SnackBar(
                   content: Text(err.toString()),
@@ -646,10 +646,11 @@ class _EditUserState extends State<EditUser> {
           content: Text('تم إعادة تعيين كلمة السر بنجاح'),
         ),
       );
-    } catch (err, stkTrace) {
-      await FirebaseCrashlytics.instance
-          .setCustomKey('LastErrorIn', 'UserPState.resetPassword');
-      await FirebaseCrashlytics.instance.recordError(err, stkTrace);
+    } catch (err, stack) {
+      await Sentry.captureException(err,
+          stackTrace: stack,
+          withScope: (scope) =>
+              scope.setTag('LasErrorIn', '_EditUserState.resetPassword'));
       scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
           content: Text(err.toString()),
@@ -745,10 +746,11 @@ class _EditUserState extends State<EditUser> {
           ),
         );
       }
-    } catch (err, stkTrace) {
-      await FirebaseCrashlytics.instance
-          .setCustomKey('LastErrorIn', 'UserPState.save');
-      await FirebaseCrashlytics.instance.recordError(err, stkTrace);
+    } catch (err, stack) {
+      await Sentry.captureException(err,
+          stackTrace: stack,
+          withScope: (scope) =>
+              scope.setTag('LasErrorIn', '_EditUserState.save'));
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(SnackBar(
         content: Text(err.toString()),

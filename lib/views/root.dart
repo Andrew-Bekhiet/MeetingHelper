@@ -6,9 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.html) 'package:meetinghelper/crashlytics_web.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/foundation.dart';
@@ -28,6 +25,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import '../models/data/user.dart';
@@ -638,17 +636,17 @@ class _RootState extends State<Root>
                                   ),
                                 ),
                               );
-                            } on Exception catch (e, st) {
+                            } catch (err, stack) {
                               scaffoldMessenger.currentState!
                                   .hideCurrentSnackBar();
                               scaffoldMessenger.currentState!.showSnackBar(
                                 const SnackBar(
                                     content: Text('فشل تصدير البيانات')),
                               );
-                              await FirebaseCrashlytics.instance.setCustomKey(
-                                  'LastErrorIn', 'Root.exportOnlyArea');
-                              await FirebaseCrashlytics.instance
-                                  .recordError(e, st);
+                              await Sentry.captureException(err,
+                                  stackTrace: stack,
+                                  withScope: (scope) => scope.setTag(
+                                      'LasErrorIn', '_RootState.dataExport'));
                             }
                           }
                         },
@@ -707,17 +705,17 @@ class _RootState extends State<Root>
                                 ),
                               ),
                             );
-                          } on Exception catch (e, st) {
+                          } catch (err, stack) {
                             scaffoldMessenger.currentState!
                                 .hideCurrentSnackBar();
                             scaffoldMessenger.currentState!.showSnackBar(
                               const SnackBar(
                                   content: Text('فشل تصدير البيانات')),
                             );
-                            await FirebaseCrashlytics.instance
-                                .setCustomKey('LastErrorIn', 'Root.exportAll');
-                            await FirebaseCrashlytics.instance
-                                .recordError(e, st);
+                            await Sentry.captureException(err,
+                                stackTrace: stack,
+                                withScope: (scope) => scope.setTag(
+                                    'LasErrorIn', '_RootState.dataExport'));
                           }
                         },
                       )
@@ -1363,10 +1361,11 @@ class _RootState extends State<Root>
           ),
         );
       }
-    } catch (err, stkTrace) {
-      await FirebaseCrashlytics.instance
-          .setCustomKey('LastErrorIn', 'PersonP.save');
-      await FirebaseCrashlytics.instance.recordError(err, stkTrace);
+    } catch (err, stack) {
+      await Sentry.captureException(err,
+          stackTrace: stack,
+          withScope: (scope) =>
+              scope.setTag('LasErrorIn', '_RootState._saveUser'));
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(SnackBar(
         content: Text(

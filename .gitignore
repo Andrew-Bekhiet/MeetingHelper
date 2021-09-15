@@ -101,3 +101,4 @@ logs/
 MeetingHelper.code-workspace
 .env
 lib/secrets.dart
+web/firebase-messaging-sw.js

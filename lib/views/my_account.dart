@@ -1,8 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.html) 'package:meetinghelper/crashlytics_web.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -10,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../models/data/user.dart';
 import '../utils/encryption_keys.dart';
@@ -459,10 +457,11 @@ class _MyAccountState extends State<MyAccount> {
             'oldPassword': textFields[0].text,
             'newPassword': Encryption.encPswd(textFields[1].text)
           });
-        } catch (err, stkTrace) {
-          await FirebaseCrashlytics.instance
-              .setCustomKey('LastErrorIn', 'MyAccount._submitPass');
-          await FirebaseCrashlytics.instance.recordError(err, stkTrace);
+        } catch (err, stack) {
+          await Sentry.captureException(err,
+              stackTrace: stack,
+              withScope: (scope) =>
+                  scope.setTag('LasErrorIn', '_MyAccountState._submitPass'));
           await showErrorDialog(context, 'حدث خطأ أثناء تحديث كلمة السر!');
           return;
         }

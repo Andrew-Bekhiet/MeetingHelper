@@ -4,9 +4,6 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
-import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.html) 'package:meetinghelper/crashlytics_web.dart';
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -20,6 +17,7 @@ import 'package:meetinghelper/views/form_widgets/tapable_form_field.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tinycolor2/tinycolor2.dart';
 
 import '../../models/data/user.dart';
@@ -525,10 +523,11 @@ class _EditServiceState extends State<EditService> {
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
         navigator.currentState!.pop(service.ref);
       }
-    } catch (err, stkTrace) {
-      await FirebaseCrashlytics.instance
-          .setCustomKey('LastErrorIn', 'ServiceP.save');
-      await FirebaseCrashlytics.instance.recordError(err, stkTrace);
+    } catch (err, stack) {
+      await Sentry.captureException(err,
+          stackTrace: stack,
+          withScope: (scope) =>
+              scope.setTag('LasErrorIn', '_EditServiceState.save'));
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(SnackBar(
         content: Text(err.toString()),

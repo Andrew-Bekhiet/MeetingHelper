@@ -3,15 +3,13 @@ import 'dart:async';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_auth_platform_interface/firebase_auth_platform_interface.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.html) 'package:meetinghelper/crashlytics_web.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hive/hive.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/data/user.dart';
@@ -103,11 +101,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         await User.instance.initialized;
                         await setupSettings();
                       }
-                    } catch (err, stkTrace) {
-                      await FirebaseCrashlytics.instance
-                          .setCustomKey('LastErrorIn', 'Login.build');
-                      await FirebaseCrashlytics.instance
-                          .recordError(err, stkTrace);
+                    } catch (err, stack) {
+                      await Sentry.captureException(err,
+                          stackTrace: stack,
+                          withScope: (scope) => scope.setTag('LasErrorIn',
+                              '_LoginScreenState.build.Login.onPressed'));
                       await showErrorDialog(context, err.toString());
                     }
                   },
@@ -274,10 +272,11 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       });
       return true;
-    } catch (err, stkTrace) {
-      await FirebaseCrashlytics.instance
-          .setCustomKey('LastErrorIn', 'LoginScreenState.setupSettings');
-      await FirebaseCrashlytics.instance.recordError(err, stkTrace);
+    } catch (err, stack) {
+      await Sentry.captureException(err,
+          stackTrace: stack,
+          withScope: (scope) =>
+              scope.setTag('LasErrorIn', '_LoginScreenState.setupSettings'));
       return false;
     }
   }

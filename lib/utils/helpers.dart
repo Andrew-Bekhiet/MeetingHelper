@@ -9,9 +9,6 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.html) 'package:meetinghelper/crashlytics_web.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
@@ -36,6 +33,7 @@ import 'package:meetinghelper/views/services_list.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:spreadsheet_decoder/spreadsheet_decoder.dart';
 import 'package:timeago/timeago.dart';
 
@@ -1016,7 +1014,7 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
       'title': title.text,
       'body': 'أرسل إليك ${User.instance.name} رسالة',
       'content': content.text,
-      'attachement': 'https://'+uriPrefix+'/view$link'
+      'attachement': 'https://' + uriPrefix + '/view$link'
     });
   }
 }
@@ -1074,10 +1072,11 @@ Future<void> recoverDoc(BuildContext context, String path) async {
       });
       scaffoldMessenger.currentState!
           .showSnackBar(const SnackBar(content: Text('تم الاسترجاع بنجاح')));
-    } catch (err, stcTrace) {
-      await FirebaseCrashlytics.instance
-          .setCustomKey('LastErrorIn', 'helpers.recoverDoc');
-      await FirebaseCrashlytics.instance.recordError(err, stcTrace);
+    } catch (err, stack) {
+      await Sentry.captureException(err,
+          stackTrace: stack,
+          withScope: (scope) =>
+              scope.setTag('LasErrorIn', 'helpers.recoverDoc'));
     }
   }
 }
@@ -2210,10 +2209,10 @@ void userTap(User user) async {
             duration: Duration(seconds: 15),
           ),
         );
-      } catch (err, stkTrace) {
-        await FirebaseCrashlytics.instance
-            .setCustomKey('LastErrorIn', 'Data.userTap');
-        await FirebaseCrashlytics.instance.recordError(err, stkTrace);
+      } catch (err, stack) {
+        await Sentry.captureException(err,
+            stackTrace: stack,
+            withScope: (scope) => scope.setTag('LasErrorIn', 'Data.userTap'));
       }
     } else if (rslt == 'delete') {
       scaffoldMessenger.currentState!.showSnackBar(
@@ -2233,10 +2232,11 @@ void userTap(User user) async {
             duration: Duration(seconds: 15),
           ),
         );
-      } catch (err, stkTrace) {
-        await FirebaseCrashlytics.instance
-            .setCustomKey('LastErrorIn', 'Data.userTap');
-        await FirebaseCrashlytics.instance.recordError(err, stkTrace);
+      } catch (err, stack) {
+        await Sentry.captureException(err,
+            stackTrace: stack,
+            withScope: (scope) =>
+                scope.setTag('LasErrorIn', 'helpers.userTap'));
       }
     }
   }
