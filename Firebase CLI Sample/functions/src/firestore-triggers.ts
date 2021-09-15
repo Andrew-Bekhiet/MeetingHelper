@@ -159,7 +159,7 @@ export const onPersonUpdated = firestore_1
           ).docs,
           ...(
             await firestore()
-              .collectionGroup("Tanawol")
+              .collectionGroup("Confession")
               .where("ID", "==", change.before.id)
               .get()
           ).docs,
@@ -259,16 +259,20 @@ export const onPersonUpdated = firestore_1
 
       if (
         getChangeType(change) === "update" &&
-        !(change.after.data()?.ClassId as DocumentReference).isEqual(
+        (!(change.after.data()?.ClassId as DocumentReference).isEqual(
           change.before.data()?.ClassId
-        )
+        ) ||
+          !refArraysEqual(
+            change.after.data()?.Services ? change.after.data()?.Services : [],
+            change.before.data()?.Services ? change.before.data()?.Services : []
+          ))
       ) {
         let pendingChanges = firestore().batch();
 
         let batchCount = 0;
 
         let snapshot: firestore.QuerySnapshot<firestore.DocumentData>;
-        for (const collection of ["Meeting", "Kodas"]) {
+        for (const collection of ["Meeting", "Kodas", "Confession"]) {
           snapshot = await firestore()
             .collectionGroup(collection)
             .where("ID", "==", change.after.id)
@@ -281,11 +285,12 @@ export const onPersonUpdated = firestore_1
             if (snapshot.docs[i].ref.parent.parent?.parent.id === "History") {
               pendingChanges.update(snapshot.docs[i].ref, {
                 ClassId: change.after.data()!["ClassId"],
+                Services: change.after.data()!["Services"],
               });
               console.log(
                 "Update Person " +
                   change.after.ref.path +
-                  " ClassId in record " +
+                  " ClassId and Services in record " +
                   snapshot.docs[i].id
               );
             }
@@ -334,7 +339,7 @@ export const onUserUpdated = firestore_1
           ).docs,
           ...(
             await firestore()
-              .collectionGroup("Tanawol")
+              .collectionGroup("Confession")
               .where("ID", "==", change.before.id)
               .get()
           ).docs,
@@ -442,17 +447,20 @@ export const onUserUpdated = firestore_1
 
       if (
         getChangeType(change) === "update" &&
-        change.after.data()?.ClassId &&
-        !(change.after.data()?.ClassId as DocumentReference).isEqual(
+        (!(change.after.data()?.ClassId as DocumentReference).isEqual(
           change.before.data()?.ClassId
-        )
+        ) ||
+          !refArraysEqual(
+            change.after.data()?.Services ? change.after.data()?.Services : [],
+            change.before.data()?.Services ? change.before.data()?.Services : []
+          ))
       ) {
         let pendingChanges = firestore().batch();
 
         let batchCount = 0;
 
         let snapshot: firestore.QuerySnapshot<firestore.DocumentData>;
-        for (const collection of ["Meeting", "Kodas"]) {
+        for (const collection of ["Meeting", "Kodas", "Confession"]) {
           snapshot = await firestore()
             .collectionGroup(collection)
             .where("ID", "==", change.after.id)
@@ -468,11 +476,12 @@ export const onUserUpdated = firestore_1
             ) {
               pendingChanges.update(snapshot.docs[i].ref, {
                 ClassId: change.after.data()!["ClassId"],
+                Services: change.after.data()!["Services"],
               });
               console.log(
-                "Update User " +
+                "Update Users Person " +
                   change.after.ref.path +
-                  " ClassId in record " +
+                  " ClassId and Services in record " +
                   snapshot.docs[i].id
               );
             }
@@ -521,7 +530,11 @@ export const onHistoryRecordWrite = firestore_1
         LastEdit: change.after.data()?.RecordedBy,
       };
 
-      if (context.params.type == "Meeting" || context.params.type == "Kodas")
+      if (
+        context.params.type == "Meeting" ||
+        context.params.type == "Kodas" ||
+        context.params.type == "Confession"
+      )
         data["Last" + context.params.type] = change.after.data()?.Time;
       else {
         data["Last"] = {};
@@ -553,14 +566,22 @@ export const onHistoryRecordWrite = firestore_1
         LastEdit: queryRes.docs[1].data()?.By,
       };
       if (queryRes2.empty) {
-        if (context.params.type == "Meeting" || context.params.type == "Kodas")
+        if (
+          context.params.type == "Meeting" ||
+          context.params.type == "Kodas" ||
+          context.params.type == "Confession"
+        )
           data["Last" + context.params.type] = null;
         else {
           data["Last"] = {};
           data["Last"][context.params.type] = null;
         }
       } else {
-        if (context.params.type == "Meeting" || context.params.type == "Kodas")
+        if (
+          context.params.type == "Meeting" ||
+          context.params.type == "Kodas" ||
+          context.params.type == "Confession"
+        )
           data["Last" + context.params.type] = queryRes2.docs[0].data()?.Time;
         else {
           data["Last"] = {};
@@ -600,7 +621,11 @@ export const onServantsHistoryRecordWrite = firestore_1
       const data: Record<string, any> = {
         LastEdit: change.after.data()?.RecordedBy,
       };
-      if (context.params.type == "Meeting" || context.params.type == "Kodas")
+      if (
+        context.params.type == "Meeting" ||
+        context.params.type == "Kodas" ||
+        context.params.type == "Confession"
+      )
         data["Last" + context.params.type] = change.after.data()?.Time;
       else {
         data["Last"] = {};
@@ -632,14 +657,22 @@ export const onServantsHistoryRecordWrite = firestore_1
         LastEdit: queryRes.docs[1].data()?.By,
       };
       if (queryRes2.empty) {
-        if (context.params.type == "Meeting" || context.params.type == "Kodas")
+        if (
+          context.params.type == "Meeting" ||
+          context.params.type == "Kodas" ||
+          context.params.type == "Confession"
+        )
           data["Last" + context.params.type] = null;
         else {
           data["Last"] = {};
           data["Last"][context.params.type] = null;
         }
       } else {
-        if (context.params.type == "Meeting" || context.params.type == "Kodas")
+        if (
+          context.params.type == "Meeting" ||
+          context.params.type == "Kodas" ||
+          context.params.type == "Confession"
+        )
           data["Last" + context.params.type] = queryRes2.docs[0].data()?.Time;
         else {
           data["Last"] = {};
@@ -677,3 +710,14 @@ export const onInvitationCreated = firestore_1
     });
     return;
   });
+
+function refArraysEqual(
+  a: Array<DocumentReference>,
+  b: Array<DocumentReference>
+): boolean {
+  if (a === b) return true;
+  if (a == null || b == null) return false;
+  if (a.length !== b.length) return false;
+
+  return a.every((o) => b.find((o2) => o.isEqual(o2)));
+}
