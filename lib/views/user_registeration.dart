@@ -48,6 +48,17 @@ class _UserRegistrationState extends State<UserRegistration> {
           return Scaffold(
             resizeToAvoidBottomInset: !kIsWeb,
             appBar: AppBar(
+              actions: <Widget>[
+                IconButton(
+                    icon: const Icon(
+                        IconData(0xe9ba, fontFamily: 'MaterialIconsR')),
+                    tooltip: 'تسجيل الخروج',
+                    onPressed: () async {
+                      await Hive.box('Settings')
+                          .put('FCM_Token_Registered', false);
+                      await User.instance.signOut();
+                    })
+              ],
               leading: Container(),
               title: const Text('تسجيل حساب جديد'),
             ),
