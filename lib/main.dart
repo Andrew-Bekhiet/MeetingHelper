@@ -386,10 +386,15 @@ class AppState extends State<App> {
         // ignore: empty_catches
       } catch (e) {}
       try {
-        await FirebaseFunctions.instance
-            .httpsCallable('registerFCMToken')
-            .call({'token': await FirebaseMessaging.instance.getToken()});
-        await Hive.box('Settings').put('FCM_Token_Registered', true);
+        final status = (await FirebaseMessaging.instance.requestPermission())
+            .authorizationStatus;
+        if (status != AuthorizationStatus.denied &&
+            status != AuthorizationStatus.notDetermined) {
+          await FirebaseFunctions.instance
+              .httpsCallable('registerFCMToken')
+              .call({'token': await FirebaseMessaging.instance.getToken()});
+          await Hive.box('Settings').put('FCM_Token_Registered', true);
+        }
       } catch (err, stack) {
         await Sentry.captureException(err,
             stackTrace: stack,
