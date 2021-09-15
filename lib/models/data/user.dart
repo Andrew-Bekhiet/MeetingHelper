@@ -9,6 +9,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -238,50 +239,52 @@ class User extends Person {
     authListener = auth.FirebaseAuth.instance.userChanges().listen(
       (user) async {
         if (user != null) {
-          userTokenListener = dbInstance
-              .reference()
-              .child('Users/${user.uid}/forceRefresh')
-              .onValue
-              .listen((e) async {
-            final auth.User currentUser = user;
-            if (e.snapshot.value != true) return;
-
-            late Map idTokenClaims;
-            try {
-              final auth.IdTokenResult idToken =
-                  await currentUser.getIdTokenResult(true);
-
-              await Hive.box('User')
-                  .putAll(idToken.claims?.map((k, v) => MapEntry(k, v)) ?? {});
-
-              await dbInstance
+          userTokenListener = !kIsWeb
+              ? dbInstance
                   .reference()
-                  .child('Users/${currentUser.uid}/forceRefresh')
-                  .set(false);
-              connectionListener ??= dbInstance
-                  .reference()
-                  .child('.info/connected')
+                  .child('Users/${user.uid}/forceRefresh')
                   .onValue
-                  .listen((snapshot) {
-                if (snapshot.snapshot.value == true) {
-                  dbInstance
-                      .reference()
-                      .child('Users/${user.uid}/lastSeen')
-                      .onDisconnect()
-                      .set(ServerValue.timestamp);
-                  dbInstance
-                      .reference()
-                      .child('Users/${user.uid}/lastSeen')
-                      .set('Active');
-                }
-              });
-              idTokenClaims = idToken.claims ?? {};
-            } catch (e) {
-              idTokenClaims = Hive.box('User').toMap();
-              if (idTokenClaims.isEmpty) rethrow;
-            }
-            _refreshFromIdToken(idTokenClaims, user: user);
-          });
+                  .listen((e) async {
+                  final auth.User currentUser = user;
+                  if (e.snapshot.value != true) return;
+
+                  late Map idTokenClaims;
+                  try {
+                    final auth.IdTokenResult idToken =
+                        await currentUser.getIdTokenResult(true);
+
+                    await Hive.box('User').putAll(
+                        idToken.claims?.map((k, v) => MapEntry(k, v)) ?? {});
+
+                    await dbInstance
+                        .reference()
+                        .child('Users/${currentUser.uid}/forceRefresh')
+                        .set(false);
+                    connectionListener ??= dbInstance
+                        .reference()
+                        .child('.info/connected')
+                        .onValue
+                        .listen((snapshot) {
+                      if (snapshot.snapshot.value == true) {
+                        dbInstance
+                            .reference()
+                            .child('Users/${user.uid}/lastSeen')
+                            .onDisconnect()
+                            .set(ServerValue.timestamp);
+                        dbInstance
+                            .reference()
+                            .child('Users/${user.uid}/lastSeen')
+                            .set('Active');
+                      }
+                    });
+                    idTokenClaims = idToken.claims ?? {};
+                  } catch (e) {
+                    idTokenClaims = Hive.box('User').toMap();
+                    if (idTokenClaims.isEmpty) rethrow;
+                  }
+                  _refreshFromIdToken(idTokenClaims, user: user);
+                })
+              : null;
 
           Map<dynamic, dynamic> idTokenClaims;
           try {
@@ -293,28 +296,31 @@ class User extends Person {
               await Hive.box('User')
                   .putAll(idToken.claims?.map((k, v) => MapEntry(k, v)) ?? {});
 
-              await dbInstance
-                  .reference()
-                  .child('Users/${user.uid}/forceRefresh')
-                  .set(false);
+              if (!kIsWeb)
+                await dbInstance
+                    .reference()
+                    .child('Users/${user.uid}/forceRefresh')
+                    .set(false);
             }
-            connectionListener ??= dbInstance
-                .reference()
-                .child('.info/connected')
-                .onValue
-                .listen((snapshot) {
-              if (snapshot.snapshot.value == true) {
-                dbInstance
+            connectionListener ??= kIsWeb
+                ? dbInstance
                     .reference()
-                    .child('Users/${user.uid}/lastSeen')
-                    .onDisconnect()
-                    .set(ServerValue.timestamp);
-                dbInstance
-                    .reference()
-                    .child('Users/${user.uid}/lastSeen')
-                    .set('Active');
-              }
-            });
+                    .child('.info/connected')
+                    .onValue
+                    .listen((snapshot) {
+                    if (snapshot.snapshot.value == true) {
+                      dbInstance
+                          .reference()
+                          .child('Users/${user.uid}/lastSeen')
+                          .onDisconnect()
+                          .set(ServerValue.timestamp);
+                      dbInstance
+                          .reference()
+                          .child('Users/${user.uid}/lastSeen')
+                          .set('Active');
+                    }
+                  })
+                : null;
             idTokenClaims = idToken.claims ?? Hive.box('User').toMap();
           } on Exception {
             idTokenClaims = Hive.box('User').toMap();
@@ -542,8 +548,10 @@ class User extends Person {
   Widget getPhoto([bool showCircle = true, bool showActiveStatus = true]) {
     return AspectRatio(
       aspectRatio: 1,
-      child: StreamBuilder<Event>(
-        stream: dbInstance.reference().child('Users/$uid/lastSeen').onValue,
+      child: StreamBuilder<Event?>(
+        stream: kIsWeb
+            ? Stream.value(null)
+            : dbInstance.reference().child('Users/$uid/lastSeen').onValue,
         builder: (context, activity) {
           if (!hasPhoto)
             return Stack(
@@ -769,12 +777,12 @@ class User extends Person {
   }
 
   Future<void> recordActive() async {
-    if (uid == null) return;
+    if (uid == null || kIsWeb) return;
     await dbInstance.reference().child('Users/$uid/lastSeen').set('Active');
   }
 
   Future<void> recordLastSeen() async {
-    if (uid == null) return;
+    if (uid == null || kIsWeb) return;
     await dbInstance
         .reference()
         .child('Users/$uid/lastSeen')
