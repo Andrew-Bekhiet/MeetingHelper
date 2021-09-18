@@ -251,10 +251,11 @@ export const onPersonUpdated = firestore_1
           : null,
       });
 
-      batch.update(change.after.data()?.ClassId, {
-        LastEdit: change.after.data()?.LastEdit,
-        LastEditTime: FieldValue.serverTimestamp(),
-      });
+      if (change.after.data()?.ClassId)
+        batch.update(change.after.data()?.ClassId, {
+          LastEdit: change.after.data()?.LastEdit,
+          LastEditTime: FieldValue.serverTimestamp(),
+        });
       await batch.commit();
 
       if (
