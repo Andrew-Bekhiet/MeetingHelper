@@ -29,89 +29,118 @@ class _NotificationSettingState extends State<NotificationSetting> {
   final TextEditingController period = TextEditingController();
   late TimeOfDay time;
 
-  var notificationsSettings =
+  final notificationsSettings =
       Hive.box<Map<dynamic, dynamic>>('NotificationsSettings');
 
   @override
   Widget build(BuildContext context) {
-    return Flex(
-      direction: Axis.horizontal,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: <Widget>[
-        Flexible(
-          flex: 50,
-          child: TextField(
-            decoration: InputDecoration(
-              labelText: widget.label,
-              border: OutlineInputBorder(
-                borderSide:
-                    BorderSide(color: Theme.of(context).colorScheme.primary),
-              ),
+    return InputDecorator(
+      decoration: InputDecoration(labelText: widget.label),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            flex: 45,
+            child: TextField(
+              decoration: const InputDecoration(border: UnderlineInputBorder()),
+              keyboardType: TextInputType.number,
+              controller: period
+                ..text = _totalDays(notificationsSettings.get(widget.hiveKey,
+                        defaultValue: {
+                      'Period': 7
+                    })!.cast<String, int>()['Period']!)
+                    .toString(),
             ),
-            keyboardType: TextInputType.number,
-            controller: period
-              ..text = _totalDays(notificationsSettings.get(widget.hiveKey,
-                      defaultValue: {
-                    'Period': 7
-                  })!.cast<String, int>()['Period']!)
-                  .toString(),
           ),
-        ),
-        Container(width: 20),
-        Flexible(
-          flex: 25,
-          child: DropdownButtonFormField(
-            items: const [
-              DropdownMenuItem(
-                value: DateType.day,
-                child: Text('يوم'),
+          Container(width: 20),
+          Flexible(
+            flex: 25,
+            child: DropdownButtonFormField<DateType>(
+              selectedItemBuilder: (context) => [
+                SizedBox(
+                  height: 70,
+                  child: Container(
+                    constraints: BoxConstraints.expand(),
+                    child: Text('يوم'),
+                  ),
+                ),
+                SizedBox(
+                  height: 70,
+                  child: Container(
+                    constraints: BoxConstraints.expand(),
+                    child: Text('اسبوع'),
+                  ),
+                ),
+                SizedBox(
+                  height: 70,
+                  child: Container(
+                    constraints: BoxConstraints.expand(),
+                    child: Text('شهر'),
+                  ),
+                )
+              ],
+              items: const [
+                DropdownMenuItem(
+                  value: DateType.day,
+                  child: Text('يوم'),
+                ),
+                DropdownMenuItem(
+                  value: DateType.week,
+                  child: Text('اسبوع'),
+                ),
+                DropdownMenuItem(
+                  value: DateType.month,
+                  child: Text('شهر'),
+                )
+              ],
+              decoration: const InputDecoration(
+                border: UnderlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(vertical: 90),
               ),
-              DropdownMenuItem(
-                value: DateType.week,
-                child: Text('اسبوع'),
-              ),
-              DropdownMenuItem(
-                value: DateType.month,
-                child: Text('شهر'),
-              )
-            ],
-            value: _largestPossible(notificationsSettings.get(widget.hiveKey,
-                defaultValue: {'Period': 7})!.cast<String, int>()['Period']!),
-            onSaved: (dynamic _) => onSave(),
-            onChanged: (dynamic value) async {
-              if (value == DateType.month) {
-                multiplier = 30;
-              } else if (value == DateType.week) {
-                multiplier = 7;
-              } else if (value == DateType.day) {
-                multiplier = 1;
-              }
-            },
+              value: _getAndSetMultiplier(notificationsSettings.get(
+                  widget.hiveKey,
+                  defaultValue: {'Period': 7})!.cast<String, int>()['Period']!),
+              onSaved: (_) => onSave(),
+              onChanged: (value) async {
+                if (value == DateType.month) {
+                  multiplier = 30;
+                } else if (value == DateType.week) {
+                  multiplier = 7;
+                } else if (value == DateType.day) {
+                  multiplier = 1;
+                }
+              },
+            ),
           ),
-        ),
-        Flexible(
-          flex: 25,
-          child: DateTimeField(
-            format: DateFormat(
-                'h:m' +
-                    (MediaQuery.of(context).alwaysUse24HourFormat ? '' : ' a'),
-                'ar-EG'),
-            resetIcon: null,
-            initialValue: DateTime(2021, 1, 1, time.hour, time.minute),
-            onShowPicker: (context, initialValue) async {
-              final selected = await showTimePicker(
-                initialTime: TimeOfDay.fromDateTime(initialValue!),
-                context: context,
-              );
-              return DateTime(2020, 1, 1, selected?.hour ?? initialValue.hour,
-                  selected?.minute ?? initialValue.minute);
-            },
-            onChanged: (value) {
-              time = TimeOfDay(hour: value!.hour, minute: value.minute);
-            },
+          Container(width: 20),
+          Flexible(
+            flex: 25,
+            child: DateTimeField(
+              decoration: const InputDecoration(border: InputBorder.none),
+              format: DateFormat(
+                  'h:m' +
+                      (MediaQuery.of(context).alwaysUse24HourFormat
+                          ? ''
+                          : ' a'),
+                  'ar-EG'),
+              resetIcon: null,
+              initialValue: DateTime(2021, 1, 1, time.hour, time.minute),
+              onShowPicker: (context, initialValue) async {
+                final selected = await showTimePicker(
+                  initialTime: TimeOfDay.fromDateTime(initialValue!),
+                  context: context,
+                );
+                return DateTime(2020, 1, 1, selected?.hour ?? initialValue.hour,
+                    selected?.minute ?? initialValue.minute);
+              },
+              onChanged: (value) {
+                time = TimeOfDay(hour: value!.hour, minute: value.minute);
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -150,12 +179,15 @@ class _NotificationSettingState extends State<NotificationSetting> {
         rescheduleOnReboot: true);
   }
 
-  static DateType _largestPossible(int days) {
+  DateType _getAndSetMultiplier(int days) {
     if (days % 30 == 0) {
+      multiplier = 30;
       return DateType.month;
     } else if (days % 7 == 0) {
+      multiplier = 7;
       return DateType.week;
     }
+    multiplier = 1;
     return DateType.day;
   }
 

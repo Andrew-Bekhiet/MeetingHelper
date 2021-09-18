@@ -393,11 +393,7 @@ class SettingsState extends State<Settings> {
               ),
             ],
           ),
-        if (notifications['confessionsNotify']!)
-          const Divider(
-            thickness: 2,
-            height: 30,
-          ),
+        if (notifications['confessionsNotify']!) const SizedBox(height: 20),
         if (notifications['confessionsNotify']!)
           NotificationSetting(
             label: 'ارسال انذار الاعتراف كل ',
@@ -405,11 +401,7 @@ class SettingsState extends State<Settings> {
             alarmId: 'Confessions'.hashCode,
             notificationCallback: showConfessionNotification,
           ),
-        if (notifications['tanawolNotify']!)
-          const Divider(
-            thickness: 2,
-            height: 30,
-          ),
+        if (notifications['tanawolNotify']!) const SizedBox(height: 20),
         if (notifications['tanawolNotify']!)
           NotificationSetting(
             label: 'ارسال انذار التناول كل ',
@@ -417,11 +409,7 @@ class SettingsState extends State<Settings> {
             alarmId: 'Tanawol'.hashCode,
             notificationCallback: showTanawolNotification,
           ),
-        if (notifications['kodasNotify']!)
-          const Divider(
-            thickness: 2,
-            height: 30,
-          ),
+        if (notifications['kodasNotify']!) const SizedBox(height: 20),
         if (notifications['kodasNotify']!)
           NotificationSetting(
             label: 'ارسال انذار حضور القداس كل ',
@@ -429,11 +417,7 @@ class SettingsState extends State<Settings> {
             alarmId: 'Kodas'.hashCode,
             notificationCallback: showKodasNotification,
           ),
-        if (notifications['meetingNotify']!)
-          const Divider(
-            thickness: 2,
-            height: 30,
-          ),
+        if (notifications['meetingNotify']!) const SizedBox(height: 20),
         if (notifications['meetingNotify']!)
           NotificationSetting(
             label: 'ارسال انذار حضور الاجتماع كل ',
@@ -441,11 +425,7 @@ class SettingsState extends State<Settings> {
             alarmId: 'Meeting'.hashCode,
             notificationCallback: showMeetingNotification,
           ),
-        if (notifications['visitNotify']!)
-          const Divider(
-            thickness: 2,
-            height: 30,
-          ),
+        if (notifications['visitNotify']!) const SizedBox(height: 20),
         if (notifications['visitNotify']!)
           NotificationSetting(
             label: 'ارسال انذار الافتقاد كل ',
