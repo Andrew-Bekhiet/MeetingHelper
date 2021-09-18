@@ -173,6 +173,13 @@ class _SearchQueryState extends State<SearchQuery> {
         ),
         child: Text('اللون'),
       ),
+      DropdownMenuItem(
+        value: MapEntry(
+          0,
+          'LastVisit',
+        ),
+        child: Text('تاريخ أخر زيارة'),
+      ),
     ],
   ];
 

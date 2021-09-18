@@ -816,6 +816,30 @@ Future<void> processClickedNotification(BuildContext? context,
           ),
         );
       });
+    } else if ((notificationDetails.payload ?? payload) == 'Visit') {
+      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+        await Future.delayed(const Duration(milliseconds: 900), () => null);
+        await navigator.currentState!.push(
+          MaterialPageRoute(
+            builder: (context) {
+              final now = DateTime.now().millisecondsSinceEpoch;
+              return SearchQuery(query: {
+                'parentIndex': '1',
+                'childIndex': '15',
+                'operatorIndex': '3',
+                'queryText': '',
+                'queryValue': 'T' +
+                    ((now - (now % Duration.millisecondsPerDay)) -
+                            (Duration.millisecondsPerDay * 7))
+                        .toString(),
+                'birthDate': 'false',
+                'descending': 'false',
+                'orderBy': 'LastVisit'
+              });
+            },
+          ),
+        );
+      });
     }
   }
 }
