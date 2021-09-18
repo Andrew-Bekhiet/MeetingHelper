@@ -111,18 +111,20 @@ class _UserInfoState extends State<UserInfo> {
                 ),
                 ListTile(
                   title: const Text('أخر ظهور على البرنامج:'),
-                  subtitle: StreamBuilder<Event>(
+                  subtitle: StreamBuilder<dynamic>(
                     stream: dbInstance
                         .reference()
                         .child('Users/${user.uid}/lastSeen')
                         .onValue,
                     builder: (context, activity) {
-                      if (activity.data?.snapshot.value == 'Active') {
+                      if (getDBSnapshotValue(activity.data?.snapshot) ==
+                          'Active') {
                         return const Text('نشط الآن');
-                      } else if (activity.data?.snapshot.value != null) {
+                      } else if (getDBSnapshotValue(activity.data?.snapshot) !=
+                          null) {
                         return Text(toDurationString(
                             Timestamp.fromMillisecondsSinceEpoch(
-                                activity.data!.snapshot.value)));
+                                getDBSnapshotValue(activity.data!.snapshot))));
                       }
                       return const Text('لا يمكن التحديد');
                     },

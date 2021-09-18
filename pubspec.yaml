@@ -21,6 +21,7 @@ dependencies:
   device_info_plus: ^2.1.0
   expandable: ^5.0.1
   file_picker: ^4.0.1
+  firebase: ^9.0.2
   firebase_auth: ^3.1.0
   firebase_core: ^1.6.0
   firebase_crashlytics: ^2.2.1

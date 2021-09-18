@@ -936,6 +936,7 @@ class _RootState extends State<Root>
   }
 
   Future showDynamicLink() async {
+    if (kIsWeb) return;
     final PendingDynamicLinkData? data =
         await FirebaseDynamicLinks.instance.getInitialLink();
     FirebaseDynamicLinks.instance.onLink(
