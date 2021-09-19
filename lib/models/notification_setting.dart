@@ -61,22 +61,22 @@ class _NotificationSettingState extends State<NotificationSetting> {
                 SizedBox(
                   height: 70,
                   child: Container(
-                    constraints: BoxConstraints.expand(),
-                    child: Text('يوم'),
+                    constraints: const BoxConstraints.expand(),
+                    child: const Text('يوم'),
                   ),
                 ),
                 SizedBox(
                   height: 70,
                   child: Container(
-                    constraints: BoxConstraints.expand(),
-                    child: Text('اسبوع'),
+                    constraints: const BoxConstraints.expand(),
+                    child: const Text('اسبوع'),
                   ),
                 ),
                 SizedBox(
                   height: 70,
                   child: Container(
-                    constraints: BoxConstraints.expand(),
-                    child: Text('شهر'),
+                    constraints: const BoxConstraints.expand(),
+                    child: const Text('شهر'),
                   ),
                 )
               ],
