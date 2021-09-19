@@ -57,12 +57,9 @@ class Service extends DataObject with PhotoObject {
       } else {
         return u.adminServices.isEmpty
             ? Stream.value([])
-            : Rx.combineLatestList(
-                u.adminServices.map(
-                  (r) =>
-                      r.snapshots().map(Service.fromDoc).whereType<Service>(),
-                ),
-              );
+            : Rx.combineLatestList(u.adminServices.map(
+                (r) => r.snapshots().map(Service.fromDoc),
+              )).map((s) => s.whereType<Service>().toList());
       }
     });
   }
@@ -121,7 +118,7 @@ class Service extends DataObject with PhotoObject {
                   end: json['Validity']['To'].toDate())
               : null,
           showInHistory: json['ShowInHistory'],
-          color: json['Color']!=null?Color(json['Color']):null,
+          color: json['Color'] != null ? Color(json['Color']) : null,
           lastEdit: json['LastEdit'],
           hasPhoto: json['HasPhoto'],
         );
