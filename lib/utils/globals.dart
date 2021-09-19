@@ -4,7 +4,6 @@ import 'package:firebase_database/firebase_database.dart'
     if (dart.library.html) 'package:meetinghelper/firebase_database_web.dart'
     as web_db;
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -148,9 +147,3 @@ const MaterialColor blackAccent = MaterialColor(0xFF8C8C8C, <int, Color>{
   400: Color(0xFF737373),
   700: Color(0xFF666666),
 });
-
-T dump<T>(T value) {
-  // ignore: avoid_print
-  if (kDebugMode) print(value);
-  return value;
-}

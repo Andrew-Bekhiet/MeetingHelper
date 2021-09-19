@@ -2318,6 +2318,12 @@ class MessageIcon extends StatelessWidget {
   }
 }
 
+T dump<T>(T obj, [String? label]) {
+  // ignore: avoid_print
+  if (f.kDebugMode) print((label ?? '') + obj.toString() + '\x1B[0m');
+  return obj;
+}
+
 class QueryIcon extends StatelessWidget {
   const QueryIcon({Key? key}) : super(key: key);
 
