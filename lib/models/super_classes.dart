@@ -1,5 +1,6 @@
 import 'package:async/async.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:collection/collection.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -21,13 +22,15 @@ abstract class DataObject {
             data['Color'] != null ? Color(data['Color']) : Colors.transparent;
 
   @override
-  int get hashCode => hashList([id, _fullyHash(getMap().values.toList())]);
+  int get hashCode => const DeepCollectionEquality().hash(getMap());
 
   String get id => ref.id;
 
   @override
   bool operator ==(dynamic other) {
-    return other is DataObject && other.id == id && other.hashCode == hashCode;
+    return other is DataObject &&
+        other.id == id &&
+        const DeepCollectionEquality().equals(getMap(), other.getMap());
   }
 
   DataObject copyWith();
@@ -37,22 +40,6 @@ abstract class DataObject {
   Json getHumanReadableMap() => {};
 
   Future<String?> getSecondLine() async => null;
-
-  int _fullyHash(dynamic e) {
-    if (e is Map)
-      return hashValues(
-          _fullyHash(e.keys.toList()), _fullyHash(e.values.toList()));
-    else if (e is JsonRef)
-      return e.path.hashCode;
-    else if (e is List &&
-        e.whereType<Map>().isEmpty &&
-        e.whereType<JsonRef>().isEmpty &&
-        e.whereType<List>().isEmpty)
-      return hashList(e);
-    else if (e is List) return hashList(e.map(_fullyHash));
-
-    return e?.hashCode ?? 0;
-  }
 
   Future<void> set() async {
     await ref.set(getMap());
