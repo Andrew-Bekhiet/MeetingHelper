@@ -240,8 +240,8 @@ Future _initConfigs() async {
         dotenv.env['kUseFirebaseEmulators']?.toString() == 'true') {
       await Firebase.initializeApp(
         options: FirebaseOptions(
-            apiKey: dotenv.env['apiKey']!,
-            appId: dotenv.env['appId']!,
+            apiKey: dotenv.env['apiKey']??'sss',
+            appId: dotenv.env['appId']??'ss',
             messagingSenderId: 'messagingSenderId',
             projectId: dotenv.env['projectId']!,
             databaseURL: 'http://' +
