@@ -358,8 +358,9 @@ class _ClassInfoState extends State<ClassInfo> {
                             onPressed: () => showMap(context, class$),
                             label: const Text('إظهار المخدومين على الخريطة'),
                           ),
-                        if (User.instance.manageUsers ||
-                            User.instance.manageAllowedUsers)
+                        if (!class$.ref.path.startsWith('Deleted') &&
+                            (User.instance.manageUsers ||
+                                User.instance.manageAllowedUsers))
                           ElevatedButton.icon(
                             icon: const Icon(Icons.analytics_outlined),
                             onPressed: () => Navigator.pushNamed(
