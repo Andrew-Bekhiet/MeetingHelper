@@ -208,29 +208,41 @@ void main() async {
   );
 }
 
-Future _initConfigs() async {
+Future _initConfigs([bool retryOnHiveError = true]) async {
   //Hive initialization:
-  await Hive.initFlutter();
+  try {
+    await Hive.initFlutter();
 
-  const FlutterSecureStorage secureStorage = FlutterSecureStorage();
-  final containsEncryptionKey = await secureStorage.containsKey(key: 'key');
-  if (!containsEncryptionKey)
-    await secureStorage.write(
-        key: 'key', value: base64Url.encode(Hive.generateSecureKey()));
+    const FlutterSecureStorage secureStorage = FlutterSecureStorage();
+    final containsEncryptionKey = await secureStorage.containsKey(key: 'key');
+    if (!containsEncryptionKey)
+      await secureStorage.write(
+          key: 'key', value: base64Url.encode(Hive.generateSecureKey()));
 
-  final encryptionKey =
-      base64Url.decode((await secureStorage.read(key: 'key'))!);
+    final encryptionKey =
+        base64Url.decode((await secureStorage.read(key: 'key'))!);
 
-  await Hive.openBox(
-    'User',
-    encryptionCipher: HiveAesCipher(encryptionKey),
-  );
+    await Hive.openBox(
+      'User',
+      encryptionCipher: HiveAesCipher(encryptionKey),
+    );
 
-  await Hive.openBox('Settings');
-  await Hive.openBox<bool>('FeatureDiscovery');
-  await Hive.openBox<Map>('NotificationsSettings');
-  await Hive.openBox<String?>('PhotosURLsCache');
-  await Hive.openBox<Map>('Notifications');
+    await Hive.openBox('Settings');
+    await Hive.openBox<bool>('FeatureDiscovery');
+    await Hive.openBox<Map>('NotificationsSettings');
+    await Hive.openBox<String?>('PhotosURLsCache');
+    await Hive.openBox<Map>('Notifications');
+  } on Exception catch (e) {
+    await Hive.close();
+    await Hive.deleteBoxFromDisk('User');
+    await Hive.deleteBoxFromDisk('Settings');
+    await Hive.deleteBoxFromDisk('FeatureDiscovery');
+    await Hive.deleteBoxFromDisk('NotificationsSettings');
+    await Hive.deleteBoxFromDisk('PhotosURLsCache');
+    await Hive.deleteBoxFromDisk('Notifications');
+    if (retryOnHiveError) return _initConfigs(false);
+    rethrow;
+  }
   try {
     await dotenv.load(fileName: '.env');
 
@@ -240,8 +252,8 @@ Future _initConfigs() async {
         dotenv.env['kUseFirebaseEmulators']?.toString() == 'true') {
       await Firebase.initializeApp(
         options: FirebaseOptions(
-            apiKey: dotenv.env['apiKey']??'sss',
-            appId: dotenv.env['appId']??'ss',
+            apiKey: dotenv.env['apiKey'] ?? 'sss',
+            appId: dotenv.env['appId'] ?? 'ss',
             messagingSenderId: 'messagingSenderId',
             projectId: dotenv.env['projectId']!,
             databaseURL: 'http://' +
