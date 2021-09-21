@@ -1,16 +1,9 @@
 // ignore_for_file: constant_identifier_names
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_database/firebase_database.dart'
-    if (dart.library.html) 'package:meetinghelper/firebase_database_web.dart'
-    as web_db;
+import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
-export 'package:meetinghelper/firebase_database_web.dart'
-    if (dart.library.io) 'package:firebase_database/firebase_database.dart'
-    if (dart.library.html) 'package:meetinghelper/firebase_database_web.dart'
-    hide FirebaseDatabase, Query;
 
 const List<Color> colors = [
   Colors.white,
@@ -80,7 +73,7 @@ GlobalKey<ScaffoldMessengerState> scaffoldMessenger =
     GlobalKey<ScaffoldMessengerState>();
 GlobalKey<NavigatorState> navigator = GlobalKey<NavigatorState>();
 
-dynamic dbInstance = web_db.FirebaseDatabase.instance;
+FirebaseDatabase dbInstance = FirebaseDatabase.instance;
 
 List<Color?> primaries = <Color?>[
   Colors.red,

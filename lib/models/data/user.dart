@@ -7,8 +7,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
+import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -78,8 +78,8 @@ class User extends Person {
   DateTime? get lastConfessionDate => lastConfession?.toDate();
   DateTime? get lastTanawolDate => lastTanawol?.toDate();
 
-  StreamSubscription? userTokenListener;
-  StreamSubscription? connectionListener;
+  StreamSubscription<Event>? userTokenListener;
+  StreamSubscription<Event>? connectionListener;
   StreamSubscription<JsonDoc>? personListener;
   StreamSubscription<auth.User?>? authListener;
 
@@ -244,7 +244,7 @@ class User extends Person {
               .onValue
               .listen((e) async {
             final auth.User currentUser = user;
-            if (getDBSnapshotValue(e.snapshot) != true) return;
+            if (e.snapshot.value != true) return;
 
             late Map idTokenClaims;
             try {
@@ -263,7 +263,7 @@ class User extends Person {
                   .child('.info/connected')
                   .onValue
                   .listen((snapshot) {
-                if (getDBSnapshotValue(snapshot.snapshot) == true) {
+                if (snapshot.snapshot.value == true) {
                   dbInstance
                       .reference()
                       .child('Users/${user.uid}/lastSeen')
@@ -293,18 +293,17 @@ class User extends Person {
               await Hive.box('User')
                   .putAll(idToken.claims?.map((k, v) => MapEntry(k, v)) ?? {});
 
-              if (!kIsWeb)
-                await dbInstance
-                    .reference()
-                    .child('Users/${user.uid}/forceRefresh')
-                    .set(false);
+              await dbInstance
+                  .reference()
+                  .child('Users/${user.uid}/forceRefresh')
+                  .set(false);
             }
             connectionListener ??= dbInstance
                 .reference()
                 .child('.info/connected')
                 .onValue
                 .listen((snapshot) {
-              if (getDBSnapshotValue(snapshot.snapshot) == true) {
+              if (snapshot.snapshot.value == true) {
                 dbInstance
                     .reference()
                     .child('Users/${user.uid}/lastSeen')
@@ -543,7 +542,7 @@ class User extends Person {
   Widget getPhoto([bool showCircle = true, bool showActiveStatus = true]) {
     return AspectRatio(
       aspectRatio: 1,
-      child: StreamBuilder<dynamic>(
+      child: StreamBuilder<Event>(
         stream: dbInstance.reference().child('Users/$uid/lastSeen').onValue,
         builder: (context, activity) {
           if (!hasPhoto)
@@ -553,7 +552,7 @@ class User extends Person {
                     child: Icon(Icons.account_circle,
                         size: MediaQuery.of(context).size.height / 16.56)),
                 if (showActiveStatus &&
-                    getDBSnapshotValue(activity.data?.snapshot) == 'Active')
+                    activity.data?.snapshot.value == 'Active')
                   Align(
                     alignment: Alignment.bottomLeft,
                     child: Container(
@@ -620,7 +619,7 @@ class User extends Person {
                           : const CircularProgressIndicator(),
                     ),
                     if (showActiveStatus &&
-                        getDBSnapshotValue(activity.data?.snapshot) == 'Active')
+                        activity.data?.snapshot.value == 'Active')
                       Align(
                         alignment: Alignment.bottomLeft,
                         child: Container(
@@ -922,8 +921,4 @@ class User extends Person {
       color: color ?? this.color,
     );
   }
-}
-
-dynamic getDBSnapshotValue(dynamic event) {
-  return kIsWeb ? event?.val() : event?.value;
 }

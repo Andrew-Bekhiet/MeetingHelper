@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
@@ -110,20 +111,18 @@ class _UserInfoState extends State<UserInfo> {
                 ),
                 ListTile(
                   title: const Text('أخر ظهور على البرنامج:'),
-                  subtitle: StreamBuilder<dynamic>(
+                  subtitle: StreamBuilder<Event>(
                     stream: dbInstance
                         .reference()
                         .child('Users/${user.uid}/lastSeen')
                         .onValue,
                     builder: (context, activity) {
-                      if (getDBSnapshotValue(activity.data?.snapshot) ==
-                          'Active') {
+                      if (activity.data?.snapshot.value == 'Active') {
                         return const Text('نشط الآن');
-                      } else if (getDBSnapshotValue(activity.data?.snapshot) !=
-                          null) {
+                      } else if (activity.data?.snapshot.value != null) {
                         return Text(toDurationString(
                             Timestamp.fromMillisecondsSinceEpoch(
-                                getDBSnapshotValue(activity.data!.snapshot))));
+                                activity.data!.snapshot.value)));
                       }
                       return const Text('لا يمكن التحديد');
                     },
