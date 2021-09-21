@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -301,14 +302,16 @@ class _EditClassState extends State<EditClass> {
     final selectedImage = await ImagePicker()
         .pickImage(source: source ? ImageSource.camera : ImageSource.gallery);
     if (selectedImage == null) return;
-    changedImage = (await ImageCropper.cropImage(
-            sourcePath: selectedImage.path,
-            androidUiSettings: AndroidUiSettings(
-                toolbarTitle: 'قص الصورة',
-                toolbarColor: Theme.of(context).colorScheme.primary,
-                initAspectRatio: CropAspectRatioPreset.original,
-                lockAspectRatio: false)))
-        ?.path;
+    changedImage = kIsWeb
+        ? selectedImage.path
+        : (await ImageCropper.cropImage(
+                sourcePath: selectedImage.path,
+                androidUiSettings: AndroidUiSettings(
+                    toolbarTitle: 'قص الصورة',
+                    toolbarColor: Theme.of(context).colorScheme.primary,
+                    initAspectRatio: CropAspectRatioPreset.original,
+                    lockAspectRatio: false)))
+            ?.path;
     deletePhoto = false;
     setState(() {});
   }
@@ -344,21 +347,8 @@ class _EditClassState extends State<EditClass> {
         ),
       );
       if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
-        if (class$.hasPhoto) {
-          await FirebaseStorage.instance
-              .ref()
-              .child('ClassesPhotos/${class$.id}')
-              .delete();
-        }
         await class$.ref.delete();
       } else {
-        if (class$.hasPhoto) {
-          // ignore: unawaited_futures
-          FirebaseStorage.instance
-              .ref()
-              .child('ClassesPhotos/${class$.id}')
-              .delete();
-        }
         // ignore: unawaited_futures
         class$.ref.delete();
       }

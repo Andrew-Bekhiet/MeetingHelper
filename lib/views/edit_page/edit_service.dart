@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -372,14 +373,16 @@ class _EditServiceState extends State<EditService> {
     final selectedImage = await ImagePicker()
         .pickImage(source: source ? ImageSource.camera : ImageSource.gallery);
     if (selectedImage == null) return;
-    changedImage = (await ImageCropper.cropImage(
-            sourcePath: selectedImage.path,
-            androidUiSettings: AndroidUiSettings(
-                toolbarTitle: 'قص الصورة',
-                toolbarColor: Theme.of(context).colorScheme.primary,
-                initAspectRatio: CropAspectRatioPreset.original,
-                lockAspectRatio: false)))
-        ?.path;
+    changedImage = kIsWeb
+        ? selectedImage.path
+        : (await ImageCropper.cropImage(
+                sourcePath: selectedImage.path,
+                androidUiSettings: AndroidUiSettings(
+                    toolbarTitle: 'قص الصورة',
+                    toolbarColor: Theme.of(context).colorScheme.primary,
+                    initAspectRatio: CropAspectRatioPreset.original,
+                    lockAspectRatio: false)))
+            ?.path;
     deletePhoto = false;
     setState(() {});
   }
@@ -415,21 +418,8 @@ class _EditServiceState extends State<EditService> {
         ),
       );
       if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
-        if (service.hasPhoto) {
-          await FirebaseStorage.instance
-              .ref()
-              .child('ServicesPhotos/${service.id}')
-              .delete();
-        }
         await service.ref.delete();
       } else {
-        if (service.hasPhoto) {
-          // ignore: unawaited_futures
-          FirebaseStorage.instance
-              .ref()
-              .child('ServicesPhotos/${service.id}')
-              .delete();
-        }
         // ignore: unawaited_futures
         service.ref.delete();
       }
