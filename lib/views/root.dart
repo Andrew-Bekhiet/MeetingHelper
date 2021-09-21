@@ -906,7 +906,8 @@ class _RootState extends State<Root>
   }
 
   Future<void> showBatteryOptimizationDialog() async {
-    if ((await DeviceInfoPlugin().androidInfo).version.sdkInt! >= 23 &&
+    if (!kIsWeb &&
+        (await DeviceInfoPlugin().androidInfo).version.sdkInt! >= 23 &&
         !(await Permission.ignoreBatteryOptimizations.status).isGranted &&
         Hive.box('Settings').get('ShowBatteryDialog', defaultValue: true)) {
       await showDialog(
