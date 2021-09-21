@@ -166,14 +166,9 @@ class _EditClassState extends State<EditClass> {
                                     : null;
                                 FocusScope.of(context).nextFocus();
                               },
-                              decoration: InputDecoration(
-                                  labelText: 'السنة الدراسية',
-                                  border: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary),
-                                  )),
+                              decoration: const InputDecoration(
+                                labelText: 'السنة الدراسية',
+                              ),
                             ),
                           );
                         } else {
@@ -209,12 +204,8 @@ class _EditClassState extends State<EditClass> {
                         setState(() {});
                         class$.gender = value;
                       },
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'نوع الفصل',
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: Theme.of(context).colorScheme.primary),
-                        ),
                       ),
                     ),
                   ),

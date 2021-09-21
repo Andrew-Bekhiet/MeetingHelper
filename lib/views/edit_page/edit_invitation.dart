@@ -76,12 +76,9 @@ class _EditInvitationState extends State<EditInvitation> {
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: TextFormField(
-                    decoration: InputDecoration(
-                        labelText: 'عنوان الدعوة',
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: Theme.of(context).colorScheme.primary),
-                        )),
+                    decoration: const InputDecoration(
+                      labelText: 'عنوان الدعوة',
+                    ),
                     textInputAction: TextInputAction.next,
                     onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
                     initialValue: widget.invitation.name,
@@ -101,12 +98,9 @@ class _EditInvitationState extends State<EditInvitation> {
                         await _selectDateTime('تاريخ الانتهاء',
                             widget.invitation.expiryDate.toDate()),
                     child: InputDecorator(
-                      decoration: InputDecoration(
-                          labelText: 'تاريخ انتهاء الدعوة',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).colorScheme.primary),
-                          )),
+                      decoration: const InputDecoration(
+                        labelText: 'تاريخ انتهاء الدعوة',
+                      ),
                       child: Text(DateFormat('h:m a yyyy/M/d', 'ar-EG')
                           .format(widget.invitation.expiryDate.toDate())),
                     ),
@@ -119,12 +113,8 @@ class _EditInvitationState extends State<EditInvitation> {
                     child: InputDecorator(
                       isEmpty:
                           widget.invitation.permissions?['personId'] == null,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'ربط بخادم',
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: Theme.of(context).colorScheme.primary),
-                        ),
                       ),
                       child: FutureBuilder<String?>(
                         future: personName.fetch(

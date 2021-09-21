@@ -47,10 +47,6 @@ class _PasswordFormFieldState extends State<PasswordFormField> {
             icon: Icon(visible ? Icons.visibility_off : Icons.visibility),
             onPressed: () => setState(() => visible = !visible),
           ),
-          border: OutlineInputBorder(
-            borderSide:
-                BorderSide(color: Theme.of(context).colorScheme.primary),
-          ),
         ),
         focusNode: widget.focusNode,
         autofillHints: widget.autoFillHints,

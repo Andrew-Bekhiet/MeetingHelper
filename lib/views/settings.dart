@@ -190,14 +190,9 @@ class SettingsState extends State<Settings> {
                               onSaved: (dynamic value) async {
                                 await settings.put('ClassSecondLine', value);
                               },
-                              decoration: InputDecoration(
-                                  labelText: 'السطر الثاني للفصل:',
-                                  border: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary),
-                                  )),
+                              decoration: const InputDecoration(
+                                labelText: 'السطر الثاني للفصل:',
+                              ),
                             ),
                           ),
                           Container(
@@ -223,14 +218,9 @@ class SettingsState extends State<Settings> {
                               onSaved: (dynamic value) async {
                                 await settings.put('PersonSecondLine', value);
                               },
-                              decoration: InputDecoration(
-                                  labelText: 'السطر الثاني للمخدوم:',
-                                  border: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary),
-                                  )),
+                              decoration: const InputDecoration(
+                                labelText: 'السطر الثاني للمخدوم:',
+                              ),
                             ),
                           ),
                         ],
@@ -268,12 +258,8 @@ class SettingsState extends State<Settings> {
                       expanded: Container(
                         padding: const EdgeInsets.symmetric(vertical: 4.0),
                         child: TextFormField(
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'الحجم الأقصى للبيانات المؤقتة (MB):',
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Theme.of(context).colorScheme.primary),
-                            ),
                           ),
                           keyboardType: TextInputType.number,
                           textInputAction: TextInputAction.done,

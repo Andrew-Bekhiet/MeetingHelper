@@ -281,12 +281,8 @@ class _ChurchesPageState extends State<ChurchesPage> {
                             father.churchId =
                                 FirebaseFirestore.instance.doc(value);
                           },
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'الكنيسة',
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Theme.of(context).colorScheme.primary),
-                            ),
                           ),
                         ),
                       );
@@ -570,13 +566,9 @@ class _FathersPageState extends State<FathersPage> {
                             father.churchId =
                                 FirebaseFirestore.instance.doc(value);
                           },
-                          decoration: InputDecoration(
-                              labelText: 'الكنيسة',
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color:
-                                        Theme.of(context).colorScheme.primary),
-                              )),
+                          decoration: const InputDecoration(
+                            labelText: 'الكنيسة',
+                          ),
                         ),
                       );
                     } else {

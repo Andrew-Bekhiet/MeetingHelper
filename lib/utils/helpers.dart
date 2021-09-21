@@ -983,12 +983,8 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
                       Container(
                         padding: const EdgeInsets.symmetric(vertical: 4.0),
                         child: TextFormField(
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'عنوان الرسالة',
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Theme.of(context).colorScheme.primary),
-                            ),
                           ),
                           controller: title,
                           textInputAction: TextInputAction.next,
@@ -1004,13 +1000,8 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: TextFormField(
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                               labelText: 'محتوى الرسالة',
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color:
-                                        Theme.of(context).colorScheme.primary),
-                              ),
                             ),
                             textInputAction: TextInputAction.newline,
                             maxLines: null,

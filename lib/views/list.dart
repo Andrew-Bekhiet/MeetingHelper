@@ -198,12 +198,8 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                         content: TextFormField(
                           controller: con,
                           maxLines: null,
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'اكتب رسالة',
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Theme.of(context).colorScheme.primary),
-                            ),
                           ),
                         ),
                       ),
@@ -605,14 +601,8 @@ class _CheckListState<T extends Person, P extends DataObject>
                           ),
                           Expanded(
                             child: DateTimeField(
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 labelText: 'وقت الحضور',
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary),
-                                ),
                               ),
                               format:
                                   DateFormat('الساعة h : m د : s ث a', 'ar-EG'),
@@ -645,12 +635,8 @@ class _CheckListState<T extends Person, P extends DataObject>
                       ),
                       Container(height: 10),
                       TextFormField(
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'ملاحظات',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).colorScheme.primary),
-                          ),
                         ),
                         textInputAction: TextInputAction.done,
                         initialValue: record?.notes ?? '',

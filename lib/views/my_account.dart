@@ -346,12 +346,9 @@ class _MyAccountState extends State<MyAccount> {
                   Container(
                     padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: TextFormField(
-                      decoration: InputDecoration(
-                          labelText: 'الاسم',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).colorScheme.primary),
-                          )),
+                      decoration: const InputDecoration(
+                        labelText: 'الاسم',
+                      ),
                       controller: name,
                       textInputAction: TextInputAction.done,
                       validator: (value) {

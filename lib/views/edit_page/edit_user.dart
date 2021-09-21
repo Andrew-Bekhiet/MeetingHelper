@@ -113,12 +113,8 @@ class _EditUserState extends State<EditUser> {
                       user.lastTanawolDate ?? DateTime.now(),
                     ),
                     child: InputDecorator(
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'تاريخ أخر تناول',
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: Theme.of(context).colorScheme.primary),
-                        ),
                       ),
                       child: user.lastTanawolDate != null
                           ? Text(DateFormat('yyyy/M/d').format(
@@ -136,12 +132,8 @@ class _EditUserState extends State<EditUser> {
                       user.lastConfessionDate ?? DateTime.now(),
                     ),
                     child: InputDecorator(
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'تاريخ أخر اعتراف',
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: Theme.of(context).colorScheme.primary),
-                        ),
                       ),
                       child: user.lastConfessionDate != null
                           ? Text(DateFormat('yyyy/M/d').format(
@@ -157,12 +149,8 @@ class _EditUserState extends State<EditUser> {
                     padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: InputDecorator(
                       isEmpty: user.classId == null,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'داخل فصل',
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: Theme.of(context).colorScheme.primary),
-                        ),
                       ),
                       child: FutureBuilder<String?>(
                         future: className.fetch(() => user.classId == null

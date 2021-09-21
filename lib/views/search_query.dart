@@ -213,12 +213,9 @@ class _SearchQueryState extends State<SearchQuery> {
         GestureDetector(
           onTap: _selectDate,
           child: InputDecorator(
-            decoration: InputDecoration(
-                labelText: 'اختيار تاريخ',
-                border: OutlineInputBorder(
-                  borderSide:
-                      BorderSide(color: Theme.of(context).colorScheme.primary),
-                )),
+            decoration: const InputDecoration(
+              labelText: 'اختيار تاريخ',
+            ),
             child: Text(DateFormat('yyyy/M/d').format(queryValue is Timestamp
                 ? (queryValue as Timestamp).toDate()
                 : DateTime.now())),
@@ -228,12 +225,9 @@ class _SearchQueryState extends State<SearchQuery> {
           padding: const EdgeInsets.symmetric(vertical: 4.0),
           child: TextFormField(
             autofocus: false,
-            decoration: InputDecoration(
-                labelText: 'قيمة',
-                border: OutlineInputBorder(
-                  borderSide:
-                      BorderSide(color: Theme.of(context).colorScheme.primary),
-                )),
+            decoration: const InputDecoration(
+              labelText: 'قيمة',
+            ),
             textInputAction: TextInputAction.done,
             initialValue: queryText is String ? queryText : '',
             onChanged: queryTextChange,
@@ -248,12 +242,9 @@ class _SearchQueryState extends State<SearchQuery> {
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 4.0),
             child: InputDecorator(
-              decoration: InputDecoration(
-                  labelText: 'اختيار فصل',
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(
-                        color: Theme.of(context).colorScheme.primary),
-                  )),
+              decoration: const InputDecoration(
+                labelText: 'اختيار فصل',
+              ),
               child: Text(queryValue != null && queryValue is JsonRef
                   ? queryText!
                   : 'اختيار فصل'),
@@ -279,10 +270,7 @@ class _SearchQueryState extends State<SearchQuery> {
         //     child: InputDecorator(
         //       decoration: InputDecoration(
         //           labelText: 'اختيار نوع الفرد',
-        //           border: OutlineInputBorder(
-        //             borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
-        //           )),
-        //       child: Text(queryValue != null && queryValue is JsonRef
+        //           : Text(queryValue != null && queryValue is JsonRef
         //           ? queryText
         //           : 'اختيار نوع الفرد'),
         //     ),
@@ -446,12 +434,9 @@ class _SearchQueryState extends State<SearchQuery> {
               //11
               onTap: _selectDate,
               child: InputDecorator(
-                decoration: InputDecoration(
-                    labelText: 'اختيار تاريخ',
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide(
-                          color: Theme.of(context).colorScheme.primary),
-                    )),
+                decoration: const InputDecoration(
+                  labelText: 'اختيار تاريخ',
+                ),
                 child: Text(DateFormat('yyyy/M/d').format(
                     queryValue != null && queryValue is Timestamp
                         ? (queryValue as Timestamp).toDate()
@@ -539,11 +524,7 @@ class _SearchQueryState extends State<SearchQuery> {
         //         },
         //         decoration: InputDecoration(
         //             labelText: 'الحالة',
-        //             border: OutlineInputBorder(
-        //               borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
-        //             )),
-        //       );
-        //     } else
+        //                     //     } else
         //       return Container(width: 1, height: 1);
         //   },
         // ),
@@ -627,46 +608,47 @@ class _SearchQueryState extends State<SearchQuery> {
               );
             }),
         StreamBuilder<JsonQuery>(
-            //15
-            stream: FirebaseFirestore.instance
-                .collection('Colleges')
-                .orderBy('Name')
-                .snapshots(),
-            builder: (context, data) {
-              if (data.hasData) {
-                return DropdownButtonFormField(
-                  value: queryValue != null &&
-                          queryValue is JsonRef &&
-                          queryValue.path.startsWith('Colleges/')
-                      ? queryValue.path
-                      : null,
-                  items: data.data!.docs
-                      .map(
-                        (item) => DropdownMenuItem(
-                          value: item.reference.path,
-                          child: Text(item.data()['Name']),
-                        ),
-                      )
-                      .toList()
-                    ..insert(
-                      0,
-                      const DropdownMenuItem(
-                        value: null,
-                        child: Text(''),
+          //15
+          stream: FirebaseFirestore.instance
+              .collection('Colleges')
+              .orderBy('Name')
+              .snapshots(),
+          builder: (context, data) {
+            if (data.hasData) {
+              return DropdownButtonFormField(
+                value: queryValue != null &&
+                        queryValue is JsonRef &&
+                        queryValue.path.startsWith('Colleges/')
+                    ? queryValue.path
+                    : null,
+                items: data.data!.docs
+                    .map(
+                      (item) => DropdownMenuItem(
+                        value: item.reference.path,
+                        child: Text(item.data()['Name']),
                       ),
+                    )
+                    .toList()
+                  ..insert(
+                    0,
+                    const DropdownMenuItem(
+                      value: null,
+                      child: Text(''),
                     ),
-                  onChanged: (dynamic value) async {
-                    queryValue = FirebaseFirestore.instance.doc(value);
-                    queryText = (await FirebaseFirestore.instance
-                            .doc(value)
-                            .get(dataSource))
-                        .data()!['Name'];
-                  },
-                  decoration: const InputDecoration(labelText: 'الكلية'),
-                );
-              }
-              return const LinearProgressIndicator();
-            }),
+                  ),
+                onChanged: (dynamic value) async {
+                  queryValue = FirebaseFirestore.instance.doc(value);
+                  queryText = (await FirebaseFirestore.instance
+                          .doc(value)
+                          .get(dataSource))
+                      .data()!['Name'];
+                },
+                decoration: const InputDecoration(labelText: 'الكلية'),
+              );
+            }
+            return const LinearProgressIndicator();
+          },
+        ),
       ],
     );
     return Scaffold(

@@ -80,10 +80,6 @@ class _AuthScreenState extends State<AuthScreen> {
                         setState(() => obscurePassword = !obscurePassword),
                   ),
                   labelText: 'كلمة السر',
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(
-                        color: Theme.of(context).colorScheme.primary),
-                  ),
                 ),
                 textInputAction: TextInputAction.done,
                 obscureText: obscurePassword,

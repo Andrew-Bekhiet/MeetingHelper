@@ -71,14 +71,10 @@ class _UserRegistrationState extends State<UserRegistration> {
                   const Divider(),
                   TextFormField(
                     autovalidateMode: AutovalidateMode.onUserInteraction,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       helperText:
                           'يرجى ادخال اسمك الذي سيظهر للمستخدمين الأخرين',
                       labelText: 'اسم المستخدم',
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(
-                            color: Theme.of(context).colorScheme.primary),
-                      ),
                     ),
                     textInputAction: TextInputAction.next,
                     autofocus: true,
@@ -108,10 +104,6 @@ class _UserRegistrationState extends State<UserRegistration> {
                       helperText:
                           'يرجى إدخال كلمة سر لحسابك الجديد في البرنامج',
                       labelText: 'كلمة السر',
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(
-                            color: Theme.of(context).colorScheme.primary),
-                      ),
                     ),
                     textInputAction: TextInputAction.next,
                     obscureText: obscurePassword1,
@@ -142,10 +134,6 @@ class _UserRegistrationState extends State<UserRegistration> {
                             () => obscurePassword2 = !obscurePassword2),
                       ),
                       labelText: 'تأكيد كلمة السر',
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(
-                            color: Theme.of(context).colorScheme.primary),
-                      ),
                     ),
                     textInputAction: TextInputAction.done,
                     obscureText: obscurePassword2,
@@ -190,12 +178,6 @@ class _UserRegistrationState extends State<UserRegistration> {
                                       helperText:
                                           'يجب أن يكون تاريخ أخر تناول منذ شهر على الأكثر',
                                       labelText: 'تاريخ أخر تناول',
-                                      border: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary),
-                                      ),
                                     ),
                                     child: lastTanawol != null
                                         ? Text(DateFormat('yyyy/M/d').format(
@@ -238,15 +220,11 @@ class _UserRegistrationState extends State<UserRegistration> {
                                   ),
                                   child: InputDecorator(
                                     decoration: InputDecoration(
-                                        errorText: state.errorText,
-                                        helperText:
-                                            'يجب أن يكون تاريخ أخر اعتراف منذ شهرين على الأكثر',
-                                        labelText: 'تاريخ أخر اعتراف',
-                                        border: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Theme.of(context)
-                                                  .primaryColor),
-                                        )),
+                                      errorText: state.errorText,
+                                      helperText:
+                                          'يجب أن يكون تاريخ أخر اعتراف منذ شهرين على الأكثر',
+                                      labelText: 'تاريخ أخر اعتراف',
+                                    ),
                                     child: lastConfession != null
                                         ? Text(DateFormat('yyyy/M/d').format(
                                             DateTime.fromMillisecondsSinceEpoch(
@@ -305,16 +283,12 @@ class _UserRegistrationState extends State<UserRegistration> {
               ),
               Container(height: 10),
               TextFormField(
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintMaxLines: 3,
                   hintText:
                       'مثال: https://meetinghelper.page.link/XpPh3EjCxn8C8EC67',
                   helperText: 'يمكنك أن تسأل أحد المشرفين ليعطيك لينك دعوة',
                   labelText: 'لينك الدعوة',
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(
-                        color: Theme.of(context).colorScheme.primary),
-                  ),
                 ),
                 maxLines: null,
                 textInputAction: TextInputAction.done,
