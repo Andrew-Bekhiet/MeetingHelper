@@ -1044,7 +1044,8 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
 }
 
 Future<void> recoverDoc(BuildContext context, String path) async {
-  bool? nested = false;
+  bool? nested = path.startsWith(
+      RegExp('Deleted/\\d{4}-\\d{2}-\\d{2}/((Classes)|(Services))'));
   bool? keepBackup = true;
   if (await showDialog(
         context: context,
