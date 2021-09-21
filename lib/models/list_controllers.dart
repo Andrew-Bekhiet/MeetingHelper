@@ -493,20 +493,21 @@ class CheckListController<T extends Person, P extends DataObject>
     //
     //<empty comment for readability>
 
-    Map<String, HistoryRecord> _docsMapper(JsonQuery s) {
+    Map<String, HistoryRecord> _docsMapper(Iterable<JsonQueryDoc> docs) {
       final Map<String, T> tempSelected = {};
-      final Map<String, HistoryRecord> snapshotMap =
-          Map<String, HistoryRecord>.fromIterable(
-        s.docs,
-        key: (d) {
-          if (originalObjectsData.valueOrNull != null)
-            tempSelected[d.id] = originalObjectsData.value[d.id]!;
-          return d.id;
-        },
-        value: (d) => HistoryRecord.fromQueryDoc(d, day),
-      );
+
+      JsonQueryDoc _select(JsonQueryDoc d) {
+        if (originalObjectsData.valueOrNull != null &&
+            originalObjectsData.value[d.id] != null)
+          tempSelected[d.id] = originalObjectsData.value[d.id]!;
+        return d;
+      }
+
       _selected.add(tempSelected);
-      return snapshotMap;
+
+      return {
+        for (final d in docs) _select(d).id: HistoryRecord.fromQueryDoc(d, day)
+      };
     }
 
     if (v.item1.superAccess ||
@@ -516,60 +517,34 @@ class CheckListController<T extends Person, P extends DataObject>
         return ref!
             .orderBy('Time', descending: !v.item3!)
             .snapshots()
-            .map<Map<String, HistoryRecord>>(_docsMapper);
+            .map<Map<String, HistoryRecord>>((s) => _docsMapper(s.docs));
       }
-      return ref!.snapshots().map<Map<String, HistoryRecord>>(_docsMapper);
+      return ref!
+          .snapshots()
+          .map<Map<String, HistoryRecord>>((s) => _docsMapper(s.docs));
     } else if (v.item2.length <= 10) {
       if (v.item3 != null) {
         return ref!
             .where('ClassId', whereIn: v.item2.map((e) => e.ref).toList())
             .orderBy('Time', descending: !v.item3!)
             .snapshots()
-            .map<Map<String, HistoryRecord>>(_docsMapper);
+            .map<Map<String, HistoryRecord>>((s) => _docsMapper(s.docs));
       }
       return ref!
           .where('ClassId', whereIn: v.item2.map((e) => e.ref).toList())
           .snapshots()
-          .map<Map<String, HistoryRecord>>(_docsMapper);
+          .map<Map<String, HistoryRecord>>((s) => _docsMapper(s.docs));
     }
 
     if (v.item3 != null) {
       return Rx.combineLatestList<JsonQuery>(v.item2.split(10).map((c) => ref!
           .where('ClassId', whereIn: c.map((e) => e.ref).toList())
           .orderBy('Time', descending: !v.item3!)
-          .snapshots())).map((s) => s.expand((n) => n.docs)).map((s) {
-        final Map<String, T> tempSelected = {};
-        final Map<String, HistoryRecord> snapshotMap =
-            Map<String, HistoryRecord>.fromIterable(
-          s,
-          key: (d) {
-            if (originalObjectsData.valueOrNull != null)
-              tempSelected[d.id] = originalObjectsData.value[d.id]!;
-            return d.id;
-          },
-          value: (d) => HistoryRecord.fromQueryDoc(d, day),
-        );
-        _selected.add(tempSelected);
-        return snapshotMap;
-      });
+          .snapshots())).map((s) => s.expand((n) => n.docs)).map(_docsMapper);
     }
     return Rx.combineLatestList<JsonQuery>(v.item2.split(10).map((c) => ref!
         .where('ClassId', whereIn: c.map((e) => e.ref).toList())
-        .snapshots())).map((s) => s.expand((n) => n.docs)).map((s) {
-      final Map<String, T> tempSelected = {};
-      final Map<String, HistoryRecord> snapshotMap =
-          Map<String, HistoryRecord>.fromIterable(
-        s,
-        key: (d) {
-          if (originalObjectsData.valueOrNull != null)
-            tempSelected[d.id] = originalObjectsData.value[d.id]!;
-          return d.id;
-        },
-        value: (d) => HistoryRecord.fromQueryDoc(d, day),
-      );
-      _selected.add(tempSelected);
-      return snapshotMap;
-    });
+        .snapshots())).map((s) => s.expand((n) => n.docs)).map(_docsMapper);
   }
 
   @override
