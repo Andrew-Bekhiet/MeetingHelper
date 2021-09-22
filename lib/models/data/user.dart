@@ -47,7 +47,7 @@ class User extends Person {
 
   @Deprecated('Use either docId or uid')
   @override
-  String get id => uid ?? docId;
+  String get id => docId;
 
   String get docId => ref.id;
 
