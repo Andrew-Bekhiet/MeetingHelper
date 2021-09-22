@@ -169,10 +169,14 @@ class SettingsState extends State<Settings> {
                             padding: const EdgeInsets.symmetric(vertical: 4.0),
                             child: DropdownButtonFormField(
                               value: settings.get('ClassSecondLine'),
-                              items: Class.getHumanReadableMap2()
+                              items: Class.propsMetadata()
                                   .entries
-                                  .map((e) => DropdownMenuItem(
-                                      value: e.key, child: Text(e.value)))
+                                  .map(
+                                    (e) => DropdownMenuItem(
+                                      value: e.key,
+                                      child: Text(e.value.label),
+                                    ),
+                                  )
                                   .toList()
                                 ..removeWhere(
                                     (element) => element.value == 'Color')
@@ -199,11 +203,11 @@ class SettingsState extends State<Settings> {
                             padding: const EdgeInsets.symmetric(vertical: 4.0),
                             child: DropdownButtonFormField(
                               value: settings.get('PersonSecondLine'),
-                              items: Person.getHumanReadableMap2()
+                              items: Person.propsMetadata()
                                   .entries
                                   .map((e) => DropdownMenuItem(
                                         value: e.key,
-                                        child: Text(e.value),
+                                        child: Text(e.value.label),
                                       ))
                                   .toList()
                                 ..removeWhere(

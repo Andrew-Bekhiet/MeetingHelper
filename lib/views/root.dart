@@ -159,14 +159,14 @@ class _RootState extends State<Root>
                               const Text('ترتيب حسب:',
                                   style:
                                       TextStyle(fontWeight: FontWeight.bold)),
-                              ...Person.getHumanReadableMap2()
+                              ...Person.propsMetadata()
                                   .entries
                                   .map(
-                                    (e) => RadioListTile(
+                                    (e) => RadioListTile<String>(
                                       value: e.key,
                                       groupValue: _personsOrder.value.orderBy,
-                                      title: Text(e.value),
-                                      onChanged: (dynamic value) {
+                                      title: Text(e.value.label),
+                                      onChanged: (value) {
                                         _personsOrder.add(
                                           OrderOptions(
                                               orderBy: value,

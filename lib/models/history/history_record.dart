@@ -87,7 +87,7 @@ class HistoryDay extends DataObject with ChangeNotifier {
   }
 
   @override
-  Json getHumanReadableMap() {
+  Json formattedProps() {
     throw UnimplementedError();
   }
 
@@ -258,6 +258,35 @@ class MinimalHistoryRecord {
     List<Class>? classes,
     List<Service>? services,
   }) {
+    Query<Json> _timeRangeFilter(Query<Json> q, DateTimeRange range) {
+      return q
+          .where(
+            'Time',
+            isLessThanOrEqualTo:
+                Timestamp.fromDate(range.end.add(const Duration(days: 1))),
+          )
+          .where(
+            'Time',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(
+                range.start.subtract(const Duration(days: 1))),
+          );
+    }
+
+    Query<Json> _timeOrder(Query<Json> q) {
+      return q.orderBy('Time', descending: true);
+    }
+
+    Query<Json> _classesFilter(Query<Json> q, List<Class> classes) {
+      assert(classes.length <= 10);
+      return q.where('ClassId', whereIn: classes.map((c) => c.ref).toList());
+    }
+
+    Query<Json> _servicesFilter(Query<Json> q, List<Service> services) {
+      assert(services.length <= 10);
+      return q.where('Services',
+          arrayContainsAny: services.map((c) => c.ref).toList());
+    }
+
     return Rx.combineLatest3<User, List<Class>, List<Service>,
             Tuple3<User, List<Class>, List<Service>>>(
         User.instance.stream,
@@ -268,119 +297,74 @@ class MinimalHistoryRecord {
         return Rx.combineLatestList<JsonQuery>([
           ...classes
               .split(10)
-              .map((a) => FirebaseFirestore.instance
-                  .collectionGroup(collectionGroup)
-                  .where('ClassId', whereIn: a.map((c) => c.ref).toList())
-                  .where(
-                    'Time',
-                    isLessThanOrEqualTo: Timestamp.fromDate(
-                        range.end.add(const Duration(days: 1))),
-                  )
-                  .where('Time',
-                      isGreaterThanOrEqualTo: Timestamp.fromDate(
-                          range.start.subtract(const Duration(days: 1))))
-                  .orderBy('Time', descending: true)
+              .map((a) => _timeOrder(_timeRangeFilter(
+                      _classesFilter(
+                          FirebaseFirestore.instance
+                              .collectionGroup(collectionGroup),
+                          a),
+                      range))
                   .snapshots())
               .toList(),
-          ...services.split(10).map((a) => FirebaseFirestore.instance
-              .collectionGroup(collectionGroup)
-              .where('Services', arrayContainsAny: a.map((c) => c.ref).toList())
-              .where(
-                'Time',
-                isLessThanOrEqualTo:
-                    Timestamp.fromDate(range.end.add(const Duration(days: 1))),
-              )
-              .where('Time',
-                  isGreaterThanOrEqualTo: Timestamp.fromDate(
-                      range.start.subtract(const Duration(days: 1))))
-              .orderBy('Time', descending: true)
+          ...services.split(10).map((a) => _timeOrder(_timeRangeFilter(
+                  _servicesFilter(
+                      FirebaseFirestore.instance
+                          .collectionGroup(collectionGroup),
+                      a),
+                  range))
               .snapshots())
         ]).map((s) => s.expand((n) => n.docs).toList());
       } else if (range != null && classes != null) {
         return Rx.combineLatestList<JsonQuery>(classes
                 .split(10)
-                .map((a) => FirebaseFirestore.instance
-                    .collectionGroup(collectionGroup)
-                    .where('ClassId', whereIn: a.map((c) => c.ref).toList())
-                    .where(
-                      'Time',
-                      isLessThanOrEqualTo: Timestamp.fromDate(
-                          range.end.add(const Duration(days: 1))),
-                    )
-                    .where('Time',
-                        isGreaterThanOrEqualTo: Timestamp.fromDate(
-                            range.start.subtract(const Duration(days: 1))))
-                    .orderBy('Time', descending: true)
+                .map((a) => _timeOrder(_timeRangeFilter(
+                        _classesFilter(
+                            FirebaseFirestore.instance
+                                .collectionGroup(collectionGroup),
+                            a),
+                        range))
                     .snapshots())
                 .toList())
             .map((s) => s.expand((n) => n.docs).toList());
       } else if (range != null && services != null) {
         return Rx.combineLatestList<JsonQuery>(services
                 .split(10)
-                .map((a) => FirebaseFirestore.instance
-                    .collectionGroup(collectionGroup)
-                    .where('Services',
-                        arrayContainsAny: a.map((c) => c.ref).toList())
-                    .where(
-                      'Time',
-                      isLessThanOrEqualTo: Timestamp.fromDate(
-                          range.end.add(const Duration(days: 1))),
-                    )
-                    .where('Time',
-                        isGreaterThanOrEqualTo: Timestamp.fromDate(
-                            range.start.subtract(const Duration(days: 1))))
-                    .orderBy('Time', descending: true)
+                .map((a) => _timeOrder(_timeRangeFilter(
+                        _servicesFilter(
+                            FirebaseFirestore.instance
+                                .collectionGroup(collectionGroup),
+                            a),
+                        range))
                     .snapshots())
                 .toList())
             .map((s) => s.expand((n) => n.docs).toList());
       } else if (range != null) {
         if (value.item1.superAccess) {
-          return FirebaseFirestore.instance
-              .collectionGroup(collectionGroup)
-              .where(
-                'Time',
-                isLessThanOrEqualTo:
-                    Timestamp.fromDate(range.end.add(const Duration(days: 1))),
-              )
-              .where('Time',
-                  isGreaterThanOrEqualTo: Timestamp.fromDate(
-                      range.start.subtract(const Duration(days: 1))))
-              .orderBy('Time', descending: true)
+          return _timeOrder(_timeRangeFilter(
+                  FirebaseFirestore.instance.collectionGroup(collectionGroup),
+                  range))
               .snapshots()
               .map((s) => s.docs);
         } else {
           return Rx.combineLatestList<JsonQuery>([
             ...value.item2
                 .split(10)
-                .map((a) => FirebaseFirestore.instance
-                    .collectionGroup(collectionGroup)
-                    .where('ClassId', whereIn: a.map((c) => c.ref).toList())
-                    .where(
-                      'Time',
-                      isLessThanOrEqualTo: Timestamp.fromDate(
-                          range.end.add(const Duration(days: 1))),
-                    )
-                    .where('Time',
-                        isGreaterThanOrEqualTo: Timestamp.fromDate(
-                            range.start.subtract(const Duration(days: 1))))
-                    .orderBy('Time', descending: true)
-                    .snapshots())
+                .map((a) => _timeOrder(
+                      _timeRangeFilter(
+                          _classesFilter(
+                              FirebaseFirestore.instance
+                                  .collectionGroup(collectionGroup),
+                              a),
+                          range),
+                    ).snapshots())
                 .toList(),
             ...value.item3
                 .split(10)
-                .map((a) => FirebaseFirestore.instance
-                    .collectionGroup(collectionGroup)
-                    .where('Services',
-                        arrayContainsAny: a.map((c) => c.ref).toList())
-                    .where(
-                      'Time',
-                      isLessThanOrEqualTo: Timestamp.fromDate(
-                          range.end.add(const Duration(days: 1))),
-                    )
-                    .where('Time',
-                        isGreaterThanOrEqualTo: Timestamp.fromDate(
-                            range.start.subtract(const Duration(days: 1))))
-                    .orderBy('Time', descending: true)
+                .map((a) => _timeOrder(_timeRangeFilter(
+                        _servicesFilter(
+                            FirebaseFirestore.instance
+                                .collectionGroup(collectionGroup),
+                            a),
+                        range))
                     .snapshots())
                 .toList()
           ]).map((s) => s.expand((n) => n.docs).toList());
@@ -388,28 +372,26 @@ class MinimalHistoryRecord {
       } else if (classes != null) {
         return Rx.combineLatestList<JsonQuery>(classes
                 .split(10)
-                .map((a) => FirebaseFirestore.instance
-                    .collectionGroup(collectionGroup)
-                    .where('ClassId', whereIn: a.map((c) => c.ref).toList())
-                    .orderBy('Time', descending: true)
+                .map((a) => _timeOrder(_classesFilter(
+                        FirebaseFirestore.instance
+                            .collectionGroup(collectionGroup),
+                        a))
                     .snapshots())
                 .toList())
             .map((s) => s.expand((n) => n.docs).toList());
       } else if (services != null) {
         return Rx.combineLatestList<JsonQuery>(services
                 .split(10)
-                .map((a) => FirebaseFirestore.instance
-                    .collectionGroup(collectionGroup)
-                    .where('Services',
-                        arrayContainsAny: a.map((c) => c.ref).toList())
-                    .orderBy('Time', descending: true)
+                .map((a) => _timeOrder(_servicesFilter(
+                        FirebaseFirestore.instance
+                            .collectionGroup(collectionGroup),
+                        a))
                     .snapshots())
                 .toList())
             .map((s) => s.expand((n) => n.docs).toList());
       }
-      return FirebaseFirestore.instance
-          .collectionGroup(collectionGroup)
-          .orderBy('Time', descending: true)
+      return _timeOrder(
+              FirebaseFirestore.instance.collectionGroup(collectionGroup))
           .snapshots()
           .map((s) => s.docs.toList());
     });

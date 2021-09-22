@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:async/async.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
@@ -37,9 +39,9 @@ abstract class DataObject {
 
   Json getMap();
 
-  Json getHumanReadableMap() => {};
+  Json formattedProps() => {};
 
-  Future<String?> getSecondLine() async => null;
+  FutureOr<String?> getSecondLine() async => null;
 
   Future<void> set() async {
     await ref.set(getMap());

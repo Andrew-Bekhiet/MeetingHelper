@@ -17,6 +17,7 @@ import 'package:meetinghelper/views/map_view.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tuple/tuple.dart';
 
+import '../property_metadata.dart';
 import 'class.dart';
 import 'user.dart';
 
@@ -174,11 +175,13 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
   }
 
   @override
-  Json getHumanReadableMap() => {
+  Json formattedProps() => {
+        'ClassId': getClassName(),
         'Name': name,
         'Phone': phone ?? '',
         'FatherPhone': fatherPhone ?? '',
         'MotherPhone': motherPhone ?? '',
+        'Phones': null,
         'Address': address,
         'BirthDate': toDurationString(birthDate, appendSince: false),
         'BirthDay': birthDay != null
@@ -190,12 +193,28 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
         'LastKodas': toDurationString(lastKodas),
         'LastMeeting': toDurationString(lastMeeting),
         'LastVisit': toDurationString(lastVisit),
-        ...last.map(
-            (key, value) => MapEntry('Last' + key, toDurationString(value))),
+        'Last':
+            last.map((key, value) => MapEntry(key, toDurationString(value))),
         'Notes': notes ?? '',
         'IsShammas': isShammas ? 'تعم' : 'لا',
         'Gender': gender ? 'ذكر' : 'أنثى',
         'ShammasLevel': shammasLevel,
+        'HasPhoto': hasPhoto ? 'نعم' : 'لا',
+        'Color': '0x' + color.value.toRadixString(16),
+        'LastEdit': User.onlyName(lastEdit),
+        'School': getSchoolName(),
+        'Church': getChurchName(),
+        'CFather': getCFatherName(),
+        'Location': location == null
+            ? ''
+            : '${location!.latitude},${location!.longitude}',
+        'StudyYear': getStudyYearName(),
+        'Services': services.isEmpty
+            ? 'لا يوجد خدمات'
+            : Future.wait(services.take(3).map((r) async =>
+                    (await r.get(dataSource)).data()?['Name'] ?? ''))
+                .then((d) => d.join(','))
+                .catchError((_) => ''),
       };
 
   @override
@@ -301,19 +320,12 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
   }
 
   @override
-  Future<String?> getSecondLine() async {
-    final String key =
-        Hive.box('Settings').get('PersonSecondLine', defaultValue: '');
-    if (key == 'ClassId') {
-      return getClassName();
-    } else if (key == 'School') {
-      return getSchoolName();
-    } else if (key == 'Church') {
-      return getChurchName();
-    } else if (key == 'CFather') {
-      return getCFatherName();
-    }
-    return getHumanReadableMap()[key] ?? '';
+  FutureOr<String?> getSecondLine() async {
+    final String? key = Hive.box('Settings').get('PersonSecondLine');
+
+    if (key == null) return null;
+
+    return formattedProps()[key];
   }
 
   static Person? fromDoc(JsonDoc data) =>
@@ -325,20 +337,21 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
   static Future<Person?> fromId(String id) async =>
       Person.fromDoc(await FirebaseFirestore.instance.doc('Persons/$id').get());
 
-  static Stream<List<Person>> getAllForUser({
-    String orderBy = 'Name',
-    bool descending = false,
-    bool onlyInClasses = false,
-  }) {
+  static Stream<List<Person>> getAllForUser(
+      {String orderBy = 'Name',
+      bool descending = false,
+      Query<Json> Function(Query<Json>, String, bool) queryCompleter =
+          kDefaultQueryCompleter}) {
     return Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
         User.instance.stream,
         Class.getAllForUser(),
         (a, b) => Tuple2<User, List<Class>>(a, b)).switchMap(
       (u) {
         if (u.item1.superAccess) {
-          return FirebaseFirestore.instance
-              .collection('Persons')
-              .orderBy(orderBy, descending: descending)
+          return queryCompleter(
+                  FirebaseFirestore.instance.collection('Persons'),
+                  orderBy,
+                  descending)
               .snapshots()
               .map((p) => p.docs.map(fromQueryDoc).toList());
         }
@@ -347,39 +360,38 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
           //Persons from Classes
           u.item2.isNotEmpty
               ? u.item2.length <= 10
-                  ? FirebaseFirestore.instance
-                      .collection('Persons')
-                      .where('ClassId',
-                          whereIn: u.item2.map((e) => e.ref).toList())
-                      .orderBy(orderBy, descending: descending)
+                  ? queryCompleter(
+                          FirebaseFirestore.instance.collection('Persons').where('ClassId',
+                              whereIn: u.item2.map((e) => e.ref).toList()),
+                          orderBy,
+                          descending)
                       .snapshots()
                       .map((p) => p.docs.map(fromQueryDoc).toList())
-                  : Rx.combineLatestList<JsonQuery>(u.item2.split(10).map((c) =>
-                      FirebaseFirestore.instance
-                          .collection('Persons')
-                          .where('ClassId',
-                              whereIn: c.map((e) => e.ref).toList())
-                          .orderBy(orderBy, descending: descending)
-                          .snapshots())).map(
-                      (s) => s.expand((n) => n.docs).map(fromQueryDoc).toList())
+                  : Rx.combineLatestList<JsonQuery>(u.item2.split(10).map((c) => queryCompleter(
+                          FirebaseFirestore.instance
+                              .collection('Persons')
+                              .where('ClassId', whereIn: c.map((e) => e.ref).toList()),
+                          orderBy,
+                          descending)
+                      .snapshots())).map((s) => s.expand((n) => n.docs).map(fromQueryDoc).toList())
               : Stream.value([]),
           //Persons from Services
-          !onlyInClasses && u.item1.adminServices.isNotEmpty
+          u.item1.adminServices.isNotEmpty
               ? u.item1.adminServices.length <= 10
-                  ? FirebaseFirestore.instance
-                      .collection('Persons')
-                      .where('Services',
-                          arrayContainsAny: u.item1.adminServices)
-                      .orderBy(orderBy, descending: descending)
+                  ? queryCompleter(
+                          FirebaseFirestore.instance
+                              .collection('Persons')
+                              .where('Services',
+                                  arrayContainsAny: u.item1.adminServices),
+                          orderBy,
+                          descending)
                       .snapshots()
                       .map((p) => p.docs.map(fromQueryDoc).toList())
                   : Rx.combineLatestList<JsonQuery>(u.item1.adminServices
                       .split(10)
-                      .map((c) => FirebaseFirestore.instance
-                          .collection('Persons')
-                          .where('Services', arrayContainsAny: c)
-                          .orderBy(orderBy, descending: descending)
-                          .snapshots())).map(
+                      .map((c) =>
+                          queryCompleter(FirebaseFirestore.instance.collection('Persons').where('Services', arrayContainsAny: c), orderBy, descending)
+                              .snapshots())).map(
                       (s) => s.expand((n) => n.docs).map(fromQueryDoc).toList())
               : Stream.value([]),
           (a, b) => {...a, ...b}.sortedByCompare(
@@ -401,49 +413,165 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
     );
   }
 
-  static Json getEmptyExportMap() => {
-        'ID': 'id',
-        'ClassId': 'classId',
-        'Name': 'name',
-        'Phone': 'phone',
-        'FatherPhone': 'fatherPhone',
-        'MotherPhone': 'motherPhone',
-        'Address': 'address',
-        'HasPhoto': 'hasPhoto',
-        'Color': 'color',
-        'BirthDate': 'birthDate',
-        'BirthDay': 'birthDay',
-        'LastTanawol': 'lastTanawol',
-        'LastConfession': 'lastConfession',
-        'LastKodas': 'lastKodas',
-        'LastMeeting': 'lastMeeting',
-        'LastVisit': 'lastVisit',
-        // 'Type': 'type',
-        'Notes': 'notes',
-        'School': 'School',
-        'Church': 'church',
-        'Meeting': 'meeting',
-        'CFather': 'cFather',
-        'Location': 'location',
-      };
-
-  static Json getHumanReadableMap2() => {
-        'Name': 'الاسم',
-        'Phone': 'موبايل (شخصي)',
-        'FatherPhone': 'موبايل الأب',
-        'MotherPhone': 'موبايل الأم',
-        'Address': 'العنوان',
-        'Color': 'اللون',
-        'BirthDate': 'تاريخ الميلاد',
-        'BirthDay': 'يوم الميلاد',
-        'LastConfession': 'تاريخ أخر اعتراف',
-        'LastKodas': 'تاريخ أخر قداس',
-        'LastTanawol': 'تاريخ أخر تناول',
-        'LastMeeting': 'تاريخ أخر اجتماع',
-        'LastVisit': 'تاريخ أخر افتقاد',
-        'LastCall': 'تاريخ أخر مكالمة',
-        'Notes': 'ملاحظات',
-        'Location': 'الموقع',
+  static Map<String, PropertyMetadata> propsMetadata() => {
+        'ClassId': PropertyMetadata<JsonRef>(
+          name: 'ClassId',
+          label: 'داخل فصل',
+          defaultValue: null,
+          collection:
+              FirebaseFirestore.instance.collection('Classes').orderBy('Grade'),
+        ),
+        'Name': const PropertyMetadata<String>(
+          name: 'Name',
+          label: 'الاسم',
+          defaultValue: '',
+        ),
+        'Phone': const PropertyMetadata<String>(
+          name: 'Phone',
+          label: 'موبايل (شخصي)',
+          defaultValue: '',
+        ),
+        'FatherPhone': const PropertyMetadata<String>(
+          name: 'FatherPhone',
+          label: 'موبايل الأب',
+          defaultValue: '',
+        ),
+        'MotherPhone': const PropertyMetadata<String>(
+          name: 'MotherPhone',
+          label: 'موبايل الأم',
+          defaultValue: '',
+        ),
+        'Phones': const PropertyMetadata<Json>(
+          name: 'Phones',
+          label: 'الأرقام الأخرى',
+          defaultValue: {},
+        ),
+        'Address': const PropertyMetadata<String>(
+          name: 'Address',
+          label: 'العنوان',
+          defaultValue: '',
+        ),
+        'HasPhoto': const PropertyMetadata<bool>(
+          name: 'HasPhoto',
+          label: 'لديه صورة',
+          defaultValue: false,
+        ),
+        'Color': const PropertyMetadata<Color>(
+          name: 'Color',
+          label: 'اللون',
+          defaultValue: Colors.transparent,
+        ),
+        'BirthDate': const PropertyMetadata<DateTime>(
+          name: 'BirthDate',
+          label: 'تاريخ الميلاد',
+          defaultValue: null,
+        ),
+        'BirthDay': const PropertyMetadata<DateTime>(
+          name: 'BirthDay',
+          label: 'يوم الميلاد',
+          defaultValue: null,
+        ),
+        'LastTanawol': const PropertyMetadata<DateTime>(
+          name: 'LastTanawol',
+          label: 'تاريخ أخر تناول',
+          defaultValue: null,
+        ),
+        'LastConfession': const PropertyMetadata<DateTime>(
+          name: 'LastConfession',
+          label: 'تاريخ أخر اعتراف',
+          defaultValue: null,
+        ),
+        'LastKodas': const PropertyMetadata<DateTime>(
+          name: 'LastKodas',
+          label: 'تاريخ أخر حضور قداس',
+          defaultValue: null,
+        ),
+        'LastMeeting': const PropertyMetadata<DateTime>(
+          name: 'LastMeeting',
+          label: 'تاريخ أخر حضور قداس',
+          defaultValue: null,
+        ),
+        'LastCall': const PropertyMetadata<DateTime>(
+          name: 'LastCall',
+          label: 'تاريخ أخر مكالمة',
+          defaultValue: null,
+        ),
+        'LastVisit': const PropertyMetadata<DateTime>(
+          name: 'LastVisit',
+          label: 'تاريخ أخر افتقاد',
+          defaultValue: null,
+        ),
+        'LastEdit': PropertyMetadata<JsonRef>(
+          name: 'LastEdit',
+          label: 'أخر تعديل',
+          defaultValue: null,
+          collection:
+              FirebaseFirestore.instance.collection('Users').orderBy('Name'),
+        ),
+        'Last': const PropertyMetadata<Json>(
+          name: 'Last',
+          label: 'تاريخ أخر حضور خدمة',
+          defaultValue: {},
+        ),
+        'Notes': const PropertyMetadata<String>(
+          name: 'Notes',
+          label: 'ملاحظات',
+          defaultValue: '',
+        ),
+        'School': PropertyMetadata<JsonRef>(
+          name: 'School',
+          label: 'المدرسة',
+          defaultValue: null,
+          collection:
+              FirebaseFirestore.instance.collection('Schools').orderBy('Name'),
+        ),
+        'Church': PropertyMetadata<JsonRef>(
+          name: 'Church',
+          label: 'الكنيسة',
+          defaultValue: null,
+          collection:
+              FirebaseFirestore.instance.collection('Churches').orderBy('Name'),
+        ),
+        'CFather': PropertyMetadata<JsonRef>(
+          name: 'CFather',
+          label: 'أب الاعتراف',
+          defaultValue: null,
+          collection:
+              FirebaseFirestore.instance.collection('Fathers').orderBy('Name'),
+        ),
+        'Location': const PropertyMetadata<GeoPoint>(
+          name: 'Location',
+          label: 'الموقع الجغرافي',
+          defaultValue: null,
+        ),
+        'IsShammas': const PropertyMetadata<bool>(
+          name: 'IsShammas',
+          label: 'شماس؟',
+          defaultValue: false,
+        ),
+        'Gender': const PropertyMetadata<bool>(
+          name: 'Gender',
+          label: 'النوع',
+          defaultValue: true,
+        ),
+        'ShammasLevel': const PropertyMetadata<String>(
+          name: 'ShammasLevel',
+          label: 'رتبة الشموسية',
+          defaultValue: '',
+        ),
+        'StudyYear': PropertyMetadata<JsonRef>(
+          name: 'StudyYear',
+          label: 'سنة الدراسة',
+          defaultValue: null,
+          collection: FirebaseFirestore.instance
+              .collection('StudyYears')
+              .orderBy('Grade'),
+        ),
+        'Services': const PropertyMetadata<List>(
+          name: 'Services',
+          label: 'الخدمات المشارك بها',
+          defaultValue: [],
+        ),
       };
 
   @override

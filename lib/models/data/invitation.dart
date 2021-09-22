@@ -45,7 +45,7 @@ class Invitation extends DataObject {
   bool get used => usedBy != null;
 
   @override
-  Json getHumanReadableMap() {
+  Json formattedProps() {
     throw UnimplementedError();
   }
 
@@ -72,8 +72,8 @@ class Invitation extends DataObject {
   Invitation.empty()
       : link = '',
         generatedBy = User.instance.uid!,
-        super(FirebaseFirestore.instance.collection('Invitations').doc('null'), '',
-            null) {
+        super(FirebaseFirestore.instance.collection('Invitations').doc('null'),
+            '', null) {
     name = '';
     expiryDate = Timestamp.fromDate(
         DateTime.now().add(const Duration(days: 1, minutes: 10)));

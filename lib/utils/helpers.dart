@@ -135,6 +135,9 @@ void changeTheme({required BuildContext context}) {
   );
 }
 
+Query<Json> kDefaultQueryCompleter(Query<Json> q, String o, bool descending) =>
+    q.orderBy(o, descending: descending);
+
 Stream<Map<PreferredStudyYear?, List<T>>>
     servicesByStudyYearRef<T extends DataObject>() {
   assert(T == Class || T == Service || T == DataObject);
@@ -387,17 +390,19 @@ Future<dynamic> getLinkObject(Uri deepLink) async {
 }
 
 List<RadioListTile> getOrderingOptions(
-    BehaviorSubject<OrderOptions> orderOptions, int? index) {
-  return (index == 0
-          ? Class.getHumanReadableMap2()
-          : Person.getHumanReadableMap2())
+    BehaviorSubject<OrderOptions> orderOptions, Type type) {
+  return (type == Class
+          ? Class.propsMetadata()
+          : type == Service
+              ? Service.propsMetadata()
+              : Person.propsMetadata())
       .entries
       .map(
-        (e) => RadioListTile(
+        (e) => RadioListTile<String>(
           value: e.key,
           groupValue: orderOptions.value.orderBy,
-          title: Text(e.value),
-          onChanged: (dynamic value) {
+          title: Text(e.value.label),
+          onChanged: (value) {
             orderOptions
                 .add(OrderOptions(orderBy: value, asc: orderOptions.value.asc));
             navigator.currentState!.pop();
@@ -1165,7 +1170,7 @@ Future<String> sharePersonRaw(String? id) async {
       .toString();
 }
 
-Future<String> shareQuery(Map<String, String?> query) async {
+Future<String> shareQuery(Map<String, Object?> query) async {
   return (await DynamicLinkParameters(
     uriPrefix: uriPrefix,
     link: Uri.https('meetinghelper.com', 'viewQuery', query),

@@ -8,9 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:rxdart/rxdart.dart';
 
+import '../property_metadata.dart';
 import 'person.dart';
 import 'user.dart';
 
@@ -72,10 +74,21 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
   }
 
   @override
-  Json getHumanReadableMap() => {
+  Json formattedProps() => {
         'Name': name,
-        'StudyYear': studyYear ?? '',
-        'Gender': gender,
+        'StudyYear': getStudyYearName(),
+        'Gender': getGenderName(),
+        'Allowed': allowedUsers.isEmpty
+            ? 'لا يوجد مستخدمين محددين'
+            : Future.wait(allowedUsers
+                    .take(3)
+                    .map((r) async => await User.onlyName(r) ?? ''))
+                .then((d) => d.join(','))
+                .catchError((_) => ''),
+        'Members': getMembersString(),
+        'HasPhoto': hasPhoto ? 'نعم' : 'لا',
+        'Color': '0x' + color.value.toRadixString(16),
+        'LastEdit': User.onlyName(lastEdit),
       };
 
   @override
@@ -154,26 +167,12 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
   }
 
   @override
-  Future<String?> getSecondLine() async {
-    final String key =
-        Hive.box('Settings').get('ClassSecondLine', defaultValue: '');
-    if (key == 'Members') {
-      return getMembersString();
-    } else if (key == 'StudyYear') {
-      return getStudyYearName();
-    } else if (key == 'Gender') {
-      return getGenderName();
-    } else if (key == 'Allowed') {
-      final rslt = <String>[];
-      for (final item in allowedUsers.take(3)) {
-        rslt.add((await FirebaseFirestore.instance
-                .doc('Users/$item')
-                .get(dataSource))
-            .data()!['Name']);
-      }
-      return rslt.join(',');
-    }
-    return getHumanReadableMap()[key];
+  FutureOr<String?> getSecondLine() async {
+    final String? key = Hive.box('Settings').get('ClassSecondLine');
+
+    if (key == null) return null;
+
+    return formattedProps()[key];
   }
 
   Future<String> getStudyYearName() async {
@@ -197,22 +196,24 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
   static Future<Class?> fromId(String id) async =>
       Class.fromDoc(await FirebaseFirestore.instance.doc('Classes/$id').get());
 
-  static Stream<List<Class>> getAllForUser({
-    String orderBy = 'Name',
-    bool descending = false,
-  }) {
+  static Stream<List<Class>> getAllForUser(
+      {String orderBy = 'Name',
+      bool descending = false,
+      Query<Json> Function(Query<Json>, String, bool) queryCompleter =
+          kDefaultQueryCompleter}) {
     return User.instance.stream.switchMap((u) {
       if (u.superAccess) {
-        return FirebaseFirestore.instance
-            .collection('Classes')
-            .orderBy(orderBy, descending: descending)
+        return queryCompleter(FirebaseFirestore.instance.collection('Classes'),
+                orderBy, descending)
             .snapshots()
             .map((c) => c.docs.map(fromQueryDoc).toList());
       } else {
-        return FirebaseFirestore.instance
-            .collection('Classes')
-            .where('Allowed', arrayContains: u.uid)
-            .orderBy(orderBy, descending: descending)
+        return queryCompleter(
+                FirebaseFirestore.instance
+                    .collection('Classes')
+                    .where('Allowed', arrayContains: u.uid),
+                orderBy,
+                descending)
             .snapshots()
             .map((c) => c.docs.map(fromQueryDoc).toList());
       }
@@ -229,22 +230,47 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
         .map((p) => p.docs.map(Person.fromDoc).toList());
   }
 
-  static Json getEmptyExportMap() => {
-        'ID': 'id',
-        'Name': 'name',
-        'StudyYear': 'studyYear',
-        'Gender': 'gender',
-        'HasPhoto': 'hasPhoto',
-        'Color': 'color.value',
-        'Allowed': 'allowedUsers'
-      };
-
-  static Json getHumanReadableMap2() => {
-        'Name': 'الاسم',
-        'StudyYear': 'سنة الدراسة',
-        'Gender': 'نوع الفصل',
-        'Color': 'اللون',
-        'Allowed': 'المخدومين المسموح لهم بالرؤية والتعديل'
+  static Map<String, PropertyMetadata> propsMetadata() => {
+        'Name': const PropertyMetadata<String>(
+          name: 'Name',
+          label: 'الاسم',
+          defaultValue: '',
+        ),
+        'StudyYear': PropertyMetadata<JsonRef>(
+          name: 'StudyYear',
+          label: 'سنة الدراسة',
+          defaultValue: null,
+          collection: FirebaseFirestore.instance
+              .collection('StudyYears')
+              .orderBy('Grade'),
+        ),
+        'Gender': const PropertyMetadata<bool>(
+          name: 'Gender',
+          label: 'النوع',
+          defaultValue: null,
+        ),
+        'Color': const PropertyMetadata<Color>(
+          name: 'Color',
+          label: 'اللون',
+          defaultValue: Colors.transparent,
+        ),
+        'Allowed': const PropertyMetadata<List>(
+          name: 'Allowed',
+          label: 'الخدام المسؤلين عن الفصل',
+          defaultValue: [],
+        ),
+        'HasPhoto': const PropertyMetadata<bool>(
+          name: 'HasPhoto',
+          label: 'لديه صورة',
+          defaultValue: false,
+        ),
+        'LastEdit': PropertyMetadata<JsonRef>(
+          name: 'LastEdit',
+          label: 'أخر تعديل',
+          defaultValue: null,
+          collection:
+              FirebaseFirestore.instance.collection('Users').orderBy('Name'),
+        ),
       };
 
   @override

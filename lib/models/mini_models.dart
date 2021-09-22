@@ -22,7 +22,7 @@ abstract class MiniModel extends DataObject {
             null);
 
   @override
-  Json getHumanReadableMap() {
+  Json formattedProps() {
     return {};
   }
 

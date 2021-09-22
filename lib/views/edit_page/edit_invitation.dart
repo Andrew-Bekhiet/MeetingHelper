@@ -6,6 +6,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/invitation.dart';
+import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/search/order_options.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
@@ -525,7 +526,7 @@ class _EditInvitationState extends State<EditInvitation> {
             body: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SearchFilters(0,
+                SearchFilters(Person,
                     options: controller,
                     orderOptions: BehaviorSubject<OrderOptions>.seeded(
                         const OrderOptions()),

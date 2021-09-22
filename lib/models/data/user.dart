@@ -7,7 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
-import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_database/firebase_database.dart' hide Query;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -15,6 +15,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hive/hive.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -709,44 +710,53 @@ class User extends Person {
         .toList();
   }
 
-  static Stream<List<User>> getAllForUser() {
+  static Stream<List<User>> getAllForUser(
+      {Query<Json> Function(Query<Json>, String, bool) queryCompleter =
+          kDefaultQueryCompleter}) {
     return User.instance.stream.switchMap((u) {
       if (!u.manageUsers && !u.manageAllowedUsers && !u.secretary)
-        return FirebaseFirestore.instance
-            .collection('Users')
-            .orderBy('Name')
+        return queryCompleter(
+                FirebaseFirestore.instance.collection('Users'), 'Name', false)
             .snapshots()
             .map((p) => p.docs.map(fromDoc).toList());
       if (u.manageUsers || u.secretary) {
-        return FirebaseFirestore.instance
-            .collection('UsersData')
-            .orderBy('Name')
+        return queryCompleter(
+                FirebaseFirestore.instance.collection('UsersData'),
+                'Name',
+                false)
             .snapshots()
             .map((p) => p.docs.map(fromDoc).toList());
       } else {
-        return FirebaseFirestore.instance
-            .collection('UsersData')
-            .where('AllowedUsers', arrayContains: u.uid)
-            .orderBy('Name')
+        return queryCompleter(
+                FirebaseFirestore.instance
+                    .collection('UsersData')
+                    .where('AllowedUsers', arrayContains: u.uid),
+                'Name',
+                false)
             .snapshots()
             .map((p) => p.docs.map(fromDoc).toList());
       }
     });
   }
 
-  static Stream<List<User>> getAllForUserForEdit() {
+  static Stream<List<User>> getAllForUserForEdit(
+      [Query<Json> Function(Query<Json>, String, bool) queryCompleter =
+          kDefaultQueryCompleter]) {
     return User.instance.stream.switchMap((u) {
       if (u.manageUsers) {
-        return FirebaseFirestore.instance
-            .collection('UsersData')
-            .orderBy('Name')
+        return queryCompleter(
+                FirebaseFirestore.instance.collection('UsersData'),
+                'Name',
+                false)
             .snapshots()
             .map((p) => p.docs.map(fromDoc).toList());
       } else {
-        return FirebaseFirestore.instance
-            .collection('UsersData')
-            .where('AllowedUsers', arrayContains: u.uid)
-            .orderBy('Name')
+        return queryCompleter(
+                FirebaseFirestore.instance
+                    .collection('UsersData')
+                    .where('AllowedUsers', arrayContains: u.uid),
+                'Name',
+                false)
             .snapshots()
             .map((p) => p.docs.map(fromDoc).toList());
       }
@@ -759,13 +769,6 @@ class User extends Person {
         .orderBy('Name')
         .snapshots()
         .map((p) => p.docs.map(fromDoc).toList());
-  }
-
-  Stream<List<User>> getNamesOnly() {
-    return FirebaseFirestore.instance
-        .collection('Users')
-        .snapshots()
-        .map((s) => s.docs.map(User.fromDoc).toList());
   }
 
   Future<void> recordActive() async {
@@ -798,21 +801,27 @@ class User extends Person {
     _photoUrlCache.invalidate();
   }
 
-  static Stream<List<User>> getAllSemiManagers() {
+  static Stream<List<User>> getAllSemiManagers(
+      [Query<Json> Function(Query<Json>, String, bool) queryCompleter =
+          kDefaultQueryCompleter]) {
     return User.instance.stream.switchMap((u) {
       if (u.manageUsers || u.secretary) {
-        return FirebaseFirestore.instance
-            .collection('UsersData')
-            .where('Permissions.ManageAllowedUsers', isEqualTo: true)
-            .orderBy('Name')
+        return queryCompleter(
+                FirebaseFirestore.instance
+                    .collection('UsersData')
+                    .where('Permissions.ManageAllowedUsers', isEqualTo: true),
+                'Name',
+                false)
             .snapshots()
             .map((p) => p.docs.map(fromDoc).toList());
       } else {
-        return FirebaseFirestore.instance
-            .collection('UsersData')
-            .where('AllowedUsers', arrayContains: u.uid)
-            .where('Permissions.ManageAllowedUsers', isEqualTo: true)
-            .orderBy('Name')
+        return queryCompleter(
+                FirebaseFirestore.instance
+                    .collection('UsersData')
+                    .where('AllowedUsers', arrayContains: u.uid)
+                    .where('Permissions.ManageAllowedUsers', isEqualTo: true),
+                'Name',
+                false)
             .snapshots()
             .map((p) => p.docs.map(fromDoc).toList());
       }
@@ -820,11 +829,12 @@ class User extends Person {
   }
 
   static Future<String?> onlyName(String? id) async {
+    if (id == null) return null;
     return (await FirebaseFirestore.instance
             .collection('Users')
             .doc(id)
             .get(dataSource))
-        .data()!['Name'];
+        .data()?['Name'];
   }
 
   static Widget photoFromUID(String uid, {bool removeHero = false}) =>

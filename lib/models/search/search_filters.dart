@@ -7,11 +7,11 @@ import '../list_controllers.dart';
 import 'order_options.dart';
 
 class FilterButton extends StatelessWidget {
-  final int? index;
+  final Type type;
   final BaseListController? controller;
   final BehaviorSubject<OrderOptions>? orderOptions;
   final bool disableOrdering;
-  const FilterButton(this.index, this.controller, this.orderOptions,
+  const FilterButton(this.type, this.controller, this.orderOptions,
       {Key? key, this.disableOrdering = false})
       : super(key: key);
 
@@ -43,7 +43,7 @@ class FilterButton extends StatelessWidget {
               if (!disableOrdering)
                 const Text('ترتيب حسب:',
                     style: TextStyle(fontWeight: FontWeight.bold)),
-              if (!disableOrdering) ...getOrderingOptions(orderOptions!, index)
+              if (!disableOrdering) ...getOrderingOptions(orderOptions!, type)
             ],
           ),
         );
@@ -88,12 +88,12 @@ class SearchField extends StatelessWidget {
 }
 
 class SearchFilters extends StatelessWidget {
-  final int? index;
+  final Type type;
   final TextStyle? textStyle;
   final BaseListController options;
   final BehaviorSubject<OrderOptions>? orderOptions;
   final bool disableOrdering;
-  const SearchFilters(this.index,
+  const SearchFilters(this.type,
       {Key? key,
       required this.textStyle,
       required this.options,
@@ -114,7 +114,7 @@ class SearchFilters extends StatelessWidget {
           ),
         ),
         FilterButton(
-          index,
+          type,
           options,
           orderOptions,
           disableOrdering: disableOrdering,

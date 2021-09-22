@@ -390,7 +390,7 @@ class _ClassInfoState extends State<ClassInfo> {
                           style: Theme.of(context).textTheme.headline6,
                         ),
                         SearchFilters(
-                          1,
+                          Person,
                           options: _listOptions,
                           orderOptions: _orderOptions,
                           textStyle: Theme.of(context).textTheme.bodyText2,

@@ -377,8 +377,8 @@ class _ServiceInfoState extends State<ServiceInfo> {
                         if (service.validity != null)
                           ListTile(
                             title: const Text('الصلاحية:'),
-                            subtitle: FutureBuilder<String>(
-                              future: () async {
+                            subtitle: Builder(
+                              builder: (context) {
                                 final from =
                                     DateFormat('yyyy/M/d', 'ar-EG').format(
                                   service.validity!.start,
@@ -388,11 +388,7 @@ class _ServiceInfoState extends State<ServiceInfo> {
                                   service.validity!.end,
                                 );
 
-                                return 'من $from الى $to';
-                              }(),
-                              builder: (context, data) {
-                                if (data.hasData) return Text(data.data!);
-                                return const LinearProgressIndicator();
+                                return Text('من $from الى $to');
                               },
                             ),
                           ),
@@ -440,7 +436,7 @@ class _ServiceInfoState extends State<ServiceInfo> {
                           style: Theme.of(context).textTheme.headline6,
                         ),
                         SearchFilters(
-                          1,
+                          Person,
                           options: _listOptions,
                           orderOptions: _orderOptions,
                           textStyle: Theme.of(context).textTheme.bodyText2,

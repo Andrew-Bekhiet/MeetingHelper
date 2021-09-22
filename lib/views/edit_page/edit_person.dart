@@ -1188,7 +1188,7 @@ class _EditPersonState extends State<EditPerson> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 SearchFilters(
-                  0,
+                  Class,
                   options: controller,
                   orderOptions: BehaviorSubject<OrderOptions>.seeded(
                       const OrderOptions()),

@@ -53,7 +53,7 @@ class TrashDay extends DataObject {
             Colors.transparent);
 
   @override
-  Json getHumanReadableMap() {
+  Json formattedProps() {
     return {'Time': toDurationString(Timestamp.fromDate(date))};
   }
 
@@ -137,13 +137,13 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                               const Text('ترتيب حسب:',
                                   style:
                                       TextStyle(fontWeight: FontWeight.bold)),
-                              ...Person.getHumanReadableMap2()
+                              ...Person.propsMetadata()
                                   .entries
                                   .map(
                                     (e) => RadioListTile(
                                       value: e.key,
                                       groupValue: _personsOrder.value.orderBy,
-                                      title: Text(e.value),
+                                      title: Text(e.value.label),
                                       onChanged: (dynamic value) {
                                         _personsOrder.add(
                                           OrderOptions(
