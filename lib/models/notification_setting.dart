@@ -57,29 +57,6 @@ class _NotificationSettingState extends State<NotificationSetting> {
           Flexible(
             flex: 25,
             child: DropdownButtonFormField<DateType>(
-              selectedItemBuilder: (context) => [
-                SizedBox(
-                  height: 70,
-                  child: Container(
-                    constraints: const BoxConstraints.expand(),
-                    child: const Text('يوم'),
-                  ),
-                ),
-                SizedBox(
-                  height: 70,
-                  child: Container(
-                    constraints: const BoxConstraints.expand(),
-                    child: const Text('اسبوع'),
-                  ),
-                ),
-                SizedBox(
-                  height: 70,
-                  child: Container(
-                    constraints: const BoxConstraints.expand(),
-                    child: const Text('شهر'),
-                  ),
-                )
-              ],
               items: const [
                 DropdownMenuItem(
                   value: DateType.day,
@@ -96,7 +73,7 @@ class _NotificationSettingState extends State<NotificationSetting> {
               ],
               decoration: const InputDecoration(
                 border: UnderlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(vertical: 90),
+                contentPadding: EdgeInsets.symmetric(vertical: 5),
               ),
               value: _getAndSetMultiplier(notificationsSettings.get(
                   widget.hiveKey,

@@ -167,7 +167,7 @@ class SettingsState extends State<Settings> {
                         children: <Widget>[
                           Container(
                             padding: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: DropdownButtonFormField(
+                            child: DropdownButtonFormField<String?>(
                               value: settings.get('ClassSecondLine'),
                               items: Class.propsMetadata()
                                   .entries
@@ -190,8 +190,8 @@ class SettingsState extends State<Settings> {
                                       value: null,
                                       child: Text(''),
                                     )),
-                              onChanged: (dynamic value) {},
-                              onSaved: (dynamic value) async {
+                              onChanged: (value) {},
+                              onSaved: (value) async {
                                 await settings.put('ClassSecondLine', value);
                               },
                               decoration: const InputDecoration(
@@ -201,7 +201,7 @@ class SettingsState extends State<Settings> {
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: DropdownButtonFormField(
+                            child: DropdownButtonFormField<String?>(
                               value: settings.get('PersonSecondLine'),
                               items: Person.propsMetadata()
                                   .entries
@@ -218,8 +218,8 @@ class SettingsState extends State<Settings> {
                                       value: null,
                                       child: Text(''),
                                     )),
-                              onChanged: (dynamic value) {},
-                              onSaved: (dynamic value) async {
+                              onChanged: (value) {},
+                              onSaved: (value) async {
                                 await settings.put('PersonSecondLine', value);
                               },
                               decoration: const InputDecoration(
