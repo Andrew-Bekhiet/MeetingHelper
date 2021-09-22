@@ -731,14 +731,15 @@ class _RootState extends State<Root>
               ),
             ),
             const Divider(),
-            ListTile(
-              leading: const Icon(Icons.system_update_alt),
-              title: const Text('تحديث البرنامج'),
-              onTap: () {
-                mainScfld.currentState!.openEndDrawer();
-                navigator.currentState!.pushNamed('Update');
-              },
-            ),
+            if (!kIsWeb)
+              ListTile(
+                leading: const Icon(Icons.system_update_alt),
+                title: const Text('تحديث البرنامج'),
+                onTap: () {
+                  mainScfld.currentState!.openEndDrawer();
+                  navigator.currentState!.pushNamed('Update');
+                },
+              ),
             ListTile(
               leading: const Icon(Icons.info_outline),
               title: const Text('حول البرنامج'),
