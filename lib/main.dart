@@ -232,7 +232,7 @@ Future _initConfigs([bool retryOnHiveError = true]) async {
     await Hive.openBox<Map>('NotificationsSettings');
     await Hive.openBox<String?>('PhotosURLsCache');
     await Hive.openBox<Map>('Notifications');
-  } on Exception catch (e) {
+  } catch (e, stackTrace) {
     await Hive.close();
     await Hive.deleteBoxFromDisk('User');
     await Hive.deleteBoxFromDisk('Settings');
@@ -240,6 +240,10 @@ Future _initConfigs([bool retryOnHiveError = true]) async {
     await Hive.deleteBoxFromDisk('NotificationsSettings');
     await Hive.deleteBoxFromDisk('PhotosURLsCache');
     await Hive.deleteBoxFromDisk('Notifications');
+
+    await Sentry.captureException(e,
+        stackTrace: stackTrace,
+        withScope: (scope) => scope.setTag('LastErrorIn', 'main._initConfigs'));
     if (retryOnHiveError) return _initConfigs(false);
     rethrow;
   }
