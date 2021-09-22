@@ -464,7 +464,10 @@ class CheckListController<T extends Person, P extends DataObject>
     List<T> rslt = objects.values.toList();
 
     if (sortByTimeASC != null) {
-      rslt = attended.map((k, v) => MapEntry(k, objects[k]!)).values.toList();
+      rslt = [
+        for (final k in attended.keys)
+          if (objects[k] != null) objects[k]!
+      ];
     } else if (showOnly == null) {
       rslt = rslt.toList();
     } else if (showOnly == true) {
