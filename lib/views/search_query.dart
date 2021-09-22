@@ -85,7 +85,7 @@ class _SearchQueryState extends State<SearchQuery> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 const Text('عرض كل: '),
-                DropdownButton<JsonCollectionRef>(
+                DropdownButtonFormField<JsonCollectionRef>(
                   key: const ValueKey('CollectionKey'),
                   value: collection,
                   items: [
@@ -117,7 +117,7 @@ class _SearchQueryState extends State<SearchQuery> {
                 const Text('بشرط: '),
                 Expanded(
                   key: ValueKey(collection),
-                  child: DropdownButton<String>(
+                  child: DropdownButtonFormField<String>(
                     isExpanded: true,
                     items: properties[collection]!
                         .values
@@ -139,7 +139,7 @@ class _SearchQueryState extends State<SearchQuery> {
                 ),
                 Expanded(
                   key: const ValueKey('OperatorsKey'),
-                  child: DropdownButton<String>(
+                  child: DropdownButtonFormField<String>(
                     isExpanded: true,
                     items: operatorItems,
                     onChanged: (o) => setState(() => operator = o!),
@@ -462,8 +462,9 @@ class _SearchQueryState extends State<SearchQuery> {
             padding: const EdgeInsets.symmetric(vertical: 4.0),
             child: TextFormField(
               autofocus: false,
-              decoration: const InputDecoration(
-                labelText: 'قيمة البحث',
+              decoration: InputDecoration(
+                labelText:
+                    properties[collection]?[fieldPath]?.label ?? 'قيمة البحث',
               ),
               textInputAction: TextInputAction.done,
               initialValue: queryValue is String ? queryValue : '',
@@ -537,42 +538,42 @@ class _SearchQueryState extends State<SearchQuery> {
         },
       ),
       Color: PropertyQuery<int>(
-        builder: (context) => InkWell(
-          key: const ValueKey('SelectColor'),
-          onTap: () {
-            showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                actions: [
-                  TextButton(
-                    onPressed: () {
+        builder: (context) => Container(
+          color: queryValue is int ? Color(queryValue) : Colors.transparent,
+          child: InkWell(
+            key: const ValueKey('SelectColor'),
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        navigator.currentState!.pop();
+                        setState(() {
+                          queryValue = Colors.transparent.value;
+                        });
+                      },
+                      child: const Text('بلا لون'),
+                    ),
+                  ],
+                  content: ColorsList(
+                    selectedColor: Color(queryValue is int
+                        ? queryValue
+                        : Colors.transparent.value),
+                    onSelect: (color) {
                       navigator.currentState!.pop();
                       setState(() {
-                        queryValue = Colors.transparent.value;
+                        queryValue = color.value;
                       });
                     },
-                    child: const Text('بلا لون'),
                   ),
-                ],
-                content: ColorsList(
-                  selectedColor: Color(queryValue is int
-                      ? queryValue
-                      : Colors.transparent.value),
-                  onSelect: (color) {
-                    navigator.currentState!.pop();
-                    setState(() {
-                      queryValue = color.value;
-                    });
-                  },
                 ),
-              ),
-            );
-          },
-          child: InputDecorator(
-            decoration: const InputDecoration(),
-            child: Container(
-              color: queryValue is int ? Color(queryValue) : Colors.transparent,
-              child: const Center(
+              );
+            },
+            child: const InputDecorator(
+              decoration: InputDecoration(),
+              child: Center(
                 child: Text('اختيار لون'),
               ),
             ),
