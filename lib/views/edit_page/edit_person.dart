@@ -859,19 +859,19 @@ class _EditPersonState extends State<EditPerson> {
                     validator: (_) => null,
                   ),
                   TapableFormField<Timestamp?>(
-                    labelText: 'تاريخ أخر زيارة',
+                    labelText: 'تاريخ أخر افتقاد',
                     initialValue: person.lastVisit,
                     onTap: (state) async {
                       state.didChange(
                         person.lastVisit = await _selectDate(
-                              'تاريخ أخر زيارة',
+                              'تاريخ أخر افتقاد',
                               state.value?.toDate() ?? DateTime.now(),
                             ) ??
                             state.value,
                       );
                     },
                     decoration: (context, state) => InputDecoration(
-                      labelText: 'تاريخ أخر زيارة',
+                      labelText: 'تاريخ أخر افتقاد',
                       errorText: state.errorText,
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.delete),

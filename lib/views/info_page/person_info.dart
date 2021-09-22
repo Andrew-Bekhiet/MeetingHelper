@@ -101,7 +101,7 @@ class _PersonInfoState extends State<PersonInfo> {
                   TargetContent(
                     align: ContentAlign.top,
                     child: Text(
-                      'يمكنك تسجيل أخر زيارة للمخدوم بسرعة من هنا',
+                      'يمكنك تسجيل أخر افتقاد للمخدوم بسرعة من هنا',
                       style: Theme.of(context).textTheme.subtitle1?.copyWith(
                           color: Theme.of(context).colorScheme.onSecondary),
                     ),
@@ -431,7 +431,7 @@ class _PersonInfoState extends State<PersonInfo> {
                   ),
                   const Divider(thickness: 1),
                   HistoryProperty(
-                    'تاريخ أخر زيارة:',
+                    'تاريخ أخر افتقاد:',
                     person.lastVisit,
                     person.ref.collection('VisitHistory'),
                   ),
@@ -452,7 +452,7 @@ class _PersonInfoState extends State<PersonInfo> {
                 permission! && !person.ref.path.startsWith('Deleted')
                     ? FloatingActionButton(
                         key: _lastVisit,
-                        tooltip: 'تسجيل أخر زيارة اليوم',
+                        tooltip: 'تسجيل أخر افتقاد اليوم',
                         onPressed: () => recordLastVisit(context, person),
                         child: const Icon(Icons.update),
                       )
@@ -468,11 +468,11 @@ class _PersonInfoState extends State<PersonInfo> {
       if (await showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: Text('هل تريد تسجيل أخر زيارة ل' + person.name + '؟'),
+              title: Text('هل تريد تسجيل أخر افتقاد ل' + person.name + '؟'),
               actions: [
                 TextButton(
                   onPressed: () => navigator.currentState!.pop(true),
-                  child: const Text('تسجيل أخر زيارة'),
+                  child: const Text('تسجيل أخر افتقاد'),
                 ),
                 TextButton(
                   onPressed: () => navigator.currentState!.pop(false),
@@ -494,7 +494,7 @@ class _PersonInfoState extends State<PersonInfo> {
           stackTrace: stack,
           withScope: (scope) =>
               scope.setTag('LasErrorIn', '_PersonInfoState.recordLastVisit'));
-      await showErrorDialog(context, 'حدث خطأ أثناء تحديث تاريخ اخر زيارة!');
+      await showErrorDialog(context, 'حدث خطأ أثناء تحديث تاريخ أخر افتقاد!');
     }
   }
 
