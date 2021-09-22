@@ -414,13 +414,6 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
   }
 
   static Map<String, PropertyMetadata> propsMetadata() => {
-        'ClassId': PropertyMetadata<JsonRef>(
-          name: 'ClassId',
-          label: 'داخل فصل',
-          defaultValue: null,
-          collection:
-              FirebaseFirestore.instance.collection('Classes').orderBy('Grade'),
-        ),
         'Name': const PropertyMetadata<String>(
           name: 'Name',
           label: 'الاسم',
@@ -446,21 +439,6 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
           label: 'الأرقام الأخرى',
           defaultValue: {},
         ),
-        'Address': const PropertyMetadata<String>(
-          name: 'Address',
-          label: 'العنوان',
-          defaultValue: '',
-        ),
-        'HasPhoto': const PropertyMetadata<bool>(
-          name: 'HasPhoto',
-          label: 'لديه صورة',
-          defaultValue: false,
-        ),
-        'Color': const PropertyMetadata<Color>(
-          name: 'Color',
-          label: 'اللون',
-          defaultValue: Colors.transparent,
-        ),
         'BirthDate': const PropertyMetadata<DateTime>(
           name: 'BirthDate',
           label: 'تاريخ الميلاد',
@@ -471,52 +449,50 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
           label: 'يوم الميلاد',
           defaultValue: null,
         ),
-        'LastTanawol': const PropertyMetadata<DateTime>(
-          name: 'LastTanawol',
-          label: 'تاريخ أخر تناول',
+        'StudyYear': PropertyMetadata<JsonRef>(
+          name: 'StudyYear',
+          label: 'سنة الدراسة',
           defaultValue: null,
+          collection: FirebaseFirestore.instance
+              .collection('StudyYears')
+              .orderBy('Grade'),
         ),
-        'LastConfession': const PropertyMetadata<DateTime>(
-          name: 'LastConfession',
-          label: 'تاريخ أخر اعتراف',
-          defaultValue: null,
-        ),
-        'LastKodas': const PropertyMetadata<DateTime>(
-          name: 'LastKodas',
-          label: 'تاريخ أخر حضور قداس',
-          defaultValue: null,
-        ),
-        'LastMeeting': const PropertyMetadata<DateTime>(
-          name: 'LastMeeting',
-          label: 'تاريخ أخر حضور قداس',
-          defaultValue: null,
-        ),
-        'LastCall': const PropertyMetadata<DateTime>(
-          name: 'LastCall',
-          label: 'تاريخ أخر مكالمة',
-          defaultValue: null,
-        ),
-        'LastVisit': const PropertyMetadata<DateTime>(
-          name: 'LastVisit',
-          label: 'تاريخ أخر افتقاد',
-          defaultValue: null,
-        ),
-        'LastEdit': PropertyMetadata<JsonRef>(
-          name: 'LastEdit',
-          label: 'أخر تعديل',
+        'ClassId': PropertyMetadata<JsonRef>(
+          name: 'ClassId',
+          label: 'داخل فصل',
           defaultValue: null,
           collection:
-              FirebaseFirestore.instance.collection('Users').orderBy('Name'),
+              FirebaseFirestore.instance.collection('Classes').orderBy('Grade'),
         ),
-        'Last': const PropertyMetadata<Json>(
-          name: 'Last',
-          label: 'تاريخ أخر حضور خدمة',
-          defaultValue: {},
+        'Services': const PropertyMetadata<List>(
+          name: 'Services',
+          label: 'الخدمات المشارك بها',
+          defaultValue: [],
         ),
-        'Notes': const PropertyMetadata<String>(
-          name: 'Notes',
-          label: 'ملاحظات',
+        'Gender': const PropertyMetadata<bool>(
+          name: 'Gender',
+          label: 'النوع',
+          defaultValue: true,
+        ),
+        'IsShammas': const PropertyMetadata<bool>(
+          name: 'IsShammas',
+          label: 'شماس؟',
+          defaultValue: false,
+        ),
+        'ShammasLevel': const PropertyMetadata<String>(
+          name: 'ShammasLevel',
+          label: 'رتبة الشموسية',
           defaultValue: '',
+        ),
+        'Address': const PropertyMetadata<String>(
+          name: 'Address',
+          label: 'العنوان',
+          defaultValue: '',
+        ),
+        'Location': const PropertyMetadata<GeoPoint>(
+          name: 'Location',
+          label: 'الموقع الجغرافي',
+          defaultValue: null,
         ),
         'School': PropertyMetadata<JsonRef>(
           name: 'School',
@@ -539,38 +515,62 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
           collection:
               FirebaseFirestore.instance.collection('Fathers').orderBy('Name'),
         ),
-        'Location': const PropertyMetadata<GeoPoint>(
-          name: 'Location',
-          label: 'الموقع الجغرافي',
-          defaultValue: null,
-        ),
-        'IsShammas': const PropertyMetadata<bool>(
-          name: 'IsShammas',
-          label: 'شماس؟',
-          defaultValue: false,
-        ),
-        'Gender': const PropertyMetadata<bool>(
-          name: 'Gender',
-          label: 'النوع',
-          defaultValue: true,
-        ),
-        'ShammasLevel': const PropertyMetadata<String>(
-          name: 'ShammasLevel',
-          label: 'رتبة الشموسية',
+        'Notes': const PropertyMetadata<String>(
+          name: 'Notes',
+          label: 'ملاحظات',
           defaultValue: '',
         ),
-        'StudyYear': PropertyMetadata<JsonRef>(
-          name: 'StudyYear',
-          label: 'سنة الدراسة',
+        'LastMeeting': const PropertyMetadata<DateTime>(
+          name: 'LastMeeting',
+          label: 'تاريخ أخر حضور اجتماع',
           defaultValue: null,
-          collection: FirebaseFirestore.instance
-              .collection('StudyYears')
-              .orderBy('Grade'),
         ),
-        'Services': const PropertyMetadata<List>(
-          name: 'Services',
-          label: 'الخدمات المشارك بها',
-          defaultValue: [],
+        'LastKodas': const PropertyMetadata<DateTime>(
+          name: 'LastKodas',
+          label: 'تاريخ أخر حضور قداس',
+          defaultValue: null,
+        ),
+        'LastTanawol': const PropertyMetadata<DateTime>(
+          name: 'LastTanawol',
+          label: 'تاريخ أخر تناول',
+          defaultValue: null,
+        ),
+        'LastConfession': const PropertyMetadata<DateTime>(
+          name: 'LastConfession',
+          label: 'تاريخ أخر اعتراف',
+          defaultValue: null,
+        ),
+        'LastVisit': const PropertyMetadata<DateTime>(
+          name: 'LastVisit',
+          label: 'تاريخ أخر افتقاد',
+          defaultValue: null,
+        ),
+        'LastCall': const PropertyMetadata<DateTime>(
+          name: 'LastCall',
+          label: 'تاريخ أخر مكالمة',
+          defaultValue: null,
+        ),
+        'Last': const PropertyMetadata<Json>(
+          name: 'Last',
+          label: 'تاريخ أخر حضور خدمة',
+          defaultValue: {},
+        ),
+        'LastEdit': PropertyMetadata<JsonRef>(
+          name: 'LastEdit',
+          label: 'أخر تعديل',
+          defaultValue: null,
+          collection:
+              FirebaseFirestore.instance.collection('Users').orderBy('Name'),
+        ),
+        'HasPhoto': const PropertyMetadata<bool>(
+          name: 'HasPhoto',
+          label: 'لديه صورة',
+          defaultValue: false,
+        ),
+        'Color': const PropertyMetadata<Color>(
+          name: 'Color',
+          label: 'اللون',
+          defaultValue: Colors.transparent,
         ),
       };
 
