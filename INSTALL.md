@@ -137,8 +137,34 @@
 
 ### 10. Deploying the project:
 
+#### Environment variables:
+
 - Edit `Firebase CLI Sample\functions\src\adminPassword.ts` and change adminPassword
 - Edit firebase_dynamick_links_key to the key you created and copied from the project credentails
+
+#### Setting CORS policy:
+
+- Install gsutil from the link https://cloud.google.com/storage/docs/gsutil_install
+- Create a new file with name: `cors.json` with the following code replacing `projectId` with your actual projectId:
+
+```
+[
+  {
+    "origin": [
+      "https://projectId.firebaseapp.com",
+      "https://projectId.web.app"
+    ],
+    "responseHeader": ["Content-Type"],
+    "method": ["GET", "HEAD"],
+    "maxAgeSeconds": 3600
+  }
+]
+```
+
+- Run the command `gsutil cors set cors.json gs://projectId.appspot.com` replacing projectId with your actual projectId
+
+#### Deploying rtdb, firestore, fuctions, and storage:
+
 - Install Firebase tools using `npm install -g firebase-tools`
 - Using the terminal go to the `Firebase CLI Sample` directory
 - Run the command: `firebase init`
