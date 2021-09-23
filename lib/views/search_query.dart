@@ -85,28 +85,34 @@ class _SearchQueryState extends State<SearchQuery> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 const Text('عرض كل: '),
-                DropdownButtonFormField<JsonCollectionRef>(
-                  key: const ValueKey('CollectionKey'),
-                  value: collection,
-                  items: [
-                    DropdownMenuItem(
-                      value: FirebaseFirestore.instance.collection('Services'),
-                      child: const Text('الخدمات'),
-                    ),
-                    DropdownMenuItem(
-                      value: FirebaseFirestore.instance.collection('Classes'),
-                      child: const Text('الفصول'),
-                    ),
-                    DropdownMenuItem(
-                      value: FirebaseFirestore.instance.collection('Persons'),
-                      child: const Text('المخدومين'),
-                    ),
-                  ],
-                  onChanged: (v) => setState(() {
-                    collection = v!;
-                    fieldPath = 'Name';
-                    queryValue = properties[collection]?['Name']?.defaultValue;
-                  }),
+                Expanded(
+                  child: DropdownButtonFormField<JsonCollectionRef>(
+                    itemHeight: 60,
+                    isExpanded: true,
+                    key: const ValueKey('CollectionKey'),
+                    value: collection,
+                    items: [
+                      DropdownMenuItem(
+                        value:
+                            FirebaseFirestore.instance.collection('Services'),
+                        child: const Text('الخدمات'),
+                      ),
+                      DropdownMenuItem(
+                        value: FirebaseFirestore.instance.collection('Classes'),
+                        child: const Text('الفصول'),
+                      ),
+                      DropdownMenuItem(
+                        value: FirebaseFirestore.instance.collection('Persons'),
+                        child: const Text('المخدومين'),
+                      ),
+                    ],
+                    onChanged: (v) => setState(() {
+                      collection = v!;
+                      fieldPath = 'Name';
+                      queryValue =
+                          properties[collection]?['Name']?.defaultValue;
+                    }),
+                  ),
                 ),
               ],
             ),
@@ -116,6 +122,7 @@ class _SearchQueryState extends State<SearchQuery> {
               children: <Widget>[
                 const Text('بشرط: '),
                 Expanded(
+                  flex: 25,
                   key: ValueKey(collection),
                   child: DropdownButtonFormField<String>(
                     isExpanded: true,
@@ -137,7 +144,9 @@ class _SearchQueryState extends State<SearchQuery> {
                     value: fieldPath.split('.')[0],
                   ),
                 ),
+                const SizedBox(width: 5),
                 Expanded(
+                  flex: 10,
                   key: const ValueKey('OperatorsKey'),
                   child: DropdownButtonFormField<String>(
                     isExpanded: true,
@@ -383,7 +392,10 @@ class _SearchQueryState extends State<SearchQuery> {
         ),
         queryCompleter: (q, value) {
           if (value == null)
-            return q.where(fieldPath, isNull: operator == '=');
+            return q.where(
+              fieldPath,
+              isNull: operator == '=',
+            );
           else {
             final effectiveValue = fieldPath == 'BirthDay'
                 ? Timestamp.fromDate(DateTime(1970, value.month, value.day))
@@ -477,13 +489,18 @@ class _SearchQueryState extends State<SearchQuery> {
           );
         },
         queryCompleter: (q, value) {
-          if (value == null) return q.where(fieldPath, isNull: true);
-          if (operator == '>')
+          if (value == null)
+            return q.where(
+              fieldPath,
+              isNull: operator == '=',
+            );
+          else if (operator == '>')
             return q.where(fieldPath, isGreaterThanOrEqualTo: value);
           else if (operator == '<')
             return q.where(fieldPath, isLessThanOrEqualTo: value);
           else if (operator == '!=')
             return q.where(fieldPath, isNotEqualTo: value);
+
           return q.where(fieldPath, isEqualTo: value);
         },
       ),
@@ -526,8 +543,12 @@ class _SearchQueryState extends State<SearchQuery> {
                 },
               ),
         queryCompleter: (q, value) {
-          if (value == null) return q.where(fieldPath, isNull: true);
-          if (operator == '>')
+          if (value == null)
+            return q.where(
+              fieldPath,
+              isNull: operator == '=',
+            );
+          else if (operator == '>')
             return q.where(fieldPath, isGreaterThanOrEqualTo: value);
           else if (operator == '<')
             return q.where(fieldPath, isLessThanOrEqualTo: value);
@@ -580,12 +601,18 @@ class _SearchQueryState extends State<SearchQuery> {
           ),
         ),
         queryCompleter: (q, value) {
-          if (operator == '>')
+          if (value == null)
+            return q.where(
+              fieldPath,
+              isNull: operator == '=',
+            );
+          else if (operator == '>')
             return q.where(fieldPath, isGreaterThanOrEqualTo: value);
           else if (operator == '<')
             return q.where(fieldPath, isLessThanOrEqualTo: value);
           else if (operator == '!=')
             return q.where(fieldPath, isNotEqualTo: value);
+
           return q.where(fieldPath, isEqualTo: value);
         },
       ),
@@ -686,12 +713,18 @@ class _SearchQueryState extends State<SearchQuery> {
           );
         },
         queryCompleter: (q, value) {
-          if (operator == '>')
+          if (value == null)
+            return q.where(
+              fieldPath,
+              isNull: operator == '=',
+            );
+          else if (operator == '>')
             return q.where(fieldPath, isGreaterThanOrEqualTo: value);
           else if (operator == '<')
             return q.where(fieldPath, isLessThanOrEqualTo: value);
           else if (operator == '!=')
             return q.where(fieldPath, isNotEqualTo: value);
+
           return q.where(fieldPath, isEqualTo: value);
         },
       ),
@@ -753,7 +786,12 @@ class _SearchQueryState extends State<SearchQuery> {
           return Container();
         },
         queryCompleter: (q, value) {
-          if (operator == '>')
+          if (value == null)
+            return q.where(
+              fieldPath,
+              isNull: operator == '=',
+            );
+          else if (operator == '>')
             return q.where(fieldPath, isGreaterThanOrEqualTo: value);
           else if (operator == '<')
             return q.where(fieldPath, isLessThanOrEqualTo: value);
@@ -810,7 +848,12 @@ class _SearchQueryState extends State<SearchQuery> {
           return const SizedBox();
         },
         queryCompleter: (q, value) {
-          if (operator == '>')
+          if (value == null)
+            return q.where(
+              fieldPath,
+              isNull: operator == '=',
+            );
+          else if (operator == '>')
             return q.where(fieldPath, isGreaterThanOrEqualTo: value);
           else if (operator == '<')
             return q.where(fieldPath, isLessThanOrEqualTo: value);
