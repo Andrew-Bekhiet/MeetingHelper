@@ -898,7 +898,10 @@ class _SearchQueryState extends State<SearchQuery> {
       orderBy = widget.query!['orderBy'] ?? 'Name';
       descending = widget.query!['descending'] == 'true';
 
-      WidgetsBinding.instance!.addPostFrameCallback((_) => execute());
+      WidgetsBinding.instance!.addPostFrameCallback((_) {
+        setState(() {});
+        execute();
+      });
     }
   }
 
