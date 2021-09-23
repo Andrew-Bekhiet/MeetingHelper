@@ -445,6 +445,7 @@ class _PersonInfoState extends State<PersonInfo> {
                     person.lastEdit,
                     person.ref.collection('EditHistory'),
                   ),
+                  const SizedBox(height: 50),
                 ],
               ),
             ),
