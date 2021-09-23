@@ -711,21 +711,21 @@ Future<void> processClickedNotification(BuildContext? context,
             builder: (context) {
               final now = DateTime.now().millisecondsSinceEpoch;
               return SearchQuery(query: {
-                'parentIndex': '1',
-                'childIndex': '2',
-                'operatorIndex': '0',
-                'queryText': '',
+                'collection': 'Persons',
+                'fieldPath': 'BirthDay',
+                'operator': '=',
                 'queryValue': 'T' +
                     (now - (now % Duration.millisecondsPerDay)).toString(),
-                'birthDate': 'false',
+                'order': 'false',
+                'orderBy': 'BirthDay',
                 'descending': 'false',
-                'orderBy': 'BirthDay'
               });
             },
           ),
         );
       });
-    } else if ((notificationDetails.payload ?? payload) == 'Confessions') {
+    } else if (['Confession', 'Meeting', 'Kodas', 'Tanawol', 'Visit']
+        .contains(notificationDetails.payload ?? payload)) {
       WidgetsBinding.instance!.addPostFrameCallback((_) async {
         await Future.delayed(const Duration(milliseconds: 900), () => null);
         await navigator.currentState!.push(
@@ -733,113 +733,16 @@ Future<void> processClickedNotification(BuildContext? context,
             builder: (context) {
               final now = DateTime.now().millisecondsSinceEpoch;
               return SearchQuery(query: {
-                'parentIndex': '1',
-                'childIndex': '9',
-                'operatorIndex': '3',
-                'queryText': '',
+                'collection': 'Persons',
+                'fieldPath': 'Last' + (notificationDetails.payload ?? payload)!,
+                'operator': '<',
                 'queryValue': 'T' +
                     ((now - (now % Duration.millisecondsPerDay)) -
                             (Duration.millisecondsPerDay * 7))
                         .toString(),
-                'birthDate': 'false',
+                'order': 'true',
+                'orderBy': 'Last' + (notificationDetails.payload ?? payload)!,
                 'descending': 'false',
-                'orderBy': 'LastConfession'
-              });
-            },
-          ),
-        );
-      });
-    } else if ((notificationDetails.payload ?? payload) == 'Tanawol') {
-      WidgetsBinding.instance!.addPostFrameCallback((_) async {
-        await Future.delayed(const Duration(milliseconds: 900), () => null);
-        await navigator.currentState!.push(
-          MaterialPageRoute(
-            builder: (context) {
-              final now = DateTime.now().millisecondsSinceEpoch;
-              return SearchQuery(query: {
-                'parentIndex': '1',
-                'childIndex': '8',
-                'operatorIndex': '3',
-                'queryText': '',
-                'queryValue': 'T' +
-                    ((now - (now % Duration.millisecondsPerDay)) -
-                            (Duration.millisecondsPerDay * 7))
-                        .toString(),
-                'birthDate': 'false',
-                'descending': 'false',
-                'orderBy': 'LastTanawol'
-              });
-            },
-          ),
-        );
-      });
-    } else if ((notificationDetails.payload ?? payload) == 'Kodas') {
-      WidgetsBinding.instance!.addPostFrameCallback((_) async {
-        await Future.delayed(const Duration(milliseconds: 900), () => null);
-        await navigator.currentState!.push(
-          MaterialPageRoute(
-            builder: (context) {
-              final now = DateTime.now().millisecondsSinceEpoch;
-              return SearchQuery(query: {
-                'parentIndex': '1',
-                'childIndex': '10',
-                'operatorIndex': '3',
-                'queryText': '',
-                'queryValue': 'T' +
-                    ((now - (now % Duration.millisecondsPerDay)) -
-                            (Duration.millisecondsPerDay * 7))
-                        .toString(),
-                'birthDate': 'false',
-                'descending': 'false',
-                'orderBy': 'LastKodas'
-              });
-            },
-          ),
-        );
-      });
-    } else if ((notificationDetails.payload ?? payload) == 'Meeting') {
-      WidgetsBinding.instance!.addPostFrameCallback((_) async {
-        await Future.delayed(const Duration(milliseconds: 900), () => null);
-        await navigator.currentState!.push(
-          MaterialPageRoute(
-            builder: (context) {
-              final now = DateTime.now().millisecondsSinceEpoch;
-              return SearchQuery(query: {
-                'parentIndex': '1',
-                'childIndex': '11',
-                'operatorIndex': '3',
-                'queryText': '',
-                'queryValue': 'T' +
-                    ((now - (now % Duration.millisecondsPerDay)) -
-                            (Duration.millisecondsPerDay * 7))
-                        .toString(),
-                'birthDate': 'false',
-                'descending': 'false',
-                'orderBy': 'LastMeeting'
-              });
-            },
-          ),
-        );
-      });
-    } else if ((notificationDetails.payload ?? payload) == 'Visit') {
-      WidgetsBinding.instance!.addPostFrameCallback((_) async {
-        await Future.delayed(const Duration(milliseconds: 900), () => null);
-        await navigator.currentState!.push(
-          MaterialPageRoute(
-            builder: (context) {
-              final now = DateTime.now().millisecondsSinceEpoch;
-              return SearchQuery(query: {
-                'parentIndex': '1',
-                'childIndex': '15',
-                'operatorIndex': '3',
-                'queryText': '',
-                'queryValue': 'T' +
-                    ((now - (now % Duration.millisecondsPerDay)) -
-                            (Duration.millisecondsPerDay * 7))
-                        .toString(),
-                'birthDate': 'false',
-                'descending': 'false',
-                'orderBy': 'LastVisit'
               });
             },
           ),
@@ -1219,149 +1122,50 @@ void showBirthDayNotification() async {
   );
 
   await User.instance.initialized;
-  final source = GetOptions(
+
+  dataSource = GetOptions(
       source:
           (await Connectivity().checkConnectivity()) == ConnectivityResult.none
               ? Source.cache
               : Source.serverAndCache);
 
-  final classes = await Class.getAllForUser().first;
-
-  await Future.delayed(const Duration(seconds: 4));
-
-  final List<String> persons = [];
-
-  if (User.instance.superAccess) {
-    persons.addAll((await FirebaseFirestore.instance
-            .collection('Persons')
-            .where(
-              'BirthDay',
-              isGreaterThanOrEqualTo: Timestamp.fromDate(
-                DateTime(1970, DateTime.now().month, DateTime.now().day),
-              ),
-            )
-            .where(
-              'BirthDay',
-              isLessThan: Timestamp.fromDate(
-                DateTime(1970, DateTime.now().month, DateTime.now().day + 1),
-              ),
-            )
-            .limit(20)
-            .get(source))
-        .docs
-        .map((e) => e.data()['Name'] as String)
-        .toList());
-  } else {
-    //Persons from Classes
-    if (classes.isNotEmpty) if (classes.length <= 10) {
-      persons.addAll((await FirebaseFirestore.instance
-              .collection('Persons')
-              .where('ClassId', whereIn: classes.map((e) => e.ref).toList())
-              .where(
-                'BirthDay',
-                isGreaterThanOrEqualTo: Timestamp.fromDate(
-                  DateTime(1970, DateTime.now().month, DateTime.now().day),
-                ),
-              )
-              .where(
-                'BirthDay',
-                isLessThan: Timestamp.fromDate(
-                  DateTime(1970, DateTime.now().month, DateTime.now().day + 1),
-                ),
-              )
-              .limit(20)
-              .get(source))
-          .docs
-          .map((d) => d.data()['Name'] as String)
-          .toList());
-    } else {
-      persons.addAll((await Future.wait(
-              classes.split(10).map((c) => FirebaseFirestore.instance
-                  .collection('Persons')
-                  .where('ClassId', whereIn: c.map((e) => e.ref).toList())
-                  .where(
-                    'BirthDay',
-                    isGreaterThanOrEqualTo: Timestamp.fromDate(
-                      DateTime(1970, DateTime.now().month, DateTime.now().day),
-                    ),
-                  )
-                  .where(
-                    'BirthDay',
-                    isLessThan: Timestamp.fromDate(
-                      DateTime(
-                          1970, DateTime.now().month, DateTime.now().day + 1),
-                    ),
-                  )
-                  .limit(20)
-                  .get(source))))
-          .expand((e) => e.docs)
-          .map((d) => d.data()['Name'] as String)
-          .toList());
-    }
-    //Persons from Services
-    if (User.instance.adminServices
-        .isNotEmpty) if (User.instance.adminServices.length <= 10) {
-      persons.addAll((await FirebaseFirestore.instance
-              .collection('Persons')
-              .where('Services', arrayContainsAny: User.instance.adminServices)
-              .where(
-                'BirthDay',
-                isGreaterThanOrEqualTo: Timestamp.fromDate(
-                  DateTime(1970, DateTime.now().month, DateTime.now().day),
-                ),
-              )
-              .where(
-                'BirthDay',
-                isLessThan: Timestamp.fromDate(
-                  DateTime(1970, DateTime.now().month, DateTime.now().day + 1),
-                ),
-              )
-              .limit(20)
-              .get(source))
-          .docs
-          .map((d) => d.data()['Name'] as String)
-          .toList());
-    } else {
-      persons.addAll((await Future.wait(User.instance.adminServices
-              .split(10)
-              .map((c) => FirebaseFirestore.instance
-                  .collection('Persons')
-                  .where('Services', arrayContainsAny: c)
-                  .where(
-                    'BirthDay',
-                    isGreaterThanOrEqualTo: Timestamp.fromDate(
-                      DateTime(1970, DateTime.now().month, DateTime.now().day),
-                    ),
-                  )
-                  .where(
-                    'BirthDay',
-                    isLessThan: Timestamp.fromDate(
-                      DateTime(
-                          1970, DateTime.now().month, DateTime.now().day + 1),
-                    ),
-                  )
-                  .limit(20)
-                  .get(source))))
-          .expand((e) => e.docs)
-          .map((d) => d.data()['Name'] as String)
-          .toList());
-    }
-  }
+  final persons = await Person.getAllForUser(
+      queryCompleter: (q, _, __) => q
+          .where(
+            'BirthDay',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(
+              DateTime(1970, DateTime.now().month, DateTime.now().day),
+            ),
+          )
+          .where(
+            'BirthDay',
+            isLessThan: Timestamp.fromDate(
+              DateTime(1970, DateTime.now().month, DateTime.now().day + 1),
+            ),
+          )
+          .limit(20)).first;
 
   if (persons.isNotEmpty || !f.kReleaseMode)
     await FlutterLocalNotificationsPlugin().show(
-        2,
-        'أعياد الميلاد',
-        persons.join(', '),
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-              'Birthday', 'إشعارات أعياد الميلاد', 'إشعارات أعياد الميلاد',
-              icon: 'birthday',
-              autoCancel: false,
-              visibility: NotificationVisibility.secret,
-              showWhen: false),
+      2,
+      'أعياد الميلاد',
+      persons.map((p) => p.name).join(', '),
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'Birthday',
+          'إشعارات أعياد الميلاد',
+          'إشعارات أعياد الميلاد',
+          icon: 'birthday',
+          autoCancel: false,
+          visibility: NotificationVisibility.secret,
+          showWhen: false,
+          styleInformation: BigTextStyleInformation(
+            persons.map((p) => p.name).join(', '),
+          ),
         ),
-        payload: 'Birthday');
+      ),
+      payload: 'Birthday',
+    );
 }
 
 Future<List<T>?> selectServices<T extends DataObject>(List<T>? selected) async {
@@ -1426,102 +1230,44 @@ void showConfessionNotification() async {
   );
 
   await User.instance.initialized;
-  final source = GetOptions(
+
+  dataSource = GetOptions(
       source:
           (await Connectivity().checkConnectivity()) == ConnectivityResult.none
               ? Source.cache
               : Source.serverAndCache);
 
-  final classes = await Class.getAllForUser().first;
-
-  await Future.delayed(const Duration(seconds: 4));
-
-  final List<String> persons = [];
-
-  if (User.instance.superAccess) {
-    persons.addAll((await FirebaseFirestore.instance
-            .collection('Persons')
-            .where('LastConfession',
-                isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(const Duration(days: 7))))
-            .limit(20)
-            .get(source))
-        .docs
-        .map((e) => e.data()['Name'] as String)
-        .toList());
-  } else {
-    //Persons from Classes
-    if (classes.isNotEmpty) if (classes.length <= 10) {
-      persons.addAll((await FirebaseFirestore.instance
-              .collection('Persons')
-              .where('ClassId', whereIn: classes.map((e) => e.ref).toList())
-              .where('LastConfession',
-                  isLessThan: Timestamp.fromDate(
-                      DateTime.now().subtract(const Duration(days: 7))))
-              .limit(20)
-              .get(source))
-          .docs
-          .map((d) => d.data()['Name'] as String)
-          .toList());
-    } else {
-      persons.addAll((await Future.wait(classes.split(10).map((c) =>
-              FirebaseFirestore.instance
-                  .collection('Persons')
-                  .where('ClassId', whereIn: c.map((e) => e.ref).toList())
-                  .where('LastConfession',
-                      isLessThan: Timestamp.fromDate(
-                          DateTime.now().subtract(const Duration(days: 7))))
-                  .limit(20)
-                  .get(source))))
-          .expand((e) => e.docs)
-          .map((d) => d.data()['Name'] as String)
-          .toList());
-    }
-    //Persons from Services
-    if (User.instance.adminServices
-        .isNotEmpty) if (User.instance.adminServices.length <= 10) {
-      persons.addAll((await FirebaseFirestore.instance
-              .collection('Persons')
-              .where('Services', arrayContainsAny: User.instance.adminServices)
-              .where('LastConfession',
-                  isLessThan: Timestamp.fromDate(
-                      DateTime.now().subtract(const Duration(days: 7))))
-              .limit(20)
-              .get(source))
-          .docs
-          .map((d) => d.data()['Name'] as String)
-          .toList());
-    } else {
-      persons.addAll((await Future.wait(User.instance.adminServices
-              .split(10)
-              .map((c) => FirebaseFirestore.instance
-                  .collection('Persons')
-                  .where('Services', arrayContainsAny: c)
-                  .where('LastConfession',
-                      isLessThan: Timestamp.fromDate(
-                          DateTime.now().subtract(const Duration(days: 7))))
-                  .limit(20)
-                  .get(source))))
-          .expand((e) => e.docs)
-          .map((d) => d.data()['Name'] as String)
-          .toList());
-    }
-  }
+  final persons = await Person.getAllForUser(
+    queryCompleter: (q, _, __) => q
+        .where(
+          'LastConfession',
+          isLessThan: Timestamp.fromDate(
+              DateTime.now().subtract(const Duration(days: 7))),
+        )
+        .limit(20),
+  ).first;
 
   if (persons.isNotEmpty || !f.kReleaseMode)
     await FlutterLocalNotificationsPlugin().show(
-        0,
-        'انذار الاعتراف',
-        persons.join(', '),
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-              'Confessions', 'إشعارات الاعتراف', 'إشعارات الاعتراف',
-              icon: 'warning',
-              autoCancel: false,
-              visibility: NotificationVisibility.secret,
-              showWhen: false),
+      0,
+      'انذار الاعتراف',
+      persons.map((p) => p.name).join(', '),
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'Confession',
+          'إشعارات الاعتراف',
+          'إشعارات الاعتراف',
+          icon: 'warning',
+          autoCancel: false,
+          visibility: NotificationVisibility.secret,
+          showWhen: false,
+          styleInformation: BigTextStyleInformation(
+            persons.map((p) => p.name).join(', '),
+          ),
         ),
-        payload: 'Confessions');
+      ),
+      payload: 'Confession',
+    );
 }
 
 Future<void> showErrorDialog(BuildContext context, String? message,
@@ -1617,102 +1363,44 @@ void showKodasNotification() async {
   );
 
   await User.instance.initialized;
-  final source = GetOptions(
+
+  dataSource = GetOptions(
       source:
           (await Connectivity().checkConnectivity()) == ConnectivityResult.none
               ? Source.cache
               : Source.serverAndCache);
 
-  final classes = await Class.getAllForUser().first;
-
-  await Future.delayed(const Duration(seconds: 4));
-
-  final List<String> persons = [];
-
-  if (User.instance.superAccess) {
-    persons.addAll((await FirebaseFirestore.instance
-            .collection('Persons')
-            .where('LastKodas',
-                isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(const Duration(days: 7))))
-            .limit(20)
-            .get(source))
-        .docs
-        .map((e) => e.data()['Name'] as String)
-        .toList());
-  } else {
-    //Persons from Classes
-    if (classes.isNotEmpty) if (classes.length <= 10) {
-      persons.addAll((await FirebaseFirestore.instance
-              .collection('Persons')
-              .where('ClassId', whereIn: classes.map((e) => e.ref).toList())
-              .where('LastKodas',
-                  isLessThan: Timestamp.fromDate(
-                      DateTime.now().subtract(const Duration(days: 7))))
-              .limit(20)
-              .get(source))
-          .docs
-          .map((d) => d.data()['Name'] as String)
-          .toList());
-    } else {
-      persons.addAll((await Future.wait(classes.split(10).map((c) =>
-              FirebaseFirestore.instance
-                  .collection('Persons')
-                  .where('ClassId', whereIn: c.map((e) => e.ref).toList())
-                  .where('LastKodas',
-                      isLessThan: Timestamp.fromDate(
-                          DateTime.now().subtract(const Duration(days: 7))))
-                  .limit(20)
-                  .get(source))))
-          .expand((e) => e.docs)
-          .map((d) => d.data()['Name'] as String)
-          .toList());
-    }
-    //Persons from Services
-    if (User.instance.adminServices
-        .isNotEmpty) if (User.instance.adminServices.length <= 10) {
-      persons.addAll((await FirebaseFirestore.instance
-              .collection('Persons')
-              .where('Services', arrayContainsAny: User.instance.adminServices)
-              .where('LastKodas',
-                  isLessThan: Timestamp.fromDate(
-                      DateTime.now().subtract(const Duration(days: 7))))
-              .limit(20)
-              .get(source))
-          .docs
-          .map((d) => d.data()['Name'] as String)
-          .toList());
-    } else {
-      persons.addAll((await Future.wait(User.instance.adminServices
-              .split(10)
-              .map((c) => FirebaseFirestore.instance
-                  .collection('Persons')
-                  .where('Services', arrayContainsAny: c)
-                  .where('LastKodas',
-                      isLessThan: Timestamp.fromDate(
-                          DateTime.now().subtract(const Duration(days: 7))))
-                  .limit(20)
-                  .get(source))))
-          .expand((e) => e.docs)
-          .map((d) => d.data()['Name'] as String)
-          .toList());
-    }
-  }
+  final persons = await Person.getAllForUser(
+    queryCompleter: (q, _, __) => q
+        .where(
+          'LastKodas',
+          isLessThan: Timestamp.fromDate(
+              DateTime.now().subtract(const Duration(days: 7))),
+        )
+        .limit(20),
+  ).first;
 
   if (persons.isNotEmpty || !f.kReleaseMode)
     await FlutterLocalNotificationsPlugin().show(
-        4,
-        'انذار حضور القداس',
-        persons.join(', '),
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-              'Kodas', 'إشعارات حضور القداس', 'إشعارات حضور القداس',
-              icon: 'warning',
-              autoCancel: false,
-              visibility: NotificationVisibility.secret,
-              showWhen: false),
+      4,
+      'انذار حضور القداس',
+      persons.map((p) => p.name).join(', '),
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'Kodas',
+          'إشعارات حضور القداس',
+          'إشعارات حضور القداس',
+          icon: 'warning',
+          autoCancel: false,
+          visibility: NotificationVisibility.secret,
+          showWhen: false,
+          styleInformation: BigTextStyleInformation(
+            persons.map((p) => p.name).join(', '),
+          ),
         ),
-        payload: 'Kodas');
+      ),
+      payload: 'Kodas',
+    );
 }
 
 void showMeetingNotification() async {
@@ -1736,102 +1424,44 @@ void showMeetingNotification() async {
   );
 
   await User.instance.initialized;
-  final source = GetOptions(
+
+  dataSource = GetOptions(
       source:
           (await Connectivity().checkConnectivity()) == ConnectivityResult.none
               ? Source.cache
               : Source.serverAndCache);
 
-  final classes = await Class.getAllForUser().first;
-
-  await Future.delayed(const Duration(seconds: 4));
-
-  final List<String> persons = [];
-
-  if (User.instance.superAccess) {
-    persons.addAll((await FirebaseFirestore.instance
-            .collection('Persons')
-            .where('LastMeeting',
-                isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(const Duration(days: 7))))
-            .limit(20)
-            .get(source))
-        .docs
-        .map((e) => e.data()['Name'] as String)
-        .toList());
-  } else {
-    //Persons from Classes
-    if (classes.isNotEmpty) if (classes.length <= 10) {
-      persons.addAll((await FirebaseFirestore.instance
-              .collection('Persons')
-              .where('ClassId', whereIn: classes.map((e) => e.ref).toList())
-              .where('LastMeeting',
-                  isLessThan: Timestamp.fromDate(
-                      DateTime.now().subtract(const Duration(days: 7))))
-              .limit(20)
-              .get(source))
-          .docs
-          .map((d) => d.data()['Name'] as String)
-          .toList());
-    } else {
-      persons.addAll((await Future.wait(classes.split(10).map((c) =>
-              FirebaseFirestore.instance
-                  .collection('Persons')
-                  .where('ClassId', whereIn: c.map((e) => e.ref).toList())
-                  .where('LastMeeting',
-                      isLessThan: Timestamp.fromDate(
-                          DateTime.now().subtract(const Duration(days: 7))))
-                  .limit(20)
-                  .get(source))))
-          .expand((e) => e.docs)
-          .map((d) => d.data()['Name'] as String)
-          .toList());
-    }
-    //Persons from Services
-    if (User.instance.adminServices
-        .isNotEmpty) if (User.instance.adminServices.length <= 10) {
-      persons.addAll((await FirebaseFirestore.instance
-              .collection('Persons')
-              .where('Services', arrayContainsAny: User.instance.adminServices)
-              .where('LastMeeting',
-                  isLessThan: Timestamp.fromDate(
-                      DateTime.now().subtract(const Duration(days: 7))))
-              .limit(20)
-              .get(source))
-          .docs
-          .map((d) => d.data()['Name'] as String)
-          .toList());
-    } else {
-      persons.addAll((await Future.wait(User.instance.adminServices
-              .split(10)
-              .map((c) => FirebaseFirestore.instance
-                  .collection('Persons')
-                  .where('Services', arrayContainsAny: c)
-                  .where('LastMeeting',
-                      isLessThan: Timestamp.fromDate(
-                          DateTime.now().subtract(const Duration(days: 7))))
-                  .limit(20)
-                  .get(source))))
-          .expand((e) => e.docs)
-          .map((d) => d.data()['Name'] as String)
-          .toList());
-    }
-  }
+  final persons = await Person.getAllForUser(
+    queryCompleter: (q, _, __) => q
+        .where(
+          'LastMeeting',
+          isLessThan: Timestamp.fromDate(
+              DateTime.now().subtract(const Duration(days: 7))),
+        )
+        .limit(20),
+  ).first;
 
   if (persons.isNotEmpty || !f.kReleaseMode)
     await FlutterLocalNotificationsPlugin().show(
-        3,
-        'انذار حضور الاجتماع',
-        persons.join(', '),
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-              'Meeting', 'إشعارات حضور الاجتماع', 'إشعارات حضور الاجتماع',
-              icon: 'warning',
-              autoCancel: false,
-              visibility: NotificationVisibility.secret,
-              showWhen: false),
+      3,
+      'انذار حضور الاجتماع',
+      persons.map((p) => p.name).join(', '),
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'Meeting',
+          'إشعارات حضور الاجتماع',
+          'إشعارات حضور الاجتماع',
+          icon: 'warning',
+          autoCancel: false,
+          visibility: NotificationVisibility.secret,
+          showWhen: false,
+          styleInformation: BigTextStyleInformation(
+            persons.map((p) => p.name).join(', '),
+          ),
         ),
-        payload: 'Meeting');
+      ),
+      payload: 'Meeting',
+    );
 }
 
 Future<void> showMessage(no.Notification notification) async {
@@ -1936,102 +1566,44 @@ void showTanawolNotification() async {
   );
 
   await User.instance.initialized;
-  final source = GetOptions(
+
+  dataSource = GetOptions(
       source:
           (await Connectivity().checkConnectivity()) == ConnectivityResult.none
               ? Source.cache
               : Source.serverAndCache);
 
-  final classes = await Class.getAllForUser().first;
-
-  await Future.delayed(const Duration(seconds: 4));
-
-  final List<String> persons = [];
-
-  if (User.instance.superAccess) {
-    persons.addAll((await FirebaseFirestore.instance
-            .collection('Persons')
-            .where('LastTanawol',
-                isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(const Duration(days: 7))))
-            .limit(20)
-            .get(source))
-        .docs
-        .map((e) => e.data()['Name'] as String)
-        .toList());
-  } else {
-    //Persons from Classes
-    if (classes.isNotEmpty) if (classes.length <= 10) {
-      persons.addAll((await FirebaseFirestore.instance
-              .collection('Persons')
-              .where('ClassId', whereIn: classes.map((e) => e.ref).toList())
-              .where('LastTanawol',
-                  isLessThan: Timestamp.fromDate(
-                      DateTime.now().subtract(const Duration(days: 7))))
-              .limit(20)
-              .get(source))
-          .docs
-          .map((d) => d.data()['Name'] as String)
-          .toList());
-    } else {
-      persons.addAll((await Future.wait(classes.split(10).map((c) =>
-              FirebaseFirestore.instance
-                  .collection('Persons')
-                  .where('ClassId', whereIn: c.map((e) => e.ref).toList())
-                  .where('LastTanawol',
-                      isLessThan: Timestamp.fromDate(
-                          DateTime.now().subtract(const Duration(days: 7))))
-                  .limit(20)
-                  .get(source))))
-          .expand((e) => e.docs)
-          .map((d) => d.data()['Name'] as String)
-          .toList());
-    }
-    //Persons from Services
-    if (User.instance.adminServices
-        .isNotEmpty) if (User.instance.adminServices.length <= 10) {
-      persons.addAll((await FirebaseFirestore.instance
-              .collection('Persons')
-              .where('Services', arrayContainsAny: User.instance.adminServices)
-              .where('LastTanawol',
-                  isLessThan: Timestamp.fromDate(
-                      DateTime.now().subtract(const Duration(days: 7))))
-              .limit(20)
-              .get(source))
-          .docs
-          .map((d) => d.data()['Name'] as String)
-          .toList());
-    } else {
-      persons.addAll((await Future.wait(User.instance.adminServices
-              .split(10)
-              .map((c) => FirebaseFirestore.instance
-                  .collection('Persons')
-                  .where('Services', arrayContainsAny: c)
-                  .where('LastTanawol',
-                      isLessThan: Timestamp.fromDate(
-                          DateTime.now().subtract(const Duration(days: 7))))
-                  .limit(20)
-                  .get(source))))
-          .expand((e) => e.docs)
-          .map((d) => d.data()['Name'] as String)
-          .toList());
-    }
-  }
+  final persons = await Person.getAllForUser(
+    queryCompleter: (q, _, __) => q
+        .where(
+          'LastTanawol',
+          isLessThan: Timestamp.fromDate(
+              DateTime.now().subtract(const Duration(days: 7))),
+        )
+        .limit(20),
+  ).first;
 
   if (persons.isNotEmpty || !f.kReleaseMode)
     await FlutterLocalNotificationsPlugin().show(
-        1,
-        'انذار التناول',
-        persons.join(', '),
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-              'Tanawol', 'إشعارات التناول', 'إشعارات التناول',
-              icon: 'warning',
-              autoCancel: false,
-              visibility: NotificationVisibility.secret,
-              showWhen: false),
+      1,
+      'انذار التناول',
+      persons.map((p) => p.name).join(', '),
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'Tanawol',
+          'إشعارات التناول',
+          'إشعارات التناول',
+          icon: 'warning',
+          autoCancel: false,
+          visibility: NotificationVisibility.secret,
+          showWhen: false,
+          styleInformation: BigTextStyleInformation(
+            persons.map((p) => p.name).join(', '),
+          ),
         ),
-        payload: 'Tanawol');
+      ),
+      payload: 'Tanawol',
+    );
 }
 
 void showVisitNotification() async {
@@ -2055,102 +1627,44 @@ void showVisitNotification() async {
   );
 
   await User.instance.initialized;
-  final source = GetOptions(
+
+  dataSource = GetOptions(
       source:
           (await Connectivity().checkConnectivity()) == ConnectivityResult.none
               ? Source.cache
               : Source.serverAndCache);
 
-  final classes = await Class.getAllForUser().first;
-
-  await Future.delayed(const Duration(seconds: 4));
-
-  final List<String> persons = [];
-
-  if (User.instance.superAccess) {
-    persons.addAll((await FirebaseFirestore.instance
-            .collection('Persons')
-            .where('LastVisit',
-                isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(const Duration(days: 7))))
-            .limit(20)
-            .get(source))
-        .docs
-        .map((e) => e.data()['Name'] as String)
-        .toList());
-  } else {
-    //Persons from Classes
-    if (classes.isNotEmpty) if (classes.length <= 10) {
-      persons.addAll((await FirebaseFirestore.instance
-              .collection('Persons')
-              .where('ClassId', whereIn: classes.map((e) => e.ref).toList())
-              .where('LastVisit',
-                  isLessThan: Timestamp.fromDate(
-                      DateTime.now().subtract(const Duration(days: 7))))
-              .limit(20)
-              .get(source))
-          .docs
-          .map((d) => d.data()['Name'] as String)
-          .toList());
-    } else {
-      persons.addAll((await Future.wait(classes.split(10).map((c) =>
-              FirebaseFirestore.instance
-                  .collection('Persons')
-                  .where('ClassId', whereIn: c.map((e) => e.ref).toList())
-                  .where('LastVisit',
-                      isLessThan: Timestamp.fromDate(
-                          DateTime.now().subtract(const Duration(days: 7))))
-                  .limit(20)
-                  .get(source))))
-          .expand((e) => e.docs)
-          .map((d) => d.data()['Name'] as String)
-          .toList());
-    }
-    //Persons from Services
-    if (User.instance.adminServices
-        .isNotEmpty) if (User.instance.adminServices.length <= 10) {
-      persons.addAll((await FirebaseFirestore.instance
-              .collection('Persons')
-              .where('Services', arrayContainsAny: User.instance.adminServices)
-              .where('LastVisit',
-                  isLessThan: Timestamp.fromDate(
-                      DateTime.now().subtract(const Duration(days: 7))))
-              .limit(20)
-              .get(source))
-          .docs
-          .map((d) => d.data()['Name'] as String)
-          .toList());
-    } else {
-      persons.addAll((await Future.wait(User.instance.adminServices
-              .split(10)
-              .map((c) => FirebaseFirestore.instance
-                  .collection('Persons')
-                  .where('Services', arrayContainsAny: c)
-                  .where('LastVisit',
-                      isLessThan: Timestamp.fromDate(
-                          DateTime.now().subtract(const Duration(days: 7))))
-                  .limit(20)
-                  .get(source))))
-          .expand((e) => e.docs)
-          .map((d) => d.data()['Name'] as String)
-          .toList());
-    }
-  }
+  final persons = await Person.getAllForUser(
+    queryCompleter: (q, _, __) => q
+        .where(
+          'LastVisit',
+          isLessThan: Timestamp.fromDate(
+              DateTime.now().subtract(const Duration(days: 20))),
+        )
+        .limit(20),
+  ).first;
 
   if (persons.isNotEmpty || !f.kReleaseMode)
     await FlutterLocalNotificationsPlugin().show(
-        5,
-        'انذار الافتقاد',
-        persons.join(', '),
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-              'Visit', 'إشعارات الافتقاد', 'إشعارات الافتقاد',
-              icon: 'warning',
-              autoCancel: false,
-              visibility: NotificationVisibility.secret,
-              showWhen: false),
+      5,
+      'انذار الافتقاد',
+      persons.map((p) => p.name).join(', '),
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'Visit',
+          'إشعارات الافتقاد',
+          'إشعارات الافتقاد',
+          icon: 'warning',
+          autoCancel: false,
+          visibility: NotificationVisibility.secret,
+          showWhen: false,
+          styleInformation: BigTextStyleInformation(
+            persons.map((p) => p.name).join(', '),
+          ),
         ),
-        payload: 'Visit');
+      ),
+      payload: 'Visit',
+    );
 }
 
 Future<int> storeNotification(RemoteMessage message) async {
