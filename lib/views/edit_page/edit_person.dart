@@ -33,12 +33,8 @@ import '../services_list.dart';
 
 class EditPerson extends StatefulWidget {
   final Person? person;
-  final Function(FormState, Person, Person?)? save;
-  final bool showMotherAndFatherPhones;
 
-  const EditPerson(
-      {Key? key, this.person, this.save, this.showMotherAndFatherPhones = true})
-      : super(key: key);
+  const EditPerson({Key? key, this.person}) : super(key: key);
 
   @override
   _EditPersonState createState() => _EditPersonState();
@@ -169,7 +165,7 @@ class _EditPersonState extends State<EditPerson> {
                       textInputAction: TextInputAction.next,
                     ),
                   ),
-                  if (widget.showMotherAndFatherPhones)
+                  if (widget.person is! User)
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 8),
                       child: TextFormField(
@@ -187,7 +183,7 @@ class _EditPersonState extends State<EditPerson> {
                         textInputAction: TextInputAction.next,
                       ),
                     ),
-                  if (widget.showMotherAndFatherPhones)
+                  if (widget.person is! User)
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 8),
                       child: TextFormField(
@@ -452,7 +448,7 @@ class _EditPersonState extends State<EditPerson> {
                           : const Text('لا يوجد خدمات');
                     },
                   ),
-                  if (person.classId == null)
+                  if (person.classId == null || widget.person is User)
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 8),
                       child: FormField<bool>(
@@ -954,12 +950,7 @@ class _EditPersonState extends State<EditPerson> {
       ),
       floatingActionButton: FloatingActionButton(
         tooltip: 'حفظ',
-        onPressed: () {
-          if (widget.save != null)
-            widget.save!(_form.currentState!, person, widget.person);
-          else
-            _save();
-        },
+        onPressed: _save,
         child: const Icon(Icons.save),
       ),
     );
@@ -1079,21 +1070,25 @@ class _EditPersonState extends State<EditPerson> {
             duration: Duration(minutes: 1),
           ),
         );
-        final update = person.id != 'null';
+        final update = person.id != 'null' || widget.person is User;
+
         if (!update) {
           person.ref = FirebaseFirestore.instance.collection('Persons').doc();
         }
-        if (changedImage != null) {
-          await FirebaseStorage.instance
-              .ref()
-              .child('PersonsPhotos/${person.id}')
-              .putFile(File(changedImage!));
-          person.hasPhoto = true;
-        } else if (deletePhoto) {
-          await FirebaseStorage.instance
-              .ref()
-              .child('PersonsPhotos/${person.id}')
-              .delete();
+
+        if (widget.person is! User) {
+          if (changedImage != null) {
+            await FirebaseStorage.instance
+                .ref()
+                .child('PersonsPhotos/${person.id}')
+                .putFile(File(changedImage!));
+            person.hasPhoto = true;
+          } else if (deletePhoto) {
+            await FirebaseStorage.instance
+                .ref()
+                .child('PersonsPhotos/${person.id}')
+                .delete();
+          }
         }
 
         person.lastEdit = auth.FirebaseAuth.instance.currentUser!.uid;
@@ -1103,8 +1098,9 @@ class _EditPersonState extends State<EditPerson> {
           person
             ..isShammas = person.gender ? person.isShammas : false
             ..shammasLevel = person.gender ? person.shammasLevel : null;
-        } else if (person.classId != null ||
-            person.classId != widget.person?.classId) {
+        } else if (widget.person is! User &&
+            (person.classId != null ||
+                person.classId != widget.person?.classId)) {
           final class$ = Class.fromDoc(await person.classId!.get(dataSource))!;
           person
             ..gender = class$.gender

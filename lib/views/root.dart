@@ -101,8 +101,6 @@ class _RootState extends State<Root>
                 email: '',
                 ref: FirebaseFirestore.instance.collection('UsersData').doc(),
               ),
-              showMotherAndFatherPhones: false,
-              save: _saveUser,
             );
           },
         ),
