@@ -91,7 +91,7 @@
 - Click on the 3 vertical dots next to "New dynamic link" and choose Allolist URL pattern
 - Add each of the following Regexs:
   - ^https://meetinghelper\.com/view.+\?.+Id\=.+$
-  - ^https:\/\/meetinghelper\.com\/viewQuery\?collection\=((Services)|(Classes)|(Persons))\&fieldPath\=[^\&]+\&operator\=((%3D)|(%21%3D)|(%3E)|(%3C))\&queryValue(\=(((true)|(false))|((S|D|T|I)[^\&]+)))?\&order\=((true)|(false))\&orderBy\=[^\&]+\&descending\=(true|false)$
+  - ^https://meetinghelper\.com/viewQuery\?collection\=((Services)|(Classes)|(Persons))\&fieldPath\=[^\&]+\&operator\=[^\&]\&queryValue(\=(((true)|(false))|((S|D|T|I)[^\&]+)))?\&order\=((true)|(false))\&orderBy\=[^\&]+\&descending\=(true|false)$
   - ^https://play\.google\.com/.\*id=com\.AndroidQuartz\.meetinghelper$
   - ^https://meetinghelper\.com/viewUser\?UID\=.+$
   - ^https://meetinghelper\.com/register\?InvitationId\=.+$
