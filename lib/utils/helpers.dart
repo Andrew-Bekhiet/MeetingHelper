@@ -251,7 +251,7 @@ Stream<Map<PreferredStudyYear?, List<T>>>
 Stream<Map<PreferredStudyYear?, List<T>>>
     servicesByStudyYearRefForUser<T extends DataObject>(
         String? uid, List<JsonRef> adminServices) {
-  assert(T == Class || T == Service);
+  assert(T == Class || T == Service || T == DataObject);
 
   return Rx.combineLatest3<Map<JsonRef, StudyYear>, List<Class>, List<Service>,
           Map<PreferredStudyYear?, List<T>>>(
@@ -1024,7 +1024,9 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
           ) ==
           true) {
     String link = '';
-    if (attachement is Class) {
+    if (attachement is Service) {
+      link = 'Service?ServiceId=${attachement.id}';
+    } else if (attachement is Class) {
       link = 'Class?ClassId=${attachement.id}';
     } else if (attachement is Person) {
       link = 'Person?PersonId=${attachement.id}';
@@ -1034,7 +1036,7 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
       'title': title.text,
       'body': 'أرسل إليك ${User.instance.name} رسالة',
       'content': content.text,
-      'attachement': 'https://' + uriPrefix + '/view$link'
+      'attachement': uriPrefix + '/view$link'
     });
   }
 }
@@ -1836,7 +1838,7 @@ Future<void> showMessage(no.Notification notification) async {
   final attachement = await getLinkObject(
     Uri.parse(notification.attachement!),
   );
-  final String scndLine = await attachement.getSecondLine() ?? '';
+  final String scndLine = await attachement?.getSecondLine() ?? '';
   final user = notification.from != ''
       ? await FirebaseFirestore.instance
           .doc('Users/${notification.from}')

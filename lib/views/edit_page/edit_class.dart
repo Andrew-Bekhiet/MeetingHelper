@@ -470,9 +470,12 @@ class _EditClassState extends State<EditClass> {
                       showSubTitle: false,
                     ),
                     selectionMode: true,
-                    selected: {for (final item in users.data!) item.uid!: item},
+                    selected: {
+                      for (final item in users.data!) item.docId: item
+                    },
                     itemsStream: User.getAllForUser().map(
-                        (users) => users.where((u) => u.uid != null).toList()),
+                      (users) => users.where((u) => u.uid != null).toList(),
+                    ),
                   ),
                   dispose: (context, c) => c.dispose(),
                   builder: (context, _) => Scaffold(
@@ -493,7 +496,8 @@ class _EditClassState extends State<EditClass> {
                             navigator.currentState!.pop(context
                                 .read<DataObjectListController<User>>()
                                 .selectedLatest
-                                ?.keys
+                                ?.values
+                                .map((u) => u.uid!)
                                 .toList());
                           },
                           icon: const Icon(Icons.done),

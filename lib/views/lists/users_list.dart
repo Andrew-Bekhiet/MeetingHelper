@@ -153,7 +153,7 @@ class _UsersListState extends State<UsersList> {
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
                       return Checkbox(
-                        value: snapshot.data!.containsKey(current.uid),
+                        value: snapshot.data!.containsKey(current.docId),
                         onChanged: (v) {
                           if (v!) {
                             _listOptions.select(current);
