@@ -1,4 +1,4 @@
-import { adminPassword } from "./adminPassword";
+import { adminPassword, projectId } from "./adminPassword";
 import { runWith } from "firebase-functions";
 import { firestore, storage } from "firebase-admin";
 import * as download from "download";
@@ -29,7 +29,7 @@ export const dumpImages = runWith({
       await download(
         (
           await storage()
-            .bucket()
+            .bucket("gs://" + projectId + ".appspot.com")
             .file("PersonsPhotos/" + item.id)
             .getSignedUrl({ action: "read", expires: _linkExpiry })
         )[0],
@@ -51,7 +51,7 @@ export const dumpImages = runWith({
       await download(
         (
           await storage()
-            .bucket()
+            .bucket("gs://" + projectId + ".appspot.com")
             .file("PersonsPhotos/" + item.id)
             .getSignedUrl({ action: "read", expires: _linkExpiry })
         )[0],
@@ -64,7 +64,7 @@ export const dumpImages = runWith({
       await download(
         (
           await storage()
-            .bucket()
+            .bucket("gs://" + projectId + ".appspot.com")
             .file("PersonsPhotos/" + item)
             .getSignedUrl({ action: "read", expires: _linkExpiry })
         )[0],

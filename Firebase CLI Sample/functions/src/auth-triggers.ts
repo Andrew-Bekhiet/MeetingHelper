@@ -3,6 +3,7 @@ import { auth as auth_1 } from "firebase-functions";
 import { firestore, database, storage, messaging, auth } from "firebase-admin";
 import { FieldValue } from "@google-cloud/firestore";
 import * as download from "download";
+import { projectId } from "./adminPassword";
 
 export const onUserSignUp = auth_1.user().onCreate(async (user) => {
   let customClaims: Record<string, any>;
@@ -115,7 +116,7 @@ export const onUserSignUp = auth_1.user().onCreate(async (user) => {
     .set(true);
   await download(user.photoURL!, "/tmp/", { filename: user.uid + ".jpg" });
   await storage()
-    .bucket()
+    .bucket("gs://" + projectId + ".appspot.com")
     .upload("/tmp/" + user.uid + ".jpg", {
       contentType: "image/jpeg",
       destination: "UsersPhotos/" + user.uid,
@@ -130,7 +131,7 @@ export const onUserDeleted = auth_1.user().onDelete(async (user) => {
     .child("Users/" + user.uid)
     .set(null);
   await storage()
-    .bucket()
+    .bucket("gs://" + projectId + ".appspot.com")
     .file("UsersPhotos/" + user.uid)
     .delete();
   await firestore().collection("Users").doc(user.uid).delete();

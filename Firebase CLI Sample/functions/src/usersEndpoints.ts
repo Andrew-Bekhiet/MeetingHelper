@@ -11,7 +11,7 @@ import { HttpsError } from "firebase-functions/lib/providers/https";
 import * as download from "download";
 
 import { assertNotEmpty, getFCMTokensForUser } from "./common";
-import { adminPassword } from "./adminPassword";
+import { adminPassword, projectId } from "./adminPassword";
 
 export const registerWithLink = https.onCall(async (data, context) => {
   if (context.auth === undefined) {
@@ -98,21 +98,45 @@ export const registerWithLink = https.onCall(async (data, context) => {
       .update({
         Name: currentUser.displayName,
         Permissions: {
-          ManageUsers: newPermissions.manageUsers,
-          ManageAllowedUsers: newPermissions.manageAllowedUsers,
-          ManageDeleted: newPermissions.manageDeleted,
-          SuperAccess: newPermissions.superAccess,
-          Write: newPermissions.write,
-          Secretary: newPermissions.secretary,
-          ChangeHistory: newPermissions.changeHistory,
-          Export: newPermissions.export,
-          BirthdayNotify: newPermissions.birthdayNotify,
-          ConfessionsNotify: newPermissions.confessionsNotify,
-          TanawolNotify: newPermissions.tanawolNotify,
-          KodasNotify: newPermissions.kodasNotify,
-          MeetingNotify: newPermissions.meetingNotify,
-          VisitNotify: newPermissions.visitNotify,
-          Approved: newPermissions.approved,
+          ManageUsers: newPermissions.manageUsers
+            ? newPermissions.manageUsers
+            : false,
+          ManageAllowedUsers: newPermissions.manageAllowedUsers
+            ? newPermissions.manageAllowedUsers
+            : false,
+          ManageDeleted: newPermissions.manageDeleted
+            ? newPermissions.manageDeleted
+            : false,
+          SuperAccess: newPermissions.superAccess
+            ? newPermissions.superAccess
+            : false,
+          Write: newPermissions.write ? newPermissions.write : false,
+          Secretary: newPermissions.secretary
+            ? newPermissions.secretary
+            : false,
+          ChangeHistory: newPermissions.changeHistory
+            ? newPermissions.changeHistory
+            : false,
+          Export: newPermissions.export ? newPermissions.export : false,
+          BirthdayNotify: newPermissions.birthdayNotify
+            ? newPermissions.birthdayNotify
+            : false,
+          ConfessionsNotify: newPermissions.confessionsNotify
+            ? newPermissions.confessionsNotify
+            : false,
+          TanawolNotify: newPermissions.tanawolNotify
+            ? newPermissions.tanawolNotify
+            : false,
+          KodasNotify: newPermissions.kodasNotify
+            ? newPermissions.kodasNotify
+            : false,
+          MeetingNotify: newPermissions.meetingNotify
+            ? newPermissions.meetingNotify
+            : false,
+          VisitNotify: newPermissions.visitNotify
+            ? newPermissions.visitNotify
+            : false,
+          Approved: newPermissions.approved ? newPermissions.approved : false,
         },
       });
     await batch.commit();
@@ -123,6 +147,8 @@ export const registerWithLink = https.onCall(async (data, context) => {
 });
 
 export const registerAccount = https.onCall(async (data, context) => {
+  console.log(data);
+  console.log(context);
   if (context.auth === undefined) {
     throw new https.HttpsError("unauthenticated", "");
   } else if (!(await auth().getUser(context.auth.uid)).customClaims!.approved) {
@@ -132,7 +158,6 @@ export const registerAccount = https.onCall(async (data, context) => {
   assertNotEmpty("password", data.password, typeof "");
   assertNotEmpty("lastConfession", data.lastConfession, typeof 0);
   assertNotEmpty("lastTanawol", data.lastTanawol, typeof 0);
-  assertNotEmpty("fcmToken", data.fcmToken, typeof "");
 
   const currentUser = await auth().getUser(context.auth.uid);
   const newCustomClaims: Record<string, any> = currentUser.customClaims
@@ -144,6 +169,7 @@ export const registerAccount = https.onCall(async (data, context) => {
   newCustomClaims["lastTanawol"] = data.lastTanawol;
   try {
     if (
+      data.fcmToken &&
       currentUser.customClaims?.approved &&
       (currentUser.customClaims?.manageUsers ||
         currentUser.customClaims?.manageAllowedUsers)
@@ -165,9 +191,10 @@ export const registerAccount = https.onCall(async (data, context) => {
       LastTanawol: Timestamp.fromMillis(data.lastTanawol),
       LastConfession: Timestamp.fromMillis(data.lastConfession),
     });
-  await database()
-    .ref("Users/" + currentUser.uid + "/FCM_Tokens/" + data.fcmToken)
-    .set("token");
+  if (data.fcmToken)
+    await database()
+      .ref("Users/" + currentUser.uid + "/FCM_Tokens/" + data.fcmToken)
+      .set("token");
   await auth().setCustomUserClaims(currentUser.uid, newCustomClaims);
   await database()
     .ref()
@@ -405,7 +432,7 @@ export const deleteImage = https.onCall(async (context) => {
     filename: "user.jpg",
   });
   return storage()
-    .bucket()
+    .bucket("gs://" + projectId + ".appspot.com")
     .upload("/tmp/user.jpg", {
       contentType: "image/jpeg",
       destination: "UsersPhotos/" + context.auth.uid,
@@ -414,11 +441,17 @@ export const deleteImage = https.onCall(async (context) => {
 });
 
 export const recoverDoc = https.onCall(async (data, context) => {
-  const currentUser = await auth().getUser(context.auth!.uid);
-  if (
-    currentUser.customClaims?.manageDeleted ||
-    (context.auth === undefined && data.AdminPassword === adminPassword)
-  ) {
+  if (!context.auth)
+    throw new https.HttpsError("unauthenticated", "unauthenticated");
+
+  const currentUser = await auth().getUser(context.auth.uid);
+
+  if (!currentUser.customClaims?.manageDeleted)
+    throw new https.HttpsError(
+      "permission-denied",
+      "Must be approved user with 'manageDeleted' permission"
+    );
+  else {
     console.log(data);
     if (
       !data.deletedPath ||
@@ -482,25 +515,28 @@ export const recoverDoc = https.onCall(async (data, context) => {
       await documentToWrite.set(documentToRecover.data()!, { merge: true });
       if (
         await storage()
-          .bucket()
+          .bucket("gs://" + projectId + ".appspot.com")
           .file(
             (data.deletedPath as string)
               .replace("/Classes/", "/ClassesPhotos/")
+              .replace("/Services/", "/ServicesPhotos/")
               .replace("/Persons/", "/PersonsPhotos/")
           )
           .exists()
       )
         await storage()
-          .bucket()
+          .bucket("gs://" + projectId + ".appspot.com")
           .file(
             (data.deletedPath as string)
               .replace("/Classes/", "/ClassesPhotos/")
+              .replace("/Services/", "/ServicesPhotos/")
               .replace("/Persons/", "/PersonsPhotos/")
           )
           .move(
             (data.deletedPath as string)
               .replace(RegExp("Deleted/\\d{4}-\\d{2}-\\d{2}/"), "")
               .replace("/Classes/", "/ClassesPhotos/")
+              .replace("/Services/", "/ServicesPhotos/")
               .replace("/Persons/", "/PersonsPhotos/")
           );
       if (!data.keepBackup) await firestore().doc(data.deletedPath).delete();
@@ -541,11 +577,40 @@ export const recoverDoc = https.onCall(async (data, context) => {
             count++;
           }
         }
+      } else if (doc.startsWith("Services")) {
+        for (const item of (
+          await firestore()
+            .collectionGroup("Persons")
+            .where("Services", "array-contains", firestore().doc(doc))
+            .get()
+        ).docs.filter((d) => d.ref.path.startsWith("Deleted"))) {
+          if (count % 500 === 0) {
+            await batch.commit();
+            batch = firestore().batch();
+          }
+          batch.set(
+            firestore().doc(
+              item.ref.path.replace(RegExp("Deleted/\\d{4}-\\d{2}-\\d{2}/"), "")
+            ),
+            item.data(),
+            { merge: true }
+          );
+          count++;
+          if (!data.keepBackup) {
+            batch.delete(item.ref);
+            count++;
+          }
+        }
       }
       await batch.commit();
-      if (await storage().bucket().file(data.deletedPath).exists())
+      if (
         await storage()
-          .bucket()
+          .bucket("gs://" + projectId + ".appspot.com")
+          .file(data.deletedPath)
+          .exists()
+      )
+        await storage()
+          .bucket("gs://" + projectId + ".appspot.com")
           .file(data.deletedPath)
           .move(
             (data.deletedPath as string).replace(
@@ -556,10 +621,4 @@ export const recoverDoc = https.onCall(async (data, context) => {
     }
     return "OK";
   }
-  if (context.auth)
-    throw new https.HttpsError(
-      "permission-denied",
-      "Must be approved user with 'manageDeleted' permission"
-    );
-  else throw new https.HttpsError("unauthenticated", "unauthenticated");
 });

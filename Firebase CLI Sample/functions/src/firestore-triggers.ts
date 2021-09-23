@@ -1,6 +1,6 @@
 import { firestore as firestore_1 } from "firebase-functions";
 
-import { auth, firestore, storage } from "firebase-admin";
+import { firestore, storage } from "firebase-admin";
 import {
   Timestamp,
   FieldValue,
@@ -9,7 +9,7 @@ import {
 import { FirebaseDynamicLinks } from "firebase-dynamic-links";
 
 import { getChangeType } from "./common";
-import { firebase_dynamic_links_key } from "./adminPassword";
+import { firebase_dynamic_links_key, projectId } from "./adminPassword";
 
 export const onClassUpdated = firestore_1
   .document("Classes/{class}")
@@ -30,9 +30,12 @@ export const onClassUpdated = firestore_1
         console.log(
           `Deleting Class children: ${change.before.data()!.Name}, ${
             change.before.id
-          }`
+          }`,
+          " that have null or empty Services"
         );
+
         let pendingChanges = firestore().batch();
+
         const snapshot = await firestore()
           .collection("Persons")
           .where(
@@ -46,9 +49,19 @@ export const onClassUpdated = firestore_1
             await pendingChanges.commit();
             pendingChanges = firestore().batch();
           }
-          pendingChanges.delete(snapshot.docs[i].ref);
+          if (
+            !(
+              snapshot.docs[i].data().Services as
+                | Array<firestore.DocumentReference>
+                | null
+                | undefined
+            )?.length
+          )
+            pendingChanges.delete(snapshot.docs[i].ref);
         }
+
         const dayID = new Date().toISOString().split("T")[0];
+
         await firestore()
           .collection("Deleted")
           .doc(dayID)
@@ -59,15 +72,17 @@ export const onClassUpdated = firestore_1
           .collection("Classes")
           .doc(change.before.id)
           .set(change.before.data()!);
+
         await pendingChanges.commit();
+
         if (
           await storage()
-            .bucket()
+            .bucket("gs://" + projectId + ".appspot.com")
             .file("ClassesPhotos/" + change.before.id)
             .exists()
         )
           await storage()
-            .bucket()
+            .bucket("gs://" + projectId + ".appspot.com")
             .file("ClassesPhotos/" + change.before.id)
             .move("Deleted/" + dayID + "/ClassesPhotos/" + change.before.id);
       }
@@ -84,7 +99,7 @@ export const onClassUpdated = firestore_1
 
 export const onServiceUpdated = firestore_1
   .document("Services/{service}")
-  .onWrite(async (change) => {
+  .onWrite(async (change, context) => {
     try {
       const changeType = getChangeType(change);
       if (changeType === "update" || changeType === "create") {
@@ -98,6 +113,56 @@ export const onServiceUpdated = firestore_1
         });
         return await batch.commit();
       } else {
+        console.log(
+          `Deleting Service children: ${change.before.data()!.Name}, ${
+            change.before.id
+          }`,
+          " that have null or empty ClassId"
+        );
+
+        let pendingChanges = firestore().batch();
+
+        const docs = [
+          ...(
+            await firestore()
+              .collection("Persons")
+              .where(
+                "Services",
+                "array-contains",
+                firestore().doc("Services/" + context.params.service)
+              )
+              .get()
+          ).docs,
+          ...(
+            await firestore()
+              .collection("UsersData")
+              .where(
+                "Services",
+                "array-contains",
+                firestore().doc("Services/" + context.params.service)
+              )
+              .get()
+          ).docs,
+        ];
+        for (let i = 0, l = docs.length; i < l; i++) {
+          if ((i + 1) % 500 === 0) {
+            await pendingChanges.commit();
+            pendingChanges = firestore().batch();
+          }
+          if (
+            !(docs[i].data().ClassId as
+              | firestore.DocumentReference
+              | null
+              | undefined) &&
+            !(
+              docs[i].data().Services as
+                | Array<firestore.DocumentReference>
+                | null
+                | undefined
+            )?.filter((r) => !r.isEqual(change.before.ref))?.length
+          )
+            pendingChanges.delete(docs[i].ref);
+        }
         const dayID = new Date().toISOString().split("T")[0];
         await firestore()
           .collection("Deleted")
@@ -109,14 +174,41 @@ export const onServiceUpdated = firestore_1
           .collection("Services")
           .doc(change.before.id)
           .set(change.before.data()!);
+
+        await pendingChanges.commit();
+
+        pendingChanges = firestore().batch();
+
+        const usersData = (
+          await firestore()
+            .collection("UsersData")
+            .where(
+              "AdminServices",
+              "array-contains",
+              firestore().doc("Services/" + context.params.service)
+            )
+            .get()
+        ).docs;
+
+        for (let i = 0; i < usersData.length; i++) {
+          if ((i + 1) % 500 === 0) {
+            await pendingChanges.commit();
+            pendingChanges = firestore().batch();
+          }
+          pendingChanges.update(usersData[i].ref, {
+            AdminServices: FieldValue.arrayRemove(change.before.ref),
+          });
+        }
+        await pendingChanges.commit();
+
         if (
           await storage()
-            .bucket()
+            .bucket("gs://" + projectId + ".appspot.com")
             .file("ServicesPhotos/" + change.before.id)
             .exists()
         )
           await storage()
-            .bucket()
+            .bucket("gs://" + projectId + ".appspot.com")
             .file("ServicesPhotos/" + change.before.id)
             .move("Deleted/" + dayID + "/ServicesPhotos/" + change.before.id);
       }
@@ -148,46 +240,14 @@ export const onPersonUpdated = firestore_1
           .doc(change.before.id)
           .set(change.before.data()!);
 
-        let deleteBatch = firestore().batch();
-
-        const historyToDelete = [
-          ...(
-            await firestore()
-              .collectionGroup("Meeting")
-              .where("ID", "==", change.before.id)
-              .get()
-          ).docs,
-          ...(
-            await firestore()
-              .collectionGroup("Confession")
-              .where("ID", "==", change.before.id)
-              .get()
-          ).docs,
-          ...(
-            await firestore()
-              .collectionGroup("Kodas")
-              .where("ID", "==", change.before.id)
-              .get()
-          ).docs,
-        ];
-
-        let batchCount = 0;
-        for (let i = 0, l = historyToDelete.length; i < l; i++, batchCount++) {
-          if (batchCount % 500 === 0) {
-            await deleteBatch.commit();
-            deleteBatch = firestore().batch();
-          }
-          deleteBatch.delete(historyToDelete[i].ref);
-        }
-        await deleteBatch.commit();
         if (
           await storage()
-            .bucket()
+            .bucket("gs://" + projectId + ".appspot.com")
             .file("PersonsPhotos/" + change.before.id)
             .exists()
         )
           await storage()
-            .bucket()
+            .bucket("gs://" + projectId + ".appspot.com")
             .file("PersonsPhotos/" + change.before.id)
             .move("Deleted/" + dayID + "/PersonsPhotos/" + change.before.id);
         return "OK";
@@ -547,6 +607,15 @@ export const onHistoryRecordWrite = firestore_1
         .doc(change.after.data()?.ID)
         .set(data, { merge: true });
     } else {
+      if (
+        !(
+          await firestore()
+            .collection("Persons")
+            .doc(change.before.data()?.ID)
+            .get()
+        ).exists
+      )
+        return;
       const batch = firestore().batch();
       const queryRes = await firestore()
         .collection("Persons")
@@ -601,9 +670,8 @@ export const onHistoryRecordWrite = firestore_1
 export const onServantsHistoryRecordWrite = firestore_1
   .document("ServantsHistory/{day}/{type}/{doc}")
   .onWrite(async (change, context) => {
-    const currentUser = await auth().getUser(
-      change.after?.id ? change.after?.id : change.before.id
-    );
+    const personId = context.params.doc;
+
     if (getChangeType(change) !== "delete") {
       if (
         getChangeType(change) === "update" &&
@@ -635,13 +703,17 @@ export const onServantsHistoryRecordWrite = firestore_1
 
       return await firestore()
         .collection("UsersData")
-        .doc(currentUser.customClaims!.personId)
+        .doc(personId)
         .set(data, { merge: true });
     } else {
+      if (
+        !(await firestore().collection("UsersData").doc(personId).get()).exists
+      )
+        return;
       const batch = firestore().batch();
       const queryRes = await firestore()
         .collection("UsersData")
-        .doc(currentUser.customClaims!.personId)
+        .doc(personId)
         .collection("EditHistory")
         .orderBy("Time", "desc")
         .limit(2)
@@ -650,7 +722,7 @@ export const onServantsHistoryRecordWrite = firestore_1
 
       const queryRes2 = await firestore()
         .collectionGroup(context.params.type)
-        .where("ID", "==", currentUser.customClaims!.personId)
+        .where("ID", "==", personId)
         .orderBy("Time", "desc")
         .limit(1)
         .get();

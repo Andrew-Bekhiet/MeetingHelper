@@ -1,9 +1,12 @@
-import { pubsub } from "firebase-functions";
+import { pubsub, runWith } from "firebase-functions";
 import { storage, firestore } from "firebase-admin";
-import { v1 } from "@google-cloud/firestore";
+import { FieldValue, v1 } from "@google-cloud/firestore";
 
-export const doBackupFirestoreData = pubsub
-  .schedule("0 0 * * 0")
+export const doBackupFirestoreData = runWith({
+  timeoutSeconds: 540,
+  memory: "1GB",
+})
+  .pubsub.schedule("0 0 * * 0")
   .onRun(async () => {
     const client = new v1.FirestoreAdminClient();
     const projectId = process.env.GCP_PROJECT || process.env.GCLOUD_PROJECT;
@@ -24,10 +27,161 @@ export const doBackupFirestoreData = pubsub
         const response = responses[0];
         console.log(`Operation Name: ${response["name"]}`);
         if (new Date().getDate() <= 7) {
-          await storage().bucket().deleteFiles({ prefix: "Exports/{export}" });
-          await storage().bucket().deleteFiles({ prefix: "Imports/{import}" });
-          await storage().bucket().deleteFiles({ prefix: "Deleted/{delete}" });
-          await firestore().recursiveDelete(firestore().collection("Deleted"));
+          const writer = firestore().bulkWriter();
+          writer.onWriteResult(async (ref) => {
+            if (
+              ref.path.match(
+                /^Deleted\/\d{4}-\d{2}-\d{2}\/([^\\/])+\/([^\\/])+$/
+              )
+            ) {
+              const entityRef = firestore()
+                .collection(ref.parent.id)
+                .doc(ref.id);
+
+              await firestore().recursiveDelete(entityRef, writer);
+
+              if (ref.parent.id == "Services") {
+                let pendingChanges = firestore().batch();
+
+                const docs = [
+                  ...(
+                    await firestore()
+                      .collection("Persons")
+                      .where("Services", "array-contains", entityRef)
+                      .get()
+                  ).docs,
+                  ...(
+                    await firestore()
+                      .collection("UsersData")
+                      .where("Services", "array-contains", entityRef)
+                      .get()
+                  ).docs,
+                ];
+                for (let i = 0, l = docs.length; i < l; i++) {
+                  if ((i + 1) % 500 === 0) {
+                    await pendingChanges.commit();
+                    pendingChanges = firestore().batch();
+                  }
+                  if (
+                    !(docs[i].data().ClassId as
+                      | firestore.DocumentReference
+                      | null
+                      | undefined) &&
+                    !(
+                      docs[i].data().Services as
+                        | Array<firestore.DocumentReference>
+                        | null
+                        | undefined
+                    )?.filter((r) => !r.isEqual(entityRef))?.length
+                  )
+                    pendingChanges.delete(docs[i].ref);
+                  else
+                    pendingChanges.update(docs[i].ref, {
+                      Services: FieldValue.arrayRemove(entityRef),
+                    });
+                }
+
+                await pendingChanges.commit();
+
+                pendingChanges = firestore().batch();
+
+                const usersData = (
+                  await firestore()
+                    .collection("UsersData")
+                    .where("Services", "array-contains", entityRef)
+                    .get()
+                ).docs;
+
+                for (let i = 0; i < usersData.length; i++) {
+                  if ((i + 1) % 500 === 0) {
+                    await pendingChanges.commit();
+                    pendingChanges = firestore().batch();
+                  }
+                  pendingChanges.update(usersData[i].ref, {
+                    Services: FieldValue.arrayRemove(entityRef),
+                  });
+                }
+                await pendingChanges.commit();
+              } else if (ref.parent.id == "Classes") {
+                let pendingChanges = firestore().batch();
+
+                const snapshot = await firestore()
+                  .collection("Persons")
+                  .where("ClassId", "==", entityRef)
+                  .get();
+                for (let i = 0, l = snapshot.docs.length; i < l; i++) {
+                  if ((i + 1) % 500 === 0) {
+                    await pendingChanges.commit();
+                    pendingChanges = firestore().batch();
+                  }
+                  if (
+                    !(
+                      snapshot.docs[i].data().Services as
+                        | Array<firestore.DocumentReference>
+                        | null
+                        | undefined
+                    )?.length
+                  )
+                    pendingChanges.delete(snapshot.docs[i].ref);
+                  else
+                    pendingChanges.update(snapshot.docs[i].ref, {
+                      ClassId: null,
+                    });
+                }
+              } else if (ref.parent.id == "Persons") {
+                let deleteBatch = firestore().batch();
+
+                const historyToDelete = [
+                  ...(
+                    await firestore()
+                      .collectionGroup("Meeting")
+                      .where("ID", "==", entityRef.id)
+                      .get()
+                  ).docs,
+                  ...(
+                    await firestore()
+                      .collectionGroup("Confession")
+                      .where("ID", "==", entityRef.id)
+                      .get()
+                  ).docs,
+                  ...(
+                    await firestore()
+                      .collectionGroup("Kodas")
+                      .where("ID", "==", entityRef.id)
+                      .get()
+                  ).docs,
+                ];
+
+                let batchCount = 0;
+                for (
+                  let i = 0, l = historyToDelete.length;
+                  i < l;
+                  i++, batchCount++
+                ) {
+                  if (batchCount % 500 === 0) {
+                    await deleteBatch.commit();
+                    deleteBatch = firestore().batch();
+                  }
+                  deleteBatch.delete(historyToDelete[i].ref);
+                }
+                await deleteBatch.commit();
+              }
+            }
+          });
+
+          await storage()
+            .bucket("gs://" + projectId + ".appspot.com")
+            .deleteFiles({ prefix: "Exports/{export}" });
+          await storage()
+            .bucket("gs://" + projectId + ".appspot.com")
+            .deleteFiles({ prefix: "Imports/{import}" });
+          await storage()
+            .bucket("gs://" + projectId + ".appspot.com")
+            .deleteFiles({ prefix: "Deleted/{delete}" });
+          await firestore().recursiveDelete(
+            firestore().collection("Deleted"),
+            writer
+          );
         }
         return responses;
       })

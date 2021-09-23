@@ -8,6 +8,7 @@ import { utils, writeFile, readFile } from "xlsx";
 import * as download from "download";
 
 import { assertNotEmpty } from "./common";
+import { projectId } from "./adminPassword";
 
 export const exportToExcel = runWith({
   memory: "512MB",
@@ -217,7 +218,7 @@ export const exportToExcel = runWith({
               userDocData?.AdminServices as Array<firestore.DocumentReference>
             )?.map(async (r) => await r.get())
           )
-    ).reduce<Record<string, Record<string, any>>>((map, s) => {
+    )?.reduce<Record<string, Record<string, any>>>((map, s) => {
       const rslt: Record<string, string | Date> = {};
 
       rslt["Name"] = s.data()?.Name;
@@ -397,7 +398,7 @@ export const exportToExcel = runWith({
   await writeFile(book, "/tmp/Export.xlsx");
   const file = (
     await storage()
-      .bucket()
+      .bucket("gs://" + projectId + ".appspot.com")
       .upload("/tmp/Export.xlsx", {
         destination: "Exports/Export-" + new Date().toISOString() + ".xlsx",
         gzip: true,
@@ -426,7 +427,7 @@ export const importFromExcel = runWith({
     throw new HttpsError("invalid-argument", "Must be xlsx file");
 
   const file = storage()
-    .bucket()
+    .bucket("gs://" + projectId + ".appspot.com")
     .file("Imports/" + data.fileId);
   if (!(await file.exists()))
     throw new HttpsError("not-found", "File doesnot exist");

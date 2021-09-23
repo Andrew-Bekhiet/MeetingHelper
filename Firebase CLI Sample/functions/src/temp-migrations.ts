@@ -99,23 +99,34 @@ export const migrateFromV6 = https.onCall(async (data) => {
     batchCount++;
   }
   console.log(await batch.commit());
-  /* 
+});
+
+export const migrateFromV7_2 = https.onCall(async (data) => {
+  if (data.AdminPassword !== adminPassword)
+    throw new https.HttpsError("unauthenticated", "unauthenticated");
+
   console.log("Migrating History data...");
 
-  batch = firestore().batch();
+  let batch = firestore().batch();
+  let batchCount = 0;
 
   const meeting = (await firestore().collectionGroup("Meeting").get()).docs;
   const kodas = (await firestore().collectionGroup("Kodas").get()).docs;
+  const confession = (await firestore().collectionGroup("Confession").get())
+    .docs;
 
-  for (const record of [...meeting, ...kodas]) {
-    if (record.data()?.studyYear) {
-      console.warn(
-        "Skipped " + record.ref.id + "because it already has StudyYear"
-      );
-      continue;
-    }
-    if (!record.data().ClassId) {
-      console.warn("Skipped " + record.ref.id + "because its ClassId is null");
+  const uidToUser: Record<string, auth.UserRecord | { customClaims: null }> =
+    {};
+
+  for (const record of [...meeting, ...kodas, ...confession]) {
+    if (record.ref.parent.parent?.parent.id !== "ServantsHistory") continue;
+    const newId = (uidToUser[record.id] ??= await auth()
+      .getUser(record.id)
+      .catch(() => {
+        return { customClaims: null };
+      })).customClaims?.personId;
+    if (!newId) {
+      console.warn("Skipping ", record.id, " because its user doesn\t exist");
       continue;
     }
 
@@ -124,14 +135,14 @@ export const migrateFromV6 = https.onCall(async (data) => {
       batch = firestore().batch();
     }
     console.log("Updating: " + record.id);
-    console.log("Class Data: " + classes[record.data().ClassId.id].data());
+    console.log("New ID: ", newId, " Old ID:", record.id);
 
-    batch.update(record.ref, {
-      StudyYear: classes[record.data()?.ClassId?.id]?.data()?.StudyYear
-        ? classes[record.data()?.ClassId?.id]?.data()?.StudyYear
-        : null,
+    batch.set(record.ref.parent.doc(newId), {
+      ...record.data(),
+      ID: newId,
     });
+    batch.delete(record.ref);
     batchCount++;
   }
-  console.log(await batch.commit()); */
+  console.log(await batch.commit());
 });
