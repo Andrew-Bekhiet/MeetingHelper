@@ -179,30 +179,23 @@ class _EditClassState extends State<EditClass> {
                   ),
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: DropdownButtonFormField(
-                      validator: (dynamic v) {
-                        if (v == null) {
-                          return 'هذا الحقل مطلوب';
-                        } else {
-                          return null;
-                        }
-                      },
+                    child: DropdownButtonFormField<bool?>(
                       value: class$.gender,
                       items: [null, true, false]
                           .map(
                             (item) => DropdownMenuItem(
                               value: item,
                               child: Text(item == null
-                                  ? ''
+                                  ? 'بنين وبنات'
                                   : item
                                       ? 'بنين'
                                       : 'بنات'),
                             ),
                           )
                           .toList(),
-                      onChanged: (dynamic value) {
-                        setState(() {});
+                      onChanged: (value) {
                         class$.gender = value;
+                        setState(() {});
                       },
                       decoration: const InputDecoration(
                         labelText: 'نوع الفصل',

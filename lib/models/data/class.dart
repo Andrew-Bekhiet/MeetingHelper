@@ -18,7 +18,7 @@ import 'user.dart';
 
 class Class extends DataObject with PhotoObject, ParentObject<Person> {
   JsonRef? studyYear;
-  bool gender;
+  bool? gender;
 
   late List<String> allowedUsers;
   String? lastEdit;
@@ -47,7 +47,7 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
   }
 
   Class.createFromData(Map<dynamic, dynamic> data, JsonRef ref)
-      : gender = data['Gender'] ?? true,
+      : gender = data['Gender'],
         super.createFromData(data, ref) {
     studyYear = data['StudyYear'];
     hasPhoto = data['HasPhoto'] ?? false;
@@ -70,7 +70,12 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
   }
 
   String getGenderName() {
-    return gender ? 'بنين' : 'بنات';
+    return gender == null
+        ? 'بنين وبنات'
+        // ignore: use_if_null_to_convert_nulls_to_bools
+        : gender == true
+            ? 'بنين'
+            : 'بنات';
   }
 
   @override
