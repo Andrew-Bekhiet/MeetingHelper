@@ -35,6 +35,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
   Timestamp? birthDate;
 
   JsonRef? school;
+  JsonRef? college;
   JsonRef? church;
   JsonRef? cFather;
 
@@ -83,6 +84,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
       this.lastEdit,
       this.notes = '',
       this.school,
+      this.college,
       this.church,
       this.cFather,
       this.isShammas = false,
@@ -125,6 +127,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
         last = (data['Last'] as Map?)?.cast() ?? {},
         notes = data['Notes'],
         school = data['School'],
+        college = data['College'],
         church = data['Church'],
         cFather = data['CFather'],
         isShammas = data['IsShammas'] ?? false,
@@ -203,6 +206,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
         'Color': '0x' + color.value.toRadixString(16),
         'LastEdit': User.onlyName(lastEdit),
         'School': getSchoolName(),
+        'College': getCollegeName(),
         'Church': getChurchName(),
         'CFather': getCFatherName(),
         'Location': location == null
@@ -241,6 +245,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
         'Last': last,
         'Notes': notes,
         'School': school,
+        'College': college,
         'Church': church,
         'CFather': cFather,
         'Location': location,
@@ -296,6 +301,10 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
 
   Future<String> getSchoolName() async {
     return (await school?.get(dataSource))?.data()?['Name'] ?? '';
+  }
+
+  Future<String> getCollegeName() async {
+    return (await college?.get(dataSource))?.data()?['Name'] ?? '';
   }
 
   String getSearchString() {
@@ -500,6 +509,13 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
           defaultValue: null,
           collection:
               FirebaseFirestore.instance.collection('Schools').orderBy('Name'),
+        ),
+        'College': PropertyMetadata<JsonRef>(
+          name: 'College',
+          label: 'الكلية',
+          defaultValue: null,
+          collection:
+              FirebaseFirestore.instance.collection('Colleges').orderBy('Name'),
         ),
         'Church': PropertyMetadata<JsonRef>(
           name: 'Church',

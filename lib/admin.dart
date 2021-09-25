@@ -704,6 +704,20 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
                 child: const Text('ترتيب السنة:'),
               ),
               if (editMode)
+                ListTile(
+                  onTap: () =>
+                      setState(() => year.isCollegeYear = !year.isCollegeYear!),
+                  title: const Text('سنة جامعية؟'),
+                  trailing: Checkbox(
+                      value: year.isCollegeYear ?? false,
+                      onChanged: (v) => setState(() => year.isCollegeYear = v)),
+                )
+              else
+                ListTile(
+                  title: const Text('سنة جامعية؟'),
+                  subtitle: Text(year.isCollegeYear! ? 'نعم' : 'لا'),
+                ),
+              if (editMode)
                 TextField(
                   keyboardType: TextInputType.number,
                   controller:

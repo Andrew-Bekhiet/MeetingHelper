@@ -577,6 +577,12 @@ class AppState extends State<App> {
                       .collection('Schools'),
                   title: 'المدارس',
                 ),
+            'Settings/Colleges': (context) => MiniModelList<College>(
+                  transformer: College.fromDoc,
+                  collection: firestore.FirebaseFirestore.instance
+                      .collection('Colleges'),
+                  title: 'الكليات',
+                ),
             'UpdateUserDataError': (context) => const UpdateUserDataErrorPage(),
             'ManageUsers': (context) => const UsersPage(),
             'Invitations': (context) => const InvitationsPage(),

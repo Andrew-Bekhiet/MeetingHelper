@@ -448,47 +448,60 @@ class _EditPersonState extends State<EditPerson> {
                           : const Text('لا يوجد خدمات');
                     },
                   ),
-                  if (person.classId == null || widget.person is User)
-                    Container(
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      child: FormField<bool>(
-                        initialValue: person.gender,
-                        builder: (state) => InputDecorator(
-                          decoration: InputDecoration(
-                              labelText: 'النوع', errorText: state.errorText),
-                          child: Row(
-                            children: [
-                              ...[true, false]
-                                  .map(
-                                    (i) => Expanded(
-                                      child: Row(
-                                        children: [
-                                          Radio<bool>(
-                                            value: i,
-                                            groupValue: person.gender,
-                                            onChanged: (v) => setState(
-                                                () => person.gender = v!),
+                  FutureBuilder<bool>(
+                    key: ValueKey(person.classId),
+                    future: () async {
+                      return widget.person is User ||
+                          (await person.classId?.get(dataSource))
+                                  ?.data()?['Gender'] ==
+                              null;
+                    }(),
+                    builder: (context, showGender) {
+                      if (widget.person is User || (showGender.data ?? false))
+                        return Container(
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          child: FormField<bool>(
+                            initialValue: person.gender,
+                            builder: (state) => InputDecorator(
+                              decoration: InputDecoration(
+                                  labelText: 'النوع',
+                                  errorText: state.errorText),
+                              child: Row(
+                                children: [
+                                  ...[true, false]
+                                      .map(
+                                        (i) => Expanded(
+                                          child: Row(
+                                            children: [
+                                              Radio<bool>(
+                                                value: i,
+                                                groupValue: person.gender,
+                                                onChanged: (v) => setState(
+                                                    () => person.gender = v!),
+                                              ),
+                                              GestureDetector(
+                                                onTap: () => setState(
+                                                    () => person.gender = i),
+                                                child: Text(i ? 'ذكر' : 'أنثى'),
+                                              )
+                                            ],
                                           ),
-                                          GestureDetector(
-                                            onTap: () => setState(
-                                                () => person.gender = i),
-                                            child: Text(i ? 'ذكر' : 'أنثى'),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                  )
-                                  .toList(),
-                            ],
+                                        ),
+                                      )
+                                      .toList(),
+                                ],
+                              ),
+                            ),
+                            onSaved: (value) => person.gender = value!,
+                            validator: (value) =>
+                                person.classId == null && value == null
+                                    ? 'يجب اختيار النوع'
+                                    : null,
                           ),
-                        ),
-                        onSaved: (value) => person.gender = value!,
-                        validator: (value) =>
-                            person.classId == null && value == null
-                                ? 'يجب اختيار النوع'
-                                : null,
-                      ),
-                    ),
+                        );
+                      return const SizedBox();
+                    },
+                  ),
                   if (person.gender)
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -585,66 +598,9 @@ class _EditPersonState extends State<EditPerson> {
                     label: const Text('تعديل مكان المنزل على الخريطة'),
                     onPressed: _editLocation,
                   ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.max,
-                      children: <Widget>[
-                        Expanded(
-                          child: FutureBuilder<JsonQuery>(
-                            key: ValueKey(person.school),
-                            future: School.getAllForUser(),
-                            builder: (context, data) {
-                              if (data.hasData) {
-                                return Container(
-                                  margin:
-                                      const EdgeInsets.symmetric(vertical: 8),
-                                  child: DropdownButtonFormField<JsonRef?>(
-                                    isExpanded: true,
-                                    value: person.school,
-                                    items: data.data!.docs
-                                        .map(
-                                          (item) => DropdownMenuItem(
-                                            value: item.reference,
-                                            child: Text(item.data()['Name']),
-                                          ),
-                                        )
-                                        .toList()
-                                      ..insert(
-                                        0,
-                                        const DropdownMenuItem(
-                                          value: null,
-                                          child: Text(''),
-                                        ),
-                                      ),
-                                    onChanged: (value) {
-                                      person.school = value;
-                                      FocusScope.of(context).nextFocus();
-                                    },
-                                    decoration: const InputDecoration(
-                                      labelText: 'المدرسة',
-                                    ),
-                                  ),
-                                );
-                              } else {
-                                return const SizedBox(width: 1, height: 1);
-                              }
-                            },
-                          ),
-                        ),
-                        TextButton.icon(
-                          icon: const Icon(Icons.add),
-                          label: const Text('اضافة'),
-                          onPressed: () async {
-                            await navigator.currentState!
-                                .pushNamed('Settings/Schools');
-                            setState(() {});
-                          },
-                        ),
-                      ],
-                    ),
+                  _CollegeOrSchool(
+                    key: ValueKey(person.studyYear),
+                    person: person,
                   ),
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 8),
@@ -1102,11 +1058,26 @@ class _EditPersonState extends State<EditPerson> {
             (person.classId != null ||
                 person.classId != widget.person?.classId)) {
           final class$ = Class.fromDoc(await person.classId!.get(dataSource))!;
+
           person
-            ..gender = class$.gender
+            ..gender = class$.gender ?? person.gender
             ..studyYear = class$.studyYear
-            ..isShammas = class$.gender ? person.isShammas : false
-            ..shammasLevel = class$.gender ? person.shammasLevel : null;
+            ..isShammas =
+                (class$.gender ?? person.gender) ? person.isShammas : false
+            ..shammasLevel =
+                (class$.gender ?? person.gender) ? person.shammasLevel : null;
+        }
+
+        if (widget.person is! User &&
+            person.studyYear != null &&
+            person.studyYear != widget.person?.studyYear) {
+          final isCollegeYear = (await person.studyYear?.get(dataSource))
+                  ?.data()?['IsCollegeYear']
+                  ?.toString() ==
+              'true';
+          person
+            ..school = isCollegeYear ? null : person.school
+            ..college = isCollegeYear ? person.college : null;
         }
 
         if (update &&
@@ -1165,8 +1136,10 @@ class _EditPersonState extends State<EditPerson> {
         setState(() {
           person
             ..classId = class$.ref
-            ..gender = class$.gender
-            ..isShammas = class$.gender ? person.isShammas : false;
+            ..studyYear = class$.studyYear
+            ..gender = class$.gender ?? person.gender
+            ..isShammas =
+                (class$.gender ?? person.gender) ? person.isShammas : false;
         });
         FocusScope.of(context).nextFocus();
       },
@@ -1371,5 +1344,162 @@ class _EditPersonState extends State<EditPerson> {
         ?.path;
     deletePhoto = false;
     setState(() {});
+  }
+}
+
+class _CollegeOrSchool extends StatefulWidget {
+  final Person person;
+
+  const _CollegeOrSchool({Key? key, required this.person}) : super(key: key);
+
+  @override
+  State<_CollegeOrSchool> createState() => _CollegeOrSchoolState();
+}
+
+class _CollegeOrSchoolState extends State<_CollegeOrSchool> {
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: () async {
+        final studyYear = await (widget.person.studyYear ??
+                (await widget.person.classId
+                        ?.get(dataSource)
+                        // ignore: invalid_return_type_for_catch_error
+                        .catchError((_) => null))
+                    ?.data()?['StudyYear'] as JsonRef?)
+            ?.get(dataSource);
+
+        return studyYear?.data()?['IsCollegeYear']?.toString() == 'true';
+      }(),
+      builder: (context, data) {
+        if (data.hasError)
+          return ErrorWidget(data.error!);
+        else if (data.hasData) {
+          if (data.requireData)
+            return Container(
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.max,
+                children: <Widget>[
+                  Expanded(
+                    child: FutureBuilder<JsonQuery>(
+                      key: ValueKey(widget.person.college),
+                      future: College.getAllForUser(),
+                      builder: (context, data) {
+                        if (data.hasData) {
+                          return Container(
+                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            child: DropdownButtonFormField<JsonRef?>(
+                              isExpanded: true,
+                              value: widget.person.college,
+                              items: data.data!.docs
+                                  .map(
+                                    (item) => DropdownMenuItem(
+                                      value: item.reference,
+                                      child: Text(item.data()['Name']),
+                                    ),
+                                  )
+                                  .toList()
+                                ..insert(
+                                  0,
+                                  const DropdownMenuItem(
+                                    value: null,
+                                    child: Text(''),
+                                  ),
+                                ),
+                              onChanged: (value) {
+                                widget.person.college = value;
+                                FocusScope.of(context).nextFocus();
+                              },
+                              decoration: const InputDecoration(
+                                labelText: 'الكلية',
+                              ),
+                            ),
+                          );
+                        } else {
+                          return const SizedBox(width: 1, height: 1);
+                        }
+                      },
+                    ),
+                  ),
+                  TextButton.icon(
+                    icon: const Icon(Icons.add),
+                    label: const Text('اضافة'),
+                    onPressed: () async {
+                      await navigator.currentState!
+                          .pushNamed('Settings/Colleges');
+                      setState(() {});
+                    },
+                  ),
+                ],
+              ),
+            );
+          else
+            return Container(
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.max,
+                children: <Widget>[
+                  Expanded(
+                    child: FutureBuilder<JsonQuery>(
+                      key: ValueKey(widget.person.school),
+                      future: School.getAllForUser(),
+                      builder: (context, data) {
+                        if (data.hasData) {
+                          return Container(
+                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            child: DropdownButtonFormField<JsonRef?>(
+                              isExpanded: true,
+                              value: widget.person.school,
+                              items: data.data!.docs
+                                  .map(
+                                    (item) => DropdownMenuItem(
+                                      value: item.reference,
+                                      child: Text(item.data()['Name']),
+                                    ),
+                                  )
+                                  .toList()
+                                ..insert(
+                                  0,
+                                  const DropdownMenuItem(
+                                    value: null,
+                                    child: Text(''),
+                                  ),
+                                ),
+                              onChanged: (value) {
+                                widget.person.school = value;
+                                FocusScope.of(context).nextFocus();
+                              },
+                              decoration: const InputDecoration(
+                                labelText: 'المدرسة',
+                              ),
+                            ),
+                          );
+                        } else {
+                          return const SizedBox(width: 1, height: 1);
+                        }
+                      },
+                    ),
+                  ),
+                  TextButton.icon(
+                    icon: const Icon(Icons.add),
+                    label: const Text('اضافة'),
+                    onPressed: () async {
+                      await navigator.currentState!
+                          .pushNamed('Settings/Schools');
+                      setState(() {});
+                    },
+                  ),
+                ],
+              ),
+            );
+        }
+        return const LinearProgressIndicator();
+      },
+    );
   }
 }

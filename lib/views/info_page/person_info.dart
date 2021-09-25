@@ -17,6 +17,7 @@ import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:tinycolor2/tinycolor2.dart';
+import 'package:tuple/tuple.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -377,15 +378,33 @@ class _PersonInfoState extends State<PersonInfo> {
                       ),
                       label: const Text('إظهار على الخريطة'),
                     ),
-                  ListTile(
-                    title: const Text('المدرسة:'),
-                    subtitle: FutureBuilder<String>(
-                      future: person.getSchoolName(),
-                      builder: (context, data) {
-                        if (data.hasData) return Text(data.data!);
-                        return const LinearProgressIndicator();
-                      },
-                    ),
+                  FutureBuilder<Tuple2<String, String>>(
+                    future: () async {
+                      final studyYear = await (person.studyYear ??
+                              (await person.classId?.get(dataSource))
+                                  ?.data()?['StudyYear'] as JsonRef?)
+                          ?.get(dataSource);
+                      final isCollegeYear =
+                          studyYear?.data()?['IsCollegeYear']?.toString() ==
+                              'true';
+
+                      return Tuple2(
+                          isCollegeYear ? 'الكلية' : ':المدرسة:',
+                          isCollegeYear
+                              ? await person.getCollegeName()
+                              : await person.getSchoolName());
+                    }(),
+                    builder: (context, data) {
+                      if (data.hasError)
+                        return ErrorWidget(data.error!);
+                      else if (data.hasData)
+                        return ListTile(
+                          title: Text(data.requireData.item1),
+                          subtitle: Text(data.requireData.item2),
+                        );
+
+                      return const LinearProgressIndicator();
+                    },
                   ),
                   ListTile(
                     title: const Text('الكنيسة:'),

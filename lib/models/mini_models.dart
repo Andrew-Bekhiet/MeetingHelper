@@ -128,10 +128,7 @@ class College extends MiniModel {
     return {'Name': name};
   }
 
-  static College? fromDoc(JsonDoc data) =>
-      data.exists ? College._createFromData(data.data()!, data.id) : null;
-
-  static College fromQueryDoc(JsonQueryDoc data) =>
+  static College fromDoc(JsonQueryDoc data) =>
       College._createFromData(data.data(), data.id);
 
   static Future<JsonQuery> getAllForUser() {
