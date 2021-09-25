@@ -128,27 +128,37 @@ class SettingsState extends State<Settings> {
                       header: const Text('بيانات إضافية',
                           style: TextStyle(fontSize: 24)),
                       collapsed: const Text(
-                          'الكنائس، الأباء الكهنة، الوظائف، السنوات الدراسية، أنواع الخدمات، أنواع المخدومين',
-                          overflow: TextOverflow.ellipsis),
+                        'الكنائس، الأباء الكهنة، الوظائف، السنوات الدراسية، المدارس والكليات',
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       expanded: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: <Widget>[
                           ElevatedButton(
-                              onPressed: () => navigator.currentState!
-                                  .pushNamed('Settings/Churches'),
-                              child: const Text('الكنائس')),
+                            onPressed: () => navigator.currentState!
+                                .pushNamed('Settings/Churches'),
+                            child: const Text('الكنائس'),
+                          ),
                           ElevatedButton(
-                              onPressed: () => navigator.currentState!
-                                  .pushNamed('Settings/Fathers'),
-                              child: const Text('الأباء الكهنة')),
+                            onPressed: () => navigator.currentState!
+                                .pushNamed('Settings/Fathers'),
+                            child: const Text('الأباء الكهنة'),
+                          ),
                           ElevatedButton(
-                              onPressed: () => navigator.currentState!
-                                  .pushNamed('Settings/StudyYears'),
-                              child: const Text('السنوات الدراسية')),
+                            onPressed: () => navigator.currentState!
+                                .pushNamed('Settings/StudyYears'),
+                            child: const Text('السنوات الدراسية'),
+                          ),
                           ElevatedButton(
-                              onPressed: () => navigator.currentState!
-                                  .pushNamed('Settings/Schools'),
-                              child: const Text('المدارس')),
+                            onPressed: () => navigator.currentState!
+                                .pushNamed('Settings/Schools'),
+                            child: const Text('المدارس'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () => navigator.currentState!
+                                .pushNamed('Settings/Colleges'),
+                            child: const Text('الكليات'),
+                          ),
                         ],
                       ),
                     ),
