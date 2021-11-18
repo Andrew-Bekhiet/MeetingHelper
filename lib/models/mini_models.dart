@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 
 import 'super_classes.dart';
@@ -71,7 +70,7 @@ class Church extends MiniModel with ParentObject<Father> {
     return FirebaseFirestore.instance
         .collection('Churches')
         .orderBy('Name')
-        .get(dataSource);
+        .get();
   }
 
   @override
@@ -80,7 +79,7 @@ class Church extends MiniModel with ParentObject<Father> {
     return (await FirebaseFirestore.instance
             .collection('Fathers')
             .where('ChurchId', isEqualTo: ref)
-            .get(dataSource))
+            .get())
         .docs
         .map(Father.fromQueryDoc)
         .toList();
@@ -112,7 +111,7 @@ class PersonState extends MiniModel {
     return FirebaseFirestore.instance
         .collection('States')
         .orderBy('Name')
-        .get(dataSource);
+        .get();
   }
 }
 
@@ -135,7 +134,7 @@ class College extends MiniModel {
     return FirebaseFirestore.instance
         .collection('Colleges')
         .orderBy('Name')
-        .get(dataSource);
+        .get();
   }
 }
 
@@ -171,12 +170,12 @@ class Father extends MiniModel with ChildObject<Church> {
     return FirebaseFirestore.instance
         .collection('Fathers')
         .orderBy('Name')
-        .get(dataSource);
+        .get();
   }
 
   @override
   Future<String?> getParentName() async {
-    return (await churchId?.get(dataSource))?.data()?['Name'];
+    return (await churchId?.get())?.data()?['Name'];
   }
 
   @override
@@ -202,10 +201,7 @@ class Job extends MiniModel {
       Job._createFromData(data.data(), data.id);
 
   static Future<JsonQuery> getAllForUser() {
-    return FirebaseFirestore.instance
-        .collection('Jobs')
-        .orderBy('Name')
-        .get(dataSource);
+    return FirebaseFirestore.instance.collection('Jobs').orderBy('Name').get();
   }
 }
 
@@ -228,10 +224,7 @@ class PersonType extends MiniModel {
       PersonType._createFromData(data.data(), data.id);
 
   static Future<JsonQuery> getAllForUser() {
-    return FirebaseFirestore.instance
-        .collection('Types')
-        .orderBy('Name')
-        .get(dataSource);
+    return FirebaseFirestore.instance.collection('Types').orderBy('Name').get();
   }
 }
 
@@ -257,7 +250,7 @@ class ServingType extends MiniModel {
     return FirebaseFirestore.instance
         .collection('ServingTypes')
         .orderBy('Name')
-        .get(dataSource);
+        .get();
   }
 }
 
@@ -297,7 +290,7 @@ class StudyYear extends MiniModel {
     return FirebaseFirestore.instance
         .collection('StudyYears')
         .orderBy('Grade')
-        .get(dataSource);
+        .get();
   }
 }
 
@@ -347,16 +340,13 @@ class School extends MiniModel {
     return FirebaseFirestore.instance
         .collection('Schools')
         .orderBy('Name')
-        .get(dataSource);
+        .get();
   }
 }
 
 class History {
   static Future<List<History>> getAllFromRef(JsonCollectionRef ref) async {
-    return (await ref
-            .orderBy('Time', descending: true)
-            .limit(1000)
-            .get(dataSource))
+    return (await ref.orderBy('Time', descending: true).limit(1000).get())
         .docs
         .map(fromDoc)
         .toList();

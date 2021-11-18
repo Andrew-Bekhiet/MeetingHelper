@@ -6,7 +6,6 @@ import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/history/history_record.dart';
-import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:rxdart/rxdart.dart';
@@ -64,7 +63,7 @@ class HistoryProperty extends StatelessWidget {
                       future: history.data![i].byUser != null
                           ? FirebaseFirestore.instance
                               .doc('Users/' + history.data![i].byUser!)
-                              .get(dataSource)
+                              .get()
                           : null,
                       builder: (context, user) {
                         return ListTile(
@@ -115,10 +114,7 @@ class EditHistoryProperty extends StatelessWidget {
         return ListTile(
           title: Text(name),
           subtitle: FutureBuilder<JsonQuery>(
-            future: historyRef
-                .orderBy('Time', descending: true)
-                .limit(1)
-                .get(dataSource),
+            future: historyRef.orderBy('Time', descending: true).limit(1).get(),
             builder: (context, future) {
               if (future.hasData) {
                 return ListTile(
@@ -421,7 +417,7 @@ class DayHistoryProperty extends StatelessWidget {
                           future: history.data![i].recordedBy != null
                               ? FirebaseFirestore.instance
                                   .doc('Users/' + history.data![i].recordedBy!)
-                                  .get(dataSource)
+                                  .get()
                               : null,
                           builder: (context, user) {
                             return user.hasData

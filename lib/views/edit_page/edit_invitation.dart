@@ -128,7 +128,7 @@ class _EditInvitationState extends State<EditInvitation> {
                                       .collection('UsersData')
                                       .doc(widget
                                           .invitation.permissions!['personId'])
-                                      .get(dataSource))
+                                      .get())
                                   .data()?['Name'];
                             }
                           },

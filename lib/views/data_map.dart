@@ -44,7 +44,7 @@ class MegaMap extends StatelessWidget {
                   return FirebaseFirestore.instance
                       .collection('Persons')
                       .where('ClassId', whereIn: c.map((e) => e.ref).toList())
-                      .get(dataSource);
+                      .get();
                 },
               ),
               ...selected.selected!.whereType<Service>().toList().split(10).map(
@@ -53,7 +53,7 @@ class MegaMap extends StatelessWidget {
                       .collection('Persons')
                       .where('Services',
                           arrayContainsAny: s.map((e) => e.ref).toList())
-                      .get(dataSource);
+                      .get();
                 },
               ),
             ],

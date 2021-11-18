@@ -422,7 +422,7 @@ class _EditPersonState extends State<EditPerson> {
                                 state.value!.take(2).map(
                                       (s) async =>
                                           Service.fromDoc(
-                                            await s.get(dataSource),
+                                            await s.get(),
                                           )?.name ??
                                           '',
                                     ),
@@ -452,8 +452,7 @@ class _EditPersonState extends State<EditPerson> {
                     key: ValueKey(person.classId),
                     future: () async {
                       return widget.person is User ||
-                          (await person.classId?.get(dataSource))
-                                  ?.data()?['Gender'] ==
+                          (await person.classId?.get())?.data()?['Gender'] ==
                               null;
                     }(),
                     builder: (context, showGender) {
@@ -1057,7 +1056,7 @@ class _EditPersonState extends State<EditPerson> {
         } else if (widget.person is! User &&
             (person.classId != null ||
                 person.classId != widget.person?.classId)) {
-          final class$ = Class.fromDoc(await person.classId!.get(dataSource))!;
+          final class$ = Class.fromDoc(await person.classId!.get())!;
 
           person
             ..gender = class$.gender ?? person.gender
@@ -1071,7 +1070,7 @@ class _EditPersonState extends State<EditPerson> {
         if (widget.person is! User &&
             person.studyYear != null &&
             person.studyYear != widget.person?.studyYear) {
-          final isCollegeYear = (await person.studyYear?.get(dataSource))
+          final isCollegeYear = (await person.studyYear?.get())
                   ?.data()?['IsCollegeYear']
                   ?.toString() ==
               'true';
@@ -1230,7 +1229,7 @@ class _EditPersonState extends State<EditPerson> {
                     return {
                       for (final s in await Future.wait(
                         person.services.map(
-                          (e) async => Service.fromDoc(await e.get(dataSource)),
+                          (e) async => Service.fromDoc(await e.get()),
                         ),
                       ))
                         if (s != null) s.id: s
@@ -1363,11 +1362,11 @@ class _CollegeOrSchoolState extends State<_CollegeOrSchool> {
       future: () async {
         final studyYear = await (widget.person.studyYear ??
                 (await widget.person.classId
-                        ?.get(dataSource)
+                        ?.get()
                         // ignore: invalid_return_type_for_catch_error
                         .catchError((_) => null))
                     ?.data()?['StudyYear'] as JsonRef?)
-            ?.get(dataSource);
+            ?.get();
 
         return studyYear?.data()?['IsCollegeYear']?.toString() == 'true';
       }(),

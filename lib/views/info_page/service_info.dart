@@ -353,18 +353,18 @@ class _ServiceInfoState extends State<ServiceInfo> {
                                 if (service.studyYearRange?.from ==
                                     service.studyYearRange?.to)
                                   return (await service.studyYearRange!.from
-                                              ?.get(dataSource))
+                                              ?.get())
                                           ?.data()?['Name'] as String? ??
                                       'غير موجودة';
 
-                                final from = (await service.studyYearRange!.from
-                                            ?.get(dataSource))
-                                        ?.data()?['Name'] ??
-                                    'غير موجودة';
-                                final to = (await service.studyYearRange!.to
-                                            ?.get(dataSource))
-                                        ?.data()?['Name'] ??
-                                    'غير موجودة';
+                                final from =
+                                    (await service.studyYearRange!.from?.get())
+                                            ?.data()?['Name'] ??
+                                        'غير موجودة';
+                                final to =
+                                    (await service.studyYearRange!.to?.get())
+                                            ?.data()?['Name'] ??
+                                        'غير موجودة';
 
                                 return 'من $from الى $to';
                               }(),

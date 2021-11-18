@@ -17,7 +17,6 @@ import 'package:meetinghelper/models/history/history_property.dart';
 import 'package:meetinghelper/models/history/history_record.dart';
 import 'package:meetinghelper/models/mini_models.dart';
 import 'package:meetinghelper/models/super_classes.dart';
-import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:path_provider/path_provider.dart';
@@ -84,7 +83,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                       .collectionGroup('EditHistory')
                       .orderBy('Time')
                       .limit(1)
-                      .get(dataSource))
+                      .get())
                   .docs
                   .firstOrNull
                   ?.data()['Time'] as Timestamp?)
@@ -101,7 +100,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                             whereIn: allowed.map((c) => c.ref).toList())
                         .orderBy('Time')
                         .limit(1)
-                        .get(dataSource))
+                        .get())
                     .docs
                     .firstOrNull
                     ?.data()['Time'] as Timestamp?)
@@ -115,7 +114,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                 .where('ClassId', isEqualTo: c)
                 .orderBy('Time')
                 .limit(1)
-                .get(dataSource),
+                .get(),
           ),
         ))
             .expand((e) => e.docs
@@ -291,7 +290,7 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
                     .collection(widget.colection)
                     .orderBy('Day')
                     .limit(1)
-                    .get(dataSource))
+                    .get())
                 .docs
                 .firstOrNull
                 ?.data()['Day'] as Timestamp?)
@@ -480,7 +479,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                     .collection(widget.historyColection)
                     .orderBy('Day')
                     .limit(1)
-                    .get(dataSource))
+                    .get())
                 .docs
                 .firstOrNull
                 ?.data()['Day'] as Timestamp?)

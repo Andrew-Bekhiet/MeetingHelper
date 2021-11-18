@@ -5,7 +5,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:collection/collection.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
@@ -1123,12 +1122,6 @@ void showBirthDayNotification() async {
 
   await User.instance.initialized;
 
-  dataSource = GetOptions(
-      source:
-          (await Connectivity().checkConnectivity()) == ConnectivityResult.none
-              ? Source.cache
-              : Source.serverAndCache);
-
   final persons = await Person.getAllForUser(
       queryCompleter: (q, _, __) => q
           .where(
@@ -1230,12 +1223,6 @@ void showConfessionNotification() async {
   );
 
   await User.instance.initialized;
-
-  dataSource = GetOptions(
-      source:
-          (await Connectivity().checkConnectivity()) == ConnectivityResult.none
-              ? Source.cache
-              : Source.serverAndCache);
 
   final persons = await Person.getAllForUser(
     queryCompleter: (q, _, __) => q
@@ -1364,12 +1351,6 @@ void showKodasNotification() async {
 
   await User.instance.initialized;
 
-  dataSource = GetOptions(
-      source:
-          (await Connectivity().checkConnectivity()) == ConnectivityResult.none
-              ? Source.cache
-              : Source.serverAndCache);
-
   final persons = await Person.getAllForUser(
     queryCompleter: (q, _, __) => q
         .where(
@@ -1425,12 +1406,6 @@ void showMeetingNotification() async {
 
   await User.instance.initialized;
 
-  dataSource = GetOptions(
-      source:
-          (await Connectivity().checkConnectivity()) == ConnectivityResult.none
-              ? Source.cache
-              : Source.serverAndCache);
-
   final persons = await Person.getAllForUser(
     queryCompleter: (q, _, __) => q
         .where(
@@ -1470,9 +1445,7 @@ Future<void> showMessage(no.Notification notification) async {
   );
   final String scndLine = await attachement?.getSecondLine() ?? '';
   final user = notification.from != ''
-      ? await FirebaseFirestore.instance
-          .doc('Users/${notification.from}')
-          .get(dataSource)
+      ? await FirebaseFirestore.instance.doc('Users/${notification.from}').get()
       : null;
   await showDialog(
     context: navigator.currentContext!,
@@ -1567,12 +1540,6 @@ void showTanawolNotification() async {
 
   await User.instance.initialized;
 
-  dataSource = GetOptions(
-      source:
-          (await Connectivity().checkConnectivity()) == ConnectivityResult.none
-              ? Source.cache
-              : Source.serverAndCache);
-
   final persons = await Person.getAllForUser(
     queryCompleter: (q, _, __) => q
         .where(
@@ -1627,12 +1594,6 @@ void showVisitNotification() async {
   );
 
   await User.instance.initialized;
-
-  dataSource = GetOptions(
-      source:
-          (await Connectivity().checkConnectivity()) == ConnectivityResult.none
-              ? Source.cache
-              : Source.serverAndCache);
 
   final persons = await Person.getAllForUser(
     queryCompleter: (q, _, __) => q

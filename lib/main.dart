@@ -299,13 +299,11 @@ class App extends StatefulWidget {
 
 class AppState extends State<App> {
   bool configureMessaging = true;
-  StreamSubscription<ConnectivityResult>? connection;
   StreamSubscription? userTokenListener;
   final AsyncMemoizer<void> _appLoader = AsyncMemoizer();
 
   @override
   void dispose() {
-    connection?.cancel();
     userTokenListener?.cancel();
     super.dispose();
   }
@@ -313,31 +311,6 @@ class AppState extends State<App> {
   @override
   void initState() {
     super.initState();
-    connection = Connectivity()
-        .onConnectivityChanged
-        .distinct()
-        .listen((ConnectivityResult result) {
-      if (result == ConnectivityResult.mobile ||
-          result == ConnectivityResult.wifi) {
-        dataSource =
-            const firestore.GetOptions(source: firestore.Source.serverAndCache);
-        if (mainScfld.currentState?.mounted ?? false)
-          ScaffoldMessenger.of(mainScfld.currentContext!)
-              .showSnackBar(const SnackBar(
-            backgroundColor: Colors.greenAccent,
-            content: Text('تم استرجاع الاتصال بالانترنت'),
-          ));
-      } else {
-        dataSource = const firestore.GetOptions(source: firestore.Source.cache);
-
-        if (mainScfld.currentState?.mounted ?? false)
-          ScaffoldMessenger.of(mainScfld.currentContext!)
-              .showSnackBar(const SnackBar(
-            backgroundColor: Colors.redAccent,
-            content: Text('لا يوجد اتصال بالانترنت!'),
-          ));
-      }
-    });
     setLocaleMessages('ar', ArMessages());
   }
 

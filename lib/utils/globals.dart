@@ -1,5 +1,4 @@
 // ignore_for_file: constant_identifier_names
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
@@ -52,12 +51,11 @@ const List<Color> accents = <Color>[
 ];
 
 AndroidParameters androidParameters = AndroidParameters(
-    packageName: 'com.AndroidQuartz.meetinghelper',
-    minimumVersion: 3,
-    fallbackUrl:
-        Uri.parse('https://github.com/Andrew-Bekhiet/MeetingHelper/releases/'));
-
-GetOptions dataSource = const GetOptions(source: Source.serverAndCache);
+  packageName: 'com.AndroidQuartz.meetinghelper',
+  minimumVersion: 3,
+  fallbackUrl:
+      Uri.parse('https://github.com/Andrew-Bekhiet/MeetingHelper/releases/'),
+);
 
 DynamicLinkParametersOptions dynamicLinkParametersOptions =
     DynamicLinkParametersOptions(

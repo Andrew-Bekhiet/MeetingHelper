@@ -10,7 +10,6 @@ import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart';
 import 'package:meetinghelper/models/super_classes.dart';
-import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:meetinghelper/views/map_view.dart';
@@ -153,28 +152,26 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
       FirebaseStorage.instance.ref().child('PersonsPhotos/$id');
 
   Future<String> getCFatherName() async {
-    return (await cFather?.get(dataSource))?.data()?['Name'] ?? '';
+    return (await cFather?.get())?.data()?['Name'] ?? '';
   }
 
   Future<String> getStudyYearName() async {
-    return (await studyYear?.get(dataSource))?.data()?['Name'] ??
-        getClassStudyYearName();
+    return (await studyYear?.get())?.data()?['Name'] ?? getClassStudyYearName();
   }
 
   Future<String> getClassStudyYearName() async {
-    return (await ((await classId?.get(dataSource))?.data()?['StudyYear']
-                    as JsonRef?)
-                ?.get(dataSource))
+    return (await ((await classId?.get())?.data()?['StudyYear'] as JsonRef?)
+                ?.get())
             ?.data()?['Name'] ??
         '';
   }
 
   Future<String> getChurchName() async {
-    return (await church?.get(dataSource))?.data()?['Name'] ?? '';
+    return (await church?.get())?.data()?['Name'] ?? '';
   }
 
   Future<String> getClassName() async {
-    return (await classId?.get(dataSource))?.data()?['Name'] ?? '';
+    return (await classId?.get())?.data()?['Name'] ?? '';
   }
 
   @override
@@ -215,8 +212,9 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
         'StudyYear': getStudyYearName(),
         'Services': services.isEmpty
             ? 'لا يوجد خدمات'
-            : Future.wait(services.take(3).map((r) async =>
-                    (await r.get(dataSource)).data()?['Name'] ?? ''))
+            : Future.wait(services
+                    .take(3)
+                    .map((r) async => (await r.get()).data()?['Name'] ?? ''))
                 .then((d) => d.join(','))
                 .catchError((_) => ''),
       };
@@ -300,11 +298,11 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
   }
 
   Future<String> getSchoolName() async {
-    return (await school?.get(dataSource))?.data()?['Name'] ?? '';
+    return (await school?.get())?.data()?['Name'] ?? '';
   }
 
   Future<String> getCollegeName() async {
-    return (await college?.get(dataSource))?.data()?['Name'] ?? '';
+    return (await college?.get())?.data()?['Name'] ?? '';
   }
 
   String getSearchString() {

@@ -381,9 +381,9 @@ class _PersonInfoState extends State<PersonInfo> {
                   FutureBuilder<Tuple2<String, String>>(
                     future: () async {
                       final studyYear = await (person.studyYear ??
-                              (await person.classId?.get(dataSource))
+                              (await person.classId?.get())
                                   ?.data()?['StudyYear'] as JsonRef?)
-                          ?.get(dataSource);
+                          ?.get();
                       final isCollegeYear =
                           studyYear?.data()?['IsCollegeYear']?.toString() ==
                               'true';
@@ -630,7 +630,7 @@ class _PersonServices extends StatelessWidget {
                 person.services.take(2).map(
                       (s) async =>
                           Service.fromDoc(
-                            await s.get(dataSource),
+                            await s.get(),
                           )?.name ??
                           '',
                     ),
@@ -664,7 +664,7 @@ class _PersonServices extends StatelessWidget {
                         return (await Future.wait(
                           person.services.map(
                             (s) async => Service.fromDoc(
-                              await s.get(dataSource),
+                              await s.get(),
                             ),
                           ),
                         ))

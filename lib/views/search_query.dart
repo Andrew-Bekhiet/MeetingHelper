@@ -629,7 +629,7 @@ class _SearchQueryState extends State<SearchQuery> {
                 child: queryValue != null && queryValue is JsonRef
                     ? FutureBuilder<Class>(
                         future: Future(() async => Class.fromDoc(
-                            await (queryValue as JsonRef).get(dataSource))!),
+                            await (queryValue as JsonRef).get())!),
                         builder: (context, classData) {
                           if (!classData.hasData)
                             return const LinearProgressIndicator();
@@ -675,7 +675,7 @@ class _SearchQueryState extends State<SearchQuery> {
             key: ValueKey('Select' + fieldPath),
             future: properties[collection]![fieldPath.split('.')[0]]!
                 .collection!
-                .get(dataSource),
+                .get(),
             builder: (context, data) {
               if (data.hasData) {
                 return DropdownButtonFormField<JsonRef?>(
@@ -741,7 +741,7 @@ class _SearchQueryState extends State<SearchQuery> {
                 child: queryValue != null && queryValue is JsonRef
                     ? FutureBuilder<Service>(
                         future: Future(() async => Service.fromDoc(
-                            await (queryValue as JsonRef).get(dataSource))!),
+                            await (queryValue as JsonRef).get())!),
                         builder: (context, serviceData) {
                           if (!serviceData.hasData)
                             return const LinearProgressIndicator();
@@ -822,7 +822,7 @@ class _SearchQueryState extends State<SearchQuery> {
                                     await FirebaseFirestore.instance
                                         .collection('Services')
                                         .doc(fieldPath.split('.')[1])
-                                        .get(dataSource))!),
+                                        .get())!),
                                 builder: (context, serviceData) {
                                   if (!serviceData.hasData)
                                     return const LinearProgressIndicator();

@@ -259,23 +259,7 @@ class User extends Person {
                   .reference()
                   .child('Users/${currentUser.uid}/forceRefresh')
                   .set(false);
-              connectionListener ??= dbInstance
-                  .reference()
-                  .child('.info/connected')
-                  .onValue
-                  .listen((snapshot) {
-                if (snapshot.snapshot.value == true) {
-                  dbInstance
-                      .reference()
-                      .child('Users/${user.uid}/lastSeen')
-                      .onDisconnect()
-                      .set(ServerValue.timestamp);
-                  dbInstance
-                      .reference()
-                      .child('Users/${user.uid}/lastSeen')
-                      .set('Active');
-                }
-              });
+
               idTokenClaims = idToken.claims ?? {};
             } catch (e) {
               idTokenClaims = Hive.box('User').toMap();
@@ -286,7 +270,7 @@ class User extends Person {
 
           Map<dynamic, dynamic> idTokenClaims;
           try {
-            late auth.IdTokenResult idToken;
+            auth.IdTokenResult? idToken;
             if ((await Connectivity().checkConnectivity()) !=
                 ConnectivityResult.none) {
               idToken = await user.getIdTokenResult();
@@ -299,24 +283,8 @@ class User extends Person {
                   .child('Users/${user.uid}/forceRefresh')
                   .set(false);
             }
-            connectionListener ??= dbInstance
-                .reference()
-                .child('.info/connected')
-                .onValue
-                .listen((snapshot) {
-              if (snapshot.snapshot.value == true) {
-                dbInstance
-                    .reference()
-                    .child('Users/${user.uid}/lastSeen')
-                    .onDisconnect()
-                    .set(ServerValue.timestamp);
-                dbInstance
-                    .reference()
-                    .child('Users/${user.uid}/lastSeen')
-                    .set('Active');
-              }
-            });
-            idTokenClaims = idToken.claims ?? Hive.box('User').toMap();
+
+            idTokenClaims = idToken?.claims ?? Hive.box('User').toMap();
           } on Exception {
             idTokenClaims = Hive.box('User').toMap();
             if (idTokenClaims.isEmpty) rethrow;
@@ -328,6 +296,7 @@ class User extends Person {
           _initialized = Completer<bool>();
           await userTokenListener?.cancel();
           _uid = null;
+
           notifyListeners();
         }
       },
@@ -374,6 +343,46 @@ class User extends Person {
             int.parse(idTokenClaims['lastTanawol'].toString()))
         : null;
     this.email = user?.email ?? email!;
+
+    connectionListener ??= dbInstance
+        .reference()
+        .child('.info/connected')
+        .onValue
+        .listen((snapshot) {
+      if (snapshot.snapshot.value == true) {
+        dbInstance
+            .reference()
+            .child('Users/${this.uid}/lastSeen')
+            .onDisconnect()
+            .set(ServerValue.timestamp);
+
+        FirebaseFirestore.instance.enableNetwork();
+
+        dbInstance
+            .reference()
+            .child('Users/${this.uid}/lastSeen')
+            .set('Active');
+
+        if (scaffoldMessenger.currentState?.mounted ?? false)
+          scaffoldMessenger.currentState!.showSnackBar(
+            const SnackBar(
+              backgroundColor: Colors.greenAccent,
+              content: Text('تم استرجاع الاتصال بالانترنت'),
+            ),
+          );
+      } else if (mainScfld.currentState?.mounted ?? false) {
+        if (!_streamSubject.hasValue) _streamSubject.add(this);
+
+        FirebaseFirestore.instance.disableNetwork();
+
+        scaffoldMessenger.currentState!.showSnackBar(
+          const SnackBar(
+            backgroundColor: Colors.redAccent,
+            content: Text('لا يوجد اتصال بالانترنت!'),
+          ),
+        );
+      }
+    });
 
     notifyListeners();
   }
@@ -681,10 +690,8 @@ class User extends Person {
       User._createFromData(data.data()!, data.reference);
 
   static Future<User> fromID(String? uid) async {
-    return fromDoc(await FirebaseFirestore.instance
-        .collection('Users')
-        .doc(uid)
-        .get(dataSource))
+    return fromDoc(
+        await FirebaseFirestore.instance.collection('Users').doc(uid).get())
       ..uid = uid;
   }
 
@@ -692,7 +699,7 @@ class User extends Person {
     final user = (await FirebaseFirestore.instance
             .collection('UsersData')
             .where('UID', isEqualTo: uid)
-            .get(dataSource))
+            .get())
         .docs
         .singleOrNull;
 
@@ -702,10 +709,8 @@ class User extends Person {
   }
 
   static Future<List<User>> getUsers(List<String> users) async {
-    return (await Future.wait(users.map((s) => FirebaseFirestore.instance
-            .collection('Users')
-            .doc(s)
-            .get(dataSource))))
+    return (await Future.wait(users.map((s) =>
+            FirebaseFirestore.instance.collection('Users').doc(s).get())))
         .map(User.fromDoc)
         .toList();
   }
@@ -830,10 +835,7 @@ class User extends Person {
 
   static Future<String?> onlyName(String? id) async {
     if (id == null) return null;
-    return (await FirebaseFirestore.instance
-            .collection('Users')
-            .doc(id)
-            .get(dataSource))
+    return (await FirebaseFirestore.instance.collection('Users').doc(id).get())
         .data()?['Name'];
   }
 

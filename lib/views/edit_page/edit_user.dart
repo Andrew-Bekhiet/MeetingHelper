@@ -416,7 +416,7 @@ class _EditUserState extends State<EditUser> {
                 return {
                   for (final s in await Future.wait(
                     user.adminServices.map(
-                      (e) async => Service.fromDoc(await e.get(dataSource)),
+                      (e) async => Service.fromDoc(await e.get()),
                     ),
                   ))
                     if (s != null) s.id: s

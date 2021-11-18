@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/user.dart';
-import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:rxdart/rxdart.dart';
@@ -190,16 +189,14 @@ class Service extends DataObject with PhotoObject {
         'StudyYearRange': Future(
           () async {
             if (studyYearRange?.from == studyYearRange?.to)
-              return (await studyYearRange!.from?.get(dataSource))
-                      ?.data()?['Name'] as String? ??
+              return (await studyYearRange!.from?.get())?.data()?['Name']
+                      as String? ??
                   'غير موجودة';
 
-            final from = (await studyYearRange!.from?.get(dataSource))
-                    ?.data()?['Name'] ??
+            final from = (await studyYearRange!.from?.get())?.data()?['Name'] ??
                 'غير موجودة';
-            final to =
-                (await studyYearRange!.to?.get(dataSource))?.data()?['Name'] ??
-                    'غير موجودة';
+            final to = (await studyYearRange!.to?.get())?.data()?['Name'] ??
+                'غير موجودة';
 
             return 'من $from الى $to';
           },

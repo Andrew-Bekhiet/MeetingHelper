@@ -7,7 +7,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:meetinghelper/models/super_classes.dart';
-import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:rxdart/rxdart.dart';
@@ -115,7 +114,7 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
               .where('ClassId', isEqualTo: ref)
               .orderBy(orderBy)
               .limit(5)
-              .get(dataSource))
+              .get())
           .docs
           .map(Person.fromQueryDoc)
           .toList();
@@ -124,7 +123,7 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
             .collection('Persons')
             .where('ClassId', isEqualTo: ref)
             .orderBy(orderBy)
-            .get(dataSource))
+            .get())
         .docs
         .map(Person.fromQueryDoc)
         .toList();
@@ -154,7 +153,7 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
                       FirebaseFirestore.instance.collection('Classes').doc(id))
               .limit(5)
               .orderBy(orderBy)
-              .get(dataSource))
+              .get())
           .docs
           .map(Person.fromQueryDoc)
           .toList();
@@ -165,7 +164,7 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
                 isEqualTo:
                     FirebaseFirestore.instance.collection('Classes').doc(id))
             .orderBy(orderBy)
-            .get(dataSource))
+            .get())
         .docs
         .map(Person.fromQueryDoc)
         .toList();
@@ -181,7 +180,7 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
   }
 
   Future<String> getStudyYearName() async {
-    return (await studyYear?.get(dataSource))?.data()?['Name'] ?? '';
+    return (await studyYear?.get())?.data()?['Name'] ?? '';
   }
 
   static Class empty() {
