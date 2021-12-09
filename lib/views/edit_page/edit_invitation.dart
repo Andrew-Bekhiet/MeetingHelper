@@ -8,7 +8,6 @@ import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/invitation.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
-import 'package:meetinghelper/models/search/order_options.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/typedefs.dart';

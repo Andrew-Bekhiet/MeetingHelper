@@ -23,7 +23,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     hide Day, Person;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:meetinghelper/admin.dart';
 import 'package:meetinghelper/secrets.dart';

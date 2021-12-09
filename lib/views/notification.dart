@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:meetinghelper/models/super_classes.dart';
 
 import '../models/data/user.dart';

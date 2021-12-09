@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
@@ -30,7 +29,6 @@ import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import '../models/data/user.dart';
 import '../models/list_controllers.dart';
-import '../models/search/order_options.dart';
 import '../utils/globals.dart';
 import '../utils/helpers.dart';
 import 'auth_screen.dart';

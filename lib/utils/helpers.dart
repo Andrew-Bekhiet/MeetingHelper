@@ -18,7 +18,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     hide Person;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
@@ -44,9 +43,7 @@ import '../models/mini_models.dart';
 import '../models/super_classes.dart';
 import '../models/theme_notifier.dart';
 import '../utils/globals.dart';
-import '../views/auth_screen.dart';
 import '../views/list.dart';
-import '../views/lists/users_list.dart';
 import '../views/notification.dart' as no;
 import '../views/search_query.dart';
 

@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
@@ -16,7 +15,6 @@ import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../models/data/user.dart';
-import '../models/search/order_options.dart';
 import '../models/search/search_filters.dart';
 import '../utils/globals.dart';
 import '../utils/helpers.dart';
