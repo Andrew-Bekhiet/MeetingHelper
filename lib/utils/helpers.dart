@@ -1489,7 +1489,10 @@ Future<void> showMessage(no.Notification notification) async {
                 ),
               )
             else
-              CachedNetworkImage(imageUrl: attachement.url),
+              CachedNetworkImage(
+                useOldImageOnUrlChange: true,
+                imageUrl: attachement.url,
+              ),
             Text('من: ' +
                 (user != null
                     ? User.fromDoc(
@@ -1772,6 +1775,7 @@ class MessageIcon extends StatelessWidget {
               child: Hero(
                 tag: url!,
                 child: CachedNetworkImage(
+                  useOldImageOnUrlChange: true,
                   imageUrl: url!,
                   imageBuilder: (context, imageProvider) => PhotoView(
                     imageProvider: imageProvider,
@@ -1785,6 +1789,7 @@ class MessageIcon extends StatelessWidget {
             ),
           ),
           child: CachedNetworkImage(
+            useOldImageOnUrlChange: true,
             memCacheHeight: 221,
             imageUrl: url!,
             progressIndicatorBuilder: (context, url, progress) =>

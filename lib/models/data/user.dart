@@ -4,7 +4,6 @@ import 'package:async/async.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_database/firebase_database.dart' hide Query;
 import 'package:firebase_storage/firebase_storage.dart';
@@ -26,8 +25,8 @@ class User extends Person {
   Completer<bool> _initialized = Completer<bool>();
   Future<bool> get initialized => _initialized.future;
 
-  Stream<User> get stream => _streamSubject.stream;
-  final _streamSubject = BehaviorSubject<User>();
+  Stream<User> get stream => _stream.stream;
+  final _stream = BehaviorSubject<User>();
 
   @override
   bool get hasPhoto => uid != null;
@@ -270,20 +269,17 @@ class User extends Person {
           Map<dynamic, dynamic> idTokenClaims;
           try {
             auth.IdTokenResult? idToken;
-            if ((await Connectivity().checkConnectivity()) !=
-                ConnectivityResult.none) {
-              idToken = await user.getIdTokenResult();
+            idToken = await user.getIdTokenResult();
 
-              await Hive.box('User')
-                  .putAll(idToken.claims?.map(MapEntry.new) ?? {});
+            await Hive.box('User')
+                .putAll(idToken.claims?.map(MapEntry.new) ?? {});
 
-              await FirebaseDatabase.instance
-                  .ref()
-                  .child('Users/${user.uid}/forceRefresh')
-                  .set(false);
-            }
+            await FirebaseDatabase.instance
+                .ref()
+                .child('Users/${user.uid}/forceRefresh')
+                .set(false);
 
-            idTokenClaims = idToken?.claims ?? Hive.box('User').toMap();
+            idTokenClaims = idToken.claims ?? Hive.box('User').toMap();
           } on Exception {
             idTokenClaims = Hive.box('User').toMap();
             if (idTokenClaims.isEmpty) rethrow;
@@ -348,7 +344,8 @@ class User extends Person {
         .child('.info/connected')
         .onValue
         .listen((snapshot) {
-      if (snapshot.snapshot.value == true) {
+      if (snapshot.snapshot.value == true &&
+          (mainScfld.currentState?.mounted ?? false)) {
         FirebaseDatabase.instance
             .ref()
             .child('Users/${this.uid}/lastSeen')
@@ -370,7 +367,7 @@ class User extends Person {
             ),
           );
       } else if (mainScfld.currentState?.mounted ?? false) {
-        if (!_streamSubject.hasValue) _streamSubject.add(this);
+        if (!_stream.hasValue) _stream.add(this);
 
         FirebaseFirestore.instance.disableNetwork();
 
@@ -419,7 +416,7 @@ class User extends Person {
   }
 
   void notifyListeners() {
-    _streamSubject.add(this);
+    _stream.add(this);
   }
 
   Future<void> signOut() async {
@@ -510,7 +507,7 @@ class User extends Person {
     await personListener?.cancel();
     await connectionListener?.cancel();
     await authListener?.cancel();
-    await _streamSubject.close();
+    await _stream.close();
   }
 
   Map<String, bool> getNotificationsPermissions() => {
@@ -627,7 +624,10 @@ class User extends Person {
                                   backgroundImage: CachedNetworkImageProvider(
                                       photoUrl.data!),
                                 )
-                              : CachedNetworkImage(imageUrl: photoUrl.data!)
+                              : CachedNetworkImage(
+                                  useOldImageOnUrlChange: true,
+                                  imageUrl: photoUrl.data!,
+                                )
                           : const CircularProgressIndicator(),
                     ),
                     if (showActiveStatus &&

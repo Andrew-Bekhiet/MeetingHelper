@@ -173,6 +173,7 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                                 widget.object.photoRef.fullPath,
                             child: InteractiveViewer(
                               child: CachedNetworkImage(
+                                useOldImageOnUrlChange: true,
                                 imageUrl: data.data!,
                                 progressIndicatorBuilder:
                                     (context, url, progress) => AspectRatio(
@@ -186,7 +187,10 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                         ),
                       ),
                       child: CachedNetworkImage(
-                        memCacheHeight: (constrains.maxHeight * 4).toInt(),
+                        useOldImageOnUrlChange: true,
+                        memCacheHeight: (constrains.maxHeight *
+                                MediaQuery.of(context).devicePixelRatio)
+                            .toInt(),
                         imageUrl: data.data!,
                         progressIndicatorBuilder: (context, url, progress) =>
                             AspectRatio(
