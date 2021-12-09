@@ -40,7 +40,6 @@ class _EditInvitationState extends State<EditInvitation> {
           return <Widget>[
             SliverAppBar(
               expandedHeight: 250.0,
-              floating: false,
               pinned: true,
               actions: [
                 IconButton(

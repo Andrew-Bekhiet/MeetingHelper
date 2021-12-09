@@ -92,7 +92,6 @@ class _EditPersonState extends State<EditPerson> {
                   : null,
               //title: Text(widget.me.name),
               expandedHeight: 250.0,
-              floating: false,
               pinned: true,
               flexibleSpace: LayoutBuilder(
                 builder: (context, constraints) => FlexibleSpaceBar(
@@ -603,9 +602,6 @@ class _EditPersonState extends State<EditPerson> {
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.max,
                       children: <Widget>[
                         Expanded(
                           child: FutureBuilder<JsonQuery>(
@@ -1377,9 +1373,6 @@ class _CollegeOrSchoolState extends State<_CollegeOrSchool> {
             return Container(
               margin: const EdgeInsets.symmetric(vertical: 8),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisSize: MainAxisSize.max,
                 children: <Widget>[
                   Expanded(
                     child: FutureBuilder<JsonQuery>(
@@ -1438,9 +1431,6 @@ class _CollegeOrSchoolState extends State<_CollegeOrSchool> {
             return Container(
               margin: const EdgeInsets.symmetric(vertical: 8),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisSize: MainAxisSize.max,
                 children: <Widget>[
                   Expanded(
                     child: FutureBuilder<JsonQuery>(

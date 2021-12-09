@@ -30,10 +30,7 @@ class _MapViewState extends State<MapView> {
   @override
   Widget build(BuildContext context) {
     return GoogleMap(
-      compassEnabled: true,
-      mapToolbarEnabled: true,
       myLocationEnabled: true,
-      myLocationButtonEnabled: true,
       onTap: widget.editMode
           ? (point) {
               setState(() {

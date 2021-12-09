@@ -154,9 +154,6 @@ class _UserRegistrationState extends State<UserRegistration> {
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     builder: (state) {
                       return Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.max,
                         children: <Widget>[
                           Flexible(
                             flex: 3,
@@ -200,9 +197,6 @@ class _UserRegistrationState extends State<UserRegistration> {
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     builder: (state) {
                       return Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.max,
                         children: <Widget>[
                           Flexible(
                             flex: 3,

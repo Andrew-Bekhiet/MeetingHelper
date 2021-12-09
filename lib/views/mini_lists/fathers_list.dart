@@ -100,7 +100,6 @@ class InnerListState extends State<_InnerFathersList> {
       ),
       Row(
         mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           TextButton(
             onPressed: () => widget.finished!(widget.result),

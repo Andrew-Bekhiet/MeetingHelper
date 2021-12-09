@@ -100,7 +100,6 @@ class _HistoryState extends State<History> {
                       ),
                       child: dialog!,
                     ),
-                    helpText: null,
                     context: context,
                     confirmText: 'بحث',
                     saveText: 'بحث',

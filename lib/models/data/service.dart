@@ -38,7 +38,6 @@ class Service extends DataObject with PhotoObject {
     return Service(
       ref: FirebaseFirestore.instance.collection('Services').doc('null'),
       name: '',
-      hasPhoto: false,
       lastEdit: User.instance.uid!,
     );
   }

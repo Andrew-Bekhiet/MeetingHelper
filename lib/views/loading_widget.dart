@@ -34,7 +34,6 @@ class Loading extends StatelessWidget {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Expanded(
               flex: 16,
@@ -44,7 +43,6 @@ class Loading extends StatelessWidget {
               flex: 3,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(error
                       ? 'لا يمكن تحميل البرنامج في الوقت الحالي'

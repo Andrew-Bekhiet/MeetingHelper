@@ -6,6 +6,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -45,6 +46,10 @@ class Root extends StatefulWidget {
 
 class _RootState extends State<Root>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+  late final StreamSubscription<PendingDynamicLinkData>
+      _dynamicLinksSubscription;
+  late final StreamSubscription<RemoteMessage> _firebaseMessagingSubscription;
+
   TabController? _tabController;
   Timer? _keepAliveTimer;
   bool _timeout = false;
@@ -831,6 +836,10 @@ class _RootState extends State<Root>
               .then((value) {
             _pushed = false;
             _timeout = false;
+            if (_dynamicLinksSubscription.isPaused)
+              _dynamicLinksSubscription.resume();
+            if (_firebaseMessagingSubscription.isPaused)
+              _firebaseMessagingSubscription.resume();
           });
         }
         _keepAlive(true);
@@ -841,6 +850,10 @@ class _RootState extends State<Root>
       case AppLifecycleState.paused:
         _keepAlive(false);
         _recordLastSeen();
+        if (!_dynamicLinksSubscription.isPaused)
+          _dynamicLinksSubscription.pause();
+        if (!_firebaseMessagingSubscription.isPaused)
+          _firebaseMessagingSubscription.pause();
         break;
     }
   }
@@ -854,6 +867,10 @@ class _RootState extends State<Root>
   Future<void> dispose() async {
     super.dispose();
     WidgetsBinding.instance!.removeObserver(this);
+
+    await _firebaseMessagingSubscription.cancel();
+    await _dynamicLinksSubscription.cancel();
+
     await _showSearch.close();
     await _personsOrder.close();
     await _searchQuery.close();
@@ -865,7 +882,7 @@ class _RootState extends State<Root>
   @override
   void initState() {
     super.initState();
-    initializeDateFormatting('ar_EG', null);
+    initializeDateFormatting('ar_EG');
     _usersOptions = DataObjectListController<User>(
       searchQuery: _searchQuery,
       tap: personTap,
@@ -937,9 +954,9 @@ class _RootState extends State<Root>
     if (kIsWeb) return;
     final PendingDynamicLinkData? data =
         await FirebaseDynamicLinks.instance.getInitialLink();
-    FirebaseDynamicLinks.instance.onLink(
-      onSuccess: (dynamicLink) async {
-        if (dynamicLink == null) return;
+
+    _dynamicLinksSubscription = FirebaseDynamicLinks.instance.onLink.listen(
+      (dynamicLink) async {
         final Uri deepLink = dynamicLink.link;
 
         await processLink(deepLink);
@@ -1275,11 +1292,21 @@ class _RootState extends State<Root>
     if (!await User.instance.userDataUpToDate()) {
       await showErrorUpdateDataDialog(context: context, pushApp: false);
     }
+    listenToFirebaseMessaging();
     await showDynamicLink();
     await showPendingMessage();
     await processClickedNotification(context);
     await showBatteryOptimizationDialog();
     await showFeatures();
+  }
+
+  void listenToFirebaseMessaging() {
+    FirebaseMessaging.onBackgroundMessage(onBackgroundMessage);
+    FirebaseMessaging.onMessage.listen(onForegroundMessage);
+    _firebaseMessagingSubscription =
+        FirebaseMessaging.onMessageOpenedApp.listen((m) async {
+      await showPendingMessage();
+    });
   }
 
   void _keepAlive(bool visible) {

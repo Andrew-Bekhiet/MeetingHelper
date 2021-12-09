@@ -8,9 +8,6 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.html) 'package:meetinghelper/crashlytics_web.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
@@ -83,13 +80,11 @@ void main() async {
   FlutterError.onError = (flutterError) {
     Sentry.captureException(flutterError.exception,
         stackTrace: flutterError.stack, hint: flutterError);
-    FirebaseCrashlytics.instance.recordFlutterError(flutterError);
   };
   ErrorWidget.builder = (error) {
     if (kReleaseMode) {
       Sentry.captureException(error.exception,
           stackTrace: error.stack, hint: error);
-      FirebaseCrashlytics.instance.recordFlutterError(error);
     }
     return Material(
       child: Container(
@@ -247,33 +242,27 @@ Future _initConfigs([bool retryOnHiveError = true]) async {
     rethrow;
   }
   try {
-    await dotenv.load(fileName: '.env');
+    await dotenv.load();
 
     final String? kEmulatorsHost = dotenv.env['kEmulatorsHost'];
     //Firebase initialization
     if (kDebugMode &&
+        kEmulatorsHost != null &&
         dotenv.env['kUseFirebaseEmulators']?.toString() == 'true') {
       await Firebase.initializeApp(
         options: FirebaseOptions(
-            apiKey: dotenv.env['apiKey'] ?? 'sss',
-            appId: dotenv.env['appId'] ?? 'ss',
-            messagingSenderId: 'messagingSenderId',
-            projectId: dotenv.env['projectId']!,
-            databaseURL: 'http://' +
-                kEmulatorsHost! +
-                ':9000?ns=' +
-                dotenv.env['projectId']!),
+          apiKey: dotenv.env['apiKey'] ?? 'sss',
+          appId: dotenv.env['appId'] ?? 'ss',
+          messagingSenderId: 'messagingSenderId',
+          projectId: dotenv.env['projectId']!,
+        ),
       );
       await auth.FirebaseAuth.instance.useAuthEmulator(kEmulatorsHost, 9099);
       await FirebaseStorage.instance.useStorageEmulator(kEmulatorsHost, 9199);
       firestore.FirebaseFirestore.instance
-          .useFirestoreEmulator(kEmulatorsHost, 8080, sslEnabled: false);
+          .useFirestoreEmulator(kEmulatorsHost, 8080);
       FirebaseFunctions.instance.useFunctionsEmulator(kEmulatorsHost, 5001);
-      dbInstance = FirebaseDatabase(
-          databaseURL: 'http://' +
-              kEmulatorsHost +
-              ':9000?ns=' +
-              dotenv.env['projectId']!);
+      FirebaseDatabase.instance.useDatabaseEmulator(kEmulatorsHost, 9000);
     } else {
       await Firebase.initializeApp();
     }
@@ -297,7 +286,6 @@ class App extends StatefulWidget {
 }
 
 class AppState extends State<App> {
-  bool configureMessaging = true;
   StreamSubscription? userTokenListener;
   final AsyncMemoizer<void> _appLoader = AsyncMemoizer();
 
@@ -389,14 +377,6 @@ class AppState extends State<App> {
             withScope: (scope) =>
                 scope.setTag('LasErrorIn', 'AppState.configureMessaging'));
       }
-    }
-    if (configureMessaging) {
-      FirebaseMessaging.onBackgroundMessage(onBackgroundMessage);
-      FirebaseMessaging.onMessage.listen(onForegroundMessage);
-      FirebaseMessaging.onMessageOpenedApp.listen((m) async {
-        await showPendingMessage();
-      });
-      configureMessaging = false;
     }
   }
 

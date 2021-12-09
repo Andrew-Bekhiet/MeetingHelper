@@ -81,7 +81,6 @@ class _UserInfoState extends State<UserInfo> {
                   ),
                 ],
                 expandedHeight: 250.0,
-                floating: false,
                 pinned: true,
                 flexibleSpace: LayoutBuilder(
                   builder: (context, constraints) => FlexibleSpaceBar(
@@ -109,18 +108,21 @@ class _UserInfoState extends State<UserInfo> {
                 ),
                 ListTile(
                   title: const Text('أخر ظهور على البرنامج:'),
-                  subtitle: StreamBuilder<Event>(
-                    stream: dbInstance
-                        .reference()
+                  subtitle: StreamBuilder<DatabaseEvent>(
+                    stream: FirebaseDatabase.instance
+                        .ref()
                         .child('Users/${user.uid}/lastSeen')
                         .onValue,
                     builder: (context, activity) {
                       if (activity.data?.snapshot.value == 'Active') {
                         return const Text('نشط الآن');
                       } else if (activity.data?.snapshot.value != null) {
-                        return Text(toDurationString(
+                        return Text(
+                          toDurationString(
                             Timestamp.fromMillisecondsSinceEpoch(
-                                activity.data!.snapshot.value)));
+                                activity.data!.snapshot.value! as int),
+                          ),
+                        );
                       }
                       return const Text('لا يمكن التحديد');
                     },

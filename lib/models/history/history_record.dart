@@ -287,11 +287,12 @@ class MinimalHistoryRecord {
     }
 
     return Rx.combineLatest3<User, List<Class>, List<Service>,
-            Tuple3<User, List<Class>, List<Service>>>(
-        User.instance.stream,
-        classes == null ? Class.getAllForUser() : Stream.value([]),
-        services == null ? Service.getAllForUser() : Stream.value([]),
-        (a, b, c) => Tuple3(a, b, c)).switchMap((value) {
+                Tuple3<User, List<Class>, List<Service>>>(
+            User.instance.stream,
+            classes == null ? Class.getAllForUser() : Stream.value([]),
+            services == null ? Service.getAllForUser() : Stream.value([]),
+            Tuple3.new)
+        .switchMap((value) {
       if (range != null && classes != null && services != null) {
         return Rx.combineLatestList<JsonQuery>([
           ...classes

@@ -1,5 +1,4 @@
 // ignore_for_file: constant_identifier_names
-import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -57,21 +56,15 @@ AndroidParameters androidParameters = AndroidParameters(
       Uri.parse('https://github.com/Andrew-Bekhiet/MeetingHelper/releases/'),
 );
 
-DynamicLinkParametersOptions dynamicLinkParametersOptions =
-    DynamicLinkParametersOptions(
-        shortDynamicLinkPathLength: ShortDynamicLinkPathLength.unguessable);
-
 const FlutterSecureStorage flutterSecureStorage = FlutterSecureStorage();
 
-IosParameters iosParameters =
-    IosParameters(bundleId: 'com.AndroidQuartz.meetinghelper');
+const IOSParameters iosParameters =
+    IOSParameters(bundleId: 'com.AndroidQuartz.meetinghelper');
 
 GlobalKey<ScaffoldState> mainScfld = GlobalKey<ScaffoldState>();
 GlobalKey<ScaffoldMessengerState> scaffoldMessenger =
     GlobalKey<ScaffoldMessengerState>();
 GlobalKey<NavigatorState> navigator = GlobalKey<NavigatorState>();
-
-FirebaseDatabase dbInstance = FirebaseDatabase.instance;
 
 List<Color?> primaries = <Color?>[
   Colors.red,

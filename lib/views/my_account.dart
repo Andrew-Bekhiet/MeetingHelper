@@ -170,7 +170,6 @@ class _MyAccountState extends State<MyAccount> {
                   ),
                 ],
                 expandedHeight: 250.0,
-                floating: false,
                 pinned: true,
                 flexibleSpace: LayoutBuilder(
                   builder: (context, constraints) => FlexibleSpaceBar(

@@ -117,7 +117,6 @@ class _ChurchesPageState extends State<ChurchesPage> {
           width: 300,
           height: 700,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               DefaultTextStyle(
@@ -241,7 +240,6 @@ class _ChurchesPageState extends State<ChurchesPage> {
         title: Text(father.name),
         content: SingleChildScrollView(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text('الاسم:', style: title),
@@ -403,7 +401,6 @@ class _FathersPageState extends State<FathersPage> {
           width: 300,
           height: 700,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               DefaultTextStyle(
@@ -526,7 +523,6 @@ class _FathersPageState extends State<FathersPage> {
         title: Text(father.name),
         content: SingleChildScrollView(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text('الاسم:', style: title),
@@ -685,7 +681,6 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
         title: Text(year.name),
         content: SingleChildScrollView(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               DefaultTextStyle(

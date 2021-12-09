@@ -495,7 +495,6 @@ void import(BuildContext context) async {
       scaffoldMessenger.currentState!.showSnackBar(
         const SnackBar(
           content: Text('تم الاستيراد بنجاح'),
-          duration: Duration(seconds: 4),
         ),
       );
     } else {
@@ -576,14 +575,10 @@ Stream<Map<JsonRef, Tuple2<Class, List<User>>>> usersByClassRef(
               for (final e in groupBy<User, Class>(
                   users,
                   (user) => user.classId == null
-                      ? Class(
-                          name: 'غير محدد',
-                          gender: true,
-                          color: Colors.redAccent)
+                      ? Class(name: 'غير محدد', color: Colors.redAccent)
                       : classesByRef[user.classId] ??
                           Class(
                               name: '{لا يمكن قراءة اسم الفصل}',
-                              gender: true,
                               color: Colors.redAccent,
                               id: 'Unknown')).entries)
                 e.key.ref: Tuple2(e.key, e.value)
@@ -1006,13 +1001,15 @@ Future<void> recoverDoc(BuildContext context, String path) async {
 Future<String> shareClass(Class _class) async => shareClassRaw(_class.id);
 
 Future<String> shareClassRaw(String? id) async {
-  return (await DynamicLinkParameters(
-    uriPrefix: uriPrefix,
-    link: Uri.parse('https://meetinghelper.com/viewClass?ClassId=$id'),
-    androidParameters: androidParameters,
-    dynamicLinkParametersOptions: dynamicLinkParametersOptions,
-    iosParameters: iosParameters,
-  ).buildShortLink())
+  return (await FirebaseDynamicLinks.instance.buildShortLink(
+    DynamicLinkParameters(
+      uriPrefix: uriPrefix,
+      link: Uri.parse('https://meetinghelper.com/viewClass?ClassId=$id'),
+      androidParameters: androidParameters,
+      iosParameters: iosParameters,
+    ),
+    shortLinkType: ShortDynamicLinkType.unguessable,
+  ))
       .shortUrl
       .toString();
 }
@@ -1021,13 +1018,15 @@ Future<String> shareService(Service service) async =>
     shareServiceRaw(service.id);
 
 Future<String> shareServiceRaw(String? id) async {
-  return (await DynamicLinkParameters(
-    uriPrefix: uriPrefix,
-    link: Uri.parse('https://meetinghelper.com/viewService?ServiceId=$id'),
-    androidParameters: androidParameters,
-    dynamicLinkParametersOptions: dynamicLinkParametersOptions,
-    iosParameters: iosParameters,
-  ).buildShortLink())
+  return (await FirebaseDynamicLinks.instance.buildShortLink(
+    DynamicLinkParameters(
+      uriPrefix: uriPrefix,
+      link: Uri.parse('https://meetinghelper.com/viewService?ServiceId=$id'),
+      androidParameters: androidParameters,
+      iosParameters: iosParameters,
+    ),
+    shortLinkType: ShortDynamicLinkType.unguessable,
+  ))
       .shortUrl
       .toString();
 }
@@ -1043,14 +1042,16 @@ Future<String> shareHistory(HistoryDay record) async =>
     shareHistoryRaw(record.id);
 
 Future<String> shareHistoryRaw(String? id) async {
-  return (await DynamicLinkParameters(
-    uriPrefix: uriPrefix,
-    link:
-        Uri.parse('https://meetinghelper.com/viewHistoryRecord?HistoryId=$id'),
-    androidParameters: androidParameters,
-    dynamicLinkParametersOptions: dynamicLinkParametersOptions,
-    iosParameters: iosParameters,
-  ).buildShortLink())
+  return (await FirebaseDynamicLinks.instance.buildShortLink(
+    DynamicLinkParameters(
+      uriPrefix: uriPrefix,
+      link: Uri.parse(
+          'https://meetinghelper.com/viewHistoryRecord?HistoryId=$id'),
+      androidParameters: androidParameters,
+      iosParameters: iosParameters,
+    ),
+    shortLinkType: ShortDynamicLinkType.unguessable,
+  ))
       .shortUrl
       .toString();
 }
@@ -1060,25 +1061,29 @@ Future<String> sharePerson(Person person) async {
 }
 
 Future<String> sharePersonRaw(String? id) async {
-  return (await DynamicLinkParameters(
-    uriPrefix: uriPrefix,
-    link: Uri.parse('https://meetinghelper.com/viewPerson?PersonId=$id'),
-    androidParameters: androidParameters,
-    dynamicLinkParametersOptions: dynamicLinkParametersOptions,
-    iosParameters: iosParameters,
-  ).buildShortLink())
+  return (await FirebaseDynamicLinks.instance.buildShortLink(
+    DynamicLinkParameters(
+      uriPrefix: uriPrefix,
+      link: Uri.parse('https://meetinghelper.com/viewPerson?PersonId=$id'),
+      androidParameters: androidParameters,
+      iosParameters: iosParameters,
+    ),
+    shortLinkType: ShortDynamicLinkType.unguessable,
+  ))
       .shortUrl
       .toString();
 }
 
 Future<String> shareQuery(Map<String, Object?> query) async {
-  return (await DynamicLinkParameters(
-    uriPrefix: uriPrefix,
-    link: Uri.https('meetinghelper.com', 'viewQuery', query),
-    androidParameters: androidParameters,
-    dynamicLinkParametersOptions: dynamicLinkParametersOptions,
-    iosParameters: iosParameters,
-  ).buildShortLink())
+  return (await FirebaseDynamicLinks.instance.buildShortLink(
+    DynamicLinkParameters(
+      uriPrefix: uriPrefix,
+      link: Uri.https('meetinghelper.com', 'viewQuery', query),
+      androidParameters: androidParameters,
+      iosParameters: iosParameters,
+    ),
+    shortLinkType: ShortDynamicLinkType.unguessable,
+  ))
       .shortUrl
       .toString();
 }
@@ -1086,13 +1091,15 @@ Future<String> shareQuery(Map<String, Object?> query) async {
 Future<String> shareUser(User user) async => shareUserRaw(user.uid);
 
 Future<String> shareUserRaw(String? uid) async {
-  return (await DynamicLinkParameters(
-    uriPrefix: uriPrefix,
-    link: Uri.parse('https://meetinghelper.com/viewUser?UID=$uid'),
-    androidParameters: androidParameters,
-    dynamicLinkParametersOptions: dynamicLinkParametersOptions,
-    iosParameters: iosParameters,
-  ).buildShortLink())
+  return (await FirebaseDynamicLinks.instance.buildShortLink(
+    DynamicLinkParameters(
+      uriPrefix: uriPrefix,
+      link: Uri.parse('https://meetinghelper.com/viewUser?UID=$uid'),
+      androidParameters: androidParameters,
+      iosParameters: iosParameters,
+    ),
+    shortLinkType: ShortDynamicLinkType.unguessable,
+  ))
       .shortUrl
       .toString();
 }
@@ -1144,7 +1151,7 @@ void showBirthDayNotification() async {
         android: AndroidNotificationDetails(
           'Birthday',
           'إشعارات أعياد الميلاد',
-          'إشعارات أعياد الميلاد',
+          channelDescription: 'إشعارات أعياد الميلاد',
           icon: 'birthday',
           autoCancel: false,
           visibility: NotificationVisibility.secret,
@@ -1240,7 +1247,7 @@ void showConfessionNotification() async {
         android: AndroidNotificationDetails(
           'Confession',
           'إشعارات الاعتراف',
-          'إشعارات الاعتراف',
+          channelDescription: 'إشعارات الاعتراف',
           icon: 'warning',
           autoCancel: false,
           visibility: NotificationVisibility.secret,
@@ -1367,7 +1374,7 @@ void showKodasNotification() async {
         android: AndroidNotificationDetails(
           'Kodas',
           'إشعارات حضور القداس',
-          'إشعارات حضور القداس',
+          channelDescription: 'إشعارات حضور القداس',
           icon: 'warning',
           autoCancel: false,
           visibility: NotificationVisibility.secret,
@@ -1422,7 +1429,7 @@ void showMeetingNotification() async {
         android: AndroidNotificationDetails(
           'Meeting',
           'إشعارات حضور الاجتماع',
-          'إشعارات حضور الاجتماع',
+          channelDescription: 'إشعارات حضور الاجتماع',
           icon: 'warning',
           autoCancel: false,
           visibility: NotificationVisibility.secret,
@@ -1556,7 +1563,7 @@ void showTanawolNotification() async {
         android: AndroidNotificationDetails(
           'Tanawol',
           'إشعارات التناول',
-          'إشعارات التناول',
+          channelDescription: 'إشعارات التناول',
           icon: 'warning',
           autoCancel: false,
           visibility: NotificationVisibility.secret,
@@ -1611,7 +1618,7 @@ void showVisitNotification() async {
         android: AndroidNotificationDetails(
           'Visit',
           'إشعارات الافتقاد',
-          'إشعارات الافتقاد',
+          channelDescription: 'إشعارات الافتقاد',
           icon: 'warning',
           autoCancel: false,
           visibility: NotificationVisibility.secret,

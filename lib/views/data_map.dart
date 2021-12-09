@@ -67,10 +67,7 @@ class MegaMap extends StatelessWidget {
 
             return StatefulBuilder(
               builder: (context, setState) => GoogleMap(
-                compassEnabled: true,
-                mapToolbarEnabled: true,
                 myLocationEnabled: true,
-                myLocationButtonEnabled: true,
                 markers: persons
                     .where((f) => f.location != null)
                     .map(

@@ -79,7 +79,6 @@ class _UsersListState extends State<UsersList> {
               photo: DataObjectPhoto(
                 _class,
                 heroTag: _class.name + _class.id,
-                wrapPhotoInCircle: false,
               ),
               onTap: () {
                 _openedNodes.add({

@@ -60,7 +60,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                           .inDays ==
                       0;
                   return CheckListController(
-                    itemsStream: Person.getAllForUser(orderBy: 'Name'),
+                    itemsStream: Person.getAllForUser(),
                     day: widget.record,
                     dayOptions: HistoryDayOptions(
                       grouped: !isSameDay,

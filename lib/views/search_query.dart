@@ -79,8 +79,6 @@ class _SearchQueryState extends State<SearchQuery> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
             Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 const Text('عرض كل: '),
                 Expanded(
@@ -115,8 +113,6 @@ class _SearchQueryState extends State<SearchQuery> {
               ],
             ),
             Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 const Text('بشرط: '),
                 Expanded(
@@ -471,7 +467,6 @@ class _SearchQueryState extends State<SearchQuery> {
             key: const ValueKey('EnterString'),
             padding: const EdgeInsets.symmetric(vertical: 4.0),
             child: TextFormField(
-              autofocus: false,
               decoration: InputDecoration(
                 labelText:
                     properties[collection]?[fieldPath]?.label ?? 'قيمة البحث',

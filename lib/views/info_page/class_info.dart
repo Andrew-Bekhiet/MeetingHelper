@@ -305,7 +305,6 @@ class _ClassInfoState extends State<ClassInfo> {
                           ),
                         ],
                   expandedHeight: 250.0,
-                  floating: false,
                   stretch: true,
                   pinned: true,
                   flexibleSpace: LayoutBuilder(
@@ -469,7 +468,6 @@ class _ClassServants extends StatelessWidget {
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 7,
                 mainAxisSpacing: 10,
-                childAspectRatio: 1,
                 crossAxisSpacing: 10,
               ),
               shrinkWrap: true,

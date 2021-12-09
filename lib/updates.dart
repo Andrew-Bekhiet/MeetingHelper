@@ -127,7 +127,6 @@ class _UpdateState extends State<Update> {
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               ListTile(
                 title: const Text('الإصدار الحالي:'),

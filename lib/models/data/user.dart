@@ -78,8 +78,8 @@ class User extends Person {
   DateTime? get lastConfessionDate => lastConfession?.toDate();
   DateTime? get lastTanawolDate => lastTanawol?.toDate();
 
-  StreamSubscription<Event>? userTokenListener;
-  StreamSubscription<Event>? connectionListener;
+  StreamSubscription<DatabaseEvent>? userTokenListener;
+  StreamSubscription<DatabaseEvent>? connectionListener;
   StreamSubscription<JsonDoc>? personListener;
   StreamSubscription<auth.User?>? authListener;
 
@@ -238,8 +238,8 @@ class User extends Person {
     authListener = auth.FirebaseAuth.instance.userChanges().listen(
       (user) async {
         if (user != null) {
-          userTokenListener = dbInstance
-              .reference()
+          userTokenListener = FirebaseDatabase.instance
+              .ref()
               .child('Users/${user.uid}/forceRefresh')
               .onValue
               .listen((e) async {
@@ -252,10 +252,10 @@ class User extends Person {
                   await currentUser.getIdTokenResult(true);
 
               await Hive.box('User')
-                  .putAll(idToken.claims?.map((k, v) => MapEntry(k, v)) ?? {});
+                  .putAll(idToken.claims?.map(MapEntry.new) ?? {});
 
-              await dbInstance
-                  .reference()
+              await FirebaseDatabase.instance
+                  .ref()
                   .child('Users/${currentUser.uid}/forceRefresh')
                   .set(false);
 
@@ -275,10 +275,10 @@ class User extends Person {
               idToken = await user.getIdTokenResult();
 
               await Hive.box('User')
-                  .putAll(idToken.claims?.map((k, v) => MapEntry(k, v)) ?? {});
+                  .putAll(idToken.claims?.map(MapEntry.new) ?? {});
 
-              await dbInstance
-                  .reference()
+              await FirebaseDatabase.instance
+                  .ref()
                   .child('Users/${user.uid}/forceRefresh')
                   .set(false);
             }
@@ -343,22 +343,22 @@ class User extends Person {
         : null;
     this.email = user?.email ?? email!;
 
-    connectionListener ??= dbInstance
-        .reference()
+    connectionListener ??= FirebaseDatabase.instance
+        .ref()
         .child('.info/connected')
         .onValue
         .listen((snapshot) {
       if (snapshot.snapshot.value == true) {
-        dbInstance
-            .reference()
+        FirebaseDatabase.instance
+            .ref()
             .child('Users/${this.uid}/lastSeen')
             .onDisconnect()
             .set(ServerValue.timestamp);
 
         FirebaseFirestore.instance.enableNetwork();
 
-        dbInstance
-            .reference()
+        FirebaseDatabase.instance
+            .ref()
             .child('Users/${this.uid}/lastSeen')
             .set('Active');
 
@@ -551,8 +551,11 @@ class User extends Person {
   Widget getPhoto([bool showCircle = true, bool showActiveStatus = true]) {
     return AspectRatio(
       aspectRatio: 1,
-      child: StreamBuilder<Event>(
-        stream: dbInstance.reference().child('Users/$uid/lastSeen').onValue,
+      child: StreamBuilder<DatabaseEvent>(
+        stream: FirebaseDatabase.instance
+            .ref()
+            .child('Users/$uid/lastSeen')
+            .onValue,
         builder: (context, activity) {
           if (!hasPhoto)
             return Stack(
@@ -777,13 +780,16 @@ class User extends Person {
 
   Future<void> recordActive() async {
     if (uid == null) return;
-    await dbInstance.reference().child('Users/$uid/lastSeen').set('Active');
+    await FirebaseDatabase.instance
+        .ref()
+        .child('Users/$uid/lastSeen')
+        .set('Active');
   }
 
   Future<void> recordLastSeen() async {
     if (uid == null) return;
-    await dbInstance
-        .reference()
+    await FirebaseDatabase.instance
+        .ref()
         .child('Users/$uid/lastSeen')
         .set(Timestamp.now().millisecondsSinceEpoch);
   }

@@ -107,7 +107,6 @@ class InvitationInfo extends StatelessWidget {
                 ),
               ],
               expandedHeight: 250.0,
-              floating: false,
               stretch: true,
               pinned: true,
               flexibleSpace: LayoutBuilder(

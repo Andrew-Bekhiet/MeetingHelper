@@ -335,9 +335,10 @@ class _TrashDayScreenState extends State<TrashDayScreen>
       tap: personTap,
       itemsStream:
           Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
-              User.instance.stream,
-              Class.getAllForUser(),
-              (a, b) => Tuple2<User, List<Class>>(a, b)).switchMap((u) {
+                  User.instance.stream,
+                  Class.getAllForUser(),
+                  Tuple2<User, List<Class>>.new)
+              .switchMap((u) {
         if (u.item1.superAccess) {
           return widget.day.ref
               .collection('Persons')

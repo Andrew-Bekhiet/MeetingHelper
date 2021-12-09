@@ -38,7 +38,7 @@ class Exports extends StatelessWidget {
   Future<List<FileSystemEntity>> dirContents(Directory dir) {
     final files = <FileSystemEntity>[];
     final completer = Completer<List<FileSystemEntity>>();
-    final lister = dir.list(recursive: false);
+    final lister = dir.list();
     // ignore: cascade_invocations
     lister.listen(files.add, onDone: () => completer.complete(files));
     return completer.future;

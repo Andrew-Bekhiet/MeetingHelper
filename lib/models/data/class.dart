@@ -186,8 +186,7 @@ class Class extends DataObject with PhotoObject, ParentObject<Person> {
     return Class(
         name: '',
         allowedUsers: [auth.FirebaseAuth.instance.currentUser!.uid],
-        gender: false,
-        hasPhoto: false);
+        gender: false);
   }
 
   static Class? fromDoc(JsonDoc data) =>

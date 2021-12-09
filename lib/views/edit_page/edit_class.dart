@@ -80,7 +80,6 @@ class _EditClassState extends State<EditClass> {
                   : null,
               //title: Text(widget.me.name),
               expandedHeight: 250.0,
-              floating: false,
               pinned: true,
               flexibleSpace: LayoutBuilder(
                 builder: (context, constraints) => FlexibleSpaceBar(

@@ -443,7 +443,7 @@ class PersonAttendanceIndicator extends StatelessWidget {
             User.instance.stream,
             Class.getAllForUser(),
             Service.getAllForUser(),
-            (a, b, c) => Tuple3<User, List<Class>, List<Service>>(a, b, c))
+            Tuple3<User, List<Class>, List<Service>>.new)
         .switchMap((u) {
       if (u.item1.superAccess) {
         return FirebaseFirestore.instance
@@ -832,7 +832,7 @@ class CartesianChart<T> extends StatelessWidget {
 }
 
 class PieChart<T> extends StatelessWidget {
-  PieChart({
+  const PieChart({
     Key? key,
     required this.total,
     required this.pieData,
@@ -864,17 +864,18 @@ class PieChart<T> extends StatelessWidget {
         ),
         series: [
           PieSeries<Tuple2<int, T>, String>(
-              enableTooltip: true,
-              enableSmartLabels: true,
-              dataLabelMapper: (entry, _) =>
-                  (_getName(entry.item2) ?? 'غير معروف') +
-                  ': ' +
-                  (entry.item1 / total * 100).toStringAsFixed(2) +
-                  '%',
-              pointColorMapper: pointColorMapper,
-              dataSource: pieData.sorted((n, o) => o.item1.compareTo(n.item1)),
-              xValueMapper: (entry, _) => _getName(entry.item2) ?? 'غير معروف',
-              yValueMapper: (entry, _) => entry.item1),
+            enableTooltip: true,
+            dataLabelSettings: const DataLabelSettings(),
+            dataLabelMapper: (entry, _) =>
+                (_getName(entry.item2) ?? 'غير معروف') +
+                ': ' +
+                (entry.item1 / total * 100).toStringAsFixed(2) +
+                '%',
+            pointColorMapper: pointColorMapper,
+            dataSource: pieData.sorted((n, o) => o.item1.compareTo(n.item1)),
+            xValueMapper: (entry, _) => _getName(entry.item2) ?? 'غير معروف',
+            yValueMapper: (entry, _) => entry.item1,
+          ),
         ],
       ),
     );

@@ -82,7 +82,6 @@ class _EditServiceState extends State<EditService> {
                   : null,
               //title: Text(widget.me.name),
               expandedHeight: 250.0,
-              floating: false,
               pinned: true,
               flexibleSpace: LayoutBuilder(
                 builder: (context, constraints) => FlexibleSpaceBar(
@@ -257,7 +256,6 @@ class _EditServiceState extends State<EditService> {
                               ),
                               child: dialog!,
                             ),
-                            helpText: null,
                             confirmText: 'تم',
                             saveText: 'تم',
                             firstDate: DateTime(2020),

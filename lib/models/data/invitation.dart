@@ -55,7 +55,7 @@ class Invitation extends DataObject {
       'Title': title,
       'UsedBy': usedBy,
       'GeneratedBy': generatedBy,
-      'Permissions': permissions?.map((k, v) => MapEntry(k, v)) ?? {},
+      'Permissions': permissions?.map(MapEntry.new) ?? {},
       'GeneratedOn': generatedOn,
       'ExpiryDate': expiryDate,
     };

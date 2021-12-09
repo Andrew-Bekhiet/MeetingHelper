@@ -91,7 +91,6 @@ class InnerListState extends State<_InnerChurchsList> {
       ),
       Row(
         mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           TextButton(
             onPressed: () => widget.finished!(widget.result),

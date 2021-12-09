@@ -111,7 +111,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
                       Container(
                         padding:

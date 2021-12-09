@@ -423,7 +423,7 @@ class CheckListController<T extends Person, P extends DataObject>
                         ? Class.getAllForUser().map((c) => c.cast())
                         : Stream.value([]),
                     dayOptions.sortByTimeASC,
-                    (a, b, c) => Tuple3<User, List<P>, bool?>(a, b, c))
+                    Tuple3<User, List<P>, bool?>.new)
                 .switchMap(_attendedMapping)
             : Stream<Map<String, HistoryRecord>>.value({}))
         .listen(_attended.add, onError: _attended.addError);

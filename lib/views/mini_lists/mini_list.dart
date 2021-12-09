@@ -52,7 +52,6 @@ class MiniModelList<T extends MiniModel> extends StatelessWidget {
                           return AlertDialog(
                             content: Column(
                               mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
                                 TextField(
@@ -142,7 +141,6 @@ class MiniModelList<T extends MiniModel> extends StatelessWidget {
         ],
         content: SingleChildScrollView(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               if (editMode)

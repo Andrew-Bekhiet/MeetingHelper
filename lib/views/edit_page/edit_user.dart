@@ -47,7 +47,6 @@ class _EditUserState extends State<EditUser> {
           return <Widget>[
             SliverAppBar(
               expandedHeight: 250.0,
-              floating: false,
               pinned: true,
               actions: [
                 IconButton(

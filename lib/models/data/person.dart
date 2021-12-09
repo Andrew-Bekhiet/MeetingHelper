@@ -225,7 +225,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
         'Phone': phone,
         'FatherPhone': fatherPhone,
         'MotherPhone': motherPhone,
-        'Phones': phones.map((k, v) => MapEntry(k, v))
+        'Phones': phones.map(MapEntry.new)
           ..removeWhere((k, v) => v.toString().isEmpty),
         'Address': address,
         'HasPhoto': hasPhoto,
@@ -349,9 +349,10 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
       Query<Json> Function(Query<Json>, String, bool) queryCompleter =
           kDefaultQueryCompleter}) {
     return Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
-        User.instance.stream,
-        Class.getAllForUser(),
-        (a, b) => Tuple2<User, List<Class>>(a, b)).switchMap(
+            User.instance.stream,
+            Class.getAllForUser(),
+            Tuple2<User, List<Class>>.new)
+        .switchMap(
       (u) {
         if (u.item1.superAccess) {
           return queryCompleter(
