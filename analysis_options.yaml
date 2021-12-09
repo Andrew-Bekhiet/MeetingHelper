@@ -11,6 +11,7 @@ linter:
     avoid_init_to_null: true
     avoid_null_checks_in_equality_operators: true
     avoid_print: true
+    avoid_redundant_argument_values: true
     avoid_relative_lib_imports: true
     avoid_renaming_method_parameters: true
     avoid_return_types_on_setters: true
@@ -94,6 +95,7 @@ linter:
     unnecessary_await_in_return: true
     unnecessary_brace_in_string_interps: true
     unnecessary_const: true
+    unnecessary_constructor_name: true
     unnecessary_getters_setters: true
     unnecessary_lambdas: true
     unnecessary_new: true
