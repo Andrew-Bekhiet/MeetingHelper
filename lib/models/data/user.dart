@@ -11,6 +11,9 @@ import 'package:meetinghelper/utils/globals.dart';
 import 'package:rxdart/rxdart.dart';
 
 class MHAuthRepository extends AuthRepository<User, Person> {
+  static MHAuthRepository get instance => GetIt.I<MHAuthRepository>();
+  static MHAuthRepository get I => instance;
+
   static Future<User?> userNameFromUID(String uid) async {
     final document =
         await GetIt.I<DatabaseRepository>().collection('Users').doc(uid).get();
@@ -295,7 +298,9 @@ class MHPermissionsSet extends PermissionsSet implements Serializable {
 }
 
 class User extends UserBase implements DataObjectWithPhoto {
-  static User? get instance => GetIt.I<MHAuthRepository>().currentUser;
+  @Deprecated('Use "GetIt.I<MHAuthRepository>().currentUser" or'
+      ' "MHAuthRepository.instance.currentUser" instead')
+  static User get instance => GetIt.I<MHAuthRepository>().currentUser!;
 
   final String? password;
 
