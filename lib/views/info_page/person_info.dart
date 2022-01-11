@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -8,9 +8,8 @@ import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:provider/provider.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:tinycolor2/tinycolor2.dart';
@@ -18,22 +17,19 @@ import 'package:tuple/tuple.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../models/copiable_property.dart';
 import '../../models/data/user.dart';
-import '../../models/data_object_widget.dart';
 import '../../models/history/history_property.dart';
 import '../../utils/helpers.dart';
 
 class PersonInfo extends StatefulWidget {
   final Person person;
-  final Person? Function(JsonDoc) converter;
   final bool showMotherAndFatherPhones;
-  const PersonInfo(
-      {Key? key,
-      required this.person,
-      this.converter = Person.fromDoc,
-      this.showMotherAndFatherPhones = true})
-      : super(key: key);
+
+  const PersonInfo({
+    Key? key,
+    required this.person,
+    this.showMotherAndFatherPhones = true,
+  }) : super(key: key);
 
   @override
   _PersonInfoState createState() => _PersonInfoState();
@@ -51,16 +47,17 @@ class _PersonInfoState extends State<PersonInfo> {
       await Future.delayed(const Duration(milliseconds: 300));
 
       if (([
-        if (User.instance.write) 'Person.Edit',
+        if (MHAuthRepository.I.currentUser!.permissions.write) 'Person.Edit',
         'Person.Share',
-        if (User.instance.write) 'Person.LastVisit'
+        if (MHAuthRepository.I.currentUser!.permissions.write)
+          'Person.LastVisit'
       ]..removeWhere(HivePersistenceProvider.instance.hasCompletedStep))
           .isNotEmpty)
         TutorialCoachMark(
           context,
           focusAnimationDuration: const Duration(milliseconds: 200),
           targets: [
-            if (User.instance.write)
+            if (MHAuthRepository.I.currentUser!.permissions.write)
               TargetFocus(
                 enableOverlayTab: true,
                 contents: [
@@ -91,7 +88,7 @@ class _PersonInfoState extends State<PersonInfo> {
               keyTarget: _share,
               color: Theme.of(context).colorScheme.secondary,
             ),
-            if (User.instance.write)
+            if (MHAuthRepository.I.currentUser!.permissions.write)
               TargetFocus(
                 alignSkip: Alignment.topRight,
                 enableOverlayTab: true,
@@ -124,358 +121,364 @@ class _PersonInfoState extends State<PersonInfo> {
 
   @override
   Widget build(BuildContext context) {
-    return Selector<User, bool?>(
-      selector: (_, user) => user.write,
-      builder: (c, permission, data) => StreamBuilder<Person?>(
-        initialData: widget.person,
-        stream: widget.person.ref.snapshots().map(widget.converter),
-        builder: (context, data) {
-          final Person? person = data.data;
-          if (person == null)
-            return const Scaffold(
-              body: Center(
-                child: Text('تم حذف المخدوم'),
-              ),
-            );
-          return Scaffold(
-            body: NestedScrollView(
-              headerSliverBuilder:
-                  (BuildContext context, bool innerBoxIsScrolled) {
-                return <Widget>[
-                  SliverAppBar(
-                    backgroundColor: person.color != Colors.transparent
-                        ? (Theme.of(context).brightness == Brightness.light
-                            ? TinyColor(person.color).lighten().color
-                            : TinyColor(person.color).darken().color)
-                        : null,
-                    actions: person.ref.path.startsWith('Deleted')
-                        ? <Widget>[
-                            if (permission!)
-                              IconButton(
-                                icon: const Icon(Icons.restore),
-                                tooltip: 'استعادة',
-                                onPressed: () {
-                                  recoverDoc(context, person.ref.path);
-                                },
-                              )
-                          ]
-                        : <Widget>[
-                            if (permission!)
-                              IconButton(
-                                key: _edit,
-                                icon: Builder(
-                                  builder: (context) => Stack(
-                                    children: <Widget>[
-                                      const Positioned(
-                                        left: 1.0,
-                                        top: 2.0,
-                                        child: Icon(Icons.edit,
-                                            color: Colors.black54),
-                                      ),
-                                      Icon(Icons.edit,
-                                          color: IconTheme.of(context).color),
-                                    ],
-                                  ),
-                                ),
-                                onPressed: () async {
-                                  final dynamic result = await navigator
-                                      .currentState!
-                                      .pushNamed('Data/EditPerson',
-                                          arguments: person);
-                                  if (result is JsonRef) {
-                                    scaffoldMessenger.currentState!
-                                        .showSnackBar(
-                                      const SnackBar(
-                                        content: Text('تم الحفظ بنجاح'),
-                                      ),
-                                    );
-                                  } else if (result == 'deleted') {
-                                    scaffoldMessenger.currentState!
-                                        .hideCurrentSnackBar();
-                                    scaffoldMessenger.currentState!
-                                        .showSnackBar(
-                                      const SnackBar(
-                                        content: Text('تم الحذف بنجاح'),
-                                        duration: Duration(seconds: 2),
-                                      ),
-                                    );
-                                    navigator.currentState!.pop();
-                                  }
-                                },
-                                tooltip: 'تعديل',
-                              ),
+    return StreamBuilder<Person?>(
+      initialData: widget.person,
+      stream: MHAuthRepository.I.userStream
+          .distinct((o, n) => o?.permissions.write == n?.permissions.write)
+          .switchMap(
+            (_) => widget.person.ref.snapshots().map(Person.fromDoc),
+          ),
+      builder: (context, data) {
+        final write = MHAuthRepository.I.currentUser!.permissions.write;
+        final Person? person = data.data;
+
+        if (person == null)
+          return const Scaffold(
+            body: Center(
+              child: Text('تم حذف المخدوم'),
+            ),
+          );
+
+        return Scaffold(
+          body: NestedScrollView(
+            headerSliverBuilder:
+                (BuildContext context, bool innerBoxIsScrolled) {
+              return <Widget>[
+                SliverAppBar(
+                  backgroundColor:
+                      Theme.of(context).brightness == Brightness.light
+                          ? person.color?.lighten()
+                          : person.color?.darken(),
+                  actions: person.ref.path.startsWith('Deleted')
+                      ? <Widget>[
+                          if (write)
                             IconButton(
-                              key: _share,
+                              icon: const Icon(Icons.restore),
+                              tooltip: 'استعادة',
+                              onPressed: () {
+                                recoverDoc(context, person.ref.path);
+                              },
+                            )
+                        ]
+                      : <Widget>[
+                          if (write)
+                            IconButton(
+                              key: _edit,
                               icon: Builder(
                                 builder: (context) => Stack(
                                   children: <Widget>[
                                     const Positioned(
                                       left: 1.0,
                                       top: 2.0,
-                                      child: Icon(Icons.share,
+                                      child: Icon(Icons.edit,
                                           color: Colors.black54),
                                     ),
-                                    Icon(Icons.share,
+                                    Icon(Icons.edit,
                                         color: IconTheme.of(context).color),
                                   ],
                                 ),
                               ),
                               onPressed: () async {
-                                await Share.share(await sharePerson(person));
+                                final dynamic result = await navigator
+                                    .currentState!
+                                    .pushNamed('Data/EditPerson',
+                                        arguments: person);
+                                if (result is JsonRef) {
+                                  scaffoldMessenger.currentState!.showSnackBar(
+                                    const SnackBar(
+                                      content: Text('تم الحفظ بنجاح'),
+                                    ),
+                                  );
+                                } else if (result == 'deleted') {
+                                  scaffoldMessenger.currentState!
+                                      .hideCurrentSnackBar();
+                                  scaffoldMessenger.currentState!.showSnackBar(
+                                    const SnackBar(
+                                      content: Text('تم الحذف بنجاح'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                  navigator.currentState!.pop();
+                                }
                               },
-                              tooltip: 'مشاركة برابط',
+                              tooltip: 'تعديل',
                             ),
-                            PopupMenuButton(
-                              onSelected: (dynamic item) async {
-                                await sendNotification(context, person);
-                              },
-                              itemBuilder: (BuildContext context) {
-                                return [
-                                  const PopupMenuItem(
-                                    value: '',
-                                    child: Text(
-                                        'ارسال إشعار للمستخدمين عن المخدوم'),
-                                  )
-                                ];
-                              },
+                          IconButton(
+                            key: _share,
+                            icon: Builder(
+                              builder: (context) => Stack(
+                                children: <Widget>[
+                                  const Positioned(
+                                    left: 1.0,
+                                    top: 2.0,
+                                    child: Icon(Icons.share,
+                                        color: Colors.black54),
+                                  ),
+                                  Icon(Icons.share,
+                                      color: IconTheme.of(context).color),
+                                ],
+                              ),
                             ),
-                          ],
-                    expandedHeight: 250.0,
-                    pinned: true,
-                    flexibleSpace: LayoutBuilder(
-                      builder: (context, constraints) => FlexibleSpaceBar(
-                        title: AnimatedOpacity(
-                          duration: const Duration(milliseconds: 300),
-                          opacity:
-                              constraints.biggest.height > kToolbarHeight * 1.7
-                                  ? 0
-                                  : 1,
-                          child: Text(
-                            person.name,
-                            overflow: TextOverflow.ellipsis,
+                            onPressed: () async {
+                              await Share.share(await sharePerson(person));
+                            },
+                            tooltip: 'مشاركة برابط',
                           ),
+                          PopupMenuButton(
+                            onSelected: (dynamic item) async {
+                              await sendNotification(context, person);
+                            },
+                            itemBuilder: (BuildContext context) {
+                              return [
+                                const PopupMenuItem(
+                                  value: '',
+                                  child:
+                                      Text('ارسال إشعار للمستخدمين عن المخدوم'),
+                                )
+                              ];
+                            },
+                          ),
+                        ],
+                  expandedHeight: 250.0,
+                  pinned: true,
+                  flexibleSpace: LayoutBuilder(
+                    builder: (context, constraints) => FlexibleSpaceBar(
+                      title: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 300),
+                        opacity:
+                            constraints.biggest.height > kToolbarHeight * 1.7
+                                ? 0
+                                : 1,
+                        child: Text(
+                          person.name,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        background: person.photo(cropToCircle: false),
+                      ),
+                      background: PhotoObjectWidget(
+                        person,
+                        circleCrop: false,
                       ),
                     ),
                   ),
-                ];
-              },
-              body: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                children: <Widget>[
-                  ListTile(
-                    title: Text(person.name,
-                        style: Theme.of(context).textTheme.headline6),
-                  ),
+                ),
+              ];
+            },
+            body: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              children: <Widget>[
+                ListTile(
+                  title: Text(person.name,
+                      style: Theme.of(context).textTheme.headline6),
+                ),
+                PhoneNumberProperty(
+                  'موبايل:',
+                  person.phone,
+                  (n) => _phoneCall(context, n),
+                  (n) => _contactAdd(context, n, person),
+                ),
+                if (widget.showMotherAndFatherPhones)
                   PhoneNumberProperty(
-                    'موبايل:',
-                    person.phone,
+                    'موبايل (الأب):',
+                    person.fatherPhone,
                     (n) => _phoneCall(context, n),
                     (n) => _contactAdd(context, n, person),
                   ),
-                  if (widget.showMotherAndFatherPhones)
-                    PhoneNumberProperty(
-                      'موبايل (الأب):',
-                      person.fatherPhone,
-                      (n) => _phoneCall(context, n),
-                      (n) => _contactAdd(context, n, person),
-                    ),
-                  if (widget.showMotherAndFatherPhones)
-                    PhoneNumberProperty(
-                      'موبايل (الأم):',
-                      person.motherPhone,
-                      (n) => _phoneCall(context, n),
-                      (n) => _contactAdd(context, n, person),
-                    ),
-                  ...person.phones.entries
-                      .map(
-                        (e) => PhoneNumberProperty(
-                          e.key,
-                          e.value,
-                          (n) => _phoneCall(context, n),
-                          (n) => _contactAdd(context, n, person),
-                        ),
-                      )
-                      .toList(),
-                  ListTile(
-                    title: const Text('السن:'),
-                    subtitle: Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: Text(toDurationString(person.birthDate,
-                              appendSince: false)),
-                        ),
-                        Text(
-                            person.birthDate != null
-                                ? DateFormat('yyyy/M/d').format(
-                                    person.birthDate!.toDate(),
-                                  )
-                                : '',
-                            style: Theme.of(context).textTheme.overline),
-                      ],
-                    ),
+                if (widget.showMotherAndFatherPhones)
+                  PhoneNumberProperty(
+                    'موبايل (الأم):',
+                    person.motherPhone,
+                    (n) => _phoneCall(context, n),
+                    (n) => _contactAdd(context, n, person),
                   ),
-                  ListTile(
-                    title: const Text('السنة الدراسية:'),
-                    subtitle: FutureBuilder<String>(
-                      future: person.getStudyYearName(),
-                      builder: (context, data) {
-                        if (data.hasData) return Text(data.data!);
-                        return const LinearProgressIndicator();
-                      },
-                    ),
-                  ),
-                  ListTile(
-                    title: const Text('داخل فصل:'),
-                    subtitle: person.classId != null &&
-                            person.classId!.parent.id != 'null'
-                        ? FutureBuilder<Class?>(
-                            future: Class.fromId(person.classId!.id),
-                            builder: (context, _class) => _class
-                                            .connectionState ==
-                                        ConnectionState.done &&
-                                    _class.hasData
-                                ? DataObjectWidget<Class>(_class.data!,
-                                    isDense: true)
-                                : _class.connectionState == ConnectionState.done
-                                    ? const Text('لا يمكن ايجاد الفصل')
-                                    : const LinearProgressIndicator(),
-                          )
-                        : const Text('غير موجود'),
-                  ),
-                  _PersonServices(person: person),
-                  ListTile(
-                    title: const Text('النوع:'),
-                    subtitle: Text(person.gender ? 'ذكر' : 'أنثى'),
-                  ),
-                  if (person.gender)
-                    ListTile(
-                      title: const Text('شماس؟'),
-                      subtitle: Text(person.isShammas ? 'نعم' : 'لا'),
-                    ),
-                  if (person.gender && person.isShammas)
-                    ListTile(
-                      title: const Text('رتبة الشموسية:'),
-                      subtitle: Text(person.shammasLevel ?? ''),
-                    ),
-                  CopiableProperty('العنوان:', person.address),
-                  if (person.location != null &&
-                      !person.ref.path.startsWith('Deleted'))
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.map),
-                      onPressed: () => navigator.currentState!.push(
-                        MaterialPageRoute(
-                          builder: (context) => Scaffold(
-                            appBar: AppBar(title: Text(person.name)),
-                            body: person.getMapView(),
-                          ),
-                        ),
+                ...person.phones.entries
+                    .map(
+                      (e) => PhoneNumberProperty(
+                        e.key,
+                        e.value,
+                        (n) => _phoneCall(context, n),
+                        (n) => _contactAdd(context, n, person),
                       ),
-                      label: const Text('إظهار على الخريطة'),
-                    ),
-                  FutureBuilder<Tuple2<String, String>>(
-                    future: () async {
-                      final studyYear = await (person.studyYear ??
-                              (await person.classId?.get())
-                                  ?.data()?['StudyYear'] as JsonRef?)
-                          ?.get();
-                      final isCollegeYear =
-                          studyYear?.data()?['IsCollegeYear']?.toString() ==
-                              'true';
-
-                      return Tuple2(
-                          isCollegeYear ? 'الكلية' : ':المدرسة:',
-                          isCollegeYear
-                              ? await person.getCollegeName()
-                              : await person.getSchoolName());
-                    }(),
+                    )
+                    .toList(),
+                ListTile(
+                  title: const Text('السن:'),
+                  subtitle: person.birthDate != null
+                      ? Row(
+                          children: <Widget>[
+                            Expanded(
+                              child: Text(
+                                person.birthDate!
+                                    .toDurationString(appendSince: false),
+                              ),
+                            ),
+                            Text(
+                              DateFormat('yyyy/M/d').format(
+                                person.birthDate!,
+                              ),
+                              style: Theme.of(context).textTheme.overline,
+                            ),
+                          ],
+                        )
+                      : null,
+                ),
+                ListTile(
+                  title: const Text('السنة الدراسية:'),
+                  subtitle: FutureBuilder<String>(
+                    future: person.getStudyYearName(),
                     builder: (context, data) {
-                      if (data.hasError)
-                        return ErrorWidget(data.error!);
-                      else if (data.hasData)
-                        return ListTile(
-                          title: Text(data.requireData.item1),
-                          subtitle: Text(data.requireData.item2),
-                        );
-
+                      if (data.hasData) return Text(data.data!);
                       return const LinearProgressIndicator();
                     },
                   ),
+                ),
+                ListTile(
+                  title: const Text('داخل فصل:'),
+                  subtitle: person.classId != null &&
+                          person.classId!.parent.id != 'null'
+                      ? FutureBuilder<Class?>(
+                          future: Class.fromId(person.classId!.id),
+                          builder: (context, _class) =>
+                              _class.connectionState == ConnectionState.done &&
+                                      _class.hasData
+                                  ? DataObjectWidget<Class>(_class.data!,
+                                      isDense: true)
+                                  : _class.connectionState ==
+                                          ConnectionState.done
+                                      ? const Text('لا يمكن ايجاد الفصل')
+                                      : const LinearProgressIndicator(),
+                        )
+                      : const Text('غير موجود'),
+                ),
+                _PersonServices(person: person),
+                ListTile(
+                  title: const Text('النوع:'),
+                  subtitle: Text(person.gender ? 'ذكر' : 'أنثى'),
+                ),
+                if (person.gender)
                   ListTile(
-                    title: const Text('الكنيسة:'),
-                    subtitle: FutureBuilder<String>(
-                      future: person.getChurchName(),
-                      builder: (context, data) {
-                        if (data.hasData) return Text(data.data!);
-                        return const LinearProgressIndicator();
-                      },
-                    ),
+                    title: const Text('شماس؟'),
+                    subtitle: Text(person.isShammas ? 'نعم' : 'لا'),
                   ),
+                if (person.gender && person.isShammas)
                   ListTile(
-                    title: const Text('اب الاعتراف:'),
-                    subtitle: FutureBuilder<String>(
-                      future: person.getCFatherName(),
-                      builder: (context, data) {
-                        if (data.hasData) return Text(data.data!);
-                        return const LinearProgressIndicator();
-                      },
+                    title: const Text('رتبة الشموسية:'),
+                    subtitle: Text(person.shammasLevel ?? ''),
+                  ),
+                CopiablePropertyWidget('العنوان:', person.address),
+                if (person.location != null &&
+                    !person.ref.path.startsWith('Deleted'))
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.map),
+                    onPressed: () => navigator.currentState!.push(
+                      MaterialPageRoute(
+                        builder: (context) => Scaffold(
+                          appBar: AppBar(title: Text(person.name)),
+                          body: person.getMapView(),
+                        ),
+                      ),
                     ),
+                    label: const Text('إظهار على الخريطة'),
                   ),
-                  CopiableProperty('ملاحظات', person.notes),
-                  const Divider(thickness: 1),
-                  if (!person.ref.path.startsWith('Deleted'))
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.analytics),
-                      label: const Text('احصائيات الحضور'),
-                      onPressed: () => _showAnalytics(context, person),
-                    ),
-                  DayHistoryProperty('تاريخ أخر حضور اجتماع:',
-                      person.lastMeeting, person.id, 'Meeting'),
-                  DayHistoryProperty('تاريخ أخر حضور قداس:', person.lastKodas,
-                      person.id, 'Kodas'),
-                  TimeHistoryProperty(
-                    'تاريخ أخر تناول:',
-                    person.lastTanawol,
-                    person.ref.collection('TanawolHistory'),
+                FutureBuilder<Tuple2<String, String>>(
+                  future: () async {
+                    final studyYear = await (person.studyYear ??
+                            (await person.classId?.get())?.data()?['StudyYear']
+                                as JsonRef?)
+                        ?.get();
+                    final isCollegeYear =
+                        studyYear?.data()?['IsCollegeYear']?.toString() ==
+                            'true';
+
+                    return Tuple2(
+                        isCollegeYear ? 'الكلية' : ':المدرسة:',
+                        isCollegeYear
+                            ? await person.getCollegeName()
+                            : await person.getSchoolName());
+                  }(),
+                  builder: (context, data) {
+                    if (data.hasError)
+                      return ErrorWidget(data.error!);
+                    else if (data.hasData)
+                      return ListTile(
+                        title: Text(data.requireData.item1),
+                        subtitle: Text(data.requireData.item2),
+                      );
+
+                    return const LinearProgressIndicator();
+                  },
+                ),
+                ListTile(
+                  title: const Text('الكنيسة:'),
+                  subtitle: FutureBuilder<String>(
+                    future: person.getChurchName(),
+                    builder: (context, data) {
+                      if (data.hasData) return Text(data.data!);
+                      return const LinearProgressIndicator();
+                    },
                   ),
-                  TimeHistoryProperty(
-                    'تاريخ أخر اعتراف:',
-                    person.lastConfession,
-                    person.ref.collection('ConfessionHistory'),
+                ),
+                ListTile(
+                  title: const Text('اب الاعتراف:'),
+                  subtitle: FutureBuilder<String>(
+                    future: person.getCFatherName(),
+                    builder: (context, data) {
+                      if (data.hasData) return Text(data.data!);
+                      return const LinearProgressIndicator();
+                    },
                   ),
-                  const Divider(thickness: 1),
-                  HistoryProperty(
-                    'تاريخ أخر افتقاد:',
-                    person.lastVisit,
-                    person.ref.collection('VisitHistory'),
+                ),
+                CopiablePropertyWidget('ملاحظات', person.notes),
+                const Divider(thickness: 1),
+                if (!person.ref.path.startsWith('Deleted'))
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.analytics),
+                    label: const Text('احصائيات الحضور'),
+                    onPressed: () => _showAnalytics(context, person),
                   ),
-                  HistoryProperty(
-                    'تاريخ أخر مكالمة:',
-                    person.lastCall,
-                    person.ref.collection('CallHistory'),
-                  ),
-                  EditHistoryProperty(
-                    'أخر تحديث للبيانات:',
-                    person.lastEdit,
-                    person.ref.collection('EditHistory'),
-                  ),
-                  const SizedBox(height: 50),
-                ],
-              ),
+                DayHistoryProperty('تاريخ أخر حضور اجتماع:', person.lastMeeting,
+                    person.id, 'Meeting'),
+                DayHistoryProperty('تاريخ أخر حضور قداس:', person.lastKodas,
+                    person.id, 'Kodas'),
+                TimeHistoryProperty(
+                  'تاريخ أخر تناول:',
+                  person.lastTanawol,
+                  person.ref.collection('TanawolHistory'),
+                ),
+                TimeHistoryProperty(
+                  'تاريخ أخر اعتراف:',
+                  person.lastConfession,
+                  person.ref.collection('ConfessionHistory'),
+                ),
+                const Divider(thickness: 1),
+                HistoryProperty(
+                  'تاريخ أخر افتقاد:',
+                  person.lastVisit,
+                  person.ref.collection('VisitHistory'),
+                ),
+                HistoryProperty(
+                  'تاريخ أخر مكالمة:',
+                  person.lastCall,
+                  person.ref.collection('CallHistory'),
+                ),
+                EditHistoryProperty(
+                  'أخر تحديث للبيانات:',
+                  person.lastEdit?.uid,
+                  person.ref.collection('EditHistory'),
+                ),
+                const SizedBox(height: 50),
+              ],
             ),
-            floatingActionButton:
-                permission! && !person.ref.path.startsWith('Deleted')
-                    ? FloatingActionButton(
-                        key: _lastVisit,
-                        tooltip: 'تسجيل أخر افتقاد اليوم',
-                        onPressed: () => recordLastVisit(context, person),
-                        child: const Icon(Icons.update),
-                      )
-                    : null,
-          );
-        },
-      ),
+          ),
+          floatingActionButton: write && !person.ref.path.startsWith('Deleted')
+              ? FloatingActionButton(
+                  key: _lastVisit,
+                  tooltip: 'تسجيل أخر افتقاد اليوم',
+                  onPressed: () => recordLastVisit(context, person),
+                  child: const Icon(Icons.update),
+                )
+              : null,
+        );
+      },
     );
   }
 
@@ -555,7 +558,11 @@ class _PersonInfoState extends State<PersonInfo> {
       );
       if (recordLastCall == true) {
         await widget.person.ref.update(
-            {'LastEdit': User.instance.uid, 'LastCall': Timestamp.now()});
+          {
+            'LastEdit': MHAuthRepository.I.currentUser!.uid,
+            'LastCall': Timestamp.now(),
+          },
+        );
         scaffoldMessenger.currentState!.showSnackBar(
           const SnackBar(
             content: Text('تم بنجاح'),
@@ -597,11 +604,11 @@ class _PersonInfoState extends State<PersonInfo> {
           ) ==
           true) {
         final c = Contact(
-            photo: person.hasPhoto
-                ? await person.photoRef.getData(100 * 1024 * 1024)
-                : null,
-            phones: [Phone(phone ?? '')])
-          ..name.first = _name.text;
+          photo: person.hasPhoto
+              ? await person.photoRef!.getData(100 * 1024 * 1024)
+              : null,
+          phones: [Phone(phone ?? '')],
+        )..name.first = _name.text;
         await c.insert();
       }
     }
@@ -681,9 +688,9 @@ class _PersonServices extends StatelessWidget {
                           itemBuilder: (context, i) {
                             return Container(
                               margin: const EdgeInsets.symmetric(vertical: 5),
-                              child: DataObjectWidget(
+                              child: DataObjectWidget<Service>(
                                 data.requireData[i],
-                                showSubTitle: false,
+                                showSubtitle: false,
                                 wrapInCard: false,
                               ),
                             );
