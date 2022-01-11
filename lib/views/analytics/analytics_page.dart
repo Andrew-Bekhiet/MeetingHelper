@@ -4,10 +4,11 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:async/async.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
@@ -15,10 +16,7 @@ import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/history/history_property.dart';
 import 'package:meetinghelper/models/history/history_record.dart';
-import 'package:meetinghelper/models/mini_models.dart';
-import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/utils/helpers.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
@@ -26,13 +24,13 @@ import 'package:share_plus/share_plus.dart';
 import 'analytics_indicators.dart';
 
 class AnalyticsPage extends StatefulWidget {
-  const AnalyticsPage(
-      {Key? key,
-      this.parents,
-      this.range,
-      this.historyColection = 'History',
-      this.day})
-      : super(key: key);
+  const AnalyticsPage({
+    Key? key,
+    this.parents,
+    this.range,
+    this.historyColection = 'History',
+    this.day,
+  }) : super(key: key);
 
   final List<DataObject>? parents;
   final HistoryDay? day;
@@ -78,8 +76,9 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
 
   Future<void> _setRangeStart() async {
     if (minAvaliableSet) return;
-    if (User.instance.superAccess)
-      minAvaliable = ((await FirebaseFirestore.instance
+
+    if (MHAuthRepository.I.currentUser!.permissions.superAccess)
+      minAvaliable = ((await GetIt.I<DatabaseRepository>()
                       .collectionGroup('EditHistory')
                       .orderBy('Time')
                       .limit(1)
@@ -94,7 +93,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
       if (allowed.isEmpty) return;
 
       if (allowed.length <= 10) {
-        minAvaliable = ((await FirebaseFirestore.instance
+        minAvaliable = ((await GetIt.I<DatabaseRepository>()
                         .collectionGroup('EditHistory')
                         .where('ClassId',
                             whereIn: allowed.map((c) => c.ref).toList())
@@ -109,7 +108,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
       } else {
         minAvaliable = DateTime.fromMillisecondsSinceEpoch((await Future.wait(
           allowed.map(
-            (c) => FirebaseFirestore.instance
+            (c) => GetIt.I<DatabaseRepository>()
                 .collectionGroup('EditHistory')
                 .where('ClassId', isEqualTo: c)
                 .orderBy('Time')
@@ -285,7 +284,7 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
 
   Future<void> _setRangeStart() async {
     if (minAvaliableSet) return;
-    minAvaliable = ((await FirebaseFirestore.instance
+    minAvaliable = ((await GetIt.I<DatabaseRepository>()
                     .collection(widget.colection)
                     .orderBy('Day')
                     .limit(1)
@@ -327,7 +326,7 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
               return const Center(child: CircularProgressIndicator());
 
             return StreamBuilder<JsonQuery>(
-              stream: FirebaseFirestore.instance
+              stream: GetIt.I<DatabaseRepository>()
                   .collection(widget.colection)
                   .orderBy('Day')
                   .where(
@@ -473,7 +472,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
 
   Future<void> _setRangeStart() async {
     if (widget.range != null) range = widget.range!;
-    _minAvaliable = ((await FirebaseFirestore.instance
+    _minAvaliable = ((await GetIt.I<DatabaseRepository>()
                     .collection(widget.historyColection)
                     .orderBy('Day')
                     .limit(1)
@@ -567,10 +566,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
         ),
         body: FutureBuilder<List<StudyYear>>(
           future: _rangeStart.runOnce(_setRangeStart).then((_) async {
-            return (await StudyYear.getAllForUser())
-                .docs
-                .map(StudyYear.fromDoc)
-                .toList();
+            return StudyYear.getAll().first;
           }),
           builder: (context, studyYearsData) {
             if (studyYearsData.connectionState == ConnectionState.done) {
@@ -591,7 +587,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                   return StreamBuilder<List<HistoryDay>>(
                     initialData: widget.day != null ? [widget.day!] : null,
                     stream: (_isOneDay
-                            ? FirebaseFirestore.instance
+                            ? GetIt.I<DatabaseRepository>()
                                 .collection(widget.historyColection)
                                 .where('Day',
                                     isGreaterThanOrEqualTo:
@@ -602,7 +598,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                       day.add(const Duration(days: 1))),
                                 )
                                 .snapshots()
-                            : FirebaseFirestore.instance
+                            : GetIt.I<DatabaseRepository>()
                                 .collection(widget.historyColection)
                                 .orderBy('Day')
                                 .where('Day',
