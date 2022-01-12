@@ -1,12 +1,10 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/models/data/user.dart';
-import 'package:meetinghelper/models/data_object_widget.dart';
-import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/utils/helpers.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tuple/tuple.dart';
 
@@ -14,464 +12,101 @@ import 'data/class.dart';
 import 'data/person.dart';
 import 'data/service.dart';
 import 'history/history_record.dart';
-import 'mini_models.dart';
 
-abstract class BaseListController<L, U> {
-  final BehaviorSubject<L> _objectsData;
-  ValueStream<L> get objectsData => _objectsData.stream;
-  L? get items => _objectsData.valueOrNull;
-
-  StreamSubscription<L>? _objectsDataListener;
-
-  final BehaviorSubject<bool> _selectionMode;
-  BehaviorSubject<bool> get selectionMode => _selectionMode;
-  bool? get selectionModeLatest => _selectionMode.valueOrNull;
-
-  final BehaviorSubject<Map<String, U>?> _selected;
-  ValueStream<Map<String, U>?> get selected => _selected.stream;
-  Map<String, U>? get selectedLatest => _selected.valueOrNull;
-
-  final BehaviorSubject<String> _searchQuery;
-  BehaviorSubject<String> get searchQuery => _searchQuery;
-  String? get searchQueryLatest => _searchQuery.valueOrNull;
-
-  StreamSubscription<String>? _searchQueryListener;
-
-  final void Function(U)? tap;
-  final void Function(U)? onLongPress;
-
-  final U? empty;
-  final bool showNull;
-
-  void selectAll();
-  void selectNone() {
-    if (!_selectionMode.value) _selectionMode.add(true);
-    _selected.add({});
-  }
-
-  void toggleSelected(U item);
-
-  void select(U item);
-
-  void deselect(U item);
-
-  BaseListController({
-    this.onLongPress,
-    this.tap,
-    this.empty,
-    this.showNull = false,
-    bool selectionMode = false,
-    Stream<L>? itemsStream,
-    L? items,
-    Map<String, U>? selected,
-    Stream<String>? searchQuery,
-  })  : assert(itemsStream != null || items != null),
-        assert(showNull == false || (showNull == true && empty != null)),
-        _selectionMode = BehaviorSubject<bool>.seeded(selectionMode),
-        _selected = BehaviorSubject<Map<String, U>>.seeded(selected ?? {}),
-        _searchQuery = searchQuery == null
-            ? BehaviorSubject<String>.seeded('')
-            : BehaviorSubject<String>(),
-        _objectsData = itemsStream != null
-            ? BehaviorSubject<L>()
-            : BehaviorSubject<L>.seeded(items!) {
-    //
-    _searchQueryListener =
-        searchQuery?.listen(_searchQuery.add, onError: _searchQuery.addError);
-
-    _objectsDataListener =
-        itemsStream?.listen(_objectsData.add, onError: _objectsData.addError);
-  }
-
-  Future<void> dispose() async {
-    await _objectsDataListener?.cancel();
-    if (!_objectsData.isClosed) await _objectsData.close();
-
-    if (!_selected.isClosed) await _selected.close();
-    if (!_selectionMode.isClosed) await _selectionMode.close();
-
-    await _searchQueryListener?.cancel();
-    if (!_searchQuery.isClosed) await _searchQuery.close();
-  }
-}
-
-class DataObjectListController<T extends DataObject>
-    implements BaseListController<List<T>, T> {
-  @override
-  late final BehaviorSubject<List<T>> _objectsData;
-  @override
-  ValueStream<List<T>> get objectsData => _objectsData.stream;
-  @override
-  List<T>? get items => objectsData.valueOrNull;
-
-  @override
-  StreamSubscription<List<T>>? _objectsDataListener;
-
-  final BehaviorSubject<Map<String, T>> _originalObjectsData;
-  ValueStream<Map<String, T>> get originalObjectsData =>
-      _originalObjectsData.stream;
-  Map<String, T>? get originalObjectsDataLatest =>
-      originalObjectsData.valueOrNull;
-
-  StreamSubscription<Object>? _originalObjectsDataListener;
-
-  @override
-  final BehaviorSubject<bool> _selectionMode;
-  @override
-  BehaviorSubject<bool> get selectionMode => _selectionMode;
-  @override
-  bool? get selectionModeLatest => _selectionMode.valueOrNull;
-
-  @override
-  final BehaviorSubject<Map<String, T>> _selected;
-  @override
-  ValueStream<Map<String, T>> get selected => _selected.stream;
-  @override
-  Map<String, T>? get selectedLatest => _selected.valueOrNull;
-
-  @override
-  final BehaviorSubject<String> _searchQuery;
-  @override
-  BehaviorSubject<String> get searchQuery => _searchQuery;
-  @override
-  String? get searchQueryLatest => _searchQuery.valueOrNull;
-
-  @override
-  StreamSubscription<String>? _searchQueryListener;
-
-  final List<T> Function(List<T>, String) _filter;
-  @override
-  final void Function(T)? tap;
-  @override
-  final void Function(T)? onLongPress;
-
-  @override
-  final T? empty;
-  @override
-  final bool showNull;
-
-  final Widget Function(T, void Function(T)? onLongPress,
-      void Function(T)? onTap, Widget? trailing, Widget? subtitle) itemBuilder;
-
-  late final Widget Function(T,
-      {void Function(T)? onLongPress,
-      void Function(T)? onTap,
-      Widget? trailing,
-      Widget? subtitle}) buildItem;
-
-  DataObjectListController({
-    Widget Function(T, void Function(T)? onLongPress, void Function(T)? onTap,
-            Widget? trailing, Widget? subtitle)?
-        itemBuilder,
-    this.onLongPress,
-    this.tap,
-    this.empty,
-    this.showNull = false,
-    bool selectionMode = false,
-    Stream<List<T>>? itemsStream,
-    List<T>? items,
-    Map<String, T>? selected,
-    List<T> Function(List<T>, String)? filter,
-    Stream<String>? searchQuery,
-  })  : assert(itemsStream != null || items != null),
-        assert(showNull == false || (showNull == true && empty != null)),
-        _filter = (filter ??
-            ((o, f) => o
-                .where((e) => filterString(e.name).contains(filterString(f)))
-                .toList())),
-        _searchQuery = searchQuery == null
-            ? BehaviorSubject<String>.seeded('')
-            : BehaviorSubject<String>(),
-        _selected = BehaviorSubject<Map<String, T>>.seeded(selected ?? {}),
-        _selectionMode = BehaviorSubject<bool>.seeded(selectionMode),
-        _originalObjectsData = itemsStream != null
-            ? BehaviorSubject<Map<String, T>>()
-            : BehaviorSubject<Map<String, T>>.seeded(
-                {for (final o in items!) o.id: o}),
-        _objectsData = showNull
-            ? BehaviorSubject<List<T>>.seeded([empty!])
-            : BehaviorSubject<List<T>>(),
-        itemBuilder = (itemBuilder ??
-            (i, void Function(T)? onLongPress, void Function(T)? onTap,
-                    Widget? trailing, Widget? subtitle) =>
-                DataObjectWidget<T>(i,
-                    subtitle: subtitle,
-                    onLongPress:
-                        onLongPress != null ? () => onLongPress(i) : null,
-                    onTap: onTap != null ? () => onTap(i) : null,
-                    trailing: trailing)) {
-    //
-    _searchQueryListener =
-        searchQuery?.listen(_searchQuery.add, onError: _searchQuery.addError);
-
-    buildItem = (i, {onLongPress, onTap, trailing, subtitle}) {
-      return this.itemBuilder(i, onLongPress, onTap, trailing, subtitle);
-    };
-
-    _originalObjectsDataListener = itemsStream
-        ?.listen((l) => _originalObjectsData.add({for (final o in l) o.id: o}));
-
-    _objectsDataListener = Rx.combineLatest2<String, Map<String, T>, List<T>>(
-      _searchQuery,
-      _originalObjectsData,
-      (search, items) => search.isNotEmpty
-          ? _filter(items.values.toList(), search)
-          : items.values.toList(),
-    ).listen(_objectsData.add, onError: _objectsData.addError);
-  }
-
-  @override
-  void selectAll() {
-    if (!_selectionMode.value) _selectionMode.add(true);
-    _selected.add({for (var item in _objectsData.value) item.id: item});
-  }
-
-  @override
-  void selectNone([bool enterSelectionMode = true]) {
-    if (enterSelectionMode && !_selectionMode.value) _selectionMode.add(true);
-    _selected.add({});
-  }
-
-  @override
-  void toggleSelected(T item) {
-    if (_selected.value.containsKey(item.id)) {
-      deselect(item);
-    } else {
-      select(item);
-    }
-  }
-
-  @override
-  void select(T item) {
-    assert(!_selected.value.containsKey(item.id));
-    _selected.add({..._selected.value, item.id: item});
-  }
-
-  @override
-  void deselect(T item) {
-    assert(_selected.value.containsKey(item.id));
-    _selected.add(_selected.value..remove(item.id));
-  }
-
-  @override
-  Future<void> dispose() async {
-    await _objectsDataListener?.cancel();
-    if (!_objectsData.isClosed) await _objectsData.close();
-
-    await _originalObjectsDataListener?.cancel();
-    if (!_originalObjectsData.isClosed) await _originalObjectsData.close();
-
-    if (!_selected.isClosed) await _selected.close();
-    if (!_selectionMode.isClosed) await _selectionMode.close();
-
-    await _searchQueryListener?.cancel();
-    if (!_searchQuery.isClosed) await _searchQuery.close();
-  }
-}
-
-class CheckListController<T extends Person, P extends DataObject>
-    implements DataObjectListController<T> {
-  final HistoryDay day;
+class CheckListController<T extends Person, P extends JsonRef>
+    extends ListController<P, T> {
+  final HistoryDayBase day;
   final String type;
   final HistoryDayOptions dayOptions;
-  final BehaviorSubject<Map<JsonRef, bool?>> openedNodes =
-      BehaviorSubject.seeded({});
-
-  @override
-  late final BehaviorSubject<List<T>> _objectsData;
-  @override
-  ValueStream<List<T>> get objectsData => _objectsData.stream;
-  @override
-  List<T>? get items => objectsData.valueOrNull;
-
-  @override
-  StreamSubscription<List<T>>? _objectsDataListener;
-
-  @override
-  final BehaviorSubject<Map<String, T>> _originalObjectsData;
-  @override
-  ValueStream<Map<String, T>> get originalObjectsData =>
-      _originalObjectsData.stream;
-  @override
-  Map<String, T>? get originalObjectsDataLatest =>
-      originalObjectsData.valueOrNull;
-
-  @override
-  StreamSubscription<Object>? _originalObjectsDataListener;
-
-  @override
-  final BehaviorSubject<bool> _selectionMode;
-  @override
-  BehaviorSubject<bool> get selectionMode => _selectionMode;
-
-  @override
-  final BehaviorSubject<Map<String, T>> _selected;
-  @override
-  ValueStream<Map<String, T>> get selected => _selected;
-  @override
-  Map<String, T>? get selectedLatest => _selected.valueOrNull;
-
-  @override
-  final BehaviorSubject<String> _searchQuery;
-  @override
-  BehaviorSubject<String> get searchQuery => _searchQuery;
-  @override
-  String? get searchQueryLatest => _searchQuery.valueOrNull;
-
-  @override
-  StreamSubscription<String>? _searchQueryListener;
 
   late final BehaviorSubject<Map<String, HistoryRecord>> _attended;
   ValueStream<Map<String, HistoryRecord>> get attended => _attended.stream;
   Map<String, HistoryRecord>? get attendedLatest => attended.valueOrNull;
 
-  StreamSubscription<Map<String, HistoryRecord>>? _attendedListener;
-
-  late final Stream<Map<JsonRef, Tuple2<P, List<T>>>>? groupedData;
-
-  final Stream<Map<JsonRef, Tuple2<P, List<T>>>> Function(List<T> data)?
-      _groupBy;
+  late final StreamSubscription<Map<String, HistoryRecord>>? _attendedListener;
 
   JsonCollectionRef? get ref => day.subcollection(type);
 
-  @override
-  bool get selectionModeLatest => true;
-
-  @override
-  final List<T> Function(List<T>, String) _filter;
-  @override
-  final void Function(T)? tap;
-  @override
-  final void Function(T)? onLongPress;
-
-  @override
-  T? get empty => null;
-  @override
-  bool get showNull => false;
-
-  @override
-  final Widget Function(T, void Function(T)? onLongPress,
-      void Function(T)? onTap, Widget? trailing, Widget? subtitle) itemBuilder;
-
-  @override
-  late final Widget Function(T,
-      {void Function(T)? onLongPress,
-      void Function(T)? onTap,
-      Widget? trailing,
-      Widget? subtitle}) buildItem;
+  final BehaviorSubject<Map<String, T>> _objectsById;
+  late final StreamSubscription<Map<String, T>> _objectsByIdSubscription;
 
   CheckListController({
-    Stream<Map<JsonRef, Tuple2<P, List<T>>>> Function(List<T> data)? groupBy,
+    Map<P, List<T>> Function(List<T> data)? groupBy,
     required this.day,
     required this.type,
     required this.dayOptions,
-    Widget Function(T, void Function(T)? onLongPress, void Function(T)? onTap,
-            Widget? trailing, Widget? subtitle)?
-        itemBuilder,
-    this.tap,
-    this.onLongPress,
+    required PaginatableStream<T> query,
     List<T> Function(List<T>, String)? filter,
-    Stream<List<T>>? itemsStream,
-    Stream<Map<String, T>>? itemsMapStream,
-    List<T>? items,
-    Map<String, T>? selected,
     Stream<String>? searchQuery,
   })  : assert(dayOptions.grouped.value == false || groupBy != null),
-        assert(itemsMapStream != null || itemsStream != null || items != null),
-        _filter = (filter ??
-            ((o, f) => o
-                .where((e) => filterString(e.name).contains(filterString(f)))
-                .toList())),
-        _searchQuery = searchQuery != null
-            ? BehaviorSubject<String>()
-            : BehaviorSubject<String>.seeded(''),
-        _selected = BehaviorSubject<Map<String, T>>.seeded(selected ?? {}),
-        _selectionMode = BehaviorSubject<bool>.seeded(true),
-        _originalObjectsData = BehaviorSubject<Map<String, T>>(),
-        _objectsData = BehaviorSubject<List<T>>(),
         _attended = BehaviorSubject<Map<String, HistoryRecord>>(),
-        _groupBy = groupBy,
-        itemBuilder = (itemBuilder ??
-            (i, void Function(T)? onLongPress, void Function(T)? onTap,
-                    Widget? trailing, Widget? subtitle) =>
-                DataObjectWidget<T>(i,
-                    subtitle: subtitle,
-                    onLongPress:
-                        onLongPress != null ? () => onLongPress(i) : null,
-                    onTap: onTap != null ? () => onTap(i) : null,
-                    trailing: trailing)) {
+        _objectsById = BehaviorSubject<Map<String, T>>(),
+        super(
+          objectsPaginatableStream: query,
+          searchStream: searchQuery,
+          groupBy: groupBy,
+          filter: filter ??
+              (o, f) => o
+                  .where((e) => filterString(e.name).contains(filterString(f)))
+                  .toList(),
+        ) {
     //
-    _searchQueryListener =
-        searchQuery?.listen(_searchQuery.add, onError: _searchQuery.addError);
-
-    _originalObjectsDataListener = (itemsMapStream ??
-            (itemsStream != null
-                ? itemsStream.map((l) => {for (final o in l) o.id: o})
-                : Stream.value({for (final o in items!) o.id: o})))
-        .listen(_originalObjectsData.add,
-            onError: _originalObjectsData.addError);
-
-    buildItem = (i, {onLongPress, onTap, trailing, subtitle}) {
-      return this.itemBuilder(i, onLongPress, onTap, trailing, subtitle);
-    };
 
     _attendedListener = (ref != null
-            ? Rx.combineLatest3<User, List<P>, bool?,
-                        Tuple3<User, List<P>, bool?>>(
-                    User.instance.stream,
-                    P == Class
-                        ? Class.getAllForUser().map((c) => c.cast())
-                        : Stream.value([]),
-                    dayOptions.sortByTimeASC,
-                    Tuple3<User, List<P>, bool?>.new)
-                .switchMap(_attendedMapping)
-            : Stream<Map<String, HistoryRecord>>.value({}))
+            ? Rx.combineLatest3<User?, List<P>, bool?,
+                Tuple3<User?, List<P>, bool?>>(
+                MHAuthRepository.I.userStream,
+                notService(type)
+                    ? Class.getAllForUser().map((c) => c.cast())
+                    : Stream.value([]),
+                dayOptions.sortByTimeASC,
+                Tuple3.new,
+              ).switchMap(_attendedMapping)
+            : Stream.value(<String, HistoryRecord>{}))
         .listen(_attended.add, onError: _attended.addError);
+  }
 
-    ///Listens to [dayOptions.showTrueonly] then the [_searchQuery]
-    ///to filter the [_objectsData] by the [attended] Persons
-    _objectsDataListener = Rx.combineLatest5<bool?, bool?, String,
-        Map<String, T>, Map<String, HistoryRecord>, List<T>>(
+  ///Listens to [dayOptions.showTrueonly] then the [_searchQuery]
+  ///to filter the [_objectsData] by the [attended] Persons
+  @override
+  StreamSubscription<List<T>> getObjectsSubscription(
+      [Stream<String>? searchStream]) {
+    _objectsByIdSubscription = objectsPaginatableStream.stream
+        .map(
+          (e) => {
+            for (final i in e) i.id: i,
+          },
+        )
+        .listen(_objectsById.add, onError: _objectsById.addError);
+
+    return Rx.combineLatest5<bool?, bool?, String, Map<String, T>,
+        Map<String, HistoryRecord>, List<T>>(
       dayOptions.showOnly,
       dayOptions.sortByTimeASC,
-      _searchQuery,
-      _originalObjectsData,
+      searchSubject,
+      _objectsById,
       _attended,
       _objectsFilteringMapping,
-    ).listen(_objectsData.add, onError: _objectsData.addError);
-
-    groupedData = _groupBy != null
-        ? Rx.combineLatest2<Map<JsonRef, Tuple2<P, List<T>>>,
-            Map<JsonRef, bool?>, Map<JsonRef, Tuple2<P, List<T>>>>(
-            _objectsData.switchMap(_groupBy!),
-            openedNodes,
-            (g, n) => g.map(
-              (k, v) => MapEntry(
-                k,
-                (n[k] ?? false) ? v : Tuple2<P, List<T>>(v.item1, []),
-              ),
-            ),
-          )
-        : null;
+    ).listen(objectsSubject.add, onError: objectsSubject.addError);
   }
 
   List<T> _objectsFilteringMapping(
       bool? showOnly,
       bool? sortByTimeASC,
       String search,
-      Map<String, T> objects,
+      Map<String, T> objectsById,
       Map<String, HistoryRecord> attended) {
-    List<T> rslt = objects.values.toList();
+    List<T> rslt = objectsById.values.toList();
 
     if (sortByTimeASC != null) {
       rslt = [
         for (final k in attended.keys)
-          if (objects[k] != null) objects[k]!
+          if (objectsById[k] != null) objectsById[k]!
       ];
     } else if (showOnly == null) {
       rslt = rslt.toList();
     } else if (showOnly == true) {
-      rslt = objects.values
+      rslt = objectsById.values
           .where(
             (i) => attended.containsKey(i.id),
           )
@@ -485,14 +120,14 @@ class CheckListController<T extends Person, P extends DataObject>
     }
 
     if (search.isNotEmpty) {
-      return _filter(rslt, search);
+      return filter(rslt, search);
     }
 
     return rslt;
   }
 
   Stream<Map<String, HistoryRecord>> _attendedMapping(
-      Tuple3<User, List<P>, bool?> v) {
+      Tuple3<User?, List<P>, bool?> v) {
     //
     //<empty comment for readability>
 
@@ -500,22 +135,24 @@ class CheckListController<T extends Person, P extends DataObject>
       final Map<String, T> tempSelected = {};
 
       JsonQueryDoc _select(JsonQueryDoc d) {
-        if (originalObjectsData.valueOrNull != null &&
-            originalObjectsData.value[d.id] != null)
-          tempSelected[d.id] = originalObjectsData.value[d.id]!;
+        if (objectsSubject.valueOrNull != null &&
+            _objectsById.value[d.id] != null)
+          tempSelected[d.id] = _objectsById.value[d.id]!;
         return d;
       }
 
-      _selected.add(tempSelected);
+      selectionSubject.add(tempSelected.values.toSet());
 
       return {
         for (final d in docs) _select(d).id: HistoryRecord.fromQueryDoc(d, day)
       };
     }
 
-    if (v.item1.superAccess ||
-        (day is ServantsHistoryDay && v.item1.secretary) ||
-        P == StudyYear) {
+    final permissions = v.item1!.permissions;
+
+    if (permissions.superAccess ||
+        (day is ServantsHistoryDay && permissions.secretary) ||
+        notService(type)) {
       if (v.item3 != null) {
         return ref!
             .orderBy('Time', descending: !v.item3!)
@@ -528,41 +165,33 @@ class CheckListController<T extends Person, P extends DataObject>
     } else if (v.item2.length <= 10) {
       if (v.item3 != null) {
         return ref!
-            .where('ClassId', whereIn: v.item2.map((e) => e.ref).toList())
+            .where('ClassId', whereIn: v.item2)
             .orderBy('Time', descending: !v.item3!)
             .snapshots()
             .map<Map<String, HistoryRecord>>((s) => _docsMapper(s.docs));
       }
       return ref!
-          .where('ClassId', whereIn: v.item2.map((e) => e.ref).toList())
+          .where('ClassId', whereIn: v.item2)
           .snapshots()
           .map<Map<String, HistoryRecord>>((s) => _docsMapper(s.docs));
     }
 
     if (v.item3 != null) {
       return Rx.combineLatestList<JsonQuery>(v.item2.split(10).map((c) => ref!
-          .where('ClassId', whereIn: c.map((e) => e.ref).toList())
+          .where('ClassId', whereIn: c)
           .orderBy('Time', descending: !v.item3!)
           .snapshots())).map((s) => s.expand((n) => n.docs)).map(_docsMapper);
     }
-    return Rx.combineLatestList<JsonQuery>(v.item2.split(10).map((c) => ref!
-        .where('ClassId', whereIn: c.map((e) => e.ref).toList())
-        .snapshots())).map((s) => s.expand((n) => n.docs)).map(_docsMapper);
-  }
-
-  @override
-  void selectAll() {
-    throw UnimplementedError();
-  }
-
-  @override
-  void selectNone([_ = true]) {
-    throw UnimplementedError();
+    return Rx.combineLatestList<JsonQuery>(v.item2
+            .split(10)
+            .map((c) => ref!.where('ClassId', whereIn: c).snapshots()))
+        .map((s) => s.expand((n) => n.docs))
+        .map(_docsMapper);
   }
 
   @override
   Future<void> toggleSelected(T item, {String? notes, Timestamp? time}) async {
-    if (_selected.value.containsKey(item.id)) {
+    if (selectionSubject.value?.contains(item) ?? false) {
       await deselect(item);
     } else {
       await select(item, notes: notes, time: time);
@@ -570,52 +199,49 @@ class CheckListController<T extends Person, P extends DataObject>
   }
 
   @override
-  Future<void> select(T item, {String? notes, Timestamp? time}) async {
+  Future<void> select(T object, {String? notes, Timestamp? time}) async {
     await HistoryRecord(
-            type: type,
-            parent: day,
-            id: item.id,
-            studyYear: item.studyYear,
-            classId: item.classId,
-            services: type == 'Meeting' ||
-                    type == 'Kodas' ||
-                    type == 'Confession'
-                ? item.services
-                : [FirebaseFirestore.instance.collection('Services').doc(type)],
-            time: time ??
-                mergeDayWithTime(
-                  day.day.toDate(),
-                  DateTime.now(),
-                ),
-            recordedBy: User.instance.uid!,
-            notes: notes,
-            isServant: T == User)
-        .set();
+      type: type,
+      parent: day,
+      id: object.id,
+      studyYear: object.studyYear,
+      classId: object.classId,
+      services: type == 'Meeting' || type == 'Kodas' || type == 'Confession'
+          ? object.services
+          : [GetIt.I<DatabaseRepository>().collection('Services').doc(type)],
+      time: time ??
+          mergeDayWithTime(
+            day.day.toDate(),
+            DateTime.now(),
+          ),
+      recordedBy: MHAuthRepository.I.currentUser!.uid,
+      notes: notes,
+      isServant: T == User,
+    ).set();
   }
 
   @override
-  Future<void> deselect(T item) async {
-    await ref!.doc(item.id).delete();
+  Future<void> deselect(T object) async {
+    await ref!.doc(object.id).delete();
   }
 
   Future<void> modifySelected(T item, {String? notes, Timestamp? time}) async {
-    assert(_selected.value.containsKey(item.id));
+    assert(selectionSubject.value?.contains(item) ?? false);
+
     await HistoryRecord(
-            type: type,
-            parent: day,
-            id: item.id,
-            studyYear: item.studyYear,
-            classId: item.classId,
-            services: type == 'Meeting' ||
-                    type == 'Kodas' ||
-                    type == 'Confession'
-                ? item.services
-                : [FirebaseFirestore.instance.collection('Services').doc(type)],
-            time: time ?? mergeDayWithTime(day.day.toDate(), DateTime.now()),
-            recordedBy: User.instance.uid!,
-            notes: notes,
-            isServant: T == User)
-        .update();
+      type: type,
+      parent: day,
+      id: item.id,
+      studyYear: item.studyYear,
+      classId: item.classId,
+      services: type == 'Meeting' || type == 'Kodas' || type == 'Confession'
+          ? item.services
+          : [GetIt.I<DatabaseRepository>().collection('Services').doc(type)],
+      time: time ?? mergeDayWithTime(day.day.toDate(), DateTime.now()),
+      recordedBy: MHAuthRepository.I.currentUser!.uid,
+      notes: notes,
+      isServant: T == User,
+    ).update();
   }
 
   CheckListController<T, P> copyWith({
@@ -633,7 +259,9 @@ class CheckListController<T extends Person, P extends DataObject>
     Map<String, T>? selected,
     Stream<String>? searchQuery,
   }) {
-    return CheckListController<T, P>(
+    //TODO: implement copyWith
+    throw UnimplementedError();
+    /* return CheckListController<T, P>(
       groupBy: groupBy ?? _groupBy,
       day: day ?? this.day,
       type: type ?? this.type,
@@ -646,27 +274,18 @@ class CheckListController<T extends Person, P extends DataObject>
       items: items ?? this.items,
       selected: selected ?? this.selected.value,
       searchQuery: searchQuery ?? this.searchQuery,
-    );
+    ); */
   }
 
   @override
   Future<void> dispose() async {
-    await _objectsDataListener?.cancel();
-    if (!_objectsData.isClosed) await _objectsData.close();
-
-    await _originalObjectsDataListener?.cancel();
-    if (!_originalObjectsData.isClosed) await _originalObjectsData.close();
-
-    if (!openedNodes.isClosed) await openedNodes.close();
+    await super.dispose();
 
     await _attendedListener?.cancel();
     if (!_attended.isClosed) await _attended.close();
 
-    if (!_selected.isClosed) await _selected.close();
-    if (!_selectionMode.isClosed) await _selectionMode.close();
-
-    await _searchQueryListener?.cancel();
-    if (!_searchQuery.isClosed) await _searchQuery.close();
+    await _objectsByIdSubscription.cancel();
+    if (!_objectsById.isClosed) await _objectsById.close();
   }
 }
 
@@ -705,144 +324,54 @@ class HistoryDayOptions {
 
 /// BaseListController<Map<PreferredStudyYear?, List<Class | Service>>, Class | Service>
 class ServicesListController<T extends DataObject>
-    implements BaseListController<Map<PreferredStudyYear?, List<T>>, T> {
-  @override
-  final BehaviorSubject<Map<PreferredStudyYear?, List<T>>> _objectsData =
-      BehaviorSubject();
-  @override
-  ValueStream<Map<PreferredStudyYear?, List<T>>> get objectsData =>
-      _objectsData.stream;
-  @override
-  Map<PreferredStudyYear?, List<T>> get items => _objectsData.value;
-
-  @override
-  StreamSubscription<Map<PreferredStudyYear?, List<T>>>? _objectsDataListener;
-
-  @override
-  final BehaviorSubject<String> _searchQuery;
-  @override
-  BehaviorSubject<String> get searchQuery => _searchQuery;
-  @override
-  String? get searchQueryLatest => _searchQuery.valueOrNull;
-
-  @override
-  StreamSubscription<String>? _searchQueryListener;
-
-  @override
-  final BehaviorSubject<bool> _selectionMode;
-  @override
-  bool get selectionModeLatest => _selectionMode.value;
-  @override
-  BehaviorSubject<bool> get selectionMode => _selectionMode;
-
-  @override
-  final BehaviorSubject<Map<String, T>> _selected;
-  @override
-  ValueStream<Map<String, T>> get selected => _selected;
-  @override
-  Map<String, T>? get selectedLatest => _selected.valueOrNull;
-
-  Map<PreferredStudyYear?, List<T>> _filter(
+    extends ListController<PreferredStudyYear?, T> {
+  List<T> _filterWithGroups(
       Map<PreferredStudyYear?, List<T>> o, String filter) {
-    return {
-      for (var it in o.entries.where(
-        (e) =>
-            filterString(e.key?.name ?? '').contains(filterString(filter)) ||
-            e.value.any(
-              (c) => filterString(c.name).contains(
-                filterString(filter),
+    return o.entries
+        .where(
+          (e) =>
+              filterString(e.key?.name ?? '').contains(filterString(filter)) ||
+              e.value.any(
+                (c) => filterString(c.name).contains(
+                  filterString(filter),
+                ),
               ),
-            ),
-      ))
-        it.key: it.value
-    };
+        )
+        .expand((e) => e.value)
+        .toList();
   }
-
-  @override
-  final void Function(T)? tap;
-  @override
-  final void Function(T)? onLongPress;
-
-  @override
-  T? get empty => null;
-
-  @override
-  bool get showNull => false;
 
   ServicesListController({
-    this.onLongPress,
-    this.tap,
-    List<T>? selected,
-    bool selectionMode = false,
-    Stream<Map<PreferredStudyYear?, List<T>>>? itemsStream,
-    Map<PreferredStudyYear, List<T>>? items,
-    Stream<String>? searchQuery,
+    required PaginatableStream<T> objectsPaginatableStream,
+    required Map<PreferredStudyYear?, List<T>> Function(List<T>) groupBy,
+    BehaviorSubject<String>? searchQuery,
   })  : assert(T == Class || T == Service || T == DataObject),
-        assert(itemsStream != null || items != null),
-        _searchQuery = searchQuery != null
-            ? BehaviorSubject<String>()
-            : BehaviorSubject<String>.seeded(''),
-        _selectionMode = BehaviorSubject<bool>.seeded(selectionMode),
-        _selected = BehaviorSubject<Map<String, T>>.seeded(
-            {for (var item in selected ?? []) item.id: item}) {
-//
-    _searchQueryListener =
-        searchQuery?.listen(_searchQuery.add, onError: _searchQuery.addError);
-
-    _objectsDataListener = Rx.combineLatest2<
-                String,
-                Map<PreferredStudyYear?, List<T>>,
-                Map<PreferredStudyYear?, List<T>>>(
-            _searchQuery,
-            itemsStream ?? BehaviorSubject.seeded(items!),
-            (search, items) =>
-                search.isNotEmpty ? _filter(items, search) : items)
-        .listen(_objectsData.add, onError: _objectsData.addError);
-  }
+        super(
+          objectsPaginatableStream: objectsPaginatableStream,
+          groupBy: groupBy,
+          searchStream: searchQuery,
+        );
 
   @override
-  void selectAll() {
-    if (!_selectionMode.value) _selectionMode.add(true);
-    _selected.add({
-      for (var item in items.values.expand((i) => i).toList()) item.id: item
-    });
-  }
-
-  @override
-  void selectNone() {
-    if (!_selectionMode.value) _selectionMode.add(true);
-    _selected.add({});
-  }
-
-  @override
-  void toggleSelected(T item) {
-    if (_selected.value.containsKey(item.id)) {
-      deselect(item);
-    } else {
-      select(item);
-    }
-  }
-
-  @override
-  void select(T item) {
-    _selected.add({..._selected.value, item.id: item});
-  }
-
-  @override
-  void deselect(T item) {
-    _selected.add(_selected.value..remove(item.id));
-  }
-
-  @override
-  Future<void> dispose() async {
-    await _objectsDataListener?.cancel();
-    if (!_objectsData.isClosed) await _objectsData.close();
-
-    await _searchQueryListener?.cancel();
-    if (!_searchQuery.isClosed) await _searchQuery.close();
-
-    if (!_selected.isClosed) await _selected.close();
-    if (!_selectionMode.isClosed) await _selectionMode.close();
+  StreamSubscription<List<T>> getObjectsSubscription(
+      [Stream<String>? searchStream]) {
+    return Rx.combineLatest3<String, List<T>, Set<PreferredStudyYear?>,
+        List<T>>(
+      searchSubject,
+      objectsPaginatableStream.stream,
+      openedGroupsSubject!,
+      (search, items, g) => search.isNotEmpty
+          ? _filterWithGroups(
+              groupBy!(items).map(
+                (k, v) => MapEntry(
+                  k,
+                  g.contains(k) ? v : [],
+                ),
+              ),
+              search,
+            )
+          : items,
+    ).listen(objectsSubject.add, onError: objectsSubject.addError);
   }
 }
 
