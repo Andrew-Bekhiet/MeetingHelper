@@ -1,302 +1,72 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:get_it/get_it.dart';
 import 'package:group_list_view/group_list_view.dart';
 import 'package:intl/intl.dart';
-import 'package:meetinghelper/models/data/class.dart';
-import 'package:meetinghelper/models/data/invitation.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/user.dart';
-import 'package:meetinghelper/models/data_object_widget.dart';
 import 'package:meetinghelper/models/history/history_record.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
-import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
-import 'package:meetinghelper/views/trash.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:tuple/tuple.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../utils/helpers.dart';
 
-export 'package:meetinghelper/models/search/order_options.dart';
 export 'package:tuple/tuple.dart';
 
-///Constructs a [DataObject] [ListView]
-///
-///You must provide [ListOptions<T>] in the parameter
-///or use [Provider<ListOptions<T>>] above this widget
-class DataObjectList<T extends DataObject> extends StatefulWidget {
-  final DataObjectListController<T>? options;
-  final bool disposeController;
+class DayCheckList<G extends JsonRef, T extends Person> extends StatefulWidget {
+  final DayCheckListController<G, T> controller;
 
-  const DataObjectList(
-      {Key? key, this.options, required this.disposeController})
-      : super(key: key);
+  ///Optional: override the default build function for items
+  ///
+  ///Provides the default [onTap] and [onLongPress] callbacks
+  ///and default [trailing] and [subtitle] widgets
+  final ItemBuilder<T>? itemBuilder;
 
-  @override
-  _ListState<T> createState() => _ListState<T>();
-}
+  ///The build function for groups
+  ///
+  ///Provides the default [onTap] and [onLongPress] callbacks
+  ///and default [trailing] and [subtitle] widgets
+  final GroupBuilder<G> groupBuilder;
 
-class _ListState<T extends DataObject> extends State<DataObjectList<T>>
-    with AutomaticKeepAliveClientMixin<DataObjectList<T>> {
-  bool _builtOnce = false;
-  late DataObjectListController<T> _listOptions;
+  ///Optional: override the default [onTap] callback
+  final void Function(T)? onTap;
 
-  @override
-  bool get wantKeepAlive => _builtOnce && ModalRoute.of(context)!.isCurrent;
+  ///Optional: override the default [onLongPress] callback
+  final void Function(T)? onLongPress;
 
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    _builtOnce = true;
-    updateKeepAlive();
-
-    return StreamBuilder<List<T>>(
-      stream: _listOptions.objectsData,
-      builder: (context, stream) {
-        if (stream.hasError) return Center(child: ErrorWidget(stream.error!));
-        if (!stream.hasData)
-          return const Center(child: CircularProgressIndicator());
-
-        final List<T> _data = stream.data!;
-        if (_data.isEmpty)
-          return Center(child: Text('لا يوجد ${_getPluralStringType()}'));
-
-        return ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 6),
-          addAutomaticKeepAlives: _data.length < 500,
-          cacheExtent: 200,
-          itemCount: _data.length + 1,
-          itemBuilder: (context, i) {
-            if (i == _data.length)
-              return Container(height: MediaQuery.of(context).size.height / 19);
-
-            final T current = _data[i];
-            return _listOptions.buildItem(
-              current,
-              onLongPress: _listOptions.onLongPress ?? _defaultLongPress,
-              onTap: (T current) {
-                if (!_listOptions.selectionMode.value) {
-                  _listOptions.tap == null
-                      ? dataObjectTap(current)
-                      : _listOptions.tap!(current);
-                } else {
-                  _listOptions.toggleSelected(current);
-                }
-              },
-              trailing: StreamBuilder<Map<String, T>?>(
-                stream: Rx.combineLatest2(
-                    _listOptions.selected,
-                    _listOptions.selectionMode,
-                    (dynamic a, dynamic b) => b ? a : null),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    return Checkbox(
-                      value: snapshot.data!.containsKey(current.id),
-                      onChanged: (v) {
-                        if (v!) {
-                          _listOptions.select(current);
-                        } else {
-                          _listOptions.deselect(current);
-                        }
-                      },
-                    );
-                  }
-                  return const SizedBox(width: 1, height: 1);
-                },
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _listOptions =
-        widget.options ?? context.read<DataObjectListController<T>>();
-  }
-
-  void _defaultLongPress(T current) async {
-    _listOptions.selectionMode.add(!_listOptions.selectionMode.value);
-
-    if (!_listOptions.selectionMode.value) {
-      if (_listOptions.selected.value.isNotEmpty) {
-        if (T == Person) {
-          await showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              content: const Text('اختر أمرًا:'),
-              actions: <Widget>[
-                TextButton.icon(
-                  icon: const Icon(Icons.sms),
-                  onPressed: () {
-                    navigator.currentState!.pop();
-                    final List<Person> people = _listOptions
-                        .selected.value.values
-                        .cast<Person>()
-                        .toList()
-                        .where((p) => p.phone != null && p.phone!.isNotEmpty)
-                        .toList();
-                    if (people.isNotEmpty)
-                      launch(
-                        'sms:' +
-                            people
-                                .map(
-                                  (f) => getPhone(f.phone!),
-                                )
-                                .toList()
-                                .cast<String>()
-                                .join(','),
-                      );
-                  },
-                  label: const Text('ارسال رسالة جماعية'),
-                ),
-                TextButton.icon(
-                  icon: const Icon(Icons.share),
-                  onPressed: () async {
-                    navigator.currentState!.pop();
-                    await Share.share(
-                      (await Future.wait(
-                        _listOptions.selected.value.values.cast<Person>().map(
-                              (f) async => f.name + ': ' + await sharePerson(f),
-                            ),
-                      ))
-                          .join('\n'),
-                    );
-                  },
-                  label: const Text('مشاركة القائمة'),
-                ),
-                TextButton.icon(
-                  icon: const ImageIcon(AssetImage('assets/whatsapp.png')),
-                  onPressed: () async {
-                    navigator.currentState!.pop();
-                    final con = TextEditingController();
-                    String? msg = await showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        actions: [
-                          TextButton.icon(
-                            icon: const Icon(Icons.send),
-                            label: const Text('ارسال'),
-                            onPressed: () {
-                              navigator.currentState!.pop(con.text);
-                            },
-                          ),
-                        ],
-                        content: TextFormField(
-                          controller: con,
-                          maxLines: null,
-                          decoration: const InputDecoration(
-                            labelText: 'اكتب رسالة',
-                          ),
-                        ),
-                      ),
-                    );
-                    if (msg != null) {
-                      msg = Uri.encodeComponent(msg);
-                      for (final person in _listOptions.selected.value.values
-                          .cast<Person>()
-                          .where(
-                              (p) => p.phone != null && p.phone!.isNotEmpty)) {
-                        final String phone = getPhone(person.phone!);
-                        await launch('https://wa.me/$phone?text=$msg');
-                      }
-                    }
-                  },
-                  label: const Text('ارسال رسالة واتساب للكل'),
-                ),
-                TextButton.icon(
-                  icon: const Icon(Icons.person_add),
-                  onPressed: () async {
-                    navigator.currentState!.pop();
-                    if ((await Permission.contacts.request()).isGranted) {
-                      for (final item in _listOptions.selected.value.values
-                          .cast<Person>()
-                          .where(
-                              (p) => p.phone != null && p.phone!.isNotEmpty)) {
-                        try {
-                          final c = Contact(
-                              photo: item.hasPhoto
-                                  ? await item.photoRef
-                                      .getData(100 * 1024 * 1024)
-                                  : null,
-                              phones: [Phone(item.phone!)])
-                            ..name.first = item.name;
-                          await c.insert();
-                        } catch (err, stack) {
-                          await Sentry.captureException(err,
-                              stackTrace: stack,
-                              withScope: (scope) => scope.setTag('LasErrorIn',
-                                  '_ListState._defaultLongPress.person_add'));
-                        }
-                      }
-                    }
-                  },
-                  label: const Text('اضافة إلى جهات الاتصال بالهاتف'),
-                ),
-              ],
-            ),
-          );
-        } else
-          await Share.share(
-            (await Future.wait(_listOptions.selected.value.values
-                    .map((f) async => f.name + ': ' + await shareDataObject(f))
-                    .toList()))
-                .join('\n'),
-          );
-      }
-      _listOptions.selectNone(false);
-    } else {
-      _listOptions.select(current);
-    }
-  }
-
-  String _getPluralStringType() {
-    if (T == HistoryDay || T == ServantsHistoryDay) return 'سجلات';
-    if (T == Class) return 'فصول';
-    if (T == Person) return 'مخدومين';
-    if (T == Invitation) return 'دعوات';
-    if (T == TrashDay) return 'محذوفات';
-    return 'عناصر';
-  }
-
-  @override
-  Future<void> dispose() async {
-    super.dispose();
-    if (widget.disposeController) await _listOptions.dispose();
-  }
-}
-
-class DataObjectCheckList<T extends Person, P extends DataObject>
-    extends StatefulWidget {
-  final CheckListController<T, P>? options;
+  ///Wether to dispose [controller] when the widget is disposed
   final bool autoDisposeController;
 
-  const DataObjectCheckList(
-      {Key? key, this.options, required this.autoDisposeController})
-      : super(key: key);
+  ///Optional string to show when there are no items
+  final String? emptyMsg;
+
+  const DayCheckList({
+    Key? key,
+    required this.controller,
+    this.itemBuilder,
+    required this.groupBuilder,
+    this.onTap,
+    this.onLongPress,
+    this.emptyMsg = 'لا يوجد مخدومين',
+    required this.autoDisposeController,
+  }) : super(key: key);
 
   @override
-  _CheckListState<T, P> createState() => _CheckListState<T, P>();
+  _DayCheckListState<G, T> createState() => _DayCheckListState<G, T>();
 }
 
-class _CheckListState<T extends Person, P extends DataObject>
-    extends State<DataObjectCheckList<T, P>>
-    with AutomaticKeepAliveClientMixin<DataObjectCheckList<T, P>> {
+class _DayCheckListState<G extends JsonRef, T extends Person>
+    extends State<DayCheckList<G, T>>
+    with AutomaticKeepAliveClientMixin<DayCheckList<G, T>> {
   bool _builtOnce = false;
-  late CheckListController<T, P> _listOptions;
+
+  DayCheckListController<G, T> get _listController => widget.controller;
+
+  ItemBuilder<T> get buildItem => widget.itemBuilder ?? defaultItemBuilder<T>;
 
   @override
   bool get wantKeepAlive => _builtOnce && ModalRoute.of(context)!.isCurrent;
@@ -308,7 +78,7 @@ class _CheckListState<T extends Person, P extends DataObject>
     updateKeepAlive();
 
     return StreamBuilder<bool>(
-      stream: _listOptions.dayOptions.grouped,
+      stream: _listController.dayOptions.grouped,
       builder: (context, grouped) {
         if (grouped.hasError) return Center(child: ErrorWidget(grouped.error!));
         if (!grouped.hasData)
@@ -324,15 +94,16 @@ class _CheckListState<T extends Person, P extends DataObject>
   }
 
   Widget buildGroupedListView() {
-    return StreamBuilder<Map<JsonRef, Tuple2<P, List<T>>>>(
-      stream: _listOptions.groupedData,
+    return StreamBuilder<Map<G, List<T>>>(
+      stream: _listController.groupedObjectsStream,
       builder: (context, groupedData) {
         if (groupedData.hasError) return ErrorWidget(groupedData.error!);
+
         if (!groupedData.hasData)
           return const Center(child: CircularProgressIndicator());
 
         if (groupedData.data!.isEmpty)
-          return Center(child: Text('لا يوجد ${_getPluralStringType()}'));
+          return Center(child: Text(widget.emptyMsg ?? 'لا يوجد عناصر'));
 
         return GroupListView(
           padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -340,7 +111,7 @@ class _CheckListState<T extends Person, P extends DataObject>
           countOfItemInSection: (i) {
             if (i == groupedData.data!.length) return 0;
 
-            return groupedData.data!.values.elementAt(i).item2.length;
+            return groupedData.data!.values.elementAt(i).length;
           },
           cacheExtent: 500,
           groupHeaderBuilder: (context, i) {
@@ -348,64 +119,38 @@ class _CheckListState<T extends Person, P extends DataObject>
               return Container(height: MediaQuery.of(context).size.height / 15);
 
             return StreamBuilder<bool?>(
-              stream: _listOptions.dayOptions.showSubtitlesInGroups,
+              stream: _listController.dayOptions.showSubtitlesInGroups,
               builder: (context, showSubtitle) {
                 return Container(
                   margin: const EdgeInsets.symmetric(vertical: 4),
-                  child: DataObjectWidget<P>(
-                    groupedData.data!.values.elementAt(i).item1,
-                    wrapInCard: false,
-                    showSubTitle: showSubtitle.data ?? false,
+                  child: widget.groupBuilder(
+                    groupedData.data!.keys.elementAt(i),
+                    showSubtitle: showSubtitle.data ?? false,
                     subtitle: showSubtitle.data ?? false
                         ? Text('يتم عرض ' +
                             groupedData.data!.values
                                 .elementAt(i)
-                                .item2
                                 .length
                                 .toString() +
                             ' مخدوم داخل الفصل')
                         : null,
-                    onTap: () {
-                      _listOptions.openedNodes.add({
-                        ..._listOptions.openedNodes.value,
-                        groupedData.data!.keys.elementAt(i): !(_listOptions
-                                .openedNodes
-                                .value[groupedData.data!.keys.elementAt(i)] ??
-                            false)
-                      });
+                    onTap: (o) {
+                      _listController.toggleGroup(
+                        groupedData.data!.keys.elementAt(i),
+                      );
                     },
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          onPressed: () {
-                            _listOptions.openedNodes.add({
-                              ..._listOptions.openedNodes.value,
-                              groupedData.data!.keys.elementAt(i):
-                                  !(_listOptions.openedNodes.value[groupedData
-                                          .data!.keys
-                                          .elementAt(i)] ??
-                                      false)
-                            });
-                          },
-                          icon: Icon(
-                            _listOptions.openedNodes.value[
-                                        groupedData.data!.keys.elementAt(i)] ??
-                                    false
-                                ? Icons.arrow_drop_up
-                                : Icons.arrow_drop_down,
-                          ),
-                        ),
-                        if (groupedData.data!.values.elementAt(i).item1
-                            is Class)
-                          IconButton(
-                            onPressed: () {
-                              dataObjectTap(
-                                  groupedData.data!.values.elementAt(i).item1);
-                            },
-                            icon: const Icon(Icons.info_outlined),
-                          ),
-                      ],
+                    trailing: IconButton(
+                      onPressed: () {
+                        _listController.toggleGroup(
+                          groupedData.data!.keys.elementAt(i),
+                        );
+                      },
+                      icon: Icon(
+                        _listController.currentOpenedGroups!
+                                .contains(groupedData.data!.keys.elementAt(i))
+                            ? Icons.arrow_drop_up
+                            : Icons.arrow_drop_down,
+                      ),
                     ),
                   ),
                 );
@@ -413,10 +158,8 @@ class _CheckListState<T extends Person, P extends DataObject>
             );
           },
           itemBuilder: (context, i) {
-            final T current = groupedData.data!.values
-                .elementAt(i.section)
-                .item2
-                .elementAt(i.index);
+            final T current =
+                groupedData.data!.values.elementAt(i.section)[i.index];
             return Padding(
               padding: const EdgeInsets.fromLTRB(3, 0, 9, 0),
               child: _buildItem(current),
@@ -429,7 +172,7 @@ class _CheckListState<T extends Person, P extends DataObject>
 
   Widget buildListView() {
     return StreamBuilder<List<T>>(
-        stream: _listOptions.objectsData,
+        stream: _listController.objectsStream,
         builder: (context, data) {
           if (data.hasError) return Center(child: ErrorWidget(data.error!));
           if (!data.hasData)
@@ -437,7 +180,7 @@ class _CheckListState<T extends Person, P extends DataObject>
 
           final List<T> _data = data.data!;
           if (_data.isEmpty)
-            return Center(child: Text('لا يوجد ${_getPluralStringType()}'));
+            return Center(child: Text(widget.emptyMsg ?? 'لا يوجد عناصر'));
 
           return ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -458,23 +201,24 @@ class _CheckListState<T extends Person, P extends DataObject>
 
   Widget _buildItem(T current) {
     return StreamBuilder<Map<String, HistoryRecord>>(
-      stream: _listOptions.dayOptions.enabled
-          .switchMap((_) => _listOptions.attended),
-      builder: (context, attended) => _listOptions.buildItem(
+      stream: _listController.dayOptions.enabled
+          .switchMap((_) => _listController.attended),
+      builder: (context, attended) => buildItem(
         current,
-        onLongPress: _listOptions.onLongPress ??
-            ((o) =>
-                _showRecordDialog(o, _listOptions.attended.value[current.id])),
+        onLongPress: widget.onLongPress ??
+            ((o) => _showRecordDialog(
+                o, _listController.attended.value[current.id])),
         onTap: (T current) async {
-          if (!_listOptions.dayOptions.enabled.value) {
-            _listOptions.tap == null
+          if (!_listController.dayOptions.enabled.value) {
+            widget.onTap == null
                 ? dataObjectTap(current)
-                : _listOptions.tap!(current);
+                : widget.onTap!(current);
           } else {
-            if (!_listOptions.dayOptions.lockUnchecks.value) {
-              await _listOptions.toggleSelected(current);
-            } else if (!_listOptions.selected.value.containsKey(current.id) ||
-                _listOptions.dayOptions.lockUnchecks.value &&
+            if (!_listController.dayOptions.lockUnchecks.value) {
+              await _listController.toggleSelected(current);
+            } else if (!(_listController.currentSelection?.contains(current) ??
+                    false) ||
+                _listController.dayOptions.lockUnchecks.value &&
                     await showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
@@ -495,7 +239,7 @@ class _CheckListState<T extends Person, P extends DataObject>
                           ),
                         ) ==
                         true) {
-              await _listOptions.toggleSelected(current);
+              await _listController.toggleSelected(current);
             }
           }
         },
@@ -506,12 +250,12 @@ class _CheckListState<T extends Person, P extends DataObject>
         trailing: attended.hasData
             ? Checkbox(
                 value: attended.data!.containsKey(current.id),
-                onChanged: _listOptions.dayOptions.enabled.value
+                onChanged: _listController.dayOptions.enabled.value
                     ? (v) {
                         if (v!) {
-                          _listOptions.select(current);
+                          _listController.select(current);
                         } else {
-                          _listOptions.deselect(current);
+                          _listController.deselect(current);
                         }
                       }
                     : null,
@@ -519,12 +263,6 @@ class _CheckListState<T extends Person, P extends DataObject>
             : const Checkbox(value: false, onChanged: null),
       ),
     );
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _listOptions = widget.options ?? context.read<CheckListController<T, P>>();
   }
 
   void _showRecordDialog(T current, HistoryRecord? oRecord) async {
@@ -543,7 +281,7 @@ class _CheckListState<T extends Person, P extends DataObject>
                     oRecord.type == 'Confession'
                 ? current.services
                 : [
-                    FirebaseFirestore.instance
+                    GetIt.I<DatabaseRepository>()
                         .collection('Services')
                         .doc(oRecord.type)
                   ],
@@ -554,8 +292,8 @@ class _CheckListState<T extends Person, P extends DataObject>
           builder: (context) => AlertDialog(
             title: Text(current.name),
             content: StreamBuilder<bool>(
-              initialData: _listOptions.dayOptions.enabled.value,
-              stream: _listOptions.dayOptions.enabled,
+              initialData: _listController.dayOptions.enabled.value,
+              stream: _listController.dayOptions.enabled,
               builder: (context, enabled) {
                 return StatefulBuilder(
                   builder: (context, setState) => Column(
@@ -572,24 +310,25 @@ class _CheckListState<T extends Person, P extends DataObject>
                                       record = HistoryRecord(
                                           classId: current.classId,
                                           id: current.id,
-                                          parent: _listOptions.day,
-                                          type: _listOptions.type,
-                                          recordedBy: User.instance.uid!,
-                                          services: _listOptions.type ==
+                                          parent: _listController.day,
+                                          type: _listController.type,
+                                          recordedBy: MHAuthRepository
+                                              .I.currentUser!.uid,
+                                          services: _listController.type ==
                                                       'Meeting' ||
-                                                  _listOptions.type ==
+                                                  _listController.type ==
                                                       'Kodas' ||
-                                                  _listOptions.type ==
+                                                  _listController.type ==
                                                       'Confession'
                                               ? current.services
                                               : [
-                                                  FirebaseFirestore.instance
+                                                  GetIt.I<DatabaseRepository>()
                                                       .collection('Services')
-                                                      .doc(_listOptions.type)
+                                                      .doc(_listController.type)
                                                 ],
                                           studyYear: current.studyYear,
                                           time: mergeDayWithTime(
-                                            _listOptions.day.day.toDate(),
+                                            _listController.day.day.toDate(),
                                             DateTime.now(),
                                           ),
                                           isServant: T == User);
@@ -618,15 +357,15 @@ class _CheckListState<T extends Person, P extends DataObject>
                                   context: context,
                                 );
                                 return DateTime(
-                                    _listOptions.day.day.toDate().year,
-                                    _listOptions.day.day.toDate().month,
-                                    _listOptions.day.day.toDate().day,
+                                    _listController.day.day.toDate().year,
+                                    _listController.day.day.toDate().month,
+                                    _listController.day.day.toDate().day,
                                     selected?.hour ?? initialValue.hour,
                                     selected?.minute ?? initialValue.minute);
                               },
                               onChanged: (t) async {
                                 record!.time = mergeDayWithTime(
-                                    _listOptions.day.day.toDate(), t!);
+                                    _listController.day.day.toDate(), t!);
                                 setState(() {});
                               },
                             ),
@@ -660,7 +399,7 @@ class _CheckListState<T extends Person, P extends DataObject>
                 },
                 child: Text('عرض بيانات ' + current.name),
               ),
-              if (_listOptions.dayOptions.enabled.value)
+              if (_listController.dayOptions.enabled.value)
                 TextButton(
                   onPressed: () => navigator.currentState!.pop(true),
                   child: const Text('حفظ'),
@@ -669,31 +408,22 @@ class _CheckListState<T extends Person, P extends DataObject>
           ),
         ) ==
         true) {
-      if (_listOptions.selected.value.containsKey(current.id) &&
+      if ((_listController.currentSelection?.contains(current) ?? false) &&
           record != null) {
-        await _listOptions.modifySelected(current,
+        await _listController.modifySelected(current,
             notes: record!.notes, time: record!.time);
       } else if (record != null) {
-        await _listOptions.select(current,
+        await _listController.select(current,
             notes: record?.notes, time: record?.time);
-      } else if (_listOptions.selected.value.containsKey(current.id)) {
-        await _listOptions.deselect(current);
+      } else if (_listController.currentSelection?.contains(current) ?? false) {
+        await _listController.deselect(current);
       }
     }
-  }
-
-  String _getPluralStringType() {
-    if (T == HistoryDay || T == ServantsHistoryDay) return 'سجلات';
-    if (T == Class) return 'فصول';
-    if (T == User) return 'مستخدمين';
-    if (T == Person) return 'مخدومين';
-    if (T == Invitation) return 'دعوات';
-    throw UnimplementedError();
   }
 
   @override
   Future<void> dispose() async {
     super.dispose();
-    if (widget.autoDisposeController) await _listOptions.dispose();
+    if (widget.autoDisposeController) await _listController.dispose();
   }
 }

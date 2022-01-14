@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:churchdata_core/churchdata_core.dart';
+import 'package:flutter/material.dart' hide Notification;
+import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/utils/globals.dart';
 
-import 'notification.dart' as n;
+import 'notification_widget.dart';
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({Key? key}) : super(key: key);
@@ -19,15 +20,18 @@ class _NotificationsPageState extends State<NotificationsPage> {
         title: const Text('الإشعارات'),
       ),
       body: ListView.builder(
-        itemCount: Hive.box<Map<dynamic, dynamic>>('Notifications').length,
+        itemCount: GetIt.I<CacheRepository>()
+            .box<Notification>('Notifications')
+            .length,
         itemBuilder: (context, i) {
-          return n.Notification.fromMessage(
-            Hive.box<Map<dynamic, dynamic>>('Notifications')
-                .getAt(Hive.box<Map<dynamic, dynamic>>('Notifications').length -
+          return NotificationWidget(
+            GetIt.I<CacheRepository>().box<Notification>('Notifications').getAt(
+                GetIt.I<CacheRepository>()
+                        .box<Notification>('Notifications')
+                        .length -
                     i -
-                    1)!
-                .cast<String, dynamic>(),
-            () async {
+                    1)!,
+            longPress: () async {
               if (await showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
@@ -41,8 +45,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
                     ),
                   ) ==
                   true) {
-                await Hive.box<Map<dynamic, dynamic>>('Notifications').deleteAt(
-                    Hive.box<Map<dynamic, dynamic>>('Notifications').length -
+                await GetIt.I<CacheRepository>()
+                    .box<Notification>('Notifications')
+                    .deleteAt(GetIt.I<CacheRepository>()
+                            .box<Notification>('Notifications')
+                            .length -
                         i -
                         1);
                 setState(() {});

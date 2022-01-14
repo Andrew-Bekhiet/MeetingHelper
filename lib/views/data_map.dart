@@ -1,12 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
-import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
@@ -40,7 +40,7 @@ class MegaMap extends StatelessWidget {
             [
               ...selected.selected!.whereType<Class>().toList().split(10).map(
                 (c) {
-                  return FirebaseFirestore.instance
+                  return GetIt.I<DatabaseRepository>()
                       .collection('Persons')
                       .where('ClassId', whereIn: c.map((e) => e.ref).toList())
                       .get();
@@ -48,7 +48,7 @@ class MegaMap extends StatelessWidget {
               ),
               ...selected.selected!.whereType<Service>().toList().split(10).map(
                 (s) {
-                  return FirebaseFirestore.instance
+                  return GetIt.I<DatabaseRepository>()
                       .collection('Persons')
                       .where('Services',
                           arrayContainsAny: s.map((e) => e.ref).toList())
@@ -57,7 +57,7 @@ class MegaMap extends StatelessWidget {
               ),
             ],
           ).then(
-            (s) => s.expand((n) => n.docs).map(Person.fromQueryDoc).toList(),
+            (s) => s.expand((n) => n.docs).map(Person.fromDoc).toList(),
           ),
           builder: (context, data) {
             if (data.connectionState != ConnectionState.done) {

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -11,19 +11,17 @@ import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
-import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/views/lists/lists.dart';
 import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
@@ -34,7 +32,6 @@ import '../utils/globals.dart';
 import '../utils/helpers.dart';
 import 'auth_screen.dart';
 import 'edit_page/edit_person.dart';
-import 'list.dart';
 import 'services_list.dart';
 
 class Root extends StatefulWidget {
@@ -69,7 +66,8 @@ class _RootState extends State<Root>
 
   void addTap() async {
     if (_tabController!.index == _tabController!.length - 2) {
-      if (User.instance.manageUsers || User.instance.manageAllowedUsers) {
+      if (MHAuthRepository.I.currentUser!.permissions.manageUsers ||
+          MHAuthRepository.I.currentUser!.permissions.manageAllowedUsers) {
         final rslt = await showDialog(
           context: context,
           builder: (context) => SimpleDialog(
@@ -99,10 +97,9 @@ class _RootState extends State<Root>
         MaterialPageRoute(
           builder: (context) {
             return EditPerson(
-              person: User(
-                name: '',
-                email: '',
-                ref: FirebaseFirestore.instance.collection('UsersData').doc(),
+              person: Person(
+                ref:
+                    GetIt.I<DatabaseRepository>().collection('UsersData').doc(),
               ),
             );
           },
@@ -111,9 +108,9 @@ class _RootState extends State<Root>
     }
   }
 
-  late ServicesListController _servicesOptions;
-  late DataObjectListController<Person> _personsOptions;
-  late DataObjectListController<User> _usersOptions;
+  late final ServicesListController _servicesOptions;
+  late final ListController<void, Person> _personsOptions;
+  late final ListController<void, User> _usersOptions;
 
   GlobalKey _createOrGetFeatureKey(String key) {
     _features[key] ??= GlobalKey();
@@ -153,7 +150,7 @@ class _RootState extends State<Root>
                                 icon: const Icon(Icons.select_all),
                                 label: const Text('تحديد لا شئ'),
                                 onPressed: () {
-                                  _personsOptions.selectNone();
+                                  _personsOptions.deselectAll();
                                   navigator.currentState!.pop();
                                 },
                               ),
@@ -170,8 +167,9 @@ class _RootState extends State<Root>
                                       onChanged: (value) {
                                         _personsOrder.add(
                                           OrderOptions(
-                                              orderBy: value,
-                                              asc: _personsOrder.value.asc),
+                                            orderBy: value!,
+                                            asc: _personsOrder.value.asc,
+                                          ),
                                         );
                                         navigator.currentState!.pop();
                                       },
@@ -230,7 +228,8 @@ class _RootState extends State<Root>
         bottom: TabBar(
           controller: _tabController,
           tabs: [
-            if (User.instance.manageUsers || User.instance.manageAllowedUsers)
+            if (MHAuthRepository.I.currentUser!.permissions.manageUsers ||
+                MHAuthRepository.I.currentUser!.permissions.manageAllowedUsers)
               Tab(
                 key: _createOrGetFeatureKey('Servants'),
                 text: 'الخدام',
@@ -307,10 +306,10 @@ class _RootState extends State<Root>
           animation: _tabController!,
           builder: (context, _) => StreamBuilder<dynamic>(
             stream: _tabController!.index == _tabController!.length - 1
-                ? _personsOptions.objectsData
+                ? _personsOptions.objectsStream
                 : _tabController!.index == _tabController!.length - 2
-                    ? _servicesOptions.objectsData
-                    : _usersOptions.objectsData,
+                    ? _servicesOptions.objectsStream
+                    : _usersOptions.objectsStream,
             builder: (context, snapshot) {
               return Text(
                 (snapshot.data?.length ?? 0).toString() +
@@ -332,21 +331,24 @@ class _RootState extends State<Root>
       body: TabBarView(
         controller: _tabController,
         children: [
-          if (User.instance.manageUsers || User.instance.manageAllowedUsers)
+          if (MHAuthRepository.I.currentUser!.permissions.manageUsers ||
+              MHAuthRepository.I.currentUser!.permissions.manageAllowedUsers)
             UsersList(
               key: const PageStorageKey('mainUsersList'),
               autoDisposeController: false,
               listOptions: _usersOptions,
+              onTap: dataObjectTap,
             ),
           ServicesList(
             key: const PageStorageKey('mainClassesList'),
             autoDisposeController: false,
             options: _servicesOptions,
           ),
-          DataObjectList<Person>(
+          DataObjectListView<void, Person>(
             key: const PageStorageKey('mainPersonsList'),
-            disposeController: false,
-            options: _personsOptions,
+            autoDisposeController: false,
+            controller: _personsOptions,
+            onTap: personTap,
           ),
         ],
       ),
@@ -367,11 +369,11 @@ class _RootState extends State<Root>
             ),
             ListTile(
               key: _createOrGetFeatureKey('MyAccount'),
-              leading: StreamBuilder<User>(
-                stream: User.instance.stream,
-                initialData: User.instance,
+              leading: StreamBuilder<User?>(
+                stream: MHAuthRepository.I.userStream,
+                initialData: MHAuthRepository.I.currentUser,
                 builder: (context, snapshot) {
-                  return snapshot.data!.getPhoto(true, false);
+                  return UserPhotoWidget(snapshot.data!);
                 },
               ),
               title: const Text('حسابي'),
@@ -380,16 +382,22 @@ class _RootState extends State<Root>
                 navigator.currentState!.pushNamed('MyAccount');
               },
             ),
-            Selector<User, bool>(
+            StreamBuilder<bool>(
               key: _createOrGetFeatureKey('ManageUsers'),
-              selector: (_, user) =>
-                  user.manageUsers || user.manageAllowedUsers,
-              builder: (c, permission, data) {
-                if (!permission)
+              initialData: false,
+              stream: (MHAuthRepository.I.userStream.where((u) => u != null)
+                      as Stream<User>)
+                  .map((u) =>
+                      u.permissions.manageUsers ||
+                      u.permissions.manageAllowedUsers)
+                  .distinct(),
+              builder: (context, data) {
+                if (!data.data!)
                   return const SizedBox(
                     width: 0,
                     height: 0,
                   );
+
                 return ListTile(
                   leading: const Icon(Icons.admin_panel_settings),
                   onTap: () async {
@@ -425,10 +433,14 @@ class _RootState extends State<Root>
                 navigator.currentState!.pushNamed('Day');
               },
             ),
-            Selector<User, bool?>(
+            StreamBuilder<bool>(
               key: _createOrGetFeatureKey('AddServantsHistory'),
-              selector: (_, user) => user.secretary,
-              builder: (c, permission, data) => permission!
+              initialData: false,
+              stream: (MHAuthRepository.I.userStream.where((u) => u != null)
+                      as Stream<User>)
+                  .map((u) => u.permissions.secretary)
+                  .distinct(),
+              builder: (context, data) => data.data!
                   ? ListTile(
                       leading: const Icon(Icons.add),
                       title: const Text('كشف حضور الخدام'),
@@ -448,10 +460,14 @@ class _RootState extends State<Root>
                 navigator.currentState!.pushNamed('History');
               },
             ),
-            Selector<User, bool?>(
+            StreamBuilder<bool>(
               key: _createOrGetFeatureKey('ServantsHistory'),
-              selector: (_, user) => user.secretary,
-              builder: (c, permission, data) => permission!
+              initialData: false,
+              stream: (MHAuthRepository.I.userStream.where((u) => u != null)
+                      as Stream<User>)
+                  .map((u) => u.permissions.secretary)
+                  .distinct(),
+              builder: (context, data) => data.data!
                   ? ListTile(
                       leading: const Icon(Icons.history),
                       title: const Text('سجل الخدام'),
@@ -482,10 +498,16 @@ class _RootState extends State<Root>
                     arguments: {'HistoryCollection': 'ServantsHistory'});
               },
             ),
-            Consumer<User>(
+            StreamBuilder<bool>(
+              initialData: false,
+              stream: (MHAuthRepository.I.userStream.where((u) => u != null)
+                      as Stream<User>)
+                  .map((u) =>
+                      u.permissions.manageUsers ||
+                      u.permissions.manageAllowedUsers)
+                  .distinct(),
               key: _createOrGetFeatureKey('ActivityAnalysis'),
-              builder: (context, user, _) => user.manageUsers ||
-                      user.manageAllowedUsers
+              builder: (context, user) => user.data!
                   ? ListTile(
                       leading: const Icon(Icons.analytics_outlined),
                       title: const Text('تحليل بيانات الخدمة'),
@@ -506,15 +528,20 @@ class _RootState extends State<Root>
                 navigator.currentState!.pushNamed('Search');
               },
             ),
-            Selector<User, bool?>(
+            StreamBuilder<bool>(
               key: _createOrGetFeatureKey('ManageDeleted'),
-              selector: (_, user) => user.manageDeleted,
-              builder: (context, permission, _) {
-                if (!permission!)
+              initialData: false,
+              stream: (MHAuthRepository.I.userStream.where((u) => u != null)
+                      as Stream<User>)
+                  .map((u) => u.permissions.manageDeleted)
+                  .distinct(),
+              builder: (context, data) {
+                if (!data.data!)
                   return const SizedBox(
                     width: 0,
                     height: 0,
                   );
+
                 return ListTile(
                   leading: const Icon(Icons.delete_outline),
                   onTap: () {
@@ -553,10 +580,14 @@ class _RootState extends State<Root>
                 import(context);
               },
             ),
-            Selector<User, bool?>(
-              selector: (_, user) => user.export,
-              builder: (context2, permission, _) {
-                return permission!
+            StreamBuilder<bool>(
+              initialData: false,
+              stream: (MHAuthRepository.I.userStream.where((u) => u != null)
+                      as Stream<User>)
+                  .map((u) => u.permissions.export)
+                  .distinct(),
+              builder: (context, data) {
+                return data.data!
                     ? ListTile(
                         leading: const Icon(Icons.cloud_download),
                         title: const Text('تصدير فصل إلى ملف اكسل'),
@@ -574,11 +605,11 @@ class _RootState extends State<Root>
                                   Expanded(
                                     child: ServicesList(
                                       autoDisposeController: true,
+                                      onTap: (_class) =>
+                                          navigator.currentState!.pop(
+                                        _class,
+                                      ),
                                       options: ServicesListController(
-                                        tap: (_class) =>
-                                            navigator.currentState!.pop(
-                                          _class,
-                                        ),
                                         itemsStream: servicesByStudyYearRef(),
                                       ),
                                     ),
@@ -655,10 +686,14 @@ class _RootState extends State<Root>
                     : Container();
               },
             ),
-            Selector<User, bool?>(
-              selector: (_, user) => user.export,
-              builder: (context2, permission, _) {
-                return permission!
+            StreamBuilder<bool>(
+              initialData: false,
+              stream: (MHAuthRepository.I.userStream.where((u) => u != null)
+                      as Stream<User>)
+                  .map((u) => u.permissions.export)
+                  .distinct(),
+              builder: (context, data) {
+                return data.data!
                     ? ListTile(
                         leading: const Icon(Icons.cloud_download),
                         title: const Text('تصدير جميع البيانات'),
@@ -723,13 +758,20 @@ class _RootState extends State<Root>
                     : Container();
               },
             ),
-            Selector<User, bool?>(
-              selector: (_, user) => user.export,
-              builder: (context, user, _) => ListTile(
-                leading: const Icon(Icons.list_alt),
-                title: const Text('عمليات التصدير السابقة'),
-                onTap: () => navigator.currentState!.pushNamed('ExportOps'),
-              ),
+            StreamBuilder<bool>(
+              initialData: false,
+              stream: (MHAuthRepository.I.userStream.where((u) => u != null)
+                      as Stream<User>)
+                  .map((u) => u.permissions.export)
+                  .distinct(),
+              builder: (context, data) => data.data!
+                  ? ListTile(
+                      leading: const Icon(Icons.list_alt),
+                      title: const Text('عمليات التصدير السابقة'),
+                      onTap: () =>
+                          navigator.currentState!.pushNamed('ExportOps'),
+                    )
+                  : Container(),
             ),
             const Divider(),
             if (!kIsWeb)
@@ -807,8 +849,10 @@ class _RootState extends State<Root>
               title: const Text('تسجيل الخروج'),
               onTap: () async {
                 mainScfld.currentState!.openEndDrawer();
-                await Hive.box('Settings').put('FCM_Token_Registered', false);
-                await User.instance.signOut();
+                await GetIt.I<CacheRepository>()
+                    .box('Settings')
+                    .put('FCM_Token_Registered', false);
+                await MHAuthRepository.I.signOut();
                 unawaited(navigator.currentState!.pushReplacementNamed('/'));
               },
             ),
@@ -883,33 +927,39 @@ class _RootState extends State<Root>
   void initState() {
     super.initState();
     initializeDateFormatting('ar_EG');
-    _usersOptions = DataObjectListController<User>(
-      searchQuery: _searchQuery,
-      tap: personTap,
-      itemsStream: User.getAllForUser(),
-    );
+    _usersOptions = ListController<void, User>(
+        searchStream: _searchQuery,
+        objectsPaginatableStream: PaginatableStream.loadAll(
+          stream: MHAuthRepository.getAllUsers(),
+        ));
     _servicesOptions = ServicesListController(
       searchQuery: _searchQuery,
-      itemsStream: servicesByStudyYearRef(),
-      tap: dataObjectTap,
-    );
-    _personsOptions = DataObjectListController<Person>(
-      searchQuery: _searchQuery,
-      tap: personTap,
-      //Listen to Ordering options and combine it
-      //with the Data Stream from Firestore
-      itemsStream: _personsOrder.switchMap(
-        (order) => Person.getAllForUser(
-            orderBy: order.orderBy ?? 'Name', descending: !order.asc!),
+      objectsPaginatableStream: PaginatableStream.loadAll(
+        stream: servicesByStudyYearRef(),
       ),
     );
+    _personsOptions = ListController<void, Person>(
+      searchStream: _searchQuery,
+      //Listen to Ordering options and combine it
+      //with the Data Stream from Firestore
+      objectsPaginatableStream: PaginatableStream.loadAll(
+        stream: _personsOrder.switchMap(
+          (order) => Person.getAllForUser(
+            orderBy: order.orderBy,
+            descending: !order.asc,
+          ),
+        ),
+      ),
+    );
+
     _tabController = TabController(
         vsync: this,
-        initialIndex:
-            User.instance.manageUsers || User.instance.manageAllowedUsers
-                ? 1
-                : 0,
-        length: User.instance.manageUsers || User.instance.manageAllowedUsers
+        initialIndex: MHAuthRepository.I.currentUser!.permissions.manageUsers ||
+                MHAuthRepository.I.currentUser!.permissions.manageAllowedUsers
+            ? 1
+            : 0,
+        length: MHAuthRepository.I.currentUser!.permissions.manageUsers ||
+                MHAuthRepository.I.currentUser!.permissions.manageAllowedUsers
             ? 3
             : 2);
     WidgetsBinding.instance!.addObserver(this);
@@ -923,7 +973,9 @@ class _RootState extends State<Root>
     if (!kIsWeb &&
         (await DeviceInfoPlugin().androidInfo).version.sdkInt! >= 23 &&
         !(await Permission.ignoreBatteryOptimizations.status).isGranted &&
-        Hive.box('Settings').get('ShowBatteryDialog', defaultValue: true)) {
+        GetIt.I<CacheRepository>()
+            .box('Settings')
+            .get('ShowBatteryDialog', defaultValue: true)) {
       await showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -939,7 +991,9 @@ class _RootState extends State<Root>
             ),
             TextButton(
               onPressed: () async {
-                await Hive.box('Settings').put('ShowBatteryDialog', false);
+                await GetIt.I<CacheRepository>()
+                    .box('Settings')
+                    .put('ShowBatteryDialog', false);
                 navigator.currentState!.pop();
               },
               child: const Text('عدم الاظهار مجددًا'),
@@ -1230,17 +1284,22 @@ class _RootState extends State<Root>
       'Servants',
       'Search',
       'MyAccount',
-      if (User.instance.manageUsers || User.instance.manageAllowedUsers)
+      if (MHAuthRepository.I.currentUser!.permissions.manageUsers ||
+          MHAuthRepository.I.currentUser!.permissions.manageAllowedUsers)
         'ManageUsers',
       'AddHistory',
-      if (User.instance.secretary) 'AddServantsHistory',
+      if (MHAuthRepository.I.currentUser!.permissions.secretary)
+        'AddServantsHistory',
       'History',
-      if (User.instance.secretary) 'ServantsHistory',
+      if (MHAuthRepository.I.currentUser!.permissions.secretary)
+        'ServantsHistory',
       'Analytics',
-      if (User.instance.manageUsers || User.instance.manageAllowedUsers)
+      if (MHAuthRepository.I.currentUser!.permissions.manageUsers ||
+          MHAuthRepository.I.currentUser!.permissions.manageAllowedUsers)
         'ActivityAnalysis',
       'AdvancedSearch',
-      if (User.instance.manageDeleted) 'ManageDeleted',
+      if (MHAuthRepository.I.currentUser!.permissions.manageDeleted)
+        'ManageDeleted',
       'DataMap',
       'Settings'
     ]..removeWhere(HivePersistenceProvider.instance.hasCompletedStep);
@@ -1289,7 +1348,7 @@ class _RootState extends State<Root>
 
   void showPendingUIDialogs() async {
     dialogsNotShown = false;
-    if (!await User.instance.userDataUpToDate()) {
+    if (!MHAuthRepository.I.currentUser!.userDataUpToDate()) {
       await showErrorUpdateDataDialog(context: context, pushApp: false);
     }
     listenToFirebaseMessaging();
@@ -1322,10 +1381,10 @@ class _RootState extends State<Root>
   }
 
   Future<void> _recordActive() async {
-    await User.instance.recordActive();
+    await MHAuthRepository.I.recordActive();
   }
 
   Future<void> _recordLastSeen() async {
-    await User.instance.recordLastSeen();
+    await MHAuthRepository.I.recordLastSeen();
   }
 }

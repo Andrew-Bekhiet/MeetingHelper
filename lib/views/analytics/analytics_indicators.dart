@@ -1,16 +1,14 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/history/history_record.dart';
-import 'package:meetinghelper/models/mini_models.dart';
-import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/utils/helpers.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:random_color/random_color.dart';
 import 'package:rxdart/rxdart.dart';
@@ -46,13 +44,13 @@ class AttendanceChart extends StatelessWidget {
 
   Stream<List<HistoryRecord>> _getStream() {
     if (classes == null) {
-      var query = FirebaseFirestore.instance
-          .collectionGroup(collectionGroup)
-          .where(
-              'Services',
-              arrayContains: FirebaseFirestore.instance
-                  .collection('Services')
-                  .doc(collectionGroup));
+      var query =
+          GetIt.I<DatabaseRepository>().collectionGroup(collectionGroup).where(
+                'Services',
+                arrayContains: GetIt.I<DatabaseRepository>()
+                    .collection('Services')
+                    .doc(collectionGroup),
+              );
 
       query = query
           .where('Time',
@@ -72,8 +70,8 @@ class AttendanceChart extends StatelessWidget {
     }
 
     return Rx.combineLatestList<JsonQuery>(classes!.split(10).map((c) {
-      var query = FirebaseFirestore.instance.collectionGroup(collectionGroup);
-
+      var query =
+          GetIt.I<DatabaseRepository>().collectionGroup(collectionGroup);
       if (collectionGroup == 'Kodas' ||
           collectionGroup == 'Meeting' ||
           collectionGroup == 'Confession')
@@ -139,7 +137,7 @@ class AttendanceChart extends StatelessWidget {
                       if (classes != null)
                         ...classes!.map((c) => c.ref)
                       else
-                        FirebaseFirestore.instance
+                        GetIt.I<DatabaseRepository>()
                             .collection('Service')
                             .doc(collectionGroup),
                     ],
@@ -149,7 +147,7 @@ class AttendanceChart extends StatelessWidget {
                     total: (classes ?? studyYears)!.length,
                     pointColorMapper: (parent, _) =>
                         usedColorsMap[parent.item2.id] ??=
-                            parent.item2.color == Colors.transparent
+                            parent.item2.color == null
                                 ? rnd.randomColor(
                                     colorBrightness:
                                         Theme.of(context).brightness ==
@@ -157,14 +155,19 @@ class AttendanceChart extends StatelessWidget {
                                             ? ColorBrightness.dark
                                             : ColorBrightness.light,
                                   )
-                                : parent.item2.color,
+                                : parent.item2.color!,
                     pieData: groupBy<HistoryRecord, JsonRef?>(history.data!,
                             (r) => classes != null ? r.classId : r.studyYear)
                         .entries
                         .map(
                           (e) => Tuple2<int, DataObject>(
                             e.value.length,
-                            groupedClasses[e.key] ?? Class(name: 'غير معروف'),
+                            groupedClasses[e.key] ??
+                                Class(
+                                    ref: GetIt.I<DatabaseRepository>()
+                                        .collection('Classes')
+                                        .doc('null'),
+                                    name: 'غير معروف'),
                           ),
                         )
                         .toList(),
@@ -179,7 +182,7 @@ class AttendanceChart extends StatelessWidget {
                   if (classes != null)
                     ...classes!.map((c) => c.ref)
                   else
-                    FirebaseFirestore.instance
+                    GetIt.I<DatabaseRepository>()
                         .collection('Service')
                         .doc(collectionGroup),
                 ],
@@ -315,34 +318,37 @@ class ClassesAttendanceIndicator extends StatelessWidget {
 
         return StreamBuilder<int>(
           stream: classes != null
-              ? Rx.combineLatestList<JsonQuery>(classes!
+              ? Rx.combineLatestList<JsonQuery>(
+                  classes!
                       .split(10)
-                      .map((o) => isServant
-                          ? FirebaseFirestore.instance
-                              .collection('UsersData')
-                              .where('ClassId',
-                                  whereIn: o.map((e) => e.ref).toList())
-                              .snapshots()
-                          : FirebaseFirestore.instance
-                              .collection('Persons')
-                              .where('ClassId',
-                                  whereIn: o.map((e) => e.ref).toList())
-                              .snapshots())
-                      .toList())
-                  .map((s) => s.fold<int>(0, (o, n) => o + n.size))
+                      .map(
+                        (o) => isServant
+                            ? GetIt.I<DatabaseRepository>()
+                                .collection('UsersData')
+                                .where('ClassId',
+                                    whereIn: o.map((e) => e.ref).toList())
+                                .snapshots()
+                            : GetIt.I<DatabaseRepository>()
+                                .collection('Persons')
+                                .where('ClassId',
+                                    whereIn: o.map((e) => e.ref).toList())
+                                .snapshots(),
+                      )
+                      .toList(),
+                ).map((s) => s.fold<int>(0, (o, n) => o + n.size))
               : isServant
-                  ? FirebaseFirestore.instance
+                  ? GetIt.I<DatabaseRepository>()
                       .collection('UsersData')
                       .where('Services',
-                          arrayContains: FirebaseFirestore.instance
+                          arrayContains: GetIt.I<DatabaseRepository>()
                               .collection('Services')
                               .doc(collection.id))
                       .snapshots()
                       .map((s) => s.size)
-                  : FirebaseFirestore.instance
+                  : GetIt.I<DatabaseRepository>()
                       .collection('Persons')
                       .where('Services',
-                          arrayContains: FirebaseFirestore.instance
+                          arrayContains: GetIt.I<DatabaseRepository>()
                               .collection('Services')
                               .doc(collection.id))
                       .snapshots()
@@ -385,7 +391,7 @@ class ClassesAttendanceIndicator extends StatelessWidget {
                                                 ? ColorBrightness.dark
                                                 : ColorBrightness.light,
                                       )
-                                    : parent.item2.color,
+                                    : parent.item2.color!,
                         pieData: groupBy<HistoryRecord, JsonRef?>(
                                 snapshot.data!,
                                 (p) =>
@@ -395,7 +401,11 @@ class ClassesAttendanceIndicator extends StatelessWidget {
                               (e) => Tuple2<int, DataObject>(
                                 e.value.length,
                                 groupedClasses[e.key] ??
-                                    Class(name: 'غير معروف'),
+                                    Class(
+                                        ref: GetIt.I<DatabaseRepository>()
+                                            .collection('Classes')
+                                            .doc('null'),
+                                        name: 'غير معروف'),
                               ),
                             )
                             .toList(),
@@ -438,15 +448,17 @@ class PersonAttendanceIndicator extends StatelessWidget {
   final int total;
 
   Stream<List<JsonQueryDoc>> _getHistoryForUser() {
-    return Rx.combineLatest3<User, List<Class>, List<Service>,
-                Tuple3<User, List<Class>, List<Service>>>(
-            User.instance.stream,
+    return Rx.combineLatest3<User?, List<Class>, List<Service>,
+                Tuple3<User?, List<Class>, List<Service>>>(
+            MHAuthRepository.I.userStream,
             Class.getAllForUser(),
             Service.getAllForUser(),
-            Tuple3<User, List<Class>, List<Service>>.new)
+            Tuple3.new)
         .switchMap((u) {
-      if (u.item1.superAccess) {
-        return FirebaseFirestore.instance
+      if (u.item1 == null) return Stream.value([]);
+
+      if (u.item1!.permissions.superAccess) {
+        return GetIt.I<DatabaseRepository>()
             .collectionGroup(collectionGroup)
             .where('ID', isEqualTo: id)
             .where('Time',
@@ -473,7 +485,7 @@ class PersonAttendanceIndicator extends StatelessWidget {
                     : u.item3)
                 .split(10)
                 .map((o) {
-          return FirebaseFirestore.instance
+          return GetIt.I<DatabaseRepository>()
               .collectionGroup(collectionGroup)
               .where(
                 collectionGroup == 'Meeting' ||
@@ -484,13 +496,13 @@ class PersonAttendanceIndicator extends StatelessWidget {
                 whereIn: collectionGroup == 'Meeting' ||
                         collectionGroup == 'Kodas' ||
                         collectionGroup == 'Confession'
-                    ? o.map((e) => (e as DataObject).ref).toList()
+                    ? o.map((e) => e.ref).toList()
                     : null,
                 arrayContainsAny: collectionGroup == 'Meeting' ||
                         collectionGroup == 'Kodas' ||
                         collectionGroup == 'Confession'
                     ? null
-                    : o.map((e) => (e as DataObject).ref).toList(),
+                    : o.map((e) => e.ref).toList(),
               )
               .where('ID', isEqualTo: id)
               .where(
@@ -637,12 +649,12 @@ class HistoryAnalysisWidget extends StatelessWidget {
               ),
             if (showUsers)
               FutureBuilder<List<User>>(
-                future: User.getAllNames().first,
+                future: MHAuthRepository.getAllNames().first,
                 builder: (context, usersData) {
                   if (usersData.hasError) return ErrorWidget(usersData.error!);
                   if (!usersData.hasData)
                     return const Center(child: CircularProgressIndicator());
-                  final usersByID = {for (var u in usersData.data!) u.docId: u};
+                  final usersByID = {for (var u in usersData.data!) u.id: u};
                   final pieData =
                       groupBy<MinimalHistoryRecord, String?>(data, (s) => s.by)
                           .entries
@@ -699,12 +711,12 @@ class CartesianChart<T> extends StatelessWidget {
                     .toList()
                     .split(10)
                     .map(
-                      (c) => FirebaseFirestore.instance
+                      (c) => GetIt.I<DatabaseRepository>()
                           .collection('Persons')
                           .where('ClassId', whereIn: c)
                           .snapshots()
                           .map(
-                            (s) => s.docs.map(Person.fromQueryDoc).toList(),
+                            (s) => s.docs.map(Person.fromDoc).toList(),
                           ),
                     ),
                 ...parents!
@@ -712,12 +724,12 @@ class CartesianChart<T> extends StatelessWidget {
                     .toList()
                     .split(10)
                     .map(
-                      (c) => FirebaseFirestore.instance
+                      (c) => GetIt.I<DatabaseRepository>()
                           .collection('Persons')
                           .where('Services', arrayContainsAny: c)
                           .snapshots()
                           .map(
-                            (s) => s.docs.map(Person.fromQueryDoc).toList(),
+                            (s) => s.docs.map(Person.fromDoc).toList(),
                           ),
                     ),
               ]).map((p) => p.expand((o) => o).toList())
@@ -841,7 +853,7 @@ class PieChart<T> extends StatelessWidget {
   })  : assert(nameGetter != null || T == String || null is T),
         super(key: key);
 
-  final Color Function(Tuple2<int, T>, int)? pointColorMapper;
+  final Color? Function(Tuple2<int, T>, int)? pointColorMapper;
   final String? Function(T)? nameGetter;
   final List<Tuple2<int, T>> pieData;
   final int total;

@@ -1,7 +1,8 @@
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
-import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
+import 'package:churchdata_core/churchdata_core.dart';
+// import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 
 import '../views/settings.dart';
@@ -29,8 +30,8 @@ class _NotificationSettingState extends State<NotificationSetting> {
   final TextEditingController period = TextEditingController();
   late TimeOfDay time;
 
-  final notificationsSettings =
-      Hive.box<Map<dynamic, dynamic>>('NotificationsSettings');
+  final notificationsSettings = GetIt.I<CacheRepository>()
+      .box<Map<dynamic, dynamic>>('NotificationsSettings');
 
   @override
   Widget build(BuildContext context) {

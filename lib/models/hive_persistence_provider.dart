@@ -1,11 +1,12 @@
-import 'package:hive/hive.dart';
+import 'package:churchdata_core/churchdata_core.dart';
+import 'package:get_it/get_it.dart';
 
 class HivePersistenceProvider {
   HivePersistenceProvider._();
 
   static HivePersistenceProvider instance = HivePersistenceProvider._();
 
-  final _box = Hive.box<bool>('FeatureDiscovery');
+  final _box = GetIt.I<CacheRepository>().box<bool>('FeatureDiscovery');
 
   Future<void> clearStep(String featureId) async {
     await _box.delete(featureId);

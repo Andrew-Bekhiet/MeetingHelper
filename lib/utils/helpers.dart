@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:collection/collection.dart';
 import 'package:file_picker/file_picker.dart';
@@ -17,15 +17,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     hide Person;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:get_it/get_it.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/service.dart';
-import 'package:meetinghelper/models/data_object_widget.dart';
-import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:meetinghelper/views/lists/lists.dart';
 import 'package:meetinghelper/views/services_list.dart';
 import 'package:photo_view/photo_view.dart';
@@ -39,21 +37,19 @@ import '../main.dart';
 import '../models/data/person.dart';
 import '../models/data/user.dart';
 import '../models/history/history_record.dart';
-import '../models/mini_models.dart';
-import '../models/super_classes.dart';
-import '../models/theme_notifier.dart';
 import '../utils/globals.dart';
 import '../views/list.dart';
-import '../views/notification.dart' as no;
+import '../views/notification_widget.dart' as no;
 import '../views/search_query.dart';
 
 void changeTheme({required BuildContext context}) {
-  bool isDark = Hive.box('Settings').get('DarkTheme',
+  bool isDark = GetIt.I<CacheRepository>().box('Settings').get('DarkTheme',
           defaultValue: WidgetsBinding.instance!.window.platformBrightness ==
               Brightness.dark) ??
       WidgetsBinding.instance!.window.platformBrightness == Brightness.dark;
-  final bool greatFeastTheme =
-      Hive.box('Settings').get('GreatFeastTheme', defaultValue: true);
+  final bool greatFeastTheme = GetIt.I<CacheRepository>()
+      .box('Settings')
+      .get('GreatFeastTheme', defaultValue: true);
   MaterialColor primary = Colors.amber;
   Color secondary = Colors.amberAccent;
 
@@ -131,16 +127,13 @@ void changeTheme({required BuildContext context}) {
   );
 }
 
-Query<Json> kDefaultQueryCompleter(Query<Json> q, String o, bool descending) =>
-    q.orderBy(o, descending: descending);
-
 Stream<Map<PreferredStudyYear?, List<T>>>
     servicesByStudyYearRef<T extends DataObject>() {
   assert(T == Class || T == Service || T == DataObject);
 
   return Rx.combineLatest3<Map<JsonRef, StudyYear>, List<Class>, List<Service>,
           Map<PreferredStudyYear?, List<T>>>(
-      FirebaseFirestore.instance
+      GetIt.I<DatabaseRepository>()
           .collection('StudyYears')
           .orderBy('Grade')
           .snapshots()
@@ -152,12 +145,12 @@ Stream<Map<PreferredStudyYear?, List<T>>>
       T == Service
           ? Stream.value([])
           : User.instance.stream.switchMap((user) => (user.superAccess
-                  ? FirebaseFirestore.instance
+                  ? GetIt.I<DatabaseRepository>()
                       .collection('Classes')
                       .orderBy('StudyYear')
                       .orderBy('Gender')
                       .snapshots()
-                  : FirebaseFirestore.instance
+                  : GetIt.I<DatabaseRepository>()
                       .collection('Classes')
                       .where('Allowed', arrayContains: User.instance.uid)
                       .orderBy('StudyYear')
@@ -172,8 +165,8 @@ Stream<Map<PreferredStudyYear?, List<T>>>
       if (c is Class && c2 is Class) {
         if (c.studyYear == c2.studyYear) return c.gender.compareTo(c2.gender);
         return studyYears[c.studyYear]!
-            .grade!
-            .compareTo(studyYears[c2.studyYear]!.grade!);
+            .grade
+            .compareTo(studyYears[c2.studyYear]!.grade);
       } else if (c is Service && c2 is Service) {
         return ((studyYears[c.studyYearRange?.from]?.grade ?? 0) -
                 (studyYears[c.studyYearRange?.to]?.grade ?? 0))
@@ -251,7 +244,7 @@ Stream<Map<PreferredStudyYear?, List<T>>>
 
   return Rx.combineLatest3<Map<JsonRef, StudyYear>, List<Class>, List<Service>,
           Map<PreferredStudyYear?, List<T>>>(
-      FirebaseFirestore.instance
+      GetIt.I<DatabaseRepository>()
           .collection('StudyYears')
           .orderBy('Grade')
           .snapshots()
@@ -262,7 +255,7 @@ Stream<Map<PreferredStudyYear?, List<T>>>
           ),
       T == Service
           ? Stream.value([])
-          : FirebaseFirestore.instance
+          : GetIt.I<DatabaseRepository>()
               .collection('Classes')
               .where('Allowed', arrayContains: uid)
               .orderBy('StudyYear')
@@ -281,8 +274,8 @@ Stream<Map<PreferredStudyYear?, List<T>>>
       if (c is Class && c2 is Class) {
         if (c.studyYear == c2.studyYear) return c.gender.compareTo(c2.gender);
         return studyYears[c.studyYear]!
-            .grade!
-            .compareTo(studyYears[c2.studyYear]!.grade!);
+            .grade
+            .compareTo(studyYears[c2.studyYear]!.grade);
       } else if (c is Service && c2 is Service) {
         return ((studyYears[c.studyYearRange?.from]?.grade ?? 0) -
                 (studyYears[c.studyYearRange?.to]?.grade ?? 0))
@@ -440,7 +433,12 @@ String getPhone(String phone, [bool whatsapp = true]) {
   return phone.trim();
 }
 
-void historyTap(HistoryDay? history) async {
+bool notService(String subcollection) =>
+    subcollection == 'Meeting' ||
+    subcollection == 'Kodas' ||
+    subcollection == 'Confession';
+
+void historyTap(HistoryDayBase? history) async {
   if (history is! ServantsHistoryDay) {
     await navigator.currentState!.pushNamed('Day', arguments: history);
   } else {
@@ -480,7 +478,7 @@ void import(BuildContext context) async {
           .putData(
               fileData,
               SettableMetadata(
-                  customMetadata: {'createdBy': User.instance.uid!}));
+                  customMetadata: {'createdBy': User.instance.uid}));
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(
         const SnackBar(
@@ -508,16 +506,19 @@ void import(BuildContext context) async {
 }
 
 Future<void> onBackgroundMessage(RemoteMessage message) async {
-  await Hive.initFlutter();
-  await Hive.openBox<Map>('Notifications');
+  try {
+    await Hive.initFlutter();
+    // ignore: empty_catches
+  } on Exception {}
+  await Hive.openBox<Notification>('Notifications');
   await storeNotification(message);
-  await Hive.close();
+  await GetIt.I<CacheRepository>().box<Notification>('Notifications').close();
 }
 
 void onForegroundMessage(RemoteMessage message, [BuildContext? context]) async {
   context ??= mainScfld.currentContext;
   final bool opened = Hive.isBoxOpen('Notifications');
-  if (!opened) await Hive.openBox<Map>('Notifications');
+  if (!opened) await Hive.openBox<Notification>('Notifications');
   await storeNotification(message);
   scaffoldMessenger.currentState!.showSnackBar(
     SnackBar(
@@ -538,7 +539,7 @@ Future<void> onNotificationClicked(String? payload) async {
 
 Stream<Map<JsonRef, Tuple2<Class, List<User>>>> usersByClassRef(
     List<User> users) {
-  return FirebaseFirestore.instance
+  return GetIt.I<DatabaseRepository>()
       .collection('StudyYears')
       .orderBy('Grade')
       .snapshots()
@@ -547,17 +548,17 @@ Stream<Map<JsonRef, Tuple2<Class, List<User>>>> usersByClassRef(
       final Map<JsonRef, StudyYear> studyYears = {
         for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
       };
-      studyYears[FirebaseFirestore.instance
+      studyYears[GetIt.I<DatabaseRepository>()
           .collection('StudyYears')
           .doc('Unknown')] = StudyYear('unknown', 'غير معروفة', 10000000);
       return User.instance.stream.switchMap(
         (user) => (user.superAccess
-                ? FirebaseFirestore.instance
+                ? GetIt.I<DatabaseRepository>()
                     .collection('Classes')
                     .orderBy('StudyYear')
                     .orderBy('Gender')
                     .snapshots()
-                : FirebaseFirestore.instance
+                : GetIt.I<DatabaseRepository>()
                     .collection('Classes')
                     .where('Allowed',
                         arrayContains:
@@ -568,7 +569,7 @@ Stream<Map<JsonRef, Tuple2<Class, List<User>>>> usersByClassRef(
             .map(
           (cs) {
             final classesByRef = {
-              for (final c in cs.docs.map(Class.fromDoc).toList()) c!.ref: c
+              for (final c in cs.docs.map(Class.fromDoc).toList()) c.ref: c
             };
 
             final rslt = {
@@ -595,8 +596,8 @@ Stream<Map<JsonRef, Tuple2<Class, List<User>>>> usersByClassRef(
                   studyYears[c2.value.item1.studyYear!])
                 return c.value.item1.gender.compareTo(c2.value.item1.gender);
               return studyYears[c.value.item1.studyYear!]!
-                  .grade!
-                  .compareTo(studyYears[c2.value.item1.studyYear!]!.grade!);
+                  .grade
+                  .compareTo(studyYears[c2.value.item1.studyYear!]!.grade);
             });
 
             return {for (final e in rslt) e.key: e.value};
@@ -611,7 +612,7 @@ Stream<Map<JsonRef, Tuple2<Class, List<Person>>>> personsByClassRef(
     [List<Person>? persons]) {
   return Rx.combineLatest3<Map<JsonRef, StudyYear>, List<Person>, JsonQuery,
       Map<JsonRef, Tuple2<Class, List<Person>>>>(
-    FirebaseFirestore.instance
+    GetIt.I<DatabaseRepository>()
         .collection('StudyYears')
         .orderBy('Grade')
         .snapshots()
@@ -621,12 +622,12 @@ Stream<Map<JsonRef, Tuple2<Class, List<Person>>>> personsByClassRef(
         ),
     persons != null ? Stream.value(persons) : Person.getAllForUser(),
     User.instance.stream.switchMap((user) => user.superAccess
-        ? FirebaseFirestore.instance
+        ? GetIt.I<DatabaseRepository>()
             .collection('Classes')
             .orderBy('StudyYear')
             .orderBy('Gender')
             .snapshots()
-        : FirebaseFirestore.instance
+        : GetIt.I<DatabaseRepository>()
             .collection('Classes')
             .where('Allowed',
                 arrayContains: auth.FirebaseAuth.instance.currentUser!.uid)
@@ -645,8 +646,8 @@ Stream<Map<JsonRef, Tuple2<Class, List<Person>>>> personsByClassRef(
       mergeSort<Class>(classes, compare: (c, c2) {
         if (c.studyYear == c2.studyYear) return c.gender.compareTo(c2.gender);
         return studyYears[c.studyYear]!
-            .grade!
-            .compareTo(studyYears[c2.studyYear]!.grade!);
+            .grade
+            .compareTo(studyYears[c2.studyYear]!.grade);
       });
 
       return {
@@ -663,7 +664,7 @@ Stream<Map<JsonRef, Tuple2<StudyYear, List<T>>>>
 
   return Rx.combineLatest2<Map<JsonRef, StudyYear>, List<T>,
       Map<JsonRef, Tuple2<StudyYear, List<T>>>>(
-    FirebaseFirestore.instance
+    GetIt.I<DatabaseRepository>()
         .collection('StudyYears')
         .orderBy('Grade')
         .snapshots()
@@ -749,11 +750,11 @@ Future<void> processLink(Uri? deepLink) async {
         deepLink.pathSegments.isNotEmpty &&
         deepLink.queryParameters.isNotEmpty) {
       if (deepLink.pathSegments[0] == 'viewClass') {
-        classTap(Class.fromDoc(await FirebaseFirestore.instance
+        classTap(Class.fromDoc(await GetIt.I<DatabaseRepository>()
             .doc('Classes/${deepLink.queryParameters['ClassId']}')
             .get()));
       } else if (deepLink.pathSegments[0] == 'viewPerson') {
-        personTap(Person.fromDoc(await FirebaseFirestore.instance
+        personTap(Person.fromDoc(await GetIt.I<DatabaseRepository>()
             .doc('Persons/${deepLink.queryParameters['PersonId']}')
             .get()));
       } else if (deepLink.pathSegments[0] == 'viewQuery') {
@@ -792,8 +793,8 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
     builder: (context) {
       return MultiProvider(
         providers: [
-          Provider<DataObjectListController<User>>(
-            create: (_) => DataObjectListController<User>(
+          Provider<ListController<User>>(
+            create: (_) => ListController<User>(
               itemBuilder: (current,
                       [void Function(User)? onLongPress,
                       void Function(User)? onTap,
@@ -806,7 +807,7 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
                 showSubTitle: false,
               ),
               selectionMode: true,
-              itemsStream: FirebaseFirestore.instance
+              itemsStream: GetIt.I<DatabaseRepository>()
                   .collection('Users')
                   .snapshots()
                   .map(
@@ -824,7 +825,7 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
               IconButton(
                 onPressed: () {
                   navigator.currentState!.pop(context
-                      .read<DataObjectListController<User>>()
+                      .read<ListController<User>>()
                       .selectedLatest
                       ?.values
                       .toList());
@@ -839,8 +840,7 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
             children: [
               SearchField(
                 showSuffix: false,
-                searchStream:
-                    context.read<DataObjectListController<User>>().searchQuery,
+                searchStream: context.read<ListController<User>>().searchQuery,
                 textStyle: Theme.of(context).textTheme.bodyText2,
               ),
               const Expanded(
@@ -1284,7 +1284,7 @@ Future<void> showErrorDialog(BuildContext context, String? message,
 Future<void> showErrorUpdateDataDialog(
     {BuildContext? context, bool pushApp = true}) async {
   if (pushApp ||
-      Hive.box('Settings').get('DialogLastShown') !=
+      GetIt.I<CacheRepository>().box('Settings').get('DialogLastShown') !=
           tranucateToDay().millisecondsSinceEpoch) {
     await showDialog(
       context: context!,
@@ -1328,7 +1328,8 @@ Future<void> showErrorUpdateDataDialog(
         ],
       ),
     );
-    await Hive.box('Settings')
+    await GetIt.I<CacheRepository>()
+        .box('Settings')
         .put('DialogLastShown', tranucateToDay().millisecondsSinceEpoch);
   }
 }
@@ -1449,7 +1450,9 @@ Future<void> showMessage(no.Notification notification) async {
   );
   final String scndLine = await attachement?.getSecondLine() ?? '';
   final user = notification.from != ''
-      ? await FirebaseFirestore.instance.doc('Users/${notification.from}').get()
+      ? await GetIt.I<DatabaseRepository>()
+          .doc('Users/${notification.from}')
+          .get()
       : null;
   await showDialog(
     context: navigator.currentContext!,
@@ -1636,7 +1639,9 @@ void showVisitNotification() async {
 }
 
 Future<int> storeNotification(RemoteMessage message) async {
-  return Hive.box<Map<dynamic, dynamic>>('Notifications').add(message.data);
+  return GetIt.I<CacheRepository>()
+      .box<Notification>('Notifications')
+      .add(message.data);
 }
 
 String toDurationString(Timestamp? date, {appendSince = true}) {
@@ -1824,30 +1829,5 @@ class QueryIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return Icon(Icons.search,
         size: MediaQuery.of(context).size.shortestSide / 7.2);
-  }
-}
-
-extension BoolComparison on bool? {
-  int compareTo(bool? o) {
-    if (this == o) return 0;
-    // ignore: use_if_null_to_convert_nulls_to_bools
-    if (this == true) return -1;
-    if (this == false) {
-      // ignore: use_if_null_to_convert_nulls_to_bools
-      if (o == true) return 1;
-      return -1;
-    }
-    return 1;
-  }
-}
-
-extension SplitList<T> on List<T> {
-  List<List<T>> split(int length) {
-    final List<List<T>> chunks = [];
-    for (int i = 0; i < this.length; i += length) {
-      chunks
-          .add(sublist(i, i + length > this.length ? this.length : i + length));
-    }
-    return chunks;
   }
 }

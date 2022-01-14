@@ -1,5 +1,6 @@
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
@@ -7,7 +8,6 @@ import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/history/history_record.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
-import 'package:meetinghelper/models/mini_models.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/views/list.dart';
@@ -17,7 +17,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 class Day extends StatefulWidget {
-  final HistoryDay record;
+  final HistoryDayBase record;
 
   const Day({Key? key, required this.record}) : super(key: key);
 
@@ -667,7 +667,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
         return;
       try {
         if (!(await widget.record.ref.get()).exists) {
-          await widget.record.ref.set(widget.record.getMap());
+          await widget.record.ref.set(widget.record.toJson());
         }
       } catch (err, stack) {
         await Sentry.captureException(
@@ -675,11 +675,13 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
           stackTrace: stack,
           withScope: (scope) => scope
             ..setTag('LasErrorIn', 'Day.initState')
-            ..setExtra('Record', widget.record.getMap()),
+            ..setExtra('Record', widget.record.toJson()),
         );
         await showErrorDialog(context, err.toString(), title: 'حدث خطأ');
       }
-      if (!(Hive.box<bool>('FeatureDiscovery').get('DayInstructions') ??
+      if (!(GetIt.I<CacheRepository>()
+              .box<bool>('FeatureDiscovery')
+              .get('DayInstructions') ??
           false)) {
         await showDialog(
           context: context,

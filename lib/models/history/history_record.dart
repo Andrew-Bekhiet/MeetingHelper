@@ -1,39 +1,34 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data/user.dart';
-import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/utils/helpers.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tuple/tuple.dart';
 
-class HistoryDay extends DataObject with ChangeNotifier {
+abstract class HistoryDayBase extends DataObject with ChangeNotifier {
   Timestamp day;
   String? notes;
 
   late StreamSubscription<JsonDoc> _realTimeListener;
-  HistoryDay()
+
+  HistoryDayBase({required JsonRef ref})
       : day = tranucateToDay(),
         notes = '',
-        super(
-            FirebaseFirestore.instance
-                .collection('History')
-                .doc(DateTime.now().toIso8601String().split('T')[0]),
-            '',
-            null) {
+        super(ref, '') {
     _initListener();
   }
 
-  HistoryDay._createFromData(Json data, JsonRef ref)
+  HistoryDayBase._createFromData(Json data, JsonRef ref)
       : day = data['Day'],
         notes = data['Notes'],
-        super.createFromData(data, ref) {
+        super.fromJson(data, ref) {
     _initListener();
   }
 
@@ -57,7 +52,7 @@ class HistoryDay extends DataObject with ChangeNotifier {
   }
 
   @override
-  Json getMap() => {'Day': day, 'Notes': notes};
+  Json toJson() => {'Day': day, 'Notes': notes};
 
   void _initListener() {
     _realTimeListener = ref.snapshots().listen((event) {
@@ -75,19 +70,14 @@ class HistoryDay extends DataObject with ChangeNotifier {
       HistoryDay._createFromData(data.data(), data.reference);
 
   static Future<HistoryDay?> fromId(String id) async => HistoryDay.fromDoc(
-      await FirebaseFirestore.instance.doc('History/$id').get());
+      await GetIt.I<DatabaseRepository>().doc('History/$id').get());
 
   static Future<Stream<JsonQuery>> getAllForUser(
       {String orderBy = 'Day', bool descending = false}) async {
-    return FirebaseFirestore.instance
+    return GetIt.I<DatabaseRepository>()
         .collection('History')
         .orderBy(orderBy, descending: descending)
         .snapshots();
-  }
-
-  @override
-  Json formattedProps() {
-    throw UnimplementedError();
   }
 
   @override
@@ -100,21 +90,52 @@ class HistoryDay extends DataObject with ChangeNotifier {
         : 'اليوم');
   }
 
+  HistoryDayBase copyWith();
+}
+
+class HistoryDay extends HistoryDayBase {
+  HistoryDay()
+      : super(
+          ref: GetIt.I<DatabaseRepository>()
+              .collection('History')
+              .doc(DateTime.now().toIso8601String().split('T')[0]),
+        ) {
+    _initListener();
+  }
+
+  HistoryDay._createFromData(Json data, JsonRef ref)
+      : super._createFromData(data, ref);
+
+  static HistoryDay? fromDoc(JsonDoc data) => data.exists
+      ? HistoryDay._createFromData(data.data()!, data.reference)
+      : null;
+
+  static HistoryDay fromQueryDoc(JsonQueryDoc data) =>
+      HistoryDay._createFromData(data.data(), data.reference);
+
+  static Future<HistoryDay?> fromId(String id) async => HistoryDay.fromDoc(
+      await GetIt.I<DatabaseRepository>().doc('History/$id').get());
+
+  static Future<Stream<JsonQuery>> getAllForUser(
+      {String orderBy = 'Day', bool descending = false}) async {
+    return GetIt.I<DatabaseRepository>()
+        .collection('History')
+        .orderBy(orderBy, descending: descending)
+        .snapshots();
+  }
+
   @override
   HistoryDay copyWith() {
-    return HistoryDay._createFromData(getMap(), ref);
+    return HistoryDay._createFromData(toJson(), ref);
   }
 }
 
-class ServantsHistoryDay extends HistoryDay {
-  ServantsHistoryDay() {
-    ref = FirebaseFirestore.instance
-        .collection('ServantsHistory')
-        .doc(DateTime.now().toIso8601String().split('T')[0]);
-    day = tranucateToDay();
-    notes = '';
-    _initListener();
-  }
+class ServantsHistoryDay extends HistoryDayBase {
+  ServantsHistoryDay()
+      : super(
+            ref: GetIt.I<DatabaseRepository>()
+                .collection('ServantsHistory')
+                .doc(DateTime.now().toIso8601String().split('T')[0]));
 
   static ServantsHistoryDay? fromDoc(JsonDoc data) => data.exists
       ? ServantsHistoryDay._createFromData(data.data()!, data.reference)
@@ -128,21 +149,26 @@ class ServantsHistoryDay extends HistoryDay {
 
   static Future<ServantsHistoryDay?> fromId(String id) async =>
       ServantsHistoryDay.fromDoc(
-          await FirebaseFirestore.instance.doc('ServantsHistory/$id').get());
+          await GetIt.I<DatabaseRepository>().doc('ServantsHistory/$id').get());
 
   static Future<Stream<JsonQuery>> getAllForUser(
       {String orderBy = 'Day', bool descending = false}) async {
-    return FirebaseFirestore.instance
+    return GetIt.I<DatabaseRepository>()
         .collection('ServantsHistory')
         .orderBy(orderBy, descending: descending)
         .snapshots();
+  }
+
+  @override
+  ServantsHistoryDay copyWith() {
+    return ServantsHistoryDay._createFromData(toJson(), ref);
   }
 }
 
 class HistoryRecord {
   final String? type;
 
-  HistoryDay? parent;
+  HistoryDayBase? parent;
   String id;
   Timestamp time;
   String? recordedBy;
@@ -167,7 +193,7 @@ class HistoryRecord {
         // ignore: prefer_initializing_formals
         recordedBy = recordedBy;
 
-  static HistoryRecord? fromDoc(HistoryDay? parent, JsonDoc doc) =>
+  static HistoryRecord? fromDoc(HistoryDayBase? parent, JsonDoc doc) =>
       doc.exists ? HistoryRecord._fromDoc(parent, doc) : null;
 
   HistoryRecord._fromDoc(this.parent, JsonDoc doc)
@@ -181,7 +207,8 @@ class HistoryRecord {
         recordedBy = doc.data()!['RecordedBy'],
         notes = doc.data()!['Notes'];
 
-  static HistoryRecord fromQueryDoc(JsonQueryDoc doc, [HistoryDay? parent]) {
+  static HistoryRecord fromQueryDoc(JsonQueryDoc doc,
+      [HistoryDayBase? parent]) {
     return HistoryRecord.fromDoc(parent, doc)!;
   }
 
@@ -257,7 +284,7 @@ class MinimalHistoryRecord {
     List<Class>? classes,
     List<Service>? services,
   }) {
-    Query<Json> _timeRangeFilter(Query<Json> q, DateTimeRange range) {
+    QueryOfJson _timeRangeFilter(QueryOfJson q, DateTimeRange range) {
       return q
           .where(
             'Time',
@@ -271,35 +298,35 @@ class MinimalHistoryRecord {
           );
     }
 
-    Query<Json> _timeOrder(Query<Json> q) {
+    QueryOfJson _timeOrder(QueryOfJson q) {
       return q.orderBy('Time', descending: true);
     }
 
-    Query<Json> _classesFilter(Query<Json> q, List<Class> classes) {
+    QueryOfJson _classesFilter(QueryOfJson q, List<Class> classes) {
       assert(classes.length <= 10);
       return q.where('ClassId', whereIn: classes.map((c) => c.ref).toList());
     }
 
-    Query<Json> _servicesFilter(Query<Json> q, List<Service> services) {
+    QueryOfJson _servicesFilter(QueryOfJson q, List<Service> services) {
       assert(services.length <= 10);
       return q.where('Services',
           arrayContainsAny: services.map((c) => c.ref).toList());
     }
 
-    return Rx.combineLatest3<User, List<Class>, List<Service>,
-                Tuple3<User, List<Class>, List<Service>>>(
-            User.instance.stream,
-            classes == null ? Class.getAllForUser() : Stream.value([]),
-            services == null ? Service.getAllForUser() : Stream.value([]),
-            Tuple3.new)
-        .switchMap((value) {
+    return Rx.combineLatest3<User?, List<Class>, List<Service>,
+        Tuple3<User?, List<Class>, List<Service>>>(
+      MHAuthRepository.I.userStream,
+      classes == null ? Class.getAllForUser() : Stream.value([]),
+      services == null ? Service.getAllForUser() : Stream.value([]),
+      Tuple3.new,
+    ).switchMap((value) {
       if (range != null && classes != null && services != null) {
         return Rx.combineLatestList<JsonQuery>([
           ...classes
               .split(10)
               .map((a) => _timeOrder(_timeRangeFilter(
                       _classesFilter(
-                          FirebaseFirestore.instance
+                          GetIt.I<DatabaseRepository>()
                               .collectionGroup(collectionGroup),
                           a),
                       range))
@@ -307,7 +334,7 @@ class MinimalHistoryRecord {
               .toList(),
           ...services.split(10).map((a) => _timeOrder(_timeRangeFilter(
                   _servicesFilter(
-                      FirebaseFirestore.instance
+                      GetIt.I<DatabaseRepository>()
                           .collectionGroup(collectionGroup),
                       a),
                   range))
@@ -318,7 +345,7 @@ class MinimalHistoryRecord {
                 .split(10)
                 .map((a) => _timeOrder(_timeRangeFilter(
                         _classesFilter(
-                            FirebaseFirestore.instance
+                            GetIt.I<DatabaseRepository>()
                                 .collectionGroup(collectionGroup),
                             a),
                         range))
@@ -330,7 +357,7 @@ class MinimalHistoryRecord {
                 .split(10)
                 .map((a) => _timeOrder(_timeRangeFilter(
                         _servicesFilter(
-                            FirebaseFirestore.instance
+                            GetIt.I<DatabaseRepository>()
                                 .collectionGroup(collectionGroup),
                             a),
                         range))
@@ -338,9 +365,11 @@ class MinimalHistoryRecord {
                 .toList())
             .map((s) => s.expand((n) => n.docs).toList());
       } else if (range != null) {
-        if (value.item1.superAccess) {
+        if (value.item1 == null) return Stream.value([]);
+        if (value.item1!.permissions.superAccess) {
           return _timeOrder(_timeRangeFilter(
-                  FirebaseFirestore.instance.collectionGroup(collectionGroup),
+                  GetIt.I<DatabaseRepository>()
+                      .collectionGroup(collectionGroup),
                   range))
               .snapshots()
               .map((s) => s.docs);
@@ -351,7 +380,7 @@ class MinimalHistoryRecord {
                 .map((a) => _timeOrder(
                       _timeRangeFilter(
                           _classesFilter(
-                              FirebaseFirestore.instance
+                              GetIt.I<DatabaseRepository>()
                                   .collectionGroup(collectionGroup),
                               a),
                           range),
@@ -361,7 +390,7 @@ class MinimalHistoryRecord {
                 .split(10)
                 .map((a) => _timeOrder(_timeRangeFilter(
                         _servicesFilter(
-                            FirebaseFirestore.instance
+                            GetIt.I<DatabaseRepository>()
                                 .collectionGroup(collectionGroup),
                             a),
                         range))
@@ -373,7 +402,7 @@ class MinimalHistoryRecord {
         return Rx.combineLatestList<JsonQuery>(classes
                 .split(10)
                 .map((a) => _timeOrder(_classesFilter(
-                        FirebaseFirestore.instance
+                        GetIt.I<DatabaseRepository>()
                             .collectionGroup(collectionGroup),
                         a))
                     .snapshots())
@@ -383,7 +412,7 @@ class MinimalHistoryRecord {
         return Rx.combineLatestList<JsonQuery>(services
                 .split(10)
                 .map((a) => _timeOrder(_servicesFilter(
-                        FirebaseFirestore.instance
+                        GetIt.I<DatabaseRepository>()
                             .collectionGroup(collectionGroup),
                         a))
                     .snapshots())
@@ -391,7 +420,7 @@ class MinimalHistoryRecord {
             .map((s) => s.expand((n) => n.docs).toList());
       }
       return _timeOrder(
-              FirebaseFirestore.instance.collectionGroup(collectionGroup))
+              GetIt.I<DatabaseRepository>().collectionGroup(collectionGroup))
           .snapshots()
           .map((s) => s.docs.toList());
     });

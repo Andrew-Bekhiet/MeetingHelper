@@ -1,16 +1,16 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/history/history_record.dart';
 import 'package:meetinghelper/utils/helpers.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:rxdart/rxdart.dart';
 
-import '../mini_models.dart';
+import '../mini_models.dart.bak';
 
 class HistoryProperty extends StatelessWidget {
   const HistoryProperty(this.name, this.value, this.historyRef,
@@ -18,7 +18,7 @@ class HistoryProperty extends StatelessWidget {
       : super(key: key);
 
   final String name;
-  final Timestamp? value;
+  final DateTime? value;
   final bool showTime;
   final JsonCollectionRef historyRef;
 
@@ -29,14 +29,14 @@ class HistoryProperty extends StatelessWidget {
       subtitle: Row(
         children: <Widget>[
           Expanded(
-            child: Text(toDurationString(value)),
+            child: Text(value != null ? value!.toDurationString() : ''),
           ),
           Text(
               value != null
                   ? DateFormat(
                           showTime ? 'yyyy/M/d   h:m a' : 'yyyy/M/d', 'ar-EG')
                       .format(
-                      value!.toDate(),
+                      value!,
                     )
                   : '',
               style: Theme.of(context).textTheme.overline),
@@ -61,7 +61,7 @@ class HistoryProperty extends StatelessWidget {
                     itemCount: history.data!.length,
                     itemBuilder: (context, i) => FutureBuilder<JsonDoc>(
                       future: history.data![i].byUser != null
-                          ? FirebaseFirestore.instance
+                          ? GetIt.I<DatabaseRepository>()
                               .doc('Users/' + history.data![i].byUser!)
                               .get()
                           : null,
@@ -97,19 +97,21 @@ class HistoryProperty extends StatelessWidget {
 }
 
 class EditHistoryProperty extends StatelessWidget {
-  const EditHistoryProperty(this.name, this.userUID, this.historyRef,
+  const EditHistoryProperty(this.name, this.lastEdit, this.historyRef,
       {Key? key, this.showTime = true})
       : super(key: key);
 
   final String name;
-  final String? userUID;
+  final LastEdit? lastEdit;
   final bool showTime;
   final JsonCollectionRef historyRef;
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<User>(
-      future: userUID != null ? User.fromID(userUID) : null,
+    return FutureBuilder<User?>(
+      future: lastEdit?.uid != null
+          ? MHAuthRepository.userNameFromUID(lastEdit!.uid)
+          : null,
       builder: (context, user) {
         return ListTile(
           title: Text(name),
@@ -118,12 +120,12 @@ class EditHistoryProperty extends StatelessWidget {
             builder: (context, future) {
               if (future.hasData) {
                 return ListTile(
-                  leading: userUID != null
+                  leading: lastEdit != null
                       ? IgnorePointer(
-                          child: User.photoFromUID(userUID!),
+                          child: User.photoFromUID(lastEdit!.uid),
                         )
                       : null,
-                  title: userUID != null
+                  title: lastEdit != null
                       ? user.hasData
                           ? Text(user.data!.name)
                           : const Text('')
@@ -139,7 +141,7 @@ class EditHistoryProperty extends StatelessWidget {
                               ),
                             )
                           : const Text(''),
-                  subtitle: future.data!.docs.isNotEmpty && userUID != null
+                  subtitle: future.data!.docs.isNotEmpty && lastEdit != null
                       ? Text(
                           DateFormat(showTime ? 'yyyy/M/d   h:m a' : 'yyyy/M/d',
                                   'ar-EG')
@@ -171,8 +173,9 @@ class EditHistoryProperty extends StatelessWidget {
                         return const Center(child: Text('لا يوجد سجل'));
                       return ListView.builder(
                         itemCount: history.data!.length,
-                        itemBuilder: (context, i) => FutureBuilder<User>(
-                          future: User.fromID(history.data![i].byUser),
+                        itemBuilder: (context, i) => FutureBuilder<User?>(
+                          future: MHAuthRepository.userNameFromUID(
+                              history.data![i].byUser ?? ''),
                           builder: (context, user) {
                             return ListTile(
                               leading: user.hasData
@@ -210,7 +213,7 @@ class TimeHistoryProperty extends StatelessWidget {
       : super(key: key);
 
   final String name;
-  final Timestamp? value;
+  final DateTime? value;
   final bool showTime;
   final JsonCollectionRef historyRef;
 
@@ -221,14 +224,14 @@ class TimeHistoryProperty extends StatelessWidget {
       subtitle: Row(
         children: <Widget>[
           Expanded(
-            child: Text(toDurationString(value)),
+            child: Text(value != null ? value!.toDurationString() : ''),
           ),
           Text(
               value != null
                   ? DateFormat(
                           showTime ? 'yyyy/M/d   h:m a' : 'yyyy/M/d', 'ar-EG')
                       .format(
-                      value!.toDate(),
+                      value!,
                     )
                   : '',
               style: Theme.of(context).textTheme.overline),
@@ -273,7 +276,7 @@ class DayHistoryProperty extends StatelessWidget {
       : super(key: key);
 
   final String name;
-  final Timestamp? value;
+  final DateTime? value;
   final String? id;
   final String collection;
 
@@ -284,12 +287,12 @@ class DayHistoryProperty extends StatelessWidget {
       subtitle: Row(
         children: <Widget>[
           Expanded(
-            child: Text(toDurationString(value)),
+            child: Text(value?.toDurationString() ?? ''),
           ),
           Text(
               value != null
                   ? DateFormat('yyyy/M/d   h:m a', 'ar-EG').format(
-                      value!.toDate(),
+                      value!,
                     )
                   : '',
               style: Theme.of(context).textTheme.overline),
@@ -304,10 +307,12 @@ class DayHistoryProperty extends StatelessWidget {
             builder: (context) => Dialog(
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               child: StreamBuilder<List<HistoryRecord>>(
-                stream: User.instance.stream.switchMap(
+                stream: MHAuthRepository.I.userStream.switchMap(
                   (user) {
+                    if (user == null) return Stream.value([]);
+
                     Stream<List<HistoryRecord>> _completeQuery(
-                        Query<Json> query) {
+                        QueryOfJson query) {
                       return query
                           .orderBy('Time', descending: true)
                           .snapshots()
@@ -325,11 +330,11 @@ class DayHistoryProperty extends StatelessWidget {
                               event.whereType<HistoryRecord>().toList());
                     }
 
-                    final query = FirebaseFirestore.instance
+                    final query = GetIt.I<DatabaseRepository>()
                         .collectionGroup(collection)
                         .where('ID', isEqualTo: id);
 
-                    if (!user.superAccess) {
+                    if (!user.permissions.superAccess) {
                       if (collection == 'Meeting' ||
                           collection == 'Kodas' ||
                           collection == 'Confession') {
@@ -415,7 +420,7 @@ class DayHistoryProperty extends StatelessWidget {
                             .format(history.data![i].time.toDate())),
                         subtitle: FutureBuilder<JsonDoc>(
                           future: history.data![i].recordedBy != null
-                              ? FirebaseFirestore.instance
+                              ? GetIt.I<DatabaseRepository>()
                                   .doc('Users/' + history.data![i].recordedBy!)
                                   .get()
                               : null,

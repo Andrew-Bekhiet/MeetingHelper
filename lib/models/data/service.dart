@@ -1,24 +1,28 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:async/async.dart';
+import 'package:churchdata_core/churchdata_core.dart';
+import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/user.dart';
-import 'package:meetinghelper/utils/helpers.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:rxdart/rxdart.dart';
 
-import '../property_metadata.dart';
-import '../super_classes.dart';
 import 'person.dart';
 
-class Service extends DataObject with PhotoObject {
-  StudyYearRange? studyYearRange;
-  DateTimeRange? validity;
-  bool showInHistory;
-  String lastEdit;
+@CopyWith(copyWithNull: true)
+class Service extends DataObject implements PhotoObjectBase {
+  final StudyYearRange? studyYearRange;
+  final DateTimeRange? validity;
+  final bool showInHistory;
+  final LastEdit lastEdit;
+
+  @override
+  final Color? color;
+
+  @override
+  final bool hasPhoto;
 
   Service({
     required JsonRef ref,
@@ -27,18 +31,16 @@ class Service extends DataObject with PhotoObject {
     this.studyYearRange,
     this.validity,
     this.showInHistory = true,
-    Color? color,
-    bool hasPhoto = false,
-  }) : super(ref, name, color) {
-    this.hasPhoto = hasPhoto;
-    defaultIcon = Icons.miscellaneous_services;
-  }
+    this.color,
+    this.hasPhoto = false,
+  }) : super(ref, name);
 
   static Service empty() {
     return Service(
-      ref: FirebaseFirestore.instance.collection('Services').doc('null'),
+      ref: GetIt.I<DatabaseRepository>().collection('Services').doc('null'),
       name: '',
-      lastEdit: User.instance.uid!,
+      lastEdit:
+          LastEdit(GetIt.I<AuthRepository>().currentUser!.uid, DateTime.now()),
     );
   }
 
@@ -48,36 +50,43 @@ class Service extends DataObject with PhotoObject {
   static Service fromQueryDoc(JsonQueryDoc doc) =>
       Service.fromJson(doc.data(), doc.reference);
 
-  static Stream<List<Service>> getAllForUser(
-      {String orderBy = 'Name',
-      bool descending = false,
-      Query<Json> Function(Query<Json>, String, bool) queryCompleter =
-          kDefaultQueryCompleter}) {
-    return User.instance.stream.switchMap((u) {
-      if (u.superAccess) {
-        return queryCompleter(FirebaseFirestore.instance.collection('Services'),
-                orderBy, descending)
-            .snapshots()
-            .map((c) => c.docs.map(fromQueryDoc).toList());
-      } else {
-        return u.adminServices.isEmpty
-            ? Stream.value([])
-            : Rx.combineLatestList(u.adminServices.map(
-                (r) => r.snapshots().map(Service.fromDoc),
-              )).map((s) => s.whereType<Service>().toList());
-      }
-    });
+  static Stream<List<Service>> getAllForUser({
+    String orderBy = 'Name',
+    bool descending = false,
+    QueryOfJson Function(QueryOfJson, String, bool) queryCompleter =
+        kDefaultQueryCompleter,
+  }) {
+    return MHAuthRepository.I.userStream.switchMap(
+      (u) {
+        if (u == null) return Stream.value([]);
+        if (u.permissions.superAccess) {
+          return queryCompleter(
+                  GetIt.I<DatabaseRepository>().collection('Services'),
+                  orderBy,
+                  descending)
+              .snapshots()
+              .map((c) => c.docs.map(fromQueryDoc).toList());
+        } else {
+          return u.adminServices.isEmpty
+              ? Stream.value([])
+              : Rx.combineLatestList(u.adminServices.map(
+                  (r) => r.snapshots().map(Service.fromDoc),
+                )).map((s) => s.whereType<Service>().toList());
+        }
+      },
+    );
   }
 
   static Stream<List<Service>> getAllForUserForHistory(
       {String orderBy = 'Name',
       bool descending = false,
-      Query<Json> Function(Query<Json>, String, bool) queryCompleter =
+      QueryOfJson Function(QueryOfJson, String, bool) queryCompleter =
           kDefaultQueryCompleter}) {
-    return User.instance.stream.switchMap((u) {
-      if (u.superAccess) {
+    return MHAuthRepository.I.userStream.switchMap((u) {
+      if (u == null) return Stream.value([]);
+      if (u.permissions.superAccess) {
         return queryCompleter(
-                FirebaseFirestore.instance
+                GetIt.I<DatabaseRepository>()
                     .collection('Services')
                     .where('ShowInHistory', isEqualTo: true),
                 orderBy,
@@ -134,25 +143,25 @@ class Service extends DataObject with PhotoObject {
   Stream<List<Person>> getPersonsMembersLive(
       {bool descending = false,
       String orderBy = 'Name',
-      Query<Json> Function(Query<Json>, String, bool) queryCompleter =
+      QueryOfJson Function(QueryOfJson, String, bool) queryCompleter =
           kDefaultQueryCompleter}) {
     return queryCompleter(
-            FirebaseFirestore.instance
+            GetIt.I<DatabaseRepository>()
                 .collection('Persons')
                 .where('Services', arrayContains: ref),
             orderBy,
             descending)
         .snapshots()
-        .map((p) => p.docs.map(Person.fromQueryDoc).toList());
+        .map((p) => p.docs.map(Person.fromDoc).toList());
   }
 
   Stream<List<User>> getUsersMembersLive(
       {bool descending = false,
       String orderBy = 'Name',
-      Query<Json> Function(Query<Json>, String, bool) queryCompleter =
+      QueryOfJson Function(QueryOfJson, String, bool) queryCompleter =
           kDefaultQueryCompleter}) {
     return queryCompleter(
-            FirebaseFirestore.instance
+            GetIt.I<DatabaseRepository>()
                 .collection('UsersData')
                 .where('Services', arrayContains: ref),
             orderBy,
@@ -161,7 +170,6 @@ class Service extends DataObject with PhotoObject {
         .map((p) => p.docs.map(User.fromDoc).toList());
   }
 
-  @override
   Service copyWith({
     JsonRef? ref,
     String? name,
@@ -169,7 +177,7 @@ class Service extends DataObject with PhotoObject {
     DateTimeRange? validity,
     bool? showInHistory,
     Color? color,
-    String? lastEdit,
+    LastEdit? lastEdit,
   }) {
     return Service(
       ref: ref ?? this.ref,
@@ -182,7 +190,6 @@ class Service extends DataObject with PhotoObject {
     );
   }
 
-  @override
   Json formattedProps() => {
         'Name': name,
         'StudyYearRange': Future(
@@ -211,14 +218,15 @@ class Service extends DataObject with PhotoObject {
           return 'من $from الى $to';
         }(),
         'ShowInHistory': showInHistory ? 'نعم' : 'لا',
-        'LastEdit': User.onlyName(lastEdit),
+        'LastEdit': MHAuthRepository.userNameFromUID(lastEdit.uid),
         'HasPhoto': hasPhoto ? 'نعم' : 'لا',
-        'Color': '0x' + color.value.toRadixString(16),
+        'Color': color != null ? '0x' + color!.value.toRadixString(16) : null,
       };
 
   @override
-  FutureOr<String?> getSecondLine() async {
-    final String? key = Hive.box('Settings').get('ServiceSecondLine');
+  Future<String?> getSecondLine() async {
+    final String? key =
+        GetIt.I<CacheRepository>().box('Settings').get('ServiceSecondLine');
 
     if (key == null) return null;
 
@@ -226,7 +234,7 @@ class Service extends DataObject with PhotoObject {
   }
 
   @override
-  Json getMap() {
+  Json toJson() {
     return {
       'Name': name,
       'StudyYearRange': studyYearRange?.toJson(),
@@ -234,14 +242,21 @@ class Service extends DataObject with PhotoObject {
       'ShowInHistory': showInHistory,
       'LastEdit': lastEdit,
       'HasPhoto': hasPhoto,
-      'Color': color.value,
+      'Color': color?.value,
     };
   }
 
   @override
-  Reference get photoRef =>
-      FirebaseStorage.instance.ref().child('ServicesPhotos/$id');
+  Reference? get photoRef => hasPhoto
+      ? GetIt.I<StorageRepository>().ref('ServicesPhotos/' + id)
+      : null;
 
+  @override
+  final AsyncCache<String> photoUrlCache =
+      AsyncCache<String>(const Duration(days: 1));
+
+  @override
+  IconData get defaultIcon => Icons.groups;
   static Map<String, PropertyMetadata> propsMetadata() => {
         'Name': const PropertyMetadata<String>(
           name: 'Name',
@@ -273,7 +288,7 @@ class Service extends DataObject with PhotoObject {
           label: 'أخر تعديل',
           defaultValue: null,
           collection:
-              FirebaseFirestore.instance.collection('Users').orderBy('Name'),
+              GetIt.I<DatabaseRepository>().collection('Users').orderBy('Name'),
         ),
         'HasPhoto': const PropertyMetadata<bool>(
           name: 'HasPhoto',

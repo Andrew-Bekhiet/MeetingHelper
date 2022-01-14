@@ -1,14 +1,15 @@
 import 'dart:async';
 
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_auth_platform_interface/firebase_auth_platform_interface.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:hive/hive.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -98,7 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             );
                         });
-                        await User.instance.initialized;
+                        await MHAuthRepository.I.userStream.next;
                         await setupSettings();
                       }
                     } catch (err, stack) {
@@ -195,8 +196,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<bool> setupSettings() async {
     try {
-      final user = User.instance;
-      final settings = Hive.box('Settings');
+      final user = MHAuthRepository.I.currentUser!;
+      final settings = GetIt.I<CacheRepository>().box('Settings');
       settings.get('cacheSize') ?? await settings.put('cacheSize', 314572800);
 
       settings.get('ClassSecondLine') ??
@@ -204,9 +205,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
       WidgetsBinding.instance!.addPostFrameCallback((_) async {
         if (user.getNotificationsPermissions().values.toList().any((e) => e)) {
-          final notificationsSettings =
-              Hive.box<Map<dynamic, dynamic>>('NotificationsSettings');
-          if (user.birthdayNotify) {
+          final notificationsSettings = GetIt.I<CacheRepository>()
+              .box<Map<dynamic, dynamic>>('NotificationsSettings');
+          if (user.permissions.birthdayNotify) {
             if (notificationsSettings.get('BirthDayTime') == null) {
               await notificationsSettings.put(
                   'BirthDayTime', <String, int>{'Hours': 11, 'Minutes': 0});
@@ -220,7 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 rescheduleOnReboot: true);
           }
 
-          if (user.kodasNotify) {
+          if (user.permissions.kodasNotify) {
             if (notificationsSettings.get('KodasTime') == null) {
               await notificationsSettings.put('KodasTime',
                   <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
@@ -232,7 +233,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     DateTime.now().day, 11),
                 rescheduleOnReboot: true);
           }
-          if (user.meetingNotify) {
+          if (user.permissions.meetingNotify) {
             if (notificationsSettings.get('MeetingTime') == null) {
               await notificationsSettings.put('MeetingTime',
                   <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
@@ -244,7 +245,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     DateTime.now().day, 11),
                 rescheduleOnReboot: true);
           }
-          if (user.confessionsNotify) {
+          if (user.permissions.confessionsNotify) {
             if (notificationsSettings.get('ConfessionTime') == null) {
               await notificationsSettings.put('ConfessionTime',
                   <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
@@ -256,7 +257,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     DateTime.now().day, 11),
                 rescheduleOnReboot: true);
           }
-          if (user.tanawolNotify) {
+          if (user.permissions.tanawolNotify) {
             if (notificationsSettings.get('TanawolTime') == null) {
               await notificationsSettings.put('TanawolTime',
                   <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});

@@ -1,15 +1,15 @@
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:provider/provider.dart';
 
 import '../models/data/user.dart';
-import '../models/notification_setting.dart';
 import '../utils/globals.dart';
 import '../utils/helpers.dart';
 
@@ -35,10 +35,10 @@ class SettingsState extends State<Settings> {
 
   GlobalKey<FormState> formKey = GlobalKey();
 
-  var settings = Hive.box('Settings');
+  var settings = GetIt.I<CacheRepository>().box('Settings');
 
-  var notificationsSettings =
-      Hive.box<Map<dynamic, dynamic>>('NotificationsSettings');
+  var notificationsSettings = GetIt.I<CacheRepository>()
+      .box<Map<dynamic, dynamic>>('NotificationsSettings');
 
   late void Function() _save;
 
@@ -108,9 +108,11 @@ class SettingsState extends State<Settings> {
                           ),
                           ElevatedButton.icon(
                             onPressed: () async {
-                              await Hive.box('Settings')
+                              await GetIt.I<CacheRepository>()
+                                  .box('Settings')
                                   .put('DarkTheme', darkTheme);
-                              await Hive.box('Settings')
+                              await GetIt.I<CacheRepository>()
+                                  .box('Settings')
                                   .put('GreatFeastTheme', greatFeastTheme);
                               changeTheme(context: context);
                             },
@@ -315,10 +317,13 @@ class SettingsState extends State<Settings> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    darkTheme = Hive.box('Settings').get('DarkTheme');
-    greatFeastTheme =
-        Hive.box('Settings').get('GreatFeastTheme', defaultValue: true);
-    state = Hive.box('Settings').get('ShowPersonState', defaultValue: false);
+    darkTheme = GetIt.I<CacheRepository>().box('Settings').get('DarkTheme');
+    greatFeastTheme = GetIt.I<CacheRepository>()
+        .box('Settings')
+        .get('GreatFeastTheme', defaultValue: true);
+    state = GetIt.I<CacheRepository>()
+        .box('Settings')
+        .get('ShowPersonState', defaultValue: false);
   }
 
   Widget _getNotificationsContent(Map<String, bool> notifications) {
@@ -395,7 +400,7 @@ class SettingsState extends State<Settings> {
           ),
         if (notifications['confessionsNotify']!) const SizedBox(height: 20),
         if (notifications['confessionsNotify']!)
-          NotificationSetting(
+          NotificationSettingWidget(
             label: 'ارسال انذار الاعتراف كل ',
             hiveKey: 'ConfessionTime',
             alarmId: 'Confessions'.hashCode,
@@ -403,7 +408,7 @@ class SettingsState extends State<Settings> {
           ),
         if (notifications['tanawolNotify']!) const SizedBox(height: 20),
         if (notifications['tanawolNotify']!)
-          NotificationSetting(
+          NotificationSettingWidget(
             label: 'ارسال انذار التناول كل ',
             hiveKey: 'TanawolTime',
             alarmId: 'Tanawol'.hashCode,
@@ -411,7 +416,7 @@ class SettingsState extends State<Settings> {
           ),
         if (notifications['kodasNotify']!) const SizedBox(height: 20),
         if (notifications['kodasNotify']!)
-          NotificationSetting(
+          NotificationSettingWidget(
             label: 'ارسال انذار حضور القداس كل ',
             hiveKey: 'KodasTime',
             alarmId: 'Kodas'.hashCode,
@@ -419,7 +424,7 @@ class SettingsState extends State<Settings> {
           ),
         if (notifications['meetingNotify']!) const SizedBox(height: 20),
         if (notifications['meetingNotify']!)
-          NotificationSetting(
+          NotificationSettingWidget(
             label: 'ارسال انذار حضور الاجتماع كل ',
             hiveKey: 'MeetingTime',
             alarmId: 'Meeting'.hashCode,
@@ -427,7 +432,7 @@ class SettingsState extends State<Settings> {
           ),
         if (notifications['visitNotify']!) const SizedBox(height: 20),
         if (notifications['visitNotify']!)
-          NotificationSetting(
+          NotificationSettingWidget(
             label: 'ارسال انذار الافتقاد كل ',
             hiveKey: 'VisitTime',
             alarmId: 'Visit'.hashCode,

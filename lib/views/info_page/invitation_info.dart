@@ -1,10 +1,9 @@
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:meetinghelper/models/copiable_property.dart';
+import 'package:meetinghelper/models/copiable_property.dart.bak';
 import 'package:meetinghelper/models/data/invitation.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
-import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:tinycolor2/tinycolor2.dart';
 
@@ -39,13 +38,16 @@ class InvitationInfo extends StatelessWidget {
             SliverAppBar(
               backgroundColor: invitation.color != Colors.transparent
                   ? (Theme.of(context).brightness == Brightness.light
-                      ? TinyColor(invitation.color).lighten().color
-                      : TinyColor(invitation.color).darken().color)
+                      ? invitation.color?.lighten()
+                      : invitation.color?.darken())
                   : null,
               actions: <Widget>[
-                Selector<User, bool?>(
-                  selector: (_, user) => user.write,
-                  builder: (c, permission, data) => permission!
+                StreamBuilder<bool>(
+                  initialData: false,
+                  stream: MHAuthRepository.I.userStream
+                      .map((u) => u?.permissions.write ?? false)
+                      .distinct(),
+                  builder: (context, data) => data.data!
                       ? IconButton(
                           icon: Builder(
                             builder: (context) => Stack(
@@ -146,33 +148,38 @@ class InvitationInfo extends StatelessWidget {
                         ? const Text('تم الاستخدام بواسطة')
                         : const Text('لم يتم الاستخدام بعد'),
                     subtitle: invitation.used
-                        ? FutureBuilder<String?>(
-                            future: User.onlyName(invitation.usedBy),
+                        ? FutureBuilder<User?>(
+                            future: MHAuthRepository.userNameFromUID(
+                              invitation.usedBy!,
+                            ),
                             builder: (context, data) => data.hasData
-                                ? Text(data.data!)
-                                : const LinearProgressIndicator())
+                                ? Text(data.data!.name)
+                                : const LinearProgressIndicator(),
+                          )
                         : null,
                   ),
                   ListTile(
                     title: const Text('تم توليد اللينك بواسطة'),
-                    subtitle: FutureBuilder<String?>(
-                        future: User.onlyName(invitation.generatedBy),
+                    subtitle: FutureBuilder<User?>(
+                        future: MHAuthRepository.userNameFromUID(
+                          invitation.generatedBy,
+                        ),
                         builder: (context, data) => data.hasData
                             ? Row(
                                 children: <Widget>[
                                   Expanded(
-                                    child: Text(data.data!),
+                                    child: Text(data.data!.name),
                                   ),
                                   Text(
-                                      invitation.generatedOn != null
-                                          ? DateFormat(
-                                                  'yyyy/M/d   h:m a', 'ar-EG')
-                                              .format(
-                                              invitation.generatedOn!.toDate(),
-                                            )
-                                          : '',
-                                      style:
-                                          Theme.of(context).textTheme.overline),
+                                    invitation.generatedOn != null
+                                        ? DateFormat(
+                                                'yyyy/M/d   h:m a', 'ar-EG')
+                                            .format(
+                                            invitation.generatedOn!,
+                                          )
+                                        : '',
+                                    style: Theme.of(context).textTheme.overline,
+                                  ),
                                 ],
                               )
                             : const LinearProgressIndicator()),
@@ -184,15 +191,16 @@ class InvitationInfo extends StatelessWidget {
                         Expanded(
                           child: Text(
                             DateFormat('yyyy/M/d', 'ar-EG').format(
-                              invitation.expiryDate.toDate(),
+                              invitation.expiryDate,
                             ),
                           ),
                         ),
                         Text(
-                            DateFormat('h:m a', 'ar-EG').format(
-                              invitation.expiryDate.toDate(),
-                            ),
-                            style: Theme.of(context).textTheme.overline),
+                          DateFormat('h:m a', 'ar-EG').format(
+                            invitation.expiryDate,
+                          ),
+                          style: Theme.of(context).textTheme.overline,
+                        ),
                       ],
                     ),
                   ),

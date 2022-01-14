@@ -1,16 +1,16 @@
 import 'dart:async';
 
 import 'package:async/async.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' show FieldValue;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/invitation.dart';
 import 'package:meetinghelper/models/data/person.dart';
-import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:meetinghelper/views/list.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -94,14 +94,14 @@ class _EditInvitationState extends State<EditInvitation> {
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: GestureDetector(
                     onTap: () async => widget.invitation.expiryDate =
-                        await _selectDateTime('تاريخ الانتهاء',
-                            widget.invitation.expiryDate.toDate()),
+                        await _selectDateTime(
+                            'تاريخ الانتهاء', widget.invitation.expiryDate),
                     child: InputDecorator(
                       decoration: const InputDecoration(
                         labelText: 'تاريخ انتهاء الدعوة',
                       ),
                       child: Text(DateFormat('h:m a yyyy/M/d', 'ar-EG')
-                          .format(widget.invitation.expiryDate.toDate())),
+                          .format(widget.invitation.expiryDate)),
                     ),
                   ),
                 ),
@@ -122,7 +122,7 @@ class _EditInvitationState extends State<EditInvitation> {
                                 null) {
                               return null;
                             } else {
-                              return (await FirebaseFirestore.instance
+                              return (await GetIt.I<DatabaseRepository>()
                                       .collection('UsersData')
                                       .doc(widget
                                           .invitation.permissions!['personId'])
@@ -145,7 +145,7 @@ class _EditInvitationState extends State<EditInvitation> {
                     ),
                   ),
                 ),
-                if (User.instance.manageUsers)
+                if (MHAuthRepository.I.currentUser!.permissions.manageUsers)
                   ListTile(
                     trailing: Checkbox(
                       value: widget.invitation.permissions!['manageUsers'] ??
@@ -396,7 +396,7 @@ class _EditInvitationState extends State<EditInvitation> {
   @override
   void initState() {
     super.initState();
-    old = widget.invitation.getMap();
+    old = widget.invitation.toJson();
   }
 
   void nameChanged(String value) {
@@ -413,7 +413,7 @@ class _EditInvitationState extends State<EditInvitation> {
     }
     try {
       if (form.currentState!.validate() &&
-          widget.invitation.expiryDate.toDate().difference(DateTime.now()) >=
+          widget.invitation.expiryDate.difference(DateTime.now()) >=
               const Duration(hours: 24)) {
         scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
           content: Text('جار الحفظ...'),
@@ -421,23 +421,23 @@ class _EditInvitationState extends State<EditInvitation> {
         ));
         if (widget.invitation.id == 'null') {
           widget.invitation.ref =
-              FirebaseFirestore.instance.collection('Invitations').doc();
-          widget.invitation.generatedBy = User.instance.uid!;
+              GetIt.I<DatabaseRepository>().collection('Invitations').doc();
+          widget.invitation.generatedBy = MHAuthRepository.I.currentUser!.uid;
           if (await Connectivity().checkConnectivity() !=
               ConnectivityResult.none) {
             await widget.invitation.ref.set({
-              ...widget.invitation.getMap(),
+              ...widget.invitation.toJson(),
               'GeneratedOn': FieldValue.serverTimestamp()
             });
           } else {
             // ignore: unawaited_futures
             widget.invitation.ref.set({
-              ...widget.invitation.getMap(),
+              ...widget.invitation.toJson(),
               'GeneratedOn': FieldValue.serverTimestamp()
             });
           }
         } else {
-          final update = widget.invitation.getMap()
+          final update = widget.invitation.toJson()
             ..removeWhere((key, value) => old[key] == value);
           if (update.isNotEmpty) {
             if (await Connectivity().checkConnectivity() !=
@@ -501,8 +501,8 @@ class _EditInvitationState extends State<EditInvitation> {
   }
 
   void _selectPerson() async {
-    final controller = DataObjectListController<User>(
-      tap: (person) {
+    final controller = ListController<User>(
+      onTap: (person) {
         navigator.currentState!.pop();
         widget.invitation.permissions ??= {};
         widget.invitation.permissions!['personId'] = person.ref.id;
@@ -541,7 +541,7 @@ class _EditInvitationState extends State<EditInvitation> {
               color: Theme.of(context).colorScheme.primary,
               shape: const CircularNotchedRectangle(),
               child: StreamBuilder<List?>(
-                stream: controller.objectsData,
+                stream: controller.objectsStream,
                 builder: (context, snapshot) {
                   return Text((snapshot.data?.length ?? 0).toString() + ' خادم',
                       textAlign: TextAlign.center,

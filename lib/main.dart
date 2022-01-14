@@ -1,11 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:async/async.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -14,13 +12,9 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart'
-    hide Day, Person;
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/admin.dart';
 import 'package:meetinghelper/secrets.dart';
 import 'package:meetinghelper/views/day.dart';
@@ -31,7 +25,6 @@ import 'package:meetinghelper/views/invitations_page.dart';
 import 'package:meetinghelper/views/trash.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:timeago/timeago.dart';
 
 import 'models/data/class.dart';
@@ -40,13 +33,9 @@ import 'models/data/person.dart';
 import 'models/data/service.dart';
 import 'models/data/user.dart';
 import 'models/history/history_record.dart';
-import 'models/mini_models.dart' hide History;
-import 'models/super_classes.dart';
-import 'models/theme_notifier.dart';
 import 'updates.dart';
 import 'utils/globals.dart';
 import 'utils/helpers.dart';
-import 'utils/typedefs.dart';
 import 'views/analytics/analytics_page.dart';
 import 'views/auth_screen.dart';
 import 'views/data_map.dart';
@@ -71,130 +60,29 @@ import 'views/update_user_data.dart';
 import 'views/user_registeration.dart';
 
 void main() async {
-  await SentryFlutter.init(
-    (options) => options
-      ..dsn = sentryDSN
-      ..environment = kReleaseMode ? 'Production' : 'Debug',
-  );
-
-  FlutterError.onError = (flutterError) {
-    Sentry.captureException(flutterError.exception,
-        stackTrace: flutterError.stack, hint: flutterError);
-  };
-  ErrorWidget.builder = (error) {
-    if (kReleaseMode) {
-      Sentry.captureException(error.exception,
-          stackTrace: error.stack, hint: error);
-    }
-    return Material(
-      child: Container(
-          color: Colors.white,
-          child: Text('حدث خطأ:\n' + error.summary.toString())),
-    );
-  };
-
   WidgetsFlutterBinding.ensureInitialized();
 
   await _initConfigs();
 
-  if (auth.FirebaseAuth.instance.currentUser != null &&
-      (await Connectivity().checkConnectivity()) != ConnectivityResult.none)
-    await User.instance.initialized;
-  final User user = User.instance;
+  await init(
+    sentryDSN: sentryDSN,
+    overrides: {
+      AuthRepository: () {
+        final instance = MHAuthRepository();
 
-  bool? darkSetting = Hive.box('Settings').get('DarkTheme');
-  final bool greatFeastTheme =
-      Hive.box('Settings').get('GreatFeastTheme', defaultValue: true);
-  MaterialColor primary = Colors.amber;
-  Color secondary = Colors.amberAccent;
+        GetIt.I.registerSingleton<MHAuthRepository>(instance);
 
-  final riseDay = getRiseDay();
-  if (greatFeastTheme &&
-      DateTime.now()
-          .isAfter(riseDay.subtract(const Duration(days: 7, seconds: 20))) &&
-      DateTime.now().isBefore(riseDay.subtract(const Duration(days: 1)))) {
-    primary = black;
-    secondary = blackAccent;
-    darkSetting = true;
-  } else if (greatFeastTheme &&
-      DateTime.now()
-          .isBefore(riseDay.add(const Duration(days: 50, seconds: 20))) &&
-      DateTime.now().isAfter(riseDay.subtract(const Duration(days: 1)))) {
-    darkSetting = false;
-  }
+        return instance;
+      },
+    },
+  );
 
   runApp(
     MultiProvider(
       providers: [
-        StreamProvider<User>.value(value: user.stream, initialData: user),
+        // StreamProvider<User>.value(value: GetIt.I<AuthRepository>().userStream, initialData: GetIt.I<AuthRepository>().currentUserData,),
         Provider<ThemeNotifier>(
-          create: (_) {
-            final bool isDark = darkSetting ??
-                WidgetsBinding.instance!.window.platformBrightness ==
-                    Brightness.dark;
-
-            return ThemeNotifier(
-              ThemeData.from(
-                colorScheme: ColorScheme.fromSwatch(
-                  backgroundColor:
-                      isDark ? Colors.grey[850]! : Colors.grey[50]!,
-                  brightness: isDark ? Brightness.dark : Brightness.light,
-                  primarySwatch: primary,
-                  accentColor: secondary,
-                ),
-              ).copyWith(
-                inputDecorationTheme: InputDecorationTheme(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
-                    borderSide: BorderSide(color: primary),
-                  ),
-                ),
-                floatingActionButtonTheme:
-                    FloatingActionButtonThemeData(backgroundColor: primary),
-                visualDensity: VisualDensity.adaptivePlatformDensity,
-                brightness: isDark ? Brightness.dark : Brightness.light,
-                textButtonTheme: TextButtonThemeData(
-                  style: TextButton.styleFrom(
-                    primary: secondary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                ),
-                outlinedButtonTheme: OutlinedButtonThemeData(
-                  style: OutlinedButton.styleFrom(
-                    primary: secondary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                ),
-                elevatedButtonTheme: ElevatedButtonThemeData(
-                  style: ElevatedButton.styleFrom(
-                    primary: secondary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                ),
-                appBarTheme: AppBarTheme(
-                  backgroundColor: primary,
-                  foregroundColor: (isDark
-                          ? Typography.material2018().white
-                          : Typography.material2018().black)
-                      .headline6
-                      ?.color,
-                  systemOverlayStyle: isDark
-                      ? SystemUiOverlayStyle.light
-                      : SystemUiOverlayStyle.dark,
-                ),
-                bottomAppBarTheme: BottomAppBarTheme(
-                  color: secondary,
-                  shape: const CircularNotchedRectangle(),
-                ),
-              ),
-            );
-          },
+          create: (_) => ThemeNotifier(),
         ),
       ],
       builder: (context, _) => const App(),
@@ -202,45 +90,7 @@ void main() async {
   );
 }
 
-Future _initConfigs([bool retryOnHiveError = true]) async {
-  //Hive initialization:
-  try {
-    await Hive.initFlutter();
-
-    const FlutterSecureStorage secureStorage = FlutterSecureStorage();
-    final containsEncryptionKey = await secureStorage.containsKey(key: 'key');
-    if (!containsEncryptionKey)
-      await secureStorage.write(
-          key: 'key', value: base64Url.encode(Hive.generateSecureKey()));
-
-    final encryptionKey =
-        base64Url.decode((await secureStorage.read(key: 'key'))!);
-
-    await Hive.openBox(
-      'User',
-      encryptionCipher: HiveAesCipher(encryptionKey),
-    );
-
-    await Hive.openBox('Settings');
-    await Hive.openBox<bool>('FeatureDiscovery');
-    await Hive.openBox<Map>('NotificationsSettings');
-    await Hive.openBox<String?>('PhotosURLsCache');
-    await Hive.openBox<Map>('Notifications');
-  } catch (e, stackTrace) {
-    await Hive.close();
-    await Hive.deleteBoxFromDisk('User');
-    await Hive.deleteBoxFromDisk('Settings');
-    await Hive.deleteBoxFromDisk('FeatureDiscovery');
-    await Hive.deleteBoxFromDisk('NotificationsSettings');
-    await Hive.deleteBoxFromDisk('PhotosURLsCache');
-    await Hive.deleteBoxFromDisk('Notifications');
-
-    await Sentry.captureException(e,
-        stackTrace: stackTrace,
-        withScope: (scope) => scope.setTag('LastErrorIn', 'main._initConfigs'));
-    if (retryOnHiveError) return _initConfigs(false);
-    rethrow;
-  }
+Future _initConfigs() async {
   try {
     await dotenv.load();
 
@@ -257,6 +107,7 @@ Future _initConfigs([bool retryOnHiveError = true]) async {
           projectId: dotenv.env['projectId']!,
         ),
       );
+
       await auth.FirebaseAuth.instance.useAuthEmulator(kEmulatorsHost, 9099);
       await FirebaseStorage.instance.useStorageEmulator(kEmulatorsHost, 9199);
       firestore.FirebaseFirestore.instance
@@ -270,12 +121,11 @@ Future _initConfigs([bool retryOnHiveError = true]) async {
     await Firebase.initializeApp();
   }
 
-  if (!kIsWeb) await AndroidAlarmManager.initialize();
-
-  await FlutterLocalNotificationsPlugin().initialize(
-      const InitializationSettings(
-          android: AndroidInitializationSettings('warning')),
-      onSelectNotification: onNotificationClicked);
+  GetIt.I.registerSingleton<auth.FirebaseAuth>(auth.FirebaseAuth.instance);
+  GetIt.I.registerSingleton<firestore.FirebaseFirestore>(
+      firestore.FirebaseFirestore.instance);
+  GetIt.I.registerSingleton<FirebaseFunctions>(FirebaseFunctions.instance);
+  GetIt.I.registerSingleton<FirebaseDatabase>(FirebaseDatabase.instance);
 }
 
 class App extends StatefulWidget {
@@ -286,14 +136,7 @@ class App extends StatefulWidget {
 }
 
 class AppState extends State<App> {
-  StreamSubscription? userTokenListener;
   final AsyncMemoizer<void> _appLoader = AsyncMemoizer();
-
-  @override
-  void dispose() {
-    userTokenListener?.cancel();
-    super.dispose();
-  }
 
   @override
   void initState() {
@@ -313,7 +156,7 @@ class AppState extends State<App> {
         if (snapshot.hasError) {
           if (snapshot.error.toString() ==
                   'Exception: Error Update User Data' &&
-              User.instance.password != null) {
+              GetIt.I<MHAuthRepository>().currentUser?.password != null) {
             WidgetsBinding.instance!.addPostFrameCallback((_) {
               showErrorUpdateDataDialog(context: context);
             });
@@ -323,21 +166,23 @@ class AppState extends State<App> {
           }
           if (snapshot.error.toString() !=
                   'Exception: Error Update User Data' ||
-              User.instance.password != null)
+              GetIt.I<MHAuthRepository>().currentUser?.password != null)
             return Loading(
               error: true,
               message: snapshot.error.toString(),
               showVersionInfo: true,
             );
         }
-        return StreamBuilder<User>(
-          initialData: User.instance,
-          stream: User.instance.stream,
+
+        return StreamBuilder<User?>(
+          initialData: GetIt.I<MHAuthRepository>().currentUser,
+          stream: GetIt.I<MHAuthRepository>().userStream,
           builder: (context, userSnapshot) {
-            final user = userSnapshot.data!;
-            if (user.uid == null) {
+            final user = userSnapshot.data;
+
+            if (user == null) {
               return const LoginScreen();
-            } else if (user.approved && user.password != null) {
+            } else if (user.permissions.approved && user.password != null) {
               return const AuthScreen(nextWidget: Root());
             } else {
               return const UserRegistration();
@@ -349,14 +194,16 @@ class AppState extends State<App> {
   }
 
   Future configureFirebaseMessaging() async {
-    if (!Hive.box('Settings')
+    if (!GetIt.I<CacheRepository>()
+            .box('Settings')
             .get('FCM_Token_Registered', defaultValue: false) &&
         auth.FirebaseAuth.instance.currentUser != null) {
       try {
         firestore.FirebaseFirestore.instance.settings = firestore.Settings(
           persistenceEnabled: true,
           sslEnabled: true,
-          cacheSizeBytes: Hive.box('Settings')
+          cacheSizeBytes: GetIt.I<CacheRepository>()
+              .box('Settings')
               .get('cacheSize', defaultValue: 300 * 1024 * 1024),
         );
         // ignore: empty_catches
@@ -366,16 +213,18 @@ class AppState extends State<App> {
             .authorizationStatus;
         if (status != AuthorizationStatus.denied &&
             status != AuthorizationStatus.notDetermined) {
-          await FirebaseFunctions.instance
+          await GetIt.I<FunctionsService>()
               .httpsCallable('registerFCMToken')
               .call({'token': await FirebaseMessaging.instance.getToken()});
-          await Hive.box('Settings').put('FCM_Token_Registered', true);
+          await GetIt.I<CacheRepository>()
+              .box('Settings')
+              .put('FCM_Token_Registered', true);
         }
       } catch (err, stack) {
-        await Sentry.captureException(err,
-            stackTrace: stack,
-            withScope: (scope) =>
-                scope.setTag('LasErrorIn', 'AppState.configureMessaging'));
+        await GetIt.I<LoggingService>().reportError(
+          err as Exception,
+          stackTrace: stack,
+        );
       }
     }
   }
@@ -390,9 +239,12 @@ class AppState extends State<App> {
                 (await PackageInfo.fromPlatform()).version +
                 '/MeetingHelper.apk',
       });
-      await RemoteConfig.instance.setConfigSettings(RemoteConfigSettings(
-          fetchTimeout: const Duration(seconds: 30),
-          minimumFetchInterval: const Duration(minutes: 2)));
+      await RemoteConfig.instance.setConfigSettings(
+        RemoteConfigSettings(
+            fetchTimeout: const Duration(seconds: 30),
+            minimumFetchInterval: const Duration(minutes: 2)),
+      );
+
       await RemoteConfig.instance.fetchAndActivate();
       // ignore: empty_catches
     } catch (err) {}
@@ -401,15 +253,11 @@ class AppState extends State<App> {
       await Updates.showUpdateDialog(context, canCancel: false);
       throw Exception('يجب التحديث لأخر إصدار لتشغيل البرنامج');
     } else {
-      if (User.instance.uid != null) {
-        await configureFirebaseMessaging();
-        Sentry.configureScope((scope) => scope.user = SentryUser(
-            id: User.instance.uid,
-            email: User.instance.email,
-            extras: User.instance.getUpdateMap()));
-        if (!await User.instance.userDataUpToDate()) {
-          throw Exception('Error Update User Data');
-        }
+      await configureFirebaseMessaging();
+
+      if (GetIt.I<MHAuthRepository>().isSignedIn &&
+          !GetIt.I<MHAuthRepository>().currentUser!.userDataUpToDate()) {
+        throw Exception('Error Update User Data');
       }
     }
   }
@@ -436,7 +284,7 @@ class AppState extends State<App> {
                     ModalRoute.of(context)!.settings.arguments as Service?),
             'Data/EditPerson': (context) {
               if (ModalRoute.of(context)?.settings.arguments == null)
-                return EditPerson(person: Person());
+                return EditPerson(person: Person.empty());
               else if (ModalRoute.of(context)!.settings.arguments is Person)
                 return EditPerson(
                     person:
@@ -444,12 +292,12 @@ class AppState extends State<App> {
               else if (ModalRoute.of(context)!.settings.arguments is JsonRef) {
                 final parent =
                     ModalRoute.of(context)!.settings.arguments! as JsonRef;
-                final Person person = Person();
+                final Person person = Person.empty();
 
                 if (parent.parent.id == 'Classes') {
-                  person.classId = parent;
+                  person.copyWith.classId(parent);
                 } else if (parent.parent.id == 'Services') {
-                  person.services.add(parent);
+                  person.copyWith.services(parent);
                 }
 
                 return EditPerson(person: person);
@@ -460,16 +308,19 @@ class AppState extends State<App> {
                   'passed arg is neither Person nor JsonRef');
             },
             'EditInvitation': (context) => EditInvitation(
-                invitation:
-                    ModalRoute.of(context)?.settings.arguments as Invitation? ??
-                        Invitation.empty()),
+                  invitation: ModalRoute.of(context)?.settings.arguments
+                          as Invitation? ??
+                      Invitation.empty(),
+                ),
             'Day': (context) {
               if (ModalRoute.of(context)?.settings.arguments != null)
                 return Day(
                     record: ModalRoute.of(context)!.settings.arguments!
                         as HistoryDay);
               else
-                return Day(record: HistoryDay());
+                return Day(
+                  record: HistoryDay(),
+                );
             },
             'ServantsDay': (context) {
               if (ModalRoute.of(context)?.settings.arguments != null)
@@ -477,7 +328,9 @@ class AppState extends State<App> {
                     record: ModalRoute.of(context)!.settings.arguments!
                         as ServantsHistoryDay);
               else
-                return Day(record: ServantsHistoryDay());
+                return Day(
+                  record: ServantsHistoryDay(),
+                );
             },
             'Trash': (context) => const Trash(),
             'History': (context) => const History(iServantsHistory: false),
@@ -492,12 +345,16 @@ class AppState extends State<App> {
                 service:
                     ModalRoute.of(context)!.settings.arguments! as Service),
             'PersonInfo': (context) => PersonInfo(
-                person: ModalRoute.of(context)!.settings.arguments! as Person,
-                converter: ModalRoute.of(context)!.settings.arguments is User
-                    ? User.fromDoc
-                    : Person.fromDoc,
-                showMotherAndFatherPhones:
-                    ModalRoute.of(context)!.settings.arguments is! User),
+                  person: ModalRoute.of(context)!.settings.arguments! is Person
+                      ? ModalRoute.of(context)!.settings.arguments!
+                      : (ModalRoute.of(context)!.settings.arguments!
+                          as Json)['Person'],
+                  showMotherAndFatherPhones:
+                      ModalRoute.of(context)!.settings.arguments is! Person ||
+                              ((ModalRoute.of(context)!.settings.arguments!
+                                  as Json)['showMotherAndFatherPhones'] ??
+                          false),
+                ),
             'UserInfo': (context) => UserInfo(
                 user: ModalRoute.of(context)!.settings.arguments! as User),
             'InvitationInfo': (context) => InvitationInfo(

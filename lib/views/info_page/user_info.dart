@@ -1,18 +1,18 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
+import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/user.dart';
-import 'package:meetinghelper/models/data_object_widget.dart';
-import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:meetinghelper/views/lists/users_list.dart';
 import 'package:meetinghelper/views/services_list.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:tuple/tuple.dart';
 
 import '../edit_page/edit_user.dart';
 
@@ -29,11 +29,15 @@ class _UserInfoState extends State<UserInfo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: StreamBuilder<User>(
-        initialData: widget.user,
-        stream: widget.user.ref.snapshots().map(User.fromDoc),
+      body: StreamBuilder<Tuple2<User, Person?>>(
+        initialData: Tuple2(widget.user, null),
+        stream: widget.user.ref.snapshots().map(
+              (d) => Tuple2(User.fromDoc(d), Person.fromDoc(d)),
+            ),
         builder: (context, data) {
-          final User user = data.data!;
+          final User user = data.data!.item1;
+          final Person? person = data.data?.item2;
+
           return NestedScrollView(
             headerSliverBuilder: (context, _) => <Widget>[
               SliverAppBar(
@@ -75,7 +79,7 @@ class _UserInfoState extends State<UserInfo> {
                   IconButton(
                     icon: const Icon(Icons.info),
                     onPressed: () {
-                      personTap(user);
+                      personTap(person);
                     },
                     tooltip: 'بيانات المستخدم',
                   ),
@@ -94,7 +98,11 @@ class _UserInfoState extends State<UserInfo> {
                             fontSize: 16.0,
                           )),
                     ),
-                    background: user.getPhoto(false, false),
+                    background: UserPhotoWidget(
+                      user,
+                      circleCrop: false,
+                      showActivityStatus: false,
+                    ),
                   ),
                 ),
               ),
@@ -104,7 +112,7 @@ class _UserInfoState extends State<UserInfo> {
                 Text(user.name, style: Theme.of(context).textTheme.headline6),
                 ListTile(
                   title: const Text('البريد الاكتروني:'),
-                  subtitle: Text(user.email),
+                  subtitle: Text(user.email ?? ''),
                 ),
                 ListTile(
                   title: const Text('أخر ظهور على البرنامج:'),
@@ -133,16 +141,18 @@ class _UserInfoState extends State<UserInfo> {
                   subtitle: Row(
                     children: <Widget>[
                       Expanded(
-                        child: user.lastTanawol != null
-                            ? Text(toDurationString(user.lastTanawol))
+                        child: user.permissions.lastTanawol != null
+                            ? Text(user.permissions.lastTanawol!
+                                .toDurationString())
                             : const Text('لا يمكن التحديد'),
                       ),
                       Text(
-                          user.lastTanawolDate != null
-                              ? DateFormat('yyyy/M/d')
-                                  .format(user.lastTanawolDate!)
-                              : '',
-                          style: Theme.of(context).textTheme.overline),
+                        user.permissions.lastTanawol != null
+                            ? DateFormat('yyyy/M/d')
+                                .format(user.permissions.lastTanawol!)
+                            : '',
+                        style: Theme.of(context).textTheme.overline,
+                      ),
                     ],
                   ),
                 ),
@@ -151,16 +161,18 @@ class _UserInfoState extends State<UserInfo> {
                   subtitle: Row(
                     children: <Widget>[
                       Expanded(
-                        child: user.lastConfession != null
-                            ? Text(toDurationString(user.lastConfession))
+                        child: user.permissions.lastConfession != null
+                            ? Text(user.permissions.lastConfession!
+                                .toDurationString())
                             : const Text('لا يمكن التحديد'),
                       ),
                       Text(
-                          user.lastConfessionDate != null
-                              ? DateFormat('yyyy/M/d')
-                                  .format(user.lastConfessionDate!)
-                              : '',
-                          style: Theme.of(context).textTheme.overline),
+                        user.permissions.lastConfession != null
+                            ? DateFormat('yyyy/M/d')
+                                .format(user.permissions.lastConfession!)
+                            : '',
+                        style: Theme.of(context).textTheme.overline,
+                      ),
                     ],
                   ),
                 ),
@@ -181,70 +193,70 @@ class _UserInfoState extends State<UserInfo> {
                   title: const Text('الصلاحيات:'),
                   subtitle: Column(
                     children: [
-                      if (user.manageUsers == true)
+                      if (user.permissions.manageUsers)
                         const ListTile(
                           leading: Icon(
                               IconData(0xef3d, fontFamily: 'MaterialIconsR')),
                           title: Text('إدارة المستخدمين'),
                         ),
-                      if (user.manageAllowedUsers == true)
+                      if (user.permissions.manageAllowedUsers)
                         const ListTile(
                           leading: Icon(
                               IconData(0xef3d, fontFamily: 'MaterialIconsR')),
                           title: Text('إدارة مستخدمين محددين'),
                         ),
-                      if (user.superAccess == true)
+                      if (user.permissions.superAccess)
                         const ListTile(
                           leading: Icon(
                               IconData(0xef56, fontFamily: 'MaterialIconsR')),
                           title: Text('رؤية جميع البيانات'),
                         ),
-                      if (user.manageDeleted == true)
+                      if (user.permissions.manageDeleted)
                         const ListTile(
                           leading: Icon(Icons.delete_outlined),
                           title: Text('استرجاع المحذوفات'),
                         ),
-                      if (user.changeHistory == true)
+                      if (user.permissions.changeHistory)
                         const ListTile(
                           leading: Icon(Icons.history),
                           title: Text('تعديل الكشوفات القديمة'),
                         ),
-                      if (user.secretary == true)
+                      if (user.permissions.secretary)
                         const ListTile(
                           leading: Icon(Icons.shield),
                           title: Text('تسجيل حضور الخدام'),
                         ),
-                      if (user.write == true)
+                      if (user.permissions.write)
                         const ListTile(
                           leading: Icon(Icons.edit),
                           title: Text('تعديل البيانات'),
                         ),
-                      if (user.export == true)
+                      if (user.permissions.export)
                         const ListTile(
                           leading: Icon(Icons.cloud_download),
                           title: Text('تصدير فصل لملف إكسل'),
                         ),
-                      if (user.birthdayNotify == true)
+                      if (user.permissions.birthdayNotify)
                         const ListTile(
                           leading: Icon(Icons.cake),
                           title: Text('إشعار أعياد الميلاد'),
                         ),
-                      if (user.confessionsNotify == true)
+                      if (user.permissions.confessionsNotify)
                         const ListTile(
                           leading: Icon(Icons.notifications_active),
                           title: Text('إشعار الاعتراف'),
                         ),
-                      if (user.tanawolNotify == true)
+                      if (user.permissions.tanawolNotify)
                         const ListTile(
                           leading: Icon(Icons.notifications_active),
                           title: Text('إشعار التناول'),
                         ),
-                      if (user.kodasNotify == true)
+                      if (user.permissions.kodasNotify)
                         const ListTile(
                           leading: Icon(Icons.notifications_active),
                           title: Text('إشعار القداس'),
                         ),
-                      if (user.meetingNotify == true)
+                      if (user.permissions.meetingNotify)
                         const ListTile(
                           leading: Icon(Icons.notifications_active),
                           title: Text('إشعار حضور الاجتماع'),
@@ -263,14 +275,13 @@ class _UserInfoState extends State<UserInfo> {
                           Text(
                             'يستطيع ' +
                                 user.name +
-                                ' رؤية ${user.write ? 'وتعديل ' : ''}الخدمات التالية:',
+                                ' رؤية ${user.permissions.write ? 'وتعديل ' : ''}الخدمات التالية:',
                             style: Theme.of(context).textTheme.headline6,
                           ),
                           Expanded(
                             child: ServicesList(
                               options: ServicesListController(
-                                tap: dataObjectTap,
-                                itemsStream: user.superAccess
+                                itemsStream: user.permissions.superAccess
                                     ? servicesByStudyYearRef()
                                     : servicesByStudyYearRefForUser(
                                         user.uid, user.adminServices),
@@ -290,18 +301,19 @@ class _UserInfoState extends State<UserInfo> {
                   onPressed: () => navigator.currentState!.push(
                     MaterialPageRoute(
                       builder: (context) {
-                        final listOptions = DataObjectListController<User>(
-                          itemsStream: FirebaseFirestore.instance
-                              .collection('UsersData')
-                              .where('AllowedUsers', arrayContains: user.uid)
-                              .snapshots()
-                              .map((s) => s.docs.map(User.fromDoc).toList()),
+                        final listOptions = ListController<void, User>(
+                          objectsPaginatableStream: PaginatableStream.query(
+                            query: GetIt.I<DatabaseRepository>()
+                                .collection('UsersData')
+                                .where('AllowedUsers', arrayContains: user.uid),
+                            mapper: User.fromDoc,
+                          ),
                         );
                         return Scaffold(
                           appBar: AppBar(
                             title: SearchField(
                               showSuffix: false,
-                              searchStream: listOptions.searchQuery,
+                              searchStream: listOptions.searchSubject,
                               textStyle:
                                   Theme.of(context).primaryTextTheme.headline6,
                             ),
@@ -313,7 +325,7 @@ class _UserInfoState extends State<UserInfo> {
                             color: Theme.of(context).colorScheme.primary,
                             shape: const CircularNotchedRectangle(),
                             child: StreamBuilder<List>(
-                              stream: listOptions.objectsData,
+                              stream: listOptions.objectsStream,
                               builder: (context, snapshot) {
                                 return Text(
                                   (snapshot.data?.length ?? 0).toString() +

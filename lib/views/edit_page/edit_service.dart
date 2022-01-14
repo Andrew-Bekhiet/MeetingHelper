@@ -1,19 +1,19 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:meetinghelper/views/form_widgets/tapable_form_field.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
@@ -22,7 +22,6 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tinycolor2/tinycolor2.dart';
 
 import '../../models/data/user.dart';
-import '../../models/mini_models.dart';
 import '../../models/search/search_filters.dart';
 import '../lists/users_list.dart';
 import '../mini_lists/colors_list.dart';
@@ -77,8 +76,8 @@ class _EditServiceState extends State<EditService> {
               ],
               backgroundColor: service.color != Colors.transparent
                   ? (Theme.of(context).brightness == Brightness.light
-                      ? TinyColor(service.color).lighten().color
-                      : TinyColor(service.color).darken().color)
+                      ? service.color?.lighten()
+                      : service.color?.darken())
                   : null,
               //title: Text(widget.me.name),
               expandedHeight: 250.0,
@@ -98,7 +97,10 @@ class _EditServiceState extends State<EditService> {
                   background: changedImage == null || deletePhoto
                       ? service.photo(cropToCircle: false)
                       : PhotoView(
-                          imageProvider: FileImage(File(changedImage!))),
+                          imageProvider: FileImage(
+                            File(changedImage!),
+                          ),
+                        ),
                 ),
               ),
             ),
@@ -132,7 +134,7 @@ class _EditServiceState extends State<EditService> {
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     child: FutureBuilder<JsonQuery>(
-                      future: StudyYear.getAllForUser(),
+                      future: StudyYear.getAll(),
                       builder: (conext, data) {
                         if (!data.hasData)
                           return const LinearProgressIndicator();
@@ -291,8 +293,8 @@ class _EditServiceState extends State<EditService> {
                         ? ElevatedButton.styleFrom(
                             primary:
                                 Theme.of(context).brightness == Brightness.light
-                                    ? TinyColor(service.color).lighten().color
-                                    : TinyColor(service.color).darken().color,
+                                    ? service.color?.lighten()
+                                    : service.color?.darken(),
                           )
                         : null,
                     onPressed: selectColor,
@@ -306,8 +308,8 @@ class _EditServiceState extends State<EditService> {
                           ? ElevatedButton.styleFrom(
                               primary: Theme.of(context).brightness ==
                                       Brightness.light
-                                  ? TinyColor(service.color).lighten().color
-                                  : TinyColor(service.color).darken().color,
+                                  ? service.color?.lighten()
+                                  : service.color?.darken(),
                             )
                           : null,
                       icon: const Icon(Icons.visibility),
@@ -448,7 +450,8 @@ class _EditServiceState extends State<EditService> {
         );
         final update = service.id != 'null';
         if (!update) {
-          service.ref = FirebaseFirestore.instance.collection('Services').doc();
+          service.ref =
+              GetIt.I<DatabaseRepository>().collection('Services').doc();
         }
         if (changedImage != null) {
           await FirebaseStorage.instance
@@ -483,8 +486,8 @@ class _EditServiceState extends State<EditService> {
         }
 
         if (allowedUsers != null) {
-          final batch = FirebaseFirestore.instance.batch();
-          final oldAllowed = (await FirebaseFirestore.instance
+          final batch = GetIt.I<DatabaseRepository>().batch();
+          final oldAllowed = (await GetIt.I<DatabaseRepository>()
                   .collection('UsersData')
                   .where('AdminServices', arrayContains: service.ref)
                   .get())
@@ -559,7 +562,7 @@ class _EditServiceState extends State<EditService> {
               return StreamBuilder<List<User>>(
                 stream: allowedUsers != null
                     ? Stream.value(allowedUsers!)
-                    : FirebaseFirestore.instance
+                    : GetIt.I<DatabaseRepository>()
                         .collection('UsersData')
                         .where('AdminServices', arrayContains: service.ref)
                         .snapshots()
@@ -569,10 +572,10 @@ class _EditServiceState extends State<EditService> {
                     return const Center(child: CircularProgressIndicator());
                   return MultiProvider(
                     providers: [
-                      Provider<DataObjectListController<User>>(
-                        create: (_) => DataObjectListController<User>(
+                      Provider<ListController<User>>(
+                        create: (_) => ListController<User>(
                           selectionMode: true,
-                          itemsStream: User.getAllForUser(),
+                          itemsStream: MHAuthRepository.getAllUsers(),
                           selected: {
                             for (final item in users.data!) item.docId: item
                           },
@@ -585,7 +588,7 @@ class _EditServiceState extends State<EditService> {
                         TextButton(
                           onPressed: () {
                             navigator.currentState!.pop(context
-                                .read<DataObjectListController<User>>()
+                                .read<ListController<User>>()
                                 .selectedLatest
                                 ?.values
                                 .toList());
@@ -597,7 +600,7 @@ class _EditServiceState extends State<EditService> {
                         title: SearchField(
                             showSuffix: false,
                             searchStream: context
-                                .read<DataObjectListController<User>>()
+                                .read<ListController<User>>()
                                 .searchQuery,
                             textStyle: Theme.of(context).textTheme.bodyText2),
                       ),

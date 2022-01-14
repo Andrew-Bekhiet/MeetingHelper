@@ -1,12 +1,10 @@
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:collection/collection.dart';
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:group_list_view/group_list_view.dart';
-import 'package:meetinghelper/models/data_object_widget.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
-import 'package:meetinghelper/models/super_classes.dart';
 
-import '../models/mini_models.dart';
 import '../utils/helpers.dart';
 
 export 'package:meetinghelper/models/list_controllers.dart'
@@ -15,10 +13,14 @@ export 'package:meetinghelper/models/list_controllers.dart'
 class ServicesList<T extends DataObject> extends StatefulWidget {
   final ServicesListController<T> options;
   final bool autoDisposeController;
+  final void Function(T)? onTap;
 
-  const ServicesList(
-      {Key? key, required this.options, required this.autoDisposeController})
-      : super(key: key);
+  const ServicesList({
+    Key? key,
+    required this.options,
+    required this.autoDisposeController,
+    this.onTap,
+  }) : super(key: key);
   @override
   _ServicesListState<T> createState() => _ServicesListState<T>();
 }
@@ -35,7 +37,7 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
     super.build(context);
 
     return StreamBuilder<Map<PreferredStudyYear?, List<T>>?>(
-      stream: widget.options.objectsData,
+      stream: widget.options.groupedObjectsStream,
       builder: (context, services) {
         if (services.hasError) return ErrorWidget(services.error!);
         if (!services.hasData)
@@ -126,23 +128,22 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
                     (c) {
                       return DataObjectWidget(
                         c,
-                        showSubTitle: false,
+                        showSubtitle: false,
                         onTap: () {
-                          if (!widget.options.selectionModeLatest) {
-                            widget.options.tap == null
+                          if (widget.options.currentSelection == null) {
+                            widget.onTap == null
                                 ? dataObjectTap(c)
-                                : widget.options.tap!(c);
+                                : widget.onTap!(c);
                           } else {
                             widget.options.toggleSelected(c);
                           }
                         },
-                        trailing: StreamBuilder<Map<String, DataObject>>(
-                          stream: widget.options.selected,
+                        trailing: StreamBuilder<Set<DataObject>?>(
+                          stream: widget.options.selectionStream,
                           builder: (context, snapshot) {
-                            if (snapshot.hasData &&
-                                widget.options.selectionModeLatest) {
+                            if (snapshot.hasData) {
                               return Checkbox(
-                                value: snapshot.data!.containsKey(c.id),
+                                value: snapshot.data!.contains(c),
                                 onChanged: (v) {
                                   if (v!) {
                                     widget.options.select(c);
@@ -176,11 +177,10 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
                               .toggle(),
                       leading: const Icon(Icons.miscellaneous_services),
                       title: Text(studyYear.name),
-                      trailing: StreamBuilder<Map<String, DataObject>>(
-                        stream: widget.options.selected,
+                      trailing: StreamBuilder<Set<DataObject>?>(
+                        stream: widget.options.selectionStream,
                         builder: (context, snapshot) {
-                          if (snapshot.hasData &&
-                              widget.options.selectionModeLatest) {
+                          if (snapshot.hasData) {
                             return Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -188,13 +188,13 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
                                 Checkbox(
                                   tristate: true,
                                   value: services.data![studyYear]!
-                                          .map((c) =>
-                                              snapshot.data!.containsKey(c.id))
+                                          .map(
+                                              (c) => snapshot.data!.contains(c))
                                           .every((e) => e)
                                       ? true
                                       : services.data![studyYear]!
-                                              .map((c) => snapshot.data!
-                                                  .containsKey(c.id))
+                                              .map((c) =>
+                                                  snapshot.data!.contains(c))
                                               .every((e) => !e)
                                           ? false
                                           : null,
@@ -228,23 +228,22 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
                         (c) {
                           return DataObjectWidget(
                             c,
-                            showSubTitle: false,
+                            showSubtitle: false,
                             onTap: () {
-                              if (!widget.options.selectionModeLatest) {
-                                widget.options.tap == null
+                              if (widget.options.currentSelection == null) {
+                                widget.onTap == null
                                     ? dataObjectTap(c)
-                                    : widget.options.tap!(c);
+                                    : widget.onTap!(c);
                               } else {
                                 widget.options.toggleSelected(c);
                               }
                             },
-                            trailing: StreamBuilder<Map<String, DataObject>>(
-                              stream: widget.options.selected,
+                            trailing: StreamBuilder<Set<DataObject>?>(
+                              stream: widget.options.selectionStream,
                               builder: (context, snapshot) {
-                                if (snapshot.hasData &&
-                                    widget.options.selectionModeLatest) {
+                                if (snapshot.hasData) {
                                   return Checkbox(
-                                    value: snapshot.data!.containsKey(c.id),
+                                    value: snapshot.data!.contains(c),
                                     onChanged: (v) {
                                       if (v!) {
                                         widget.options.select(c);
@@ -273,15 +272,14 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
                 padding: const EdgeInsets.fromLTRB(3, 0, 9, 0),
                 child: DataObjectWidget(
                   services.data![studyYear]![0],
-                  showSubTitle: false,
-                  trailing: StreamBuilder<Map<String, DataObject>>(
-                    stream: widget.options.selected,
+                  showSubtitle: false,
+                  trailing: StreamBuilder<Set<DataObject>?>(
+                    stream: widget.options.selectionStream,
                     builder: (context, snapshot) {
-                      if (snapshot.hasData &&
-                          widget.options.selectionModeLatest) {
+                      if (snapshot.hasData) {
                         return Checkbox(
                           value: snapshot.data!
-                              .containsKey(services.data![studyYear]![0].id),
+                              .contains(services.data![studyYear]![0]),
                           onChanged: (v) {
                             if (v!) {
                               widget.options
@@ -297,10 +295,10 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
                     },
                   ),
                   onTap: () {
-                    if (!widget.options.selectionModeLatest) {
-                      widget.options.tap == null
+                    if (widget.options.currentSelection == null) {
+                      widget.onTap == null
                           ? dataObjectTap(services.data![studyYear]![0])
-                          : widget.options.tap!(services.data![studyYear]![0]);
+                          : widget.onTap!(services.data![studyYear]![0]);
                     } else {
                       widget.options
                           .toggleSelected(services.data![studyYear]![0]);

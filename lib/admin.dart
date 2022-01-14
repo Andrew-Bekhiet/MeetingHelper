@@ -1,9 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 
-import 'models/mini_models.dart';
 import 'views/mini_lists/churches_list.dart';
 import 'views/mini_lists/fathers_list.dart';
 import 'views/mini_lists/study_years_list.dart';
@@ -42,7 +41,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
           },
           child: const Icon(Icons.add)),
       body: ChurchesEditList(
-        list: Church.getAllForUser(),
+        list: Church.getAll(),
         tap: (_) => churchTap(_, false),
       ),
     );
@@ -65,10 +64,10 @@ class _ChurchesPageState extends State<ChurchesPage> {
           TextButton(
               onPressed: () async {
                 if (editMode) {
-                  await FirebaseFirestore.instance
+                  await GetIt.I<DatabaseRepository>()
                       .collection('Churches')
                       .doc(church.id)
-                      .set(church.getMap());
+                      .set(church.toJson());
                 }
                 navigator.currentState!.pop();
                 setState(() {
@@ -87,7 +86,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                       actions: <Widget>[
                         TextButton(
                           onPressed: () async {
-                            await FirebaseFirestore.instance
+                            await GetIt.I<DatabaseRepository>()
                                 .collection('Churches')
                                 .doc(church.id)
                                 .delete();
@@ -191,10 +190,10 @@ class _ChurchesPageState extends State<ChurchesPage> {
           TextButton(
               onPressed: () async {
                 if (editMode) {
-                  await FirebaseFirestore.instance
+                  await GetIt.I<DatabaseRepository>()
                       .collection('Fathers')
                       .doc(father.id)
-                      .set(father.getMap());
+                      .set(father.toJson());
                 }
                 navigator.currentState!.pop();
                 setState(() {
@@ -213,7 +212,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                       actions: <Widget>[
                         TextButton(
                           onPressed: () async {
-                            await FirebaseFirestore.instance
+                            await GetIt.I<DatabaseRepository>()
                                 .collection('Fathers')
                                 .doc(father.id)
                                 .delete();
@@ -253,7 +252,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
               Text('داخل كنيسة', style: title),
               if (editMode)
                 FutureBuilder<JsonQuery>(
-                  future: Church.getAllForUser(),
+                  future: Church.getAll(),
                   builder: (context, data) {
                     if (data.hasData) {
                       return Container(
@@ -277,7 +276,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                             ),
                           onChanged: (dynamic value) {
                             father.churchId =
-                                FirebaseFirestore.instance.doc(value);
+                                GetIt.I<DatabaseRepository>().doc(value);
                           },
                           decoration: const InputDecoration(
                             labelText: 'الكنيسة',
@@ -298,7 +297,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                               child: ListTile(
                                 title: Text(name.data!),
                                 onTap: () async => churchTap(
-                                  Church.fromDoc(await father.churchId!.get())!,
+                                  Church.fromDoc(await father.churchId!.get()),
                                   false,
                                 ),
                               ),
@@ -326,7 +325,7 @@ class _FathersPageState extends State<FathersPage> {
           },
           child: const Icon(Icons.add)),
       body: FathersEditList(
-        list: Father.getAllForUser(),
+        list: Father.getAll(),
         tap: (_) => fatherTap(_, false),
       ),
     );
@@ -349,10 +348,10 @@ class _FathersPageState extends State<FathersPage> {
           TextButton(
               onPressed: () async {
                 if (editMode) {
-                  await FirebaseFirestore.instance
+                  await GetIt.I<DatabaseRepository>()
                       .collection('Churches')
                       .doc(church.id)
-                      .set(church.getMap());
+                      .set(church.toJson());
                 }
                 navigator.currentState!.pop();
                 setState(() {
@@ -372,7 +371,7 @@ class _FathersPageState extends State<FathersPage> {
                             actions: <Widget>[
                               TextButton(
                                 onPressed: () async {
-                                  await FirebaseFirestore.instance
+                                  await GetIt.I<DatabaseRepository>()
                                       .collection('Churches')
                                       .doc(church.id)
                                       .delete();
@@ -474,10 +473,10 @@ class _FathersPageState extends State<FathersPage> {
           TextButton(
               onPressed: () async {
                 if (editMode) {
-                  await FirebaseFirestore.instance
+                  await GetIt.I<DatabaseRepository>()
                       .collection('Fathers')
                       .doc(father.id)
-                      .set(father.getMap());
+                      .set(father.toJson());
                 }
                 navigator.currentState!.pop();
                 setState(() {
@@ -497,7 +496,7 @@ class _FathersPageState extends State<FathersPage> {
                             actions: <Widget>[
                               TextButton(
                                 onPressed: () async {
-                                  await FirebaseFirestore.instance
+                                  await GetIt.I<DatabaseRepository>()
                                       .collection('Fathers')
                                       .doc(father.id)
                                       .delete();
@@ -536,7 +535,7 @@ class _FathersPageState extends State<FathersPage> {
               Text('داخل كنيسة', style: title),
               if (editMode)
                 FutureBuilder<JsonQuery>(
-                  future: Church.getAllForUser(),
+                  future: Church.getAll(),
                   builder: (context, data) {
                     if (data.hasData) {
                       return Container(
@@ -560,7 +559,7 @@ class _FathersPageState extends State<FathersPage> {
                             ),
                           onChanged: (dynamic value) {
                             father.churchId =
-                                FirebaseFirestore.instance.doc(value);
+                                GetIt.I<DatabaseRepository>().doc(value);
                           },
                           decoration: const InputDecoration(
                             labelText: 'الكنيسة',
@@ -581,7 +580,7 @@ class _FathersPageState extends State<FathersPage> {
                             child: ListTile(
                               title: Text(name.data!),
                               onTap: () async => churchTap(
-                                Church.fromDoc(await father.churchId!.get())!,
+                                Church.fromDoc(await father.churchId!.get()),
                                 false,
                               ),
                             ),
@@ -610,7 +609,7 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
           },
           child: const Icon(Icons.add)),
       body: StudyYearsEditList(
-        list: StudyYear.getAllForUser(),
+        list: StudyYear.getAll(),
         tap: (_) => studyYearTap(_, false),
       ),
     );
@@ -633,10 +632,10 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
           TextButton(
               onPressed: () async {
                 if (editMode) {
-                  await FirebaseFirestore.instance
+                  await GetIt.I<DatabaseRepository>()
                       .collection('StudyYears')
                       .doc(year.id)
-                      .set(year.getMap());
+                      .set(year.toJson());
                 }
                 navigator.currentState!.pop();
                 setState(() {
@@ -655,7 +654,7 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
                             actions: <Widget>[
                               TextButton(
                                 onPressed: () async {
-                                  await FirebaseFirestore.instance
+                                  await GetIt.I<DatabaseRepository>()
                                       .collection('StudyYears')
                                       .doc(year.id)
                                       .delete();
@@ -701,7 +700,7 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
               if (editMode)
                 ListTile(
                   onTap: () =>
-                      setState(() => year.isCollegeYear = !year.isCollegeYear!),
+                      setState(() => year.isCollegeYear = !year.isCollegeYear),
                   title: const Text('سنة جامعية؟'),
                   trailing: Checkbox(
                       value: year.isCollegeYear ?? false,
@@ -710,7 +709,7 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
               else
                 ListTile(
                   title: const Text('سنة جامعية؟'),
-                  subtitle: Text(year.isCollegeYear! ? 'نعم' : 'لا'),
+                  subtitle: Text(year.isCollegeYear ? 'نعم' : 'لا'),
                 ),
               if (editMode)
                 TextField(

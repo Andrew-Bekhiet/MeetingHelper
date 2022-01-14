@@ -1,19 +1,18 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data_object_widget.dart';
-import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
@@ -21,7 +20,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tinycolor2/tinycolor2.dart';
 
 import '../../models/data/user.dart';
-import '../../models/mini_models.dart';
+import '../../models/mini_models.dart.bak';
 import '../../models/search/search_filters.dart';
 import '../lists/users_list.dart';
 import '../mini_lists/colors_list.dart';
@@ -161,7 +160,7 @@ class _EditClassState extends State<EditClass> {
                               onChanged: (dynamic value) {
                                 setState(() {});
                                 class$.studyYear = value != null
-                                    ? FirebaseFirestore.instance.doc(value)
+                                    ? GetIt.I<DatabaseRepository>().doc(value)
                                     : null;
                                 FocusScope.of(context).nextFocus();
                               },
@@ -360,7 +359,8 @@ class _EditClassState extends State<EditClass> {
         );
         final update = class$.id != 'null';
         if (!update) {
-          class$.ref = FirebaseFirestore.instance.collection('Classes').doc();
+          class$.ref =
+              GetIt.I<DatabaseRepository>().collection('Classes').doc();
         }
         if (changedImage != null) {
           await FirebaseStorage.instance
@@ -448,8 +448,8 @@ class _EditClassState extends State<EditClass> {
                 if (!users.hasData)
                   return const Center(child: CircularProgressIndicator());
 
-                return Provider<DataObjectListController<User>>(
-                  create: (_) => DataObjectListController<User>(
+                return Provider<ListController<User>>(
+                  create: (_) => ListController<User>(
                     itemBuilder: (current,
                             [void Function(User)? onLongPress,
                             void Function(User)? onTap,
@@ -477,19 +477,18 @@ class _EditClassState extends State<EditClass> {
                           onPressed: navigator.currentState!.pop),
                       title: SearchField(
                         showSuffix: false,
-                        searchStream: context
-                            .read<DataObjectListController<User>>()
-                            .searchQuery,
+                        searchStream:
+                            context.read<ListController<User>>().searchQuery,
                         textStyle: Theme.of(context).primaryTextTheme.headline6,
                       ),
                       actions: [
                         IconButton(
                           onPressed: () {
                             navigator.currentState!.pop(context
-                                .read<DataObjectListController<User>>()
+                                .read<ListController<User>>()
                                 .selectedLatest
                                 ?.values
-                                .map((u) => u.uid!)
+                                .map((u) => u.uid)
                                 .toList());
                           },
                           icon: const Icon(Icons.done),

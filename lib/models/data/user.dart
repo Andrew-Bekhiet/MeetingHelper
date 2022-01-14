@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:churchdata_core/churchdata_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' show SetOptions;
 import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_database/firebase_database.dart';
@@ -20,6 +21,7 @@ class MHAuthRepository extends AuthRepository<User, Person> {
 
     if (document.exists)
       return User(
+        ref: document.reference,
         uid: uid,
         name: document.data()?['Name'],
       );
@@ -166,11 +168,13 @@ class MHAuthRepository extends AuthRepository<User, Person> {
           .snapshots()
           .map((doc) {
         userSubject.add(User(
+          ref: doc.reference,
           uid: firebaseUser?.uid ?? uid!,
           name: firebaseUser?.displayName ?? name ?? '',
           email: firebaseUser?.email ?? email!,
           password: idTokenClaims['password'],
           permissions: permissionsFromIdToken(idTokenClaims),
+          classId: doc.data()?['ClassId']?.cast<String>() ?? [],
           allowedUsers: doc.data()?['AllowedUsers']?.cast<String>() ?? [],
           adminServices: doc.data()?['AdminServices']?.cast<JsonRef>() ?? [],
         ));
@@ -178,11 +182,16 @@ class MHAuthRepository extends AuthRepository<User, Person> {
       }).listen(refreshFromDoc);
     } else {
       userSubject.add(User(
+        ref: currentUser?.ref ??
+            GetIt.I<DatabaseRepository>()
+                .collection('UsersData')
+                .doc(idTokenClaims['personId'] ?? 'null'),
         uid: firebaseUser?.uid ?? uid!,
         name: firebaseUser?.displayName ?? name ?? '',
         email: firebaseUser?.email ?? email!,
         password: idTokenClaims['password'],
         permissions: permissionsFromIdToken(idTokenClaims),
+        classId: currentUser?.classId,
         allowedUsers: currentUser?.allowedUsers ?? [],
         adminServices: currentUser?.adminServices ?? [],
       ));
@@ -195,11 +204,16 @@ class MHAuthRepository extends AuthRepository<User, Person> {
         .listen(connectionChanged);
 
     return User(
+      ref: currentUser?.ref ??
+          GetIt.I<DatabaseRepository>()
+              .collection('UsersData')
+              .doc(idTokenClaims['personId'] ?? 'null'),
       uid: firebaseUser?.uid ?? uid!,
       name: firebaseUser?.displayName ?? name ?? '',
       email: firebaseUser?.email ?? email!,
       password: idTokenClaims['password'],
       permissions: permissionsFromIdToken(idTokenClaims),
+      classId: currentUser?.classId,
       allowedUsers: currentUser?.allowedUsers ?? [],
       adminServices: currentUser?.adminServices ?? [],
     );
@@ -270,6 +284,7 @@ class MHPermissionsSet extends PermissionsSet implements Serializable {
     required this.lastConfession,
     required this.lastTanawol,
   }) : super.fromSet(permissions);
+
   bool get approved => permissions.contains('approved');
   bool get birthdayNotify => permissions.contains('birthdayNotify');
   bool get changeHistory => permissions.contains('changeHistory');
@@ -305,14 +320,20 @@ class User extends UserBase implements DataObjectWithPhoto {
   final String? password;
 
   final List<String> allowedUsers;
-
   final List<JsonRef> adminServices;
+
   @override
   // ignore: overridden_fields
   final MHPermissionsSet permissions;
 
+  @override
+  final JsonRef ref;
+  final JsonRef? classId;
+
   User({
+    required this.ref,
     required String uid,
+    this.classId,
     String? email,
     this.password,
     required String name,
@@ -321,8 +342,9 @@ class User extends UserBase implements DataObjectWithPhoto {
     this.adminServices = const [],
   }) : super(uid: uid, name: name, email: email, permissions: permissions);
 
-  User.fromJson(Json data, JsonRef ref)
+  User.fromJson(Json data, this.ref)
       : password = null,
+        classId = data['ClassId'],
         permissions = MHPermissionsSet.fromJson(data['Permissions'] ?? {}),
         allowedUsers = data['AllowedUsers']?.cast<String>() ?? [],
         adminServices = data['AdminServices']?.cast<JsonRef>() ?? [],
@@ -334,7 +356,7 @@ class User extends UserBase implements DataObjectWithPhoto {
   User.fromDoc(JsonDoc data) : this.fromJson(data.data()!, data.reference);
 
   @override
-  Color get color => Colors.transparent;
+  Color? get color => null;
 
   @override
   IconData get defaultIcon => Icons.account_circle;
@@ -361,8 +383,8 @@ class User extends UserBase implements DataObjectWithPhoto {
       if (permissions.tanawolNotify) rslt += 'اشعار التناول،';
       if (permissions.kodasNotify) rslt += 'اشعار القداس';
       if (permissions.meetingNotify) rslt += 'اشعار حضور الاجتماع';
-      if (permissions.visitNotify) rslt += 'اشعار الافتقاد';
       if (permissions.write) rslt += 'تعديل البيانات،';
+      if (permissions.visitNotify) rslt += 'اشعار الافتقاد';
       return rslt;
     }
     return 'غير مُنشط';
@@ -406,18 +428,30 @@ class User extends UserBase implements DataObjectWithPhoto {
       );
 
   @override
-  String get id => throw UnsupportedError('id is not supported on User');
+  String get id => ref.id;
 
   @override
-  JsonRef get ref => throw UnsupportedError('ref is not supported on User');
-
-  @override
-  Future<void> set({Json? merge}) {
-    throw UnsupportedError('set() is not supported on User');
+  Future<void> set({Json? merge}) async {
+    await ref.set(
+      merge ?? toJson(),
+      merge != null ? SetOptions(merge: true) : null,
+    );
   }
 
   @override
-  Future<void> update({Json old = const {}}) {
-    throw UnsupportedError('update() is not supported on User');
+  Future<void> update({Json old = const {}}) async {
+    await ref.update(toJson()..removeWhere((key, value) => old[key] == value));
+  }
+
+  Map<String, bool> getNotificationsPermissions() {
+    return {
+      'birthdayNotify': permissions.permissions.contains('birthdayNotify'),
+      'confessionsNotify':
+          permissions.permissions.contains('confessionsNotify'),
+      'tanawolNotify': permissions.permissions.contains('tanawolNotify'),
+      'kodasNotify': permissions.permissions.contains('kodasNotify'),
+      'meetingNotify': permissions.permissions.contains('meetingNotify'),
+      'visitNotify': permissions.permissions.contains('visitNotify'),
+    };
   }
 }

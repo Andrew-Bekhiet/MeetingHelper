@@ -1,14 +1,13 @@
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../../utils/helpers.dart';
-import '../list_controllers.dart';
-import 'order_options.dart';
 
 class FilterButton extends StatelessWidget {
   final Type type;
-  final BaseListController? controller;
+  final ListController? controller;
   final BehaviorSubject<OrderOptions>? orderOptions;
   final bool disableOrdering;
   const FilterButton(this.type, this.controller, this.orderOptions,
@@ -36,7 +35,7 @@ class FilterButton extends StatelessWidget {
                 icon: const Icon(Icons.select_all),
                 label: const Text('تحديد لا شئ'),
                 onPressed: () {
-                  controller!.selectNone();
+                  controller!.deselectAll();
                   navigator.currentState!.pop();
                 },
               ),
@@ -90,7 +89,7 @@ class SearchField extends StatelessWidget {
 class SearchFilters extends StatelessWidget {
   final Type type;
   final TextStyle? textStyle;
-  final BaseListController options;
+  final ListController options;
   final BehaviorSubject<OrderOptions>? orderOptions;
   final bool disableOrdering;
   const SearchFilters(this.type,
@@ -107,7 +106,7 @@ class SearchFilters extends StatelessWidget {
       children: [
         Expanded(
           child: SearchField(
-            searchStream: options.searchQuery,
+            searchStream: options.searchSubject,
             textStyle: textStyle ??
                 Theme.of(context).textTheme.headline6!.copyWith(
                     color: Theme.of(context).primaryTextTheme.headline6!.color),

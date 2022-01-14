@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -180,7 +180,11 @@ class _MyAccountState extends State<MyAccount> {
                           : 1,
                       child: Text(user.name),
                     ),
-                    background: user.getPhoto(false, false),
+                    background: UserPhotoWidget(
+                      user,
+                      circleCrop: false,
+                      showActivityStatus: false,
+                    ),
                   ),
                 ),
               ),
@@ -190,22 +194,24 @@ class _MyAccountState extends State<MyAccount> {
                 Text(user.name, style: Theme.of(context).textTheme.headline6),
                 ListTile(
                   title: const Text('البريد الاكتروني:'),
-                  subtitle: Text(user.email),
+                  subtitle: Text(user.email ?? ''),
                 ),
                 ListTile(
                   title: const Text('تاريخ اخر تناول:'),
                   subtitle: Row(
                     children: <Widget>[
                       Expanded(
-                        child: Text(toDurationString(
-                            Timestamp.fromDate(user.lastTanawolDate!))),
+                        child: Text(
+                            user.permissions.lastTanawol?.toDurationString() ??
+                                ''),
                       ),
                       Text(
-                          user.lastTanawolDate != null
-                              ? DateFormat('yyyy/M/d')
-                                  .format(user.lastTanawolDate!)
-                              : '',
-                          style: Theme.of(context).textTheme.overline),
+                        user.permissions.lastTanawol != null
+                            ? DateFormat('yyyy/M/d')
+                                .format(user.permissions.lastTanawol!)
+                            : '',
+                        style: Theme.of(context).textTheme.overline,
+                      ),
                     ],
                   ),
                 ),
@@ -214,87 +220,89 @@ class _MyAccountState extends State<MyAccount> {
                   subtitle: Row(
                     children: <Widget>[
                       Expanded(
-                        child: Text(toDurationString(
-                            Timestamp.fromDate(user.lastConfessionDate!))),
+                        child: Text(user.permissions.lastConfession
+                                ?.toDurationString() ??
+                            ''),
                       ),
                       Text(
-                          user.lastConfessionDate != null
-                              ? DateFormat('yyyy/M/d')
-                                  .format(user.lastConfessionDate!)
-                              : '',
-                          style: Theme.of(context).textTheme.overline),
+                        user.permissions.lastConfession != null
+                            ? DateFormat('yyyy/M/d')
+                                .format(user.permissions.lastConfession!)
+                            : '',
+                        style: Theme.of(context).textTheme.overline,
+                      ),
                     ],
                   ),
                 ),
                 const Text('الصلاحيات:'),
-                if (user.manageUsers == true)
+                if (user.permissions.manageUsers)
                   const ListTile(
                     leading:
                         Icon(IconData(0xef3d, fontFamily: 'MaterialIconsR')),
                     title: Text('إدارة المستخدمين'),
                   ),
-                if (user.manageAllowedUsers == true)
+                if (user.permissions.manageAllowedUsers)
                   const ListTile(
                     leading:
                         Icon(IconData(0xef3d, fontFamily: 'MaterialIconsR')),
                     title: Text('إدارة مستخدمين محددين'),
                   ),
-                if (user.superAccess == true)
+                if (user.permissions.superAccess)
                   const ListTile(
                     leading:
                         Icon(IconData(0xef56, fontFamily: 'MaterialIconsR')),
                     title: Text('رؤية جميع البيانات'),
                   ),
-                if (user.manageDeleted == true)
+                if (user.permissions.manageDeleted)
                   const ListTile(
                     leading: Icon(Icons.delete_outlined),
                     title: Text('استرجاع المحذوفات'),
                   ),
-                if (user.changeHistory == true)
+                if (user.permissions.changeHistory)
                   const ListTile(
                     leading: Icon(Icons.history),
                     title: Text('تعديل الكشوفات القديمة'),
                   ),
-                if (user.secretary == true)
+                if (user.permissions.secretary)
                   const ListTile(
                     leading: Icon(Icons.shield),
                     title: Text('تسجيل حضور الخدام'),
                   ),
-                if (user.write == true)
+                if (user.permissions.write)
                   const ListTile(
                     leading: Icon(Icons.edit),
                     title: Text('تعديل البيانات'),
                   ),
-                if (user.export == true)
+                if (user.permissions.export)
                   const ListTile(
                     leading: Icon(Icons.cloud_download),
                     title: Text('تصدير فصل لملف إكسل'),
                   ),
-                if (user.birthdayNotify == true)
+                if (user.permissions.birthdayNotify)
                   const ListTile(
                     leading:
                         Icon(IconData(0xe7e9, fontFamily: 'MaterialIconsR')),
                     title: Text('إشعار أعياد الميلاد'),
                   ),
-                if (user.confessionsNotify == true)
+                if (user.permissions.confessionsNotify)
                   const ListTile(
                     leading:
                         Icon(IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
                     title: Text('إشعار الاعتراف'),
                   ),
-                if (user.tanawolNotify == true)
+                if (user.permissions.tanawolNotify)
                   const ListTile(
                     leading:
                         Icon(IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
                     title: Text('إشعار التناول'),
                   ),
-                if (user.kodasNotify == true)
+                if (user.permissions.kodasNotify)
                   const ListTile(
                     leading:
                         Icon(IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
                     title: Text('إشعار القداس'),
                   ),
-                if (user.meetingNotify == true)
+                if (user.permissions.meetingNotify)
                   const ListTile(
                     leading:
                         Icon(IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
@@ -444,7 +452,8 @@ class _MyAccountState extends State<MyAccount> {
     ));
     if (textFields[2].text == textFields[1].text &&
         textFields[0].text.isNotEmpty) {
-      final User user = User.instance;
+      final User user = MHAuthRepository.I.currentUser!;
+
       if (user.password == Encryption.encPswd(textFields[0].text)) {
         try {
           await FirebaseFunctions.instance

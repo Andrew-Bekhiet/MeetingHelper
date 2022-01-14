@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -31,7 +30,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              TapableFormField<Timestamp?>(
+              TapableFormField<DateTime?>(
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 decoration: (context, state) => InputDecoration(
                   errorText: state.errorText,
@@ -40,28 +39,29 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                       ? const Icon(Icons.done, color: Colors.green)
                       : const Icon(Icons.close, color: Colors.red),
                 ),
-                initialValue: user.lastTanawol,
+                initialValue: user.permissions.lastTanawol,
                 onTap: (state) async {
-                  state.didChange(await _selectDate(
-                          'تاريخ أخر تناول', state.value ?? Timestamp.now()) ??
-                      user.lastTanawol);
+                  state.didChange(
+                    await _selectDate(
+                            'تاريخ أخر تناول', state.value ?? DateTime.now()) ??
+                        user.permissions.lastTanawol,
+                  );
                 },
                 builder: (context, state) {
                   return state.value != null
-                      ? Text(
-                          DateFormat('yyyy/M/d').format(state.value!.toDate()))
+                      ? Text(DateFormat('yyyy/M/d').format(state.value!))
                       : null;
                 },
                 // ignore: unnecessary_null_checks
-                onSaved: (v) => user.lastTanawol = v!,
+                onSaved: (v) => user.permissions.lastTanawol = v!,
                 validator: (value) => value == null
                     ? 'برجاء اختيار تاريخ أخر تناول'
-                    : value.toDate().isBefore(
+                    : value.isBefore(
                             DateTime.now().subtract(const Duration(days: 60)))
                         ? 'يجب أن يكون التاريخ منذ شهرين على الأكثر'
                         : null,
               ),
-              TapableFormField<Timestamp?>(
+              TapableFormField<DateTime?>(
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 decoration: (context, state) => InputDecoration(
                   errorText: state.errorText,
@@ -70,23 +70,24 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                       ? const Icon(Icons.done, color: Colors.green)
                       : const Icon(Icons.close, color: Colors.red),
                 ),
-                initialValue: user.lastConfession,
+                initialValue: user.permissions.lastConfession,
                 onTap: (state) async {
-                  state.didChange(await _selectDate(
-                          'تاريخ أخر اعتراف', state.value ?? Timestamp.now()) ??
-                      user.lastConfession);
+                  state.didChange(
+                    await _selectDate('تاريخ أخر اعتراف',
+                            state.value ?? DateTime.now()) ??
+                        user.permissions.lastConfession,
+                  );
                 },
                 builder: (context, state) {
                   return state.value != null
-                      ? Text(
-                          DateFormat('yyyy/M/d').format(state.value!.toDate()))
+                      ? Text(DateFormat('yyyy/M/d').format(state.value!))
                       : null;
                 },
                 // ignore: unnecessary_null_checks
-                onSaved: (v) => user.lastConfession = v!,
+                onSaved: (v) => user.permissions.lastConfession = v!,
                 validator: (value) => value == null
                     ? 'برجاء اختيار تاريخ أخر اعتراف'
-                    : value.toDate().isBefore(
+                    : value.isBefore(
                             DateTime.now().subtract(const Duration(days: 60)))
                         ? 'يجب أن يكون التاريخ منذ شهرين على الأكثر'
                         : null,
@@ -106,7 +107,8 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
 
   Future save() async {
     try {
-      if (user.lastConfession == null || user.lastTanawol == null) {
+      if (user.permissions.lastConfession == null ||
+          user.permissions.lastTanawol == null) {
         scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
             content: Text('برجاء ادخال تاريخ أخر الاعتراف والتناول')));
         return;
@@ -118,8 +120,9 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
       await FirebaseFunctions.instance
           .httpsCallable('updateUserSpiritData')
           .call({
-        'lastConfession': user.lastConfession!.millisecondsSinceEpoch,
-        'lastTanawol': user.lastTanawol!.millisecondsSinceEpoch
+        'lastConfession':
+            user.permissions.lastConfession!.millisecondsSinceEpoch,
+        'lastTanawol': user.permissions.lastTanawol!.millisecondsSinceEpoch
       });
       navigator.currentState!.pop();
     } catch (err, stack) {
@@ -132,16 +135,16 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
     }
   }
 
-  Future<Timestamp?> _selectDate(String helpText, Timestamp initialDate) async {
+  Future<DateTime?> _selectDate(String helpText, DateTime initialDate) async {
     final picked = await showDatePicker(
         helpText: helpText,
         locale: const Locale('ar', 'EG'),
         context: context,
-        initialDate: initialDate.toDate(),
+        initialDate: initialDate,
         firstDate: DateTime(1900),
         lastDate: DateTime.now());
-    if (picked != null && picked != initialDate.toDate()) {
-      return Timestamp.fromDate(picked);
+    if (picked != null && picked != initialDate) {
+      return picked;
     }
     return null;
   }

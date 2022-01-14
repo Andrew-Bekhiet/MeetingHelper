@@ -1,12 +1,10 @@
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
 import 'package:meetinghelper/models/data/user.dart';
-import 'package:meetinghelper/models/list_controllers.dart';
-import 'package:meetinghelper/models/mini_models.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:meetinghelper/views/list.dart';
 
-class MiniModelList<T extends MiniModel> extends StatelessWidget {
+class MiniModelList<T extends MetaObject> extends StatelessWidget {
   final String title;
   final JsonCollectionRef collection;
   final void Function()? add;
@@ -27,7 +25,7 @@ class MiniModelList<T extends MiniModel> extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: DataObjectList(
-        options: DataObjectListController<T>(
+        options: ListController<T>(
           itemBuilder: (current, onLongPress, onTap, trailing, subtitle) =>
               ListTile(
             title: Text(current.name),

@@ -1,15 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
-import 'package:meetinghelper/models/data_object_widget.dart';
-import 'package:meetinghelper/models/list_controllers.dart';
-import 'package:meetinghelper/models/property_metadata.dart';
-import 'package:meetinghelper/models/super_classes.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:meetinghelper/views/services_list.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
@@ -18,7 +14,6 @@ import '../models/data/user.dart';
 import '../models/search/search_filters.dart';
 import '../utils/globals.dart';
 import '../utils/helpers.dart';
-import 'list.dart';
 import 'mini_lists/colors_list.dart';
 
 class SearchQuery extends StatefulWidget {
@@ -32,7 +27,7 @@ class SearchQuery extends StatefulWidget {
 
 class _SearchQueryState extends State<SearchQuery> {
   JsonCollectionRef collection =
-      FirebaseFirestore.instance.collection('Persons');
+      GetIt.I<DatabaseRepository>().collection('Persons');
 
   String fieldPath = 'Name';
 
@@ -56,11 +51,12 @@ class _SearchQueryState extends State<SearchQuery> {
   ];
 
   final Map<JsonCollectionRef, Map<String, PropertyMetadata>> properties = {
-    FirebaseFirestore.instance.collection('Services'): Service.propsMetadata()
-      ..remove('StudyYearRange')
-      ..remove('Validity'),
-    FirebaseFirestore.instance.collection('Classes'): Class.propsMetadata(),
-    FirebaseFirestore.instance.collection('Persons'): Person.propsMetadata()
+    GetIt.I<DatabaseRepository>().collection('Services'):
+        Service.propsMetadata()
+          ..remove('StudyYearRange')
+          ..remove('Validity'),
+    GetIt.I<DatabaseRepository>().collection('Classes'): Class.propsMetadata(),
+    GetIt.I<DatabaseRepository>().collection('Persons'): Person.propsMetadata()
       ..remove('Phones'),
   };
 
@@ -89,16 +85,18 @@ class _SearchQueryState extends State<SearchQuery> {
                     value: collection,
                     items: [
                       DropdownMenuItem(
-                        value:
-                            FirebaseFirestore.instance.collection('Services'),
+                        value: GetIt.I<DatabaseRepository>()
+                            .collection('Services'),
                         child: const Text('الخدمات'),
                       ),
                       DropdownMenuItem(
-                        value: FirebaseFirestore.instance.collection('Classes'),
+                        value:
+                            GetIt.I<DatabaseRepository>().collection('Classes'),
                         child: const Text('الفصول'),
                       ),
                       DropdownMenuItem(
-                        value: FirebaseFirestore.instance.collection('Persons'),
+                        value:
+                            GetIt.I<DatabaseRepository>().collection('Persons'),
                         child: const Text('المخدومين'),
                       ),
                     ],
@@ -230,51 +228,53 @@ class _SearchQueryState extends State<SearchQuery> {
   }
 
   void execute() async {
-    Query<Json> _mainQueryCompleter(Query<Json> q, _, __) =>
+    QueryOfJson _mainQueryCompleter(QueryOfJson q, _, __) =>
         valueWidget[properties[collection]![fieldPath.split('.')[0]]!.type]!
             .completeQuery(q, queryValue);
 
-    final DataObjectList body = DataObjectList(
-      disposeController: false,
-      options: DataObjectListController(
-        itemsStream: (collection.id == 'Services'
-                ? Service.getAllForUser(
-                    queryCompleter: _mainQueryCompleter,
-                  )
-                : collection.id == 'Classes'
-                    ? Class.getAllForUser(
-                        queryCompleter: _mainQueryCompleter,
-                      )
-                    : Person.getAllForUser(
-                        queryCompleter: _mainQueryCompleter,
-                      ) as Stream<List<DataObject>>)
-            .map(
-          (rslt) {
-            if (!order) return rslt;
+    final DataObjectListView body = DataObjectListView(
+      autoDisposeController: false,
+      controller: ListController(
+        objectsPaginatableStream: PaginatableStream.loadAll(
+          stream: (collection.id == 'Services'
+                  ? Service.getAllForUser(
+                      queryCompleter: _mainQueryCompleter,
+                    )
+                  : collection.id == 'Classes'
+                      ? Class.getAllForUser(
+                          queryCompleter: _mainQueryCompleter,
+                        )
+                      : Person.getAllForUser(
+                          queryCompleter: _mainQueryCompleter,
+                        ))
+              .map(
+            (rslt) {
+              if (!order) return rslt;
 
-            final sorted = rslt.cast<DataObject>().sublist(0);
-            mergeSort(sorted, compare: (previous, next) {
-              if (previous == null || next == null) {
-                if (previous == null) return -1;
-                if (next == null) return 1;
+              final sorted = rslt.cast<DataObject>().sublist(0);
+              mergeSort(sorted, compare: (previous, next) {
+                if (previous == null || next == null) {
+                  if (previous == null) return -1;
+                  if (next == null) return 1;
+                  return 0;
+                }
+
+                final p = previous as DataObject;
+                final n = next as DataObject;
+
+                if (p.toJson()[orderBy] is Comparable &&
+                    n.toJson()[orderBy] is Comparable) {
+                  return descending
+                      ? -(p.toJson()[orderBy] ?? '')
+                          .compareTo(n.toJson()[orderBy] ?? '')
+                      : (p.toJson()[orderBy] ?? '')
+                          .compareTo(n.toJson()[orderBy] ?? '');
+                }
                 return 0;
-              }
-
-              final p = previous as DataObject;
-              final n = next as DataObject;
-
-              if (p.getMap()[orderBy] is Comparable &&
-                  n.getMap()[orderBy] is Comparable) {
-                return descending
-                    ? -(p.getMap()[orderBy] ?? '')
-                        .compareTo(n.getMap()[orderBy] ?? '')
-                    : (p.getMap()[orderBy] ?? '')
-                        .compareTo(n.getMap()[orderBy] ?? '');
-              }
-              return 0;
-            });
-            return sorted;
-          },
+              });
+              return sorted;
+            },
+          ),
         ),
       ),
     );
@@ -322,7 +322,7 @@ class _SearchQueryState extends State<SearchQuery> {
                     : collection.id == 'Classes'
                         ? Class
                         : Person,
-                options: body.options!,
+                options: body.controller,
                 textStyle: Theme.of(context).textTheme.headline6!.copyWith(
                     color: Theme.of(context).primaryTextTheme.headline6!.color),
                 disableOrdering: true,
@@ -333,7 +333,7 @@ class _SearchQueryState extends State<SearchQuery> {
               color: Theme.of(context).colorScheme.primary,
               shape: const CircularNotchedRectangle(),
               child: StreamBuilder<dynamic>(
-                stream: body.options!.objectsData,
+                stream: body.controller.objectsStream,
                 builder: (context, snapshot) {
                   return Text(
                     (snapshot.data?.length ?? 0).toString() + ' عنصر',
@@ -349,7 +349,7 @@ class _SearchQueryState extends State<SearchQuery> {
         },
       ),
     );
-    await body.options!.dispose();
+    await body.controller.dispose();
   }
 
   @override
@@ -621,8 +621,8 @@ class _SearchQueryState extends State<SearchQuery> {
                 ),
                 child: queryValue != null && queryValue is JsonRef
                     ? FutureBuilder<Class>(
-                        future: Future(() async => Class.fromDoc(
-                            await (queryValue as JsonRef).get())!),
+                        future: Future(() async =>
+                            Class.fromDoc(await (queryValue as JsonRef).get())),
                         builder: (context, classData) {
                           if (!classData.hasData)
                             return const LinearProgressIndicator();
@@ -646,8 +646,8 @@ class _SearchQueryState extends State<SearchQuery> {
                   labelText: 'اختيار خادم',
                 ),
                 child: queryValue != null && queryValue is String
-                    ? FutureBuilder<User>(
-                        future: User.fromID(queryValue),
+                    ? FutureBuilder<User?>(
+                        future: MHAuthRepository.userNameFromUID(queryValue),
                         builder: (context, userData) {
                           if (!userData.hasData)
                             return const LinearProgressIndicator();
@@ -758,8 +758,8 @@ class _SearchQueryState extends State<SearchQuery> {
                   labelText: 'اختيار خادم',
                 ),
                 child: queryValue != null && queryValue is String
-                    ? FutureBuilder<User>(
-                        future: User.fromID(queryValue),
+                    ? FutureBuilder<User?>(
+                        future: MHAuthRepository.userNameFromUID(queryValue),
                         builder: (context, userData) {
                           if (!userData.hasData)
                             return const LinearProgressIndicator();
@@ -812,7 +812,7 @@ class _SearchQueryState extends State<SearchQuery> {
                             ? FutureBuilder<Service>(
                                 key: ValueKey(fieldPath),
                                 future: Future(() async => Service.fromDoc(
-                                    await FirebaseFirestore.instance
+                                    await GetIt.I<DatabaseRepository>()
                                         .collection('Services')
                                         .doc(fieldPath.split('.')[1])
                                         .get())!),
@@ -860,10 +860,10 @@ class _SearchQueryState extends State<SearchQuery> {
 
     if (widget.query != null) {
       collection = widget.query!['collection'] == 'Services'
-          ? FirebaseFirestore.instance.collection('Services')
+          ? GetIt.I<DatabaseRepository>().collection('Services')
           : widget.query!['collection'] == 'Classes'
-              ? FirebaseFirestore.instance.collection('Classes')
-              : FirebaseFirestore.instance.collection('Persons');
+              ? GetIt.I<DatabaseRepository>().collection('Classes')
+              : GetIt.I<DatabaseRepository>().collection('Persons');
 
       fieldPath = widget.query!['fieldPath'] ?? 'Name';
 
@@ -873,7 +873,7 @@ class _SearchQueryState extends State<SearchQuery> {
           ? widget.query!['queryValue'].toString().startsWith('B')
               ? widget.query!['queryValue'].toString().substring(1) == 'true'
               : widget.query!['queryValue'].toString().startsWith('D')
-                  ? FirebaseFirestore.instance
+                  ? GetIt.I<DatabaseRepository>()
                       .doc(widget.query!['queryValue'].toString().substring(1))
                   : (widget.query!['queryValue'].toString().startsWith('T')
                       ? DateTime.fromMillisecondsSinceEpoch(int.parse(
@@ -903,12 +903,6 @@ class _SearchQueryState extends State<SearchQuery> {
         BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
     final _listOptions = ServicesListController<Class>(
-        tap: (value) {
-          navigator.currentState!.pop();
-          setState(() {
-            queryValue = value.ref;
-          });
-        },
         itemsStream: servicesByStudyYearRef<Class>());
 
     await showDialog(
@@ -925,7 +919,15 @@ class _SearchQueryState extends State<SearchQuery> {
                     textStyle: Theme.of(context).textTheme.bodyText2),
                 Expanded(
                   child: ServicesList<Class>(
-                      options: _listOptions, autoDisposeController: false),
+                    onTap: (value) {
+                      navigator.currentState!.pop();
+                      setState(() {
+                        queryValue = value.ref;
+                      });
+                    },
+                    options: _listOptions,
+                    autoDisposeController: false,
+                  ),
                 ),
               ],
             ),
@@ -942,17 +944,6 @@ class _SearchQueryState extends State<SearchQuery> {
         BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
     final _listOptions = ServicesListController<Service>(
-        tap: (value) {
-          navigator.currentState!.pop();
-          setState(() {
-            if (forFieldPath)
-              fieldPath = fieldPath.contains('.')
-                  ? fieldPath.replaceAll(RegExp(r'\.[^.]+$'), '.' + value.id)
-                  : fieldPath + '.' + value.id;
-            else
-              queryValue = value.ref;
-          });
-        },
         itemsStream: servicesByStudyYearRef<Service>());
 
     await showDialog(
@@ -969,7 +960,21 @@ class _SearchQueryState extends State<SearchQuery> {
                     textStyle: Theme.of(context).textTheme.bodyText2),
                 Expanded(
                   child: ServicesList<Service>(
-                      options: _listOptions, autoDisposeController: false),
+                    onTap: (value) {
+                      navigator.currentState!.pop();
+                      setState(() {
+                        if (forFieldPath)
+                          fieldPath = fieldPath.contains('.')
+                              ? fieldPath.replaceAll(
+                                  RegExp(r'\.[^.]+$'), '.' + value.id)
+                              : fieldPath + '.' + value.id;
+                        else
+                          queryValue = value.ref;
+                      });
+                    },
+                    options: _listOptions,
+                    autoDisposeController: false,
+                  ),
                 ),
               ],
             ),
@@ -985,15 +990,11 @@ class _SearchQueryState extends State<SearchQuery> {
     final BehaviorSubject<OrderOptions> _orderOptions =
         BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
-    final _listOptions = DataObjectListController<User>(
-      tap: (value) {
-        navigator.currentState!.pop();
-        setState(() {
-          queryValue = onlyUID ? value.uid : value.ref;
-        });
-      },
-      itemsStream: _orderOptions.switchMap(
-        (order) => User.getAllForUser(),
+    final _listOptions = ListController<void, User>(
+      objectsPaginatableStream: PaginatableStream.loadAll(
+        stream: _orderOptions.switchMap(
+          (order) => MHAuthRepository.getAllUsers(),
+        ),
       ),
     );
 
@@ -1010,9 +1011,15 @@ class _SearchQueryState extends State<SearchQuery> {
                     orderOptions: _orderOptions,
                     textStyle: Theme.of(context).textTheme.bodyText2),
                 Expanded(
-                  child: DataObjectList<User>(
-                    disposeController: false,
-                    options: _listOptions,
+                  child: DataObjectListView<void, User>(
+                    onTap: (value) {
+                      navigator.currentState!.pop();
+                      setState(() {
+                        queryValue = onlyUID ? value.uid : value.ref;
+                      });
+                    },
+                    autoDisposeController: false,
+                    controller: _listOptions,
                   ),
                 ),
               ],
@@ -1042,11 +1049,11 @@ class _SearchQueryState extends State<SearchQuery> {
 @immutable
 class PropertyQuery<T> {
   final Widget Function(BuildContext) builder;
-  final Query<Json> Function(Query<Json> query, T? value) queryCompleter;
+  final QueryOfJson Function(QueryOfJson query, T? value) queryCompleter;
 
   const PropertyQuery({required this.builder, required this.queryCompleter});
 
-  Query<Json> completeQuery(Query<Json> q, dynamic v) {
+  QueryOfJson completeQuery(QueryOfJson q, dynamic v) {
     if (v is T?) return queryCompleter(q, v);
     throw TypeError();
   }

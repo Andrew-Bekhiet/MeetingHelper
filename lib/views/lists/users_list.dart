@@ -1,38 +1,49 @@
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
 import 'package:group_list_view/group_list_view.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/user.dart';
-import 'package:meetinghelper/models/data_object_widget.dart';
-import 'package:meetinghelper/models/list_controllers.dart';
-import 'package:meetinghelper/models/super_classes.dart';
 import 'package:meetinghelper/utils/helpers.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tuple/tuple.dart';
 
 class UsersList extends StatefulWidget {
-  final DataObjectListController<User>? listOptions;
+  final ListController<void, User>? listOptions;
   final bool autoDisposeController;
 
-  const UsersList(
-      {Key? key, this.listOptions, required this.autoDisposeController})
-      : super(key: key);
+  final ItemBuilder<User>? itemBuilder;
+  // final GroupBuilder<G> groupBuilder;
+  final void Function(User)? onTap;
+  final void Function(User)? onLongPress;
+
+  const UsersList({
+    Key? key,
+    this.listOptions,
+    required this.autoDisposeController,
+    this.itemBuilder,
+    //this.groupBuilder,
+    this.onTap,
+    this.onLongPress,
+  }) : super(key: key);
 
   @override
   _UsersListState createState() => _UsersListState();
 }
 
 class _UsersListState extends State<UsersList> {
-  late DataObjectListController<User> _listOptions;
+  late ListController<void, User> _listOptions;
   final BehaviorSubject<Map<JsonRef, bool?>> _openedNodes =
       BehaviorSubject.seeded({});
+
+  ItemBuilder<User> get buildItem =>
+      widget.itemBuilder ?? defaultItemBuilder<User>;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _listOptions =
-        widget.listOptions ?? context.read<DataObjectListController<User>>();
+        widget.listOptions ?? context.read<ListController<void, User>>();
   }
 
   @override
@@ -40,7 +51,7 @@ class _UsersListState extends State<UsersList> {
     return StreamBuilder<Map<JsonRef, Tuple2<Class, List<User>>>>(
       stream: Rx.combineLatest2<Map<JsonRef, Tuple2<Class, List<User>>>,
           Map<JsonRef, bool?>, Map<JsonRef, Tuple2<Class, List<User>>>>(
-        _listOptions.objectsData.switchMap(usersByClassRef),
+        _listOptions.objectsStream.switchMap(usersByClassRef),
         _openedNodes,
         (g, n) => g.map(
           (k, v) => MapEntry(
@@ -74,9 +85,9 @@ class _UsersListState extends State<UsersList> {
 
             return DataObjectWidget<Class>(
               _class,
-              showSubTitle: false,
+              showSubtitle: false,
               wrapInCard: false,
-              photo: DataObjectPhoto(
+              photo: PhotoObjectWidget(
                 _class,
                 heroTag: _class.name + _class.id,
               ),
@@ -125,34 +136,27 @@ class _UsersListState extends State<UsersList> {
                 .elementAt(i.index);
             return Padding(
               padding: const EdgeInsets.fromLTRB(3, 0, 9, 0),
-              child: _listOptions.buildItem(
+              child: buildItem(
                 current,
-                onLongPress: _listOptions.onLongPress ??
+                onLongPress: widget.onLongPress ??
                     (u) {
-                      _listOptions.selectionMode
-                          .add(!_listOptions.selectionMode.value);
-                      if (_listOptions.selectionMode.value)
-                        _listOptions.select(current);
+                      _listOptions.select(u);
                     },
                 onTap: (User current) {
-                  if (!_listOptions.selectionMode.value) {
-                    _listOptions.tap == null
+                  if (_listOptions.currentSelection == null) {
+                    widget.onTap == null
                         ? dataObjectTap(current)
-                        : _listOptions.tap!(current);
+                        : widget.onTap!(current);
                   } else {
                     _listOptions.toggleSelected(current);
                   }
                 },
-                trailing: StreamBuilder<Map<String, User>?>(
-                  stream: Rx.combineLatest2<Map<String, User>, bool,
-                          Map<String, User>?>(
-                      _listOptions.selected,
-                      _listOptions.selectionMode,
-                      (Map<String, User> a, bool b) => b ? a : null),
+                trailing: StreamBuilder<Set<User>?>(
+                  stream: _listOptions.selectionStream,
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
                       return Checkbox(
-                        value: snapshot.data!.containsKey(current.docId),
+                        value: snapshot.data!.contains(current),
                         onChanged: (v) {
                           if (v!) {
                             _listOptions.select(current);

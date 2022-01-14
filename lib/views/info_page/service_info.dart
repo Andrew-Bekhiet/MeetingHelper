@@ -1,13 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
-import 'package:meetinghelper/models/data_object_widget.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
-import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:tinycolor2/tinycolor2.dart';
@@ -15,11 +13,9 @@ import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import '../../models/data/user.dart';
 import '../../models/history/history_property.dart';
-import '../../models/list_controllers.dart';
 import '../../models/search/search_filters.dart';
 import '../../utils/helpers.dart';
 import '../data_map.dart';
-import '../list.dart';
 
 class ServiceInfo extends StatefulWidget {
   final Service service;
@@ -34,7 +30,7 @@ class _ServiceInfoState extends State<ServiceInfo> {
   final BehaviorSubject<OrderOptions> _orderOptions =
       BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
-  late final DataObjectListController<Person> _listOptions;
+  late final ListController<void, Person> _listOptions;
 
   final _edit = GlobalKey();
   final _share = GlobalKey();
@@ -52,30 +48,31 @@ class _ServiceInfoState extends State<ServiceInfo> {
   @override
   void initState() {
     super.initState();
-    _listOptions = DataObjectListController<Person>(
-      tap: personTap,
-      itemsStream: _orderOptions.switchMap(
-        (order) => widget.service.getPersonsMembersLive(
-          orderBy: order.orderBy ?? 'Name',
-          descending: !order.asc!,
+    _listOptions = ListController<void, Person>(
+      objectsPaginatableStream: PaginatableStream.loadAll(
+        stream: _orderOptions.switchMap(
+          (order) => widget.service.getPersonsMembersLive(
+            orderBy: order.orderBy,
+            descending: !order.asc,
+          ),
         ),
       ),
     );
     WidgetsBinding.instance!.addPostFrameCallback((_) {
       if (([
-        if (User.instance.write) 'Edit',
+        if (MHAuthRepository.I.currentUser!.permissions.write) 'Edit',
         'Share',
         'MoreOptions',
         'EditHistory',
         'Service.Analytics',
-        if (User.instance.write) 'Add'
+        if (MHAuthRepository.I.currentUser!.permissions.write) 'Add'
       ]..removeWhere(HivePersistenceProvider.instance.hasCompletedStep))
           .isNotEmpty)
         TutorialCoachMark(
           context,
           focusAnimationDuration: const Duration(milliseconds: 200),
           targets: [
-            if (User.instance.write)
+            if (MHAuthRepository.I.currentUser!.permissions.write)
               TargetFocus(
                 enableOverlayTab: true,
                 contents: [
@@ -155,7 +152,7 @@ class _ServiceInfoState extends State<ServiceInfo> {
               keyTarget: _analytics,
               color: Theme.of(context).colorScheme.secondary,
             ),
-            if (User.instance.write)
+            if (MHAuthRepository.I.currentUser!.permissions.write)
               TargetFocus(
                 enableOverlayTab: true,
                 contents: [
@@ -187,299 +184,297 @@ class _ServiceInfoState extends State<ServiceInfo> {
 
   @override
   Widget build(BuildContext context) {
-    return Selector<User, bool?>(
-      selector: (_, user) => user.write,
-      builder: (context, permission, _) => StreamBuilder<Service?>(
-        initialData: widget.service,
-        stream: widget.service.ref.snapshots().map(Service.fromDoc),
-        builder: (context, data) {
-          if (data.data == null)
-            return const Scaffold(
-              body: Center(
-                child: Text('تم حذف الخدمة'),
-              ),
-            );
+    return StreamBuilder<Service?>(
+      initialData: widget.service,
+      stream: MHAuthRepository.I.userStream
+          .distinct((o, n) => o?.permissions.write == n?.permissions.write)
+          .switchMap(
+            (_) => widget.service.ref.snapshots().map(Service.fromDoc),
+          ),
+      builder: (context, data) {
+        if (data.data == null)
+          return const Scaffold(
+            body: Center(
+              child: Text('تم حذف الخدمة'),
+            ),
+          );
 
-          final Service service = data.requireData!;
+        final Service service = data.requireData!;
 
-          return Scaffold(
-            body: NestedScrollView(
-              headerSliverBuilder: (context, _) => <Widget>[
-                SliverAppBar(
-                  backgroundColor: service.color != Colors.transparent
-                      ? (Theme.of(context).brightness == Brightness.light
-                          ? TinyColor(service.color).lighten().color
-                          : TinyColor(service.color).darken().color)
-                      : null,
-                  actions: service.ref.path.startsWith('Deleted')
-                      ? <Widget>[
-                          if (permission!)
-                            IconButton(
-                              icon: const Icon(Icons.restore),
-                              tooltip: 'استعادة',
-                              onPressed: () {
-                                recoverDoc(context, service.ref.path);
-                              },
-                            )
-                        ]
-                      : <Widget>[
-                          Selector<User, bool?>(
-                            selector: (_, user) => user.write,
-                            builder: (c, permission, data) => permission!
-                                ? IconButton(
-                                    key: _edit,
-                                    icon: Builder(
-                                      builder: (context) => Stack(
-                                        children: <Widget>[
-                                          const Positioned(
-                                            left: 1.0,
-                                            top: 2.0,
-                                            child: Icon(Icons.edit,
-                                                color: Colors.black54),
-                                          ),
-                                          Icon(Icons.edit,
-                                              color:
-                                                  IconTheme.of(context).color),
-                                        ],
-                                      ),
-                                    ),
-                                    onPressed: () async {
-                                      final dynamic result = await navigator
-                                          .currentState!
-                                          .pushNamed('Data/EditService',
-                                              arguments: service);
-                                      if (result is JsonRef) {
-                                        scaffoldMessenger.currentState!
-                                            .showSnackBar(
-                                          const SnackBar(
-                                            content: Text('تم الحفظ بنجاح'),
-                                          ),
-                                        );
-                                      } else if (result == 'deleted') {
-                                        scaffoldMessenger.currentState!
-                                            .hideCurrentSnackBar();
-                                        scaffoldMessenger.currentState!
-                                            .showSnackBar(
-                                          const SnackBar(
-                                            content: Text('تم الحذف بنجاح'),
-                                            duration: Duration(seconds: 2),
-                                          ),
-                                        );
-                                        navigator.currentState!.pop();
-                                      }
-                                    },
-                                    tooltip: 'تعديل',
-                                  )
-                                : Container(),
-                          ),
+        return Scaffold(
+          body: NestedScrollView(
+            headerSliverBuilder: (context, _) => <Widget>[
+              SliverAppBar(
+                backgroundColor: service.color != Colors.transparent
+                    ? (Theme.of(context).brightness == Brightness.light
+                        ? service.color?.lighten()
+                        : service.color?.darken())
+                    : null,
+                actions: service.ref.path.startsWith('Deleted')
+                    ? <Widget>[
+                        if (MHAuthRepository.I.currentUser!.permissions.write)
                           IconButton(
-                            key: _share,
+                            icon: const Icon(Icons.restore),
+                            tooltip: 'استعادة',
+                            onPressed: () {
+                              recoverDoc(context, service.ref.path);
+                            },
+                          )
+                      ]
+                    : <Widget>[
+                        if (MHAuthRepository.I.currentUser!.permissions.write)
+                          IconButton(
+                            key: _edit,
                             icon: Builder(
                               builder: (context) => Stack(
                                 children: <Widget>[
                                   const Positioned(
                                     left: 1.0,
                                     top: 2.0,
-                                    child: Icon(Icons.share,
-                                        color: Colors.black54),
+                                    child:
+                                        Icon(Icons.edit, color: Colors.black54),
                                   ),
-                                  Icon(Icons.share,
+                                  Icon(Icons.edit,
                                       color: IconTheme.of(context).color),
                                 ],
                               ),
                             ),
                             onPressed: () async {
-                              // navigator.currentState.pop();
-                              await Share.share(await shareService(service));
+                              final dynamic result = await navigator
+                                  .currentState!
+                                  .pushNamed('Data/EditService',
+                                      arguments: service);
+                              if (result is JsonRef) {
+                                scaffoldMessenger.currentState!.showSnackBar(
+                                  const SnackBar(
+                                    content: Text('تم الحفظ بنجاح'),
+                                  ),
+                                );
+                              } else if (result == 'deleted') {
+                                scaffoldMessenger.currentState!
+                                    .hideCurrentSnackBar();
+                                scaffoldMessenger.currentState!.showSnackBar(
+                                  const SnackBar(
+                                    content: Text('تم الحذف بنجاح'),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                                navigator.currentState!.pop();
+                              }
                             },
-                            tooltip: 'مشاركة برابط',
+                            tooltip: 'تعديل',
                           ),
-                          PopupMenuButton(
-                            key: _moreOptions,
-                            onSelected: (dynamic _) =>
-                                sendNotification(context, service),
-                            itemBuilder: (context) {
-                              return [
-                                const PopupMenuItem(
-                                  value: '',
+                        IconButton(
+                          key: _share,
+                          icon: Builder(
+                            builder: (context) => Stack(
+                              children: <Widget>[
+                                const Positioned(
+                                  left: 1.0,
+                                  top: 2.0,
                                   child:
-                                      Text('ارسال إشعار للمستخدمين عن الخدمة'),
+                                      Icon(Icons.share, color: Colors.black54),
                                 ),
-                              ];
-                            },
-                          ),
-                        ],
-                  expandedHeight: 250.0,
-                  stretch: true,
-                  pinned: true,
-                  flexibleSpace: LayoutBuilder(
-                    builder: (context, constraints) => FlexibleSpaceBar(
-                      title: AnimatedOpacity(
-                        duration: const Duration(milliseconds: 300),
-                        opacity:
-                            constraints.biggest.height > kToolbarHeight * 1.7
-                                ? 0
-                                : 1,
-                        child: Text(service.name,
-                            style: const TextStyle(fontSize: 16.0)),
-                      ),
-                      background: service.photo(cropToCircle: false),
-                    ),
-                  ),
-                ),
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate(
-                      [
-                        ListTile(
-                          title: Text(
-                            service.name,
-                            style: Theme.of(context)
-                                .textTheme
-                                .headline5
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        if (service.studyYearRange != null)
-                          ListTile(
-                            title: const Text('السنوات الدراسية:'),
-                            subtitle: FutureBuilder<String>(
-                              future: () async {
-                                if (service.studyYearRange?.from ==
-                                    service.studyYearRange?.to)
-                                  return (await service.studyYearRange!.from
-                                              ?.get())
-                                          ?.data()?['Name'] as String? ??
-                                      'غير موجودة';
-
-                                final from =
-                                    (await service.studyYearRange!.from?.get())
-                                            ?.data()?['Name'] ??
-                                        'غير موجودة';
-                                final to =
-                                    (await service.studyYearRange!.to?.get())
-                                            ?.data()?['Name'] ??
-                                        'غير موجودة';
-
-                                return 'من $from الى $to';
-                              }(),
-                              builder: (context, data) {
-                                if (data.hasData) return Text(data.data!);
-                                return const LinearProgressIndicator();
-                              },
+                                Icon(Icons.share,
+                                    color: IconTheme.of(context).color),
+                              ],
                             ),
                           ),
-                        if (service.validity != null)
-                          ListTile(
-                            title: const Text('الصلاحية:'),
-                            subtitle: Builder(
-                              builder: (context) {
-                                final from =
-                                    DateFormat('yyyy/M/d', 'ar-EG').format(
-                                  service.validity!.start,
-                                );
-                                final to =
-                                    DateFormat('yyyy/M/d', 'ar-EG').format(
-                                  service.validity!.end,
-                                );
-
-                                return Text('من $from الى $to');
-                              },
-                            ),
-                          ),
-                        ListTile(
-                          title: const Text('اظهار البند في السجل'),
-                          subtitle: Text(service.showInHistory ? 'نعم' : 'لا'),
+                          onPressed: () async {
+                            // navigator.currentState.pop();
+                            await Share.share(await shareService(service));
+                          },
+                          tooltip: 'مشاركة برابط',
                         ),
-                        if (!service.ref.path.startsWith('Deleted'))
-                          ElevatedButton.icon(
-                            icon: const Icon(Icons.map),
-                            onPressed: () => showMap(context, service),
-                            label: const Text('إظهار المخدومين على الخريطة'),
-                          ),
-                        if (!service.ref.path.startsWith('Deleted') &&
-                            (User.instance.manageUsers ||
-                                User.instance.manageAllowedUsers))
-                          ElevatedButton.icon(
-                            icon: const Icon(Icons.analytics_outlined),
-                            onPressed: () => Navigator.pushNamed(
-                              context,
-                              'ActivityAnalysis',
-                              arguments: [service],
-                            ),
-                            label: const Text('تحليل نشاط الخدام'),
-                          ),
-                        if (!service.ref.path.startsWith('Deleted'))
-                          ElevatedButton.icon(
-                            key: _analytics,
-                            icon: const Icon(Icons.analytics_outlined),
-                            label: const Text('احصائيات الحضور'),
-                            onPressed: () => _showAnalytics(context, service),
-                          ),
-                        const Divider(thickness: 1),
-                        EditHistoryProperty(
-                          'أخر تحديث للبيانات:',
-                          service.lastEdit,
-                          service.ref.collection('EditHistory'),
-                          key: _editHistory,
-                        ),
-                        if (User.instance.manageUsers ||
-                            User.instance.manageAllowedUsers)
-                          _ServiceServants(service: service),
-                        Text(
-                          'المخدومين المشتركين بالخدمة:',
-                          style: Theme.of(context).textTheme.headline6,
-                        ),
-                        SearchFilters(
-                          Person,
-                          options: _listOptions,
-                          orderOptions: _orderOptions,
-                          textStyle: Theme.of(context).textTheme.bodyText2,
+                        PopupMenuButton(
+                          key: _moreOptions,
+                          onSelected: (dynamic _) =>
+                              sendNotification(context, service),
+                          itemBuilder: (context) {
+                            return [
+                              const PopupMenuItem(
+                                value: '',
+                                child: Text('ارسال إشعار للمستخدمين عن الخدمة'),
+                              ),
+                            ];
+                          },
                         ),
                       ],
+                expandedHeight: 250.0,
+                stretch: true,
+                pinned: true,
+                flexibleSpace: LayoutBuilder(
+                  builder: (context, constraints) => FlexibleSpaceBar(
+                    title: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 300),
+                      opacity: constraints.biggest.height > kToolbarHeight * 1.7
+                          ? 0
+                          : 1,
+                      child: Text(service.name,
+                          style: const TextStyle(fontSize: 16.0)),
                     ),
+                    background: PhotoObjectWidget(service, circleCrop: false),
                   ),
                 ),
-              ],
-              body: SafeArea(
-                child: service.ref.path.startsWith('Deleted')
-                    ? const Text('يجب استعادة الخدمة لرؤية المخدومين بداخله')
-                    : DataObjectList<Person>(
-                        options: _listOptions, disposeController: true),
               ),
-            ),
-            bottomNavigationBar: BottomAppBar(
-              color: Theme.of(context).colorScheme.primary,
-              shape: const CircularNotchedRectangle(),
-              child: StreamBuilder<List>(
-                stream: _listOptions.objectsData,
-                builder: (context, snapshot) {
-                  return Text(
-                    (snapshot.data?.length ?? 0).toString() + ' مخدوم',
-                    textAlign: TextAlign.center,
-                    strutStyle:
-                        StrutStyle(height: IconTheme.of(context).size! / 7.5),
-                    style: Theme.of(context).primaryTextTheme.bodyText1,
-                  );
-                },
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate(
+                    [
+                      ListTile(
+                        title: Text(
+                          service.name,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headline5
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      if (service.studyYearRange != null)
+                        ListTile(
+                          title: const Text('السنوات الدراسية:'),
+                          subtitle: FutureBuilder<String>(
+                            future: () async {
+                              if (service.studyYearRange?.from ==
+                                  service.studyYearRange?.to)
+                                return (await service.studyYearRange!.from
+                                            ?.get())
+                                        ?.data()?['Name'] as String? ??
+                                    'غير موجودة';
+
+                              final from =
+                                  (await service.studyYearRange!.from?.get())
+                                          ?.data()?['Name'] ??
+                                      'غير موجودة';
+                              final to =
+                                  (await service.studyYearRange!.to?.get())
+                                          ?.data()?['Name'] ??
+                                      'غير موجودة';
+
+                              return 'من $from الى $to';
+                            }(),
+                            builder: (context, data) {
+                              if (data.hasData) return Text(data.data!);
+                              return const LinearProgressIndicator();
+                            },
+                          ),
+                        ),
+                      if (service.validity != null)
+                        ListTile(
+                          title: const Text('الصلاحية:'),
+                          subtitle: Builder(
+                            builder: (context) {
+                              final from =
+                                  DateFormat('yyyy/M/d', 'ar-EG').format(
+                                service.validity!.start,
+                              );
+                              final to = DateFormat('yyyy/M/d', 'ar-EG').format(
+                                service.validity!.end,
+                              );
+
+                              return Text('من $from الى $to');
+                            },
+                          ),
+                        ),
+                      ListTile(
+                        title: const Text('اظهار البند في السجل'),
+                        subtitle: Text(service.showInHistory ? 'نعم' : 'لا'),
+                      ),
+                      if (!service.ref.path.startsWith('Deleted'))
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.map),
+                          onPressed: () => showMap(context, service),
+                          label: const Text('إظهار المخدومين على الخريطة'),
+                        ),
+                      if (!service.ref.path.startsWith('Deleted') &&
+                          (MHAuthRepository
+                                  .I.currentUser!.permissions.manageUsers ||
+                              MHAuthRepository.I.currentUser!.permissions
+                                  .manageAllowedUsers))
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.analytics_outlined),
+                          onPressed: () => Navigator.pushNamed(
+                            context,
+                            'ActivityAnalysis',
+                            arguments: [service],
+                          ),
+                          label: const Text('تحليل نشاط الخدام'),
+                        ),
+                      if (!service.ref.path.startsWith('Deleted'))
+                        ElevatedButton.icon(
+                          key: _analytics,
+                          icon: const Icon(Icons.analytics_outlined),
+                          label: const Text('احصائيات الحضور'),
+                          onPressed: () => _showAnalytics(context, service),
+                        ),
+                      const Divider(thickness: 1),
+                      EditHistoryProperty(
+                        'أخر تحديث للبيانات:',
+                        service.lastEdit,
+                        service.ref.collection('EditHistory'),
+                        key: _editHistory,
+                      ),
+                      if (MHAuthRepository
+                              .I.currentUser!.permissions.manageUsers ||
+                          MHAuthRepository
+                              .I.currentUser!.permissions.manageAllowedUsers)
+                        _ServiceServants(service: service),
+                      Text(
+                        'المخدومين المشتركين بالخدمة:',
+                        style: Theme.of(context).textTheme.headline6,
+                      ),
+                      SearchFilters(
+                        Person,
+                        options: _listOptions,
+                        orderOptions: _orderOptions,
+                        textStyle: Theme.of(context).textTheme.bodyText2,
+                      ),
+                    ],
+                  ),
+                ),
               ),
+            ],
+            body: SafeArea(
+              child: service.ref.path.startsWith('Deleted')
+                  ? const Text('يجب استعادة الخدمة لرؤية المخدومين بداخله')
+                  : DataObjectListView<void, Person>(
+                      onTap: personTap,
+                      controller: _listOptions,
+                      autoDisposeController: true,
+                    ),
             ),
-            floatingActionButtonLocation:
-                FloatingActionButtonLocation.endDocked,
-            floatingActionButton:
-                permission! && !service.ref.path.startsWith('Deleted')
-                    ? FloatingActionButton(
-                        key: _add,
-                        onPressed: () => navigator.currentState!.pushNamed(
-                            'Data/EditPerson',
-                            arguments: widget.service.ref),
-                        child: const Icon(Icons.person_add),
-                      )
-                    : null,
-          );
-        },
-      ),
+          ),
+          bottomNavigationBar: BottomAppBar(
+            color: Theme.of(context).colorScheme.primary,
+            shape: const CircularNotchedRectangle(),
+            child: StreamBuilder<List>(
+              stream: _listOptions.objectsStream,
+              builder: (context, snapshot) {
+                return Text(
+                  (snapshot.data?.length ?? 0).toString() + ' مخدوم',
+                  textAlign: TextAlign.center,
+                  strutStyle:
+                      StrutStyle(height: IconTheme.of(context).size! / 7.5),
+                  style: Theme.of(context).primaryTextTheme.bodyText1,
+                );
+              },
+            ),
+          ),
+          floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+          floatingActionButton:
+              MHAuthRepository.I.currentUser!.permissions.write &&
+                      !service.ref.path.startsWith('Deleted')
+                  ? FloatingActionButton(
+                      key: _add,
+                      onPressed: () => navigator.currentState!.pushNamed(
+                          'Data/EditPerson',
+                          arguments: widget.service.ref),
+                      child: const Icon(Icons.person_add),
+                    )
+                  : null,
+        );
+      },
     );
   }
 
@@ -504,17 +499,19 @@ class _ServiceServants extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<User>>(
-      stream: User.instance.stream
-          .switchMap((u) => u.manageUsers
-              ? FirebaseFirestore.instance
-                  .collection('UsersData')
-                  .where('AdminServices', arrayContains: service.ref)
-                  .snapshots()
-              : FirebaseFirestore.instance
-                  .collection('UsersData')
-                  .where('AllowedUsers', arrayContains: User.instance.ref)
-                  .where('AdminServices', arrayContains: service.ref)
-                  .snapshots())
+      stream: MHAuthRepository.I.userStream
+          .switchMap(
+            (u) => u!.permissions.manageUsers
+                ? GetIt.I<DatabaseRepository>()
+                    .collection('UsersData')
+                    .where('AdminServices', arrayContains: service.ref)
+                    .snapshots()
+                : GetIt.I<DatabaseRepository>()
+                    .collection('UsersData')
+                    .where('AllowedUsers', arrayContains: u.ref)
+                    .where('AdminServices', arrayContains: service.ref)
+                    .snapshots(),
+          )
           .map((s) => s.docs.map(User.fromDoc).toList()),
       builder: (context, usersSnashot) {
         if (!usersSnashot.hasData) return const LinearProgressIndicator();
@@ -554,7 +551,10 @@ class _ServiceServants extends StatelessWidget {
                       );
                     }
                     return IgnorePointer(
-                      child: users[i].photo(removeHero: true),
+                      child: PhotoObjectWidget(
+                        users[i],
+                        heroTag: Object(),
+                      ),
                     );
                   },
                 )
@@ -574,7 +574,7 @@ class _ServiceServants extends StatelessWidget {
                             child: IgnorePointer(
                               child: DataObjectWidget(
                                 users[i],
-                                showSubTitle: false,
+                                showSubtitle: false,
                                 wrapInCard: false,
                               ),
                             ),

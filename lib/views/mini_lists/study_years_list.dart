@@ -1,8 +1,8 @@
 import 'dart:async';
 
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
-import 'package:meetinghelper/models/mini_models.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
+import 'package:meetinghelper/models/mini_models.dart.bak';
 
 class StudyYearsEditList extends StatefulWidget {
   final Future<JsonQuery> list;

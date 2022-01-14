@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/models/history/history_record.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
@@ -112,7 +112,7 @@ class _HistoryState extends State<History> {
                     ),
                   );
                   if (result == null) return;
-                  list.add(FirebaseFirestore.instance
+                  list.add(GetIt.I<DatabaseRepository>()
                       .collection((widget.iServantsHistory ? 'Servants' : '') +
                           'History')
                       .orderBy('Day', descending: true)
@@ -205,14 +205,14 @@ class _HistoryState extends State<History> {
     });
 
     _listController = widget.iServantsHistory
-        ? DataObjectListController<ServantsHistoryDay>(
+        ? ListController<ServantsHistoryDay>(
             tap: historyTap,
             itemsStream: list
                 .switchMap(
                   (q) =>
                       q ??
-                      FirebaseFirestore.instance
-                          .collection('ServantsHistory')
+                      GetIt.I<DatabaseRepository>()
+                      GetIt.I<DatabaseRepository>()istory')
                           .orderBy('Day', descending: true)
                           .snapshots(),
                 )
@@ -220,14 +220,14 @@ class _HistoryState extends State<History> {
                   (s) => s.docs.map(ServantsHistoryDay.fromQueryDoc).toList(),
                 ),
           )
-        : DataObjectListController<HistoryDay>(
+        : ListController<HistoryDay>(
             tap: historyTap,
             itemsStream: list
                 .switchMap(
                   (q) =>
                       q ??
-                      FirebaseFirestore.instance
-                          .collection('History')
+                      GetIt.I<DatabaseRepository>()
+                      GetIt.I<DatabaseRepository>()
                           .orderBy('Day', descending: true)
                           .snapshots(),
                 )

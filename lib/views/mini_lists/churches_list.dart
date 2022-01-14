@@ -1,11 +1,10 @@
 import 'dart:async';
 
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
-import 'package:meetinghelper/models/mini_models.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 
 class ChurchesEditList extends StatefulWidget {
-  final Future<JsonQuery> list;
+  final Stream<List<Church>> list;
 
   final Function(Church)? tap;
   const ChurchesEditList({Key? key, required this.list, this.tap})
@@ -16,7 +15,7 @@ class ChurchesEditList extends StatefulWidget {
 }
 
 class ChurchesList extends StatefulWidget {
-  final Future<Stream<JsonQuery>> list;
+  final Stream<List<Church>> list;
 
   final Function(List<Church>?)? finished;
   final Stream<Church>? original;
@@ -28,91 +27,14 @@ class ChurchesList extends StatefulWidget {
   _ChurchesListState createState() => _ChurchesListState();
 }
 
-class InnerListState extends State<_InnerChurchsList> {
-  String filter = '';
-  @override
-  Widget build(BuildContext context) {
-    return Column(children: <Widget>[
-      TextField(
-        decoration: const InputDecoration(hintText: 'بحث...'),
-        onChanged: (text) {
-          setState(() {
-            filter = text;
-          });
-        },
-      ),
-      Expanded(
-        child: RefreshIndicator(
-          onRefresh: () async {
-            setState(() {});
-          },
-          child: StreamBuilder<JsonQuery>(
-            stream: widget.data,
-            builder: (context, churchs) {
-              if (!churchs.hasData) return const CircularProgressIndicator();
-              return ListView.builder(
-                itemCount: churchs.data!.docs.length,
-                itemBuilder: (context, i) {
-                  final Church current =
-                      Church.fromQueryDoc(churchs.data!.docs[i]);
-                  return current.name.contains(filter)
-                      ? Card(
-                          child: ListTile(
-                            onTap: () {
-                              widget.result
-                                      .map((f) => f.id)
-                                      .contains(current.id)
-                                  ? widget.result
-                                      .removeWhere((x) => x.id == current.id)
-                                  : widget.result.add(current);
-                              setState(() {});
-                            },
-                            title: Text(current.name),
-                            leading: Checkbox(
-                              value: widget.result
-                                  .map((f) => f.id)
-                                  .contains(current.id),
-                              onChanged: (x) {
-                                !x!
-                                    ? widget.result
-                                        .removeWhere((x) => x.id == current.id)
-                                    : widget.result.add(current);
-                                setState(() {});
-                              },
-                            ),
-                          ),
-                        )
-                      : Container();
-                },
-              );
-            },
-          ),
-        ),
-      ),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: <Widget>[
-          TextButton(
-            onPressed: () => widget.finished!(widget.result),
-            child: const Text('تم'),
-          ),
-          TextButton(
-            onPressed: () => widget.finished!(null),
-            child: const Text('إلغاء الأمر'),
-          ),
-        ],
-      )
-    ]);
-  }
-}
-
 class _ChurchesEditListState extends State<ChurchesEditList> {
   String filter = '';
+
   @override
   Widget build(BuildContext c) {
-    return FutureBuilder<JsonQuery>(
-      future: widget.list,
-      builder: (con, data) {
+    return StreamBuilder<List<Church>>(
+      stream: widget.list,
+      builder: (context, data) {
         if (data.hasData) {
           return Column(
             children: <Widget>[
@@ -125,27 +47,20 @@ class _ChurchesEditListState extends State<ChurchesEditList> {
                 },
               ),
               Expanded(
-                child: RefreshIndicator(
-                  onRefresh: () {
-                    setState(() {});
-                    return widget.list.then((value) => value);
+                child: ListView.builder(
+                  itemCount: data.data!.length,
+                  itemBuilder: (context, i) {
+                    final Church current = data.data![i];
+                    return current.name.contains(filter)
+                        ? Card(
+                            child: ListTile(
+                              onTap: () => widget.tap!(current),
+                              title: Text(current.name),
+                              subtitle: Text(current.address!),
+                            ),
+                          )
+                        : Container();
                   },
-                  child: ListView.builder(
-                    itemCount: data.data!.docs.length,
-                    itemBuilder: (context, i) {
-                      final Church current =
-                          Church.fromQueryDoc(data.data!.docs[i]);
-                      return current.name.contains(filter)
-                          ? Card(
-                              child: ListTile(
-                                onTap: () => widget.tap!(current),
-                                title: Text(current.name),
-                                subtitle: Text(current.address!),
-                              ),
-                            )
-                          : Container();
-                    },
-                  ),
                 ),
               ),
             ],
@@ -160,26 +75,87 @@ class _ChurchesEditListState extends State<ChurchesEditList> {
 
 class _ChurchesListState extends State<ChurchesList> {
   List<Church>? result;
+  final String filter = '';
 
   @override
   Widget build(BuildContext c) {
-    return FutureBuilder<Stream<JsonQuery>>(
-      future: widget.list,
-      builder: (c, o) {
+    return StreamBuilder<List<Church>>(
+      stream: widget.list,
+      builder: (context, o) {
         if (o.hasData) {
-          return StreamBuilder<Church>(
-            stream: widget.original,
-            builder: (con, data) {
-              if (result == null && data.hasData) {
-                result = [data.data!];
-              } else if (data.hasData) {
-                result!.add(data.data!);
-              } else {
-                result = [];
-              }
-              return _InnerChurchsList(
-                  o.data, result ?? [], widget.list, widget.finished);
-            },
+          return Column(
+            children: <Widget>[
+              TextField(
+                decoration: const InputDecoration(hintText: 'بحث...'),
+                onChanged: (text) {
+                  setState(() {
+                    filter = text;
+                  });
+                },
+              ),
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    setState(() {});
+                  },
+                  child: StreamBuilder<JsonQuery>(
+                    stream: widget.data,
+                    builder: (context, churchs) {
+                      if (!churchs.hasData)
+                        return const CircularProgressIndicator();
+                      return ListView.builder(
+                        itemCount: churchs.data!.docs.length,
+                        itemBuilder: (context, i) {
+                          final Church current =
+                              Church.fromDoc(churchs.data!.docs[i]);
+                          return current.name.contains(filter)
+                              ? Card(
+                                  child: ListTile(
+                                    onTap: () {
+                                      widget.result
+                                              .map((f) => f.id)
+                                              .contains(current.id)
+                                          ? widget.result.removeWhere(
+                                              (x) => x.id == current.id)
+                                          : widget.result.add(current);
+                                      setState(() {});
+                                    },
+                                    title: Text(current.name),
+                                    leading: Checkbox(
+                                      value: widget.result
+                                          .map((f) => f.id)
+                                          .contains(current.id),
+                                      onChanged: (x) {
+                                        !x!
+                                            ? widget.result.removeWhere(
+                                                (x) => x.id == current.id)
+                                            : widget.result.add(current);
+                                        setState(() {});
+                                      },
+                                    ),
+                                  ),
+                                )
+                              : Container();
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  TextButton(
+                    onPressed: () => widget.finished!(widget.result),
+                    child: const Text('تم'),
+                  ),
+                  TextButton(
+                    onPressed: () => widget.finished!(null),
+                    child: const Text('إلغاء الأمر'),
+                  ),
+                ],
+              )
+            ],
           );
         } else {
           return Container();
@@ -187,16 +163,4 @@ class _ChurchesListState extends State<ChurchesList> {
       },
     );
   }
-}
-
-class _InnerChurchsList extends StatefulWidget {
-  final Stream<JsonQuery>? data;
-  final List<Church> result;
-  final Function(List<Church>?)? finished;
-  final Future<Stream<JsonQuery>>? list;
-
-  const _InnerChurchsList(this.data, this.result, this.list, this.finished);
-
-  @override
-  State<StatefulWidget> createState() => InnerListState();
 }

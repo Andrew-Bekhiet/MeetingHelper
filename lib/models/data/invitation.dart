@@ -1,11 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/user.dart';
-import 'package:meetinghelper/models/super_classes.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 
 class Invitation extends DataObject {
-  Invitation({
+  const Invitation({
     required JsonRef ref,
     required String title,
     this.link,
@@ -14,7 +13,7 @@ class Invitation extends DataObject {
     this.permissions,
     required this.generatedOn,
     required this.expiryDate,
-  }) : super(ref, title, null);
+  }) : super(ref, title);
 
   static Invitation? fromDoc(JsonDoc doc) =>
       doc.exists ? Invitation.createFromData(doc.data()!, doc.reference) : null;
@@ -27,61 +26,55 @@ class Invitation extends DataObject {
         usedBy = data['UsedBy'],
         generatedBy = data['GeneratedBy'],
         permissions = data['Permissions'],
-        generatedOn = data['GeneratedOn'],
-        expiryDate = data['ExpiryDate'],
-        super.createFromData(data, ref) {
-    name = data['Title'];
-  }
+        generatedOn = (data['GeneratedOn'] as Timestamp?)?.toDate(),
+        expiryDate = (data['ExpiryDate'] as Timestamp).toDate(),
+        super(ref, data['Title']);
 
   String get title => name;
 
   final String? link;
-  String? usedBy;
-  String generatedBy;
-  Json? permissions;
-  Timestamp? generatedOn;
-  late Timestamp expiryDate;
+  final String? usedBy;
+  final String generatedBy;
+  final Json? permissions;
+  final DateTime? generatedOn;
+  final DateTime expiryDate;
 
   bool get used => usedBy != null;
 
   @override
-  Json formattedProps() {
-    throw UnimplementedError();
-  }
-
-  @override
-  Json getMap() {
+  Json toJson() {
     return {
       'Title': title,
       'UsedBy': usedBy,
       'GeneratedBy': generatedBy,
       'Permissions': permissions?.map(MapEntry.new) ?? {},
-      'GeneratedOn': generatedOn,
-      'ExpiryDate': expiryDate,
+      'GeneratedOn': generatedOn?.toTimestamp(),
+      'ExpiryDate': expiryDate.toTimestamp(),
     };
   }
 
   @override
   Future<String> getSecondLine() async {
-    if (used)
-      return 'تم الاستخدام بواسطة: ' + (await User.onlyName(usedBy) ?? '');
-    return 'ينتهي في ' +
-        DateFormat('yyyy/M/d', 'ar-EG').format(expiryDate.toDate());
+    if (used && usedBy != null)
+      return 'تم الاستخدام بواسطة: ' +
+          ((await MHAuthRepository.userNameFromUID(usedBy!))?.name ?? '');
+    return 'ينتهي في ' + DateFormat('yyyy/M/d', 'ar-EG').format(expiryDate);
   }
 
   Invitation.empty()
       : link = '',
-        generatedBy = User.instance.uid!,
-        super(FirebaseFirestore.instance.collection('Invitations').doc('null'),
-            '', null) {
-    name = '';
-    expiryDate = Timestamp.fromDate(
-        DateTime.now().add(const Duration(days: 1, minutes: 10)));
-    permissions = {};
-  }
+        usedBy = null,
+        generatedOn = null,
+        generatedBy = MHAuthRepository.I.currentUser!.uid,
+        permissions = {},
+        expiryDate = DateTime.now().add(const Duration(days: 1, minutes: 10)),
+        super(
+            GetIt.I<DatabaseRepository>().collection('Invitations').doc('null'),
+            '');
 
+  //TODO: copyWith
   @override
   Invitation copyWith() {
-    return Invitation.createFromData(getMap(), ref);
+    return Invitation.createFromData(toJson(), ref);
   }
 }

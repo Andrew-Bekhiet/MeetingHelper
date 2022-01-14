@@ -15,7 +15,7 @@ class UsersPage extends StatefulWidget {
 
 class _UsersPageState extends State<UsersPage> {
   bool _showSearch = false;
-  late final DataObjectListController<User> _listOptions;
+  late final ListController<User> _listOptions;
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +76,7 @@ class _UsersPageState extends State<UsersPage> {
   void initState() {
     super.initState();
 
-    _listOptions = DataObjectListController<User>(
+    _listOptions = ListController<User>(
       itemsStream: User.getAllForUserForEdit()
           .map((users) => users.where((u) => u.uid != null).toList()),
       tap: userTap,

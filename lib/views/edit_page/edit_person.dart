@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_storage/firebase_storage.dart' show FirebaseStorage;
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -17,7 +18,6 @@ import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:meetinghelper/views/form_widgets/tapable_form_field.dart';
 import 'package:meetinghelper/views/list.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -26,7 +26,7 @@ import 'package:rxdart/rxdart.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tinycolor2/tinycolor2.dart';
 
-import '../../models/mini_models.dart';
+import '../../models/mini_models.dart.bak';
 import '../../views/mini_lists/colors_list.dart';
 import '../services_list.dart';
 
@@ -59,8 +59,7 @@ class _EditPersonState extends State<EditPerson> {
           return <Widget>[
             SliverAppBar(
               actions: <Widget>[
-                if (person.id != 'null' &&
-                    (person is! User || (person as User).uid == null))
+                if (person.id != 'null' && (person is! User))
                   IconButton(
                     icon: const Icon(Icons.delete),
                     onPressed: _delete,
@@ -85,10 +84,10 @@ class _EditPersonState extends State<EditPerson> {
                   tooltip: 'اختيار صورة',
                 )
               ],
-              backgroundColor: person.color != Colors.transparent
+              backgroundColor: person.color != null
                   ? (Theme.of(context).brightness == Brightness.light
-                      ? TinyColor(person.color).lighten().color
-                      : TinyColor(person.color).darken().color)
+                      ? person.color!.lighten()
+                      : person.color!.darken())
                   : null,
               //title: Text(widget.me.name),
               expandedHeight: 250.0,
@@ -943,7 +942,7 @@ class _EditPersonState extends State<EditPerson> {
   @override
   void initState() {
     super.initState();
-    person = (widget.person ?? Person()).copyWith();
+    person = (widget.person ?? Person.empty()).copyWith();
   }
 
   void _selectColor() async {
@@ -1023,7 +1022,8 @@ class _EditPersonState extends State<EditPerson> {
         final update = person.id != 'null' || widget.person is User;
 
         if (!update) {
-          person.ref = FirebaseFirestore.instance.collection('Persons').doc();
+          person.ref =
+              GetIt.I<DatabaseRepository>().collection('Persons').doc();
         }
 
         if (widget.person is! User) {
@@ -1051,7 +1051,7 @@ class _EditPersonState extends State<EditPerson> {
         } else if (widget.person is! User &&
             (person.classId != null ||
                 person.classId != widget.person?.classId)) {
-          final class$ = Class.fromDoc(await person.classId!.get())!;
+          final class$ = Class.fromDoc(await person.classId!.get());
 
           person
             ..gender = class$.gender ?? person.gender
@@ -1234,11 +1234,12 @@ class _EditPersonState extends State<EditPerson> {
                     if (!snapshot.hasData)
                       return const Center(child: CircularProgressIndicator());
 
-                    return Provider<DataObjectListController<Service>>(
-                      create: (_) => DataObjectListController<Service>(
+                    return Provider<ListController<Service>>(
+                      create: (_) => ListController<Service>(
                         selectionMode: true,
-                        itemsStream: FirebaseFirestore.instance
-                            .collection('Services')
+                        itemsStream: GetIt.I<DatabaseRepository>()
+                            .collectiGetIt
+                            .I<DatabaseRepository>()
                             .orderBy('Name')
                             .snapshots()
                             .map(
@@ -1254,7 +1255,7 @@ class _EditPersonState extends State<EditPerson> {
                             TextButton(
                               onPressed: () {
                                 navigator.currentState!.pop(context
-                                    .read<DataObjectListController<Service>>()
+                                    .read<ListController<Service>>()
                                     .selectedLatest
                                     ?.values
                                     .map((s) => s.ref)
@@ -1267,7 +1268,7 @@ class _EditPersonState extends State<EditPerson> {
                             title: SearchField(
                                 showSuffix: false,
                                 searchStream: context
-                                    .read<DataObjectListController<Service>>()
+                                    .read<ListController<Service>>()
                                     .searchQuery,
                                 textStyle:
                                     Theme.of(context).textTheme.bodyText2),

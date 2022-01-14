@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:async/async.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' show FieldValue;
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/service.dart';
@@ -13,7 +15,6 @@ import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 import 'package:meetinghelper/views/list.dart';
 import 'package:meetinghelper/views/lists/users_list.dart';
 import 'package:meetinghelper/views/services_list.dart';
@@ -74,7 +75,11 @@ class _EditUserState extends State<EditUser> {
                       ),
                     ),
                   ),
-                  background: user.getPhoto(false, false),
+                  background: UserPhotoWidget(
+                    user,
+                    circleCrop: false,
+                    showActivityStatus: false,
+                  ),
                 ),
               ),
             ),
@@ -106,17 +111,18 @@ class _EditUserState extends State<EditUser> {
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: InkWell(
-                    onTap: () async => user.lastTanawol = await _selectDate(
+                    onTap: () async =>
+                        user.permissions.lastTanawol = await _selectDate(
                       'تاريخ أخر تناول',
-                      user.lastTanawolDate ?? DateTime.now(),
+                      user.permissions.lastTanawolDate ?? DateTime.now(),
                     ),
                     child: InputDecorator(
                       decoration: const InputDecoration(
                         labelText: 'تاريخ أخر تناول',
                       ),
-                      child: user.lastTanawolDate != null
+                      child: user.permissions.lastTanawolDate != null
                           ? Text(DateFormat('yyyy/M/d').format(
-                              user.lastTanawolDate!,
+                              user.permissions.lastTanawolDate!,
                             ))
                           : const Text('لا يمكن التحديد'),
                     ),
@@ -125,17 +131,18 @@ class _EditUserState extends State<EditUser> {
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: InkWell(
-                    onTap: () async => user.lastConfession = await _selectDate(
+                    onTap: () async =>
+                        user.permissions.lastConfession = await _selectDate(
                       'تاريخ أخر اعتراف',
-                      user.lastConfessionDate ?? DateTime.now(),
+                      user.permissions.lastConfessionDate ?? DateTime.now(),
                     ),
                     child: InputDecorator(
                       decoration: const InputDecoration(
                         labelText: 'تاريخ أخر اعتراف',
                       ),
-                      child: user.lastConfessionDate != null
+                      child: user.permissions.lastConfessionDate != null
                           ? Text(DateFormat('yyyy/M/d').format(
-                              user.lastConfessionDate!,
+                              user.permissions.lastConfessionDate!,
                             ))
                           : const Text('لا يمكن التحديد'),
                     ),
@@ -351,23 +358,23 @@ class _EditUserState extends State<EditUser> {
               return StreamBuilder<List<User>>(
                 stream: childrenUsers != null
                     ? Stream.value(childrenUsers!)
-                    : FirebaseFirestore.instance
+                    : GetIt.I<DatabaseRepository>()
                         .collection('UsersData')
                         .where('AllowedUsers', arrayContains: user.uid)
                         .snapshots()
-                        .map((value) => value.docs.map(User.fromDoc).toList()),
+                        .map(
+                          (value) => value.docs.map(User.fromDoc).toList(),
+                        ),
                 builder: (c, users) {
                   if (!users.hasData)
                     return const Center(child: CircularProgressIndicator());
                   return MultiProvider(
                     providers: [
-                      Provider<DataObjectListController<User>>(
-                        create: (_) => DataObjectListController<User>(
+                      Provider<ListController<User>>(
+                        create: (_) => ListController<User>(
                           selectionMode: true,
-                          itemsStream: User.getAllForUser(),
-                          selected: {
-                            for (final item in users.data!) item.docId: item
-                          },
+                          itemsStream: MHAuthRepository.getAllUsers(),
+                          selected: {for (final item in users.data!) item},
                         ),
                         dispose: (context, c) => c.dispose(),
                       )
@@ -377,7 +384,7 @@ class _EditUserState extends State<EditUser> {
                         TextButton(
                           onPressed: () {
                             navigator.currentState!.pop(context
-                                .read<DataObjectListController<User>>()
+                                .read<ListController<User>>()
                                 .selectedLatest
                                 ?.values
                                 .toList());
@@ -389,7 +396,7 @@ class _EditUserState extends State<EditUser> {
                         title: SearchField(
                             showSuffix: false,
                             searchStream: context
-                                .read<DataObjectListController<User>>()
+                                .read<ListController<User>>()
                                 .searchQuery,
                             textStyle: Theme.of(context).textTheme.bodyText2),
                       ),
@@ -425,10 +432,10 @@ class _EditUserState extends State<EditUser> {
 
                 return MultiProvider(
                   providers: [
-                    Provider<DataObjectListController<Service>>(
-                      create: (_) => DataObjectListController<Service>(
+                    Provider<ListController<Service>>(
+                      create: (_) => ListController<Service>(
                         selectionMode: true,
-                        itemsStream: FirebaseFirestore.instance
+                        itemsStream: GetIt.I<DatabaseRepository>()
                             .collection('Services')
                             .orderBy('Name')
                             .snapshots()
@@ -447,7 +454,7 @@ class _EditUserState extends State<EditUser> {
                         TextButton(
                           onPressed: () {
                             navigator.currentState!.pop(context
-                                .read<DataObjectListController<Service>>()
+                                .read<ListController<Service>>()
                                 .selectedLatest
                                 ?.values
                                 .map((s) => s.ref)
@@ -460,7 +467,7 @@ class _EditUserState extends State<EditUser> {
                         title: SearchField(
                             showSuffix: false,
                             searchStream: context
-                                .read<DataObjectListController<Service>>()
+                                .read<ListController<Service>>()
                                 .searchQuery,
                             textStyle: Theme.of(context).textTheme.bodyText2),
                       ),
@@ -676,8 +683,8 @@ class _EditUserState extends State<EditUser> {
               .call({'affectedUser': user.uid, 'permissions': update});
         }
         if (childrenUsers != null) {
-          final batch = FirebaseFirestore.instance.batch();
-          final oldChildren = (await FirebaseFirestore.instance
+          final batch = GetIt.I<DatabaseRepository>().batch();
+          final oldChildren = (await GetIt.I<DatabaseRepository>()
                   .collection('UsersData')
                   .where('AllowedUsers', arrayContains: user.uid)
                   .get())
@@ -704,24 +711,15 @@ class _EditUserState extends State<EditUser> {
         if (old.classId != user.classId &&
             !const DeepCollectionEquality.unordered()
                 .equals(user.adminServices, old.adminServices)) {
-          await FirebaseFirestore.instance
-              .collection('UsersData')
-              .doc(user.docId)
-              .update({
+          await user.ref.update({
             'ClassId': user.classId,
             'AdminServices': user.adminServices,
           });
         } else if (old.classId != user.classId) {
-          await FirebaseFirestore.instance
-              .collection('UsersData')
-              .doc(user.docId)
-              .update({'ClassId': user.classId});
+          await user.ref.update({'ClassId': user.classId});
         } else if (!const DeepCollectionEquality.unordered()
             .equals(user.adminServices, old.adminServices)) {
-          await FirebaseFirestore.instance
-              .collection('UsersData')
-              .doc(user.docId)
-              .update({'AdminServices': user.adminServices});
+          await user.ref.update({'AdminServices': user.adminServices});
         }
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
         navigator.currentState!.pop(user);
@@ -810,18 +808,19 @@ class _EditUserState extends State<EditUser> {
                 },
               ),
             ),
-            floatingActionButton: User.instance.write
-                ? FloatingActionButton(
-                    onPressed: () async {
-                      navigator.currentState!.pop();
-                      user.classId = await navigator.currentState!
-                              .pushNamed('Data/EditClass') as JsonRef? ??
-                          user.classId;
-                      setState(() {});
-                    },
-                    child: const Icon(Icons.group_add),
-                  )
-                : null,
+            floatingActionButton:
+                MHAuthRepository.I.currentUser!.permissions.write
+                    ? FloatingActionButton(
+                        onPressed: () async {
+                          navigator.currentState!.pop();
+                          user.classId = await navigator.currentState!
+                                  .pushNamed('Data/EditClass') as JsonRef? ??
+                              user.classId;
+                          setState(() {});
+                        },
+                        child: const Icon(Icons.group_add),
+                      )
+                    : null,
           ),
         );
       },

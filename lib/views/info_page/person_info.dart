@@ -462,7 +462,7 @@ class _PersonInfoState extends State<PersonInfo> {
                 ),
                 EditHistoryProperty(
                   'أخر تحديث للبيانات:',
-                  person.lastEdit?.uid,
+                  person.lastEdit,
                   person.ref.collection('EditHistory'),
                 ),
                 const SizedBox(height: 50),

@@ -1,11 +1,9 @@
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
-import 'package:meetinghelper/models/data_object_widget.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
-import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:tinycolor2/tinycolor2.dart';
@@ -13,11 +11,9 @@ import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import '../../models/data/user.dart';
 import '../../models/history/history_property.dart';
-import '../../models/list_controllers.dart';
 import '../../models/search/search_filters.dart';
 import '../../utils/helpers.dart';
 import '../data_map.dart';
-import '../list.dart';
 
 class ClassInfo extends StatefulWidget {
   final Class class$;
@@ -32,7 +28,7 @@ class _ClassInfoState extends State<ClassInfo> {
   final BehaviorSubject<OrderOptions> _orderOptions =
       BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
-  late final DataObjectListController<Person> _listOptions;
+  late final ListController<void, Person> _listOptions;
 
   final _edit = GlobalKey();
   final _share = GlobalKey();
@@ -50,28 +46,29 @@ class _ClassInfoState extends State<ClassInfo> {
   @override
   void initState() {
     super.initState();
-    _listOptions = DataObjectListController<Person>(
-      tap: personTap,
-      itemsStream: _orderOptions.switchMap(
-        (order) => widget.class$.getMembersLive(
-            orderBy: order.orderBy ?? 'Name', descending: !order.asc!),
+    _listOptions = ListController<void, Person>(
+      objectsPaginatableStream: PaginatableStream.loadAll(
+        stream: _orderOptions.switchMap(
+          (order) => widget.class$
+              .getMembersLive(orderBy: order.orderBy, descending: !order.asc),
+        ),
       ),
     );
     WidgetsBinding.instance!.addPostFrameCallback((_) {
       if (([
-        if (User.instance.write) 'Edit',
+        if (MHAuthRepository.I.currentUser!.permissions.write) 'Edit',
         'Share',
         'MoreOptions',
         'EditHistory',
         'Class.Analytics',
-        if (User.instance.write) 'Add'
+        if (MHAuthRepository.I.currentUser!.permissions.write) 'Add'
       ]..removeWhere(HivePersistenceProvider.instance.hasCompletedStep))
           .isNotEmpty)
         TutorialCoachMark(
           context,
           focusAnimationDuration: const Duration(milliseconds: 200),
           targets: [
-            if (User.instance.write)
+            if (MHAuthRepository.I.currentUser!.permissions.write)
               TargetFocus(
                 enableOverlayTab: true,
                 contents: [
@@ -151,7 +148,7 @@ class _ClassInfoState extends State<ClassInfo> {
               keyTarget: _analytics,
               color: Theme.of(context).colorScheme.secondary,
             ),
-            if (User.instance.write)
+            if (MHAuthRepository.I.currentUser!.permissions.write)
               TargetFocus(
                 enableOverlayTab: true,
                 contents: [
@@ -184,256 +181,258 @@ class _ClassInfoState extends State<ClassInfo> {
 
   @override
   Widget build(BuildContext context) {
-    return Selector<User, bool?>(
-      selector: (_, user) => user.write,
-      builder: (context, permission, _) => StreamBuilder<Class?>(
-        initialData: widget.class$,
-        stream: widget.class$.ref.snapshots().map(Class.fromDoc),
-        builder: (context, data) {
-          final Class? class$ = data.data;
-          if (class$ == null)
-            return const Scaffold(
-              body: Center(
-                child: Text('تم حذف الفصل'),
-              ),
-            );
-          return Scaffold(
-            body: NestedScrollView(
-              headerSliverBuilder: (context, _) => <Widget>[
-                SliverAppBar(
-                  backgroundColor: class$.color != Colors.transparent
-                      ? (Theme.of(context).brightness == Brightness.light
-                          ? TinyColor(class$.color).lighten().color
-                          : TinyColor(class$.color).darken().color)
-                      : null,
-                  actions: class$.ref.path.startsWith('Deleted')
-                      ? <Widget>[
-                          if (permission!)
-                            IconButton(
-                              icon: const Icon(Icons.restore),
-                              tooltip: 'استعادة',
-                              onPressed: () {
-                                recoverDoc(context, class$.ref.path);
-                              },
-                            )
-                        ]
-                      : <Widget>[
-                          Selector<User, bool?>(
-                            selector: (_, user) => user.write,
-                            builder: (c, permission, data) => permission!
-                                ? IconButton(
-                                    key: _edit,
-                                    icon: Builder(
-                                      builder: (context) => Stack(
-                                        children: <Widget>[
-                                          const Positioned(
-                                            left: 1.0,
-                                            top: 2.0,
-                                            child: Icon(Icons.edit,
-                                                color: Colors.black54),
-                                          ),
-                                          Icon(Icons.edit,
-                                              color:
-                                                  IconTheme.of(context).color),
-                                        ],
-                                      ),
-                                    ),
-                                    onPressed: () async {
-                                      final dynamic result = await navigator
-                                          .currentState!
-                                          .pushNamed('Data/EditClass',
-                                              arguments: class$);
-                                      if (result is JsonRef) {
-                                        scaffoldMessenger.currentState!
-                                            .showSnackBar(
-                                          const SnackBar(
-                                            content: Text('تم الحفظ بنجاح'),
-                                          ),
-                                        );
-                                      } else if (result == 'deleted') {
-                                        scaffoldMessenger.currentState!
-                                            .hideCurrentSnackBar();
-                                        scaffoldMessenger.currentState!
-                                            .showSnackBar(
-                                          const SnackBar(
-                                            content: Text('تم الحذف بنجاح'),
-                                            duration: Duration(seconds: 2),
-                                          ),
-                                        );
-                                        navigator.currentState!.pop();
-                                      }
-                                    },
-                                    tooltip: 'تعديل',
-                                  )
-                                : Container(),
-                          ),
+    return StreamBuilder<Class?>(
+      initialData: widget.class$,
+      stream: MHAuthRepository.I.userStream
+          .distinct((o, n) => o?.permissions.write == n?.permissions.write)
+          .switchMap(
+            (value) => widget.class$.ref.snapshots().map(Class.fromDoc),
+          ),
+      builder: (context, data) {
+        final Class? class$ = data.data;
+
+        if (class$ == null)
+          return const Scaffold(
+            body: Center(
+              child: Text('تم حذف الفصل'),
+            ),
+          );
+
+        return Scaffold(
+          body: NestedScrollView(
+            headerSliverBuilder: (context, _) => <Widget>[
+              SliverAppBar(
+                backgroundColor: class$.color != Colors.transparent
+                    ? (Theme.of(context).brightness == Brightness.light
+                        ? class$.color?.lighten()
+                        : class$.color?.darken())
+                    : null,
+                actions: class$.ref.path.startsWith('Deleted')
+                    ? <Widget>[
+                        if (MHAuthRepository.I.currentUser!.permissions.write)
                           IconButton(
-                            key: _share,
+                            icon: const Icon(Icons.restore),
+                            tooltip: 'استعادة',
+                            onPressed: () {
+                              recoverDoc(context, class$.ref.path);
+                            },
+                          )
+                      ]
+                    : <Widget>[
+                        if (MHAuthRepository.I.currentUser!.permissions.write)
+                          IconButton(
+                            key: _edit,
                             icon: Builder(
                               builder: (context) => Stack(
                                 children: <Widget>[
                                   const Positioned(
                                     left: 1.0,
                                     top: 2.0,
-                                    child: Icon(Icons.share,
-                                        color: Colors.black54),
+                                    child:
+                                        Icon(Icons.edit, color: Colors.black54),
                                   ),
-                                  Icon(Icons.share,
+                                  Icon(Icons.edit,
                                       color: IconTheme.of(context).color),
                                 ],
                               ),
                             ),
                             onPressed: () async {
-                              // navigator.currentState.pop();
-                              await Share.share(await shareClass(class$));
+                              final dynamic result = await navigator
+                                  .currentState!
+                                  .pushNamed('Data/EditClass',
+                                      arguments: class$);
+                              if (result is JsonRef) {
+                                scaffoldMessenger.currentState!.showSnackBar(
+                                  const SnackBar(
+                                    content: Text('تم الحفظ بنجاح'),
+                                  ),
+                                );
+                              } else if (result == 'deleted') {
+                                scaffoldMessenger.currentState!
+                                    .hideCurrentSnackBar();
+                                scaffoldMessenger.currentState!.showSnackBar(
+                                  const SnackBar(
+                                    content: Text('تم الحذف بنجاح'),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                                navigator.currentState!.pop();
+                              }
                             },
-                            tooltip: 'مشاركة برابط',
+                            tooltip: 'تعديل',
                           ),
-                          PopupMenuButton(
-                            key: _moreOptions,
-                            onSelected: (dynamic _) =>
-                                sendNotification(context, class$),
-                            itemBuilder: (context) {
-                              return [
-                                const PopupMenuItem(
-                                  value: '',
+                        IconButton(
+                          key: _share,
+                          icon: Builder(
+                            builder: (context) => Stack(
+                              children: <Widget>[
+                                const Positioned(
+                                  left: 1.0,
+                                  top: 2.0,
                                   child:
-                                      Text('ارسال إشعار للمستخدمين عن الفصل'),
+                                      Icon(Icons.share, color: Colors.black54),
                                 ),
-                              ];
-                            },
-                          ),
-                        ],
-                  expandedHeight: 250.0,
-                  stretch: true,
-                  pinned: true,
-                  flexibleSpace: LayoutBuilder(
-                    builder: (context, constraints) => FlexibleSpaceBar(
-                      title: AnimatedOpacity(
-                        duration: const Duration(milliseconds: 300),
-                        opacity:
-                            constraints.biggest.height > kToolbarHeight * 1.7
-                                ? 0
-                                : 1,
-                        child: Text(class$.name,
-                            style: const TextStyle(fontSize: 16.0)),
-                      ),
-                      background: class$.photo(cropToCircle: false),
-                    ),
-                  ),
-                ),
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate(
-                      [
-                        ListTile(
-                          title: Text(
-                            class$.name,
-                            style: Theme.of(context)
-                                .textTheme
-                                .headline5
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        ListTile(
-                          title: const Text('السنة الدراسية:'),
-                          subtitle: FutureBuilder<String>(
-                              future: class$.getStudyYearName(),
-                              builder: (context, data) {
-                                if (data.hasData)
-                                  return Text(data.data! +
-                                      ' - ' +
-                                      class$.getGenderName());
-                                return const LinearProgressIndicator();
-                              }),
-                        ),
-                        if (!class$.ref.path.startsWith('Deleted'))
-                          ElevatedButton.icon(
-                            icon: const Icon(Icons.map),
-                            onPressed: () => showMap(context, class$),
-                            label: const Text('إظهار المخدومين على الخريطة'),
-                          ),
-                        if (!class$.ref.path.startsWith('Deleted') &&
-                            (User.instance.manageUsers ||
-                                User.instance.manageAllowedUsers))
-                          ElevatedButton.icon(
-                            icon: const Icon(Icons.analytics_outlined),
-                            onPressed: () => Navigator.pushNamed(
-                              context,
-                              'ActivityAnalysis',
-                              arguments: [class$],
+                                Icon(Icons.share,
+                                    color: IconTheme.of(context).color),
+                              ],
                             ),
-                            label: const Text('تحليل نشاط الخدام'),
                           ),
-                        if (!class$.ref.path.startsWith('Deleted'))
-                          ElevatedButton.icon(
-                            key: _analytics,
-                            icon: const Icon(Icons.analytics_outlined),
-                            label: const Text('احصائيات الحضور'),
-                            onPressed: () => _showAnalytics(context, class$),
-                          ),
-                        const Divider(thickness: 1),
-                        EditHistoryProperty(
-                          'أخر تحديث للبيانات:',
-                          class$.lastEdit,
-                          class$.ref.collection('EditHistory'),
-                          key: _editHistory,
+                          onPressed: () async {
+                            // navigator.currentState.pop();
+                            await Share.share(await shareClass(class$));
+                          },
+                          tooltip: 'مشاركة برابط',
                         ),
-                        _ClassServants(class$: class$),
-                        Text(
-                          'المخدومين بالفصل:',
-                          style: Theme.of(context).textTheme.headline6,
-                        ),
-                        SearchFilters(
-                          Person,
-                          options: _listOptions,
-                          orderOptions: _orderOptions,
-                          textStyle: Theme.of(context).textTheme.bodyText2,
+                        PopupMenuButton(
+                          key: _moreOptions,
+                          onSelected: (dynamic _) =>
+                              sendNotification(context, class$),
+                          itemBuilder: (context) {
+                            return [
+                              const PopupMenuItem(
+                                value: '',
+                                child: Text(
+                                  'ارسال إشعار للمستخدمين عن الفصل',
+                                ),
+                              ),
+                            ];
+                          },
                         ),
                       ],
+                expandedHeight: 250.0,
+                stretch: true,
+                pinned: true,
+                flexibleSpace: LayoutBuilder(
+                  builder: (context, constraints) => FlexibleSpaceBar(
+                    title: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 300),
+                      opacity: constraints.biggest.height > kToolbarHeight * 1.7
+                          ? 0
+                          : 1,
+                      child: Text(class$.name,
+                          style: const TextStyle(fontSize: 16.0)),
                     ),
+                    background: PhotoObjectWidget(class$, circleCrop: false),
                   ),
                 ),
-              ],
-              body: SafeArea(
-                child: class$.ref.path.startsWith('Deleted')
-                    ? const Text('يجب استعادة الفصل لرؤية المخدومين بداخله')
-                    : DataObjectList<Person>(
-                        options: _listOptions, disposeController: true),
               ),
-            ),
-            bottomNavigationBar: BottomAppBar(
-              color: Theme.of(context).colorScheme.primary,
-              shape: const CircularNotchedRectangle(),
-              child: StreamBuilder<List>(
-                stream: _listOptions.objectsData,
-                builder: (context, snapshot) {
-                  return Text(
-                    (snapshot.data?.length ?? 0).toString() + ' مخدوم',
-                    textAlign: TextAlign.center,
-                    strutStyle:
-                        StrutStyle(height: IconTheme.of(context).size! / 7.5),
-                    style: Theme.of(context).primaryTextTheme.bodyText1,
-                  );
-                },
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate(
+                    [
+                      ListTile(
+                        title: Text(
+                          class$.name,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headline5
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      ListTile(
+                        title: const Text('السنة الدراسية:'),
+                        subtitle: FutureBuilder<String>(
+                          future: class$.getStudyYearName(),
+                          builder: (context, data) {
+                            if (data.hasData)
+                              return Text(
+                                data.data! + ' - ' + class$.getGenderName(),
+                              );
+                            return const LinearProgressIndicator();
+                          },
+                        ),
+                      ),
+                      if (!class$.ref.path.startsWith('Deleted'))
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.map),
+                          onPressed: () => showMap(context, class$),
+                          label: const Text('إظهار المخدومين على الخريطة'),
+                        ),
+                      if (!class$.ref.path.startsWith('Deleted') &&
+                          (MHAuthRepository
+                                  .I.currentUser!.permissions.manageUsers ||
+                              MHAuthRepository.I.currentUser!.permissions
+                                  .manageAllowedUsers))
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.analytics_outlined),
+                          onPressed: () => Navigator.pushNamed(
+                            context,
+                            'ActivityAnalysis',
+                            arguments: [class$],
+                          ),
+                          label: const Text('تحليل نشاط الخدام'),
+                        ),
+                      if (!class$.ref.path.startsWith('Deleted'))
+                        ElevatedButton.icon(
+                          key: _analytics,
+                          icon: const Icon(Icons.analytics_outlined),
+                          label: const Text('احصائيات الحضور'),
+                          onPressed: () => _showAnalytics(context, class$),
+                        ),
+                      const Divider(thickness: 1),
+                      EditHistoryProperty(
+                        'أخر تحديث للبيانات:',
+                        class$.lastEdit,
+                        class$.ref.collection('EditHistory'),
+                        key: _editHistory,
+                      ),
+                      _ClassServants(class$: class$),
+                      Text(
+                        'المخدومين بالفصل:',
+                        style: Theme.of(context).textTheme.headline6,
+                      ),
+                      SearchFilters(
+                        Person,
+                        options: _listOptions,
+                        orderOptions: _orderOptions,
+                        textStyle: Theme.of(context).textTheme.bodyText2,
+                      ),
+                    ],
+                  ),
+                ),
               ),
+            ],
+            body: SafeArea(
+              child: class$.ref.path.startsWith('Deleted')
+                  ? const Text('يجب استعادة الفصل لرؤية المخدومين بداخله')
+                  : DataObjectListView<void, Person>(
+                      onTap: personTap,
+                      controller: _listOptions,
+                      autoDisposeController: true,
+                    ),
             ),
-            floatingActionButtonLocation:
-                FloatingActionButtonLocation.endDocked,
-            floatingActionButton:
-                permission! && !class$.ref.path.startsWith('Deleted')
-                    ? FloatingActionButton(
-                        key: _add,
-                        onPressed: () => navigator.currentState!.pushNamed(
-                            'Data/EditPerson',
-                            arguments: widget.class$.ref),
-                        child: const Icon(Icons.person_add),
-                      )
-                    : null,
-          );
-        },
-      ),
+          ),
+          bottomNavigationBar: BottomAppBar(
+            color: Theme.of(context).colorScheme.primary,
+            shape: const CircularNotchedRectangle(),
+            child: StreamBuilder<List>(
+              stream: _listOptions.objectsStream,
+              builder: (context, snapshot) {
+                return Text(
+                  (snapshot.data?.length ?? 0).toString() + ' مخدوم',
+                  textAlign: TextAlign.center,
+                  strutStyle:
+                      StrutStyle(height: IconTheme.of(context).size! / 7.5),
+                  style: Theme.of(context).primaryTextTheme.bodyText1,
+                );
+              },
+            ),
+          ),
+          floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+          floatingActionButton:
+              MHAuthRepository.I.currentUser!.permissions.write &&
+                      !class$.ref.path.startsWith('Deleted')
+                  ? FloatingActionButton(
+                      key: _add,
+                      onPressed: () => navigator.currentState!.pushNamed(
+                          'Data/EditPerson',
+                          arguments: widget.class$.ref),
+                      child: const Icon(Icons.person_add),
+                    )
+                  : null,
+        );
+      },
     );
   }
 
@@ -504,7 +503,11 @@ class _ClassServants extends StatelessWidget {
                 context: context,
                 builder: (context) => Dialog(
                   child: FutureBuilder<List<User>>(
-                    future: Future.wait(class$.allowedUsers.map(User.fromID)),
+                    future: Future.wait(class$.allowedUsers
+                            .map(MHAuthRepository.userNameFromUID))
+                        .then(
+                      (u) => u.whereType<User>().toList(),
+                    ),
                     builder: (context, data) {
                       if (data.hasError) return ErrorWidget(data.error!);
                       if (!data.hasData)
@@ -522,7 +525,7 @@ class _ClassServants extends StatelessWidget {
                             child: IgnorePointer(
                               child: DataObjectWidget(
                                 data.requireData[i],
-                                showSubTitle: false,
+                                showSubtitle: false,
                                 wrapInCard: false,
                               ),
                             ),

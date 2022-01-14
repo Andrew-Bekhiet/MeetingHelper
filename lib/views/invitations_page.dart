@@ -1,7 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/models/data/invitation.dart';
-import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/views/list.dart';
 
@@ -13,9 +13,9 @@ class InvitationsPage extends StatefulWidget {
 }
 
 class _InvitationsPageState extends State<InvitationsPage> {
-  final options = DataObjectListController<Invitation>(
+  final options = ListController<Invitation>(
     searchQuery: Stream.value(''),
-    itemsStream: FirebaseFirestore.instance
+    itemsStream: GetIt.I<DatabaseRepository>()
         .collection('Invitations')
         .snapshots()
         .map((s) => s.docs.map(Invitation.fromQueryDoc).toList()),

@@ -13,8 +13,8 @@ import 'data/person.dart';
 import 'data/service.dart';
 import 'history/history_record.dart';
 
-class CheckListController<T extends Person, P extends JsonRef>
-    extends ListController<P, T> {
+class DayCheckListController<G extends JsonRef, T extends Person>
+    extends ListController<G, T> {
   final HistoryDayBase day;
   final String type;
   final HistoryDayOptions dayOptions;
@@ -30,8 +30,8 @@ class CheckListController<T extends Person, P extends JsonRef>
   final BehaviorSubject<Map<String, T>> _objectsById;
   late final StreamSubscription<Map<String, T>> _objectsByIdSubscription;
 
-  CheckListController({
-    Map<P, List<T>> Function(List<T> data)? groupBy,
+  DayCheckListController({
+    Map<G, List<T>> Function(List<T> data)? groupBy,
     required this.day,
     required this.type,
     required this.dayOptions,
@@ -44,6 +44,7 @@ class CheckListController<T extends Person, P extends JsonRef>
         super(
           objectsPaginatableStream: query,
           searchStream: searchQuery,
+          groupingStream: dayOptions.grouped,
           groupBy: groupBy,
           filter: filter ??
               (o, f) => o
@@ -53,8 +54,8 @@ class CheckListController<T extends Person, P extends JsonRef>
     //
 
     _attendedListener = (ref != null
-            ? Rx.combineLatest3<User?, List<P>, bool?,
-                Tuple3<User?, List<P>, bool?>>(
+            ? Rx.combineLatest3<User?, List<G>, bool?,
+                Tuple3<User?, List<G>, bool?>>(
                 MHAuthRepository.I.userStream,
                 notService(type)
                     ? Class.getAllForUser().map((c) => c.cast())
@@ -91,11 +92,13 @@ class CheckListController<T extends Person, P extends JsonRef>
   }
 
   List<T> _objectsFilteringMapping(
-      bool? showOnly,
-      bool? sortByTimeASC,
-      String search,
-      Map<String, T> objectsById,
-      Map<String, HistoryRecord> attended) {
+    bool? showOnly,
+    bool? sortByTimeASC,
+    String search,
+    Map<String, T> objectsById,
+    //TODO: we only need the keys
+    Map<String, HistoryRecord> attended,
+  ) {
     List<T> rslt = objectsById.values.toList();
 
     if (sortByTimeASC != null) {
@@ -127,7 +130,7 @@ class CheckListController<T extends Person, P extends JsonRef>
   }
 
   Stream<Map<String, HistoryRecord>> _attendedMapping(
-      Tuple3<User?, List<P>, bool?> v) {
+      Tuple3<User?, List<G>, bool?> v) {
     //
     //<empty comment for readability>
 
@@ -244,8 +247,8 @@ class CheckListController<T extends Person, P extends JsonRef>
     ).update();
   }
 
-  CheckListController<T, P> copyWith({
-    Stream<Map<JsonRef, Tuple2<P, List<T>>>> Function(List<T?> data)? groupBy,
+  DayCheckListController<G, T> copyWith({
+    Stream<Map<JsonRef, Tuple2<G, List<T>>>> Function(List<T?> data)? groupBy,
     HistoryDay? day,
     String? type,
     HistoryDayOptions? dayOptions,
@@ -261,7 +264,7 @@ class CheckListController<T extends Person, P extends JsonRef>
   }) {
     //TODO: implement copyWith
     throw UnimplementedError();
-    /* return CheckListController<T, P>(
+    /* return HistoryDayCheckList<T, P>(
       groupBy: groupBy ?? _groupBy,
       day: day ?? this.day,
       type: type ?? this.type,
