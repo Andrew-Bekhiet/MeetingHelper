@@ -8,10 +8,8 @@ import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
-import '../models/list_controllers.dart';
 import '../utils/globals.dart';
 import '../utils/helpers.dart';
-import 'list.dart';
 
 class History extends StatefulWidget {
   final bool iServantsHistory;
@@ -155,13 +153,15 @@ class _HistoryState extends State<History> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
       extendBody: true,
       body: widget.iServantsHistory
-          ? DataObjectList<ServantsHistoryDay>(
-              disposeController: true,
-              options: _listController,
+          ? DataObjectListView<void, ServantsHistoryDay>(
+              onTap: historyTap,
+              autoDisposeController: true,
+              controller: _listController,
             )
-          : DataObjectList<HistoryDay>(
-              disposeController: true,
-              options: _listController,
+          : DataObjectListView<void, HistoryDay>(
+              onTap: historyTap,
+              autoDisposeController: true,
+              controller: _listController,
             ),
     );
   }
@@ -205,35 +205,21 @@ class _HistoryState extends State<History> {
     });
 
     _listController = widget.iServantsHistory
-        ? ListController<ServantsHistoryDay>(
-            tap: historyTap,
-            itemsStream: list
-                .switchMap(
-                  (q) =>
-                      q ??
-                      GetIt.I<DatabaseRepository>()
-                      GetIt.I<DatabaseRepository>()istory')
-                          .orderBy('Day', descending: true)
-                          .snapshots(),
-                )
-                .map(
-                  (s) => s.docs.map(ServantsHistoryDay.fromQueryDoc).toList(),
-                ),
+        ? ListController<void, ServantsHistoryDay>(
+            objectsPaginatableStream: PaginatableStream.query(
+              query: GetIt.I<DatabaseRepository>()
+                  .collection('ServantsHistory')
+                  .orderBy('Day', descending: true),
+              mapper: ServantsHistoryDay.fromQueryDoc,
+            ),
           )
-        : ListController<HistoryDay>(
-            tap: historyTap,
-            itemsStream: list
-                .switchMap(
-                  (q) =>
-                      q ??
-                      GetIt.I<DatabaseRepository>()
-                      GetIt.I<DatabaseRepository>()
-                          .orderBy('Day', descending: true)
-                          .snapshots(),
-                )
-                .map(
-                  (s) => s.docs.map(HistoryDay.fromQueryDoc).toList(),
-                ),
+        : ListController<void, HistoryDay>(
+            objectsPaginatableStream: PaginatableStream.query(
+              query: GetIt.I<DatabaseRepository>()
+                  .collection('History')
+                  .orderBy('Day', descending: true),
+              mapper: HistoryDay.fromQueryDoc,
+            ),
           );
   }
 

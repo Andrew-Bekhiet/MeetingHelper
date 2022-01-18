@@ -12,7 +12,7 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/foundation.dart' as f;
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Notification;
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     hide Person;
@@ -28,7 +28,7 @@ import 'package:meetinghelper/views/lists/lists.dart';
 import 'package:meetinghelper/views/services_list.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
-import 'package:rxdart/rxdart.dart';
+import 'package:rxdart/rxdart.dart' hide Notification;
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:spreadsheet_decoder/spreadsheet_decoder.dart';
 import 'package:timeago/timeago.dart';
@@ -144,19 +144,20 @@ Stream<Map<PreferredStudyYear?, List<T>>>
           ),
       T == Service
           ? Stream.value([])
-          : User.instance.stream.switchMap((user) => (user.superAccess
-                  ? GetIt.I<DatabaseRepository>()
-                      .collection('Classes')
-                      .orderBy('StudyYear')
-                      .orderBy('Gender')
-                      .snapshots()
-                  : GetIt.I<DatabaseRepository>()
-                      .collection('Classes')
-                      .where('Allowed', arrayContains: User.instance.uid)
-                      .orderBy('StudyYear')
-                      .orderBy('Gender')
-                      .snapshots())
-              .map((cs) => cs.docs.map(Class.fromQueryDoc).toList())),
+          : MHAuthRepository.I.userStream.switchMap((user) =>
+              (user!.permissions.superAccess
+                      ? GetIt.I<DatabaseRepository>()
+                          .collection('Classes')
+                          .orderBy('StudyYear')
+                          .orderBy('Gender')
+                          .snapshots()
+                      : GetIt.I<DatabaseRepository>()
+                          .collection('Classes')
+                          .where('Allowed', arrayContains: user.uid)
+                          .orderBy('StudyYear')
+                          .orderBy('Gender')
+                          .snapshots())
+                  .map((cs) => cs.docs.map(Class.fromDoc).toList())),
       T == Class ? Stream.value([]) : Service.getAllForUser(),
       (studyYears, classes, services) {
     final combined = [...classes, ...services];
@@ -261,7 +262,7 @@ Stream<Map<PreferredStudyYear?, List<T>>>
               .orderBy('StudyYear')
               .orderBy('Gender')
               .snapshots()
-              .map((cs) => cs.docs.map(Class.fromQueryDoc).toList()),
+              .map((cs) => cs.docs.map(Class.fromDoc).toList()),
       adminServices.isEmpty || T == Class
           ? Stream.value([])
           : Rx.combineLatestList(
@@ -368,7 +369,7 @@ Future<dynamic> getLinkObject(Uri deepLink) async {
       return await Person.fromId(
           deepLink.queryParameters['PersonId'] ?? 'null');
     } else if (deepLink.pathSegments[0] == 'viewUser') {
-      return await User.fromUsersData(
+      return await MHAuthRepository.userFromUID(
           deepLink.queryParameters['UID'] ?? 'null');
     } else if (deepLink.pathSegments[0] == 'viewQuery') {
       return const QueryIcon();
@@ -392,8 +393,8 @@ List<RadioListTile> getOrderingOptions(
           groupValue: orderOptions.value.orderBy,
           title: Text(e.value.label),
           onChanged: (value) {
-            orderOptions
-                .add(OrderOptions(orderBy: value, asc: orderOptions.value.asc));
+            orderOptions.add(
+                OrderOptions(orderBy: value!, asc: orderOptions.value.asc));
             navigator.currentState!.pop();
           },
         ),
@@ -476,9 +477,14 @@ void import(BuildContext context) async {
       await FirebaseStorage.instance
           .ref('Imports/' + filename + '.xlsx')
           .putData(
-              fileData,
-              SettableMetadata(
-                  customMetadata: {'createdBy': User.instance.uid}));
+            fileData,
+            SettableMetadata(
+              customMetadata: {
+                'createdBy': MHAuthRepository.I.currentUser!.uid,
+              },
+            ),
+          );
+
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(
         const SnackBar(
@@ -537,81 +543,83 @@ Future<void> onNotificationClicked(String? payload) async {
   }
 }
 
-Stream<Map<JsonRef, Tuple2<Class, List<User>>>> usersByClassRef(
-    List<User> users) {
-  return GetIt.I<DatabaseRepository>()
-      .collection('StudyYears')
-      .orderBy('Grade')
-      .snapshots()
-      .switchMap(
-    (sys) {
+Stream<Map<Class?, List<User>>> usersByClass(List<User> users) {
+  // return users.groupListsBy((user) => user.classId);
+
+  return Rx.combineLatest2<JsonQuery, JsonQuery, Map<Class?, List<User>>>(
+    GetIt.I<DatabaseRepository>()
+        .collection('StudyYears')
+        .orderBy('Grade')
+        .snapshots(),
+    MHAuthRepository.I.userStream.whereType<User>().switchMap((user) =>
+        user.permissions.superAccess
+            ? GetIt.I<DatabaseRepository>()
+                .collection('Classes')
+                .orderBy('StudyYear')
+                .orderBy('Gender')
+                .snapshots()
+            : GetIt.I<DatabaseRepository>()
+                .collection('Classes')
+                .where('Allowed', arrayContains: user.uid)
+                .orderBy('StudyYear')
+                .orderBy('Gender')
+                .snapshots()),
+    (sys, cs) {
       final Map<JsonRef, StudyYear> studyYears = {
         for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
       };
-      studyYears[GetIt.I<DatabaseRepository>()
-          .collection('StudyYears')
-          .doc('Unknown')] = StudyYear('unknown', 'غير معروفة', 10000000);
-      return User.instance.stream.switchMap(
-        (user) => (user.superAccess
-                ? GetIt.I<DatabaseRepository>()
-                    .collection('Classes')
-                    .orderBy('StudyYear')
-                    .orderBy('Gender')
-                    .snapshots()
-                : GetIt.I<DatabaseRepository>()
-                    .collection('Classes')
-                    .where('Allowed',
-                        arrayContains:
-                            auth.FirebaseAuth.instance.currentUser!.uid)
-                    .orderBy('StudyYear')
-                    .orderBy('Gender')
-                    .snapshots())
-            .map(
-          (cs) {
-            final classesByRef = {
-              for (final c in cs.docs.map(Class.fromDoc).toList()) c.ref: c
-            };
+      final unknownStudyYearRef =
+          GetIt.I<DatabaseRepository>().collection('StudyYears').doc('Unknown');
 
-            final rslt = {
-              for (final e in groupBy<User, Class>(
-                  users,
-                  (user) => user.classId == null
-                      ? Class(name: 'غير محدد', color: Colors.redAccent)
-                      : classesByRef[user.classId] ??
-                          Class(
-                              name: '{لا يمكن قراءة اسم الفصل}',
-                              color: Colors.redAccent,
-                              id: 'Unknown')).entries)
-                e.key.ref: Tuple2(e.key, e.value)
-            }.entries.toList();
-
-            mergeSort<MapEntry<JsonRef?, Tuple2<Class, List<User>>>>(rslt,
-                compare: (c, c2) {
-              if (c.value.item1.name == 'غير محدد' ||
-                  c.value.item1.name == '{لا يمكن قراءة اسم الفصل}') return 1;
-              if (c2.value.item1.name == 'غير محدد' ||
-                  c2.value.item1.name == '{لا يمكن قراءة اسم الفصل}') return -1;
-
-              if (studyYears[c.value.item1.studyYear!] ==
-                  studyYears[c2.value.item1.studyYear!])
-                return c.value.item1.gender.compareTo(c2.value.item1.gender);
-              return studyYears[c.value.item1.studyYear!]!
-                  .grade
-                  .compareTo(studyYears[c2.value.item1.studyYear!]!.grade);
-            });
-
-            return {for (final e in rslt) e.key: e.value};
-          },
-        ),
+      studyYears[unknownStudyYearRef] = StudyYear(
+        ref: unknownStudyYearRef,
+        name: 'غير معروفة',
+        grade: 10000000,
       );
+
+      final classesByRef = {
+        for (final c in cs.docs.map(Class.fromDoc).toList()) c.ref: c
+      };
+
+      final rslt = groupBy<User, Class?>(
+        users,
+        (user) => user.classId == null
+            ? null
+            : classesByRef[user.classId] ??
+                Class(
+                  name: '{لا يمكن قراءة اسم الفصل}',
+                  color: Colors.redAccent,
+                  ref: GetIt.I<DatabaseRepository>()
+                      .collection('Classes')
+                      .doc('Unknown'),
+                ),
+      ).entries;
+
+      mergeSort<MapEntry<Class?, List<User>>>(rslt.toList(), compare: (c, c2) {
+        if (c.key == null || c.key!.name == '{لا يمكن قراءة اسم الفصل}')
+          return 1;
+
+        if (c2.key == null || c2.key!.name == '{لا يمكن قراءة اسم الفصل}')
+          return -1;
+
+        if (studyYears[c.key!.studyYear!] == studyYears[c2.key!.studyYear!])
+          return c.key!.gender.compareTo(c2.key!.gender);
+
+        return studyYears[c.key!.studyYear]!
+            .grade
+            .compareTo(studyYears[c2.key!.studyYear]!.grade);
+      });
+
+      return {for (final e in rslt) e.key: e.value};
     },
   );
 }
 
-Stream<Map<JsonRef, Tuple2<Class, List<Person>>>> personsByClassRef(
-    [List<Person>? persons]) {
+Stream<Map<Class?, List<Person>>> personsByClassRef([List<Person>? persons]) {
+  // return persons.groupListsBy((user) => user.classId);
+
   return Rx.combineLatest3<Map<JsonRef, StudyYear>, List<Person>, JsonQuery,
-      Map<JsonRef, Tuple2<Class, List<Person>>>>(
+      Map<Class, List<Person>>>(
     GetIt.I<DatabaseRepository>()
         .collection('StudyYears')
         .orderBy('Grade')
@@ -621,25 +629,26 @@ Stream<Map<JsonRef, Tuple2<Class, List<Person>>>> personsByClassRef(
               {for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)},
         ),
     persons != null ? Stream.value(persons) : Person.getAllForUser(),
-    User.instance.stream.switchMap((user) => user.superAccess
-        ? GetIt.I<DatabaseRepository>()
-            .collection('Classes')
-            .orderBy('StudyYear')
-            .orderBy('Gender')
-            .snapshots()
-        : GetIt.I<DatabaseRepository>()
-            .collection('Classes')
-            .where('Allowed',
-                arrayContains: auth.FirebaseAuth.instance.currentUser!.uid)
-            .orderBy('StudyYear')
-            .orderBy('Gender')
-            .snapshots()),
+    MHAuthRepository.I.userStream.whereType().switchMap((user) =>
+        user.superAccess
+            ? GetIt.I<DatabaseRepository>()
+                .collection('Classes')
+                .orderBy('StudyYear')
+                .orderBy('Gender')
+                .snapshots()
+            : GetIt.I<DatabaseRepository>()
+                .collection('Classes')
+                .where('Allowed',
+                    arrayContains: auth.FirebaseAuth.instance.currentUser!.uid)
+                .orderBy('StudyYear')
+                .orderBy('Gender')
+                .snapshots()),
     (studyYears, persons, cs) {
       final Map<JsonRef?, List<Person>> personsByClassRef =
           groupBy(persons, (p) => p.classId);
 
       final classes = cs.docs
-          .map(Class.fromQueryDoc)
+          .map(Class.fromDoc)
           .where((c) => personsByClassRef[c.ref] != null)
           .toList();
 
@@ -650,20 +659,17 @@ Stream<Map<JsonRef, Tuple2<Class, List<Person>>>> personsByClassRef(
             .compareTo(studyYears[c2.studyYear]!.grade);
       });
 
-      return {
-        for (final c in classes)
-          c.ref: Tuple2<Class, List<Person>>(c, personsByClassRef[c.ref]!)
-      };
+      return {for (final c in classes) c: personsByClassRef[c.ref]!};
     },
   );
 }
 
-Stream<Map<JsonRef, Tuple2<StudyYear, List<T>>>>
-    personsByStudyYearRef<T extends Person>([List<T>? persons]) {
-  assert(T == Person || persons != null);
+Stream<Map<StudyYear?, List<T>>> personsByStudyYearRef<T extends Person>(
+    [List<T>? persons]) {
+  // return persons.groupListsBy((p) => p.studyYear);
 
   return Rx.combineLatest2<Map<JsonRef, StudyYear>, List<T>,
-      Map<JsonRef, Tuple2<StudyYear, List<T>>>>(
+      Map<StudyYear?, List<T>>>(
     GetIt.I<DatabaseRepository>()
         .collection('StudyYears')
         .orderBy('Grade')
@@ -678,7 +684,7 @@ Stream<Map<JsonRef, Tuple2<StudyYear, List<T>>>>
       return {
         for (final person in persons.groupListsBy((p) => p.studyYear).entries)
           if (person.key != null && studyYears[person.key] != null)
-            person.key!: Tuple2(studyYears[person.key]!, person.value)
+            studyYears[person.key]: person.value
       };
     },
   );
@@ -766,8 +772,9 @@ Future<void> processLink(Uri? deepLink) async {
           ),
         );
       } else if (deepLink.pathSegments[0] == 'viewUser') {
-        if (User.instance.manageUsers) {
-          userTap((await User.fromUsersData(deepLink.queryParameters['UID']))!);
+        if (MHAuthRepository.I.currentUser!.permissions.manageUsers) {
+          userTap((await MHAuthRepository.userFromUID(
+              deepLink.queryParameters['UID']))!);
         } else {
           await showErrorDialog(navigator.currentContext!,
               'ليس لديك الصلاحية لرؤية محتويات الرابط!');

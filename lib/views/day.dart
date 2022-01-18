@@ -28,9 +28,15 @@ class Day extends StatefulWidget {
 class _DayState extends State<Day> with TickerProviderStateMixin {
   TabController? _previous;
   final BehaviorSubject<bool> _showSearch = BehaviorSubject<bool>.seeded(false);
+  final BehaviorSubject<String> _searchSubject =
+      BehaviorSubject<String>.seeded('');
   final FocusNode _searchFocus = FocusNode();
 
-  final Map<String, CheckListController> _listControllers = {};
+  late final HistoryDayOptions dayOptions;
+  late final DayCheckListController<Class?, Person> baseController;
+
+  final Map<String, DayCheckListController<DataObject?, Person>>
+      _listControllers = {};
 
   final _sorting = GlobalKey();
   final _analyticsToday = GlobalKey();
@@ -51,52 +57,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
       }),
       builder: (context, snapshot) {
         return MultiProvider(
-          providers: [
-            if (widget.record is! ServantsHistoryDay)
-              Provider<CheckListController<Person, Class>>(
-                create: (_) {
-                  final bool isSameDay = DateTime.now()
-                          .difference(widget.record.day.toDate())
-                          .inDays ==
-                      0;
-                  return CheckListController(
-                    itemsStream: Person.getAllForUser(),
-                    day: widget.record,
-                    dayOptions: HistoryDayOptions(
-                      grouped: !isSameDay,
-                      showOnly: isSameDay ? null : true,
-                      enabled: isSameDay,
-                      sortByTimeASC: isSameDay ? null : true,
-                    ),
-                    groupBy: personsByClassRef,
-                    type: 'Meeting',
-                  );
-                },
-                dispose: (context, c) => c.dispose(),
-              )
-            else
-              Provider<CheckListController<User, Class>>(
-                create: (_) {
-                  final bool isSameDay = DateTime.now()
-                          .difference(widget.record.day.toDate())
-                          .inDays ==
-                      0;
-                  return CheckListController(
-                    itemsStream: User.getAllForUser(),
-                    day: widget.record,
-                    dayOptions: HistoryDayOptions(
-                      grouped: !isSameDay,
-                      showOnly: isSameDay ? null : true,
-                      enabled: isSameDay,
-                      sortByTimeASC: isSameDay ? null : true,
-                    ),
-                    groupBy: usersByClassRef,
-                    type: 'Meeting',
-                  );
-                },
-                dispose: (context, c) => c.dispose(),
-              ),
-          ],
+          providers: const [],
           builder: (context, body) {
             return Scaffold(
               appBar: AppBar(
@@ -135,17 +96,13 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                   PopupMenuButton(
                     key: _sorting,
                     onSelected: (v) async {
-                      if (v == 'delete' && User.instance.superAccess) {
+                      if (v == 'delete' &&
+                          MHAuthRepository
+                              .I.currentUser!.permissions.superAccess) {
                         await _delete();
                       } else if (v == 'sorting') {
                         await _showSortingOptions(context);
                       } else if (v == 'edit') {
-                        final dayOptions = (widget.record is! ServantsHistoryDay
-                                ? context
-                                    .read<CheckListController<Person, Class>>()
-                                : context
-                                    .read<CheckListController<User, Class>>())
-                            .dayOptions;
                         dayOptions.enabled.add(!dayOptions.enabled.value);
                         dayOptions.sortByTimeASC.add(null);
                         dayOptions.showOnly.add(null);
@@ -156,25 +113,20 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                         value: 'sorting',
                         child: Text('تنظيم الليستة'),
                       ),
-                      if (User.instance.changeHistory &&
+                      if (MHAuthRepository
+                              .I.currentUser!.permissions.changeHistory &&
                           DateTime.now()
                                   .difference(widget.record.day.toDate())
                                   .inDays !=
                               0)
                         PopupMenuItem(
                           value: 'edit',
-                          child: (widget.record is! ServantsHistoryDay
-                                      ? context.read<
-                                          CheckListController<Person, Class>>()
-                                      : context.read<
-                                          CheckListController<User, Class>>())
-                                  .dayOptions
-                                  .enabled
-                                  .value
+                          child: dayOptions.enabled.value
                               ? const Text('اغلاق وضع التعديل')
                               : const Text('تعديل الكشف'),
                         ),
-                      if (User.instance.superAccess)
+                      if (MHAuthRepository
+                          .I.currentUser!.permissions.superAccess)
                         const PopupMenuItem(
                           value: 'delete',
                           child: Text('حذف الكشف'),
@@ -202,7 +154,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                 child: AnimatedBuilder(
                   animation: snapshot.requireData.item1,
                   builder: (context, _) => StreamBuilder<Tuple2<int, int>>(
-                    stream: Rx.combineLatest2<Map, Map, Tuple2<int, int>>(
+                    stream: Rx.combineLatest2<List, Map, Tuple2<int, int>>(
                       (snapshot.requireData.item1.index <= 2
                               ? _listControllers[snapshot
                                               .requireData.item1.index ==
@@ -211,14 +163,14 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                                       : snapshot.requireData.item1.index == 1
                                           ? 'Kodas'
                                           : 'Confesion']
-                                  ?.originalObjectsData
+                                  ?.objectsStream
                               : _listControllers[snapshot
                                       .requireData
                                       .item2[
                                           snapshot.requireData.item1.index - 3]
                                       .id]
-                                  ?.originalObjectsData) ??
-                          Stream.value({}),
+                                  ?.objectsStream) ??
+                          Stream.value([]),
                       (snapshot.requireData.item1.index <= 2
                               ? _listControllers[snapshot
                                               .requireData.item1.index ==
@@ -235,7 +187,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                                       .id]
                                   ?.attended) ??
                           Stream.value({}),
-                      (Map a, Map b) => Tuple2<int, int>(a.length, b.length),
+                      (List a, Map b) => Tuple2<int, int>(a.length, b.length),
                     ),
                     builder: (context, snapshot) {
                       final TextTheme theme =
@@ -251,21 +203,8 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                         trailing: Icon(Icons.expand_more,
                             color: theme.bodyText2?.color),
                         leading: StreamBuilder<bool>(
-                          initialData: (widget.record is! ServantsHistoryDay
-                                  ? context.read<
-                                      CheckListController<Person, Class>>()
-                                  : context
-                                      .read<CheckListController<User, Class>>())
-                              .dayOptions
-                              .lockUnchecks
-                              .value,
-                          stream: (widget.record is! ServantsHistoryDay
-                                  ? context.read<
-                                      CheckListController<Person, Class>>()
-                                  : context
-                                      .read<CheckListController<User, Class>>())
-                              .dayOptions
-                              .lockUnchecks,
+                          initialData: dayOptions.lockUnchecks.value,
+                          stream: dayOptions.lockUnchecks,
                           builder: (context, data) {
                             return IconButton(
                               key: _lockUnchecks,
@@ -275,15 +214,8 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                                       : Icons.lock_outlined,
                                   color: theme.bodyText2?.color),
                               tooltip: 'تثبيت الحضور',
-                              onPressed: () => (widget.record
-                                          is! ServantsHistoryDay
-                                      ? context.read<
-                                          CheckListController<Person, Class>>()
-                                      : context.read<
-                                          CheckListController<User, Class>>())
-                                  .dayOptions
-                                  .lockUnchecks
-                                  .add(!data.data!),
+                              onPressed: () =>
+                                  dayOptions.lockUnchecks.add(!data.data!),
                             );
                           },
                         ),
@@ -309,137 +241,81 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
             builder: (context) {
               return TabBarView(
                 controller: snapshot.requireData.item1,
-                children: widget.record is! ServantsHistoryDay
-                    ? [
-                        DataObjectCheckList<Person, Class>(
-                          autoDisposeController: false,
-                          key: PageStorageKey(
-                              'PersonsMeeting' + widget.record.id),
-                          options: () {
-                            final tmp = context
-                                .read<CheckListController<Person, Class>>()
-                                .copyWith(type: 'Meeting');
-                            _listControllers['Meeting'] = tmp;
-                            return tmp;
-                          }(),
-                        ),
-                        DataObjectCheckList<Person, Class>(
-                          autoDisposeController: false,
-                          key:
-                              PageStorageKey('PersonsKodas' + widget.record.id),
-                          options: () {
-                            final tmp = context
-                                .read<CheckListController<Person, Class>>()
-                                .copyWith(type: 'Kodas');
-                            _listControllers['Kodas'] = tmp;
-                            return tmp;
-                          }(),
-                        ),
-                        DataObjectCheckList<Person, Class>(
-                          autoDisposeController: false,
-                          key: PageStorageKey(
-                              'PersonsConfession' + widget.record.id),
-                          options: () {
-                            final tmp = context
-                                .read<CheckListController<Person, Class>>()
-                                .copyWith(type: 'Confession');
-                            _listControllers['Confession'] = tmp;
-                            return tmp;
-                          }(),
-                        ),
-                        ...snapshot.requireData.item2.map(
-                          (service) => DataObjectCheckList<Person, StudyYear>(
-                            autoDisposeController: false,
-                            key: PageStorageKey(
-                                'Persons' + service.id + widget.record.id),
-                            options: () {
-                              final parent = context
-                                  .read<CheckListController<Person, Class>>();
-
-                              final tmp =
-                                  CheckListController<Person, StudyYear>(
-                                day: parent.day,
-                                dayOptions: parent.dayOptions,
-                                type: service.id,
-                                groupBy: personsByStudyYearRef,
-                                itemBuilder: parent.itemBuilder,
-                                items: parent.items,
-                                itemsStream: service.getPersonsMembersLive(),
-                                onLongPress: parent.onLongPress,
-                                searchQuery: parent.searchQuery,
-                                tap: parent.tap,
-                              );
-
-                              _listControllers[service.id] = tmp;
-                              return tmp;
-                            }(),
+                children: [
+                  DayCheckList<Class?, Person>(
+                    autoDisposeController: false,
+                    key: PageStorageKey(
+                      (widget.record is ServantsHistoryDay
+                              ? 'Users'
+                              : 'Persons') +
+                          'Meeting' +
+                          widget.record.id,
+                    ),
+                    controller: () {
+                      final tmp = baseController.copyWith(type: 'Meeting');
+                      _listControllers['Meeting'] = tmp;
+                      return tmp;
+                    }(),
+                  ),
+                  DayCheckList<Class?, Person>(
+                    autoDisposeController: false,
+                    key: PageStorageKey(
+                      (widget.record is ServantsHistoryDay
+                              ? 'Users'
+                              : 'Persons') +
+                          'Kodas' +
+                          widget.record.id,
+                    ),
+                    controller: () {
+                      final tmp = baseController.copyWith(type: 'Kodas');
+                      _listControllers['Kodas'] = tmp;
+                      return tmp;
+                    }(),
+                  ),
+                  DayCheckList<Class?, Person>(
+                    autoDisposeController: false,
+                    key: PageStorageKey(
+                      (widget.record is ServantsHistoryDay
+                              ? 'Users'
+                              : 'Persons') +
+                          'Confession' +
+                          widget.record.id,
+                    ),
+                    controller: () {
+                      final tmp = baseController.copyWith(type: 'Confession');
+                      _listControllers['Confession'] = tmp;
+                      return tmp;
+                    }(),
+                  ),
+                  ...snapshot.requireData.item2.map(
+                    (service) => DayCheckList<StudyYear?, Person>(
+                      autoDisposeController: false,
+                      key: PageStorageKey(
+                        (widget.record is ServantsHistoryDay
+                                ? 'Users'
+                                : 'Persons') +
+                            service.id +
+                            widget.record.id,
+                      ),
+                      controller: () {
+                        final tmp = DayCheckListController<StudyYear?, Person>(
+                          day: baseController.day,
+                          dayOptions: baseController.dayOptions,
+                          filter: baseController.filter,
+                          type: service.id,
+                          groupByStream: personsByStudyYearRef,
+                          query: PaginatableStream.loadAll(
+                            stream: service.getPersonsMembersLive(),
                           ),
-                        )
-                      ]
-                    : [
-                        DataObjectCheckList<User, Class>(
-                          autoDisposeController: false,
-                          key:
-                              PageStorageKey('UsersMeeting' + widget.record.id),
-                          options: () {
-                            final tmp = context
-                                .read<CheckListController<User, Class>>()
-                                .copyWith(type: 'Meeting');
-                            _listControllers['Meeting'] = tmp;
-                            return tmp;
-                          }(),
-                        ),
-                        DataObjectCheckList<User, Class>(
-                          autoDisposeController: false,
-                          key: PageStorageKey('UsersKodas' + widget.record.id),
-                          options: () {
-                            final tmp = context
-                                .read<CheckListController<User, Class>>()
-                                .copyWith(type: 'Kodas');
-                            _listControllers['Kodas'] = tmp;
-                            return tmp;
-                          }(),
-                        ),
-                        DataObjectCheckList<User, Class>(
-                          autoDisposeController: false,
-                          key: PageStorageKey(
-                              'UsersConfession' + widget.record.id),
-                          options: () {
-                            final tmp = context
-                                .read<CheckListController<User, Class>>()
-                                .copyWith(type: 'Confession');
-                            _listControllers['Confession'] = tmp;
-                            return tmp;
-                          }(),
-                        ),
-                        ...snapshot.requireData.item2.map(
-                          (service) => DataObjectCheckList<User, StudyYear>(
-                            autoDisposeController: false,
-                            key: PageStorageKey(
-                                'Users' + service.id + widget.record.id),
-                            options: () {
-                              final parent = context
-                                  .read<CheckListController<User, Class>>();
+                          searchQuery: baseController.searchSubject,
+                        );
 
-                              final tmp = CheckListController<User, StudyYear>(
-                                day: parent.day,
-                                dayOptions: parent.dayOptions,
-                                type: service.id,
-                                groupBy: personsByStudyYearRef,
-                                itemBuilder: parent.itemBuilder,
-                                items: parent.items,
-                                itemsStream: service.getUsersMembersLive(),
-                                onLongPress: parent.onLongPress,
-                                searchQuery: parent.searchQuery,
-                                tap: parent.tap,
-                              );
-
-                              _listControllers[service.id] = tmp;
-                              return tmp;
-                            }(),
-                          ),
-                        )
-                      ],
+                        _listControllers[service.id] = tmp;
+                        return tmp;
+                      }(),
+                    ),
+                  )
+                ],
               );
             },
           ),
@@ -460,16 +336,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                   color: Theme.of(context).primaryTextTheme.headline6!.color),
               onPressed: () => setState(
                 () {
-                  if (widget.record is! ServantsHistoryDay)
-                    context
-                        .read<CheckListController<Person, Class>>()
-                        .searchQuery
-                        .add('');
-                  else
-                    context
-                        .read<CheckListController<User, Class>>()
-                        .searchQuery
-                        .add('');
+                  _searchSubject.add('');
                   _showSearch.add(false);
                 },
               ),
@@ -479,9 +346,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
             icon: Icon(Icons.search,
                 color: Theme.of(context).primaryTextTheme.headline6!.color),
             hintText: 'بحث ...'),
-        onChanged: widget.record is! ServantsHistoryDay
-            ? context.read<CheckListController<Person, Class>>().searchQuery.add
-            : context.read<CheckListController<User, Class>>().searchQuery.add,
+        onChanged: _searchSubject.add,
       );
     } else {
       return const Text('كشف الحضور');
@@ -494,10 +359,6 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
       builder: (context2) => AlertDialog(
         insetPadding: const EdgeInsets.symmetric(vertical: 24.0),
         content: StatefulBuilder(builder: (innerContext, setState) {
-          final dayOptions = (widget.record is! ServantsHistoryDay
-                  ? context.read<CheckListController<Person, Class>>()
-                  : context.read<CheckListController<User, Class>>())
-              .dayOptions;
           return SizedBox(
             width: 350,
             child: Column(
@@ -662,6 +523,29 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _previous = TabController(length: 3, vsync: this);
+
+    final bool isSameDay =
+        DateTime.now().difference(widget.record.day.toDate()).inDays == 0;
+    dayOptions = HistoryDayOptions(
+      grouped: !isSameDay,
+      showOnly: isSameDay ? null : true,
+      enabled: isSameDay,
+      sortByTimeASC: isSameDay ? null : true,
+    );
+
+    baseController = DayCheckListController(
+      searchQuery: _searchSubject,
+      query: PaginatableStream.loadAll(
+        stream: widget.record is ServantsHistoryDay
+            ? MHAuthRepository.getAllUsersData()
+            : Person.getAllForUser(),
+      ),
+      day: widget.record,
+      dayOptions: dayOptions,
+      groupByStream: personsByClassRef,
+      type: 'Meeting',
+    );
+
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) async {
       if (DateTime.now().difference(widget.record.day.toDate()).inDays != 0)
         return;
