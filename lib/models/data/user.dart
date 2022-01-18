@@ -80,6 +80,44 @@ class MHAuthRepository extends AuthRepository<User, Person> {
     );
   }
 
+  static Stream<List<Person>> getAllUsersData({
+    QueryOfJson Function(QueryOfJson, String, bool) queryCompleter =
+        kDefaultQueryCompleter,
+  }) {
+    return GetIt.I<MHAuthRepository>().userStream.switchMap(
+      (u) {
+        if (u == null) return Stream.value([]);
+
+        if (!u.permissions.manageUsers &&
+            !u.permissions.manageAllowedUsers &&
+            !u.permissions.secretary)
+          throw UnsupportedError('Insuffecient Permissions');
+
+        if (u.permissions.manageUsers || u.permissions.secretary) {
+          return queryCompleter(
+                  GetIt.I<DatabaseRepository>().collection('UsersData'),
+                  'Name',
+                  false)
+              .snapshots()
+              .map(
+                (p) => p.docs.map(Person.fromDoc).toList(),
+              );
+        } else {
+          return queryCompleter(
+                  GetIt.I<DatabaseRepository>()
+                      .collection('UsersData')
+                      .where('AllowedUsers', arrayContains: u.uid),
+                  'Name',
+                  false)
+              .snapshots()
+              .map(
+                (p) => p.docs.map(Person.fromDoc).toList(),
+              );
+        }
+      },
+    );
+  }
+
   static Stream<List<User>> getAllNames() {
     return GetIt.I<DatabaseRepository>()
         .collection('Users')
