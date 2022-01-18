@@ -13,8 +13,7 @@ import 'data/person.dart';
 import 'data/service.dart';
 import 'history/history_record.dart';
 
-class DayCheckListController<G extends JsonRef, T extends Person>
-    extends ListController<G, T> {
+class DayCheckListController<G, T extends Person> extends ListController<G, T> {
   final HistoryDayBase day;
   final String type;
   final HistoryDayOptions dayOptions;
@@ -31,13 +30,14 @@ class DayCheckListController<G extends JsonRef, T extends Person>
   late final StreamSubscription<Map<String, T>> _objectsByIdSubscription;
 
   DayCheckListController({
-    Map<G, List<T>> Function(List<T> data)? groupBy,
     required this.day,
     required this.type,
     required this.dayOptions,
     required PaginatableStream<T> query,
-    List<T> Function(List<T>, String)? filter,
     Stream<String>? searchQuery,
+    SearchFunction<T>? filter,
+    GroupingFunction<G, T>? groupBy,
+    GroupingStreamFunction<G, T>? groupByStream,
   })  : assert(dayOptions.grouped.value == false || groupBy != null),
         _attended = BehaviorSubject<Map<String, HistoryRecord>>(),
         _objectsById = BehaviorSubject<Map<String, T>>(),
@@ -46,6 +46,7 @@ class DayCheckListController<G extends JsonRef, T extends Person>
           searchStream: searchQuery,
           groupingStream: dayOptions.grouped,
           groupBy: groupBy,
+          groupByStream: groupByStream,
           filter: filter ??
               (o, f) => o
                   .where((e) => filterString(e.name).contains(filterString(f)))
@@ -346,13 +347,16 @@ class ServicesListController<T extends DataObject>
 
   ServicesListController({
     required PaginatableStream<T> objectsPaginatableStream,
-    required Map<PreferredStudyYear?, List<T>> Function(List<T>) groupBy,
+    required GroupingFunction<PreferredStudyYear?, T> groupBy,
+    required GroupingStreamFunction<PreferredStudyYear?, T> groupByStream,
     BehaviorSubject<String>? searchQuery,
   })  : assert(T == Class || T == Service || T == DataObject),
         super(
           objectsPaginatableStream: objectsPaginatableStream,
-          groupBy: groupBy,
           searchStream: searchQuery,
+          groupBy: groupBy,
+          groupByStream: groupByStream,
+          groupingStream: Stream.value(true),
         );
 
   @override

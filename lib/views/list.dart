@@ -17,7 +17,7 @@ import '../utils/helpers.dart';
 
 export 'package:tuple/tuple.dart';
 
-class DayCheckList<G extends JsonRef, T extends Person> extends StatefulWidget {
+class DayCheckList<G, T extends Person> extends StatefulWidget {
   final DayCheckListController<G, T> controller;
 
   ///Optional: override the default build function for items
@@ -30,7 +30,7 @@ class DayCheckList<G extends JsonRef, T extends Person> extends StatefulWidget {
   ///
   ///Provides the default [onTap] and [onLongPress] callbacks
   ///and default [trailing] and [subtitle] widgets
-  final GroupBuilder<G> groupBuilder;
+  final GroupBuilder<G>? groupBuilder;
 
   ///Optional: override the default [onTap] callback
   final void Function(T)? onTap;
@@ -48,7 +48,7 @@ class DayCheckList<G extends JsonRef, T extends Person> extends StatefulWidget {
     Key? key,
     required this.controller,
     this.itemBuilder,
-    required this.groupBuilder,
+    this.groupBuilder,
     this.onTap,
     this.onLongPress,
     this.emptyMsg = 'لا يوجد مخدومين',
@@ -59,14 +59,17 @@ class DayCheckList<G extends JsonRef, T extends Person> extends StatefulWidget {
   _DayCheckListState<G, T> createState() => _DayCheckListState<G, T>();
 }
 
-class _DayCheckListState<G extends JsonRef, T extends Person>
-    extends State<DayCheckList<G, T>>
+class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
     with AutomaticKeepAliveClientMixin<DayCheckList<G, T>> {
   bool _builtOnce = false;
 
   DayCheckListController<G, T> get _listController => widget.controller;
 
-  ItemBuilder<T> get buildItem => widget.itemBuilder ?? defaultItemBuilder<T>;
+  ItemBuilder<T> get _buildItem => widget.itemBuilder ?? defaultItemBuilder<T>;
+  GroupBuilder<G> get _buildGroup =>
+      widget.groupBuilder ??
+      // ignore: unnecessary_parenthesis
+      (defaultGroupBuilder<DataObject>) as GroupBuilder<G>;
 
   @override
   bool get wantKeepAlive => _builtOnce && ModalRoute.of(context)!.isCurrent;
@@ -123,7 +126,7 @@ class _DayCheckListState<G extends JsonRef, T extends Person>
               builder: (context, showSubtitle) {
                 return Container(
                   margin: const EdgeInsets.symmetric(vertical: 4),
-                  child: widget.groupBuilder(
+                  child: _buildGroup(
                     groupedData.data!.keys.elementAt(i),
                     showSubtitle: showSubtitle.data ?? false,
                     subtitle: showSubtitle.data ?? false
@@ -134,11 +137,7 @@ class _DayCheckListState<G extends JsonRef, T extends Person>
                                 .toString() +
                             ' مخدوم داخل الفصل')
                         : null,
-                    onTap: (o) {
-                      _listController.toggleGroup(
-                        groupedData.data!.keys.elementAt(i),
-                      );
-                    },
+                    onTap: _listController.toggleGroup,
                     trailing: IconButton(
                       onPressed: () {
                         _listController.toggleGroup(
@@ -199,11 +198,11 @@ class _DayCheckListState<G extends JsonRef, T extends Person>
         });
   }
 
-  Widget _buildItem(T current) {
+  Widget buildItemWrapper(T current) {
     return StreamBuilder<Map<String, HistoryRecord>>(
       stream: _listController.dayOptions.enabled
           .switchMap((_) => _listController.attended),
-      builder: (context, attended) => buildItem(
+      builder: (context, attended) => _buildItem(
         current,
         onLongPress: widget.onLongPress ??
             ((o) => _showRecordDialog(
