@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -11,8 +10,8 @@ import 'package:get_it/get_it.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:meetinghelper/models/data/class.dart';
-import 'package:meetinghelper/models/data_object_widget.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/helpers.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
@@ -20,9 +19,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tinycolor2/tinycolor2.dart';
 
 import '../../models/data/user.dart';
-import '../../models/mini_models.dart.bak';
 import '../../models/search/search_filters.dart';
-import '../lists/users_list.dart';
 import '../mini_lists/colors_list.dart';
 
 class EditClass extends StatefulWidget {
@@ -74,8 +71,8 @@ class _EditClassState extends State<EditClass> {
               ],
               backgroundColor: class$.color != Colors.transparent
                   ? (Theme.of(context).brightness == Brightness.light
-                      ? TinyColor(class$.color).lighten().color
-                      : TinyColor(class$.color).darken().color)
+                      ? class$.color?.lighten()
+                      : class$.color?.darken())
                   : null,
               //title: Text(widget.me.name),
               expandedHeight: 250.0,
@@ -93,7 +90,7 @@ class _EditClassState extends State<EditClass> {
                         )),
                   ),
                   background: changedImage == null || deletePhoto
-                      ? class$.photo(cropToCircle: false)
+                      ? PhotoObjectWidget(class$, circleCrop: false)
                       : PhotoView(
                           imageProvider: FileImage(File(changedImage!))),
                 ),
@@ -114,7 +111,7 @@ class _EditClassState extends State<EditClass> {
                     child: TextFormField(
                       decoration: const InputDecoration(labelText: 'اسم الفصل'),
                       initialValue: class$.name,
-                      onChanged: (v) => class$.name = v,
+                      onChanged: (v) => class$ = class$.copyWith.name(v),
                       textInputAction: TextInputAction.next,
                       textCapitalization: TextCapitalization.words,
                       validator: (value) {
@@ -127,26 +124,26 @@ class _EditClassState extends State<EditClass> {
                   ),
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: FutureBuilder<JsonQuery>(
-                      future: StudyYear.getAllForUser(),
+                    child: FutureBuilder<List<StudyYear>>(
+                      future: StudyYear.getAll().first,
                       builder: (conext, data) {
                         if (data.hasData) {
                           return Container(
                             padding: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: DropdownButtonFormField(
-                              validator: (dynamic v) {
+                            child: DropdownButtonFormField<JsonRef?>(
+                              validator: (v) {
                                 if (v == null) {
                                   return 'هذا الحقل مطلوب';
                                 } else {
                                   return null;
                                 }
                               },
-                              value: class$.studyYear?.path,
-                              items: data.data!.docs
+                              value: class$.studyYear,
+                              items: data.data!
                                   .map(
                                     (item) => DropdownMenuItem(
-                                      value: item.reference.path,
-                                      child: Text(item.data()['Name']),
+                                      value: item.ref,
+                                      child: Text(item.name),
                                     ),
                                   )
                                   .toList()
@@ -157,11 +154,9 @@ class _EditClassState extends State<EditClass> {
                                     child: Text(''),
                                   ),
                                 ),
-                              onChanged: (dynamic value) {
+                              onChanged: (value) {
                                 setState(() {});
-                                class$.studyYear = value != null
-                                    ? GetIt.I<DatabaseRepository>().doc(value)
-                                    : null;
+                                class$ = class$.copyWith.studyYear(value);
                                 FocusScope.of(context).nextFocus();
                               },
                               decoration: const InputDecoration(
@@ -192,7 +187,7 @@ class _EditClassState extends State<EditClass> {
                           )
                           .toList(),
                       onChanged: (value) {
-                        class$.gender = value;
+                        class$ = class$.copyWith.gender(value);
                         setState(() {});
                       },
                       decoration: const InputDecoration(
@@ -205,23 +200,24 @@ class _EditClassState extends State<EditClass> {
                         ? ElevatedButton.styleFrom(
                             primary:
                                 Theme.of(context).brightness == Brightness.light
-                                    ? TinyColor(class$.color).lighten().color
-                                    : TinyColor(class$.color).darken().color,
+                                    ? class$.color?.lighten()
+                                    : class$.color?.darken(),
                           )
                         : null,
                     onPressed: selectColor,
                     icon: const Icon(Icons.color_lens),
                     label: const Text('اللون'),
                   ),
-                  if (User.instance.manageAllowedUsers ||
-                      User.instance.manageUsers)
+                  if (MHAuthRepository
+                          .I.currentUser!.permissions.manageAllowedUsers ||
+                      MHAuthRepository.I.currentUser!.permissions.manageUsers)
                     ElevatedButton.icon(
                       style: class$.color != Colors.transparent
                           ? ElevatedButton.styleFrom(
                               primary: Theme.of(context).brightness ==
                                       Brightness.light
-                                  ? TinyColor(class$.color).lighten().color
-                                  : TinyColor(class$.color).darken().color,
+                                  ? class$.color?.lighten()
+                                  : class$.color?.darken(),
                             )
                           : null,
                       icon: const Icon(Icons.visibility),
@@ -274,7 +270,7 @@ class _EditClassState extends State<EditClass> {
     if (source == 'delete') {
       changedImage = null;
       deletePhoto = true;
-      class$.hasPhoto = false;
+      class$ = class$.copyWith.hasPhoto(false);
       setState(() {});
       return;
     }
@@ -345,7 +341,7 @@ class _EditClassState extends State<EditClass> {
   }
 
   void nameChanged(String value) {
-    class$.name = value;
+    class$ = class$.copyWith.name(value);
   }
 
   Future save() async {
@@ -359,15 +355,15 @@ class _EditClassState extends State<EditClass> {
         );
         final update = class$.id != 'null';
         if (!update) {
-          class$.ref =
-              GetIt.I<DatabaseRepository>().collection('Classes').doc();
+          class$ = class$.copyWith
+              .ref(GetIt.I<DatabaseRepository>().collection('Classes').doc());
         }
         if (changedImage != null) {
           await FirebaseStorage.instance
               .ref()
               .child('ClassesPhotos/${class$.id}')
               .putFile(File(changedImage!));
-          class$.hasPhoto = true;
+          class$ = class$.copyWith.hasPhoto(true);
         } else if (deletePhoto) {
           await FirebaseStorage.instance
               .ref()
@@ -375,16 +371,17 @@ class _EditClassState extends State<EditClass> {
               .delete();
         }
 
-        class$.lastEdit = auth.FirebaseAuth.instance.currentUser!.uid;
+        class$ = class$.copyWith.lastEdit(
+            LastEdit(MHAuthRepository.I.currentUser!.uid, DateTime.now()));
 
         if (update &&
             await Connectivity().checkConnectivity() !=
                 ConnectivityResult.none) {
-          await class$.update(old: widget.class$?.getMap() ?? {});
+          await class$.update(old: widget.class$?.toJson() ?? {});
         } else if (update) {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
-          class$.update(old: widget.class$?.getMap() ?? {});
+          class$.update(old: widget.class$?.toJson() ?? {});
         } else if (await Connectivity().checkConnectivity() !=
             ConnectivityResult.none) {
           await class$.set();
@@ -418,7 +415,7 @@ class _EditClassState extends State<EditClass> {
             onPressed: () {
               navigator.currentState!.pop();
               setState(() {
-                class$.color = Colors.transparent;
+                class$ = class$.copyWith.color(Colors.transparent);
               });
             },
             child: const Text('بلا لون'),
@@ -429,7 +426,7 @@ class _EditClassState extends State<EditClass> {
           onSelect: (color) {
             navigator.currentState!.pop();
             setState(() {
-              class$.color = color;
+              class$ = class$.copyWith.color(color);
             });
           },
         ),
@@ -438,73 +435,76 @@ class _EditClassState extends State<EditClass> {
   }
 
   void _selectAllowedUsers() async {
-    class$.allowedUsers = await navigator.currentState!.push(
-          MaterialPageRoute(
-            builder: (context) => FutureBuilder<List<User>>(
-              future: User.getAllForUser().first.then((value) => value
-                  .where((u) => class$.allowedUsers.contains(u.uid))
-                  .toList()),
-              builder: (c, users) {
-                if (!users.hasData)
-                  return const Center(child: CircularProgressIndicator());
+    final rslt = await navigator.currentState!.push(
+      MaterialPageRoute(
+        builder: (context) => FutureBuilder<List<User?>>(
+          future: Future.wait(
+              class$.allowedUsers.map(MHAuthRepository.userNameFromUID)),
+          builder: (context, users) {
+            if (!users.hasData)
+              return const Center(child: CircularProgressIndicator());
 
-                return Provider<ListController<User>>(
-                  create: (_) => ListController<User>(
-                    itemBuilder: (current,
-                            [void Function(User)? onLongPress,
-                            void Function(User)? onTap,
-                            Widget? trailing,
-                            Widget? subtitle]) =>
-                        DataObjectWidget(
-                      current,
-                      onTap: () => onTap!(current),
-                      trailing: trailing,
-                      showSubTitle: false,
-                    ),
-                    selectionMode: true,
-                    selected: {
-                      for (final item in users.data!) item.docId: item
-                    },
-                    itemsStream: User.getAllForUser().map(
-                      (users) => users.where((u) => u.uid != null).toList(),
-                    ),
+            return Provider<ListController<Class?, User>>(
+              create: (_) => ListController<Class?, User>(
+                objectsPaginatableStream: PaginatableStream.loadAll(
+                  stream: MHAuthRepository.getAllNames().map(
+                    (users) =>
+                        users.where((u) => u.uid != User.emptyUID).toList(),
                   ),
-                  dispose: (context, c) => c.dispose(),
-                  builder: (context, _) => Scaffold(
-                    appBar: AppBar(
-                      leading: IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: navigator.currentState!.pop),
-                      title: SearchField(
-                        showSuffix: false,
-                        searchStream:
-                            context.read<ListController<User>>().searchQuery,
-                        textStyle: Theme.of(context).primaryTextTheme.headline6,
-                      ),
-                      actions: [
-                        IconButton(
-                          onPressed: () {
-                            navigator.currentState!.pop(context
-                                .read<ListController<User>>()
-                                .selectedLatest
-                                ?.values
-                                .map((u) => u.uid)
-                                .toList());
-                          },
-                          icon: const Icon(Icons.done),
-                          tooltip: 'تم',
-                        ),
-                      ],
-                    ),
-                    body: const UsersList(
-                      autoDisposeController: false,
-                    ),
+                ),
+                groupByStream: usersByClass,
+                groupingStream: Stream.value(true),
+              )..selectAll(users.data!.whereType<User>().toList()),
+              dispose: (context, c) => c.dispose(),
+              builder: (context, _) => Scaffold(
+                appBar: AppBar(
+                  leading: IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: navigator.currentState!.pop),
+                  title: SearchField(
+                    showSuffix: false,
+                    searchStream: context
+                        .read<ListController<Class?, User>>()
+                        .searchSubject,
+                    textStyle: Theme.of(context).primaryTextTheme.headline6,
                   ),
-                );
-              },
-            ),
-          ),
-        ) ??
-        class$.allowedUsers;
+                  actions: [
+                    IconButton(
+                      onPressed: () {
+                        navigator.currentState!.pop(context
+                            .read<ListController<Class?, User>>()
+                            .currentSelection
+                            ?.map((u) => u.uid)
+                            .toList());
+                      },
+                      icon: const Icon(Icons.done),
+                      tooltip: 'تم',
+                    ),
+                  ],
+                ),
+                body: DataObjectListView<Class?, User>(
+                  itemBuilder: (
+                    current, {
+                    onLongPress,
+                    onTap,
+                    trailing,
+                    subtitle,
+                  }) =>
+                      DataObjectWidget(
+                    current,
+                    onTap: () => onTap!(current),
+                    trailing: trailing,
+                    showSubtitle: false,
+                  ),
+                  controller: context.read<ListController<Class?, User>>(),
+                  autoDisposeController: false,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+    if (rslt != null) class$ = class$.copyWith.allowedUsers(rslt);
   }
 }

@@ -1,3 +1,4 @@
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -26,6 +27,13 @@ class MapView extends StatefulWidget {
 
 class _MapViewState extends State<MapView> {
   GoogleMapController? controller;
+  GeoPoint? location;
+
+  @override
+  void initState() {
+    super.initState();
+    location = widget.person.location;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,23 +42,24 @@ class _MapViewState extends State<MapView> {
       onTap: widget.editMode
           ? (point) {
               setState(() {
-                widget.person.location = fromLatLng(point);
+                location = fromLatLng(point);
               });
             }
           : null,
       markers: {
-        if (widget.person.location != null)
+        if (location != null)
           Marker(
-              markerId: MarkerId(widget.person.id),
-              infoWindow: InfoWindow(title: widget.person.name),
-              position: fromGeoPoint(widget.person.location!))
+            markerId: MarkerId(widget.person.id),
+            infoWindow: InfoWindow(title: widget.person.name),
+            position: fromGeoPoint(location!),
+          ),
       },
       onMapCreated: (con) => controller = con,
       initialCameraPosition: CameraPosition(
         zoom: 16,
-        target: widget.person.location != null
-            ? fromGeoPoint(widget.person.location!)
-            : (widget.initialLocation ?? MegaMap.center),
+        target: location != null
+            ? fromGeoPoint(location!)
+            : widget.initialLocation ?? MegaMap.center,
       ),
     );
   }

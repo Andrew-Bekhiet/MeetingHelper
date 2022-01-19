@@ -62,8 +62,9 @@ import 'views/user_registeration.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await _initConfigs();
+  await initConfigs();
 
+  //TODO: DefaultDataObjectTapHandler
   await init(
     sentryDSN: sentryDSN,
     overrides: {
@@ -90,7 +91,7 @@ void main() async {
   );
 }
 
-Future _initConfigs() async {
+Future<void> initConfigs() async {
   try {
     await dotenv.load();
 
@@ -297,7 +298,7 @@ class AppState extends State<App> {
                 if (parent.parent.id == 'Classes') {
                   person.copyWith.classId(parent);
                 } else if (parent.parent.id == 'Services') {
-                  person.copyWith.services(parent);
+                  person.copyWith.services([parent]);
                 }
 
                 return EditPerson(person: person);
@@ -351,9 +352,9 @@ class AppState extends State<App> {
                           as Json)['Person'],
                   showMotherAndFatherPhones:
                       ModalRoute.of(context)!.settings.arguments is! Person ||
-                              ((ModalRoute.of(context)!.settings.arguments!
+                          ((ModalRoute.of(context)!.settings.arguments!
                                   as Json)['showMotherAndFatherPhones'] ??
-                          false),
+                              false),
                 ),
             'UserInfo': (context) => UserInfo(
                 user: ModalRoute.of(context)!.settings.arguments! as User),

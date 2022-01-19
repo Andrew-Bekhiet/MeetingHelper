@@ -1,13 +1,10 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:churchdata_core/churchdata_core.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:collection/collection.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
@@ -16,30 +13,24 @@ import 'package:flutter/material.dart' hide Notification;
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     hide Person;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
-import 'package:meetinghelper/views/lists/lists.dart';
+import 'package:meetinghelper/secrets.dart';
 import 'package:meetinghelper/views/services_list.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart' hide Notification;
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:spreadsheet_decoder/spreadsheet_decoder.dart';
-import 'package:timeago/timeago.dart';
 
 import '../main.dart';
 import '../models/data/person.dart';
 import '../models/data/user.dart';
 import '../models/history/history_record.dart';
 import '../utils/globals.dart';
-import '../views/list.dart';
-import '../views/notification_widget.dart' as no;
 import '../views/search_query.dart';
 
 void changeTheme({required BuildContext context}) {
@@ -128,8 +119,10 @@ void changeTheme({required BuildContext context}) {
 }
 
 Stream<Map<PreferredStudyYear?, List<T>>>
-    servicesByStudyYearRef<T extends DataObject>() {
-  assert(T == Class || T == Service || T == DataObject);
+    servicesByStudyYearRef<T extends DataObject>([List<T>? services]) {
+  assert(isSubtype<Class, T>() ||
+      isSubtype<Service, T>() ||
+      (T == DataObject && services == null));
 
   return Rx.combineLatest3<Map<JsonRef, StudyYear>, List<Class>, List<Service>,
           Map<PreferredStudyYear?, List<T>>>(
@@ -142,23 +135,34 @@ Stream<Map<PreferredStudyYear?, List<T>>>
               for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
             },
           ),
+      T == Class
+          ? services != null
+              ? Stream.value(services as List<Class>)
+              : MHAuthRepository.I.userStream.switchMap(
+                  (user) => (user!.permissions.superAccess
+                          ? GetIt.I<DatabaseRepository>()
+                              .collection('Classes')
+                              .orderBy('StudyYear')
+                              .orderBy('Gender')
+                              .snapshots()
+                          : GetIt.I<DatabaseRepository>()
+                              .collection('Classes')
+                              .where('Allowed', arrayContains: user.uid)
+                              .orderBy('StudyYear')
+                              .orderBy('Gender')
+                              .snapshots())
+                      .map(
+                    (cs) => cs.docs.map(Class.fromDoc).toList(),
+                  ),
+                )
+          : Stream.value([]),
       T == Service
-          ? Stream.value([])
-          : MHAuthRepository.I.userStream.switchMap((user) =>
-              (user!.permissions.superAccess
-                      ? GetIt.I<DatabaseRepository>()
-                          .collection('Classes')
-                          .orderBy('StudyYear')
-                          .orderBy('Gender')
-                          .snapshots()
-                      : GetIt.I<DatabaseRepository>()
-                          .collection('Classes')
-                          .where('Allowed', arrayContains: user.uid)
-                          .orderBy('StudyYear')
-                          .orderBy('Gender')
-                          .snapshots())
-                  .map((cs) => cs.docs.map(Class.fromDoc).toList())),
-      T == Class ? Stream.value([]) : Service.getAllForUser(),
+          ? services != null
+              ? Stream.value(services as List<Service>)
+              : Service.getAllForUser()
+          : Stream.value([]),
+      //
+
       (studyYears, classes, services) {
     final combined = [...classes, ...services];
 
@@ -492,7 +496,7 @@ void import(BuildContext context) async {
           duration: Duration(minutes: 9),
         ),
       );
-      await FirebaseFunctions.instance
+      await GetIt.I<FunctionsService>()
           .httpsCallable('importFromExcel')
           .call({'fileId': filename + '.xlsx'});
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
@@ -512,20 +516,12 @@ void import(BuildContext context) async {
 }
 
 Future<void> onBackgroundMessage(RemoteMessage message) async {
-  try {
-    await Hive.initFlutter();
-    // ignore: empty_catches
-  } on Exception {}
-  await Hive.openBox<Notification>('Notifications');
-  await storeNotification(message);
-  await GetIt.I<CacheRepository>().box<Notification>('Notifications').close();
+  await NotificationsService.storeNotification(message);
 }
 
 void onForegroundMessage(RemoteMessage message, [BuildContext? context]) async {
   context ??= mainScfld.currentContext;
-  final bool opened = Hive.isBoxOpen('Notifications');
-  if (!opened) await Hive.openBox<Notification>('Notifications');
-  await storeNotification(message);
+  await NotificationsService.storeNotification(message);
   scaffoldMessenger.currentState!.showSnackBar(
     SnackBar(
       content: Text(message.notification!.body!),
@@ -800,28 +796,19 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
     builder: (context) {
       return MultiProvider(
         providers: [
-          Provider<ListController<User>>(
-            create: (_) => ListController<User>(
-              itemBuilder: (current,
-                      [void Function(User)? onLongPress,
-                      void Function(User)? onTap,
-                      Widget? trailing,
-                      Widget? subtitle]) =>
-                  DataObjectWidget(
-                current,
-                onTap: () => onTap!(current),
-                trailing: trailing,
-                showSubTitle: false,
+          Provider<ListController<Class?, User>>(
+            create: (_) => ListController<Class?, User>(
+              objectsPaginatableStream: PaginatableStream.loadAll(
+                stream: GetIt.I<DatabaseRepository>()
+                    .collection('Users')
+                    .snapshots()
+                    .map(
+                      (s) => s.docs.map(User.fromDoc).toList(),
+                    ),
               ),
-              selectionMode: true,
-              itemsStream: GetIt.I<DatabaseRepository>()
-                  .collection('Users')
-                  .snapshots()
-                  .map(
-                    (s) =>
-                        s.docs.map((e) => User.fromDoc(e)..uid = e.id).toList(),
-                  ),
-            ),
+              groupingStream: Stream.value(true),
+              groupByStream: usersByClass,
+            )..enterSelectionMode(),
             dispose: (context, c) => c.dispose(),
           ),
         ],
@@ -832,10 +819,9 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
               IconButton(
                 onPressed: () {
                   navigator.currentState!.pop(context
-                      .read<ListController<User>>()
-                      .selectedLatest
-                      ?.values
-                      .toList());
+                      .read<ListController<Class?, User>>()
+                      .currentSelection
+                      ?.toList());
                 },
                 icon: const Icon(Icons.done),
                 tooltip: 'تم',
@@ -847,11 +833,26 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
             children: [
               SearchField(
                 showSuffix: false,
-                searchStream: context.read<ListController<User>>().searchQuery,
+                searchStream:
+                    context.read<ListController<Class?, User>>().searchSubject,
                 textStyle: Theme.of(context).textTheme.bodyText2,
               ),
-              const Expanded(
-                child: UsersList(
+              Expanded(
+                child: DataObjectListView<Class?, User>(
+                  itemBuilder: (
+                    current, {
+                    onLongPress,
+                    onTap,
+                    trailing,
+                    subtitle,
+                  }) =>
+                      DataObjectWidget(
+                    current,
+                    onTap: () => onTap!(current),
+                    trailing: trailing,
+                    showSubtitle: false,
+                  ),
+                  controller: context.read<ListController<Class?, User>>(),
                   autoDisposeController: false,
                 ),
               ),
@@ -932,10 +933,10 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
     } else if (attachement is Person) {
       link = 'Person?PersonId=${attachement.id}';
     }
-    await FirebaseFunctions.instance.httpsCallable('sendMessageToUsers').call({
+    await GetIt.I<FunctionsService>().httpsCallable('sendMessageToUsers').call({
       'users': users.map((e) => e.uid).toList(),
       'title': title.text,
-      'body': 'أرسل إليك ${User.instance.name} رسالة',
+      'body': 'أرسل إليك ${MHAuthRepository.I.currentUser!.name} رسالة',
       'content': content.text,
       'attachement': uriPrefix + '/view$link'
     });
@@ -989,7 +990,7 @@ Future<void> recoverDoc(BuildContext context, String path) async {
       ) ==
       true) {
     try {
-      await FirebaseFunctions.instance.httpsCallable('recoverDoc').call({
+      await GetIt.I<FunctionsService>().httpsCallable('recoverDoc').call({
         'deletedPath': path,
         'keepBackup': keepBackup,
         'nested': nested,
@@ -1112,26 +1113,22 @@ Future<String> shareUserRaw(String? uid) async {
 }
 
 void showBirthDayNotification() async {
-  await Firebase.initializeApp();
-  if (auth.FirebaseAuth.instance.currentUser == null) return;
+  await initConfigs();
 
-  await Hive.initFlutter();
+  await init(
+    sentryDSN: sentryDSN,
+    overrides: {
+      AuthRepository: () {
+        final instance = MHAuthRepository();
 
-  const FlutterSecureStorage secureStorage = FlutterSecureStorage();
-  final containsEncryptionKey = await secureStorage.containsKey(key: 'key');
-  if (!containsEncryptionKey)
-    await secureStorage.write(
-        key: 'key', value: base64Url.encode(Hive.generateSecureKey()));
+        GetIt.I.registerSingleton<MHAuthRepository>(instance);
 
-  final encryptionKey =
-      base64Url.decode((await secureStorage.read(key: 'key'))!);
-
-  await Hive.openBox(
-    'User',
-    encryptionCipher: HiveAesCipher(encryptionKey),
+        return instance;
+      },
+    },
   );
 
-  await User.instance.initialized;
+  if (MHAuthRepository.I.currentUser == null) return;
 
   final persons = await Person.getAllForUser(
       queryCompleter: (q, _, __) => q
@@ -1174,11 +1171,10 @@ void showBirthDayNotification() async {
 
 Future<List<T>?> selectServices<T extends DataObject>(List<T>? selected) async {
   final _controller = ServicesListController<T>(
-    itemsStream: servicesByStudyYearRef<T>(),
-    selectionMode: true,
-    selected: selected,
-    searchQuery: Stream.value(''),
-  );
+    objectsPaginatableStream:
+        PaginatableStream.loadAll(stream: Stream.value([])),
+    groupByStream: (_) => servicesByStudyYearRef<T>(),
+  )..selectAll(selected);
 
   if (await navigator.currentState!.push(
         MaterialPageRoute(
@@ -1187,53 +1183,54 @@ Future<List<T>?> selectServices<T extends DataObject>(List<T>? selected) async {
               title: const Text('اختر الفصول'),
               actions: [
                 IconButton(
-                    icon: const Icon(Icons.select_all),
-                    onPressed: _controller.selectAll,
-                    tooltip: 'تحديد الكل'),
+                  icon: const Icon(Icons.select_all),
+                  onPressed: _controller.selectAll,
+                  tooltip: 'تحديد الكل',
+                ),
                 IconButton(
-                    icon: const Icon(Icons.check_box_outline_blank),
-                    onPressed: _controller.selectNone,
-                    tooltip: 'تحديد لا شئ'),
+                  icon: const Icon(Icons.check_box_outline_blank),
+                  onPressed: _controller.deselectAll,
+                  tooltip: 'تحديد لا شئ',
+                ),
                 IconButton(
-                    icon: const Icon(Icons.done),
-                    onPressed: () => navigator.currentState!.pop(true),
-                    tooltip: 'تم'),
+                  icon: const Icon(Icons.done),
+                  onPressed: () => navigator.currentState!.pop(true),
+                  tooltip: 'تم',
+                ),
               ],
             ),
             body: ServicesList<T>(
-                options: _controller, autoDisposeController: false),
+              options: _controller,
+              autoDisposeController: false,
+            ),
           ),
         ),
       ) ==
       true) {
-    await _controller.dispose();
-    return _controller.selectedLatest!.values.whereType<T>().toList();
+    unawaited(_controller.dispose());
+    return _controller.currentSelection?.whereType<T>().toList();
   }
   await _controller.dispose();
   return null;
 }
 
 void showConfessionNotification() async {
-  await Firebase.initializeApp();
-  if (auth.FirebaseAuth.instance.currentUser == null) return;
+  await initConfigs();
 
-  await Hive.initFlutter();
+  await init(
+    sentryDSN: sentryDSN,
+    overrides: {
+      AuthRepository: () {
+        final instance = MHAuthRepository();
 
-  const FlutterSecureStorage secureStorage = FlutterSecureStorage();
-  final containsEncryptionKey = await secureStorage.containsKey(key: 'key');
-  if (!containsEncryptionKey)
-    await secureStorage.write(
-        key: 'key', value: base64Url.encode(Hive.generateSecureKey()));
+        GetIt.I.registerSingleton<MHAuthRepository>(instance);
 
-  final encryptionKey =
-      base64Url.decode((await secureStorage.read(key: 'key'))!);
-
-  await Hive.openBox(
-    'User',
-    encryptionCipher: HiveAesCipher(encryptionKey),
+        return instance;
+      },
+    },
   );
 
-  await User.instance.initialized;
+  if (MHAuthRepository.I.currentUser == null) return;
 
   final persons = await Person.getAllForUser(
     queryCompleter: (q, _, __) => q
@@ -1292,7 +1289,7 @@ Future<void> showErrorUpdateDataDialog(
     {BuildContext? context, bool pushApp = true}) async {
   if (pushApp ||
       GetIt.I<CacheRepository>().box('Settings').get('DialogLastShown') !=
-          tranucateToDay().millisecondsSinceEpoch) {
+          DateTime.now().truncateToDay().millisecondsSinceEpoch) {
     await showDialog(
       context: context!,
       builder: (context) => AlertDialog(
@@ -1307,14 +1304,15 @@ Future<void> showErrorUpdateDataDialog(
               shape: StadiumBorder(side: BorderSide(color: primaries[13]!)),
             ),
             onPressed: () async {
-              final user = User.instance;
+              final user = MHAuthRepository.I.currentUser!;
               await navigator.currentState!
                   .pushNamed('UpdateUserDataError', arguments: user);
-              if (user.lastTanawol != null &&
-                  user.lastConfession != null &&
-                  ((user.lastTanawol!.millisecondsSinceEpoch + 2592000000) >
+              if (user.permissions.lastTanawol != null &&
+                  user.permissions.lastConfession != null &&
+                  ((user.permissions.lastTanawol!.millisecondsSinceEpoch +
+                              2592000000) >
                           DateTime.now().millisecondsSinceEpoch &&
-                      (user.lastConfession!.millisecondsSinceEpoch +
+                      (user.permissions.lastConfession!.millisecondsSinceEpoch +
                               5184000000) >
                           DateTime.now().millisecondsSinceEpoch)) {
                 navigator.currentState!.pop();
@@ -1335,33 +1333,28 @@ Future<void> showErrorUpdateDataDialog(
         ],
       ),
     );
-    await GetIt.I<CacheRepository>()
-        .box('Settings')
-        .put('DialogLastShown', tranucateToDay().millisecondsSinceEpoch);
+    await GetIt.I<CacheRepository>().box('Settings').put('DialogLastShown',
+        DateTime.now().truncateToDay().millisecondsSinceEpoch);
   }
 }
 
 void showKodasNotification() async {
-  await Firebase.initializeApp();
-  if (auth.FirebaseAuth.instance.currentUser == null) return;
+  await initConfigs();
 
-  await Hive.initFlutter();
+  await init(
+    sentryDSN: sentryDSN,
+    overrides: {
+      AuthRepository: () {
+        final instance = MHAuthRepository();
 
-  const FlutterSecureStorage secureStorage = FlutterSecureStorage();
-  final containsEncryptionKey = await secureStorage.containsKey(key: 'key');
-  if (!containsEncryptionKey)
-    await secureStorage.write(
-        key: 'key', value: base64Url.encode(Hive.generateSecureKey()));
+        GetIt.I.registerSingleton<MHAuthRepository>(instance);
 
-  final encryptionKey =
-      base64Url.decode((await secureStorage.read(key: 'key'))!);
-
-  await Hive.openBox(
-    'User',
-    encryptionCipher: HiveAesCipher(encryptionKey),
+        return instance;
+      },
+    },
   );
 
-  await User.instance.initialized;
+  if (MHAuthRepository.I.currentUser == null) return;
 
   final persons = await Person.getAllForUser(
     queryCompleter: (q, _, __) => q
@@ -1397,26 +1390,22 @@ void showKodasNotification() async {
 }
 
 void showMeetingNotification() async {
-  await Firebase.initializeApp();
-  if (auth.FirebaseAuth.instance.currentUser == null) return;
+  await initConfigs();
 
-  await Hive.initFlutter();
+  await init(
+    sentryDSN: sentryDSN,
+    overrides: {
+      AuthRepository: () {
+        final instance = MHAuthRepository();
 
-  const FlutterSecureStorage secureStorage = FlutterSecureStorage();
-  final containsEncryptionKey = await secureStorage.containsKey(key: 'key');
-  if (!containsEncryptionKey)
-    await secureStorage.write(
-        key: 'key', value: base64Url.encode(Hive.generateSecureKey()));
+        GetIt.I.registerSingleton<MHAuthRepository>(instance);
 
-  final encryptionKey =
-      base64Url.decode((await secureStorage.read(key: 'key'))!);
-
-  await Hive.openBox(
-    'User',
-    encryptionCipher: HiveAesCipher(encryptionKey),
+        return instance;
+      },
+    },
   );
 
-  await User.instance.initialized;
+  if (MHAuthRepository.I.currentUser == null) return;
 
   final persons = await Person.getAllForUser(
     queryCompleter: (q, _, __) => q
@@ -1451,111 +1440,23 @@ void showMeetingNotification() async {
     );
 }
 
-Future<void> showMessage(no.Notification notification) async {
-  final attachement = await getLinkObject(
-    Uri.parse(notification.attachement!),
-  );
-  final String scndLine = await attachement?.getSecondLine() ?? '';
-  final user = notification.from != ''
-      ? await GetIt.I<DatabaseRepository>()
-          .doc('Users/${notification.from}')
-          .get()
-      : null;
-  await showDialog(
-    context: navigator.currentContext!,
-    builder: (context) => AlertDialog(
-      title: Text(notification.title!),
-      content: SizedBox(
-        width: 280,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Text(
-              notification.content!,
-              style: const TextStyle(fontSize: 18),
-            ),
-            if (user != null)
-              Card(
-                color: attachement.color != Colors.transparent
-                    ? attachement.color
-                    : null,
-                child: ListTile(
-                  title: Text(attachement.name),
-                  subtitle: Text(
-                    scndLine,
-                  ),
-                  leading: attachement is User
-                      ? attachement.getPhoto()
-                      : attachement.photo(),
-                  onTap: () {
-                    if (attachement is Class) {
-                      classTap(attachement);
-                    } else if (attachement is Person) {
-                      personTap(attachement);
-                    } else if (attachement is User) {
-                      userTap(attachement);
-                    }
-                  },
-                ),
-              )
-            else
-              CachedNetworkImage(
-                useOldImageOnUrlChange: true,
-                imageUrl: attachement.url,
-              ),
-            Text('من: ' +
-                (user != null
-                    ? User.fromDoc(
-                        user,
-                      ).name
-                    : 'مسؤلو البرنامج')),
-            Text(
-              DateFormat('yyyy/M/d h:m a', 'ar-EG').format(
-                DateTime.fromMillisecondsSinceEpoch(notification.time),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
-Future<void> showPendingMessage() async {
-  final pendingMessage = await FirebaseMessaging.instance.getInitialMessage();
-  if (pendingMessage != null) {
-    // ignore: unawaited_futures
-    navigator.currentState!.pushNamed('Notifications');
-    if (pendingMessage.data['type'] == 'Message')
-      await showMessage(
-        no.Notification.fromMessage(pendingMessage.data),
-      );
-    else
-      await processLink(Uri.parse(pendingMessage.data['attachement']));
-  }
-}
-
 void showTanawolNotification() async {
-  await Firebase.initializeApp();
-  if (auth.FirebaseAuth.instance.currentUser == null) return;
+  await initConfigs();
 
-  await Hive.initFlutter();
+  await init(
+    sentryDSN: sentryDSN,
+    overrides: {
+      AuthRepository: () {
+        final instance = MHAuthRepository();
 
-  const FlutterSecureStorage secureStorage = FlutterSecureStorage();
-  final containsEncryptionKey = await secureStorage.containsKey(key: 'key');
-  if (!containsEncryptionKey)
-    await secureStorage.write(
-        key: 'key', value: base64Url.encode(Hive.generateSecureKey()));
+        GetIt.I.registerSingleton<MHAuthRepository>(instance);
 
-  final encryptionKey =
-      base64Url.decode((await secureStorage.read(key: 'key'))!);
-
-  await Hive.openBox(
-    'User',
-    encryptionCipher: HiveAesCipher(encryptionKey),
+        return instance;
+      },
+    },
   );
 
-  await User.instance.initialized;
+  if (MHAuthRepository.I.currentUser == null) return;
 
   final persons = await Person.getAllForUser(
     queryCompleter: (q, _, __) => q
@@ -1591,26 +1492,22 @@ void showTanawolNotification() async {
 }
 
 void showVisitNotification() async {
-  await Firebase.initializeApp();
-  if (auth.FirebaseAuth.instance.currentUser == null) return;
+  await initConfigs();
 
-  await Hive.initFlutter();
+  await init(
+    sentryDSN: sentryDSN,
+    overrides: {
+      AuthRepository: () {
+        final instance = MHAuthRepository();
 
-  const FlutterSecureStorage secureStorage = FlutterSecureStorage();
-  final containsEncryptionKey = await secureStorage.containsKey(key: 'key');
-  if (!containsEncryptionKey)
-    await secureStorage.write(
-        key: 'key', value: base64Url.encode(Hive.generateSecureKey()));
+        GetIt.I.registerSingleton<MHAuthRepository>(instance);
 
-  final encryptionKey =
-      base64Url.decode((await secureStorage.read(key: 'key'))!);
-
-  await Hive.openBox(
-    'User',
-    encryptionCipher: HiveAesCipher(encryptionKey),
+        return instance;
+      },
+    },
   );
 
-  await User.instance.initialized;
+  if (MHAuthRepository.I.currentUser == null) return;
 
   final persons = await Person.getAllForUser(
     queryCompleter: (q, _, __) => q
@@ -1645,64 +1542,43 @@ void showVisitNotification() async {
     );
 }
 
-Future<int> storeNotification(RemoteMessage message) async {
-  return GetIt.I<CacheRepository>()
-      .box<Notification>('Notifications')
-      .add(message.data);
-}
-
-String toDurationString(Timestamp? date, {appendSince = true}) {
-  if (date == null) return '';
-  if (appendSince) return format(date.toDate(), locale: 'ar');
-  return format(date.toDate(), locale: 'ar').replaceAll('منذ ', '');
-}
-
-Timestamp tranucateToDay({DateTime? time}) {
-  time = time ?? DateTime.now();
-  return Timestamp.fromDate(
-      DateTime.utc(time.year, time.month, time.day).toLocal());
-}
-
-Timestamp mergeDayWithTime(DateTime day, DateTime time) {
-  return Timestamp.fromDate(DateTime(day.year, day.month, day.day, time.hour,
-      time.minute, time.second, time.millisecond, time.microsecond));
-}
-
 void userTap(User user) async {
-  if (user.approved) {
+  if (user.permissions.approved) {
     await navigator.currentState!.pushNamed('UserInfo', arguments: user);
   } else {
     final dynamic rslt = await showDialog(
-        context: navigator.currentContext!,
-        builder: (context) => AlertDialog(
-              actions: <Widget>[
-                TextButton.icon(
-                  icon: const Icon(Icons.done),
-                  label: const Text('نعم'),
-                  onPressed: () => navigator.currentState!.pop(true),
-                ),
-                TextButton.icon(
-                  icon: const Icon(Icons.close),
-                  label: const Text('لا'),
-                  onPressed: () => navigator.currentState!.pop(false),
-                ),
-                TextButton.icon(
-                  icon: const Icon(Icons.close),
-                  label: const Text('حذف المستخدم'),
-                  onPressed: () => navigator.currentState!.pop('delete'),
-                ),
-              ],
-              title: Text('${user.name} غير مُنشط هل تريد تنشيطه؟'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  user.getPhoto(false),
-                  Text(
-                    'البريد الاكتروني: ' + user.email,
-                  ),
-                ],
-              ),
-            ));
+      context: navigator.currentContext!,
+      builder: (context) => AlertDialog(
+        actions: <Widget>[
+          TextButton.icon(
+            icon: const Icon(Icons.done),
+            label: const Text('نعم'),
+            onPressed: () => navigator.currentState!.pop(true),
+          ),
+          TextButton.icon(
+            icon: const Icon(Icons.close),
+            label: const Text('لا'),
+            onPressed: () => navigator.currentState!.pop(false),
+          ),
+          TextButton.icon(
+            icon: const Icon(Icons.close),
+            label: const Text('حذف المستخدم'),
+            onPressed: () => navigator.currentState!.pop('delete'),
+          ),
+        ],
+        title: Text('${user.name} غير مُنشط هل تريد تنشيطه؟'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            PhotoObjectWidget(user),
+            Text(
+              'البريد الاكتروني: ' + user.email!,
+            ),
+          ],
+        ),
+      ),
+    );
+
     if (rslt == true) {
       scaffoldMessenger.currentState!.showSnackBar(
         const SnackBar(
@@ -1711,14 +1587,15 @@ void userTap(User user) async {
         ),
       );
       try {
-        await FirebaseFunctions.instance
+        await GetIt.I<FunctionsService>()
             .httpsCallable('approveUser')
             .call({'affectedUser': user.uid});
-        user
-          ..approved = true
-          // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
-          ..notifyListeners();
-        userTap(user);
+
+        final approvedUser = user.copyWith
+            .permissions(user.permissions.copyWith(approved: true));
+        // // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
+        // ..notifyListeners();
+        userTap(approvedUser);
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
         scaffoldMessenger.currentState!.showSnackBar(
           const SnackBar(
@@ -1739,7 +1616,7 @@ void userTap(User user) async {
         ),
       );
       try {
-        await FirebaseFunctions.instance
+        await GetIt.I<FunctionsService>()
             .httpsCallable('deleteUser')
             .call({'affectedUser': user.uid});
         scaffoldMessenger.currentState!.hideCurrentSnackBar();

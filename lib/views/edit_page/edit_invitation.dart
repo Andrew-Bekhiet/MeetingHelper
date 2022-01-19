@@ -7,11 +7,12 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
+import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/invitation.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/views/list.dart';
+import 'package:meetinghelper/utils/helpers.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -26,7 +27,7 @@ class EditInvitation extends StatefulWidget {
 }
 
 class _EditInvitationState extends State<EditInvitation> {
-  late Json old;
+  late Invitation invitation;
 
   AsyncCache<String?> personName = AsyncCache(const Duration(minutes: 1));
 
@@ -55,7 +56,7 @@ class _EditInvitationState extends State<EditInvitation> {
                     opacity: constraints.biggest.height > kToolbarHeight * 1.7
                         ? 0
                         : 1,
-                    child: Text(widget.invitation.name,
+                    child: Text(invitation.name,
                         style: const TextStyle(
                           fontSize: 16.0,
                         )),
@@ -80,7 +81,7 @@ class _EditInvitationState extends State<EditInvitation> {
                     ),
                     textInputAction: TextInputAction.next,
                     onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
-                    initialValue: widget.invitation.name,
+                    initialValue: invitation.name,
                     onChanged: nameChanged,
                     validator: (value) {
                       if (value!.isEmpty) {
@@ -93,15 +94,18 @@ class _EditInvitationState extends State<EditInvitation> {
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: GestureDetector(
-                    onTap: () async => widget.invitation.expiryDate =
-                        await _selectDateTime(
-                            'تاريخ الانتهاء', widget.invitation.expiryDate),
+                    onTap: () async =>
+                        invitation = invitation.copyWith.expiryDate(
+                      await _selectDateTime(
+                              'تاريخ الانتهاء', invitation.expiryDate) ??
+                          invitation.expiryDate,
+                    ),
                     child: InputDecorator(
                       decoration: const InputDecoration(
                         labelText: 'تاريخ انتهاء الدعوة',
                       ),
                       child: Text(DateFormat('h:m a yyyy/M/d', 'ar-EG')
-                          .format(widget.invitation.expiryDate)),
+                          .format(invitation.expiryDate)),
                     ),
                   ),
                 ),
@@ -110,16 +114,14 @@ class _EditInvitationState extends State<EditInvitation> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: InputDecorator(
-                      isEmpty:
-                          widget.invitation.permissions?['personId'] == null,
+                      isEmpty: invitation.permissions?['personId'] == null,
                       decoration: const InputDecoration(
                         labelText: 'ربط بخادم',
                       ),
                       child: FutureBuilder<String?>(
                         future: personName.fetch(
                           () async {
-                            if (widget.invitation.permissions?['personId'] ==
-                                null) {
+                            if (invitation.permissions?['personId'] == null) {
                               return null;
                             } else {
                               return (await GetIt.I<DatabaseRepository>()
@@ -148,189 +150,247 @@ class _EditInvitationState extends State<EditInvitation> {
                 if (MHAuthRepository.I.currentUser!.permissions.manageUsers)
                   ListTile(
                     trailing: Checkbox(
-                      value: widget.invitation.permissions!['manageUsers'] ??
-                          false,
-                      onChanged: (v) => setState(() =>
-                          widget.invitation.permissions!['manageUsers'] = v),
+                      value: invitation.permissions!['manageUsers'] ?? false,
+                      onChanged: (v) => setState(
+                        () => invitation = invitation.copyWith.permissions(
+                          {
+                            ...invitation.permissions ?? {},
+                            'manageUsers': v,
+                          },
+                        ),
+                      ),
                     ),
                     leading: const Icon(
                         IconData(0xef3d, fontFamily: 'MaterialIconsR')),
                     title: const Text('إدارة المستخدمين'),
                     onTap: () => setState(() =>
-                        widget.invitation.permissions!['manageUsers'] =
-                            !(widget.invitation.permissions!['manageUsers'] ??
-                                false)),
+                        invitation.permissions!['manageUsers'] =
+                            !(invitation.permissions!['manageUsers'] ?? false)),
                   ),
                 ListTile(
                   trailing: Checkbox(
                     value:
-                        widget.invitation.permissions!['manageAllowedUsers'] ??
-                            false,
-                    onChanged: (v) => setState(() => widget
-                        .invitation.permissions!['manageAllowedUsers'] = v),
+                        invitation.permissions!['manageAllowedUsers'] ?? false,
+                    onChanged: (v) => setState(
+                      () => invitation = invitation.copyWith.permissions(
+                        {
+                          ...invitation.permissions ?? {},
+                          'manageAllowedUsers': v,
+                        },
+                      ),
+                    ),
                   ),
                   leading: const Icon(
                       IconData(0xef3d, fontFamily: 'MaterialIconsR')),
                   title: const Text('إدارة مستخدمين محددين'),
-                  onTap: () => setState(() => widget
-                          .invitation.permissions!['manageAllowedUsers'] =
-                      !(widget.invitation.permissions!['manageAllowedUsers'] ??
-                          false)),
+                  onTap: () => setState(() =>
+                      widget.invitation.permissions!['manageAllowedUsers'] =
+                          !(invitation.permissions!['manageAllowedUsers'] ??
+                              false)),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value:
-                        widget.invitation.permissions!['superAccess'] ?? false,
-                    onChanged: (v) => setState(() =>
-                        widget.invitation.permissions!['superAccess'] = v),
+                    value: invitation.permissions!['superAccess'] ?? false,
+                    onChanged: (v) => setState(
+                      () => invitation = invitation.copyWith.permissions(
+                        {
+                          ...invitation.permissions ?? {},
+                          'superAccess': v,
+                        },
+                      ),
+                    ),
                   ),
                   leading: const Icon(
                       IconData(0xef56, fontFamily: 'MaterialIconsR')),
                   title: const Text('رؤية جميع البيانات'),
                   onTap: () => setState(() =>
-                      widget.invitation.permissions!['superAccess'] =
-                          !(widget.invitation.permissions!['superAccess'] ??
-                              false)),
+                      invitation.permissions!['superAccess'] =
+                          !(invitation.permissions!['superAccess'] ?? false)),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: widget.invitation.permissions!['manageDeleted'] ??
-                        false,
-                    onChanged: (v) => setState(() =>
-                        widget.invitation.permissions!['manageDeleted'] = v),
+                    value: invitation.permissions!['manageDeleted'] ?? false,
+                    onChanged: (v) => setState(
+                      () => invitation = invitation.copyWith.permissions(
+                        {
+                          ...invitation.permissions ?? {},
+                          'manageDeleted': v,
+                        },
+                      ),
+                    ),
                   ),
                   leading: const Icon(Icons.delete_outline),
                   title: const Text('استرجاع المحذوفات'),
                   onTap: () => setState(() =>
-                      widget.invitation.permissions!['manageDeleted'] =
-                          !(widget.invitation.permissions!['manageDeleted'] ??
-                              false)),
+                      invitation.permissions!['manageDeleted'] =
+                          !(invitation.permissions!['manageDeleted'] ?? false)),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: widget.invitation.permissions!['changeHistory'] ??
-                        false,
-                    onChanged: (v) => setState(() =>
-                        widget.invitation.permissions!['changeHistory'] = v),
+                    value: invitation.permissions!['changeHistory'] ?? false,
+                    onChanged: (v) => setState(
+                      () => invitation = invitation.copyWith.permissions(
+                        {
+                          ...invitation.permissions ?? {},
+                          'changeHistory': v,
+                        },
+                      ),
+                    ),
                   ),
                   leading: const Icon(Icons.history),
                   title: const Text('تعديل الكشوفات القديمة'),
                   onTap: () => setState(() =>
-                      widget.invitation.permissions!['changeHistory'] =
-                          !(widget.invitation.permissions!['changeHistory'] ??
-                              false)),
+                      invitation.permissions!['changeHistory'] =
+                          !(invitation.permissions!['changeHistory'] ?? false)),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: widget.invitation.permissions!['secretary'] ?? false,
+                    value: invitation.permissions!['secretary'] ?? false,
                     onChanged: (v) => setState(
-                        () => widget.invitation.permissions!['secretary'] = v),
+                      () => invitation = invitation.copyWith.permissions(
+                        {
+                          ...invitation.permissions ?? {},
+                          'secretary': v,
+                        },
+                      ),
+                    ),
                   ),
                   leading: const Icon(Icons.shield),
                   title: const Text('تسجيل حضور الخدام'),
-                  onTap: () => setState(() => widget
-                          .invitation.permissions!['secretary'] =
-                      !(widget.invitation.permissions!['secretary'] ?? false)),
+                  onTap: () => setState(() =>
+                      widget.invitation.permissions!['secretary'] =
+                          !(invitation.permissions!['secretary'] ?? false)),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: widget.invitation.permissions!['write'] ?? false,
+                    value: invitation.permissions!['write'] ?? false,
                     onChanged: (v) => setState(
-                        () => widget.invitation.permissions!['write'] = v),
+                      () => invitation = invitation.copyWith.permissions(
+                        {
+                          ...invitation.permissions ?? {},
+                          'write': v,
+                        },
+                      ),
+                    ),
                   ),
                   leading: const Icon(Icons.edit),
                   title: const Text('تعديل البيانات'),
-                  onTap: () => setState(() =>
-                      widget.invitation.permissions!['write'] =
-                          !(widget.invitation.permissions!['write'] ?? false)),
+                  onTap: () => setState(() => invitation.permissions!['write'] =
+                      !(invitation.permissions!['write'] ?? false)),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: widget.invitation.permissions!['export'] ?? false,
+                    value: invitation.permissions!['export'] ?? false,
                     onChanged: (v) => setState(
-                        () => widget.invitation.permissions!['export'] = v),
+                      () => invitation = invitation.copyWith.permissions(
+                        {
+                          ...invitation.permissions ?? {},
+                          'export': v,
+                        },
+                      ),
+                    ),
                   ),
                   leading: const Icon(Icons.cloud_download),
                   title: const Text('تصدير فصل لملف إكسل'),
                   onTap: () => setState(() =>
-                      widget.invitation.permissions!['export'] =
-                          !(widget.invitation.permissions!['export'] ?? false)),
+                      invitation.permissions!['export'] =
+                          !(invitation.permissions!['export'] ?? false)),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: widget.invitation.permissions!['birthdayNotify'] ??
-                        false,
-                    onChanged: (v) => setState(() =>
-                        widget.invitation.permissions!['birthdayNotify'] = v),
+                    value: invitation.permissions!['birthdayNotify'] ?? false,
+                    onChanged: (v) => setState(
+                      () => invitation = invitation.copyWith.permissions(
+                        {
+                          ...invitation.permissions ?? {},
+                          'birthdayNotify': v,
+                        },
+                      ),
+                    ),
                   ),
                   leading: const Icon(
                       IconData(0xe7e9, fontFamily: 'MaterialIconsR')),
                   title: const Text('إشعار أعياد الميلاد'),
-                  onTap: () => setState(() =>
-                      widget.invitation.permissions!['birthdayNotify'] =
-                          !(widget.invitation.permissions!['birthdayNotify'] ??
-                              false)),
+                  onTap: () => setState(() => invitation
+                          .permissions!['birthdayNotify'] =
+                      !(invitation.permissions!['birthdayNotify'] ?? false)),
                 ),
                 ListTile(
                   trailing: Checkbox(
                     value:
-                        widget.invitation.permissions!['confessionsNotify'] ??
-                            false,
-                    onChanged: (v) => setState(() => widget
-                        .invitation.permissions!['confessionsNotify'] = v),
+                        invitation.permissions!['confessionsNotify'] ?? false,
+                    onChanged: (v) => setState(
+                      () => invitation = invitation.copyWith.permissions(
+                        {
+                          ...invitation.permissions ?? {},
+                          'confessionsNotify': v,
+                        },
+                      ),
+                    ),
                   ),
                   leading: const Icon(
                       IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
                   title: const Text('إشعار  الاعتراف'),
                   onTap: () => setState(() => widget
                           .invitation.permissions!['confessionsNotify'] =
-                      !(widget.invitation.permissions!['confessionsNotify'] ??
-                          false)),
+                      !(invitation.permissions!['confessionsNotify'] ?? false)),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: widget.invitation.permissions!['tanawolNotify'] ??
-                        false,
-                    onChanged: (v) => setState(() =>
-                        widget.invitation.permissions!['tanawolNotify'] = v),
+                    value: invitation.permissions!['tanawolNotify'] ?? false,
+                    onChanged: (v) => setState(
+                      () => invitation = invitation.copyWith.permissions(
+                        {
+                          ...invitation.permissions ?? {},
+                          'tanawolNotify': v,
+                        },
+                      ),
+                    ),
                   ),
                   leading: const Icon(
                       IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
                   title: const Text('إشعار التناول'),
                   onTap: () => setState(() =>
-                      widget.invitation.permissions!['tanawolNotify'] =
-                          !(widget.invitation.permissions!['tanawolNotify'] ??
-                              false)),
+                      invitation.permissions!['tanawolNotify'] =
+                          !(invitation.permissions!['tanawolNotify'] ?? false)),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value:
-                        widget.invitation.permissions!['kodasNotify'] ?? false,
-                    onChanged: (v) => setState(() =>
-                        widget.invitation.permissions!['kodasNotify'] = v),
+                    value: invitation.permissions!['kodasNotify'] ?? false,
+                    onChanged: (v) => setState(
+                      () => invitation = invitation.copyWith.permissions(
+                        {
+                          ...invitation.permissions ?? {},
+                          'kodasNotify': v,
+                        },
+                      ),
+                    ),
                   ),
                   leading: const Icon(
                       IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
                   title: const Text('إشعار القداس'),
                   onTap: () => setState(() =>
-                      widget.invitation.permissions!['kodasNotify'] =
-                          !(widget.invitation.permissions!['kodasNotify'] ??
-                              false)),
+                      invitation.permissions!['kodasNotify'] =
+                          !(invitation.permissions!['kodasNotify'] ?? false)),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: widget.invitation.permissions!['meetingNotify'] ??
-                        false,
-                    onChanged: (v) => setState(() =>
-                        widget.invitation.permissions!['meetingNotify'] = v),
+                    value: invitation.permissions!['meetingNotify'] ?? false,
+                    onChanged: (v) => setState(
+                      () => invitation = invitation.copyWith.permissions(
+                        {
+                          ...invitation.permissions ?? {},
+                          'meetingNotify': v,
+                        },
+                      ),
+                    ),
                   ),
                   leading: const Icon(
                       IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
                   title: const Text('إشعار حضور الاجتماع'),
                   onTap: () => setState(() =>
-                      widget.invitation.permissions!['meetingNotify'] =
-                          !(widget.invitation.permissions!['meetingNotify'] ??
-                              false)),
+                      invitation.permissions!['meetingNotify'] =
+                          !(invitation.permissions!['meetingNotify'] ?? false)),
                 ),
               ],
             ),
@@ -377,10 +437,10 @@ class _EditInvitationState extends State<EditInvitation> {
         ),
       );
       if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
-        await widget.invitation.ref.delete();
+        await invitation.ref.delete();
       } else {
         // ignore: unawaited_futures
-        widget.invitation.ref.delete();
+        invitation.ref.delete();
       }
       navigator.currentState!.pop('deleted');
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
@@ -396,11 +456,11 @@ class _EditInvitationState extends State<EditInvitation> {
   @override
   void initState() {
     super.initState();
-    old = widget.invitation.toJson();
+    invitation = widget.invitation.copyWith();
   }
 
   void nameChanged(String value) {
-    widget.invitation.name = value;
+    invitation = invitation.copyWith.title(value);
   }
 
   Future save() async {
@@ -413,44 +473,46 @@ class _EditInvitationState extends State<EditInvitation> {
     }
     try {
       if (form.currentState!.validate() &&
-          widget.invitation.expiryDate.difference(DateTime.now()) >=
+          invitation.expiryDate.difference(DateTime.now()) >=
               const Duration(hours: 24)) {
         scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
           content: Text('جار الحفظ...'),
           duration: Duration(seconds: 15),
         ));
-        if (widget.invitation.id == 'null') {
-          widget.invitation.ref =
-              GetIt.I<DatabaseRepository>().collection('Invitations').doc();
-          widget.invitation.generatedBy = MHAuthRepository.I.currentUser!.uid;
+        if (invitation.id == 'null') {
+          invitation = invitation.copyWith.ref(
+              GetIt.I<DatabaseRepository>().collection('Invitations').doc());
+          invitation = invitation.copyWith
+              .generatedBy(MHAuthRepository.I.currentUser!.uid);
           if (await Connectivity().checkConnectivity() !=
               ConnectivityResult.none) {
-            await widget.invitation.ref.set({
-              ...widget.invitation.toJson(),
+            await invitation.ref.set({
+              ...invitation.toJson(),
               'GeneratedOn': FieldValue.serverTimestamp()
             });
           } else {
             // ignore: unawaited_futures
-            widget.invitation.ref.set({
-              ...widget.invitation.toJson(),
+            invitation.ref.set({
+              ...invitation.toJson(),
               'GeneratedOn': FieldValue.serverTimestamp()
             });
           }
         } else {
-          final update = widget.invitation.toJson()
-            ..removeWhere((key, value) => old[key] == value);
+          final update = invitation.toJson()
+            ..removeWhere(
+                (key, value) => widget.invitation.toJson()[key] == value);
           if (update.isNotEmpty) {
             if (await Connectivity().checkConnectivity() !=
                 ConnectivityResult.none) {
-              await widget.invitation.update(old: update);
+              await invitation.update(old: update);
             } else {
               // ignore: unawaited_futures
-              widget.invitation.update(old: update);
+              invitation.update(old: update);
             }
           }
         }
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
-        navigator.currentState!.pop(widget.invitation.ref);
+        navigator.currentState!.pop(invitation.ref);
         scaffoldMessenger.currentState!.showSnackBar(
           const SnackBar(
             content: Text('تم الحفظ بنجاح'),
@@ -479,7 +541,7 @@ class _EditInvitationState extends State<EditInvitation> {
     }
   }
 
-  Future<Timestamp> _selectDateTime(
+  Future<DateTime?> _selectDateTime(
       String helpText, DateTime initialDate) async {
     var picked = await showDatePicker(
         helpText: helpText,
@@ -495,23 +557,20 @@ class _EditInvitationState extends State<EditInvitation> {
         picked = picked.add(Duration(hours: time.hour, minutes: time.minute));
       setState(() {});
       FocusScope.of(context).nextFocus();
-      return Timestamp.fromDate(picked);
+      return picked;
     }
-    return Timestamp.fromDate(initialDate);
+    return null;
   }
 
   void _selectPerson() async {
-    final controller = ListController<User>(
-      onTap: (person) {
-        navigator.currentState!.pop();
-        widget.invitation.permissions ??= {};
-        widget.invitation.permissions!['personId'] = person.ref.id;
-        personName.invalidate();
-        setState(() {});
-        FocusScope.of(context).nextFocus();
-      },
-      itemsStream: User.getAllForUserForEdit()
-          .map((users) => users.where((u) => u.uid == null).toList()),
+    final controller = ListController<Class?, User>(
+      objectsPaginatableStream: PaginatableStream.loadAll(
+        stream: MHAuthRepository.getAllUsers().map(
+          (users) => users.where((u) => u.uid == User.emptyUID).toList(),
+        ),
+      ),
+      groupByStream: usersByClass,
+      groupingStream: Stream.value(true),
     );
     await showDialog(
       context: context,
@@ -530,9 +589,26 @@ class _EditInvitationState extends State<EditInvitation> {
                         const OrderOptions()),
                     textStyle: Theme.of(context).textTheme.bodyText2),
                 Expanded(
-                  child: DataObjectList<User>(
-                    options: controller,
-                    disposeController: false,
+                  child: DataObjectListView<Class?, User>(
+                    controller: controller,
+                    onTap: (person) {
+                      navigator.currentState!.pop();
+
+                      if (invitation.permissions == null)
+                        invitation = invitation.copyWith.permissions({});
+
+                      invitation = invitation.copyWith.permissions(
+                        {
+                          ...invitation.permissions!,
+                          'personId': person.ref.id,
+                        },
+                      );
+
+                      personName.invalidate();
+                      setState(() {});
+                      FocusScope.of(context).nextFocus();
+                    },
+                    autoDisposeController: false,
                   ),
                 ),
               ],

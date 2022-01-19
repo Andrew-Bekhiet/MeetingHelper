@@ -154,7 +154,7 @@ class _AuthScreenState extends State<AuthScreen> {
       encryptedPassword = null;
       await showErrorDialog(context, 'كلمة سر فارغة!');
       setState(() {});
-    } else if (User.instance.password == encryptedPassword) {
+    } else if (MHAuthRepository.I.currentUser!.password == encryptedPassword) {
       encryptedPassword = null;
       if (widget.nextWidget != null) {
         await navigator.currentState!.pushReplacement(

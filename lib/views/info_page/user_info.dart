@@ -9,7 +9,6 @@ import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
-import 'package:meetinghelper/views/lists/users_list.dart';
 import 'package:meetinghelper/views/services_list.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:tuple/tuple.dart';
@@ -126,10 +125,9 @@ class _UserInfoState extends State<UserInfo> {
                         return const Text('نشط الآن');
                       } else if (activity.data?.snapshot.value != null) {
                         return Text(
-                          toDurationString(
-                            Timestamp.fromMillisecondsSinceEpoch(
-                                activity.data!.snapshot.value! as int),
-                          ),
+                          DateTime.fromMillisecondsSinceEpoch(
+                                  activity.data!.snapshot.value! as int)
+                              .toDurationString(),
                         );
                       }
                       return const Text('لا يمكن التحديد');
@@ -279,12 +277,16 @@ class _UserInfoState extends State<UserInfo> {
                             style: Theme.of(context).textTheme.headline6,
                           ),
                           Expanded(
-                            child: ServicesList(
+                            child: ServicesList<DataObject>(
                               options: ServicesListController(
-                                itemsStream: user.permissions.superAccess
-                                    ? servicesByStudyYearRef()
-                                    : servicesByStudyYearRefForUser(
-                                        user.uid, user.adminServices),
+                                objectsPaginatableStream:
+                                    PaginatableStream.loadAll(
+                                        stream: Stream.value([])),
+                                groupByStream: (_) =>
+                                    user.permissions.superAccess
+                                        ? servicesByStudyYearRef()
+                                        : servicesByStudyYearRefForUser(
+                                            user.uid, user.adminServices),
                               ),
                               autoDisposeController: true,
                             ),
@@ -301,13 +303,15 @@ class _UserInfoState extends State<UserInfo> {
                   onPressed: () => navigator.currentState!.push(
                     MaterialPageRoute(
                       builder: (context) {
-                        final listOptions = ListController<void, User>(
+                        final listOptions = ListController<Class?, User>(
                           objectsPaginatableStream: PaginatableStream.query(
                             query: GetIt.I<DatabaseRepository>()
                                 .collection('UsersData')
                                 .where('AllowedUsers', arrayContains: user.uid),
                             mapper: User.fromDoc,
                           ),
+                          groupByStream: usersByClass,
+                          groupingStream: Stream.value(true),
                         );
                         return Scaffold(
                           appBar: AppBar(
@@ -318,9 +322,10 @@ class _UserInfoState extends State<UserInfo> {
                                   Theme.of(context).primaryTextTheme.headline6,
                             ),
                           ),
-                          body: UsersList(
-                              autoDisposeController: true,
-                              listOptions: listOptions),
+                          body: DataObjectListView(
+                            autoDisposeController: true,
+                            controller: listOptions,
+                          ),
                           bottomNavigationBar: BottomAppBar(
                             color: Theme.of(context).colorScheme.primary,
                             shape: const CircularNotchedRectangle(),

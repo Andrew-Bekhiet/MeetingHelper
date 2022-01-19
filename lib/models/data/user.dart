@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:churchdata_core/churchdata_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart' show SetOptions;
+import 'package:cloud_firestore/cloud_firestore.dart'
+    show SetOptions, DocumentReference;
 import 'package:collection/collection.dart';
+import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +12,8 @@ import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:rxdart/rxdart.dart';
+
+part 'user.g.dart';
 
 class MHAuthRepository extends AuthRepository<User, Person> {
   static MHAuthRepository get instance => GetIt.I<MHAuthRepository>();
@@ -43,8 +47,7 @@ class MHAuthRepository extends AuthRepository<User, Person> {
   }
 
   static Stream<List<User>> getAllUsers({
-    QueryOfJson Function(QueryOfJson, String, bool) queryCompleter =
-        kDefaultQueryCompleter,
+    QueryCompleter queryCompleter = kDefaultQueryCompleter,
   }) {
     return GetIt.I<MHAuthRepository>().userStream.switchMap(
       (u) {
@@ -81,8 +84,7 @@ class MHAuthRepository extends AuthRepository<User, Person> {
   }
 
   static Stream<List<Person>> getAllUsersData({
-    QueryOfJson Function(QueryOfJson, String, bool) queryCompleter =
-        kDefaultQueryCompleter,
+    QueryCompleter queryCompleter = kDefaultQueryCompleter,
   }) {
     return GetIt.I<MHAuthRepository>().userStream.switchMap(
       (u) {
@@ -127,8 +129,7 @@ class MHAuthRepository extends AuthRepository<User, Person> {
   }
 
   static Stream<List<User>> getAllSemiManagers(
-      [QueryOfJson Function(QueryOfJson, String, bool) queryCompleter =
-          kDefaultQueryCompleter]) {
+      [QueryCompleter queryCompleter = kDefaultQueryCompleter]) {
     return GetIt.I<MHAuthRepository>().userStream.switchMap((u) {
       if (u == null) return Stream.value([]);
 
@@ -258,6 +259,8 @@ class MHAuthRepository extends AuthRepository<User, Person> {
   }
 }
 
+@immutable
+@CopyWith(copyWithNull: true)
 class MHPermissionsSet extends PermissionsSet implements Serializable {
   final DateTime? lastConfession;
 
@@ -350,10 +353,14 @@ class MHPermissionsSet extends PermissionsSet implements Serializable {
   }
 }
 
+@immutable
+@CopyWith(copyWithNull: true)
 class User extends UserBase implements DataObjectWithPhoto {
   @Deprecated('Use "GetIt.I<MHAuthRepository>().currentUser" or'
       ' "MHAuthRepository.instance.currentUser" instead')
   static User get instance => GetIt.I<MHAuthRepository>().currentUser!;
+
+  static const String emptyUID = '{EmptyUID}';
 
   final String? password;
 
@@ -387,9 +394,10 @@ class User extends UserBase implements DataObjectWithPhoto {
         allowedUsers = data['AllowedUsers']?.cast<String>() ?? [],
         adminServices = data['AdminServices']?.cast<JsonRef>() ?? [],
         super(
-            uid: data['UID'],
-            name: data['Name'] ?? '',
-            email: data['Email'] ?? '');
+          uid: data['UID'] ?? emptyUID,
+          name: data['Name'] ?? '',
+          email: data['Email'] ?? '',
+        );
 
   User.fromDoc(JsonDoc data) : this.fromJson(data.data()!, data.reference);
 

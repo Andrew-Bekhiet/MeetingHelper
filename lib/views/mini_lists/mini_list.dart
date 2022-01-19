@@ -2,7 +2,6 @@ import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
 import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/views/list.dart';
 
 class MiniModelList<T extends MetaObject> extends StatelessWidget {
   final String title;
@@ -24,21 +23,26 @@ class MiniModelList<T extends MetaObject> extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
-      body: DataObjectList(
-        options: ListController<T>(
-          itemBuilder: (current, onLongPress, onTap, trailing, subtitle) =>
-              ListTile(
-            title: Text(current.name),
-            onTap: () => onTap?.call(current),
-          ),
-          tap: modify ?? (item) => _defaultModify(context, item, false),
-          itemsStream: collection.snapshots().map(
-                (s) => s.docs.map(transformer).toList(),
-              ),
+      body: DataObjectListView<void, T>(
+        itemBuilder: (
+          current, {
+          onLongPress,
+          onTap,
+          trailing,
+          subtitle,
+        }) =>
+            ListTile(
+          title: Text(current.name),
+          onTap: () => onTap?.call(current),
         ),
-        disposeController: true,
+        onTap: modify ?? (item) => _defaultModify(context, item, false),
+        controller: ListController(
+          objectsPaginatableStream:
+              PaginatableStream.query(query: collection, mapper: transformer),
+        ),
+        autoDisposeController: true,
       ),
-      floatingActionButton: User.instance.write
+      floatingActionButton: MHAuthRepository.I.currentUser!.permissions.write
           ? FloatingActionButton(
               onPressed: add ??
                   () async {
@@ -90,7 +94,7 @@ class MiniModelList<T extends MetaObject> extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         actions: <Widget>[
-          if (User.instance.write)
+          if (MHAuthRepository.I.currentUser!.permissions.write)
             TextButton.icon(
               icon: editMode ? const Icon(Icons.save) : const Icon(Icons.edit),
               onPressed: () async {
@@ -99,7 +103,11 @@ class MiniModelList<T extends MetaObject> extends StatelessWidget {
                 }
                 navigator.currentState!.pop();
                 if (modify == null)
-                  _defaultModify(context, item..name = name.text, !editMode);
+                  _defaultModify(
+                    context,
+                    item.copyWith(name: name.text) as T,
+                    !editMode,
+                  );
               },
               label: Text(editMode ? 'حفظ' : 'تعديل'),
             ),

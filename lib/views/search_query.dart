@@ -903,7 +903,11 @@ class _SearchQueryState extends State<SearchQuery> {
         BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
     final _listOptions = ServicesListController<Class>(
-        itemsStream: servicesByStudyYearRef<Class>());
+      objectsPaginatableStream: PaginatableStream.loadAll(
+        stream: Class.getAllForUser(),
+      ),
+      groupByStream: servicesByStudyYearRef<Class>,
+    );
 
     await showDialog(
       context: context,
@@ -944,7 +948,11 @@ class _SearchQueryState extends State<SearchQuery> {
         BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
     final _listOptions = ServicesListController<Service>(
-        itemsStream: servicesByStudyYearRef<Service>());
+      objectsPaginatableStream: PaginatableStream.loadAll(
+        stream: Service.getAllForUser(),
+      ),
+      groupByStream: servicesByStudyYearRef<Service>,
+    );
 
     await showDialog(
       context: context,

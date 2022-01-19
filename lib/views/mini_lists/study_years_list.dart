@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
-import 'package:meetinghelper/models/mini_models.dart.bak';
+import 'package:rxdart/rxdart.dart';
 
 class StudyYearsEditList extends StatefulWidget {
-  final Future<JsonQuery> list;
+  final Stream<List<StudyYear>> list;
 
   final Function(StudyYear)? tap;
   const StudyYearsEditList({Key? key, required this.list, this.tap})
@@ -16,42 +16,38 @@ class StudyYearsEditList extends StatefulWidget {
 }
 
 class _StudyYearsEditListState extends State<StudyYearsEditList> {
-  String filter = '';
+  BehaviorSubject<String> filter = BehaviorSubject.seeded('');
+
   @override
   Widget build(BuildContext c) {
-    return FutureBuilder<JsonQuery>(
-      future: widget.list,
+    return StreamBuilder<List<StudyYear>>(
+      stream: filter.switchMap(
+        (value) => value.isEmpty
+            ? widget.list
+            : widget.list.map(
+                (list) => list.where((c) => c.name.contains(value)).toList(),
+              ),
+      ),
       builder: (con, data) {
         if (data.hasData) {
           return Column(children: <Widget>[
             TextField(
-                decoration: const InputDecoration(hintText: 'بحث...'),
-                onChanged: (text) {
-                  setState(() {
-                    filter = text;
-                  });
-                }),
+              decoration: const InputDecoration(hintText: 'بحث...'),
+              onChanged: filter.add,
+            ),
             Expanded(
-              child: RefreshIndicator(
-                onRefresh: () {
-                  setState(() {});
-                  return widget.list.then((value) => value);
+              child: ListView.builder(
+                itemCount: data.data!.length,
+                itemBuilder: (context, i) {
+                  final StudyYear current = data.data![i];
+
+                  return Card(
+                    child: ListTile(
+                      onTap: () => widget.tap!(current),
+                      title: Text(current.name),
+                    ),
+                  );
                 },
-                child: ListView.builder(
-                  itemCount: data.data!.docs.length,
-                  itemBuilder: (context, i) {
-                    final StudyYear current =
-                        StudyYear.fromDoc(data.data!.docs[i]);
-                    return current.name.contains(filter)
-                        ? Card(
-                            child: ListTile(
-                              onTap: () => widget.tap!(current),
-                              title: Text(current.name),
-                            ),
-                          )
-                        : Container();
-                  },
-                ),
               ),
             ),
           ]);

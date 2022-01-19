@@ -17,7 +17,6 @@ import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
-import 'package:meetinghelper/views/lists/lists.dart';
 import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -27,7 +26,6 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import '../models/data/user.dart';
-import '../models/list_controllers.dart';
 import '../utils/globals.dart';
 import '../utils/helpers.dart';
 import 'auth_screen.dart';
@@ -110,7 +108,7 @@ class _RootState extends State<Root>
 
   late final ServicesListController _servicesOptions;
   late final ListController<void, Person> _personsOptions;
-  late final ListController<void, User> _usersOptions;
+  late final ListController<Class?, User> _usersOptions;
 
   GlobalKey _createOrGetFeatureKey(String key) {
     _features[key] ??= GlobalKey();
@@ -333,10 +331,10 @@ class _RootState extends State<Root>
         children: [
           if (MHAuthRepository.I.currentUser!.permissions.manageUsers ||
               MHAuthRepository.I.currentUser!.permissions.manageAllowedUsers)
-            UsersList(
+            DataObjectListView<Class?, User>(
               key: const PageStorageKey('mainUsersList'),
               autoDisposeController: false,
-              listOptions: _usersOptions,
+              controller: _usersOptions,
               onTap: dataObjectTap,
             ),
           ServicesList(
@@ -609,8 +607,16 @@ class _RootState extends State<Root>
                                           navigator.currentState!.pop(
                                         _class,
                                       ),
-                                      options: ServicesListController(
-                                        itemsStream: servicesByStudyYearRef(),
+                                      options:
+                                          ServicesListController<DataObject>(
+                                        objectsPaginatableStream:
+                                            PaginatableStream.loadAll(
+                                          stream: Stream.value(
+                                            [],
+                                          ),
+                                        ),
+                                        groupByStream: (_) =>
+                                            servicesByStudyYearRef(),
                                       ),
                                     ),
                                   ),
@@ -927,17 +933,23 @@ class _RootState extends State<Root>
   void initState() {
     super.initState();
     initializeDateFormatting('ar_EG');
-    _usersOptions = ListController<void, User>(
-        searchStream: _searchQuery,
-        objectsPaginatableStream: PaginatableStream.loadAll(
-          stream: MHAuthRepository.getAllUsers(),
-        ));
+    _usersOptions = ListController<Class?, User>(
+      searchStream: _searchQuery,
+      objectsPaginatableStream: PaginatableStream.loadAll(
+        stream: MHAuthRepository.getAllUsers(),
+      ),
+      groupByStream: usersByClass,
+      groupingStream: Stream.value(true),
+    );
+
     _servicesOptions = ServicesListController(
       searchQuery: _searchQuery,
       objectsPaginatableStream: PaginatableStream.loadAll(
-        stream: servicesByStudyYearRef(),
+        stream: Stream.value([]),
       ),
+      groupByStream: (_) => servicesByStudyYearRef(),
     );
+
     _personsOptions = ListController<void, Person>(
       searchStream: _searchQuery,
       //Listen to Ordering options and combine it
@@ -1353,7 +1365,7 @@ class _RootState extends State<Root>
     }
     listenToFirebaseMessaging();
     await showDynamicLink();
-    await showPendingMessage();
+    await GetIt.I<NotificationsService>().showInitialMessage(context);
     await processClickedNotification(context);
     await showBatteryOptimizationDialog();
     await showFeatures();
@@ -1364,7 +1376,7 @@ class _RootState extends State<Root>
     FirebaseMessaging.onMessage.listen(onForegroundMessage);
     _firebaseMessagingSubscription =
         FirebaseMessaging.onMessageOpenedApp.listen((m) async {
-      await showPendingMessage();
+      await GetIt.I<NotificationsService>().showInitialMessage(context);
     });
   }
 

@@ -8,7 +8,6 @@ import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/history/history_record.dart';
-import 'package:meetinghelper/utils/helpers.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:random_color/random_color.dart';
 import 'package:rxdart/rxdart.dart';
@@ -120,7 +119,9 @@ class AttendanceChart extends StatelessWidget {
                 .compareTo(n.time.millisecondsSinceEpoch));
         final Map<Timestamp, List<HistoryRecord>> historyMap =
             groupBy<HistoryRecord, Timestamp>(
-                history.data!, (d) => tranucateToDay(time: d.time.toDate()));
+          history.data!,
+          (d) => d.time.toDate().truncateToDay().toTimestamp(),
+        );
 
         final Map<JsonRef, DataObject> groupedClasses = {
           for (final c in classes ?? studyYears!) c.ref: c
@@ -597,7 +598,9 @@ class HistoryAnalysisWidget extends StatelessWidget {
 
         final Map<Timestamp, List<MinimalHistoryRecord>> groupedData =
             groupBy<MinimalHistoryRecord, Timestamp>(
-                data, (d) => tranucateToDay(time: d.time.toDate()));
+          data,
+          (d) => d.time.toDate().truncateToDay().toTimestamp(),
+        );
 
         final parentsRefs = parents.map((o) => o.ref).toList();
 

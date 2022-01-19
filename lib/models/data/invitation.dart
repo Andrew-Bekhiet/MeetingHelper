@@ -1,8 +1,15 @@
 import 'package:churchdata_core/churchdata_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' show DocumentReference;
+import 'package:copy_with_extension/copy_with_extension.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/user.dart';
 
+part 'invitation.g.dart';
+
+@immutable
+@CopyWith(copyWithNull: true)
 class Invitation extends DataObject {
   const Invitation({
     required JsonRef ref,
@@ -71,10 +78,4 @@ class Invitation extends DataObject {
         super(
             GetIt.I<DatabaseRepository>().collection('Invitations').doc('null'),
             '');
-
-  //TODO: copyWith
-  @override
-  Invitation copyWith() {
-    return Invitation.createFromData(toJson(), ref);
-  }
 }

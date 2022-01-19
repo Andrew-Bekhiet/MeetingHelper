@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:churchdata_core/churchdata_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' show FieldValue;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
@@ -11,9 +12,10 @@ import 'package:get_it/get_it.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/service.dart';
-import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/views/form_widgets/tapable_form_field.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
@@ -23,7 +25,6 @@ import 'package:tinycolor2/tinycolor2.dart';
 
 import '../../models/data/user.dart';
 import '../../models/search/search_filters.dart';
-import '../lists/users_list.dart';
 import '../mini_lists/colors_list.dart';
 
 class EditService extends StatefulWidget {
@@ -95,7 +96,7 @@ class _EditServiceState extends State<EditService> {
                         )),
                   ),
                   background: changedImage == null || deletePhoto
-                      ? service.photo(cropToCircle: false)
+                      ? PhotoObjectWidget(service, circleCrop: false)
                       : PhotoView(
                           imageProvider: FileImage(
                             File(changedImage!),
@@ -120,7 +121,7 @@ class _EditServiceState extends State<EditService> {
                       decoration:
                           const InputDecoration(labelText: 'اسم الخدمة'),
                       initialValue: service.name,
-                      onChanged: (v) => service.name = v,
+                      onChanged: (v) => service = service.copyWith.name(v),
                       textInputAction: TextInputAction.next,
                       textCapitalization: TextCapitalization.words,
                       validator: (value) {
@@ -133,8 +134,8 @@ class _EditServiceState extends State<EditService> {
                   ),
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: FutureBuilder<JsonQuery>(
-                      future: StudyYear.getAll(),
+                    child: FutureBuilder<List<StudyYear>>(
+                      future: StudyYear.getAll().first,
                       builder: (conext, data) {
                         if (!data.hasData)
                           return const LinearProgressIndicator();
@@ -146,7 +147,8 @@ class _EditServiceState extends State<EditService> {
                               icon: const Icon(Icons.delete),
                               tooltip: 'ازالة',
                               onPressed: () {
-                                setState(() => service.studyYearRange = null);
+                                setState(() => service =
+                                    service.copyWith.studyYearRange(null));
                               },
                             ),
                           ),
@@ -156,11 +158,11 @@ class _EditServiceState extends State<EditService> {
                                 child: DropdownButtonFormField<JsonRef?>(
                                   isExpanded: true,
                                   value: service.studyYearRange?.from,
-                                  items: data.data!.docs
+                                  items: data.data!
                                       .map(
                                         (item) => DropdownMenuItem(
-                                          value: item.reference,
-                                          child: Text(item.data()['Name']),
+                                          value: item.ref,
+                                          child: Text(item.name),
                                         ),
                                       )
                                       .toList()
@@ -173,10 +175,14 @@ class _EditServiceState extends State<EditService> {
                                     ),
                                   onChanged: (value) {
                                     if (service.studyYearRange == null)
-                                      service.studyYearRange =
-                                          StudyYearRange(from: value, to: null);
+                                      service.copyWith.studyYearRange(
+                                        StudyYearRange(from: value, to: null),
+                                      );
                                     else
-                                      service.studyYearRange!.from = value;
+                                      service = service.copyWith.studyYearRange(
+                                        service.studyYearRange!.copyWith
+                                            .from(value),
+                                      );
 
                                     setState(() {});
 
@@ -192,11 +198,11 @@ class _EditServiceState extends State<EditService> {
                                 child: DropdownButtonFormField<JsonRef?>(
                                   isExpanded: true,
                                   value: service.studyYearRange?.to,
-                                  items: data.data!.docs
+                                  items: data.data!
                                       .map(
                                         (item) => DropdownMenuItem(
-                                          value: item.reference,
-                                          child: Text(item.data()['Name']),
+                                          value: item.ref,
+                                          child: Text(item.name),
                                         ),
                                       )
                                       .toList()
@@ -209,10 +215,14 @@ class _EditServiceState extends State<EditService> {
                                     ),
                                   onChanged: (value) {
                                     if (service.studyYearRange == null)
-                                      service.studyYearRange =
-                                          StudyYearRange(from: null, to: value);
+                                      service = service.copyWith.studyYearRange(
+                                        StudyYearRange(from: null, to: value),
+                                      );
                                     else
-                                      service.studyYearRange!.to = value;
+                                      service = service.copyWith.studyYearRange(
+                                        service.studyYearRange!.copyWith
+                                            .to(value),
+                                      );
 
                                     setState(() {});
 
@@ -239,7 +249,8 @@ class _EditServiceState extends State<EditService> {
                         tooltip: 'ازالة',
                         onPressed: () {
                           state.didChange(null);
-                          setState(() => service.validity = null);
+                          setState(
+                              () => service = service.copyWith.validity(null));
                         },
                       ),
                     ),
@@ -284,8 +295,8 @@ class _EditServiceState extends State<EditService> {
                     child: CheckboxListTile(
                       title: const Text('اظهار كبند في السجل'),
                       value: service.showInHistory,
-                      onChanged: (v) =>
-                          setState(() => service.showInHistory = v!),
+                      onChanged: (v) => setState(
+                          () => service = service.copyWith.showInHistory(v!)),
                     ),
                   ),
                   ElevatedButton.icon(
@@ -301,8 +312,9 @@ class _EditServiceState extends State<EditService> {
                     icon: const Icon(Icons.color_lens),
                     label: const Text('اللون'),
                   ),
-                  if (User.instance.manageAllowedUsers ||
-                      User.instance.manageUsers)
+                  if (MHAuthRepository
+                          .I.currentUser!.permissions.manageAllowedUsers ||
+                      MHAuthRepository.I.currentUser!.permissions.manageUsers)
                     ElevatedButton.icon(
                       style: service.color != Colors.transparent
                           ? ElevatedButton.styleFrom(
@@ -363,7 +375,7 @@ class _EditServiceState extends State<EditService> {
     if (source == 'delete') {
       changedImage = null;
       deletePhoto = true;
-      service.hasPhoto = false;
+      service = service.copyWith.hasPhoto(false);
       setState(() {});
       return;
     }
@@ -431,11 +443,11 @@ class _EditServiceState extends State<EditService> {
   void initState() {
     super.initState();
     service = (widget.service ?? Service.empty()).copyWith();
-    if (service.id == 'null') allowedUsers = [User.instance];
+    if (service.id == 'null') allowedUsers = [MHAuthRepository.I.currentUser!];
   }
 
   void nameChanged(String value) {
-    service.name = value;
+    service = service.copyWith.name(value);
   }
 
   Future save() async {
@@ -450,15 +462,15 @@ class _EditServiceState extends State<EditService> {
         );
         final update = service.id != 'null';
         if (!update) {
-          service.ref =
-              GetIt.I<DatabaseRepository>().collection('Services').doc();
+          service = service.copyWith
+              .ref(GetIt.I<DatabaseRepository>().collection('Services').doc());
         }
         if (changedImage != null) {
           await FirebaseStorage.instance
               .ref()
               .child('ServicesPhotos/${service.id}')
               .putFile(File(changedImage!));
-          service.hasPhoto = true;
+          service = service.copyWith.hasPhoto(true);
         } else if (deletePhoto) {
           await FirebaseStorage.instance
               .ref()
@@ -466,16 +478,21 @@ class _EditServiceState extends State<EditService> {
               .delete();
         }
 
-        service.lastEdit = auth.FirebaseAuth.instance.currentUser!.uid;
+        service = service.copyWith.lastEdit(
+          LastEdit(
+            auth.FirebaseAuth.instance.currentUser!.uid,
+            DateTime.now(),
+          ),
+        );
 
         if (update &&
             await Connectivity().checkConnectivity() !=
                 ConnectivityResult.none) {
-          await service.update(old: widget.service?.getMap() ?? {});
+          await service.update(old: widget.service?.toJson() ?? {});
         } else if (update) {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
-          service.update(old: widget.service?.getMap() ?? {});
+          service.update(old: widget.service?.toJson() ?? {});
         } else if (await Connectivity().checkConnectivity() !=
             ConnectivityResult.none) {
           await service.set();
@@ -536,7 +553,7 @@ class _EditServiceState extends State<EditService> {
             onPressed: () {
               navigator.currentState!.pop();
               setState(() {
-                service.color = Colors.transparent;
+                service = service.copyWith.color(Colors.transparent);
               });
             },
             child: const Text('بلا لون'),
@@ -547,7 +564,7 @@ class _EditServiceState extends State<EditService> {
           onSelect: (color) {
             navigator.currentState!.pop();
             setState(() {
-              service.color = color;
+              service = service.copyWith.color(color);
             });
           },
         ),
@@ -558,60 +575,77 @@ class _EditServiceState extends State<EditService> {
   void _selectAllowedUsers() async {
     allowedUsers = await navigator.currentState!.push(
           MaterialPageRoute(
-            builder: (context) {
-              return StreamBuilder<List<User>>(
-                stream: allowedUsers != null
-                    ? Stream.value(allowedUsers!)
-                    : GetIt.I<DatabaseRepository>()
-                        .collection('UsersData')
-                        .where('AdminServices', arrayContains: service.ref)
-                        .snapshots()
-                        .map((value) => value.docs.map(User.fromDoc).toList()),
-                builder: (c, users) {
-                  if (!users.hasData)
-                    return const Center(child: CircularProgressIndicator());
-                  return MultiProvider(
-                    providers: [
-                      Provider<ListController<User>>(
-                        create: (_) => ListController<User>(
-                          selectionMode: true,
-                          itemsStream: MHAuthRepository.getAllUsers(),
-                          selected: {
-                            for (final item in users.data!) item.docId: item
-                          },
-                        ),
-                        dispose: (context, c) => c.dispose(),
-                      )
-                    ],
-                    builder: (context, child) => Scaffold(
-                      persistentFooterButtons: [
-                        TextButton(
-                          onPressed: () {
-                            navigator.currentState!.pop(context
-                                .read<ListController<User>>()
-                                .selectedLatest
-                                ?.values
-                                .toList());
-                          },
-                          child: const Text('تم'),
-                        )
-                      ],
-                      appBar: AppBar(
-                        title: SearchField(
-                            showSuffix: false,
-                            searchStream: context
-                                .read<ListController<User>>()
-                                .searchQuery,
-                            textStyle: Theme.of(context).textTheme.bodyText2),
-                      ),
-                      body: const UsersList(
-                        autoDisposeController: false,
+            builder: (context) => FutureBuilder<List<User?>>(
+              future: allowedUsers != null
+                  ? Future.value(allowedUsers)
+                  : GetIt.I<DatabaseRepository>()
+                      .collection('UsersData')
+                      .where('AdminServices', arrayContains: service.ref)
+                      .get()
+                      .then((value) => value.docs.map(User.fromDoc).toList()),
+              builder: (context, users) {
+                if (!users.hasData)
+                  return const Center(child: CircularProgressIndicator());
+
+                return Provider<ListController<Class?, User>>(
+                  create: (_) => ListController<Class?, User>(
+                    objectsPaginatableStream: PaginatableStream.loadAll(
+                      stream: MHAuthRepository.getAllNames().map(
+                        (users) =>
+                            users.where((u) => u.uid != User.emptyUID).toList(),
                       ),
                     ),
-                  );
-                },
-              );
-            },
+                    groupByStream: usersByClass,
+                    groupingStream: Stream.value(true),
+                  )..selectAll(users.data!.whereType<User>().toList()),
+                  dispose: (context, c) => c.dispose(),
+                  builder: (context, _) => Scaffold(
+                    appBar: AppBar(
+                      leading: IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: navigator.currentState!.pop),
+                      title: SearchField(
+                        showSuffix: false,
+                        searchStream: context
+                            .read<ListController<Class?, User>>()
+                            .searchSubject,
+                        textStyle: Theme.of(context).primaryTextTheme.headline6,
+                      ),
+                      actions: [
+                        IconButton(
+                          onPressed: () {
+                            navigator.currentState!.pop(context
+                                .read<ListController<Class?, User>>()
+                                .currentSelection
+                                ?.map((u) => u.uid)
+                                .toList());
+                          },
+                          icon: const Icon(Icons.done),
+                          tooltip: 'تم',
+                        ),
+                      ],
+                    ),
+                    body: DataObjectListView<Class?, User>(
+                      itemBuilder: (
+                        current, {
+                        onLongPress,
+                        onTap,
+                        trailing,
+                        subtitle,
+                      }) =>
+                          DataObjectWidget(
+                        current,
+                        onTap: () => onTap!(current),
+                        trailing: trailing,
+                        showSubtitle: false,
+                      ),
+                      controller: context.read<ListController<Class?, User>>(),
+                      autoDisposeController: false,
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
         ) ??
         allowedUsers;

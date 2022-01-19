@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:async/async.dart';
 import 'package:churchdata_core/churchdata_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' show DocumentReference;
 import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -11,6 +12,9 @@ import 'package:rxdart/rxdart.dart';
 
 import 'person.dart';
 
+part 'service.g.dart';
+
+@immutable
 @CopyWith(copyWithNull: true)
 class Service extends DataObject implements PhotoObjectBase {
   final StudyYearRange? studyYearRange;
@@ -53,8 +57,7 @@ class Service extends DataObject implements PhotoObjectBase {
   static Stream<List<Service>> getAllForUser({
     String orderBy = 'Name',
     bool descending = false,
-    QueryOfJson Function(QueryOfJson, String, bool) queryCompleter =
-        kDefaultQueryCompleter,
+    QueryCompleter queryCompleter = kDefaultQueryCompleter,
   }) {
     return MHAuthRepository.I.userStream.switchMap(
       (u) {
@@ -80,8 +83,7 @@ class Service extends DataObject implements PhotoObjectBase {
   static Stream<List<Service>> getAllForUserForHistory(
       {String orderBy = 'Name',
       bool descending = false,
-      QueryOfJson Function(QueryOfJson, String, bool) queryCompleter =
-          kDefaultQueryCompleter}) {
+      QueryCompleter queryCompleter = kDefaultQueryCompleter}) {
     return MHAuthRepository.I.userStream.switchMap((u) {
       if (u == null) return Stream.value([]);
       if (u.permissions.superAccess) {
@@ -143,8 +145,7 @@ class Service extends DataObject implements PhotoObjectBase {
   Stream<List<Person>> getPersonsMembersLive(
       {bool descending = false,
       String orderBy = 'Name',
-      QueryOfJson Function(QueryOfJson, String, bool) queryCompleter =
-          kDefaultQueryCompleter}) {
+      QueryCompleter queryCompleter = kDefaultQueryCompleter}) {
     return queryCompleter(
             GetIt.I<DatabaseRepository>()
                 .collection('Persons')
@@ -158,8 +159,7 @@ class Service extends DataObject implements PhotoObjectBase {
   Stream<List<User>> getUsersMembersLive(
       {bool descending = false,
       String orderBy = 'Name',
-      QueryOfJson Function(QueryOfJson, String, bool) queryCompleter =
-          kDefaultQueryCompleter}) {
+      QueryCompleter queryCompleter = kDefaultQueryCompleter}) {
     return queryCompleter(
             GetIt.I<DatabaseRepository>()
                 .collection('UsersData')
@@ -168,26 +168,6 @@ class Service extends DataObject implements PhotoObjectBase {
             descending)
         .snapshots()
         .map((p) => p.docs.map(User.fromDoc).toList());
-  }
-
-  Service copyWith({
-    JsonRef? ref,
-    String? name,
-    StudyYearRange? studyYearRange,
-    DateTimeRange? validity,
-    bool? showInHistory,
-    Color? color,
-    LastEdit? lastEdit,
-  }) {
-    return Service(
-      ref: ref ?? this.ref,
-      name: name ?? this.name,
-      studyYearRange: studyYearRange ?? this.studyYearRange,
-      validity: validity ?? this.validity,
-      showInHistory: showInHistory ?? this.showInHistory,
-      color: color ?? this.color,
-      lastEdit: lastEdit ?? this.lastEdit,
-    );
   }
 
   Json formattedProps() => {
@@ -298,11 +278,13 @@ class Service extends DataObject implements PhotoObjectBase {
       };
 }
 
+@immutable
+@CopyWith(copyWithNull: true)
 class StudyYearRange {
-  JsonRef? from;
-  JsonRef? to;
+  final JsonRef? from;
+  final JsonRef? to;
 
-  StudyYearRange({required this.from, required this.to});
+  const StudyYearRange({required this.from, required this.to});
 
   Json toJson() => {'From': from, 'To': to};
 }

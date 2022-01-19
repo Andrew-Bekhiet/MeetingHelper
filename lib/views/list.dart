@@ -271,6 +271,7 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
             id: oRecord.id,
             notes: oRecord.notes,
             parent: oRecord.parent,
+            // ignore: unnecessary_null_checks
             recordedBy: oRecord.recordedBy!,
             time: oRecord.time,
             type: oRecord.type,
@@ -307,30 +308,33 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
                                 ? (v) {
                                     if (v!) {
                                       record = HistoryRecord(
-                                          classId: current.classId,
-                                          id: current.id,
-                                          parent: _listController.day,
-                                          type: _listController.type,
-                                          recordedBy: MHAuthRepository
-                                              .I.currentUser!.uid,
-                                          services: _listController.type ==
-                                                      'Meeting' ||
-                                                  _listController.type ==
-                                                      'Kodas' ||
-                                                  _listController.type ==
-                                                      'Confession'
-                                              ? current.services
-                                              : [
-                                                  GetIt.I<DatabaseRepository>()
-                                                      .collection('Services')
-                                                      .doc(_listController.type)
-                                                ],
-                                          studyYear: current.studyYear,
-                                          time: mergeDayWithTime(
-                                            _listController.day.day.toDate(),
-                                            DateTime.now(),
-                                          ),
-                                          isServant: T == User);
+                                        classId: current.classId,
+                                        id: current.id,
+                                        parent: _listController.day,
+                                        type: _listController.type,
+                                        recordedBy:
+                                            MHAuthRepository.I.currentUser!.uid,
+                                        services: _listController.type ==
+                                                    'Meeting' ||
+                                                _listController.type ==
+                                                    'Kodas' ||
+                                                _listController.type ==
+                                                    'Confession'
+                                            ? current.services
+                                            : [
+                                                GetIt.I<DatabaseRepository>()
+                                                    .collection('Services')
+                                                    .doc(_listController.type)
+                                              ],
+                                        studyYear: current.studyYear,
+                                        time: _listController.day.day
+                                            .toDate()
+                                            .replaceTime(
+                                              DateTime.now(),
+                                            )
+                                            .toTimestamp(),
+                                        isServant: T == User,
+                                      );
                                     } else
                                       record = null;
                                     setState(() {});
@@ -363,8 +367,10 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
                                     selected?.minute ?? initialValue.minute);
                               },
                               onChanged: (t) async {
-                                record!.time = mergeDayWithTime(
-                                    _listController.day.day.toDate(), t!);
+                                record!.time = _listController.day.day
+                                    .toDate()
+                                    .replaceTime(t!)
+                                    .toTimestamp();
                                 setState(() {});
                               },
                             ),

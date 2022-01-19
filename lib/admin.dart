@@ -47,7 +47,8 @@ class _ChurchesPageState extends State<ChurchesPage> {
     );
   }
 
-  void churchTap(Church church, bool editMode) async {
+  void churchTap(Church _church, bool editMode) async {
+    Church church = _church;
     final title = TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.bold,
@@ -77,38 +78,39 @@ class _ChurchesPageState extends State<ChurchesPage> {
               child: Text(editMode ? 'حفظ' : 'تعديل')),
           if (editMode)
             TextButton(
-                onPressed: () async {
-                  await showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text(church.name),
-                      content: Text('هل أنت متأكد من حذف ${church.name}؟'),
-                      actions: <Widget>[
-                        TextButton(
-                          onPressed: () async {
-                            await GetIt.I<DatabaseRepository>()
-                                .collection('Churches')
-                                .doc(church.id)
-                                .delete();
-                            navigator.currentState!.pop();
-                            navigator.currentState!.pop();
-                            setState(() {
-                              editMode = !editMode;
-                            });
-                          },
-                          child: const Text('نعم'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            navigator.currentState!.pop();
-                          },
-                          child: const Text('تراجع'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-                child: const Text('حذف'))
+              onPressed: () async {
+                await showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text(church.name),
+                    content: Text('هل أنت متأكد من حذف ${church.name}؟'),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () async {
+                          await GetIt.I<DatabaseRepository>()
+                              .collection('Churches')
+                              .doc(church.id)
+                              .delete();
+                          navigator.currentState!.pop();
+                          navigator.currentState!.pop();
+                          setState(() {
+                            editMode = !editMode;
+                          });
+                        },
+                        child: const Text('نعم'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          navigator.currentState!.pop();
+                        },
+                        child: const Text('تراجع'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              child: const Text('حذف'),
+            ),
         ],
         title: Text(church.name),
         scrollable: true,
@@ -125,7 +127,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
               if (editMode)
                 TextField(
                   controller: TextEditingController(text: church.name),
-                  onChanged: (v) => church.name = v,
+                  onChanged: (v) => church = church.copyWith.name(v),
                 )
               else
                 Text(church.name),
@@ -136,22 +138,21 @@ class _ChurchesPageState extends State<ChurchesPage> {
               if (editMode)
                 TextField(
                   controller: TextEditingController(text: church.address),
-                  onChanged: (v) => church.address = v,
+                  onChanged: (v) => church = church.copyWith.address(v),
                 )
               else
                 Text(church.address!),
               if (!editMode) Text('الأباء بالكنيسة:', style: title),
               if (!editMode)
-                StreamBuilder<JsonQuery>(
-                  stream: church.getMembersLive(),
+                StreamBuilder<List<Father>>(
+                  stream: church.getChildren(),
                   builder: (con, data) {
                     if (data.hasData) {
                       return Expanded(
                         child: ListView.builder(
-                          itemCount: data.data!.docs.length,
+                          itemCount: data.data!.length,
                           itemBuilder: (context, i) {
-                            final current =
-                                Father.fromQueryDoc(data.data!.docs[i]);
+                            final current = data.data![i];
                             return Card(
                               child: ListTile(
                                 onTap: () => fatherTap(current, false),
@@ -173,7 +174,8 @@ class _ChurchesPageState extends State<ChurchesPage> {
     );
   }
 
-  void fatherTap(Father father, bool editMode) async {
+  void fatherTap(Father _father, bool editMode) async {
+    Father father = _father;
     final title = TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.bold,
@@ -203,38 +205,39 @@ class _ChurchesPageState extends State<ChurchesPage> {
               child: Text(editMode ? 'حفظ' : 'تعديل')),
           if (editMode)
             TextButton(
-                onPressed: () async {
-                  await showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text(father.name),
-                      content: Text('هل أنت متأكد من حذف ${father.name}؟'),
-                      actions: <Widget>[
-                        TextButton(
-                          onPressed: () async {
-                            await GetIt.I<DatabaseRepository>()
-                                .collection('Fathers')
-                                .doc(father.id)
-                                .delete();
-                            navigator.currentState!.pop();
-                            navigator.currentState!.pop();
-                            setState(() {
-                              editMode = !editMode;
-                            });
-                          },
-                          child: const Text('نعم'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            navigator.currentState!.pop();
-                          },
-                          child: const Text('تراجع'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-                child: const Text('حذف'))
+              onPressed: () async {
+                await showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text(father.name),
+                    content: Text('هل أنت متأكد من حذف ${father.name}؟'),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () async {
+                          await GetIt.I<DatabaseRepository>()
+                              .collection('Fathers')
+                              .doc(father.id)
+                              .delete();
+                          navigator.currentState!.pop();
+                          navigator.currentState!.pop();
+                          setState(() {
+                            editMode = !editMode;
+                          });
+                        },
+                        child: const Text('نعم'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          navigator.currentState!.pop();
+                        },
+                        child: const Text('تراجع'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              child: const Text('حذف'),
+            ),
         ],
         title: Text(father.name),
         content: SingleChildScrollView(
@@ -245,25 +248,25 @@ class _ChurchesPageState extends State<ChurchesPage> {
               if (editMode)
                 TextField(
                   controller: TextEditingController(text: father.name),
-                  onChanged: (v) => father.name = v,
+                  onChanged: (v) => father = father.copyWith.name(v),
                 )
               else
                 Text(father.name),
               Text('داخل كنيسة', style: title),
               if (editMode)
-                FutureBuilder<JsonQuery>(
-                  future: Church.getAll(),
+                FutureBuilder<List<Church>>(
+                  future: Church.getAll().first,
                   builder: (context, data) {
                     if (data.hasData) {
                       return Container(
                         padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: DropdownButtonFormField(
-                          value: father.churchId?.path,
-                          items: data.data!.docs
+                        child: DropdownButtonFormField<JsonRef?>(
+                          value: father.churchId,
+                          items: data.data!
                               .map(
                                 (item) => DropdownMenuItem(
-                                  value: item.reference.path,
-                                  child: Text(item.data()['Name']),
+                                  value: item.ref,
+                                  child: Text(item.name),
                                 ),
                               )
                               .toList()
@@ -274,9 +277,8 @@ class _ChurchesPageState extends State<ChurchesPage> {
                                 child: Text(''),
                               ),
                             ),
-                          onChanged: (dynamic value) {
-                            father.churchId =
-                                GetIt.I<DatabaseRepository>().doc(value);
+                          onChanged: (value) {
+                            father = father.copyWith.churchId(value);
                           },
                           decoration: const InputDecoration(
                             labelText: 'الكنيسة',
@@ -331,7 +333,9 @@ class _FathersPageState extends State<FathersPage> {
     );
   }
 
-  void churchTap(Church church, bool editMode) async {
+  void churchTap(Church _church, bool editMode) async {
+    Church church = _church;
+
     final title = TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.bold,
@@ -361,38 +365,39 @@ class _FathersPageState extends State<FathersPage> {
               child: Text(editMode ? 'حفظ' : 'تعديل')),
           if (editMode)
             TextButton(
-                onPressed: () async {
-                  await showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                            title: Text(church.name),
-                            content:
-                                Text('هل أنت متأكد من حذف ${church.name}؟'),
-                            actions: <Widget>[
-                              TextButton(
-                                onPressed: () async {
-                                  await GetIt.I<DatabaseRepository>()
-                                      .collection('Churches')
-                                      .doc(church.id)
-                                      .delete();
-                                  navigator.currentState!.pop();
-                                  navigator.currentState!.pop();
-                                  setState(() {
-                                    editMode = !editMode;
-                                  });
-                                },
-                                child: const Text('نعم'),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  navigator.currentState!.pop();
-                                },
-                                child: const Text('تراجع'),
-                              ),
-                            ],
-                          ));
-                },
-                child: const Text('حذف'))
+              onPressed: () async {
+                await showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text(church.name),
+                    content: Text('هل أنت متأكد من حذف ${church.name}؟'),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () async {
+                          await GetIt.I<DatabaseRepository>()
+                              .collection('Churches')
+                              .doc(church.id)
+                              .delete();
+                          navigator.currentState!.pop();
+                          navigator.currentState!.pop();
+                          setState(() {
+                            editMode = !editMode;
+                          });
+                        },
+                        child: const Text('نعم'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          navigator.currentState!.pop();
+                        },
+                        child: const Text('تراجع'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              child: const Text('حذف'),
+            ),
         ],
         title: Text(church.name),
         scrollable: true,
@@ -409,7 +414,7 @@ class _FathersPageState extends State<FathersPage> {
               if (editMode)
                 TextField(
                   controller: TextEditingController(text: church.name),
-                  onChanged: (v) => church.name = v,
+                  onChanged: (v) => church = church.copyWith.name(v),
                 )
               else
                 Text(church.name),
@@ -420,22 +425,21 @@ class _FathersPageState extends State<FathersPage> {
               if (editMode)
                 TextField(
                   controller: TextEditingController(text: church.address),
-                  onChanged: (v) => church.address = v,
+                  onChanged: (v) => church = church.copyWith.address(v),
                 )
               else
                 Text(church.address!),
               if (!editMode) Text('الأباء بالكنيسة:', style: title),
               if (!editMode)
                 Expanded(
-                  child: StreamBuilder<JsonQuery>(
-                    stream: church.getMembersLive(),
+                  child: StreamBuilder<List<Father>>(
+                    stream: church.getChildren(),
                     builder: (con, data) {
                       if (data.hasData) {
                         return ListView.builder(
-                            itemCount: data.data!.docs.length,
+                            itemCount: data.data!.length,
                             itemBuilder: (context, i) {
-                              final current =
-                                  Father.fromQueryDoc(data.data!.docs[i]);
+                              final current = data.data![i];
                               return Card(
                                 child: ListTile(
                                   onTap: () => fatherTap(current, false),
@@ -456,7 +460,8 @@ class _FathersPageState extends State<FathersPage> {
     );
   }
 
-  void fatherTap(Father father, bool editMode) async {
+  void fatherTap(Father _father, bool editMode) async {
+    Father father = _father;
     final title = TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.bold,
@@ -486,38 +491,39 @@ class _FathersPageState extends State<FathersPage> {
               child: Text(editMode ? 'حفظ' : 'تعديل')),
           if (editMode)
             TextButton(
-                onPressed: () async {
-                  await showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                            title: Text(father.name),
-                            content:
-                                Text('هل أنت متأكد من حذف ${father.name}؟'),
-                            actions: <Widget>[
-                              TextButton(
-                                onPressed: () async {
-                                  await GetIt.I<DatabaseRepository>()
-                                      .collection('Fathers')
-                                      .doc(father.id)
-                                      .delete();
-                                  navigator.currentState!.pop();
-                                  navigator.currentState!.pop();
-                                  setState(() {
-                                    editMode = !editMode;
-                                  });
-                                },
-                                child: const Text('نعم'),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  navigator.currentState!.pop();
-                                },
-                                child: const Text('تراجع'),
-                              ),
-                            ],
-                          ));
-                },
-                child: const Text('حذف'))
+              onPressed: () async {
+                await showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text(father.name),
+                    content: Text('هل أنت متأكد من حذف ${father.name}؟'),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () async {
+                          await GetIt.I<DatabaseRepository>()
+                              .collection('Fathers')
+                              .doc(father.id)
+                              .delete();
+                          navigator.currentState!.pop();
+                          navigator.currentState!.pop();
+                          setState(() {
+                            editMode = !editMode;
+                          });
+                        },
+                        child: const Text('نعم'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          navigator.currentState!.pop();
+                        },
+                        child: const Text('تراجع'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              child: const Text('حذف'),
+            ),
         ],
         title: Text(father.name),
         content: SingleChildScrollView(
@@ -528,25 +534,25 @@ class _FathersPageState extends State<FathersPage> {
               if (editMode)
                 TextField(
                   controller: TextEditingController(text: father.name),
-                  onChanged: (v) => father.name = v,
+                  onChanged: (v) => father = father.copyWith.name(v),
                 )
               else
                 Text(father.name),
               Text('داخل كنيسة', style: title),
               if (editMode)
-                FutureBuilder<JsonQuery>(
-                  future: Church.getAll(),
+                FutureBuilder<List<Church>>(
+                  future: Church.getAll().first,
                   builder: (context, data) {
                     if (data.hasData) {
                       return Container(
                         padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: DropdownButtonFormField(
-                          value: father.churchId?.path,
-                          items: data.data!.docs
+                        child: DropdownButtonFormField<JsonRef?>(
+                          value: father.churchId,
+                          items: data.data!
                               .map(
                                 (item) => DropdownMenuItem(
-                                  value: item.reference.path,
-                                  child: Text(item.data()['Name']),
+                                  value: item.ref,
+                                  child: Text(item.name),
                                 ),
                               )
                               .toList()
@@ -557,9 +563,8 @@ class _FathersPageState extends State<FathersPage> {
                                 child: Text(''),
                               ),
                             ),
-                          onChanged: (dynamic value) {
-                            father.churchId =
-                                GetIt.I<DatabaseRepository>().doc(value);
+                          onChanged: (value) {
+                            father = father.copyWith.churchId(value);
                           },
                           decoration: const InputDecoration(
                             labelText: 'الكنيسة',
@@ -615,7 +620,8 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
     );
   }
 
-  void studyYearTap(StudyYear year, bool editMode) async {
+  void studyYearTap(StudyYear _year, bool editMode) async {
+    StudyYear year = _year;
     final title = TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.bold,
@@ -645,37 +651,39 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
               child: Text(editMode ? 'حفظ' : 'تعديل')),
           if (editMode)
             TextButton(
-                onPressed: () async {
-                  await showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                            title: Text(year.name),
-                            content: Text('هل أنت متأكد من حذف ${year.name}؟'),
-                            actions: <Widget>[
-                              TextButton(
-                                onPressed: () async {
-                                  await GetIt.I<DatabaseRepository>()
-                                      .collection('StudyYears')
-                                      .doc(year.id)
-                                      .delete();
-                                  navigator.currentState!.pop();
-                                  navigator.currentState!.pop();
-                                  setState(() {
-                                    editMode = !editMode;
-                                  });
-                                },
-                                child: const Text('نعم'),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  navigator.currentState!.pop();
-                                },
-                                child: const Text('تراجع'),
-                              ),
-                            ],
-                          ));
-                },
-                child: const Text('حذف'))
+              onPressed: () async {
+                await showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text(year.name),
+                    content: Text('هل أنت متأكد من حذف ${year.name}؟'),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () async {
+                          await GetIt.I<DatabaseRepository>()
+                              .collection('StudyYears')
+                              .doc(year.id)
+                              .delete();
+                          navigator.currentState!.pop();
+                          navigator.currentState!.pop();
+                          setState(() {
+                            editMode = !editMode;
+                          });
+                        },
+                        child: const Text('نعم'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          navigator.currentState!.pop();
+                        },
+                        child: const Text('تراجع'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              child: const Text('حذف'),
+            ),
         ],
         title: Text(year.name),
         content: SingleChildScrollView(
@@ -689,7 +697,7 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
               if (editMode)
                 TextField(
                   controller: TextEditingController(text: year.name),
-                  onChanged: (v) => year.name = v,
+                  onChanged: (v) => year = year.copyWith.name(v),
                 )
               else
                 Text(year.name),
@@ -699,12 +707,14 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
               ),
               if (editMode)
                 ListTile(
-                  onTap: () =>
-                      setState(() => year.isCollegeYear = !year.isCollegeYear),
+                  onTap: () => setState(() =>
+                      year = year.copyWith.isCollegeYear(!year.isCollegeYear)),
                   title: const Text('سنة جامعية؟'),
                   trailing: Checkbox(
-                      value: year.isCollegeYear ?? false,
-                      onChanged: (v) => setState(() => year.isCollegeYear = v)),
+                    value: year.isCollegeYear,
+                    onChanged: (v) =>
+                        setState(() => year = year.copyWith.isCollegeYear(v!)),
+                  ),
                 )
               else
                 ListTile(
@@ -716,7 +726,7 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
                   keyboardType: TextInputType.number,
                   controller:
                       TextEditingController(text: year.grade.toString()),
-                  onChanged: (v) => year.grade = int.parse(v),
+                  onChanged: (v) => year = year.copyWith.grade(int.parse(v)),
                 )
               else
                 Text(year.grade.toString()),

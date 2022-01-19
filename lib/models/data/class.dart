@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:async/async.dart';
 import 'package:churchdata_core/churchdata_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' show DocumentReference;
 import 'package:collection/collection.dart';
 import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:flutter/material.dart';
@@ -11,12 +12,15 @@ import 'package:rxdart/rxdart.dart';
 import 'person.dart';
 import 'user.dart';
 
+part 'class.g.dart';
+
+@immutable
 @CopyWith(copyWithNull: true)
 class Class extends DataObject implements PhotoObjectBase {
   final JsonRef? studyYear;
   final bool? gender;
 
-  late final UnmodifiableListView<String> allowedUsers;
+  final UnmodifiableListView<String> allowedUsers;
   final LastEdit? lastEdit;
 
   @override
@@ -33,11 +37,12 @@ class Class extends DataObject implements PhotoObjectBase {
     this.gender = true,
     this.hasPhoto = false,
     this.color,
-    String? lastEditUid,
-  })  : lastEdit = LastEdit(
-          lastEditUid ?? GetIt.I<AuthRepository>().currentUser!.uid,
-          DateTime.now(),
-        ),
+    LastEdit? lastEdit,
+  })  : lastEdit = lastEdit ??
+            LastEdit(
+              GetIt.I<AuthRepository>().currentUser!.uid,
+              DateTime.now(),
+            ),
         allowedUsers = UnmodifiableListView(allowedUsers ?? []),
         super(
           ref,
@@ -172,8 +177,7 @@ class Class extends DataObject implements PhotoObjectBase {
   static Stream<List<Class>> getAllForUser(
       {String orderBy = 'Name',
       bool descending = false,
-      QueryOfJson Function(QueryOfJson, String, bool) queryCompleter =
-          kDefaultQueryCompleter}) {
+      QueryCompleter queryCompleter = kDefaultQueryCompleter}) {
     return MHAuthRepository.I.userStream.switchMap((u) {
       if (u == null) return Stream.value([]);
       if (u.permissions.superAccess) {

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:churchdata_core/churchdata_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' show DocumentReference;
 import 'package:collection/collection.dart';
 import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:flutter/material.dart';
@@ -38,11 +39,11 @@ class Person extends PersonBase {
     required JsonRef ref,
     this.classId,
     String name = '',
-    String phone = '',
+    String? phone,
     Json? phones,
     this.fatherPhone = '',
     this.motherPhone = '',
-    String address = '',
+    String? address,
     GeoPoint? location,
     bool hasPhoto = false,
     DateTime? birthDate,
@@ -53,7 +54,7 @@ class Person extends PersonBase {
     DateTime? lastCall,
     DateTime? lastVisit,
     LastEdit? lastEdit,
-    String notes = '',
+    String? notes,
     JsonRef? school,
     JsonRef? college,
     JsonRef? church,
@@ -308,8 +309,7 @@ class Person extends PersonBase {
   static Stream<List<Person>> getAllForUser({
     String orderBy = 'Name',
     bool descending = false,
-    QueryOfJson Function(QueryOfJson, String, bool) queryCompleter =
-        kDefaultQueryCompleter,
+    QueryCompleter queryCompleter = kDefaultQueryCompleter,
   }) {
     return Rx.combineLatest2<User?, List<Class>, Tuple2<User?, List<Class>>>(
             MHAuthRepository.I.userStream, Class.getAllForUser(), Tuple2.new)

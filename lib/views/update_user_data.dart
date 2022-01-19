@@ -16,7 +16,7 @@ class UpdateUserDataErrorPage extends StatefulWidget {
 }
 
 class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
-  final user = User.instance;
+  User user = MHAuthRepository.I.currentUser!.copyWith();
   final GlobalKey<FormState> _form = GlobalKey<FormState>();
 
   @override
@@ -52,8 +52,9 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                       ? Text(DateFormat('yyyy/M/d').format(state.value!))
                       : null;
                 },
-                // ignore: unnecessary_null_checks
-                onSaved: (v) => user.permissions.lastTanawol = v!,
+                onSaved: (v) => user = user.copyWith.permissions(
+                  user.permissions.copyWith.lastTanawol(v),
+                ),
                 validator: (value) => value == null
                     ? 'برجاء اختيار تاريخ أخر تناول'
                     : value.isBefore(
@@ -83,8 +84,9 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                       ? Text(DateFormat('yyyy/M/d').format(state.value!))
                       : null;
                 },
-                // ignore: unnecessary_null_checks
-                onSaved: (v) => user.permissions.lastConfession = v!,
+                onSaved: (v) => user = user.copyWith.permissions(
+                  user.permissions.copyWith.lastConfession(v),
+                ),
                 validator: (value) => value == null
                     ? 'برجاء اختيار تاريخ أخر اعتراف'
                     : value.isBefore(

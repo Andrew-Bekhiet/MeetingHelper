@@ -11,12 +11,9 @@ import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/service.dart';
-import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
-import 'package:meetinghelper/views/list.dart';
-import 'package:meetinghelper/views/lists/users_list.dart';
 import 'package:meetinghelper/views/services_list.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
@@ -34,7 +31,6 @@ class EditUser extends StatefulWidget {
 
 class _EditUserState extends State<EditUser> {
   AsyncCache<String?> className = AsyncCache(const Duration(minutes: 1));
-  late User old;
   late User user;
   List<User>? childrenUsers;
 
@@ -99,7 +95,7 @@ class _EditUserState extends State<EditUser> {
                     ),
                     textInputAction: TextInputAction.next,
                     initialValue: user.name,
-                    onChanged: (v) => user.name = v,
+                    onChanged: (v) => user = user.copyWith.name(v),
                     validator: (value) {
                       if (value!.isEmpty) {
                         return 'هذا الحقل مطلوب';
@@ -111,18 +107,21 @@ class _EditUserState extends State<EditUser> {
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: InkWell(
-                    onTap: () async =>
-                        user.permissions.lastTanawol = await _selectDate(
-                      'تاريخ أخر تناول',
-                      user.permissions.lastTanawolDate ?? DateTime.now(),
+                    onTap: () async => user = user.copyWith.permissions(
+                      user.permissions.copyWith.lastTanawol(
+                        await _selectDate(
+                          'تاريخ أخر تناول',
+                          user.permissions.lastTanawol ?? DateTime.now(),
+                        ),
+                      ),
                     ),
                     child: InputDecorator(
                       decoration: const InputDecoration(
                         labelText: 'تاريخ أخر تناول',
                       ),
-                      child: user.permissions.lastTanawolDate != null
+                      child: user.permissions.lastTanawol != null
                           ? Text(DateFormat('yyyy/M/d').format(
-                              user.permissions.lastTanawolDate!,
+                              user.permissions.lastTanawol!,
                             ))
                           : const Text('لا يمكن التحديد'),
                     ),
@@ -131,18 +130,21 @@ class _EditUserState extends State<EditUser> {
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: InkWell(
-                    onTap: () async =>
-                        user.permissions.lastConfession = await _selectDate(
-                      'تاريخ أخر اعتراف',
-                      user.permissions.lastConfessionDate ?? DateTime.now(),
+                    onTap: () async => user = user.copyWith.permissions(
+                      user.permissions.copyWith.lastConfession(
+                        await _selectDate(
+                          'تاريخ أخر اعتراف',
+                          user.permissions.lastConfession ?? DateTime.now(),
+                        ),
+                      ),
                     ),
                     child: InputDecorator(
                       decoration: const InputDecoration(
                         labelText: 'تاريخ أخر اعتراف',
                       ),
-                      child: user.permissions.lastConfessionDate != null
+                      child: user.permissions.lastConfession != null
                           ? Text(DateFormat('yyyy/M/d').format(
-                              user.permissions.lastConfessionDate!,
+                              user.permissions.lastConfession!,
                             ))
                           : const Text('لا يمكن التحديد'),
                     ),
@@ -158,9 +160,14 @@ class _EditUserState extends State<EditUser> {
                         labelText: 'داخل فصل',
                       ),
                       child: FutureBuilder<String?>(
-                        future: className.fetch(() => user.classId == null
-                            ? Future<String?>(() => null)
-                            : user.getClassName()),
+                        future: className.fetch(
+                          () => user.classId == null
+                              ? Future<String?>(() => null)
+                              : (user.classId
+                                      ?.get()
+                                      .then((d) => d.data()?['Name'])) ??
+                                  Future<String?>(() => null),
+                        ),
                         builder: (con, data) {
                           if (data.hasData) {
                             return Text(data.data!);
@@ -175,143 +182,251 @@ class _EditUserState extends State<EditUser> {
                     ),
                   ),
                 ),
-                if (User.instance.manageUsers)
+                if (MHAuthRepository.I.currentUser!.permissions.manageUsers)
                   ListTile(
                     trailing: Checkbox(
-                      value: user.manageUsers,
-                      onChanged: (v) => setState(() => user.manageUsers = v!),
+                      value: user.permissions.manageUsers,
+                      onChanged: (v) => setState(
+                        () => user = user.copyWith.permissions(
+                          user.permissions.copyWith.manageUsers(v!),
+                        ),
+                      ),
                     ),
                     leading: const Icon(
                         IconData(0xef3d, fontFamily: 'MaterialIconsR')),
                     title: const Text('إدارة المستخدمين'),
-                    onTap: () =>
-                        setState(() => user.manageUsers = !user.manageUsers),
+                    onTap: () => setState(
+                      () => user = user.copyWith.permissions(
+                        user.permissions.copyWith
+                            .manageUsers(!user.permissions.manageUsers),
+                      ),
+                    ),
                   ),
                 ListTile(
                   trailing: Checkbox(
-                    value: user.manageAllowedUsers,
-                    onChanged: (v) =>
-                        setState(() => user.manageAllowedUsers = v!),
+                    value: user.permissions.manageAllowedUsers,
+                    onChanged: (v) => setState(
+                      () => user = user.copyWith.permissions(
+                        user.permissions.copyWith.manageAllowedUsers(v!),
+                      ),
+                    ),
                   ),
                   leading: const Icon(
                       IconData(0xef3d, fontFamily: 'MaterialIconsR')),
                   title: const Text('إدارة مستخدمين محددين'),
                   onTap: () => setState(
-                      () => user.manageAllowedUsers = !user.manageAllowedUsers),
+                    () => user = user.copyWith.permissions(
+                      user.permissions.copyWith.manageAllowedUsers(
+                          !user.permissions.manageAllowedUsers),
+                    ),
+                  ),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: user.superAccess,
-                    onChanged: (v) => setState(() => user.superAccess = v!),
+                    value: user.permissions.superAccess,
+                    onChanged: (v) => setState(
+                      () => user = user.copyWith.permissions(
+                        user.permissions.copyWith.superAccess(v!),
+                      ),
+                    ),
                   ),
                   leading: const Icon(
                       IconData(0xef56, fontFamily: 'MaterialIconsR')),
                   title: const Text('رؤية جميع البيانات'),
-                  onTap: () =>
-                      setState(() => user.superAccess = !user.superAccess),
+                  onTap: () => setState(
+                    () => user = user.copyWith.permissions(
+                      user.permissions.copyWith
+                          .superAccess(!user.permissions.superAccess),
+                    ),
+                  ),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: user.manageDeleted,
-                    onChanged: (v) => setState(() => user.manageDeleted = v!),
+                    value: user.permissions.manageDeleted,
+                    onChanged: (v) => setState(
+                      () => user = user.copyWith.permissions(
+                        user.permissions.copyWith.manageDeleted(v!),
+                      ),
+                    ),
                   ),
                   leading: const Icon(Icons.delete_outlined),
                   title: const Text('استرجاع المحذوفات'),
-                  onTap: () =>
-                      setState(() => user.manageDeleted = !user.manageDeleted),
+                  onTap: () => setState(
+                    () => user = user.copyWith.permissions(
+                      user.permissions.copyWith
+                          .manageDeleted(!user.permissions.manageDeleted),
+                    ),
+                  ),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: user.changeHistory,
-                    onChanged: (v) => setState(() => user.changeHistory = v!),
+                    value: user.permissions.changeHistory,
+                    onChanged: (v) => setState(
+                      () => user = user.copyWith.permissions(
+                        user.permissions.copyWith.changeHistory(v!),
+                      ),
+                    ),
                   ),
                   leading: const Icon(Icons.history),
                   title: const Text('تعديل الكشوفات القديمة'),
-                  onTap: () =>
-                      setState(() => user.changeHistory = !user.changeHistory),
+                  onTap: () => setState(
+                    () => user = user.copyWith.permissions(
+                      user.permissions.copyWith
+                          .changeHistory(!user.permissions.changeHistory),
+                    ),
+                  ),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: user.secretary,
-                    onChanged: (v) => setState(() => user.secretary = v!),
+                    value: user.permissions.secretary,
+                    onChanged: (v) => setState(
+                      () => user = user.copyWith.permissions(
+                        user.permissions.copyWith.secretary(v!),
+                      ),
+                    ),
                   ),
                   leading: const Icon(Icons.shield),
                   title: const Text('تسجيل حضور الخدام'),
-                  onTap: () => setState(() => user.secretary = !user.secretary),
+                  onTap: () => setState(
+                    () => user = user.copyWith.permissions(
+                      user.permissions.copyWith.secretary(
+                        !user.permissions.secretary,
+                      ),
+                    ),
+                  ),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: user.write,
-                    onChanged: (v) => setState(() => user.write = v!),
+                    value: user.permissions.write,
+                    onChanged: (v) => setState(
+                      () => user = user.copyWith.permissions(
+                        user.permissions.copyWith.write(v!),
+                      ),
+                    ),
                   ),
                   leading: const Icon(Icons.edit),
                   title: const Text('تعديل البيانات'),
-                  onTap: () => setState(() => user.write = !user.write),
+                  onTap: () => setState(
+                    () => user = user.copyWith.permissions(
+                      user.permissions.copyWith.write(
+                        !user.permissions.write,
+                      ),
+                    ),
+                  ),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: user.export,
-                    onChanged: (v) => setState(() => user.export = v!),
+                    value: user.permissions.export,
+                    onChanged: (v) => setState(
+                      () => user = user.copyWith.permissions(
+                        user.permissions.copyWith.export(v!),
+                      ),
+                    ),
                   ),
                   leading: const Icon(Icons.cloud_download),
                   title: const Text('تصدير فصل لملف إكسل'),
-                  onTap: () => setState(() => user.export = !user.export),
+                  onTap: () => setState(
+                    () => user = user.copyWith.permissions(
+                      user.permissions.copyWith.export(
+                        !user.permissions.export,
+                      ),
+                    ),
+                  ),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: user.birthdayNotify,
-                    onChanged: (v) => setState(() => user.birthdayNotify = v!),
+                    value: user.permissions.birthdayNotify,
+                    onChanged: (v) => setState(
+                      () => user = user.copyWith.permissions(
+                        user.permissions.copyWith.birthdayNotify(v!),
+                      ),
+                    ),
                   ),
                   leading: const Icon(
                       IconData(0xe7e9, fontFamily: 'MaterialIconsR')),
                   title: const Text('إشعار أعياد الميلاد'),
                   onTap: () => setState(
-                      () => user.birthdayNotify = !user.birthdayNotify),
+                    () => user = user.copyWith.permissions(
+                      user.permissions.copyWith
+                          .birthdayNotify(!user.permissions.birthdayNotify),
+                    ),
+                  ),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: user.confessionsNotify,
-                    onChanged: (v) =>
-                        setState(() => user.confessionsNotify = v!),
+                    value: user.permissions.confessionsNotify,
+                    onChanged: (v) => setState(
+                      () => user = user.copyWith.permissions(
+                        user.permissions.copyWith.confessionsNotify(v!),
+                      ),
+                    ),
                   ),
                   leading: const Icon(
                       IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
                   title: const Text('إشعار  الاعتراف'),
                   onTap: () => setState(
-                      () => user.confessionsNotify = !user.confessionsNotify),
+                    () => user = user.copyWith.permissions(
+                      user.permissions.copyWith.confessionsNotify(
+                          !user.permissions.confessionsNotify),
+                    ),
+                  ),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: user.tanawolNotify,
-                    onChanged: (v) => setState(() => user.tanawolNotify = v!),
+                    value: user.permissions.tanawolNotify,
+                    onChanged: (v) => setState(
+                      () => user = user.copyWith.permissions(
+                        user.permissions.copyWith.tanawolNotify(v!),
+                      ),
+                    ),
                   ),
                   leading: const Icon(
                       IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
                   title: const Text('إشعار التناول'),
-                  onTap: () =>
-                      setState(() => user.tanawolNotify = !user.tanawolNotify),
+                  onTap: () => setState(
+                    () => user = user.copyWith.permissions(
+                      user.permissions.copyWith
+                          .tanawolNotify(!user.permissions.tanawolNotify),
+                    ),
+                  ),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: user.kodasNotify,
-                    onChanged: (v) => setState(() => user.kodasNotify = v!),
+                    value: user.permissions.kodasNotify,
+                    onChanged: (v) => setState(
+                      () => user = user.copyWith.permissions(
+                        user.permissions.copyWith.kodasNotify(v!),
+                      ),
+                    ),
                   ),
                   leading: const Icon(
                       IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
                   title: const Text('إشعار القداس'),
-                  onTap: () =>
-                      setState(() => user.kodasNotify = !user.kodasNotify),
+                  onTap: () => setState(
+                    () => user = user.copyWith.permissions(
+                      user.permissions.copyWith
+                          .kodasNotify(!user.permissions.kodasNotify),
+                    ),
+                  ),
                 ),
                 ListTile(
                   trailing: Checkbox(
-                    value: user.meetingNotify,
-                    onChanged: (v) => setState(() => user.meetingNotify = v!),
+                    value: user.permissions.meetingNotify,
+                    onChanged: (v) => setState(
+                      () => user = user.copyWith.permissions(
+                        user.permissions.copyWith.meetingNotify(v!),
+                      ),
+                    ),
                   ),
                   leading: const Icon(
                       IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
                   title: const Text('إشعار حضور الاجتماع'),
-                  onTap: () =>
-                      setState(() => user.meetingNotify = !user.meetingNotify),
+                  onTap: () => setState(
+                    () => user = user.copyWith.permissions(
+                      user.permissions.copyWith
+                          .meetingNotify(!user.permissions.meetingNotify),
+                    ),
+                  ),
                 ),
                 ElevatedButton.icon(
                   onPressed: editAdminServices,
@@ -370,12 +485,13 @@ class _EditUserState extends State<EditUser> {
                     return const Center(child: CircularProgressIndicator());
                   return MultiProvider(
                     providers: [
-                      Provider<ListController<User>>(
-                        create: (_) => ListController<User>(
-                          selectionMode: true,
-                          itemsStream: MHAuthRepository.getAllUsers(),
-                          selected: {for (final item in users.data!) item},
-                        ),
+                      Provider<ListController<Class?, User>>(
+                        create: (_) => ListController<Class?, User>(
+                          groupByStream: usersByClass,
+                          objectsPaginatableStream: PaginatableStream.loadAll(
+                            stream: MHAuthRepository.getAllUsers(),
+                          ),
+                        )..selectAll(users.data),
                         dispose: (context, c) => c.dispose(),
                       )
                     ],
@@ -384,10 +500,9 @@ class _EditUserState extends State<EditUser> {
                         TextButton(
                           onPressed: () {
                             navigator.currentState!.pop(context
-                                .read<ListController<User>>()
-                                .selectedLatest
-                                ?.values
-                                .toList());
+                                .read<ListController<Class?, User>>()
+                                .currentSelection
+                                ?.toList());
                           },
                           child: const Text('تم'),
                         )
@@ -396,11 +511,13 @@ class _EditUserState extends State<EditUser> {
                         title: SearchField(
                             showSuffix: false,
                             searchStream: context
-                                .read<ListController<User>>()
-                                .searchQuery,
+                                .read<ListController<Class?, User>>()
+                                .searchSubject,
                             textStyle: Theme.of(context).textTheme.bodyText2),
                       ),
-                      body: const UsersList(
+                      body: DataObjectListView(
+                        controller:
+                            context.read<ListController<Class?, User>>(),
                         autoDisposeController: false,
                       ),
                     ),
@@ -414,74 +531,22 @@ class _EditUserState extends State<EditUser> {
   }
 
   void editAdminServices() async {
-    user.adminServices = await navigator.currentState!.push(
-          MaterialPageRoute(
-            builder: (context) {
-              return FutureBuilder<Map<String, Service>>(future: () async {
-                return {
-                  for (final s in await Future.wait(
-                    user.adminServices.map(
-                      (e) async => Service.fromDoc(await e.get()),
-                    ),
-                  ))
-                    if (s != null) s.id: s
-                };
-              }(), builder: (context, snapshot) {
-                if (!snapshot.hasData)
-                  return const Center(child: CircularProgressIndicator());
+    final selected = await Future.wait(
+      user.adminServices.map(
+        (e) async {
+          final data = await e.get();
+          if (data.exists) return Service.fromDoc(data)!;
+        },
+      ),
+    );
 
-                return MultiProvider(
-                  providers: [
-                    Provider<ListController<Service>>(
-                      create: (_) => ListController<Service>(
-                        selectionMode: true,
-                        itemsStream: GetIt.I<DatabaseRepository>()
-                            .collection('Services')
-                            .orderBy('Name')
-                            .snapshots()
-                            .map(
-                              (value) =>
-                                  value.docs.map(Service.fromQueryDoc).toList(),
-                            ),
-                        selected: snapshot.requireData,
-                      ),
-                      dispose: (context, c) => c.dispose(),
-                    )
-                  ],
-                  builder: (context, child) {
-                    return Scaffold(
-                      persistentFooterButtons: [
-                        TextButton(
-                          onPressed: () {
-                            navigator.currentState!.pop(context
-                                .read<ListController<Service>>()
-                                .selectedLatest
-                                ?.values
-                                .map((s) => s.ref)
-                                .toList());
-                          },
-                          child: const Text('تم'),
-                        )
-                      ],
-                      appBar: AppBar(
-                        title: SearchField(
-                            showSuffix: false,
-                            searchStream: context
-                                .read<ListController<Service>>()
-                                .searchQuery,
-                            textStyle: Theme.of(context).textTheme.bodyText2),
-                      ),
-                      body: const DataObjectList<Service>(
-                        disposeController: false,
-                      ),
-                    );
-                  },
-                );
-              });
-            },
-          ),
-        ) ??
-        user.adminServices;
+    user = user.copyWith.adminServices(
+      (await selectServices<DataObject>(
+                  selected.whereType<DataObject>().toList()))
+              ?.map((s) => s.ref)
+              .toList() ??
+          user.adminServices,
+    );
   }
 
   void deleteUser() {
@@ -596,12 +661,11 @@ class _EditUserState extends State<EditUser> {
   @override
   void initState() {
     super.initState();
-    old = widget.user.copyWith();
     user = widget.user.copyWith();
   }
 
   void nameChanged(String value) {
-    user.name = value;
+    user = user.copyWith.name(value);
   }
 
   Future resetPassword() async {
@@ -667,8 +731,9 @@ class _EditUserState extends State<EditUser> {
           duration: Duration(seconds: 15),
         ));
         final update = user.getUpdateMap()
-          ..removeWhere((key, value) => old.getUpdateMap()[key] == value);
-        if (old.name != user.name) {
+          ..removeWhere(
+              (key, value) => widget.user.getUpdateMap()[key] == value);
+        if (widget.user.name != user.name) {
           await FirebaseFunctions.instance
               .httpsCallable('changeUserName')
               .call({'affectedUser': user.uid, 'newName': user.name});
@@ -708,17 +773,17 @@ class _EditUserState extends State<EditUser> {
           await batch.commit();
         }
 
-        if (old.classId != user.classId &&
+        if (widget.user.classId != user.classId &&
             !const DeepCollectionEquality.unordered()
-                .equals(user.adminServices, old.adminServices)) {
+                .equals(user.adminServices, widget.user.adminServices)) {
           await user.ref.update({
             'ClassId': user.classId,
             'AdminServices': user.adminServices,
           });
-        } else if (old.classId != user.classId) {
+        } else if (widget.user.classId != user.classId) {
           await user.ref.update({'ClassId': user.classId});
         } else if (!const DeepCollectionEquality.unordered()
-            .equals(user.adminServices, old.adminServices)) {
+            .equals(user.adminServices, widget.user.adminServices)) {
           await user.ref.update({'AdminServices': user.adminServices});
         }
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
@@ -743,7 +808,7 @@ class _EditUserState extends State<EditUser> {
     }
   }
 
-  Future<Timestamp> _selectDate(String helpText, DateTime initialDate) async {
+  Future<DateTime?> _selectDate(String helpText, DateTime initialDate) async {
     final DateTime? picked = await showDatePicker(
       helpText: helpText,
       locale: const Locale('ar', 'EG'),
@@ -754,22 +819,18 @@ class _EditUserState extends State<EditUser> {
     );
     if (picked != null && picked != initialDate) {
       setState(() {});
-      return Timestamp.fromDate(picked);
+      return picked;
     }
-    return Timestamp.fromDate(initialDate);
+    return null;
   }
 
   void _selectClass() async {
     final controller = ServicesListController<Class>(
-      tap: (class$) {
-        navigator.currentState!.pop();
-        user.classId = class$.ref;
-        className.invalidate();
-        setState(() {});
-        FocusScope.of(context).nextFocus();
-      },
-      itemsStream: servicesByStudyYearRef(),
+      objectsPaginatableStream:
+          PaginatableStream.loadAll(stream: Stream.value([])),
+      groupByStream: (_) => servicesByStudyYearRef(),
     );
+
     await showDialog(
       context: context,
       builder: (context) {
@@ -789,6 +850,13 @@ class _EditUserState extends State<EditUser> {
                 Expanded(
                   child: ServicesList<Class>(
                     options: controller,
+                    onTap: (class$) {
+                      navigator.currentState!.pop();
+                      user = user.copyWith.classId(class$.ref);
+                      className.invalidate();
+                      setState(() {});
+                      FocusScope.of(context).nextFocus();
+                    },
                     autoDisposeController: false,
                   ),
                 ),
@@ -797,8 +865,8 @@ class _EditUserState extends State<EditUser> {
             bottomNavigationBar: BottomAppBar(
               color: Theme.of(context).colorScheme.primary,
               shape: const CircularNotchedRectangle(),
-              child: StreamBuilder<Map?>(
-                stream: controller.objectsData,
+              child: StreamBuilder<List>(
+                stream: controller.objectsStream,
                 builder: (context, snapshot) {
                   return Text((snapshot.data?.length ?? 0).toString() + ' خدمة',
                       textAlign: TextAlign.center,
@@ -813,9 +881,11 @@ class _EditUserState extends State<EditUser> {
                     ? FloatingActionButton(
                         onPressed: () async {
                           navigator.currentState!.pop();
-                          user.classId = await navigator.currentState!
-                                  .pushNamed('Data/EditClass') as JsonRef? ??
-                              user.classId;
+                          user = user.copyWith.classId(
+                            await navigator.currentState!
+                                    .pushNamed('Data/EditClass') as JsonRef? ??
+                                user.classId,
+                          );
                           setState(() {});
                         },
                         child: const Icon(Icons.group_add),

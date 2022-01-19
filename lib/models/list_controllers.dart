@@ -10,7 +10,6 @@ import 'package:tuple/tuple.dart';
 
 import 'data/class.dart';
 import 'data/person.dart';
-import 'data/service.dart';
 import 'history/history_record.dart';
 
 class DayCheckListController<G, T extends Person> extends ListController<G, T> {
@@ -213,11 +212,7 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
       services: type == 'Meeting' || type == 'Kodas' || type == 'Confession'
           ? object.services
           : [GetIt.I<DatabaseRepository>().collection('Services').doc(type)],
-      time: time ??
-          mergeDayWithTime(
-            day.day.toDate(),
-            DateTime.now(),
-          ),
+      time: time ?? day.day.toDate().replaceTime(DateTime.now()).toTimestamp(),
       recordedBy: MHAuthRepository.I.currentUser!.uid,
       notes: notes,
       isServant: T == User,
@@ -241,7 +236,7 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
       services: type == 'Meeting' || type == 'Kodas' || type == 'Confession'
           ? item.services
           : [GetIt.I<DatabaseRepository>().collection('Services').doc(type)],
-      time: time ?? mergeDayWithTime(day.day.toDate(), DateTime.now()),
+      time: time ?? day.day.toDate().replaceTime(DateTime.now()).toTimestamp(),
       recordedBy: MHAuthRepository.I.currentUser!.uid,
       notes: notes,
       isServant: T == User,
@@ -329,28 +324,28 @@ class HistoryDayOptions {
 /// BaseListController<Map<PreferredStudyYear?, List<Class | Service>>, Class | Service>
 class ServicesListController<T extends DataObject>
     extends ListController<PreferredStudyYear?, T> {
-  List<T> _filterWithGroups(
+  Map<PreferredStudyYear?, List<T>> _filterWithGroups(
       Map<PreferredStudyYear?, List<T>> o, String filter) {
-    return o.entries
-        .where(
-          (e) =>
-              filterString(e.key?.name ?? '').contains(filterString(filter)) ||
-              e.value.any(
-                (c) => filterString(c.name).contains(
-                  filterString(filter),
-                ),
+    return Map.fromEntries(
+      o.entries.where(
+        (e) =>
+            filterString(e.key?.name ?? '').contains(filterString(filter)) ||
+            e.value.any(
+              (c) => filterString(c.name).contains(
+                filterString(filter),
               ),
-        )
-        .expand((e) => e.value)
-        .toList();
+            ),
+      ),
+    );
   }
 
   ServicesListController({
     required PaginatableStream<T> objectsPaginatableStream,
-    required GroupingFunction<PreferredStudyYear?, T> groupBy,
-    required GroupingStreamFunction<PreferredStudyYear?, T> groupByStream,
+    GroupingFunction<PreferredStudyYear?, T>? groupBy,
+    GroupingStreamFunction<PreferredStudyYear?, T>? groupByStream,
     BehaviorSubject<String>? searchQuery,
-  })  : assert(T == Class || T == Service || T == DataObject),
+  })  : assert(
+            isSubtype<Class, T>() || isSubtype<Class, T>() || T == DataObject),
         super(
           objectsPaginatableStream: objectsPaginatableStream,
           searchStream: searchQuery,
@@ -362,23 +357,67 @@ class ServicesListController<T extends DataObject>
   @override
   StreamSubscription<List<T>> getObjectsSubscription(
       [Stream<String>? searchStream]) {
-    return Rx.combineLatest3<String, List<T>, Set<PreferredStudyYear?>,
-        List<T>>(
+    return Rx.combineLatest2<String, List<T>, List<T>>(
+      searchSubject,
+      objectsPaginatableStream.stream,
+      (search, items) =>
+          search.isNotEmpty ? defaultSearch<T>(items, search) : items,
+    ).listen(objectsSubject.add, onError: objectsSubject.addError);
+  }
+
+  @override
+  StreamSubscription<Map<PreferredStudyYear?, List<T>>>
+      getGroupedObjectsSubscription() {
+    if (groupByStream != null)
+      return groupingSubject
+          .switchMap(
+            (g) => g
+                ? Rx.combineLatest3<
+                    String,
+                    Set<PreferredStudyYear?>,
+                    Map<PreferredStudyYear?, List<T>>,
+                    Map<PreferredStudyYear?, List<T>>>(
+                    searchSubject,
+                    openedGroupsSubject!,
+                    objectsPaginatableStream.stream.switchMap(groupByStream!),
+                    (search, groups, objects) => search.isNotEmpty
+                        ? _filterWithGroups(
+                            objects.map(
+                              (k, v) => MapEntry(
+                                k,
+                                groups.contains(k) ? v : [],
+                              ),
+                            ),
+                            search,
+                          )
+                        : objects.map(
+                            (k, v) => MapEntry(
+                              k,
+                              groups.contains(k) ? v : [],
+                            ),
+                          ),
+                  )
+                : Stream.value(<PreferredStudyYear?, List<T>>{}),
+          )
+          .listen(groupedObjectsSubject.add,
+              onError: groupedObjectsSubject.addError);
+
+    return Rx.combineLatest4<bool, String, List<T>, Set<PreferredStudyYear?>,
+        Map<PreferredStudyYear?, List<T>>>(
+      groupingSubject,
       searchSubject,
       objectsPaginatableStream.stream,
       openedGroupsSubject!,
-      (search, items, g) => search.isNotEmpty
-          ? _filterWithGroups(
-              groupBy!(items).map(
-                (k, v) => MapEntry(
-                  k,
-                  g.contains(k) ? v : [],
-                ),
+      (grouping, search, objects, groups) => grouping
+          ? groupBy!(objects).map(
+              (k, v) => MapEntry(
+                k,
+                groups.contains(k) ? v : [],
               ),
-              search,
             )
-          : items,
-    ).listen(objectsSubject.add, onError: objectsSubject.addError);
+          : {},
+    ).listen(groupedObjectsSubject.add,
+        onError: groupedObjectsSubject.addError);
   }
 }
 

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
-import 'package:meetinghelper/models/mini_models.dart.bak';
 
 class InnerListState extends State<_InnerSchoolsList> {
   String filter = '';
@@ -11,12 +10,13 @@ class InnerListState extends State<_InnerSchoolsList> {
     return Column(
       children: <Widget>[
         TextField(
-            decoration: const InputDecoration(hintText: 'بحث...'),
-            onChanged: (text) {
-              setState(() {
-                filter = text;
-              });
-            }),
+          decoration: const InputDecoration(hintText: 'بحث...'),
+          onChanged: (text) {
+            setState(() {
+              filter = text;
+            });
+          },
+        ),
         Expanded(
           child: RefreshIndicator(
             onRefresh: () async {

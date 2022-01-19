@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:churchdata_core/churchdata_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' show DocumentReference;
+import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -8,9 +10,10 @@ import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data/user.dart';
-import 'package:meetinghelper/utils/helpers.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tuple/tuple.dart';
+
+part 'history_record.g.dart';
 
 abstract class HistoryDayBase extends DataObject with ChangeNotifier {
   Timestamp day;
@@ -19,7 +22,7 @@ abstract class HistoryDayBase extends DataObject with ChangeNotifier {
   late StreamSubscription<JsonDoc> _realTimeListener;
 
   HistoryDayBase({required JsonRef ref})
-      : day = tranucateToDay(),
+      : day = DateTime.now().truncateToDay().toTimestamp(),
         notes = '',
         super(ref, '') {
     _initListener();
@@ -82,12 +85,13 @@ abstract class HistoryDayBase extends DataObject with ChangeNotifier {
 
   @override
   Future<String> getSecondLine() {
-    return SynchronousFuture(DateTime(
-                day.toDate().year, day.toDate().month, day.toDate().day) !=
-            DateTime(
-                DateTime.now().year, DateTime.now().month, DateTime.now().day)
-        ? toDurationString(day)
-        : 'اليوم');
+    return SynchronousFuture(
+      DateTime(day.toDate().year, day.toDate().month, day.toDate().day) !=
+              DateTime(
+                  DateTime.now().year, DateTime.now().month, DateTime.now().day)
+          ? day.toDate().toDurationString()
+          : 'اليوم',
+    );
   }
 
   HistoryDayBase copyWith();
@@ -165,6 +169,8 @@ class ServantsHistoryDay extends HistoryDayBase {
   }
 }
 
+@immutable
+@CopyWith(copyWithNull: true)
 class HistoryRecord {
   final String? type;
 
@@ -184,14 +190,12 @@ class HistoryRecord {
       required this.id,
       required this.classId,
       required this.time,
-      required String recordedBy,
+      required this.recordedBy,
       List<JsonRef>? services,
       this.studyYear,
       this.notes,
       this.isServant = false})
-      : services = services ?? [],
-        // ignore: prefer_initializing_formals
-        recordedBy = recordedBy;
+      : services = services ?? [];
 
   static HistoryRecord? fromDoc(HistoryDayBase? parent, JsonDoc doc) =>
       doc.exists ? HistoryRecord._fromDoc(parent, doc) : null;
