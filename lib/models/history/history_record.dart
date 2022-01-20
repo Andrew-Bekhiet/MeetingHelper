@@ -174,15 +174,15 @@ class ServantsHistoryDay extends HistoryDayBase {
 class HistoryRecord {
   final String? type;
 
-  HistoryDayBase? parent;
-  String id;
-  Timestamp time;
-  String? recordedBy;
-  String? notes;
-  List<JsonRef> services;
-  JsonRef? studyYear;
-  JsonRef? classId;
-  bool isServant;
+  final HistoryDayBase? parent;
+  final String id;
+  final Timestamp time;
+  final String? recordedBy;
+  final String? notes;
+  final List<JsonRef> services;
+  final JsonRef? studyYear;
+  final JsonRef? classId;
+  final bool isServant;
 
   HistoryRecord(
       {required this.type,

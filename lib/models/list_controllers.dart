@@ -96,7 +96,6 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
     bool? sortByTimeASC,
     String search,
     Map<String, T> objectsById,
-    //TODO: we only need the keys
     Map<String, HistoryRecord> attended,
   ) {
     List<T> rslt = objectsById.values.toList();
@@ -160,23 +159,21 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
         return ref!
             .orderBy('Time', descending: !v.item3!)
             .snapshots()
-            .map<Map<String, HistoryRecord>>((s) => _docsMapper(s.docs));
+            .map((s) => _docsMapper(s.docs));
       }
-      return ref!
-          .snapshots()
-          .map<Map<String, HistoryRecord>>((s) => _docsMapper(s.docs));
+      return ref!.snapshots().map((s) => _docsMapper(s.docs));
     } else if (v.item2.length <= 10) {
       if (v.item3 != null) {
         return ref!
             .where('ClassId', whereIn: v.item2)
             .orderBy('Time', descending: !v.item3!)
             .snapshots()
-            .map<Map<String, HistoryRecord>>((s) => _docsMapper(s.docs));
+            .map((s) => _docsMapper(s.docs));
       }
       return ref!
           .where('ClassId', whereIn: v.item2)
           .snapshots()
-          .map<Map<String, HistoryRecord>>((s) => _docsMapper(s.docs));
+          .map((s) => _docsMapper(s.docs));
     }
 
     if (v.item3 != null) {
@@ -244,36 +241,82 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
   }
 
   DayCheckListController<G, T> copyWith({
-    Stream<Map<JsonRef, Tuple2<G, List<T>>>> Function(List<T?> data)? groupBy,
-    HistoryDay? day,
+    PaginatableStream<T>? objectsPaginatableStream,
+    Stream<String>? searchStream,
+    SearchFunction<T>? filter,
+    GroupingFunction<G, T>? groupBy,
+    HistoryDayBase? day,
     String? type,
     HistoryDayOptions? dayOptions,
-    Widget Function(T?, void Function(T)? onLongPress, void Function(T)? onTap,
-            Widget? trailing, Widget? subtitle)?
-        itemBuilder,
-    void Function(T?)? onLongPress,
-    void Function(T?)? tap,
-    Stream<List<T>>? itemsStream,
-    List<T>? items,
-    Map<String, T>? selected,
     Stream<String>? searchQuery,
+    GroupingStreamFunction<G, T>? groupByStream,
   }) {
-    //TODO: implement copyWith
-    throw UnimplementedError();
-    /* return HistoryDayCheckList<T, P>(
-      groupBy: groupBy ?? _groupBy,
+    return DayCheckListController<G, T>(
       day: day ?? this.day,
-      type: type ?? this.type,
       dayOptions: dayOptions ?? this.dayOptions,
-      itemBuilder: itemBuilder ?? this.itemBuilder,
-      onLongPress: onLongPress ?? this.onLongPress,
-      tap: tap ?? this.tap,
-      itemsStream: itemsStream,
-      itemsMapStream: originalObjectsData,
-      items: items ?? this.items,
-      selected: selected ?? this.selected.value,
-      searchQuery: searchQuery ?? this.searchQuery,
-    ); */
+      query: objectsPaginatableStream ?? this.objectsPaginatableStream,
+      type: type ?? this.type,
+      filter: filter ?? this.filter,
+      groupBy: groupBy ?? this.groupBy,
+      groupByStream: groupByStream ?? this.groupByStream,
+      searchQuery: searchQuery ?? searchSubject,
+    );
+  }
+
+  @override
+  DayCheckListController<NewG, T> copyWithNewG<NewG>({
+    PaginatableStream<T>? objectsPaginatableStream,
+    Stream<String>? searchStream,
+    SearchFunction<T>? filter,
+    GroupingFunction<NewG, T>? groupBy,
+    HistoryDayBase? day,
+    String? type,
+    HistoryDayOptions? dayOptions,
+    Stream<String>? searchQuery,
+    GroupingStreamFunction<NewG, T>? groupByStream,
+  }) {
+    if (this.groupBy != null && groupBy == null)
+      throw UnsupportedError(
+        '`groupBy` must be provided if this.groupBy != null',
+      );
+    if (this.groupByStream != null && groupByStream == null)
+      throw UnsupportedError(
+        '`groupByStream` must be provided if this.groupByStream != null',
+      );
+
+    return DayCheckListController<NewG, T>(
+      day: day ?? this.day,
+      dayOptions: dayOptions ?? this.dayOptions,
+      query: objectsPaginatableStream ?? this.objectsPaginatableStream,
+      type: type ?? this.type,
+      filter: filter ?? this.filter,
+      groupBy: groupBy,
+      groupByStream: groupByStream,
+      searchQuery: searchQuery ?? searchSubject,
+    );
+  }
+
+  DayCheckListController<NewG, NewT>
+      copyWithNewTypes<NewG, NewT extends Person>({
+    HistoryDayBase? day,
+    String? type,
+    HistoryDayOptions? dayOptions,
+    required PaginatableStream<NewT> objectsPaginatableStream,
+    Stream<String>? searchQuery,
+    SearchFunction<NewT>? filter,
+    GroupingFunction<NewG, NewT>? groupBy,
+    GroupingStreamFunction<NewG, NewT>? groupByStream,
+  }) {
+    return DayCheckListController<NewG, NewT>(
+      day: day ?? this.day,
+      dayOptions: dayOptions ?? this.dayOptions,
+      query: objectsPaginatableStream,
+      type: type ?? this.type,
+      filter: filter,
+      groupBy: groupBy,
+      groupByStream: groupByStream,
+      searchQuery: searchQuery ?? searchSubject,
+    );
   }
 
   @override

@@ -367,10 +367,13 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
                                     selected?.minute ?? initialValue.minute);
                               },
                               onChanged: (t) async {
-                                record!.time = _listController.day.day
-                                    .toDate()
-                                    .replaceTime(t!)
-                                    .toTimestamp();
+                                record = record!.copyWith.time(
+                                  _listController.day.day
+                                      .toDate()
+                                      .replaceTime(t!)
+                                      .toTimestamp(),
+                                );
+
                                 setState(() {});
                               },
                             ),
@@ -385,7 +388,9 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
                         textInputAction: TextInputAction.done,
                         initialValue: record?.notes ?? '',
                         enabled: record != null && (enabled.data ?? false),
-                        onChanged: (n) => setState(() => record!.notes = n),
+                        onChanged: (n) => setState(
+                          () => record = record!.copyWith.notes(n),
+                        ),
                         maxLines: null,
                         validator: (value) {
                           return null;

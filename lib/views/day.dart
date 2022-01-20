@@ -187,7 +187,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                                       .id]
                                   ?.attended) ??
                           Stream.value({}),
-                      (List a, Map b) => Tuple2<int, int>(a.length, b.length),
+                      (a, b) => Tuple2<int, int>(a.length, b.length),
                     ),
                     builder: (context, snapshot) {
                       final TextTheme theme =
@@ -298,16 +298,12 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                             widget.record.id,
                       ),
                       controller: () {
-                        final tmp = DayCheckListController<StudyYear?, Person>(
-                          day: baseController.day,
-                          dayOptions: baseController.dayOptions,
-                          filter: baseController.filter,
+                        final tmp = baseController.copyWithNewG<StudyYear?>(
                           type: service.id,
                           groupByStream: personsByStudyYearRef,
-                          query: PaginatableStream.loadAll(
+                          objectsPaginatableStream: PaginatableStream.loadAll(
                             stream: service.getPersonsMembersLive(),
                           ),
-                          searchQuery: baseController.searchSubject,
                         );
 
                         _listControllers[service.id] = tmp;
