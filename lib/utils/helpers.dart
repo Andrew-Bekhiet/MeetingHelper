@@ -17,6 +17,7 @@ import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data_object_tap_handler.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
+import 'package:meetinghelper/repositories/database_repository.dart';
 import 'package:meetinghelper/secrets.dart';
 import 'package:meetinghelper/views/services_list.dart';
 import 'package:photo_view/photo_view.dart';
@@ -246,26 +247,6 @@ Stream<Map<PreferredStudyYear?, List<T>>>
       return null;
     });
   });
-}
-
-Future<dynamic> getLinkObject(Uri deepLink) async {
-  try {
-    if (deepLink.pathSegments[0] == 'viewImage') {
-      return MessageIcon(deepLink.queryParameters['url']);
-    } else if (deepLink.pathSegments[0] == 'viewClass') {
-      return await Class.fromId(deepLink.queryParameters['ClassId'] ?? 'null');
-    } else if (deepLink.pathSegments[0] == 'viewPerson') {
-      return await Person.fromId(
-          deepLink.queryParameters['PersonId'] ?? 'null');
-    } else if (deepLink.pathSegments[0] == 'viewUser') {
-      return await MHAuthRepository.userFromUID(
-          deepLink.queryParameters['UID'] ?? 'null');
-    } else if (deepLink.pathSegments[0] == 'viewQuery') {
-      return const QueryIcon();
-    }
-    // ignore: empty_catches
-  } catch (err) {}
-  return null;
 }
 
 List<RadioListTile> getOrderingOptions(
@@ -509,7 +490,9 @@ Stream<Map<Class?, List<Person>>> personsByClassRef([List<Person>? persons]) {
           (sys) =>
               {for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)},
         ),
-    persons != null ? Stream.value(persons) : Person.getAllForUser(),
+    persons != null
+        ? Stream.value(persons)
+        : MHDatabaseRepo.instance.getAllPersons(),
     MHAuthRepository.I.userStream.whereType().switchMap((user) =>
         user.superAccess
             ? GetIt.I<DatabaseRepository>()
@@ -559,7 +542,9 @@ Stream<Map<StudyYear?, List<T>>> personsByStudyYearRef<T extends Person>(
           (sys) =>
               {for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)},
         ),
-    (persons != null ? Stream.value(persons) : Person.getAllForUser())
+    (persons != null
+            ? Stream.value(persons)
+            : MHDatabaseRepo.instance.getAllPersons())
         .map((p) => p.whereType<T>().toList()),
     (studyYears, persons) {
       return {
@@ -655,8 +640,8 @@ Future<void> processLink(Uri? deepLink) async {
       } else if (deepLink.pathSegments[0] == 'viewUser') {
         if (MHAuthRepository.I.currentUser!.permissions.manageUsers) {
           GetIt.I<MHDataObjectTapHandler>().userTap(
-            (await MHAuthRepository.userFromUID(
-                deepLink.queryParameters['UID']))!,
+            (await MHDatabaseRepo.instance
+                .getUser(deepLink.queryParameters['UID']))!,
           );
         } else {
           await showErrorDialog(navigator.currentContext!,
@@ -1017,21 +1002,23 @@ void showBirthDayNotification() async {
 
   if (MHAuthRepository.I.currentUser == null) return;
 
-  final persons = await Person.getAllForUser(
-      queryCompleter: (q, _, __) => q
-          .where(
-            'BirthDay',
-            isGreaterThanOrEqualTo: Timestamp.fromDate(
-              DateTime(1970, DateTime.now().month, DateTime.now().day),
-            ),
-          )
-          .where(
-            'BirthDay',
-            isLessThan: Timestamp.fromDate(
-              DateTime(1970, DateTime.now().month, DateTime.now().day + 1),
-            ),
-          )
-          .limit(20)).first;
+  final persons = await MHDatabaseRepo.instance
+      .getAllPersons(
+          queryCompleter: (q, _, __) => q
+              .where(
+                'BirthDay',
+                isGreaterThanOrEqualTo: Timestamp.fromDate(
+                  DateTime(1970, DateTime.now().month, DateTime.now().day),
+                ),
+              )
+              .where(
+                'BirthDay',
+                isLessThan: Timestamp.fromDate(
+                  DateTime(1970, DateTime.now().month, DateTime.now().day + 1),
+                ),
+              )
+              .limit(20))
+      .first;
 
   if (persons.isNotEmpty || !f.kReleaseMode)
     await FlutterLocalNotificationsPlugin().show(
@@ -1119,15 +1106,17 @@ void showConfessionNotification() async {
 
   if (MHAuthRepository.I.currentUser == null) return;
 
-  final persons = await Person.getAllForUser(
-    queryCompleter: (q, _, __) => q
-        .where(
-          'LastConfession',
-          isLessThan: Timestamp.fromDate(
-              DateTime.now().subtract(const Duration(days: 7))),
-        )
-        .limit(20),
-  ).first;
+  final persons = await MHDatabaseRepo.instance
+      .getAllPersons(
+        queryCompleter: (q, _, __) => q
+            .where(
+              'LastConfession',
+              isLessThan: Timestamp.fromDate(
+                  DateTime.now().subtract(const Duration(days: 7))),
+            )
+            .limit(20),
+      )
+      .first;
 
   if (persons.isNotEmpty || !f.kReleaseMode)
     await FlutterLocalNotificationsPlugin().show(
@@ -1243,15 +1232,17 @@ void showKodasNotification() async {
 
   if (MHAuthRepository.I.currentUser == null) return;
 
-  final persons = await Person.getAllForUser(
-    queryCompleter: (q, _, __) => q
-        .where(
-          'LastKodas',
-          isLessThan: Timestamp.fromDate(
-              DateTime.now().subtract(const Duration(days: 7))),
-        )
-        .limit(20),
-  ).first;
+  final persons = await MHDatabaseRepo.instance
+      .getAllPersons(
+        queryCompleter: (q, _, __) => q
+            .where(
+              'LastKodas',
+              isLessThan: Timestamp.fromDate(
+                  DateTime.now().subtract(const Duration(days: 7))),
+            )
+            .limit(20),
+      )
+      .first;
 
   if (persons.isNotEmpty || !f.kReleaseMode)
     await FlutterLocalNotificationsPlugin().show(
@@ -1294,15 +1285,17 @@ void showMeetingNotification() async {
 
   if (MHAuthRepository.I.currentUser == null) return;
 
-  final persons = await Person.getAllForUser(
-    queryCompleter: (q, _, __) => q
-        .where(
-          'LastMeeting',
-          isLessThan: Timestamp.fromDate(
-              DateTime.now().subtract(const Duration(days: 7))),
-        )
-        .limit(20),
-  ).first;
+  final persons = await MHDatabaseRepo.instance
+      .getAllPersons(
+        queryCompleter: (q, _, __) => q
+            .where(
+              'LastMeeting',
+              isLessThan: Timestamp.fromDate(
+                  DateTime.now().subtract(const Duration(days: 7))),
+            )
+            .limit(20),
+      )
+      .first;
 
   if (persons.isNotEmpty || !f.kReleaseMode)
     await FlutterLocalNotificationsPlugin().show(
@@ -1345,15 +1338,17 @@ void showTanawolNotification() async {
 
   if (MHAuthRepository.I.currentUser == null) return;
 
-  final persons = await Person.getAllForUser(
-    queryCompleter: (q, _, __) => q
-        .where(
-          'LastTanawol',
-          isLessThan: Timestamp.fromDate(
-              DateTime.now().subtract(const Duration(days: 7))),
-        )
-        .limit(20),
-  ).first;
+  final persons = await MHDatabaseRepo.instance
+      .getAllPersons(
+        queryCompleter: (q, _, __) => q
+            .where(
+              'LastTanawol',
+              isLessThan: Timestamp.fromDate(
+                  DateTime.now().subtract(const Duration(days: 7))),
+            )
+            .limit(20),
+      )
+      .first;
 
   if (persons.isNotEmpty || !f.kReleaseMode)
     await FlutterLocalNotificationsPlugin().show(
@@ -1396,15 +1391,17 @@ void showVisitNotification() async {
 
   if (MHAuthRepository.I.currentUser == null) return;
 
-  final persons = await Person.getAllForUser(
-    queryCompleter: (q, _, __) => q
-        .where(
-          'LastVisit',
-          isLessThan: Timestamp.fromDate(
-              DateTime.now().subtract(const Duration(days: 20))),
-        )
-        .limit(20),
-  ).first;
+  final persons = await MHDatabaseRepo.instance
+      .getAllPersons(
+        queryCompleter: (q, _, __) => q
+            .where(
+              'LastVisit',
+              isLessThan: Timestamp.fromDate(
+                  DateTime.now().subtract(const Duration(days: 20))),
+            )
+            .limit(20),
+      )
+      .first;
 
   if (persons.isNotEmpty || !f.kReleaseMode)
     await FlutterLocalNotificationsPlugin().show(

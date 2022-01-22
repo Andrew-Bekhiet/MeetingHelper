@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'
     show SetOptions, DocumentReference;
-import 'package:collection/collection.dart';
 import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_database/firebase_database.dart';
@@ -18,149 +17,6 @@ part 'user.g.dart';
 class MHAuthRepository extends AuthRepository<User, Person> {
   static MHAuthRepository get instance => GetIt.I<MHAuthRepository>();
   static MHAuthRepository get I => instance;
-
-  static Future<User?> userNameFromUID(String uid) async {
-    final document =
-        await GetIt.I<DatabaseRepository>().collection('Users').doc(uid).get();
-
-    if (document.exists)
-      return User(
-        ref: document.reference,
-        uid: uid,
-        name: document.data()?['Name'],
-      );
-
-    return null;
-  }
-
-  static Future<User?> userFromUID(String? uid) async {
-    final user = (await GetIt.I<DatabaseRepository>()
-            .collection('UsersData')
-            .where('UID', isEqualTo: uid)
-            .get())
-        .docs
-        .singleOrNull;
-
-    if (user == null) return null;
-
-    return User.fromDoc(user);
-  }
-
-  static Stream<List<User>> getAllUsers({
-    QueryCompleter queryCompleter = kDefaultQueryCompleter,
-  }) {
-    return GetIt.I<MHAuthRepository>().userStream.switchMap(
-      (u) {
-        if (u == null) return Stream.value([]);
-
-        if (!u.permissions.manageUsers &&
-            !u.permissions.manageAllowedUsers &&
-            !u.permissions.secretary)
-          return queryCompleter(
-                  GetIt.I<DatabaseRepository>().collection('Users'),
-                  'Name',
-                  false)
-              .snapshots()
-              .map((p) => p.docs.map(User.fromDoc).toList());
-        if (u.permissions.manageUsers || u.permissions.secretary) {
-          return queryCompleter(
-                  GetIt.I<DatabaseRepository>().collection('UsersData'),
-                  'Name',
-                  false)
-              .snapshots()
-              .map((p) => p.docs.map(User.fromDoc).toList());
-        } else {
-          return queryCompleter(
-                  GetIt.I<DatabaseRepository>()
-                      .collection('UsersData')
-                      .where('AllowedUsers', arrayContains: u.uid),
-                  'Name',
-                  false)
-              .snapshots()
-              .map((p) => p.docs.map(User.fromDoc).toList());
-        }
-      },
-    );
-  }
-
-  static Stream<List<Person>> getAllUsersData({
-    QueryCompleter queryCompleter = kDefaultQueryCompleter,
-  }) {
-    return GetIt.I<MHAuthRepository>().userStream.switchMap(
-      (u) {
-        if (u == null) return Stream.value([]);
-
-        if (!u.permissions.manageUsers &&
-            !u.permissions.manageAllowedUsers &&
-            !u.permissions.secretary)
-          throw UnsupportedError('Insuffecient Permissions');
-
-        if (u.permissions.manageUsers || u.permissions.secretary) {
-          return queryCompleter(
-                  GetIt.I<DatabaseRepository>().collection('UsersData'),
-                  'Name',
-                  false)
-              .snapshots()
-              .map(
-                (p) => p.docs.map(Person.fromDoc).toList(),
-              );
-        } else {
-          return queryCompleter(
-                  GetIt.I<DatabaseRepository>()
-                      .collection('UsersData')
-                      .where('AllowedUsers', arrayContains: u.uid),
-                  'Name',
-                  false)
-              .snapshots()
-              .map(
-                (p) => p.docs.map(Person.fromDoc).toList(),
-              );
-        }
-      },
-    );
-  }
-
-  static Stream<List<User>> getAllNames() {
-    return GetIt.I<DatabaseRepository>()
-        .collection('Users')
-        .orderBy('Name')
-        .snapshots()
-        .map((p) => p.docs.map(User.fromDoc).toList());
-  }
-
-  static Stream<List<User>> getAllSemiManagers(
-      [QueryCompleter queryCompleter = kDefaultQueryCompleter]) {
-    return GetIt.I<MHAuthRepository>().userStream.switchMap((u) {
-      if (u == null) return Stream.value([]);
-
-      if (u.permissions.manageUsers || u.permissions.secretary) {
-        return queryCompleter(
-                GetIt.I<DatabaseRepository>()
-                    .collection('UsersData')
-                    .where('Permissions.ManageAllowedUsers', isEqualTo: true),
-                'Name',
-                false)
-            .snapshots()
-            .map((p) => p.docs.map(User.fromDoc).toList());
-      } else {
-        return queryCompleter(
-                GetIt.I<DatabaseRepository>()
-                    .collection('UsersData')
-                    .where('AllowedUsers', arrayContains: u.uid)
-                    .where('Permissions.ManageAllowedUsers', isEqualTo: true),
-                'Name',
-                false)
-            .snapshots()
-            .map((p) => p.docs.map(User.fromDoc).toList());
-      }
-    });
-  }
-
-  static Future<List<User>> getUsersNames(List<String> users) async {
-    return (await Future.wait(users.map(userNameFromUID)))
-        .whereNotNull()
-        .toList();
-  }
 
   @override
   bool connectionChanged(DatabaseEvent snapshot) {
@@ -356,11 +212,12 @@ class MHPermissionsSet extends PermissionsSet implements Serializable {
 @immutable
 @CopyWith(copyWithNull: true)
 class User extends UserBase implements DataObjectWithPhoto {
-  @Deprecated('Use "GetIt.I<MHAuthRepository>().currentUser" or'
-      ' "MHAuthRepository.instance.currentUser" instead')
-  static User get instance => GetIt.I<MHAuthRepository>().currentUser!;
-
   static const String emptyUID = '{EmptyUID}';
+
+  static User get instance => MHAuthRepository.I.currentUser!;
+  static ValueStream<User?> get stream => MHAuthRepository.I.userStream;
+  static Stream<User> get loggedInStream =>
+      MHAuthRepository.I.userStream.whereType<User>();
 
   final String? password;
 

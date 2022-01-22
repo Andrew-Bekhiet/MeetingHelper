@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/copiable_property.dart.bak';
 import 'package:meetinghelper/models/data/invitation.dart';
+import 'package:meetinghelper/repositories/database_repository.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:tinycolor2/tinycolor2.dart';
@@ -149,7 +150,7 @@ class InvitationInfo extends StatelessWidget {
                         : const Text('لم يتم الاستخدام بعد'),
                     subtitle: invitation.used
                         ? FutureBuilder<User?>(
-                            future: MHAuthRepository.userNameFromUID(
+                            future: MHDatabaseRepo.instance.getUserName(
                               invitation.usedBy!,
                             ),
                             builder: (context, data) => data.hasData
@@ -161,7 +162,7 @@ class InvitationInfo extends StatelessWidget {
                   ListTile(
                     title: const Text('تم توليد اللينك بواسطة'),
                     subtitle: FutureBuilder<User?>(
-                        future: MHAuthRepository.userNameFromUID(
+                        future: MHDatabaseRepo.instance.getUserName(
                           invitation.generatedBy,
                         ),
                         builder: (context, data) => data.hasData

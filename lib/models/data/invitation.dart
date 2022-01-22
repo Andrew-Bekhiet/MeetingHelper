@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/user.dart';
+import 'package:meetinghelper/repositories/database_repository.dart';
 
 part 'invitation.g.dart';
 
@@ -64,7 +65,7 @@ class Invitation extends DataObject {
   Future<String> getSecondLine() async {
     if (used && usedBy != null)
       return 'تم الاستخدام بواسطة: ' +
-          ((await MHAuthRepository.userNameFromUID(usedBy!))?.name ?? '');
+          ((await MHDatabaseRepo.instance.getUserName(usedBy!))?.name ?? '');
     return 'ينتهي في ' + DateFormat('yyyy/M/d', 'ar-EG').format(expiryDate);
   }
 

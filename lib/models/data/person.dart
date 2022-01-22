@@ -9,12 +9,8 @@ import 'package:get_it/get_it.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart';
+import 'package:meetinghelper/repositories/database_repository.dart';
 import 'package:meetinghelper/views/map_view.dart';
-import 'package:rxdart/rxdart.dart';
-import 'package:tuple/tuple.dart';
-
-import 'class.dart';
-import 'user.dart';
 
 part 'person.g.dart';
 
@@ -190,7 +186,7 @@ class Person extends PersonBase {
         'HasPhoto': hasPhoto ? 'نعم' : 'لا',
         'Color': color != null ? '0x' + color!.value.toRadixString(16) : null,
         'LastEdit': lastEdit != null
-            ? MHAuthRepository.userNameFromUID(lastEdit!.uid)
+            ? MHDatabaseRepo.instance.getUserName(lastEdit!.uid)
             : null,
         'School': getSchoolName(),
         'College': getCollegeName(),
@@ -301,111 +297,6 @@ class Person extends PersonBase {
     if (key == null) return null;
 
     return formattedProps()[key];
-  }
-
-  static Future<Person?> fromId(String id) async => Person.fromDoc(
-      await GetIt.I<DatabaseRepository>().doc('Persons/$id').get());
-
-  static Stream<List<Person>> getAllForUser({
-    String orderBy = 'Name',
-    bool descending = false,
-    QueryCompleter queryCompleter = kDefaultQueryCompleter,
-  }) {
-    return Rx.combineLatest2<User?, List<Class>, Tuple2<User?, List<Class>>>(
-            MHAuthRepository.I.userStream, Class.getAllForUser(), Tuple2.new)
-        .switchMap(
-      (u) {
-        if (u.item1 == null) return Stream.value([]);
-
-        if (u.item1!.permissions.superAccess) {
-          return queryCompleter(
-                  GetIt.I<DatabaseRepository>().collection('Persons'),
-                  orderBy,
-                  descending)
-              .snapshots()
-              .map((p) => p.docs.map(Person.fromDoc).toList());
-        }
-
-        return Rx.combineLatest2<List<Person>, List<Person>, List<Person>>(
-          //Persons from Classes
-          u.item2.isNotEmpty
-              ? u.item2.length <= 10
-                  ? queryCompleter(
-                          GetIt.I<DatabaseRepository>()
-                              .collection('Persons')
-                              .where('ClassId',
-                                  whereIn: u.item2.map((e) => e.ref).toList()),
-                          orderBy,
-                          descending)
-                      .snapshots()
-                      .map((p) => p.docs.map(Person.fromDoc).toList())
-                  : Rx.combineLatestList<JsonQuery>(
-                      u.item2.split(10).map(
-                            (c) => queryCompleter(
-                                    GetIt.I<DatabaseRepository>()
-                                        .collection('Persons')
-                                        .where('ClassId',
-                                            whereIn:
-                                                c.map((e) => e.ref).toList()),
-                                    orderBy,
-                                    descending)
-                                .snapshots(),
-                          ),
-                    ).map(
-                      (s) =>
-                          s.expand((n) => n.docs).map(Person.fromDoc).toList(),
-                    )
-              : Stream.value([]),
-          //Persons from Services
-          u.item1!.adminServices.isNotEmpty
-              ? u.item1!.adminServices.length <= 10
-                  ? queryCompleter(
-                          GetIt.I<DatabaseRepository>()
-                              .collection('Persons')
-                              .where(
-                                'Services',
-                                arrayContainsAny: u.item1!.adminServices,
-                              ),
-                          orderBy,
-                          descending)
-                      .snapshots()
-                      .map((p) => p.docs.map(Person.fromDoc).toList())
-                  : Rx.combineLatestList<JsonQuery>(
-                      u.item1!.adminServices.split(10).map(
-                            (c) => queryCompleter(
-                              GetIt.I<DatabaseRepository>()
-                                  .collection('Persons')
-                                  .where('Services', arrayContainsAny: c),
-                              orderBy,
-                              descending,
-                            ).snapshots(),
-                          ),
-                    ).map(
-                      (s) =>
-                          s.expand((n) => n.docs).map(Person.fromDoc).toList(),
-                    )
-              : Stream.value([]),
-          (a, b) => {...a, ...b}.sortedByCompare(
-            (p) => p.toJson()[orderBy],
-            (o, n) {
-              if (o is String && n is String)
-                return descending ? -o.compareTo(n) : o.compareTo(n);
-              if (o is int && n is int)
-                return descending ? -o.compareTo(n) : o.compareTo(n);
-              if (o is Timestamp && n is Timestamp)
-                return descending ? -o.compareTo(n) : o.compareTo(n);
-              if (o is Timestamp && n is Timestamp)
-                return descending ? -o.compareTo(n) : o.compareTo(n);
-              if (o is DateTime && n is DateTime)
-                return descending ? -o.compareTo(n) : o.compareTo(n);
-              if (o is DateTime && n is DateTime)
-                return descending ? -o.compareTo(n) : o.compareTo(n);
-              return 0;
-            },
-          ),
-        );
-      },
-    );
   }
 
   static Map<String, PropertyMetadata> propsMetadata() => {

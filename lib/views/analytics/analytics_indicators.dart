@@ -8,6 +8,7 @@ import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/history/history_record.dart';
+import 'package:meetinghelper/repositories/database_repository.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:random_color/random_color.dart';
 import 'package:rxdart/rxdart.dart';
@@ -652,7 +653,7 @@ class HistoryAnalysisWidget extends StatelessWidget {
               ),
             if (showUsers)
               FutureBuilder<List<User>>(
-                future: MHAuthRepository.getAllNames().first,
+                future: MHDatabaseRepo.instance.getAllUsersNames().first,
                 builder: (context, usersData) {
                   if (usersData.hasError) return ErrorWidget(usersData.error!);
                   if (!usersData.hasData)

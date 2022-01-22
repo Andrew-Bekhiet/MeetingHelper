@@ -11,6 +11,7 @@ import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/invitation.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
+import 'package:meetinghelper/repositories/database_repository.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:rxdart/rxdart.dart';
@@ -565,9 +566,9 @@ class _EditInvitationState extends State<EditInvitation> {
   void _selectPerson() async {
     final controller = ListController<Class?, User>(
       objectsPaginatableStream: PaginatableStream.loadAll(
-        stream: MHAuthRepository.getAllUsers().map(
-          (users) => users.where((u) => u.uid == User.emptyUID).toList(),
-        ),
+        stream: MHDatabaseRepo.instance.getAllUsers().map(
+              (users) => users.where((u) => u.uid == User.emptyUID).toList(),
+            ),
       ),
       groupByStream: usersByClass,
       groupingStream: Stream.value(true),

@@ -12,6 +12,7 @@ import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
+import 'package:meetinghelper/repositories/database_repository.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/views/services_list.dart';
@@ -489,7 +490,7 @@ class _EditUserState extends State<EditUser> {
                         create: (_) => ListController<Class?, User>(
                           groupByStream: usersByClass,
                           objectsPaginatableStream: PaginatableStream.loadAll(
-                            stream: MHAuthRepository.getAllUsers(),
+                            stream: MHDatabaseRepo.instance.getAllUsers(),
                           ),
                         )..selectAll(users.data),
                         dispose: (context, c) => c.dispose(),

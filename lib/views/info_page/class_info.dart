@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
+import 'package:meetinghelper/repositories/database_repository.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
@@ -502,9 +503,10 @@ class _ClassServants extends StatelessWidget {
                 context: context,
                 builder: (context) => Dialog(
                   child: FutureBuilder<List<User>>(
-                    future: Future.wait(class$.allowedUsers
-                            .map(MHAuthRepository.userNameFromUID))
-                        .then(
+                    future: Future.wait(
+                      class$.allowedUsers
+                          .map(MHDatabaseRepo.instance.getUserName),
+                    ).then(
                       (u) => u.whereType<User>().toList(),
                     ),
                     builder: (context, data) {

@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/user.dart';
+import 'package:meetinghelper/repositories/database_repository.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'person.dart';
@@ -198,7 +199,7 @@ class Service extends DataObject implements PhotoObjectBase {
           return 'من $from الى $to';
         }(),
         'ShowInHistory': showInHistory ? 'نعم' : 'لا',
-        'LastEdit': MHAuthRepository.userNameFromUID(lastEdit.uid),
+        'LastEdit': MHDatabaseRepo.instance.getUserName(lastEdit.uid),
         'HasPhoto': hasPhoto ? 'نعم' : 'لا',
         'Color': color != null ? '0x' + color!.value.toRadixString(16) : null,
       };

@@ -8,6 +8,7 @@ import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/history/history_record.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
+import 'package:meetinghelper/repositories/database_repository.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/views/list.dart';
@@ -533,8 +534,8 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
       searchQuery: _searchSubject,
       query: PaginatableStream.loadAll(
         stream: widget.record is ServantsHistoryDay
-            ? MHAuthRepository.getAllUsersData()
-            : Person.getAllForUser(),
+            ? MHDatabaseRepo.instance.getAllUsersData()
+            : MHDatabaseRepo.instance.getAllPersons(),
       ),
       day: widget.record,
       dayOptions: dayOptions,

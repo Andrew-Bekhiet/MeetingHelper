@@ -10,6 +10,7 @@ import 'package:get_it/get_it.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:meetinghelper/models/data/class.dart';
+import 'package:meetinghelper/repositories/database_repository.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -439,7 +440,8 @@ class _EditClassState extends State<EditClass> {
       MaterialPageRoute(
         builder: (context) => FutureBuilder<List<User?>>(
           future: Future.wait(
-              class$.allowedUsers.map(MHAuthRepository.userNameFromUID)),
+            class$.allowedUsers.map(MHDatabaseRepo.instance.getUserName),
+          ),
           builder: (context, users) {
             if (!users.hasData)
               return const Center(child: CircularProgressIndicator());
@@ -447,10 +449,10 @@ class _EditClassState extends State<EditClass> {
             return Provider<ListController<Class?, User>>(
               create: (_) => ListController<Class?, User>(
                 objectsPaginatableStream: PaginatableStream.loadAll(
-                  stream: MHAuthRepository.getAllNames().map(
-                    (users) =>
-                        users.where((u) => u.uid != User.emptyUID).toList(),
-                  ),
+                  stream: MHDatabaseRepo.instance.getAllUsersNames().map(
+                        (users) =>
+                            users.where((u) => u.uid != User.emptyUID).toList(),
+                      ),
                 ),
                 groupByStream: usersByClass,
                 groupingStream: Stream.value(true),

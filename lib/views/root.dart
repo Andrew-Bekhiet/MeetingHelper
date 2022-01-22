@@ -18,6 +18,7 @@ import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/models/theme_notifier.dart';
+import 'package:meetinghelper/repositories/database_repository.dart';
 import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -936,7 +937,7 @@ class _RootState extends State<Root>
     _usersOptions = ListController<Class?, User>(
       searchStream: _searchQuery,
       objectsPaginatableStream: PaginatableStream.loadAll(
-        stream: MHAuthRepository.getAllUsers(),
+        stream: MHDatabaseRepo.instance.getAllUsers(),
       ),
       groupByStream: usersByClass,
       groupingStream: Stream.value(true),
@@ -956,7 +957,7 @@ class _RootState extends State<Root>
       //with the Data Stream from Firestore
       objectsPaginatableStream: PaginatableStream.loadAll(
         stream: _personsOrder.switchMap(
-          (order) => Person.getAllForUser(
+          (order) => MHDatabaseRepo.instance.getAllPersons(
             orderBy: order.orderBy,
             descending: !order.asc,
           ),

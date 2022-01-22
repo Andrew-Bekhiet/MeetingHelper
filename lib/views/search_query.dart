@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
+import 'package:meetinghelper/repositories/database_repository.dart';
 import 'package:meetinghelper/views/services_list.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
@@ -244,7 +245,7 @@ class _SearchQueryState extends State<SearchQuery> {
                       ? Class.getAllForUser(
                           queryCompleter: _mainQueryCompleter,
                         )
-                      : Person.getAllForUser(
+                      : MHDatabaseRepo.instance.getAllPersons(
                           queryCompleter: _mainQueryCompleter,
                         ))
               .map(
@@ -647,7 +648,7 @@ class _SearchQueryState extends State<SearchQuery> {
                 ),
                 child: queryValue != null && queryValue is String
                     ? FutureBuilder<User?>(
-                        future: MHAuthRepository.userNameFromUID(queryValue),
+                        future: MHDatabaseRepo.instance.getUserName(queryValue),
                         builder: (context, userData) {
                           if (!userData.hasData)
                             return const LinearProgressIndicator();
@@ -759,7 +760,7 @@ class _SearchQueryState extends State<SearchQuery> {
                 ),
                 child: queryValue != null && queryValue is String
                     ? FutureBuilder<User?>(
-                        future: MHAuthRepository.userNameFromUID(queryValue),
+                        future: MHDatabaseRepo.instance.getUserName(queryValue),
                         builder: (context, userData) {
                           if (!userData.hasData)
                             return const LinearProgressIndicator();
@@ -1001,7 +1002,7 @@ class _SearchQueryState extends State<SearchQuery> {
     final _listOptions = ListController<void, User>(
       objectsPaginatableStream: PaginatableStream.loadAll(
         stream: _orderOptions.switchMap(
-          (order) => MHAuthRepository.getAllUsers(),
+          (order) => MHDatabaseRepo.instance.getAllUsers(),
         ),
       ),
     );

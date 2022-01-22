@@ -7,6 +7,7 @@ import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/history/history_record.dart';
+import 'package:meetinghelper/repositories/database_repository.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -110,7 +111,7 @@ class EditHistoryProperty extends StatelessWidget {
   Widget build(BuildContext context) {
     return FutureBuilder<User?>(
       future: lastEdit?.uid != null
-          ? MHAuthRepository.userNameFromUID(lastEdit!.uid)
+          ? MHDatabaseRepo.instance.getUserName(lastEdit!.uid)
           : null,
       builder: (context, user) {
         return ListTile(
@@ -174,8 +175,8 @@ class EditHistoryProperty extends StatelessWidget {
                       return ListView.builder(
                         itemCount: history.data!.length,
                         itemBuilder: (context, i) => FutureBuilder<User?>(
-                          future: MHAuthRepository.userNameFromUID(
-                              history.data![i].byUser ?? ''),
+                          future: MHDatabaseRepo.instance
+                              .getUserName(history.data![i].byUser ?? ''),
                           builder: (context, user) {
                             return ListTile(
                               leading: user.hasData

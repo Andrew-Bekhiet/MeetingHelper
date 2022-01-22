@@ -14,6 +14,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/service.dart';
+import 'package:meetinghelper/repositories/database_repository.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/views/form_widgets/tapable_form_field.dart';
@@ -590,10 +591,11 @@ class _EditServiceState extends State<EditService> {
                 return Provider<ListController<Class?, User>>(
                   create: (_) => ListController<Class?, User>(
                     objectsPaginatableStream: PaginatableStream.loadAll(
-                      stream: MHAuthRepository.getAllNames().map(
-                        (users) =>
-                            users.where((u) => u.uid != User.emptyUID).toList(),
-                      ),
+                      stream: MHDatabaseRepo.instance.getAllUsersNames().map(
+                            (users) => users
+                                .where((u) => u.uid != User.emptyUID)
+                                .toList(),
+                          ),
                     ),
                     groupByStream: usersByClass,
                     groupingStream: Stream.value(true),
