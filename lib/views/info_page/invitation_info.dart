@@ -1,7 +1,6 @@
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:meetinghelper/models/copiable_property.dart.bak';
 import 'package:meetinghelper/models/data/invitation.dart';
 import 'package:meetinghelper/repositories/database_repository.dart';
 import 'package:meetinghelper/utils/globals.dart';
@@ -133,15 +132,16 @@ class InvitationInfo extends StatelessWidget {
                     title: Text(invitation.name,
                         style: Theme.of(context).textTheme.headline6),
                   ),
-                  CopiableProperty(
+                  CopiablePropertyWidget(
                     'لينك الدعوة',
                     invitation.link,
-                    items: [
+                    additionalOptions: [
                       IconButton(
-                          onPressed: () async {
-                            await Share.share(invitation.link!);
-                          },
-                          icon: const Icon(Icons.share)),
+                        onPressed: () async {
+                          await Share.share(invitation.link!);
+                        },
+                        icon: const Icon(Icons.share),
+                      ),
                     ],
                   ),
                   ListTile(

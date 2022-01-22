@@ -11,8 +11,6 @@ import 'package:meetinghelper/models/history/history_record.dart';
 import 'package:meetinghelper/repositories/database_repository.dart';
 import 'package:rxdart/rxdart.dart';
 
-import '../mini_models.dart.bak';
-
 class HistoryProperty extends StatelessWidget {
   const HistoryProperty(this.name, this.value, this.historyRef,
       {Key? key, this.showTime = true})
@@ -50,8 +48,8 @@ class HistoryProperty extends StatelessWidget {
           showDialog(
             context: context,
             builder: (context) => Dialog(
-              child: FutureBuilder<List<History>>(
-                future: History.getAllFromRef(historyRef),
+              child: FutureBuilder<List<AuditRecord>>(
+                future: AuditRecord.getAllFromRef(historyRef),
                 builder: (context, history) {
                   if (!history.hasData)
                     return const Center(child: CircularProgressIndicator());
@@ -61,28 +59,29 @@ class HistoryProperty extends StatelessWidget {
                   return ListView.builder(
                     itemCount: history.data!.length,
                     itemBuilder: (context, i) => FutureBuilder<JsonDoc>(
-                      future: history.data![i].byUser != null
+                      future: history.data![i].by != null
                           ? GetIt.I<DatabaseRepository>()
-                              .doc('Users/' + history.data![i].byUser!)
+                              .doc('Users/' + history.data![i].by!)
                               .get()
                           : null,
                       builder: (context, user) {
                         return ListTile(
-                          leading: history.data![i].byUser != null
+                          leading: history.data![i].by != null
                               ? IgnorePointer(
-                                  child: User.photoFromUID(
-                                      history.data![i].byUser!),
+                                  child:
+                                      User.photoFromUID(history.data![i].by!),
                                 )
                               : null,
-                          title: history.data![i].byUser != null
+                          title: history.data![i].by != null
                               ? user.hasData
                                   ? Text(user.data!.data()!['Name'])
                                   : const LinearProgressIndicator()
                               : const Text('غير معروف'),
-                          subtitle: Text(DateFormat(
-                                  showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d',
-                                  'ar-EG')
-                              .format(history.data![i].time!.toDate())),
+                          subtitle: Text(
+                            DateFormat(showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d',
+                                    'ar-EG')
+                                .format(history.data![i].time),
+                          ),
                         );
                       },
                     ),
@@ -164,8 +163,8 @@ class EditHistoryProperty extends StatelessWidget {
               showDialog(
                 context: context,
                 builder: (context) => Dialog(
-                  child: FutureBuilder<List<History>>(
-                    future: History.getAllFromRef(historyRef),
+                  child: FutureBuilder<List<AuditRecord>>(
+                    future: AuditRecord.getAllFromRef(historyRef),
                     builder: (context, history) {
                       if (!history.hasData)
                         return const Center(child: CircularProgressIndicator());
@@ -176,22 +175,26 @@ class EditHistoryProperty extends StatelessWidget {
                         itemCount: history.data!.length,
                         itemBuilder: (context, i) => FutureBuilder<User?>(
                           future: MHDatabaseRepo.instance
-                              .getUserName(history.data![i].byUser ?? ''),
+                              .getUserName(history.data![i].by ?? ''),
                           builder: (context, user) {
                             return ListTile(
                               leading: user.hasData
                                   ? IgnorePointer(
                                       child: User.photoFromUID(
-                                          history.data![i].byUser!),
+                                          history.data![i].by!),
                                     )
                                   : const CircularProgressIndicator(),
                               title: user.hasData
                                   ? Text(user.data!.name)
                                   : const Text(''),
-                              subtitle: Text(DateFormat(
-                                      showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d',
-                                      'ar-EG')
-                                  .format(history.data![i].time!.toDate())),
+                              subtitle: Text(
+                                DateFormat(
+                                        showTime
+                                            ? 'yyyy/M/d h:m a'
+                                            : 'yyyy/M/d',
+                                        'ar-EG')
+                                    .format(history.data![i].time),
+                              ),
                             );
                           },
                         ),
@@ -245,8 +248,8 @@ class TimeHistoryProperty extends StatelessWidget {
           showDialog(
             context: context,
             builder: (context) => Dialog(
-              child: FutureBuilder<List<History>>(
-                future: History.getAllFromRef(historyRef),
+              child: FutureBuilder<List<AuditRecord>>(
+                future: AuditRecord.getAllFromRef(historyRef),
                 builder: (context, history) {
                   if (!history.hasData)
                     return const Center(child: CircularProgressIndicator());
@@ -256,9 +259,11 @@ class TimeHistoryProperty extends StatelessWidget {
                   return ListView.builder(
                     itemCount: history.data!.length,
                     itemBuilder: (context, i) => ListTile(
-                      title: Text(DateFormat(
-                              showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d', 'ar-EG')
-                          .format(history.data![i].time!.toDate())),
+                      title: Text(
+                        DateFormat(showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d',
+                                'ar-EG')
+                            .format(history.data![i].time),
+                      ),
                     ),
                   );
                 },
