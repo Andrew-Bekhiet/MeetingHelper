@@ -308,10 +308,8 @@ class DayHistoryProperty extends StatelessWidget {
             builder: (context) => Dialog(
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               child: StreamBuilder<List<HistoryRecord>>(
-                stream: MHAuthRepository.I.userStream.switchMap(
+                stream: User.loggedInStream.switchMap(
                   (user) {
-                    if (user == null) return Stream.value([]);
-
                     Stream<List<HistoryRecord>> _completeQuery(
                         QueryOfJson query) {
                       return query

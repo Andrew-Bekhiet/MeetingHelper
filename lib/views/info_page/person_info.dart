@@ -47,17 +47,16 @@ class _PersonInfoState extends State<PersonInfo> {
       await Future.delayed(const Duration(milliseconds: 300));
 
       if (([
-        if (MHAuthRepository.I.currentUser!.permissions.write) 'Person.Edit',
+        if (User.instance.permissions.write) 'Person.Edit',
         'Person.Share',
-        if (MHAuthRepository.I.currentUser!.permissions.write)
-          'Person.LastVisit'
+        if (User.instance.permissions.write) 'Person.LastVisit'
       ]..removeWhere(HivePersistenceProvider.instance.hasCompletedStep))
           .isNotEmpty)
         TutorialCoachMark(
           context,
           focusAnimationDuration: const Duration(milliseconds: 200),
           targets: [
-            if (MHAuthRepository.I.currentUser!.permissions.write)
+            if (User.instance.permissions.write)
               TargetFocus(
                 enableOverlayTab: true,
                 contents: [
@@ -88,7 +87,7 @@ class _PersonInfoState extends State<PersonInfo> {
               keyTarget: _share,
               color: Theme.of(context).colorScheme.secondary,
             ),
-            if (MHAuthRepository.I.currentUser!.permissions.write)
+            if (User.instance.permissions.write)
               TargetFocus(
                 alignSkip: Alignment.topRight,
                 enableOverlayTab: true,
@@ -123,13 +122,13 @@ class _PersonInfoState extends State<PersonInfo> {
   Widget build(BuildContext context) {
     return StreamBuilder<Person?>(
       initialData: widget.person,
-      stream: MHAuthRepository.I.userStream
-          .distinct((o, n) => o?.permissions.write == n?.permissions.write)
+      stream: User.loggedInStream
+          .distinct((o, n) => o.permissions.write == n.permissions.write)
           .switchMap(
             (_) => widget.person.ref.snapshots().map(Person.fromDoc),
           ),
       builder: (context, data) {
-        final write = MHAuthRepository.I.currentUser!.permissions.write;
+        final write = User.instance.permissions.write;
         final Person? person = data.data;
 
         if (person == null)
@@ -559,7 +558,7 @@ class _PersonInfoState extends State<PersonInfo> {
       if (recordLastCall == true) {
         await widget.person.ref.update(
           {
-            'LastEdit': MHAuthRepository.I.currentUser!.uid,
+            'LastEdit': User.instance.uid,
             'LastCall': Timestamp.now(),
           },
         );

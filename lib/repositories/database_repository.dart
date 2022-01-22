@@ -77,15 +77,13 @@ class MHDatabaseRepo extends DatabaseRepository {
     bool descending = false,
     QueryCompleter queryCompleter = kDefaultQueryCompleter,
   }) {
-    return Rx.combineLatest2<User?, List<Class>, Tuple2<User?, List<Class>>>(
-      MHAuthRepository.I.userStream,
+    return Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
+      User.loggedInStream,
       Class.getAllForUser(),
       Tuple2.new,
     ).switchMap(
       (u) {
-        if (u.item1 == null) return Stream.value([]);
-
-        if (u.item1!.permissions.superAccess) {
+        if (u.item1.permissions.superAccess) {
           return queryCompleter(collection('Persons'), orderBy, descending)
               .snapshots()
               .map((p) => p.docs.map(Person.fromDoc).toList());
@@ -117,19 +115,19 @@ class MHDatabaseRepo extends DatabaseRepository {
                     )
               : Stream.value([]),
           //Persons from Services
-          u.item1!.adminServices.isNotEmpty
-              ? u.item1!.adminServices.length <= 10
+          u.item1.adminServices.isNotEmpty
+              ? u.item1.adminServices.length <= 10
                   ? queryCompleter(
                           collection('Persons').where(
                             'Services',
-                            arrayContainsAny: u.item1!.adminServices,
+                            arrayContainsAny: u.item1.adminServices,
                           ),
                           orderBy,
                           descending)
                       .snapshots()
                       .map((p) => p.docs.map(Person.fromDoc).toList())
                   : Rx.combineLatestList<JsonQuery>(
-                      u.item1!.adminServices.split(10).map(
+                      u.item1.adminServices.split(10).map(
                             (c) => queryCompleter(
                               collection('Persons')
                                   .where('Services', arrayContainsAny: c),

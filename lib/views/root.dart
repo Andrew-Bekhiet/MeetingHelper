@@ -18,7 +18,7 @@ import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/models/theme_notifier.dart';
-import 'package:meetinghelper/repositories/database_repository.dart';
+import 'package:meetinghelper/repositories.dart';
 import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -66,8 +66,8 @@ class _RootState extends State<Root>
 
   void addTap() async {
     if (_tabController!.index == _tabController!.length - 2) {
-      if (MHAuthRepository.I.currentUser!.permissions.manageUsers ||
-          MHAuthRepository.I.currentUser!.permissions.manageAllowedUsers) {
+      if (User.instance.permissions.manageUsers ||
+          User.instance.permissions.manageAllowedUsers) {
         final rslt = await showDialog(
           context: context,
           builder: (context) => SimpleDialog(
@@ -228,8 +228,8 @@ class _RootState extends State<Root>
         bottom: TabBar(
           controller: _tabController,
           tabs: [
-            if (MHAuthRepository.I.currentUser!.permissions.manageUsers ||
-                MHAuthRepository.I.currentUser!.permissions.manageAllowedUsers)
+            if (User.instance.permissions.manageUsers ||
+                User.instance.permissions.manageAllowedUsers)
               Tab(
                 key: _createOrGetFeatureKey('Servants'),
                 text: 'الخدام',
@@ -331,8 +331,8 @@ class _RootState extends State<Root>
       body: TabBarView(
         controller: _tabController,
         children: [
-          if (MHAuthRepository.I.currentUser!.permissions.manageUsers ||
-              MHAuthRepository.I.currentUser!.permissions.manageAllowedUsers)
+          if (User.instance.permissions.manageUsers ||
+              User.instance.permissions.manageAllowedUsers)
             DataObjectListView<Class?, User>(
               key: const PageStorageKey('mainUsersList'),
               autoDisposeController: false,
@@ -368,8 +368,8 @@ class _RootState extends State<Root>
             ListTile(
               key: _createOrGetFeatureKey('MyAccount'),
               leading: StreamBuilder<User?>(
-                stream: MHAuthRepository.I.userStream,
-                initialData: MHAuthRepository.I.currentUser,
+                stream: User.loggedInStream,
+                initialData: User.instance,
                 builder: (context, snapshot) {
                   return UserPhotoWidget(snapshot.data!);
                 },
@@ -383,8 +383,7 @@ class _RootState extends State<Root>
             StreamBuilder<bool>(
               key: _createOrGetFeatureKey('ManageUsers'),
               initialData: false,
-              stream: (MHAuthRepository.I.userStream.where((u) => u != null)
-                      as Stream<User>)
+              stream: User.loggedInStream
                   .map((u) =>
                       u.permissions.manageUsers ||
                       u.permissions.manageAllowedUsers)
@@ -434,8 +433,7 @@ class _RootState extends State<Root>
             StreamBuilder<bool>(
               key: _createOrGetFeatureKey('AddServantsHistory'),
               initialData: false,
-              stream: (MHAuthRepository.I.userStream.where((u) => u != null)
-                      as Stream<User>)
+              stream: User.loggedInStream
                   .map((u) => u.permissions.secretary)
                   .distinct(),
               builder: (context, data) => data.data!
@@ -461,8 +459,7 @@ class _RootState extends State<Root>
             StreamBuilder<bool>(
               key: _createOrGetFeatureKey('ServantsHistory'),
               initialData: false,
-              stream: (MHAuthRepository.I.userStream.where((u) => u != null)
-                      as Stream<User>)
+              stream: User.loggedInStream
                   .map((u) => u.permissions.secretary)
                   .distinct(),
               builder: (context, data) => data.data!
@@ -498,8 +495,7 @@ class _RootState extends State<Root>
             ),
             StreamBuilder<bool>(
               initialData: false,
-              stream: (MHAuthRepository.I.userStream.where((u) => u != null)
-                      as Stream<User>)
+              stream: User.loggedInStream
                   .map((u) =>
                       u.permissions.manageUsers ||
                       u.permissions.manageAllowedUsers)
@@ -529,8 +525,7 @@ class _RootState extends State<Root>
             StreamBuilder<bool>(
               key: _createOrGetFeatureKey('ManageDeleted'),
               initialData: false,
-              stream: (MHAuthRepository.I.userStream.where((u) => u != null)
-                      as Stream<User>)
+              stream: User.loggedInStream
                   .map((u) => u.permissions.manageDeleted)
                   .distinct(),
               builder: (context, data) {
@@ -580,8 +575,7 @@ class _RootState extends State<Root>
             ),
             StreamBuilder<bool>(
               initialData: false,
-              stream: (MHAuthRepository.I.userStream.where((u) => u != null)
-                      as Stream<User>)
+              stream: User.loggedInStream
                   .map((u) => u.permissions.export)
                   .distinct(),
               builder: (context, data) {
@@ -694,8 +688,7 @@ class _RootState extends State<Root>
             ),
             StreamBuilder<bool>(
               initialData: false,
-              stream: (MHAuthRepository.I.userStream.where((u) => u != null)
-                      as Stream<User>)
+              stream: User.loggedInStream
                   .map((u) => u.permissions.export)
                   .distinct(),
               builder: (context, data) {
@@ -766,8 +759,7 @@ class _RootState extends State<Root>
             ),
             StreamBuilder<bool>(
               initialData: false,
-              stream: (MHAuthRepository.I.userStream.where((u) => u != null)
-                      as Stream<User>)
+              stream: User.loggedInStream
                   .map((u) => u.permissions.export)
                   .distinct(),
               builder: (context, data) => data.data!
@@ -967,12 +959,12 @@ class _RootState extends State<Root>
 
     _tabController = TabController(
         vsync: this,
-        initialIndex: MHAuthRepository.I.currentUser!.permissions.manageUsers ||
-                MHAuthRepository.I.currentUser!.permissions.manageAllowedUsers
+        initialIndex: User.instance.permissions.manageUsers ||
+                User.instance.permissions.manageAllowedUsers
             ? 1
             : 0,
-        length: MHAuthRepository.I.currentUser!.permissions.manageUsers ||
-                MHAuthRepository.I.currentUser!.permissions.manageAllowedUsers
+        length: User.instance.permissions.manageUsers ||
+                User.instance.permissions.manageAllowedUsers
             ? 3
             : 2);
     WidgetsBinding.instance!.addObserver(this);
@@ -1297,22 +1289,19 @@ class _RootState extends State<Root>
       'Servants',
       'Search',
       'MyAccount',
-      if (MHAuthRepository.I.currentUser!.permissions.manageUsers ||
-          MHAuthRepository.I.currentUser!.permissions.manageAllowedUsers)
+      if (User.instance.permissions.manageUsers ||
+          User.instance.permissions.manageAllowedUsers)
         'ManageUsers',
       'AddHistory',
-      if (MHAuthRepository.I.currentUser!.permissions.secretary)
-        'AddServantsHistory',
+      if (User.instance.permissions.secretary) 'AddServantsHistory',
       'History',
-      if (MHAuthRepository.I.currentUser!.permissions.secretary)
-        'ServantsHistory',
+      if (User.instance.permissions.secretary) 'ServantsHistory',
       'Analytics',
-      if (MHAuthRepository.I.currentUser!.permissions.manageUsers ||
-          MHAuthRepository.I.currentUser!.permissions.manageAllowedUsers)
+      if (User.instance.permissions.manageUsers ||
+          User.instance.permissions.manageAllowedUsers)
         'ActivityAnalysis',
       'AdvancedSearch',
-      if (MHAuthRepository.I.currentUser!.permissions.manageDeleted)
-        'ManageDeleted',
+      if (User.instance.permissions.manageDeleted) 'ManageDeleted',
       'DataMap',
       'Settings'
     ]..removeWhere(HivePersistenceProvider.instance.hasCompletedStep);
@@ -1361,7 +1350,7 @@ class _RootState extends State<Root>
 
   void showPendingUIDialogs() async {
     dialogsNotShown = false;
-    if (!MHAuthRepository.I.currentUser!.userDataUpToDate()) {
+    if (!User.instance.userDataUpToDate()) {
       await showErrorUpdateDataDialog(context: context, pushApp: false);
     }
     listenToFirebaseMessaging();

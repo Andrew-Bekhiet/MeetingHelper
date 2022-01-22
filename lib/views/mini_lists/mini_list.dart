@@ -42,7 +42,7 @@ class MiniModelList<T extends MetaObject> extends StatelessWidget {
         ),
         autoDisposeController: true,
       ),
-      floatingActionButton: MHAuthRepository.I.currentUser!.permissions.write
+      floatingActionButton: User.instance.permissions.write
           ? FloatingActionButton(
               onPressed: add ??
                   () async {
@@ -94,7 +94,7 @@ class MiniModelList<T extends MetaObject> extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         actions: <Widget>[
-          if (MHAuthRepository.I.currentUser!.permissions.write)
+          if (User.instance.permissions.write)
             TextButton.icon(
               icon: editMode ? const Icon(Icons.save) : const Icon(Icons.edit),
               onPressed: () async {

@@ -452,7 +452,7 @@ class _MyAccountState extends State<MyAccount> {
     ));
     if (textFields[2].text == textFields[1].text &&
         textFields[0].text.isNotEmpty) {
-      final User user = MHAuthRepository.I.currentUser!;
+      final User user = User.instance;
 
       if (user.password == Encryption.encPswd(textFields[0].text)) {
         try {

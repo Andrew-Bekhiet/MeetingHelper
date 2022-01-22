@@ -45,8 +45,8 @@ class InvitationInfo extends StatelessWidget {
               actions: <Widget>[
                 StreamBuilder<bool>(
                   initialData: false,
-                  stream: MHAuthRepository.I.userStream
-                      .map((u) => u?.permissions.write ?? false)
+                  stream: User.loggedInStream
+                      .map((u) => u.permissions.write)
                       .distinct(),
                   builder: (context, data) => data.data!
                       ? IconButton(

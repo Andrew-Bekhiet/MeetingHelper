@@ -260,7 +260,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          if (MHAuthRepository.I.currentUser!.permissions.superAccess)
+          if (User.instance.permissions.superAccess)
             DataObjectListView<void, Service>(
               autoDisposeController: true,
               controller: _servicesOptions,
@@ -298,11 +298,11 @@ class _TrashDayScreenState extends State<TrashDayScreen>
     _classesOptions = ListController<void, Class>(
       searchStream: _searchQuery,
       objectsPaginatableStream: PaginatableStream.query(
-        query: MHAuthRepository.I.currentUser!.permissions.superAccess
+        query: User.instance.permissions.superAccess
             ? widget.day.ref.collection('Classes')
             : GetIt.I<DatabaseRepository>().collection('Classes').where(
                   'Allowed',
-                  arrayContains: MHAuthRepository.I.currentUser!.uid,
+                  arrayContains: User.instance.uid,
                 ),
         mapper: Class.fromDoc,
       ),
@@ -311,16 +311,11 @@ class _TrashDayScreenState extends State<TrashDayScreen>
     _personsOptions = ListController<void, Person>(
       searchStream: _searchQuery,
       objectsPaginatableStream: PaginatableStream.loadAll(
-        stream:
-            Rx.combineLatest2<User?, List<Class>, Tuple2<User?, List<Class>>>(
-                    MHAuthRepository.I.userStream,
-                    Class.getAllForUser(),
-                    Tuple2.new)
-                .switchMap(
+        stream: Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
+                User.loggedInStream, Class.getAllForUser(), Tuple2.new)
+            .switchMap(
           (u) {
-            if (u.item1 == null) return Stream.value([]);
-
-            if (u.item1!.permissions.superAccess) {
+            if (u.item1.permissions.superAccess) {
               return widget.day.ref
                   .collection('Persons')
                   .snapshots()

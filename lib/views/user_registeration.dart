@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/user.dart';
+import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/utils/encryption_keys.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
@@ -38,9 +39,8 @@ class _UserRegistrationState extends State<UserRegistration> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User>(
-      initialData: MHAuthRepository.I.currentUser,
-      stream:
-          MHAuthRepository.I.userStream.where((u) => u != null) as Stream<User>,
+      initialData: User.instance,
+      stream: User.loggedInStream,
       builder: (context, userSnapshot) {
         final user = userSnapshot.data!;
 

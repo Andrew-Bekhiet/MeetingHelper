@@ -60,19 +60,19 @@ class _ServiceInfoState extends State<ServiceInfo> {
     );
     WidgetsBinding.instance!.addPostFrameCallback((_) {
       if (([
-        if (MHAuthRepository.I.currentUser!.permissions.write) 'Edit',
+        if (User.instance.permissions.write) 'Edit',
         'Share',
         'MoreOptions',
         'EditHistory',
         'Service.Analytics',
-        if (MHAuthRepository.I.currentUser!.permissions.write) 'Add'
+        if (User.instance.permissions.write) 'Add'
       ]..removeWhere(HivePersistenceProvider.instance.hasCompletedStep))
           .isNotEmpty)
         TutorialCoachMark(
           context,
           focusAnimationDuration: const Duration(milliseconds: 200),
           targets: [
-            if (MHAuthRepository.I.currentUser!.permissions.write)
+            if (User.instance.permissions.write)
               TargetFocus(
                 enableOverlayTab: true,
                 contents: [
@@ -152,7 +152,7 @@ class _ServiceInfoState extends State<ServiceInfo> {
               keyTarget: _analytics,
               color: Theme.of(context).colorScheme.secondary,
             ),
-            if (MHAuthRepository.I.currentUser!.permissions.write)
+            if (User.instance.permissions.write)
               TargetFocus(
                 enableOverlayTab: true,
                 contents: [
@@ -186,8 +186,8 @@ class _ServiceInfoState extends State<ServiceInfo> {
   Widget build(BuildContext context) {
     return StreamBuilder<Service?>(
       initialData: widget.service,
-      stream: MHAuthRepository.I.userStream
-          .distinct((o, n) => o?.permissions.write == n?.permissions.write)
+      stream: User.loggedInStream
+          .distinct((o, n) => o.permissions.write == n.permissions.write)
           .switchMap(
             (_) => widget.service.ref.snapshots().map(Service.fromDoc),
           ),
@@ -212,7 +212,7 @@ class _ServiceInfoState extends State<ServiceInfo> {
                     : null,
                 actions: service.ref.path.startsWith('Deleted')
                     ? <Widget>[
-                        if (MHAuthRepository.I.currentUser!.permissions.write)
+                        if (User.instance.permissions.write)
                           IconButton(
                             icon: const Icon(Icons.restore),
                             tooltip: 'استعادة',
@@ -222,7 +222,7 @@ class _ServiceInfoState extends State<ServiceInfo> {
                           )
                       ]
                     : <Widget>[
-                        if (MHAuthRepository.I.currentUser!.permissions.write)
+                        if (User.instance.permissions.write)
                           IconButton(
                             key: _edit,
                             icon: Builder(
@@ -388,10 +388,8 @@ class _ServiceInfoState extends State<ServiceInfo> {
                           label: const Text('إظهار المخدومين على الخريطة'),
                         ),
                       if (!service.ref.path.startsWith('Deleted') &&
-                          (MHAuthRepository
-                                  .I.currentUser!.permissions.manageUsers ||
-                              MHAuthRepository.I.currentUser!.permissions
-                                  .manageAllowedUsers))
+                          (User.instance.permissions.manageUsers ||
+                              User.instance.permissions.manageAllowedUsers))
                         ElevatedButton.icon(
                           icon: const Icon(Icons.analytics_outlined),
                           onPressed: () => Navigator.pushNamed(
@@ -415,10 +413,8 @@ class _ServiceInfoState extends State<ServiceInfo> {
                         service.ref.collection('EditHistory'),
                         key: _editHistory,
                       ),
-                      if (MHAuthRepository
-                              .I.currentUser!.permissions.manageUsers ||
-                          MHAuthRepository
-                              .I.currentUser!.permissions.manageAllowedUsers)
+                      if (User.instance.permissions.manageUsers ||
+                          User.instance.permissions.manageAllowedUsers)
                         _ServiceServants(service: service),
                       Text(
                         'المخدومين المشتركين بالخدمة:',
@@ -461,17 +457,16 @@ class _ServiceInfoState extends State<ServiceInfo> {
             ),
           ),
           floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
-          floatingActionButton:
-              MHAuthRepository.I.currentUser!.permissions.write &&
-                      !service.ref.path.startsWith('Deleted')
-                  ? FloatingActionButton(
-                      key: _add,
-                      onPressed: () => navigator.currentState!.pushNamed(
-                          'Data/EditPerson',
-                          arguments: widget.service.ref),
-                      child: const Icon(Icons.person_add),
-                    )
-                  : null,
+          floatingActionButton: User.instance.permissions.write &&
+                  !service.ref.path.startsWith('Deleted')
+              ? FloatingActionButton(
+                  key: _add,
+                  onPressed: () => navigator.currentState!.pushNamed(
+                      'Data/EditPerson',
+                      arguments: widget.service.ref),
+                  child: const Icon(Icons.person_add),
+                )
+              : null,
         );
       },
     );
@@ -498,9 +493,9 @@ class _ServiceServants extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<User>>(
-      stream: MHAuthRepository.I.userStream
+      stream: User.loggedInStream
           .switchMap(
-            (u) => u!.permissions.manageUsers
+            (u) => u.permissions.manageUsers
                 ? GetIt.I<DatabaseRepository>()
                     .collection('UsersData')
                     .where('AdminServices', arrayContains: service.ref)

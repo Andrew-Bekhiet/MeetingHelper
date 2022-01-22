@@ -17,7 +17,7 @@ import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data_object_tap_handler.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
-import 'package:meetinghelper/repositories/database_repository.dart';
+import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/secrets.dart';
 import 'package:meetinghelper/views/services_list.dart';
 import 'package:photo_view/photo_view.dart';
@@ -53,8 +53,8 @@ Stream<Map<PreferredStudyYear?, List<T>>>
       T == Class
           ? services != null
               ? Stream.value(services as List<Class>)
-              : MHAuthRepository.I.userStream.switchMap(
-                  (user) => (user!.permissions.superAccess
+              : User.loggedInStream.switchMap(
+                  (user) => (user.permissions.superAccess
                           ? GetIt.I<DatabaseRepository>()
                               .collection('Classes')
                               .orderBy('StudyYear')
@@ -350,7 +350,7 @@ void import(BuildContext context) async {
             fileData,
             SettableMetadata(
               customMetadata: {
-                'createdBy': MHAuthRepository.I.currentUser!.uid,
+                'createdBy': User.instance.uid,
               },
             ),
           );
@@ -413,7 +413,7 @@ Stream<Map<Class?, List<User>>> usersByClass(List<User> users) {
         .collection('StudyYears')
         .orderBy('Grade')
         .snapshots(),
-    MHAuthRepository.I.userStream.whereType<User>().switchMap((user) =>
+    User.loggedInStream.whereType<User>().switchMap((user) =>
         user.permissions.superAccess
             ? GetIt.I<DatabaseRepository>()
                 .collection('Classes')
@@ -493,20 +493,19 @@ Stream<Map<Class?, List<Person>>> personsByClassRef([List<Person>? persons]) {
     persons != null
         ? Stream.value(persons)
         : MHDatabaseRepo.instance.getAllPersons(),
-    MHAuthRepository.I.userStream.whereType().switchMap((user) =>
-        user.superAccess
-            ? GetIt.I<DatabaseRepository>()
-                .collection('Classes')
-                .orderBy('StudyYear')
-                .orderBy('Gender')
-                .snapshots()
-            : GetIt.I<DatabaseRepository>()
-                .collection('Classes')
-                .where('Allowed',
-                    arrayContains: auth.FirebaseAuth.instance.currentUser!.uid)
-                .orderBy('StudyYear')
-                .orderBy('Gender')
-                .snapshots()),
+    User.loggedInStream.whereType().switchMap((user) => user.superAccess
+        ? GetIt.I<DatabaseRepository>()
+            .collection('Classes')
+            .orderBy('StudyYear')
+            .orderBy('Gender')
+            .snapshots()
+        : GetIt.I<DatabaseRepository>()
+            .collection('Classes')
+            .where('Allowed',
+                arrayContains: auth.FirebaseAuth.instance.currentUser!.uid)
+            .orderBy('StudyYear')
+            .orderBy('Gender')
+            .snapshots()),
     (studyYears, persons, cs) {
       final Map<JsonRef?, List<Person>> personsByClassRef =
           groupBy(persons, (p) => p.classId);
@@ -638,7 +637,7 @@ Future<void> processLink(Uri? deepLink) async {
           ),
         );
       } else if (deepLink.pathSegments[0] == 'viewUser') {
-        if (MHAuthRepository.I.currentUser!.permissions.manageUsers) {
+        if (User.instance.permissions.manageUsers) {
           GetIt.I<MHDataObjectTapHandler>().userTap(
             (await MHDatabaseRepo.instance
                 .getUser(deepLink.queryParameters['UID']))!,
@@ -808,7 +807,7 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
     await GetIt.I<FunctionsService>().httpsCallable('sendMessageToUsers').call({
       'users': users.map((e) => e.uid).toList(),
       'title': title.text,
-      'body': 'أرسل إليك ${MHAuthRepository.I.currentUser!.name} رسالة',
+      'body': 'أرسل إليك ${User.instance.name} رسالة',
       'content': content.text,
       'attachement': uriPrefix + '/view$link'
     });
@@ -1180,7 +1179,7 @@ Future<void> showErrorUpdateDataDialog(
               shape: StadiumBorder(side: BorderSide(color: primaries[13]!)),
             ),
             onPressed: () async {
-              final user = MHAuthRepository.I.currentUser!;
+              final user = User.instance;
               await navigator.currentState!
                   .pushNamed('UpdateUserDataError', arguments: user);
               if (user.permissions.lastTanawol != null &&

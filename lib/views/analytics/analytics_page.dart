@@ -77,7 +77,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
   Future<void> _setRangeStart() async {
     if (minAvaliableSet) return;
 
-    if (MHAuthRepository.I.currentUser!.permissions.superAccess)
+    if (User.instance.permissions.superAccess)
       minAvaliable = ((await GetIt.I<DatabaseRepository>()
                       .collectionGroup('EditHistory')
                       .orderBy('Time')

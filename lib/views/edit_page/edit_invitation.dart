@@ -148,7 +148,7 @@ class _EditInvitationState extends State<EditInvitation> {
                     ),
                   ),
                 ),
-                if (MHAuthRepository.I.currentUser!.permissions.manageUsers)
+                if (User.instance.permissions.manageUsers)
                   ListTile(
                     trailing: Checkbox(
                       value: invitation.permissions!['manageUsers'] ?? false,
@@ -483,8 +483,7 @@ class _EditInvitationState extends State<EditInvitation> {
         if (invitation.id == 'null') {
           invitation = invitation.copyWith.ref(
               GetIt.I<DatabaseRepository>().collection('Invitations').doc());
-          invitation = invitation.copyWith
-              .generatedBy(MHAuthRepository.I.currentUser!.uid);
+          invitation = invitation.copyWith.generatedBy(User.instance.uid);
           if (await Connectivity().checkConnectivity() !=
               ConnectivityResult.none) {
             await invitation.ref.set({

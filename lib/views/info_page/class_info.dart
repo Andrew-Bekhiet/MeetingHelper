@@ -57,19 +57,19 @@ class _ClassInfoState extends State<ClassInfo> {
     );
     WidgetsBinding.instance!.addPostFrameCallback((_) {
       if (([
-        if (MHAuthRepository.I.currentUser!.permissions.write) 'Edit',
+        if (User.instance.permissions.write) 'Edit',
         'Share',
         'MoreOptions',
         'EditHistory',
         'Class.Analytics',
-        if (MHAuthRepository.I.currentUser!.permissions.write) 'Add'
+        if (User.instance.permissions.write) 'Add'
       ]..removeWhere(HivePersistenceProvider.instance.hasCompletedStep))
           .isNotEmpty)
         TutorialCoachMark(
           context,
           focusAnimationDuration: const Duration(milliseconds: 200),
           targets: [
-            if (MHAuthRepository.I.currentUser!.permissions.write)
+            if (User.instance.permissions.write)
               TargetFocus(
                 enableOverlayTab: true,
                 contents: [
@@ -149,7 +149,7 @@ class _ClassInfoState extends State<ClassInfo> {
               keyTarget: _analytics,
               color: Theme.of(context).colorScheme.secondary,
             ),
-            if (MHAuthRepository.I.currentUser!.permissions.write)
+            if (User.instance.permissions.write)
               TargetFocus(
                 enableOverlayTab: true,
                 contents: [
@@ -184,8 +184,8 @@ class _ClassInfoState extends State<ClassInfo> {
   Widget build(BuildContext context) {
     return StreamBuilder<Class?>(
       initialData: widget.class$,
-      stream: MHAuthRepository.I.userStream
-          .distinct((o, n) => o?.permissions.write == n?.permissions.write)
+      stream: User.loggedInStream
+          .distinct((o, n) => o.permissions.write == n.permissions.write)
           .switchMap(
             (value) => widget.class$.ref.snapshots().map(Class.fromDoc),
           ),
@@ -210,7 +210,7 @@ class _ClassInfoState extends State<ClassInfo> {
                     : null,
                 actions: class$.ref.path.startsWith('Deleted')
                     ? <Widget>[
-                        if (MHAuthRepository.I.currentUser!.permissions.write)
+                        if (User.instance.permissions.write)
                           IconButton(
                             icon: const Icon(Icons.restore),
                             tooltip: 'استعادة',
@@ -220,7 +220,7 @@ class _ClassInfoState extends State<ClassInfo> {
                           )
                       ]
                     : <Widget>[
-                        if (MHAuthRepository.I.currentUser!.permissions.write)
+                        if (User.instance.permissions.write)
                           IconButton(
                             key: _edit,
                             icon: Builder(
@@ -351,10 +351,8 @@ class _ClassInfoState extends State<ClassInfo> {
                           label: const Text('إظهار المخدومين على الخريطة'),
                         ),
                       if (!class$.ref.path.startsWith('Deleted') &&
-                          (MHAuthRepository
-                                  .I.currentUser!.permissions.manageUsers ||
-                              MHAuthRepository.I.currentUser!.permissions
-                                  .manageAllowedUsers))
+                          (User.instance.permissions.manageUsers ||
+                              User.instance.permissions.manageAllowedUsers))
                         ElevatedButton.icon(
                           icon: const Icon(Icons.analytics_outlined),
                           onPressed: () => Navigator.pushNamed(
@@ -420,17 +418,16 @@ class _ClassInfoState extends State<ClassInfo> {
             ),
           ),
           floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
-          floatingActionButton:
-              MHAuthRepository.I.currentUser!.permissions.write &&
-                      !class$.ref.path.startsWith('Deleted')
-                  ? FloatingActionButton(
-                      key: _add,
-                      onPressed: () => navigator.currentState!.pushNamed(
-                          'Data/EditPerson',
-                          arguments: widget.class$.ref),
-                      child: const Icon(Icons.person_add),
-                    )
-                  : null,
+          floatingActionButton: User.instance.permissions.write &&
+                  !class$.ref.path.startsWith('Deleted')
+              ? FloatingActionButton(
+                  key: _add,
+                  onPressed: () => navigator.currentState!.pushNamed(
+                      'Data/EditPerson',
+                      arguments: widget.class$.ref),
+                  child: const Icon(Icons.person_add),
+                )
+              : null,
         );
       },
     );

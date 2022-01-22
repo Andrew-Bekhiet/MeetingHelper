@@ -183,7 +183,7 @@ class _EditUserState extends State<EditUser> {
                     ),
                   ),
                 ),
-                if (MHAuthRepository.I.currentUser!.permissions.manageUsers)
+                if (User.instance.permissions.manageUsers)
                   ListTile(
                     trailing: Checkbox(
                       value: user.permissions.manageUsers,
@@ -877,21 +877,20 @@ class _EditUserState extends State<EditUser> {
                 },
               ),
             ),
-            floatingActionButton:
-                MHAuthRepository.I.currentUser!.permissions.write
-                    ? FloatingActionButton(
-                        onPressed: () async {
-                          navigator.currentState!.pop();
-                          user = user.copyWith.classId(
-                            await navigator.currentState!
-                                    .pushNamed('Data/EditClass') as JsonRef? ??
-                                user.classId,
-                          );
-                          setState(() {});
-                        },
-                        child: const Icon(Icons.group_add),
-                      )
-                    : null,
+            floatingActionButton: User.instance.permissions.write
+                ? FloatingActionButton(
+                    onPressed: () async {
+                      navigator.currentState!.pop();
+                      user = user.copyWith.classId(
+                        await navigator.currentState!
+                                .pushNamed('Data/EditClass') as JsonRef? ??
+                            user.classId,
+                      );
+                      setState(() {});
+                    },
+                    child: const Icon(Icons.group_add),
+                  )
+                : null,
           ),
         );
       },

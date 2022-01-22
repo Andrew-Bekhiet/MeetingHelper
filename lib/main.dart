@@ -17,6 +17,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/admin.dart';
 import 'package:meetinghelper/models/theme_notifier.dart';
+import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/secrets.dart';
 import 'package:meetinghelper/views/day.dart';
 import 'package:meetinghelper/views/edit_page/edit_invitation.dart';
@@ -73,6 +74,13 @@ void main() async {
         final instance = MHAuthRepository();
 
         GetIt.I.registerSingleton<MHAuthRepository>(instance);
+
+        return instance;
+      },
+      DatabaseRepository: () {
+        final instance = MHDatabaseRepo();
+
+        GetIt.I.registerSingleton<MHDatabaseRepo>(instance);
 
         return instance;
       },
@@ -159,7 +167,7 @@ class AppState extends State<App> {
         if (snapshot.hasError) {
           if (snapshot.error.toString() ==
                   'Exception: Error Update User Data' &&
-              GetIt.I<MHAuthRepository>().currentUser?.password != null) {
+              User.instance.password != null) {
             WidgetsBinding.instance!.addPostFrameCallback((_) {
               showErrorUpdateDataDialog(context: context);
             });
@@ -169,7 +177,7 @@ class AppState extends State<App> {
           }
           if (snapshot.error.toString() !=
                   'Exception: Error Update User Data' ||
-              GetIt.I<MHAuthRepository>().currentUser?.password != null)
+              User.instance.password != null)
             return Loading(
               error: true,
               message: snapshot.error.toString(),
@@ -259,7 +267,7 @@ class AppState extends State<App> {
       await configureFirebaseMessaging();
 
       if (GetIt.I<MHAuthRepository>().isSignedIn &&
-          !GetIt.I<MHAuthRepository>().currentUser!.userDataUpToDate()) {
+          !User.instance.userDataUpToDate()) {
         throw Exception('Error Update User Data');
       }
     }

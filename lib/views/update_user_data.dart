@@ -16,7 +16,7 @@ class UpdateUserDataErrorPage extends StatefulWidget {
 }
 
 class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
-  User user = MHAuthRepository.I.currentUser!.copyWith();
+  User user = User.instance.copyWith();
   final GlobalKey<FormState> _form = GlobalKey<FormState>();
 
   @override

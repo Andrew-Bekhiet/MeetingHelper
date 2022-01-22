@@ -99,7 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             );
                         });
-                        await MHAuthRepository.I.userStream.next;
+                        await User.loggedInStream.next;
                         await setupSettings();
                       }
                     } catch (err, stack) {
@@ -196,7 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<bool> setupSettings() async {
     try {
-      final user = MHAuthRepository.I.currentUser!;
+      final user = User.instance;
       final settings = GetIt.I<CacheRepository>().box('Settings');
       settings.get('cacheSize') ?? await settings.put('cacheSize', 314572800);
 

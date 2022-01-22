@@ -313,9 +313,8 @@ class _EditServiceState extends State<EditService> {
                     icon: const Icon(Icons.color_lens),
                     label: const Text('اللون'),
                   ),
-                  if (MHAuthRepository
-                          .I.currentUser!.permissions.manageAllowedUsers ||
-                      MHAuthRepository.I.currentUser!.permissions.manageUsers)
+                  if (User.instance.permissions.manageAllowedUsers ||
+                      User.instance.permissions.manageUsers)
                     ElevatedButton.icon(
                       style: service.color != Colors.transparent
                           ? ElevatedButton.styleFrom(
@@ -444,7 +443,7 @@ class _EditServiceState extends State<EditService> {
   void initState() {
     super.initState();
     service = (widget.service ?? Service.empty()).copyWith();
-    if (service.id == 'null') allowedUsers = [MHAuthRepository.I.currentUser!];
+    if (service.id == 'null') allowedUsers = [User.instance];
   }
 
   void nameChanged(String value) {

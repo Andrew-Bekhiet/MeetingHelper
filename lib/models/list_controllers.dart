@@ -54,9 +54,9 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
     //
 
     _attendedListener = (ref != null
-            ? Rx.combineLatest3<User?, List<G>, bool?,
-                Tuple3<User?, List<G>, bool?>>(
-                MHAuthRepository.I.userStream,
+            ? Rx.combineLatest3<User, List<G>, bool?,
+                Tuple3<User, List<G>, bool?>>(
+                User.loggedInStream,
                 notService(type)
                     ? Class.getAllForUser().map((c) => c.cast())
                     : Stream.value([]),
@@ -129,7 +129,7 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
   }
 
   Stream<Map<String, HistoryRecord>> _attendedMapping(
-      Tuple3<User?, List<G>, bool?> v) {
+      Tuple3<User, List<G>, bool?> v) {
     //
     //<empty comment for readability>
 
@@ -150,7 +150,7 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
       };
     }
 
-    final permissions = v.item1!.permissions;
+    final permissions = v.item1.permissions;
 
     if (permissions.superAccess ||
         (day is ServantsHistoryDay && permissions.secretary) ||
@@ -210,7 +210,7 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
           ? object.services
           : [GetIt.I<DatabaseRepository>().collection('Services').doc(type)],
       time: time ?? day.day.toDate().replaceTime(DateTime.now()).toTimestamp(),
-      recordedBy: MHAuthRepository.I.currentUser!.uid,
+      recordedBy: User.instance.uid,
       notes: notes,
       isServant: T == User,
     ).set();
@@ -234,7 +234,7 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
           ? item.services
           : [GetIt.I<DatabaseRepository>().collection('Services').doc(type)],
       time: time ?? day.day.toDate().replaceTime(DateTime.now()).toTimestamp(),
-      recordedBy: MHAuthRepository.I.currentUser!.uid,
+      recordedBy: User.instance.uid,
       notes: notes,
       isServant: T == User,
     ).update();

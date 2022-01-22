@@ -209,9 +209,8 @@ class _EditClassState extends State<EditClass> {
                     icon: const Icon(Icons.color_lens),
                     label: const Text('اللون'),
                   ),
-                  if (MHAuthRepository
-                          .I.currentUser!.permissions.manageAllowedUsers ||
-                      MHAuthRepository.I.currentUser!.permissions.manageUsers)
+                  if (User.instance.permissions.manageAllowedUsers ||
+                      User.instance.permissions.manageUsers)
                     ElevatedButton.icon(
                       style: class$.color != Colors.transparent
                           ? ElevatedButton.styleFrom(
@@ -372,8 +371,8 @@ class _EditClassState extends State<EditClass> {
               .delete();
         }
 
-        class$ = class$.copyWith.lastEdit(
-            LastEdit(MHAuthRepository.I.currentUser!.uid, DateTime.now()));
+        class$ = class$.copyWith
+            .lastEdit(LastEdit(User.instance.uid, DateTime.now()));
 
         if (update &&
             await Connectivity().checkConnectivity() !=

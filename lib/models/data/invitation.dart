@@ -73,7 +73,7 @@ class Invitation extends DataObject {
       : link = '',
         usedBy = null,
         generatedOn = null,
-        generatedBy = MHAuthRepository.I.currentUser!.uid,
+        generatedBy = User.instance.uid,
         permissions = {},
         expiryDate = DateTime.now().add(const Duration(days: 1, minutes: 10)),
         super(

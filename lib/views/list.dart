@@ -311,8 +311,7 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
                                         id: current.id,
                                         parent: _listController.day,
                                         type: _listController.type,
-                                        recordedBy:
-                                            MHAuthRepository.I.currentUser!.uid,
+                                        recordedBy: User.instance.uid,
                                         services: _listController.type ==
                                                     'Meeting' ||
                                                 _listController.type ==

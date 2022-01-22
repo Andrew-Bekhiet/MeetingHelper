@@ -1200,8 +1200,8 @@ class _EditPersonState extends State<EditPerson> {
           }
         }
 
-        person = person.copyWith.lastEdit(
-            LastEdit(MHAuthRepository.I.currentUser!.uid, DateTime.now()));
+        person = person.copyWith
+            .lastEdit(LastEdit(User.instance.uid, DateTime.now()));
 
         if (person.classId == null &&
             person.classId != widget.person?.classId) {
@@ -1352,8 +1352,7 @@ class _EditPersonState extends State<EditPerson> {
                 },
               ),
             ),
-            floatingActionButton: MHAuthRepository
-                    .I.currentUser!.permissions.write
+            floatingActionButton: User.instance.permissions.write
                 ? FloatingActionButton(
                     onPressed: () async {
                       navigator.currentState!.pop();

@@ -98,8 +98,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                     key: _sorting,
                     onSelected: (v) async {
                       if (v == 'delete' &&
-                          MHAuthRepository
-                              .I.currentUser!.permissions.superAccess) {
+                          User.instance.permissions.superAccess) {
                         await _delete();
                       } else if (v == 'sorting') {
                         await _showSortingOptions(context);
@@ -114,8 +113,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                         value: 'sorting',
                         child: Text('تنظيم الليستة'),
                       ),
-                      if (MHAuthRepository
-                              .I.currentUser!.permissions.changeHistory &&
+                      if (User.instance.permissions.changeHistory &&
                           DateTime.now()
                                   .difference(widget.record.day.toDate())
                                   .inDays !=
@@ -126,8 +124,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                               ? const Text('اغلاق وضع التعديل')
                               : const Text('تعديل الكشف'),
                         ),
-                      if (MHAuthRepository
-                          .I.currentUser!.permissions.superAccess)
+                      if (User.instance.permissions.superAccess)
                         const PopupMenuItem(
                           value: 'delete',
                           child: Text('حذف الكشف'),

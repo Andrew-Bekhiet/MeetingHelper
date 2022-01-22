@@ -297,7 +297,7 @@ class MinimalHistoryRecord {
 
     return Rx.combineLatest3<User?, List<Class>, List<Service>,
         Tuple3<User?, List<Class>, List<Service>>>(
-      MHAuthRepository.I.userStream,
+      User.loggedInStream,
       classes == null ? Class.getAllForUser() : Stream.value([]),
       services == null ? Service.getAllForUser() : Stream.value([]),
       Tuple3.new,

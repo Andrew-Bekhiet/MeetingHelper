@@ -451,11 +451,8 @@ class PersonAttendanceIndicator extends StatelessWidget {
 
   Stream<List<JsonQueryDoc>> _getHistoryForUser() {
     return Rx.combineLatest3<User?, List<Class>, List<Service>,
-                Tuple3<User?, List<Class>, List<Service>>>(
-            MHAuthRepository.I.userStream,
-            Class.getAllForUser(),
-            Service.getAllForUser(),
-            Tuple3.new)
+                Tuple3<User?, List<Class>, List<Service>>>(User.loggedInStream,
+            Class.getAllForUser(), Service.getAllForUser(), Tuple3.new)
         .switchMap((u) {
       if (u.item1 == null) return Stream.value([]);
 

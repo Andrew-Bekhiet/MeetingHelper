@@ -60,9 +60,8 @@ class Service extends DataObject implements PhotoObjectBase {
     bool descending = false,
     QueryCompleter queryCompleter = kDefaultQueryCompleter,
   }) {
-    return MHAuthRepository.I.userStream.switchMap(
+    return User.loggedInStream.switchMap(
       (u) {
-        if (u == null) return Stream.value([]);
         if (u.permissions.superAccess) {
           return queryCompleter(
                   GetIt.I<DatabaseRepository>().collection('Services'),
@@ -85,8 +84,7 @@ class Service extends DataObject implements PhotoObjectBase {
       {String orderBy = 'Name',
       bool descending = false,
       QueryCompleter queryCompleter = kDefaultQueryCompleter}) {
-    return MHAuthRepository.I.userStream.switchMap((u) {
-      if (u == null) return Stream.value([]);
+    return User.loggedInStream.switchMap((u) {
       if (u.permissions.superAccess) {
         return queryCompleter(
                 GetIt.I<DatabaseRepository>()
