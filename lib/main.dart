@@ -16,6 +16,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/admin.dart';
+import 'package:meetinghelper/models/theme_notifier.dart';
 import 'package:meetinghelper/secrets.dart';
 import 'package:meetinghelper/views/day.dart';
 import 'package:meetinghelper/views/edit_page/edit_invitation.dart';
@@ -32,6 +33,7 @@ import 'models/data/invitation.dart';
 import 'models/data/person.dart';
 import 'models/data/service.dart';
 import 'models/data/user.dart';
+import 'models/data_object_tap_handler.dart';
 import 'models/history/history_record.dart';
 import 'updates.dart';
 import 'utils/globals.dart';
@@ -64,7 +66,6 @@ void main() async {
 
   await initConfigs();
 
-  //TODO: DefaultDataObjectTapHandler
   await init(
     sentryDSN: sentryDSN,
     overrides: {
@@ -78,16 +79,17 @@ void main() async {
     },
   );
 
+  final mhDataObjectTapHandler = MHDataObjectTapHandler(navigator);
+  GetIt.I
+      .registerSingleton<DefaultDataObjectTapHandler>(mhDataObjectTapHandler);
+  GetIt.I.registerSingleton<MHDataObjectTapHandler>(mhDataObjectTapHandler);
+
+  final themeNotifier = MHThemeNotifier();
+  GetIt.I.registerSingleton<ThemeNotifier>(themeNotifier);
+  GetIt.I.registerSingleton<MHThemeNotifier>(themeNotifier);
+
   runApp(
-    MultiProvider(
-      providers: [
-        // StreamProvider<User>.value(value: GetIt.I<AuthRepository>().userStream, initialData: GetIt.I<AuthRepository>().currentUserData,),
-        Provider<ThemeNotifier>(
-          create: (_) => ThemeNotifier(),
-        ),
-      ],
-      builder: (context, _) => const App(),
-    ),
+    const App(),
   );
 }
 

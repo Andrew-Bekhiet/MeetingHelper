@@ -397,7 +397,6 @@ class _ClassInfoState extends State<ClassInfo> {
               child: class$.ref.path.startsWith('Deleted')
                   ? const Text('يجب استعادة الفصل لرؤية المخدومين بداخله')
                   : DataObjectListView<void, Person>(
-                      onTap: personTap,
                       controller: _listOptions,
                       autoDisposeController: true,
                     ),

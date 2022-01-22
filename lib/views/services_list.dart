@@ -2,10 +2,10 @@ import 'package:churchdata_core/churchdata_core.dart';
 import 'package:collection/collection.dart';
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:group_list_view/group_list_view.dart';
+import 'package:meetinghelper/models/data_object_tap_handler.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
-
-import '../utils/helpers.dart';
 
 export 'package:meetinghelper/models/list_controllers.dart'
     show ServicesListController;
@@ -132,7 +132,7 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
                         onTap: () {
                           if (widget.options.currentSelection == null) {
                             widget.onTap == null
-                                ? dataObjectTap(c)
+                                ? GetIt.I<MHDataObjectTapHandler>().onTap(c)
                                 : widget.onTap!(c);
                           } else {
                             widget.options.toggleSelected(c);
@@ -232,7 +232,7 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
                             onTap: () {
                               if (widget.options.currentSelection == null) {
                                 widget.onTap == null
-                                    ? dataObjectTap(c)
+                                    ? GetIt.I<MHDataObjectTapHandler>().onTap(c)
                                     : widget.onTap!(c);
                               } else {
                                 widget.options.toggleSelected(c);
@@ -297,7 +297,7 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
                   onTap: () {
                     if (widget.options.currentSelection == null) {
                       widget.onTap == null
-                          ? dataObjectTap(services.data![studyYear]![0])
+                          ? GetIt.I<MHDataObjectTapHandler>().onTap(services.data![studyYear]![0])
                           : widget.onTap!(services.data![studyYear]![0]);
                     } else {
                       widget.options

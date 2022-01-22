@@ -17,6 +17,7 @@ import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
+import 'package:meetinghelper/models/theme_notifier.dart';
 import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -335,7 +336,6 @@ class _RootState extends State<Root>
               key: const PageStorageKey('mainUsersList'),
               autoDisposeController: false,
               controller: _usersOptions,
-              onTap: dataObjectTap,
             ),
           ServicesList(
             key: const PageStorageKey('mainClassesList'),
@@ -346,7 +346,6 @@ class _RootState extends State<Root>
             key: const PageStorageKey('mainPersonsList'),
             autoDisposeController: false,
             controller: _personsOptions,
-            onTap: personTap,
           ),
         ],
       ),
@@ -910,7 +909,8 @@ class _RootState extends State<Root>
 
   @override
   void didChangePlatformBrightness() {
-    changeTheme(context: mainScfld.currentContext!);
+    GetIt.I<MHThemeNotifier>().switchTheme(
+        WidgetsBinding.instance!.window.platformBrightness == Brightness.dark);
   }
 
   @override

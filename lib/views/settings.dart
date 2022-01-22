@@ -7,6 +7,7 @@ import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
+import 'package:meetinghelper/models/theme_notifier.dart';
 import 'package:provider/provider.dart';
 
 import '../models/data/user.dart';
@@ -114,7 +115,13 @@ class SettingsState extends State<Settings> {
                               await GetIt.I<CacheRepository>()
                                   .box('Settings')
                                   .put('GreatFeastTheme', greatFeastTheme);
-                              changeTheme(context: context);
+
+                              GetIt.I<MHThemeNotifier>().switchTheme(
+                                darkTheme ??
+                                    WidgetsBinding.instance!.window
+                                            .platformBrightness ==
+                                        Brightness.dark,
+                              );
                             },
                             icon: const Icon(Icons.done),
                             label: const Text('تغيير'),

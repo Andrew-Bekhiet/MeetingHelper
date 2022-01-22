@@ -8,12 +8,11 @@ import 'package:group_list_view/group_list_view.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/user.dart';
+import 'package:meetinghelper/models/data_object_tap_handler.dart';
 import 'package:meetinghelper/models/history/history_record.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:rxdart/rxdart.dart';
-
-import '../utils/helpers.dart';
 
 export 'package:tuple/tuple.dart';
 
@@ -210,7 +209,7 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
         onTap: (T current) async {
           if (!_listController.dayOptions.enabled.value) {
             widget.onTap == null
-                ? dataObjectTap(current)
+                ? GetIt.I<MHDataObjectTapHandler>().onTap(current)
                 : widget.onTap!(current);
           } else {
             if (!_listController.dayOptions.lockUnchecks.value) {
@@ -405,7 +404,7 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
               TextButton(
                 onPressed: () {
                   navigator.currentState!.pop();
-                  dataObjectTap(current);
+                  GetIt.I<MHDataObjectTapHandler>().onTap(current);
                 },
                 child: Text('عرض بيانات ' + current.name),
               ),

@@ -10,13 +10,13 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/foundation.dart' as f;
 import 'package:flutter/material.dart' hide Notification;
-import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     hide Person;
 import 'package:get_it/get_it.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/service.dart';
+import 'package:meetinghelper/models/data_object_tap_handler.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
 import 'package:meetinghelper/secrets.dart';
 import 'package:meetinghelper/views/services_list.dart';
@@ -32,91 +32,6 @@ import '../models/data/user.dart';
 import '../models/history/history_record.dart';
 import '../utils/globals.dart';
 import '../views/search_query.dart';
-
-void changeTheme({required BuildContext context}) {
-  bool isDark = GetIt.I<CacheRepository>().box('Settings').get('DarkTheme',
-          defaultValue: WidgetsBinding.instance!.window.platformBrightness ==
-              Brightness.dark) ??
-      WidgetsBinding.instance!.window.platformBrightness == Brightness.dark;
-  final bool greatFeastTheme = GetIt.I<CacheRepository>()
-      .box('Settings')
-      .get('GreatFeastTheme', defaultValue: true);
-  MaterialColor primary = Colors.amber;
-  Color secondary = Colors.amberAccent;
-
-  final riseDay = getRiseDay();
-  if (greatFeastTheme &&
-      DateTime.now()
-          .isAfter(riseDay.subtract(const Duration(days: 7, seconds: 20))) &&
-      DateTime.now().isBefore(riseDay.subtract(const Duration(days: 1)))) {
-    primary = black;
-    secondary = blackAccent;
-    isDark = true;
-  } else if (greatFeastTheme &&
-      DateTime.now()
-          .isBefore(riseDay.add(const Duration(days: 50, seconds: 20))) &&
-      DateTime.now().isAfter(riseDay.subtract(const Duration(days: 1)))) {
-    isDark = false;
-  }
-
-  context.read<ThemeNotifier>().theme = ThemeData.from(
-    colorScheme: ColorScheme.fromSwatch(
-      backgroundColor: isDark ? Colors.grey[850]! : Colors.grey[50]!,
-      brightness: isDark ? Brightness.dark : Brightness.light,
-      primarySwatch: primary,
-      accentColor: secondary,
-    ),
-  ).copyWith(
-    inputDecorationTheme: InputDecorationTheme(
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(15),
-        borderSide: BorderSide(color: primary),
-      ),
-    ),
-    floatingActionButtonTheme:
-        FloatingActionButtonThemeData(backgroundColor: primary),
-    visualDensity: VisualDensity.adaptivePlatformDensity,
-    brightness: isDark ? Brightness.dark : Brightness.light,
-    textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(
-        primary: secondary,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
-      ),
-    ),
-    outlinedButtonTheme: OutlinedButtonThemeData(
-      style: OutlinedButton.styleFrom(
-        primary: secondary,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
-      ),
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        primary: secondary,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
-      ),
-    ),
-    appBarTheme: AppBarTheme(
-      backgroundColor: primary,
-      foregroundColor: (isDark
-              ? Typography.material2018().white
-              : Typography.material2018().black)
-          .headline6
-          ?.color,
-      systemOverlayStyle:
-          isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
-    ),
-    bottomAppBarTheme: BottomAppBarTheme(
-      color: secondary,
-      shape: const CircularNotchedRectangle(),
-    ),
-  );
-}
 
 Stream<Map<PreferredStudyYear?, List<T>>>
     servicesByStudyYearRef<T extends DataObject>([List<T>? services]) {
@@ -332,27 +247,6 @@ Stream<Map<PreferredStudyYear?, List<T>>>
       return null;
     });
   });
-}
-
-void classTap(Class? _class) {
-  navigator.currentState!.pushNamed('ClassInfo', arguments: _class);
-}
-
-void serviceTap(Service? service) {
-  navigator.currentState!.pushNamed('ServiceInfo', arguments: service);
-}
-
-void dataObjectTap(DataObject? obj) {
-  if (obj is Class)
-    classTap(obj);
-  else if (obj is Service)
-    serviceTap(obj);
-  else if (obj is Person)
-    personTap(obj);
-  else if (obj is User)
-    userTap(obj);
-  else
-    throw UnimplementedError();
 }
 
 LatLng fromGeoPoint(GeoPoint point) {
@@ -686,10 +580,6 @@ Stream<Map<StudyYear?, List<T>>> personsByStudyYearRef<T extends Person>(
   );
 }
 
-void personTap(Person? person) {
-  navigator.currentState!.pushNamed('PersonInfo', arguments: person);
-}
-
 Future<void> processClickedNotification(BuildContext? context,
     [String? payload]) async {
   final notificationDetails =
@@ -752,13 +642,17 @@ Future<void> processLink(Uri? deepLink) async {
         deepLink.pathSegments.isNotEmpty &&
         deepLink.queryParameters.isNotEmpty) {
       if (deepLink.pathSegments[0] == 'viewClass') {
-        classTap(Class.fromDoc(await GetIt.I<DatabaseRepository>()
-            .doc('Classes/${deepLink.queryParameters['ClassId']}')
-            .get()));
+        GetIt.I<MHDataObjectTapHandler>().classTap(
+          Class.fromDoc(await GetIt.I<DatabaseRepository>()
+              .doc('Classes/${deepLink.queryParameters['ClassId']}')
+              .get()),
+        );
       } else if (deepLink.pathSegments[0] == 'viewPerson') {
-        personTap(Person.fromDoc(await GetIt.I<DatabaseRepository>()
-            .doc('Persons/${deepLink.queryParameters['PersonId']}')
-            .get()));
+        GetIt.I<MHDataObjectTapHandler>().personTap(
+          Person.fromDoc(await GetIt.I<DatabaseRepository>()
+              .doc('Persons/${deepLink.queryParameters['PersonId']}')
+              .get()),
+        );
       } else if (deepLink.pathSegments[0] == 'viewQuery') {
         await navigator.currentState!.push(
           MaterialPageRoute(
@@ -769,8 +663,10 @@ Future<void> processLink(Uri? deepLink) async {
         );
       } else if (deepLink.pathSegments[0] == 'viewUser') {
         if (MHAuthRepository.I.currentUser!.permissions.manageUsers) {
-          userTap((await MHAuthRepository.userFromUID(
-              deepLink.queryParameters['UID']))!);
+          GetIt.I<MHDataObjectTapHandler>().userTap(
+            (await MHAuthRepository.userFromUID(
+                deepLink.queryParameters['UID']))!,
+          );
         } else {
           await showErrorDialog(navigator.currentContext!,
               'ليس لديك الصلاحية لرؤية محتويات الرابط!');
@@ -1540,100 +1436,6 @@ void showVisitNotification() async {
       ),
       payload: 'Visit',
     );
-}
-
-void userTap(User user) async {
-  if (user.permissions.approved) {
-    await navigator.currentState!.pushNamed('UserInfo', arguments: user);
-  } else {
-    final dynamic rslt = await showDialog(
-      context: navigator.currentContext!,
-      builder: (context) => AlertDialog(
-        actions: <Widget>[
-          TextButton.icon(
-            icon: const Icon(Icons.done),
-            label: const Text('نعم'),
-            onPressed: () => navigator.currentState!.pop(true),
-          ),
-          TextButton.icon(
-            icon: const Icon(Icons.close),
-            label: const Text('لا'),
-            onPressed: () => navigator.currentState!.pop(false),
-          ),
-          TextButton.icon(
-            icon: const Icon(Icons.close),
-            label: const Text('حذف المستخدم'),
-            onPressed: () => navigator.currentState!.pop('delete'),
-          ),
-        ],
-        title: Text('${user.name} غير مُنشط هل تريد تنشيطه؟'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            PhotoObjectWidget(user),
-            Text(
-              'البريد الاكتروني: ' + user.email!,
-            ),
-          ],
-        ),
-      ),
-    );
-
-    if (rslt == true) {
-      scaffoldMessenger.currentState!.showSnackBar(
-        const SnackBar(
-          content: LinearProgressIndicator(),
-          duration: Duration(seconds: 15),
-        ),
-      );
-      try {
-        await GetIt.I<FunctionsService>()
-            .httpsCallable('approveUser')
-            .call({'affectedUser': user.uid});
-
-        final approvedUser = user.copyWith
-            .permissions(user.permissions.copyWith(approved: true));
-        // // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
-        // ..notifyListeners();
-        userTap(approvedUser);
-        scaffoldMessenger.currentState!.hideCurrentSnackBar();
-        scaffoldMessenger.currentState!.showSnackBar(
-          const SnackBar(
-            content: Text('تم بنجاح'),
-            duration: Duration(seconds: 15),
-          ),
-        );
-      } catch (err, stack) {
-        await Sentry.captureException(err,
-            stackTrace: stack,
-            withScope: (scope) => scope.setTag('LasErrorIn', 'Data.userTap'));
-      }
-    } else if (rslt == 'delete') {
-      scaffoldMessenger.currentState!.showSnackBar(
-        const SnackBar(
-          content: LinearProgressIndicator(),
-          duration: Duration(seconds: 15),
-        ),
-      );
-      try {
-        await GetIt.I<FunctionsService>()
-            .httpsCallable('deleteUser')
-            .call({'affectedUser': user.uid});
-        scaffoldMessenger.currentState!.hideCurrentSnackBar();
-        scaffoldMessenger.currentState!.showSnackBar(
-          const SnackBar(
-            content: Text('تم بنجاح'),
-            duration: Duration(seconds: 15),
-          ),
-        );
-      } catch (err, stack) {
-        await Sentry.captureException(err,
-            stackTrace: stack,
-            withScope: (scope) =>
-                scope.setTag('LasErrorIn', 'helpers.userTap'));
-      }
-    }
-  }
 }
 
 class MessageIcon extends StatelessWidget {

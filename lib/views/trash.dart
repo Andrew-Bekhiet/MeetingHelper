@@ -6,7 +6,6 @@ import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/utils/helpers.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tuple/tuple.dart';
 
@@ -265,7 +264,6 @@ class _TrashDayScreenState extends State<TrashDayScreen>
             DataObjectListView<void, Service>(
               autoDisposeController: true,
               controller: _servicesOptions,
-              onTap: serviceTap,
             )
           else
             const Center(
@@ -274,12 +272,10 @@ class _TrashDayScreenState extends State<TrashDayScreen>
           DataObjectListView<void, Class>(
             autoDisposeController: true,
             controller: _classesOptions,
-            onTap: classTap,
           ),
           DataObjectListView<void, Person>(
             autoDisposeController: true,
             controller: _personsOptions,
-            onTap: personTap,
           ),
         ],
       ),

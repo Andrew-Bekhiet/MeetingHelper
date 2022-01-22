@@ -68,7 +68,6 @@ class _UsersPageState extends State<UsersPage> {
       body: DataObjectListView(
         autoDisposeController: true,
         controller: _listOptions,
-        onTap: userTap,
       ),
     );
   }

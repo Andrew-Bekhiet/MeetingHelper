@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/user.dart';
+import 'package:meetinghelper/models/data_object_tap_handler.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
@@ -35,7 +36,7 @@ class _UserInfoState extends State<UserInfo> {
             ),
         builder: (context, data) {
           final User user = data.data!.item1;
-          final Person? person = data.data?.item2;
+          final Person? person = data.data!.item2;
 
           return NestedScrollView(
             headerSliverBuilder: (context, _) => <Widget>[
@@ -78,7 +79,7 @@ class _UserInfoState extends State<UserInfo> {
                   IconButton(
                     icon: const Icon(Icons.info),
                     onPressed: () {
-                      personTap(person);
+                      GetIt.I<MHDataObjectTapHandler>().personTap(person!);
                     },
                     tooltip: 'بيانات المستخدم',
                   ),

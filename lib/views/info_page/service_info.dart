@@ -439,7 +439,6 @@ class _ServiceInfoState extends State<ServiceInfo> {
               child: service.ref.path.startsWith('Deleted')
                   ? const Text('يجب استعادة الخدمة لرؤية المخدومين بداخله')
                   : DataObjectListView<void, Person>(
-                      onTap: personTap,
                       controller: _listOptions,
                       autoDisposeController: true,
                     ),

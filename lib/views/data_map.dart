@@ -6,6 +6,7 @@ import 'package:location/location.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
+import 'package:meetinghelper/models/data_object_tap_handler.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:provider/provider.dart';
@@ -72,25 +73,27 @@ class MegaMap extends StatelessWidget {
                     .where((f) => f.location != null)
                     .map(
                       (f) => Marker(
-                          onTap: () {
-                            scaffoldMessenger.currentState!
-                                .hideCurrentSnackBar();
-                            scaffoldMessenger.currentState!.showSnackBar(
-                              SnackBar(
-                                content: Text(f.name),
-                                backgroundColor: f.color == Colors.transparent
-                                    ? null
-                                    : f.color,
-                                action: SnackBarAction(
-                                  label: 'فتح',
-                                  onPressed: () => personTap(f),
-                                ),
+                        onTap: () {
+                          scaffoldMessenger.currentState!.hideCurrentSnackBar();
+                          scaffoldMessenger.currentState!.showSnackBar(
+                            SnackBar(
+                              content: Text(f.name),
+                              backgroundColor: f.color == Colors.transparent
+                                  ? null
+                                  : f.color,
+                              action: SnackBarAction(
+                                label: 'فتح',
+                                onPressed: () =>
+                                    GetIt.I<MHDataObjectTapHandler>()
+                                        .personTap(f),
                               ),
-                            );
-                          },
-                          markerId: MarkerId(f.id),
-                          infoWindow: InfoWindow(title: f.name),
-                          position: fromGeoPoint(f.location!)),
+                            ),
+                          );
+                        },
+                        markerId: MarkerId(f.id),
+                        infoWindow: InfoWindow(title: f.name),
+                        position: fromGeoPoint(f.location!),
+                      ),
                     )
                     .toSet(),
                 initialCameraPosition: CameraPosition(
@@ -146,10 +149,12 @@ class _DataMapState extends State<DataMap> {
               Class.getAllForUser(),
               Service.getAllForUser(),
               (c, s) => [...c, ...s])
-          : Stream.value([
-              if (widget.class$ != null) widget.class$!,
-              if (widget.service != null) widget.service!
-            ]),
+          : Stream.value(
+              [
+                if (widget.class$ != null) widget.class$!,
+                if (widget.service != null) widget.service!
+              ],
+            ),
       builder: (context, snapshot) {
         if (snapshot.hasError) return ErrorWidget(snapshot.error!);
         if (!snapshot.hasData)

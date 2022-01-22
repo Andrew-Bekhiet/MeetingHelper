@@ -105,7 +105,7 @@ class MiniModelList<T extends MetaObject> extends StatelessWidget {
                 if (modify == null)
                   _defaultModify(
                     context,
-                    item.copyWith(name: name.text) as T,
+                    (item as dynamic).copyWith(name: name.text) as T,
                     !editMode,
                   );
               },
