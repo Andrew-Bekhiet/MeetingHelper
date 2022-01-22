@@ -9,7 +9,6 @@ import 'package:rxdart/rxdart.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import '../utils/globals.dart';
-import '../utils/helpers.dart';
 
 class History extends StatefulWidget {
   final bool iServantsHistory;
@@ -154,12 +153,10 @@ class _HistoryState extends State<History> {
       extendBody: true,
       body: widget.iServantsHistory
           ? DataObjectListView<void, ServantsHistoryDay>(
-              onTap: historyTap,
               autoDisposeController: true,
               controller: _listController,
             )
           : DataObjectListView<void, HistoryDay>(
-              onTap: historyTap,
               autoDisposeController: true,
               controller: _listController,
             ),

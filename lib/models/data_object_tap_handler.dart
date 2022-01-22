@@ -5,6 +5,7 @@ import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data/user.dart';
+import 'package:meetinghelper/models/history/history_record.dart';
 
 class MHDataObjectTapHandler extends DefaultDataObjectTapHandler {
   MHDataObjectTapHandler(GlobalKey<NavigatorState> navigatorKey)
@@ -12,6 +13,14 @@ class MHDataObjectTapHandler extends DefaultDataObjectTapHandler {
 
   ScaffoldMessengerState get scaffoldMessenger =>
       ScaffoldMessenger.of(navigatorKey.currentContext!);
+
+  void historyTap(HistoryDayBase? history) async {
+    if (history is! ServantsHistoryDay) {
+      await navigator.pushNamed('Day', arguments: history);
+    } else {
+      await navigator.pushNamed('ServantsDay', arguments: history);
+    }
+  }
 
   void classTap(Class _class) {
     navigator.pushNamed('ClassInfo', arguments: _class);
@@ -135,6 +144,8 @@ class MHDataObjectTapHandler extends DefaultDataObjectTapHandler {
       personTap(object);
     else if (object is User)
       userTap(object);
+    else if (object is HistoryDayBase)
+      historyTap(object);
     else
       throw UnimplementedError();
   }

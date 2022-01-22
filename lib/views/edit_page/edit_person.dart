@@ -16,7 +16,6 @@ import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
-import 'package:meetinghelper/views/form_widgets/tapable_form_field.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -289,7 +288,7 @@ class _EditPersonState extends State<EditPerson> {
                             .phones({...person.phones, name.text: ''}));
                     },
                   ),
-                  TapableFormField<DateTime?>(
+                  TappableFormField<DateTime?>(
                     labelText: 'تاريخ الميلاد',
                     initialValue: person.birthDate,
                     onTap: (state) async {
@@ -368,7 +367,7 @@ class _EditPersonState extends State<EditPerson> {
                     ),
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: TapableFormField<JsonRef?>(
+                    child: TappableFormField<JsonRef?>(
                       initialValue: person.classId,
                       onTap: _selectClass,
                       validator: (c) => person.services.isEmpty && c == null
@@ -408,7 +407,7 @@ class _EditPersonState extends State<EditPerson> {
                       },
                     ),
                   ),
-                  TapableFormField<List<JsonRef>>(
+                  TappableFormField<List<JsonRef>>(
                     labelText: 'الخدمات المشارك بها',
                     initialValue: person.services,
                     onTap: _selectServices,
@@ -864,7 +863,7 @@ class _EditPersonState extends State<EditPerson> {
                       ],
                     ),
                   ),
-                  TapableFormField<DateTime?>(
+                  TappableFormField<DateTime?>(
                     labelText: 'تاريخ أخر تناول',
                     initialValue: person.lastTanawol,
                     onTap: (state) async {
@@ -896,7 +895,7 @@ class _EditPersonState extends State<EditPerson> {
                     },
                     validator: (_) => null,
                   ),
-                  TapableFormField<DateTime?>(
+                  TappableFormField<DateTime?>(
                     labelText: 'تاريخ أخر اعتراف',
                     initialValue: person.lastConfession,
                     onTap: (state) async {
@@ -928,7 +927,7 @@ class _EditPersonState extends State<EditPerson> {
                     },
                     validator: (_) => null,
                   ),
-                  TapableFormField<DateTime?>(
+                  TappableFormField<DateTime?>(
                     labelText: 'تاريخ حضور أخر قداس',
                     initialValue: person.lastKodas,
                     onTap: (state) async {
@@ -960,7 +959,7 @@ class _EditPersonState extends State<EditPerson> {
                     },
                     validator: (_) => null,
                   ),
-                  TapableFormField<DateTime?>(
+                  TappableFormField<DateTime?>(
                     labelText: 'تاريخ أخر افتقاد',
                     initialValue: person.lastVisit,
                     onTap: (state) async {
@@ -992,7 +991,7 @@ class _EditPersonState extends State<EditPerson> {
                     },
                     validator: (_) => null,
                   ),
-                  TapableFormField<DateTime?>(
+                  TappableFormField<DateTime?>(
                     labelText: 'تاريخ أخر مكالمة',
                     initialValue: person.lastCall,
                     onTap: (state) async {

@@ -296,37 +296,10 @@ List<RadioListTile> getOrderingOptions(
     );
 }
 
-String getPhone(String phone, [bool whatsapp = true]) {
-  if (phone.startsWith('+')) return phone.replaceFirst('+', '').trim();
-  if (phone.startsWith('2')) return phone.trim();
-  if (phone.startsWith('0') && whatsapp) return '2' + phone.trim();
-  if (phone.startsWith('1') && whatsapp) return '21' + phone.trim();
-  return phone.trim();
-}
-
 bool notService(String subcollection) =>
     subcollection == 'Meeting' ||
     subcollection == 'Kodas' ||
     subcollection == 'Confession';
-
-void historyTap(HistoryDayBase? history) async {
-  if (history is! ServantsHistoryDay) {
-    await navigator.currentState!.pushNamed('Day', arguments: history);
-  } else {
-    await navigator.currentState!.pushNamed('ServantsDay', arguments: history);
-  }
-}
-
-DateTime getRiseDay([int? year]) {
-  year ??= DateTime.now().year;
-  final int a = year % 4;
-  final int b = year % 7;
-  final int c = year % 19;
-  final int d = (19 * c + 15) % 30;
-  final int e = (2 * a + 4 * b - d + 34) % 7;
-
-  return DateTime(year, (d + e + 114) ~/ 31, ((d + e + 114) % 31) + 14);
-}
 
 void import(BuildContext context) async {
   try {

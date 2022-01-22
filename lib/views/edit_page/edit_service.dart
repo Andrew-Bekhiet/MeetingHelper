@@ -17,7 +17,6 @@ import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/repositories/database_repository.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
-import 'package:meetinghelper/views/form_widgets/tapable_form_field.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
@@ -241,7 +240,7 @@ class _EditServiceState extends State<EditService> {
                       },
                     ),
                   ),
-                  TapableFormField<DateTimeRange?>(
+                  TappableFormField<DateTimeRange?>(
                     decoration: (context, state) => InputDecoration(
                       labelText: 'الصلاحية',
                       errorText: state.errorText,

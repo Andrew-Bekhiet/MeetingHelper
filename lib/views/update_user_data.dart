@@ -1,8 +1,8 @@
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/views/form_widgets/tapable_form_field.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../models/data/user.dart';
@@ -30,7 +30,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              TapableFormField<DateTime?>(
+              TappableFormField<DateTime?>(
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 decoration: (context, state) => InputDecoration(
                   errorText: state.errorText,
@@ -62,7 +62,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                         ? 'يجب أن يكون التاريخ منذ شهرين على الأكثر'
                         : null,
               ),
-              TapableFormField<DateTime?>(
+              TappableFormField<DateTime?>(
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 decoration: (context, state) => InputDecoration(
                   errorText: state.errorText,

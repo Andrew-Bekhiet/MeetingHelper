@@ -6,9 +6,9 @@ import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data/user.dart';
+import 'package:meetinghelper/models/data_object_tap_handler.dart';
 import 'package:meetinghelper/models/history/history_record.dart';
 import 'package:meetinghelper/repositories/database_repository.dart';
-import 'package:meetinghelper/utils/helpers.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../mini_models.dart.bak';
@@ -414,7 +414,8 @@ class DayHistoryProperty extends StatelessWidget {
                     itemCount: history.data!.length,
                     itemBuilder: (context, i) => Card(
                       child: ListTile(
-                        onTap: () => historyTap(history.data![i].parent),
+                        onTap: () => GetIt.I<MHDataObjectTapHandler>()
+                            .historyTap(history.data![i].parent),
                         title: Text(DateFormat('yyyy/M/d h:m a', 'ar-EG')
                             .format(history.data![i].time.toDate())),
                         subtitle: FutureBuilder<JsonDoc>(
