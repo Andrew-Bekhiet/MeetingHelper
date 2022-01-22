@@ -92,7 +92,7 @@ class MegaMap extends StatelessWidget {
                         },
                         markerId: MarkerId(f.id),
                         infoWindow: InfoWindow(title: f.name),
-                        position: fromGeoPoint(f.location!),
+                        position: f.location!.toLatLng(),
                       ),
                     )
                     .toSet(),

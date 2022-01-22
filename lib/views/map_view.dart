@@ -4,7 +4,6 @@ import 'package:flutter/widgets.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:meetinghelper/models/data/person.dart';
 
-import '../utils/helpers.dart';
 import 'data_map.dart';
 
 class MapView extends StatefulWidget {
@@ -42,7 +41,7 @@ class _MapViewState extends State<MapView> {
       onTap: widget.editMode
           ? (point) {
               setState(() {
-                location = fromLatLng(point);
+                location = point.toGeoPoint();
               });
             }
           : null,
@@ -51,14 +50,14 @@ class _MapViewState extends State<MapView> {
           Marker(
             markerId: MarkerId(widget.person.id),
             infoWindow: InfoWindow(title: widget.person.name),
-            position: fromGeoPoint(location!),
+            position: location!.toLatLng(),
           ),
       },
       onMapCreated: (con) => controller = con,
       initialCameraPosition: CameraPosition(
         zoom: 16,
         target: location != null
-            ? fromGeoPoint(location!)
+            ? location!.toLatLng()
             : widget.initialLocation ?? MegaMap.center,
       ),
     );

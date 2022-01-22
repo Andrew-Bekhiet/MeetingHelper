@@ -13,7 +13,6 @@ import 'package:flutter/material.dart' hide Notification;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     hide Person;
 import 'package:get_it/get_it.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data_object_tap_handler.dart';
@@ -247,14 +246,6 @@ Stream<Map<PreferredStudyYear?, List<T>>>
       return null;
     });
   });
-}
-
-LatLng fromGeoPoint(GeoPoint point) {
-  return LatLng(point.latitude, point.longitude);
-}
-
-GeoPoint fromLatLng(LatLng point) {
-  return GeoPoint(point.latitude, point.longitude);
 }
 
 Future<dynamic> getLinkObject(Uri deepLink) async {
