@@ -15,25 +15,19 @@ import 'package:tuple/tuple.dart';
 
 part 'history_record.g.dart';
 
-abstract class HistoryDayBase extends DataObject with ChangeNotifier {
-  Timestamp day;
-  String? notes;
-
-  late StreamSubscription<JsonDoc> _realTimeListener;
+abstract class HistoryDayBase extends DataObject {
+  final Timestamp day;
+  final String? notes;
 
   HistoryDayBase({required JsonRef ref})
       : day = DateTime.now().truncateToDay().toTimestamp(),
         notes = '',
-        super(ref, '') {
-    _initListener();
-  }
+        super(ref, '');
 
   HistoryDayBase._createFromData(Json data, JsonRef ref)
       : day = data['Day'],
         notes = data['Notes'],
-        super.fromJson(data, ref) {
-    _initListener();
-  }
+        super.fromJson(data, ref);
 
   @override
   String get name => DateFormat('d / M   yyyy', 'ar-EG').format(day.toDate());
@@ -49,21 +43,7 @@ abstract class HistoryDayBase extends DataObject with ChangeNotifier {
       other is HistoryDay && other.hashCode == hashCode;
 
   @override
-  void dispose() {
-    _realTimeListener.cancel();
-    super.dispose();
-  }
-
-  @override
   Json toJson() => {'Day': day, 'Notes': notes};
-
-  void _initListener() {
-    _realTimeListener = ref.snapshots().listen((event) {
-      if (!event.exists || event.data() == null) return;
-      notes = event.data()?['Notes'];
-      notifyListeners();
-    });
-  }
 
   static HistoryDay? fromDoc(JsonDoc data) => data.exists
       ? HistoryDay._createFromData(data.data()!, data.reference)
@@ -103,9 +83,7 @@ class HistoryDay extends HistoryDayBase {
           ref: GetIt.I<DatabaseRepository>()
               .collection('History')
               .doc(DateTime.now().toIso8601String().split('T')[0]),
-        ) {
-    _initListener();
-  }
+        );
 
   HistoryDay._createFromData(Json data, JsonRef ref)
       : super._createFromData(data, ref);
