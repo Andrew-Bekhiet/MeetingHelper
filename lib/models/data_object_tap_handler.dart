@@ -6,6 +6,7 @@ import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/history/history_record.dart';
+import 'package:meetinghelper/models/meta/permissions_set.dart';
 
 class MHDataObjectTapHandler extends DefaultDataObjectTapHandler {
   MHDataObjectTapHandler(GlobalKey<NavigatorState> navigatorKey)
