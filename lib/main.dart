@@ -26,7 +26,6 @@ import 'package:meetinghelper/views/exports.dart';
 import 'package:meetinghelper/views/invitations_page.dart';
 import 'package:meetinghelper/views/trash.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart';
 
 import 'models/data/class.dart';
@@ -65,7 +64,7 @@ import 'views/user_registeration.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await initConfigs();
+  await initFirebase();
 
   await init(
     sentryDSN: sentryDSN,
@@ -73,7 +72,10 @@ void main() async {
       AuthRepository: () {
         final instance = MHAuthRepository();
 
-        GetIt.I.registerSingleton<MHAuthRepository>(instance);
+        GetIt.I.registerSingleton<MHAuthRepository>(
+          instance,
+          signalsReady: true,
+        );
 
         return instance;
       },
@@ -101,7 +103,7 @@ void main() async {
   );
 }
 
-Future<void> initConfigs() async {
+Future<void> initFirebase() async {
   try {
     await dotenv.load();
 
@@ -132,11 +134,7 @@ Future<void> initConfigs() async {
     await Firebase.initializeApp();
   }
 
-  GetIt.I.registerSingleton<auth.FirebaseAuth>(auth.FirebaseAuth.instance);
-  GetIt.I.registerSingleton<firestore.FirebaseFirestore>(
-      firestore.FirebaseFirestore.instance);
-  GetIt.I.registerSingleton<FirebaseFunctions>(FirebaseFunctions.instance);
-  GetIt.I.registerSingleton<FirebaseDatabase>(FirebaseDatabase.instance);
+  registerFirebaseDependencies();
 }
 
 class App extends StatefulWidget {
@@ -276,8 +274,8 @@ class AppState extends State<App> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<ThemeData>(
-      initialData: context.read<ThemeNotifier>().theme,
-      stream: context.read<ThemeNotifier>().stream,
+      initialData: GetIt.I<ThemeNotifier>().theme,
+      stream: GetIt.I<ThemeNotifier>().stream,
       builder: (context, theme) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,

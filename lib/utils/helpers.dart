@@ -957,7 +957,7 @@ Future<String> shareUserRaw(String? uid) async {
 }
 
 void showBirthDayNotification() async {
-  await initConfigs();
+  await initFirebase();
 
   await init(
     sentryDSN: sentryDSN,
@@ -1061,7 +1061,7 @@ Future<List<T>?> selectServices<T extends DataObject>(List<T>? selected) async {
 }
 
 void showConfessionNotification() async {
-  await initConfigs();
+  await initFirebase();
 
   await init(
     sentryDSN: sentryDSN,
@@ -1187,7 +1187,7 @@ Future<void> showErrorUpdateDataDialog(
 }
 
 void showKodasNotification() async {
-  await initConfigs();
+  await initFirebase();
 
   await init(
     sentryDSN: sentryDSN,
@@ -1240,7 +1240,7 @@ void showKodasNotification() async {
 }
 
 void showMeetingNotification() async {
-  await initConfigs();
+  await initFirebase();
 
   await init(
     sentryDSN: sentryDSN,
@@ -1293,7 +1293,7 @@ void showMeetingNotification() async {
 }
 
 void showTanawolNotification() async {
-  await initConfigs();
+  await initFirebase();
 
   await init(
     sentryDSN: sentryDSN,
@@ -1346,7 +1346,7 @@ void showTanawolNotification() async {
 }
 
 void showVisitNotification() async {
-  await initConfigs();
+  await initFirebase();
 
   await init(
     sentryDSN: sentryDSN,
