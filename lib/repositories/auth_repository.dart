@@ -63,7 +63,7 @@ class MHAuthRepository extends AuthRepository<User, Person> {
           email: firebaseUser?.email ?? email!,
           password: idTokenClaims['password'],
           permissions: permissionsFromIdToken(idTokenClaims),
-          classId: doc.data()?['ClassId']?.cast<String>() ?? [],
+          classId: doc.data()?['ClassId'],
           allowedUsers: doc.data()?['AllowedUsers']?.cast<String>() ?? [],
           adminServices: doc.data()?['AdminServices']?.cast<JsonRef>() ?? [],
         ));
