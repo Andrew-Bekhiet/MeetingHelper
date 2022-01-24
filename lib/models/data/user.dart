@@ -17,7 +17,7 @@ part 'user.g.dart';
 class User extends UserBase implements DataObjectWithPhoto {
   static const String emptyUID = '{EmptyUID}';
 
-  static User get instance => User.instance;
+  static User get instance => MHAuthRepository.I.currentUser!;
   static ValueStream<User?> get stream => MHAuthRepository.I.userStream;
   static Stream<User> get loggedInStream =>
       MHAuthRepository.I.userStream.whereType<User>();
