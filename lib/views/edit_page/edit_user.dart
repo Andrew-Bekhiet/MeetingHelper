@@ -11,6 +11,7 @@ import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/service.dart';
+import 'package:meetinghelper/models/meta/permissions_set.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
 import 'package:meetinghelper/repositories/database_repository.dart';
 import 'package:meetinghelper/utils/globals.dart';

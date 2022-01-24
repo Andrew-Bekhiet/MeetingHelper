@@ -6,6 +6,7 @@ import 'package:meetinghelper/utils/globals.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../models/data/user.dart';
+import '../models/meta/permissions_set.dart';
 import '../utils/helpers.dart';
 
 class UpdateUserDataErrorPage extends StatefulWidget {
