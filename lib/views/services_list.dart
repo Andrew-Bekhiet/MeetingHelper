@@ -45,43 +45,48 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
 
         final groupedStudyYears = {
           for (final entry in groupBy<PreferredStudyYear?, double>(
-                  services.data!.keys, (PreferredStudyYear? s) {
-            if (s?.preferredGroup != null) return s!.preferredGroup!;
+            services.data!.keys,
+            (PreferredStudyYear? s) {
+              if (s?.preferredGroup != null) return s!.preferredGroup!;
 
-            switch (s?.grade) {
-              case -1:
-              case 0:
-                return 0;
-              case 1:
-              case 2:
-              case 3:
-              case 4:
-              case 5:
-              case 6:
-                return 1;
-              case 7:
-              case 8:
-              case 9:
-                return 2;
-              case 10:
-              case 11:
-              case 12:
-                return 3;
-              case 13:
-              case 14:
-              case 15:
-              case 16:
-              case 17:
-              case 18:
-                return 4;
-              default:
-                return 5;
-            }
-          })
+              switch (s?.grade) {
+                case -3:
+                case -2:
+                case -1:
+                case 0:
+                  return 0;
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+                case 6:
+                  return 1;
+                case 7:
+                case 8:
+                case 9:
+                  return 2;
+                case 10:
+                case 11:
+                case 12:
+                  return 3;
+                case 13:
+                case 14:
+                case 15:
+                case 16:
+                case 17:
+                case 18:
+                  return 4;
+                default:
+                  return 5;
+              }
+            },
+          )
               .entries
               .sortedByCompare<double>((e) => e.key, (o, n) => o.compareTo(n)))
             entry.key: entry.value
         };
+
         return GroupListView(
           padding: const EdgeInsets.symmetric(horizontal: 6),
           cacheExtent: 200,
@@ -297,7 +302,8 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
                   onTap: () {
                     if (widget.options.currentSelection == null) {
                       widget.onTap == null
-                          ? GetIt.I<MHDataObjectTapHandler>().onTap(services.data![studyYear]![0])
+                          ? GetIt.I<MHDataObjectTapHandler>()
+                              .onTap(services.data![studyYear]![0])
                           : widget.onTap!(services.data![studyYear]![0]);
                     } else {
                       widget.options
