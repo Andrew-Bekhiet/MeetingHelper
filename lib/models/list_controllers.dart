@@ -415,50 +415,28 @@ class ServicesListController<T extends DataObject>
       return groupingSubject
           .switchMap(
             (g) => g
-                ? Rx.combineLatest3<
-                    String,
-                    Set<PreferredStudyYear?>,
-                    Map<PreferredStudyYear?, List<T>>,
+                ? Rx.combineLatest2<String, Map<PreferredStudyYear?, List<T>>,
                     Map<PreferredStudyYear?, List<T>>>(
                     searchSubject,
-                    openedGroupsSubject!,
                     objectsPaginatableStream.stream.switchMap(groupByStream!),
-                    (search, groups, objects) => search.isNotEmpty
+                    (search, objects) => search.isNotEmpty
                         ? _filterWithGroups(
-                            objects.map(
-                              (k, v) => MapEntry(
-                                k,
-                                groups.contains(k) ? v : [],
-                              ),
-                            ),
+                            objects,
                             search,
                           )
-                        : objects.map(
-                            (k, v) => MapEntry(
-                              k,
-                              groups.contains(k) ? v : [],
-                            ),
-                          ),
+                        : objects,
                   )
                 : Stream.value(<PreferredStudyYear?, List<T>>{}),
           )
           .listen(groupedObjectsSubject.add,
               onError: groupedObjectsSubject.addError);
 
-    return Rx.combineLatest4<bool, String, List<T>, Set<PreferredStudyYear?>,
+    return Rx.combineLatest3<bool, String, List<T>,
         Map<PreferredStudyYear?, List<T>>>(
       groupingSubject,
       searchSubject,
       objectsPaginatableStream.stream,
-      openedGroupsSubject!,
-      (grouping, search, objects, groups) => grouping
-          ? groupBy!(objects).map(
-              (k, v) => MapEntry(
-                k,
-                groups.contains(k) ? v : [],
-              ),
-            )
-          : {},
+      (grouping, search, objects) => grouping ? groupBy!(objects) : {},
     ).listen(groupedObjectsSubject.add,
         onError: groupedObjectsSubject.addError);
   }

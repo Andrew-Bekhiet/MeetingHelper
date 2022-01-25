@@ -50,7 +50,7 @@ Stream<Map<PreferredStudyYear?, List<T>>>
               for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
             },
           ),
-      T == Class
+      isSubtype<Class, T>() || T == DataObject
           ? services != null
               ? Stream.value(services as List<Class>)
               : User.loggedInStream.switchMap(
@@ -71,7 +71,7 @@ Stream<Map<PreferredStudyYear?, List<T>>>
                   ),
                 )
           : Stream.value([]),
-      T == Service
+      isSubtype<Service, T>() || T == DataObject
           ? services != null
               ? Stream.value(services as List<Service>)
               : Service.getAllForUser()
