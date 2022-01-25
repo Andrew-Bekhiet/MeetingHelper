@@ -95,7 +95,7 @@ class Person extends PersonBase {
       : classId = doc.data()!['ClassId'],
         fatherPhone = doc.data()!['FatherPhone'],
         motherPhone = doc.data()!['MotherPhone'],
-        lastMeeting = (doc.data()!['LastMeeting'] as Timestamp).toDate(),
+        lastMeeting = (doc.data()!['LastMeeting'] as Timestamp?)?.toDate(),
         last = (doc.data()!['Last'] as Map?)?.cast() ?? {},
         services = UnmodifiableListView(
             (doc.data()!['Services'] as List?)?.cast<JsonRef>() ?? []),
@@ -126,7 +126,7 @@ class Person extends PersonBase {
                   ? LastEdit.fromJson(doc.data()!['LastEdit'])
                   : LastEdit(
                       doc.data()!['LastEdit'],
-                      doc.data()!['LastEditTime'] ?? DateTime.now(),
+                      doc.data()!['LastEditTime']?.toDate() ?? DateTime.now(),
                     ),
           notes: doc.data()!['Notes'],
           isShammas: doc.data()!['IsShammas'] ?? false,

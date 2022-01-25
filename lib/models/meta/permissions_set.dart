@@ -60,10 +60,10 @@ class MHPermissionsSet extends PermissionsSet implements Serializable {
               .where((kv) => kv.value.toString() == 'true')
               .map((kv) => kv.key)
               .toSet(),
-          lastConfession: DateTime.fromMillisecondsSinceEpoch(
-              permissions['lastConfession']),
+          lastConfession: permissions['lastConfession']!=null?DateTime.fromMillisecondsSinceEpoch(
+              permissions['lastConfession']):null,
           lastTanawol:
-              DateTime.fromMillisecondsSinceEpoch(permissions['lastTanawol']),
+              permissions['lastTanawol']!=null?DateTime.fromMillisecondsSinceEpoch(permissions['lastTanawol']):null,
         );
   const MHPermissionsSet.fromSet({
     Set<String> permissions = const <String>{},

@@ -358,11 +358,13 @@ class AppState extends State<App> {
                       ? ModalRoute.of(context)!.settings.arguments!
                       : (ModalRoute.of(context)!.settings.arguments!
                           as Json)['Person'],
-                  showMotherAndFatherPhones:
-                      ModalRoute.of(context)!.settings.arguments is! Person ||
-                          ((ModalRoute.of(context)!.settings.arguments!
-                                  as Json)['showMotherAndFatherPhones'] ??
-                              false),
+                  showMotherAndFatherPhones: ModalRoute.of(context)!
+                          .settings
+                          .arguments is Map
+                      ? ((ModalRoute.of(context)!.settings.arguments!
+                              as Json)['showMotherAndFatherPhones'] ??
+                          false)
+                      : ModalRoute.of(context)!.settings.arguments is Person,
                 ),
             'UserInfo': (context) => UserInfo(
                 user: ModalRoute.of(context)!.settings.arguments! as User),

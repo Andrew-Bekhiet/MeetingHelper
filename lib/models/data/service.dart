@@ -21,7 +21,7 @@ class Service extends DataObject implements PhotoObjectBase {
   final StudyYearRange? studyYearRange;
   final DateTimeRange? validity;
   final bool showInHistory;
-  final LastEdit lastEdit;
+  final LastEdit? lastEdit;
 
   @override
   final Color? color;
@@ -137,7 +137,14 @@ class Service extends DataObject implements PhotoObjectBase {
               : null,
           showInHistory: json['ShowInHistory'],
           color: json['Color'] != null ? Color(json['Color']) : null,
-          lastEdit: json['LastEdit'],
+          lastEdit: json['LastEdit'] == null
+              ? null
+              : json['LastEdit'] is Map
+                  ? LastEdit.fromJson(json['LastEdit'])
+                  : LastEdit(
+                      json['LastEdit'],
+                      json['LastEditTime']?.toDate() ?? DateTime.now(),
+                    ),
           hasPhoto: json['HasPhoto'],
         );
 
@@ -197,7 +204,9 @@ class Service extends DataObject implements PhotoObjectBase {
           return 'من $from الى $to';
         }(),
         'ShowInHistory': showInHistory ? 'نعم' : 'لا',
-        'LastEdit': MHDatabaseRepo.instance.getUserName(lastEdit.uid),
+        'LastEdit': lastEdit != null
+            ? MHDatabaseRepo.instance.getUserName(lastEdit!.uid)
+            : null,
         'HasPhoto': hasPhoto ? 'نعم' : 'لا',
         'Color': color != null ? '0x' + color!.value.toRadixString(16) : null,
       };
@@ -235,7 +244,7 @@ class Service extends DataObject implements PhotoObjectBase {
       AsyncCache<String>(const Duration(days: 1));
 
   @override
-  IconData get defaultIcon => Icons.groups;
+  IconData get defaultIcon => Icons.miscellaneous_services;
   static Map<String, PropertyMetadata> propsMetadata() => {
         'Name': const PropertyMetadata<String>(
           name: 'Name',

@@ -56,7 +56,14 @@ class Class extends DataObject implements PhotoObjectBase {
         hasPhoto = data['HasPhoto'] ?? false,
         allowedUsers =
             UnmodifiableListView(data['Allowed']?.cast<String>() ?? []),
-        lastEdit = data['LastEdit'],
+        lastEdit = data['LastEdit'] == null
+            ? null
+            : data['LastEdit'] is Map
+                ? LastEdit.fromJson(data['LastEdit'])
+                : LastEdit(
+                    data['LastEdit'],
+                    data['LastEditTime']?.toDate() ?? DateTime.now(),
+                  ),
         color = data['Color'] != null ? Color(data['Color']) : null,
         super.fromJson(data, ref);
 
