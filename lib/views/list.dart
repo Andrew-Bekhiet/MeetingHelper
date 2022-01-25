@@ -67,8 +67,23 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
   ItemBuilder<T> get _buildItem => widget.itemBuilder ?? defaultItemBuilder<T>;
   GroupBuilder<G> get _buildGroup =>
       widget.groupBuilder ??
-      // ignore: unnecessary_parenthesis
-      (defaultGroupBuilder<DataObject>) as GroupBuilder<G>;
+      (
+        G? o, {
+        void Function(G)? onLongPress,
+        void Function(G)? onTap,
+        bool? showSubtitle,
+        Widget? trailing,
+        Widget? subtitle,
+      }) =>
+          defaultGroupBuilder<DataObject>(
+            o as DataObject?,
+            onLongPress:
+                onLongPress != null ? (o) => onLongPress(o as G) : null,
+            onTap: onTap != null ? (o) => onTap(o as G) : null,
+            showSubtitle: showSubtitle,
+            trailing: trailing,
+            subtitle: subtitle,
+          );
 
   @override
   bool get wantKeepAlive => _builtOnce && ModalRoute.of(context)!.isCurrent;
