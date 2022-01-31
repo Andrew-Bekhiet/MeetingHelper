@@ -9,6 +9,7 @@ import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/data_object_tap_handler.dart';
 import 'package:meetinghelper/models/history/history_record.dart';
 import 'package:meetinghelper/repositories/database_repository.dart';
+import 'package:meetinghelper/utils/helpers.dart';
 import 'package:rxdart/rxdart.dart';
 
 class HistoryProperty extends StatelessWidget {
@@ -339,9 +340,7 @@ class DayHistoryProperty extends StatelessWidget {
                         .where('ID', isEqualTo: id);
 
                     if (!user.permissions.superAccess) {
-                      if (collection == 'Meeting' ||
-                          collection == 'Kodas' ||
-                          collection == 'Confession') {
+                      if (notService(collection)) {
                         return Class.getAllForUser().switchMap(
                           (classes) {
                             if (classes.isEmpty) return Stream.value([]);

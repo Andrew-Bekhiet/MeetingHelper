@@ -12,6 +12,7 @@ import 'package:meetinghelper/models/data_object_tap_handler.dart';
 import 'package:meetinghelper/models/history/history_record.dart';
 import 'package:meetinghelper/models/list_controllers.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/helpers.dart';
 import 'package:rxdart/rxdart.dart';
 
 export 'package:tuple/tuple.dart';
@@ -290,16 +291,15 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
             time: oRecord.time,
             type: oRecord.type,
             studyYear: oRecord.studyYear,
-            services: oRecord.type == 'Meeting' ||
-                    oRecord.type == 'Kodas' ||
-                    oRecord.type == 'Confession'
+            services: notService(oRecord.type ?? '')
                 ? current.services
                 : [
                     GetIt.I<DatabaseRepository>()
                         .collection('Services')
                         .doc(oRecord.type)
                   ],
-            isServant: T == User)
+            isServant: T == User,
+          )
         : null;
     if (await showDialog(
           context: context,

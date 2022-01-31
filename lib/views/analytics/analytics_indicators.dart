@@ -9,6 +9,7 @@ import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/history/history_record.dart';
 import 'package:meetinghelper/repositories/database_repository.dart';
+import 'package:meetinghelper/utils/helpers.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:random_color/random_color.dart';
 import 'package:rxdart/rxdart.dart';
@@ -72,9 +73,7 @@ class AttendanceChart extends StatelessWidget {
     return Rx.combineLatestList<JsonQuery>(classes!.split(10).map((c) {
       var query =
           GetIt.I<DatabaseRepository>().collectionGroup(collectionGroup);
-      if (collectionGroup == 'Kodas' ||
-          collectionGroup == 'Meeting' ||
-          collectionGroup == 'Confession')
+      if (notService(collectionGroup))
         query = query.where('ClassId', whereIn: c.map((e) => e.ref).toList());
       query = query
           .where('Time',
@@ -470,20 +469,15 @@ class PersonAttendanceIndicator extends StatelessWidget {
             .orderBy('Time', descending: true)
             .snapshots()
             .map((s) => s.docs);
-      } else if (collectionGroup == 'Meeting' ||
-              collectionGroup == 'Kodas' ||
-              collectionGroup == 'Confession'
+      } else if (notService(collectionGroup)
           ? u.item2.isEmpty
           : u.item3.isEmpty) {
         return Stream.value([]);
       } else {
-        return Rx.combineLatestList<JsonQuery>((collectionGroup == 'Meeting' ||
-                        collectionGroup == 'Kodas' ||
-                        collectionGroup == 'Confession'
-                    ? u.item2
-                    : u.item3)
-                .split(10)
-                .map((o) {
+        return Rx.combineLatestList<JsonQuery>(
+                (notService(collectionGroup) ? u.item2 : u.item3)
+                    .split(10)
+                    .map((o) {
           return GetIt.I<DatabaseRepository>()
               .collectionGroup(collectionGroup)
               .where(

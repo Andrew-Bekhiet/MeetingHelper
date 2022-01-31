@@ -206,7 +206,7 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
       id: object.id,
       studyYear: object.studyYear,
       classId: object.classId,
-      services: type == 'Meeting' || type == 'Kodas' || type == 'Confession'
+      services: notService(type)
           ? object.services
           : [GetIt.I<DatabaseRepository>().collection('Services').doc(type)],
       time: time ?? day.day.toDate().replaceTime(DateTime.now()).toTimestamp(),
