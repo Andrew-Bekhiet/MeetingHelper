@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
+import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
@@ -217,7 +218,8 @@ class _ServiceInfoState extends State<ServiceInfo> {
                             icon: const Icon(Icons.restore),
                             tooltip: 'استعادة',
                             onPressed: () {
-                              recoverDoc(context, service.ref.path);
+                              MHDatabaseRepo.I
+                                  .recoverDocument(context, service.ref);
                             },
                           )
                       ]

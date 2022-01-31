@@ -215,7 +215,8 @@ class _ClassInfoState extends State<ClassInfo> {
                             icon: const Icon(Icons.restore),
                             tooltip: 'استعادة',
                             onPressed: () {
-                              recoverDoc(context, class$.ref.path);
+                              MHDatabaseRepo.I
+                                  .recoverDocument(context, class$.ref);
                             },
                           )
                       ]

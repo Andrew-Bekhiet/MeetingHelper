@@ -20,7 +20,6 @@ import 'package:meetinghelper/views/services_list.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart' hide Notification;
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:spreadsheet_decoder/spreadsheet_decoder.dart';
 
 import '../main.dart';
@@ -415,69 +414,6 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
       'content': content.text,
       'attachement': uriPrefix + '/view$link'
     });
-  }
-}
-
-Future<void> recoverDoc(BuildContext context, String path) async {
-  bool? nested = path.startsWith(
-      RegExp('Deleted/\\d{4}-\\d{2}-\\d{2}/((Classes)|(Services))'));
-  bool? keepBackup = true;
-  if (await showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          actions: [
-            TextButton(
-              onPressed: () => navigator.currentState!.pop(true),
-              child: const Text('استرجاع'),
-            ),
-          ],
-          content: StatefulBuilder(
-            builder: (context, setState) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: nested,
-                        onChanged: (v) => setState(() => nested = v),
-                      ),
-                      const Text(
-                        'استرجع ايضا العناصر بداخل هذا العنصر',
-                        textScaleFactor: 0.9,
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: keepBackup,
-                        onChanged: (v) => setState(() => keepBackup = v),
-                      ),
-                      const Text('ابقاء البيانات المحذوفة'),
-                    ],
-                  ),
-                ],
-              );
-            },
-          ),
-        ),
-      ) ==
-      true) {
-    try {
-      await GetIt.I<FunctionsService>().httpsCallable('recoverDoc').call({
-        'deletedPath': path,
-        'keepBackup': keepBackup,
-        'nested': nested,
-      });
-      scaffoldMessenger.currentState!
-          .showSnackBar(const SnackBar(content: Text('تم الاسترجاع بنجاح')));
-    } catch (err, stack) {
-      await Sentry.captureException(err,
-          stackTrace: stack,
-          withScope: (scope) =>
-              scope.setTag('LasErrorIn', 'helpers.recoverDoc'));
-    }
   }
 }
 

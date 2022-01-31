@@ -7,6 +7,7 @@ import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
+import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rxdart/rxdart.dart';
@@ -155,7 +156,9 @@ class _PersonInfoState extends State<PersonInfo> {
                               icon: const Icon(Icons.restore),
                               tooltip: 'استعادة',
                               onPressed: () {
-                                recoverDoc(context, person.ref.path);
+                                MHDatabaseRepo.I.recoverDocument(
+                                    context, person.ref,
+                                    nested: false);
                               },
                             )
                         ]
