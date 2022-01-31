@@ -171,16 +171,20 @@ Future<void> processClickedNotification(BuildContext? context,
           MaterialPageRoute(
             builder: (context) {
               final now = DateTime.now().millisecondsSinceEpoch;
-              return SearchQuery(query: {
-                'collection': 'Persons',
-                'fieldPath': 'BirthDay',
-                'operator': '=',
-                'queryValue': 'T' +
-                    (now - (now % Duration.millisecondsPerDay)).toString(),
-                'order': 'false',
-                'orderBy': 'BirthDay',
-                'descending': 'false',
-              });
+              return SearchQuery(
+                query: QueryInfo.fromJson(
+                  {
+                    'collection': 'Persons',
+                    'fieldPath': 'BirthDay',
+                    'operator': '=',
+                    'queryValue': 'T' +
+                        (now - (now % Duration.millisecondsPerDay)).toString(),
+                    'order': 'false',
+                    'orderBy': 'BirthDay',
+                    'descending': 'false',
+                  },
+                ),
+              );
             },
           ),
         );
@@ -193,18 +197,24 @@ Future<void> processClickedNotification(BuildContext? context,
           MaterialPageRoute(
             builder: (context) {
               final now = DateTime.now().millisecondsSinceEpoch;
-              return SearchQuery(query: {
-                'collection': 'Persons',
-                'fieldPath': 'Last' + (notificationDetails.payload ?? payload)!,
-                'operator': '<',
-                'queryValue': 'T' +
-                    ((now - (now % Duration.millisecondsPerDay)) -
-                            (Duration.millisecondsPerDay * 7))
-                        .toString(),
-                'order': 'true',
-                'orderBy': 'Last' + (notificationDetails.payload ?? payload)!,
-                'descending': 'false',
-              });
+              return SearchQuery(
+                query: QueryInfo.fromJson(
+                  {
+                    'collection': 'Persons',
+                    'fieldPath':
+                        'Last' + (notificationDetails.payload ?? payload)!,
+                    'operator': '<',
+                    'queryValue': 'T' +
+                        ((now - (now % Duration.millisecondsPerDay)) -
+                                (Duration.millisecondsPerDay * 7))
+                            .toString(),
+                    'order': 'true',
+                    'orderBy':
+                        'Last' + (notificationDetails.payload ?? payload)!,
+                    'descending': 'false',
+                  },
+                ),
+              );
             },
           ),
         );
@@ -234,7 +244,7 @@ Future<void> processLink(Uri? deepLink) async {
         await navigator.currentState!.push(
           MaterialPageRoute(
             builder: (c) => SearchQuery(
-              query: deepLink.queryParameters,
+              query: QueryInfo.fromJson(deepLink.queryParameters),
             ),
           ),
         );

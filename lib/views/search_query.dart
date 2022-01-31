@@ -17,7 +17,7 @@ import '../utils/globals.dart';
 import 'mini_lists/colors_list.dart';
 
 class SearchQuery extends StatefulWidget {
-  final Json? query;
+  final QueryInfo? query;
 
   const SearchQuery({Key? key, this.query}) : super(key: key);
 
@@ -26,18 +26,20 @@ class SearchQuery extends StatefulWidget {
 }
 
 class _SearchQueryState extends State<SearchQuery> {
-  JsonCollectionRef collection =
-      GetIt.I<DatabaseRepository>().collection('Persons');
+  late QueryInfo query;
 
-  String fieldPath = 'Name';
+  JsonCollectionRef get collection => query.collection;
 
-  String operator = '=';
+  String get fieldPath => query.fieldPath;
 
-  dynamic queryValue = '';
+  String get operator => query.operator;
 
-  bool order = false;
-  String orderBy = 'Name';
-  bool descending = false;
+  dynamic get queryValue => query.queryValue;
+
+  bool get order => query.order;
+
+  String? get orderBy => query.orderBy;
+  bool? get descending => query.descending;
 
   final List<DropdownMenuItem<String>> operatorItems = const [
     DropdownMenuItem(value: '=', child: Text('=')),
@@ -101,10 +103,12 @@ class _SearchQueryState extends State<SearchQuery> {
                       ),
                     ],
                     onChanged: (v) => setState(() {
-                      collection = v!;
-                      fieldPath = 'Name';
-                      queryValue =
-                          properties[collection]?['Name']?.defaultValue;
+                      query = query.copyWith(
+                        collection: v,
+                        fieldPath: 'Name',
+                        queryValue:
+                            properties[collection]?['Name']?.defaultValue,
+                      );
                     }),
                   ),
                 ),
@@ -127,12 +131,16 @@ class _SearchQueryState extends State<SearchQuery> {
                           ),
                         )
                         .toList(),
-                    onChanged: (p) => setState(() {
-                      fieldPath = p!;
-                      queryValue = properties[collection]
-                              ?[fieldPath.split('.')[0]]
-                          ?.defaultValue;
-                    }),
+                    onChanged: (p) => setState(
+                      () {
+                        query = query.copyWith(
+                          fieldPath: p,
+                          queryValue: properties[collection]
+                                  ?[fieldPath.split('.')[0]]
+                              ?.defaultValue,
+                        );
+                      },
+                    ),
                     value: fieldPath.split('.')[0],
                   ),
                 ),
@@ -143,7 +151,8 @@ class _SearchQueryState extends State<SearchQuery> {
                   child: DropdownButtonFormField<String>(
                     isExpanded: true,
                     items: operatorItems,
-                    onChanged: (o) => setState(() => operator = o!),
+                    onChanged: (o) =>
+                        setState(() => query = query.copyWith.operator(o!)),
                     value: operator,
                   ),
                 ),
@@ -158,7 +167,8 @@ class _SearchQueryState extends State<SearchQuery> {
             ),
             CheckboxListTile(
               value: order,
-              onChanged: (v) => setState(() => order = v!),
+              onChanged: (v) =>
+                  setState(() => query = query.copyWith.order(v!)),
               title: const Text(
                   'ترتيب النتائج (قد يستغرق وقت مع النتائج الكبيرة)'),
             ),
@@ -185,7 +195,7 @@ class _SearchQueryState extends State<SearchQuery> {
                           .toList(),
                       onChanged: (value) {
                         setState(() {
-                          orderBy = value!;
+                          query = query.copyWith.orderBy(value);
                         });
                       },
                     ),
@@ -209,7 +219,7 @@ class _SearchQueryState extends State<SearchQuery> {
                       ],
                       onChanged: (value) {
                         setState(() {
-                          descending = value!;
+                          query = query.copyWith.descending(value);
                         });
                       },
                     ),
@@ -264,7 +274,7 @@ class _SearchQueryState extends State<SearchQuery> {
 
                 if (p.toJson()[orderBy] is Comparable &&
                     n.toJson()[orderBy] is Comparable) {
-                  return descending
+                  return descending!
                       ? -(p.toJson()[orderBy] ?? '')
                           .compareTo(n.toJson()[orderBy] ?? '')
                       : (p.toJson()[orderBy] ?? '')
@@ -383,7 +393,7 @@ class _SearchQueryState extends State<SearchQuery> {
             ),
             OutlinedButton(
               onPressed: () => setState(() {
-                queryValue = null;
+                query = query.copyWith.queryValue(null);
               }),
               child: const Text('بحث عن تاريخ فارغ'),
             ),
@@ -460,7 +470,7 @@ class _SearchQueryState extends State<SearchQuery> {
                 ),
               onChanged: (value) {
                 setState(() {
-                  queryValue = value;
+                  query = query.copyWith.queryValue(value);
                 });
               },
               decoration: const InputDecoration(
@@ -478,7 +488,7 @@ class _SearchQueryState extends State<SearchQuery> {
               ),
               textInputAction: TextInputAction.done,
               initialValue: queryValue is String ? queryValue : '',
-              onChanged: (v) => queryValue = v,
+              onChanged: (v) => query = query.copyWith.queryValue(v),
               onFieldSubmitted: (_) => execute(),
               validator: (value) {
                 return null;
@@ -524,7 +534,7 @@ class _SearchQueryState extends State<SearchQuery> {
                       .toList(),
                   onChanged: (v) {
                     setState(() {
-                      queryValue = v;
+                      query = query.copyWith.queryValue(v);
                     });
                   },
                 ),
@@ -536,7 +546,7 @@ class _SearchQueryState extends State<SearchQuery> {
                 value: queryValue,
                 onChanged: (v) {
                   setState(() {
-                    queryValue = v;
+                    query = query.copyWith.queryValue(v);
                   });
                 },
               ),
@@ -570,7 +580,8 @@ class _SearchQueryState extends State<SearchQuery> {
                       onPressed: () {
                         navigator.currentState!.pop();
                         setState(() {
-                          queryValue = Colors.transparent.value;
+                          query = query.copyWith
+                              .queryValue(Colors.transparent.value);
                         });
                       },
                       child: const Text('بلا لون'),
@@ -583,7 +594,7 @@ class _SearchQueryState extends State<SearchQuery> {
                     onSelect: (color) {
                       navigator.currentState!.pop();
                       setState(() {
-                        queryValue = color.value;
+                        query = query.copyWith.queryValue(color.value);
                       });
                     },
                   ),
@@ -698,7 +709,7 @@ class _SearchQueryState extends State<SearchQuery> {
                       ),
                     ),
                   onChanged: (value) async {
-                    queryValue = value;
+                    query = query.copyWith.queryValue(value);
                   },
                   decoration: InputDecoration(
                       labelText:
@@ -864,42 +875,22 @@ class _SearchQueryState extends State<SearchQuery> {
     };
 
     if (widget.query != null) {
-      collection = widget.query!['collection'] == 'Services'
-          ? GetIt.I<DatabaseRepository>().collection('Services')
-          : widget.query!['collection'] == 'Classes'
-              ? GetIt.I<DatabaseRepository>().collection('Classes')
-              : GetIt.I<DatabaseRepository>().collection('Persons');
-
-      fieldPath = widget.query!['fieldPath'] ?? 'Name';
-
-      operator = widget.query!['operator'] ?? '=';
-
-      queryValue = widget.query!['queryValue'] != null
-          ? widget.query!['queryValue'].toString().startsWith('B')
-              ? widget.query!['queryValue'].toString().substring(1) == 'true'
-              : widget.query!['queryValue'].toString().startsWith('D')
-                  ? GetIt.I<DatabaseRepository>()
-                      .doc(widget.query!['queryValue'].toString().substring(1))
-                  : (widget.query!['queryValue'].toString().startsWith('T')
-                      ? DateTime.fromMillisecondsSinceEpoch(int.parse(
-                          widget.query!['queryValue'].toString().substring(1)))
-                      : (widget.query!['queryValue'].toString().startsWith('I')
-                          ? int.parse(widget.query!['queryValue']
-                              .toString()
-                              .substring(1))
-                          : widget.query!['queryValue']
-                              .toString()
-                              .substring(1)))
-          : null;
-
-      order = widget.query!['order'] == 'true';
-      orderBy = widget.query!['orderBy'] ?? 'Name';
-      descending = widget.query!['descending'] == 'true';
+      query = widget.query!;
 
       WidgetsBinding.instance!.addPostFrameCallback((_) {
         setState(() {});
         execute();
       });
+    } else {
+      query = QueryInfo(
+        collection: GetIt.I<DatabaseRepository>().collection('Persons'),
+        fieldPath: 'Name',
+        operator: '=',
+        queryValue: '',
+        order: false,
+        orderBy: 'Name',
+        descending: false,
+      );
     }
   }
 
@@ -931,7 +922,7 @@ class _SearchQueryState extends State<SearchQuery> {
                     onTap: (value) {
                       navigator.currentState!.pop();
                       setState(() {
-                        queryValue = value.ref;
+                        query = query.copyWith.queryValue(value.ref);
                       });
                     },
                     options: _listOptions,
@@ -977,12 +968,13 @@ class _SearchQueryState extends State<SearchQuery> {
                       navigator.currentState!.pop();
                       setState(() {
                         if (forFieldPath)
-                          fieldPath = fieldPath.contains('.')
-                              ? fieldPath.replaceAll(
-                                  RegExp(r'\.[^.]+$'), '.' + value.id)
-                              : fieldPath + '.' + value.id;
+                          query = query.copyWith.fieldPath(
+                              fieldPath.contains('.')
+                                  ? fieldPath.replaceAll(
+                                      RegExp(r'\.[^.]+$'), '.' + value.id)
+                                  : fieldPath + '.' + value.id);
                         else
-                          queryValue = value.ref;
+                          query = query.copyWith.queryValue(value.ref);
                       });
                     },
                     options: _listOptions,
@@ -1028,7 +1020,8 @@ class _SearchQueryState extends State<SearchQuery> {
                     onTap: (value) {
                       navigator.currentState!.pop();
                       setState(() {
-                        queryValue = onlyUID ? value.uid : value.ref;
+                        query = query.copyWith
+                            .queryValue(onlyUID ? value.uid : value.ref);
                       });
                     },
                     autoDisposeController: false,
@@ -1054,7 +1047,7 @@ class _SearchQueryState extends State<SearchQuery> {
     );
     if (picked != null)
       setState(() {
-        queryValue = picked;
+        query = query.copyWith.queryValue(picked);
       });
   }
 }
