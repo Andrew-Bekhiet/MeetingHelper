@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/foundation.dart' as f;
@@ -16,6 +15,7 @@ import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data_object_tap_handler.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
 import 'package:meetinghelper/repositories.dart';
+import 'package:meetinghelper/services/share_service.dart';
 import 'package:meetinghelper/views/services_list.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
@@ -25,7 +25,6 @@ import 'package:spreadsheet_decoder/spreadsheet_decoder.dart';
 import '../main.dart';
 import '../models/data/person.dart';
 import '../models/data/user.dart';
-import '../models/history/history_record.dart';
 import '../utils/globals.dart';
 import '../views/search_query.dart';
 
@@ -412,115 +411,9 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
       'title': title.text,
       'body': 'أرسل إليك ${User.instance.name} رسالة',
       'content': content.text,
-      'attachement': uriPrefix + '/view$link'
+      'attachement': GetIt.I<MHShareService>().uriPrefix + '/view$link'
     });
   }
-}
-
-Future<String> shareClass(Class _class) async => shareClassRaw(_class.id);
-
-Future<String> shareClassRaw(String? id) async {
-  return (await FirebaseDynamicLinks.instance.buildShortLink(
-    DynamicLinkParameters(
-      uriPrefix: uriPrefix,
-      link: Uri.parse('https://meetinghelper.com/viewClass?ClassId=$id'),
-      androidParameters: androidParameters,
-      iosParameters: iosParameters,
-    ),
-    shortLinkType: ShortDynamicLinkType.unguessable,
-  ))
-      .shortUrl
-      .toString();
-}
-
-Future<String> shareService(Service service) async =>
-    shareServiceRaw(service.id);
-
-Future<String> shareServiceRaw(String? id) async {
-  return (await FirebaseDynamicLinks.instance.buildShortLink(
-    DynamicLinkParameters(
-      uriPrefix: uriPrefix,
-      link: Uri.parse('https://meetinghelper.com/viewService?ServiceId=$id'),
-      androidParameters: androidParameters,
-      iosParameters: iosParameters,
-    ),
-    shortLinkType: ShortDynamicLinkType.unguessable,
-  ))
-      .shortUrl
-      .toString();
-}
-
-Future<String> shareDataObject(DataObject? obj) async {
-  if (obj is HistoryDay) return shareHistory(obj);
-  if (obj is Class) return shareClass(obj);
-  if (obj is Person) return sharePerson(obj);
-  throw UnimplementedError();
-}
-
-Future<String> shareHistory(HistoryDay record) async =>
-    shareHistoryRaw(record.id);
-
-Future<String> shareHistoryRaw(String? id) async {
-  return (await FirebaseDynamicLinks.instance.buildShortLink(
-    DynamicLinkParameters(
-      uriPrefix: uriPrefix,
-      link: Uri.parse(
-          'https://meetinghelper.com/viewHistoryRecord?HistoryId=$id'),
-      androidParameters: androidParameters,
-      iosParameters: iosParameters,
-    ),
-    shortLinkType: ShortDynamicLinkType.unguessable,
-  ))
-      .shortUrl
-      .toString();
-}
-
-Future<String> sharePerson(Person person) async {
-  return sharePersonRaw(person.id);
-}
-
-Future<String> sharePersonRaw(String? id) async {
-  return (await FirebaseDynamicLinks.instance.buildShortLink(
-    DynamicLinkParameters(
-      uriPrefix: uriPrefix,
-      link: Uri.parse('https://meetinghelper.com/viewPerson?PersonId=$id'),
-      androidParameters: androidParameters,
-      iosParameters: iosParameters,
-    ),
-    shortLinkType: ShortDynamicLinkType.unguessable,
-  ))
-      .shortUrl
-      .toString();
-}
-
-Future<String> shareQuery(Map<String, Object?> query) async {
-  return (await FirebaseDynamicLinks.instance.buildShortLink(
-    DynamicLinkParameters(
-      uriPrefix: uriPrefix,
-      link: Uri.https('meetinghelper.com', 'viewQuery', query),
-      androidParameters: androidParameters,
-      iosParameters: iosParameters,
-    ),
-    shortLinkType: ShortDynamicLinkType.unguessable,
-  ))
-      .shortUrl
-      .toString();
-}
-
-Future<String> shareUser(User user) async => shareUserRaw(user.uid);
-
-Future<String> shareUserRaw(String? uid) async {
-  return (await FirebaseDynamicLinks.instance.buildShortLink(
-    DynamicLinkParameters(
-      uriPrefix: uriPrefix,
-      link: Uri.parse('https://meetinghelper.com/viewUser?UID=$uid'),
-      androidParameters: androidParameters,
-      iosParameters: iosParameters,
-    ),
-    shortLinkType: ShortDynamicLinkType.unguessable,
-  ))
-      .shortUrl
-      .toString();
 }
 
 void showBirthDayNotification() async {
@@ -939,12 +832,6 @@ class MessageIcon extends StatelessWidget {
       ),
     );
   }
-}
-
-T dump<T>(T obj, [String? label]) {
-  // ignore: avoid_print
-  if (f.kDebugMode) print((label ?? '') + obj.toString() + '\x1B[0m');
-  return obj;
 }
 
 class QueryIcon extends StatelessWidget {

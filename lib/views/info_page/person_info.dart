@@ -8,11 +8,11 @@ import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/repositories.dart';
+import 'package:meetinghelper/services/share_service.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:tinycolor2/tinycolor2.dart';
 import 'package:tuple/tuple.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
@@ -222,7 +222,10 @@ class _PersonInfoState extends State<PersonInfo> {
                               ),
                             ),
                             onPressed: () async {
-                              await Share.share(await sharePerson(person));
+                              await MHShareService.I.shareText(
+                                (await MHShareService.I.sharePerson(person))
+                                    .toString(),
+                              );
                             },
                             tooltip: 'مشاركة برابط',
                           ),

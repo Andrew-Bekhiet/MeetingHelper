@@ -1,5 +1,4 @@
 // ignore_for_file: constant_identifier_names
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -49,17 +48,7 @@ const List<Color> accents = <Color>[
   Colors.black
 ];
 
-AndroidParameters androidParameters = AndroidParameters(
-  packageName: 'com.AndroidQuartz.meetinghelper',
-  minimumVersion: 3,
-  fallbackUrl:
-      Uri.parse('https://github.com/Andrew-Bekhiet/MeetingHelper/releases/'),
-);
-
 const FlutterSecureStorage flutterSecureStorage = FlutterSecureStorage();
-
-const IOSParameters iosParameters =
-    IOSParameters(bundleId: 'com.AndroidQuartz.meetinghelper');
 
 GlobalKey<ScaffoldState> mainScfld = GlobalKey<ScaffoldState>();
 GlobalKey<ScaffoldMessengerState> scaffoldMessenger =
@@ -87,8 +76,6 @@ List<Color?> primaries = <Color?>[
   Colors.blueAccent,
   Colors.grey.shade700
 ];
-
-String uriPrefix = 'https://meetinghelper.page.link';
 
 enum PhoneCallAction { AddToContacts, Call, Message, Whatsapp }
 

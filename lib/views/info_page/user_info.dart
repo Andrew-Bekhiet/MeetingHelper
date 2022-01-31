@@ -9,10 +9,9 @@ import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/data_object_tap_handler.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
 import 'package:meetinghelper/repositories.dart';
+import 'package:meetinghelper/services/share_service.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/views/services_list.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:tuple/tuple.dart';
 
 import '../edit_page/edit_user.dart';
@@ -73,7 +72,9 @@ class _UserInfoState extends State<UserInfo> {
                   IconButton(
                     icon: const Icon(Icons.share),
                     onPressed: () async {
-                      await Share.share(await shareUser(user));
+                      await MHShareService.I.shareText(
+                        (await MHShareService.I.shareUser(user)).toString(),
+                      );
                     },
                     tooltip: 'مشاركة',
                   ),

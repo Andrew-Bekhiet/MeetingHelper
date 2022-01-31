@@ -4,9 +4,9 @@ import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/repositories/database_repository.dart';
+import 'package:meetinghelper/services/share_service.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:tinycolor2/tinycolor2.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
@@ -280,8 +280,10 @@ class _ClassInfoState extends State<ClassInfo> {
                             ),
                           ),
                           onPressed: () async {
-                            // navigator.currentState.pop();
-                            await Share.share(await shareClass(class$));
+                            await MHShareService.I.shareText(
+                              (await MHShareService.I.shareClass(class$))
+                                  .toString(),
+                            );
                           },
                           tooltip: 'مشاركة برابط',
                         ),

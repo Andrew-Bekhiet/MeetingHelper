@@ -6,9 +6,9 @@ import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/repositories.dart';
+import 'package:meetinghelper/services/share_service.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:tinycolor2/tinycolor2.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
@@ -284,7 +284,10 @@ class _ServiceInfoState extends State<ServiceInfo> {
                           ),
                           onPressed: () async {
                             // navigator.currentState.pop();
-                            await Share.share(await shareService(service));
+                            await MHShareService.I.shareText(
+                              (await MHShareService.I.shareService(service))
+                                  .toString(),
+                            );
                           },
                           tooltip: 'مشاركة برابط',
                         ),

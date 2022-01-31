@@ -7,14 +7,13 @@ import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/repositories/database_repository.dart';
+import 'package:meetinghelper/services/share_service.dart';
 import 'package:meetinghelper/views/services_list.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../models/data/user.dart';
 import '../models/search/search_filters.dart';
 import '../utils/globals.dart';
-import '../utils/helpers.dart';
 import 'mini_lists/colors_list.dart';
 
 class SearchQuery extends StatefulWidget {
@@ -289,29 +288,34 @@ class _SearchQueryState extends State<SearchQuery> {
                 IconButton(
                   icon: const Icon(Icons.share),
                   onPressed: () async {
-                    await Share.share(
-                      await shareQuery({
-                        'collection': collection.id,
-                        'fieldPath': fieldPath,
-                        'operator': operator,
-                        'queryValue': queryValue == null
-                            ? null
-                            : queryValue is bool
-                                ? 'B' + queryValue
-                                : queryValue is JsonRef
-                                    ? 'D' + (queryValue as JsonRef).path
-                                    : (queryValue is DateTime
-                                        ? 'T' +
-                                            (queryValue as DateTime)
-                                                .millisecondsSinceEpoch
-                                                .toString()
-                                        : (queryValue is int
-                                            ? 'I' + queryValue.toString()
-                                            : 'S' + queryValue.toString())),
-                        'order': order.toString(),
-                        'orderBy': orderBy,
-                        'descending': descending.toString(),
-                      }),
+                    await MHShareService.I.shareText(
+                      (await MHShareService.I.shareQuery(
+                        QueryInfo.fromJson(
+                          {
+                            'collection': collection.id,
+                            'fieldPath': fieldPath,
+                            'operator': operator,
+                            'queryValue': queryValue == null
+                                ? null
+                                : queryValue is bool
+                                    ? 'B' + queryValue
+                                    : queryValue is JsonRef
+                                        ? 'D' + (queryValue as JsonRef).path
+                                        : (queryValue is DateTime
+                                            ? 'T' +
+                                                (queryValue as DateTime)
+                                                    .millisecondsSinceEpoch
+                                                    .toString()
+                                            : (queryValue is int
+                                                ? 'I' + queryValue.toString()
+                                                : 'S' + queryValue.toString())),
+                            'order': order.toString(),
+                            'orderBy': orderBy,
+                            'descending': descending.toString(),
+                          },
+                        ),
+                      ))
+                          .toString(),
                     );
                   },
                   tooltip: 'مشاركة النتائج برابط',
