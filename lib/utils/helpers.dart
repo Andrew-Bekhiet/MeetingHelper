@@ -18,7 +18,6 @@ import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data_object_tap_handler.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
 import 'package:meetinghelper/repositories.dart';
-import 'package:meetinghelper/secrets.dart';
 import 'package:meetinghelper/views/services_list.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
@@ -957,20 +956,7 @@ Future<String> shareUserRaw(String? uid) async {
 }
 
 void showBirthDayNotification() async {
-  await initFirebase();
-
-  await init(
-    sentryDSN: sentryDSN,
-    overrides: {
-      AuthRepository: () {
-        final instance = MHAuthRepository();
-
-        GetIt.I.registerSingleton<MHAuthRepository>(instance);
-
-        return instance;
-      },
-    },
-  );
+  await initMeetingHelper();
 
   if (MHAuthRepository.I.currentUser == null) return;
 
@@ -1061,20 +1047,7 @@ Future<List<T>?> selectServices<T extends DataObject>(List<T>? selected) async {
 }
 
 void showConfessionNotification() async {
-  await initFirebase();
-
-  await init(
-    sentryDSN: sentryDSN,
-    overrides: {
-      AuthRepository: () {
-        final instance = MHAuthRepository();
-
-        GetIt.I.registerSingleton<MHAuthRepository>(instance);
-
-        return instance;
-      },
-    },
-  );
+  await initMeetingHelper();
 
   if (MHAuthRepository.I.currentUser == null) return;
 
@@ -1187,20 +1160,7 @@ Future<void> showErrorUpdateDataDialog(
 }
 
 void showKodasNotification() async {
-  await initFirebase();
-
-  await init(
-    sentryDSN: sentryDSN,
-    overrides: {
-      AuthRepository: () {
-        final instance = MHAuthRepository();
-
-        GetIt.I.registerSingleton<MHAuthRepository>(instance);
-
-        return instance;
-      },
-    },
-  );
+  await initMeetingHelper();
 
   if (MHAuthRepository.I.currentUser == null) return;
 
@@ -1240,20 +1200,7 @@ void showKodasNotification() async {
 }
 
 void showMeetingNotification() async {
-  await initFirebase();
-
-  await init(
-    sentryDSN: sentryDSN,
-    overrides: {
-      AuthRepository: () {
-        final instance = MHAuthRepository();
-
-        GetIt.I.registerSingleton<MHAuthRepository>(instance);
-
-        return instance;
-      },
-    },
-  );
+  await initMeetingHelper();
 
   if (MHAuthRepository.I.currentUser == null) return;
 
@@ -1293,20 +1240,7 @@ void showMeetingNotification() async {
 }
 
 void showTanawolNotification() async {
-  await initFirebase();
-
-  await init(
-    sentryDSN: sentryDSN,
-    overrides: {
-      AuthRepository: () {
-        final instance = MHAuthRepository();
-
-        GetIt.I.registerSingleton<MHAuthRepository>(instance);
-
-        return instance;
-      },
-    },
-  );
+  await initMeetingHelper();
 
   if (MHAuthRepository.I.currentUser == null) return;
 
@@ -1346,20 +1280,7 @@ void showTanawolNotification() async {
 }
 
 void showVisitNotification() async {
-  await initFirebase();
-
-  await init(
-    sentryDSN: sentryDSN,
-    overrides: {
-      AuthRepository: () {
-        final instance = MHAuthRepository();
-
-        GetIt.I.registerSingleton<MHAuthRepository>(instance);
-
-        return instance;
-      },
-    },
-  );
+  await initMeetingHelper();
 
   if (MHAuthRepository.I.currentUser == null) return;
 

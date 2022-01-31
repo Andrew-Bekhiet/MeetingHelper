@@ -64,9 +64,17 @@ import 'views/user_registeration.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  await initMeetingHelper();
+
+  runApp(
+    const App(),
+  );
+}
+
+Future<void> initMeetingHelper() async {
   await initFirebase();
 
-  await init(
+  await initCore(
     sentryDSN: sentryDSN,
     overrides: {
       AuthRepository: () {
@@ -97,10 +105,6 @@ void main() async {
   final themeNotifier = MHThemeNotifier();
   GetIt.I.registerSingleton<ThemeNotifier>(themeNotifier);
   GetIt.I.registerSingleton<MHThemeNotifier>(themeNotifier);
-
-  runApp(
-    const App(),
-  );
 }
 
 Future<void> initFirebase() async {
@@ -240,7 +244,7 @@ class AppState extends State<App> {
 
   Future<void> loadApp(BuildContext context) async {
     try {
-      await RemoteConfig.instance.setDefaults(<String, dynamic>{
+      await FirebaseRemoteConfig.instance.setDefaults(<String, dynamic>{
         'LatestVersion': (await PackageInfo.fromPlatform()).version,
         'LoadApp': 'false',
         'DownloadLink':
@@ -248,17 +252,18 @@ class AppState extends State<App> {
                 (await PackageInfo.fromPlatform()).version +
                 '/MeetingHelper.apk',
       });
-      await RemoteConfig.instance.setConfigSettings(
+      await FirebaseRemoteConfig.instance.setConfigSettings(
         RemoteConfigSettings(
             fetchTimeout: const Duration(seconds: 30),
             minimumFetchInterval: const Duration(minutes: 2)),
       );
 
-      await RemoteConfig.instance.fetchAndActivate();
+      await FirebaseRemoteConfig.instance.fetchAndActivate();
       // ignore: empty_catches
     } catch (err) {}
 
-    if (!kIsWeb && RemoteConfig.instance.getString('LoadApp') == 'false') {
+    if (!kIsWeb &&
+        FirebaseRemoteConfig.instance.getString('LoadApp') == 'false') {
       await Updates.showUpdateDialog(context, canCancel: false);
       throw Exception('يجب التحديث لأخر إصدار لتشغيل البرنامج');
     } else {
