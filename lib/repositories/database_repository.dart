@@ -1,5 +1,6 @@
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
@@ -10,6 +11,7 @@ import 'package:tuple/tuple.dart';
 
 class MHDatabaseRepo extends DatabaseRepository {
   static MHDatabaseRepo get instance => GetIt.I<MHDatabaseRepo>();
+  static MHDatabaseRepo get I => instance;
 
   @override
   Future<DataObject?> getObjectFromLink(Uri deepLink) async {
@@ -292,5 +294,285 @@ class MHDatabaseRepo extends DatabaseRepository {
 
   Future<List<User>> getUsersNames(List<String> users) async {
     return (await Future.wait(users.map(getUserName))).whereNotNull().toList();
+  }
+
+  Stream<Map<PreferredStudyYear?, List<T>>>
+      groupServicesByStudyYearRef<T extends DataObject>([
+    List<T>? services,
+  ]) {
+    assert(isSubtype<Class, T>() ||
+        isSubtype<Service, T>() ||
+        (T == DataObject && services == null));
+
+    return Rx.combineLatest3<Map<JsonRef, StudyYear>, List<Class>,
+        List<Service>, Map<PreferredStudyYear?, List<T>>>(
+      collection('StudyYears')
+          .orderBy('Grade')
+          .snapshots()
+          .map<Map<JsonRef, StudyYear>>(
+            (sys) => {
+              for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
+            },
+          ),
+      isSubtype<Class, T>() || T == DataObject
+          ? services != null
+              ? Stream.value(services as List<Class>)
+              : User.loggedInStream.switchMap(
+                  (user) => (user.permissions.superAccess
+                          ? collection('Classes')
+                              .orderBy('StudyYear')
+                              .orderBy('Gender')
+                              .snapshots()
+                          : collection('Classes')
+                              .where('Allowed', arrayContains: user.uid)
+                              .orderBy('StudyYear')
+                              .orderBy('Gender')
+                              .snapshots())
+                      .map(
+                    (cs) => cs.docs.map(Class.fromDoc).toList(),
+                  ),
+                )
+          : Stream.value([]),
+      isSubtype<Service, T>() || T == DataObject
+          ? services != null
+              ? Stream.value(services as List<Service>)
+              : Service.getAllForUser()
+          : Stream.value([]),
+      //
+
+      _groupServices<T>,
+    );
+  }
+
+  Stream<Map<PreferredStudyYear?, List<T>>>
+      groupServicesByStudyYearRefForUser<T extends DataObject>(
+    String? uid,
+    List<JsonRef> adminServices,
+  ) {
+    assert(isSubtype<Class, T>() || isSubtype<Service, T>() || T == DataObject);
+
+    return Rx.combineLatest3<Map<JsonRef, StudyYear>, List<Class>,
+        List<Service>, Map<PreferredStudyYear?, List<T>>>(
+      collection('StudyYears')
+          .orderBy('Grade')
+          .snapshots()
+          .map<Map<JsonRef, StudyYear>>(
+            (sys) => {
+              for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
+            },
+          ),
+      isSubtype<Service, T>()
+          ? Stream.value([])
+          : collection('Classes')
+              .where('Allowed', arrayContains: uid)
+              .orderBy('StudyYear')
+              .orderBy('Gender')
+              .snapshots()
+              .map((cs) => cs.docs.map(Class.fromDoc).toList()),
+      adminServices.isEmpty || isSubtype<Class, T>()
+          ? Stream.value([])
+          : Rx.combineLatestList(
+              adminServices.map((r) =>
+                  r.snapshots().map(Service.fromDoc).whereType<Service>()),
+            ),
+      _groupServices<T>,
+    );
+  }
+
+  Map<PreferredStudyYear?, List<T>> _groupServices<T>(
+    Map<JsonRef, StudyYear> studyYears,
+    List<Class> classes,
+    List<Service> services,
+  ) {
+    final combined = [...classes, ...services];
+
+    mergeSort<T>(combined.cast<T>(), compare: (c, c2) {
+      if (c is Class && c2 is Class) {
+        if (c.studyYear == c2.studyYear) return c.gender.compareTo(c2.gender);
+        return studyYears[c.studyYear]!
+            .grade
+            .compareTo(studyYears[c2.studyYear]!.grade);
+      } else if (c is Service && c2 is Service) {
+        return ((studyYears[c.studyYearRange?.from]?.grade ?? 0) -
+                (studyYears[c.studyYearRange?.to]?.grade ?? 0))
+            .compareTo((studyYears[c2.studyYearRange?.from]?.grade ?? 0) -
+                (studyYears[c2.studyYearRange?.to]?.grade ?? 0));
+      } else if (c is Class &&
+          c2 is Service &&
+          c2.studyYearRange?.from != c2.studyYearRange?.to)
+        return -1;
+      else if (c2 is Class &&
+          c is Service &&
+          c.studyYearRange?.from != c.studyYearRange?.to) return 1;
+      return 0;
+    });
+
+    double? _getPreferredGrade(int? from, int? to) {
+      if (from == null || to == null) return null;
+
+      if (from >= -3 && to <= 0)
+        return 0.1;
+      else if (from >= 1 && to <= 6)
+        return 1.1;
+      else if (from >= 7 && to <= 9)
+        return 2.1;
+      else if (from >= 10 && to <= 12)
+        return 3.1;
+      else if (from >= 13 && to <= 18) return 4.1;
+      return null;
+    }
+
+    return groupBy<T, PreferredStudyYear?>(
+      combined.cast<T>(),
+      (c) {
+        if (c is Class)
+          return studyYears[c.studyYear] != null
+              ? PreferredStudyYear.fromStudyYear(studyYears[c.studyYear]!)
+              : null;
+        else if (c is Service && c.studyYearRange?.from == c.studyYearRange?.to)
+          return studyYears[c.studyYearRange?.from] != null
+              ? PreferredStudyYear.fromStudyYear(
+                  studyYears[c.studyYearRange?.from]!)
+              : null;
+        else if (c is Service)
+          return studyYears[c.studyYearRange?.to] != null
+              ? PreferredStudyYear.fromStudyYear(
+                  studyYears[c.studyYearRange?.to]!,
+                  _getPreferredGrade(studyYears[c.studyYearRange?.from]!.grade,
+                      studyYears[c.studyYearRange?.to]!.grade),
+                )
+              : null;
+
+        return null;
+      },
+    );
+  }
+
+  Stream<Map<Class?, List<User>>> groupUsersByClass(List<User> users) {
+    return Rx.combineLatest2<JsonQuery, JsonQuery, Map<Class?, List<User>>>(
+      collection('StudyYears').orderBy('Grade').snapshots(),
+      User.loggedInStream.whereType<User>().switchMap(
+            (user) => user.permissions.superAccess
+                ? collection('Classes')
+                    .orderBy('StudyYear')
+                    .orderBy('Gender')
+                    .snapshots()
+                : collection('Classes')
+                    .where('Allowed', arrayContains: user.uid)
+                    .orderBy('StudyYear')
+                    .orderBy('Gender')
+                    .snapshots(),
+          ),
+      (sys, cs) {
+        final Map<JsonRef, StudyYear> studyYears = {
+          for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
+        };
+        final unknownStudyYearRef = collection('StudyYears').doc('Unknown');
+
+        studyYears[unknownStudyYearRef] = StudyYear(
+          ref: unknownStudyYearRef,
+          name: 'غير معروفة',
+          grade: 10000000,
+        );
+
+        final classesByRef = {
+          for (final c in cs.docs.map(Class.fromDoc).toList()) c.ref: c
+        };
+
+        final rslt = groupBy<User, Class?>(
+          users,
+          (user) => user.classId == null
+              ? null
+              : classesByRef[user.classId] ??
+                  Class(
+                    name: '{لا يمكن قراءة اسم الفصل}',
+                    color: Colors.redAccent,
+                    ref: collection('Classes').doc('Unknown'),
+                  ),
+        ).entries;
+
+        mergeSort<MapEntry<Class?, List<User>>>(rslt.toList(),
+            compare: (c, c2) {
+          if (c.key == null || c.key!.name == '{لا يمكن قراءة اسم الفصل}')
+            return 1;
+
+          if (c2.key == null || c2.key!.name == '{لا يمكن قراءة اسم الفصل}')
+            return -1;
+
+          if (studyYears[c.key!.studyYear!] == studyYears[c2.key!.studyYear!])
+            return c.key!.gender.compareTo(c2.key!.gender);
+
+          return studyYears[c.key!.studyYear]!
+              .grade
+              .compareTo(studyYears[c2.key!.studyYear]!.grade);
+        });
+
+        return {for (final e in rslt) e.key: e.value};
+      },
+    );
+  }
+
+  Stream<Map<Class?, List<Person>>> groupPersonsByClassRef(
+      [List<Person>? persons]) {
+    return Rx.combineLatest3<Map<JsonRef, StudyYear>, List<Person>, JsonQuery,
+        Map<Class, List<Person>>>(
+      collection('StudyYears').orderBy('Grade').snapshots().map(
+            (sys) => {
+              for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
+            },
+          ),
+      persons != null ? Stream.value(persons) : getAllPersons(),
+      User.loggedInStream.whereType().switchMap(
+            (user) => user.superAccess
+                ? collection('Classes')
+                    .orderBy('StudyYear')
+                    .orderBy('Gender')
+                    .snapshots()
+                : collection('Classes')
+                    .where('Allowed', arrayContains: user.uid)
+                    .orderBy('StudyYear')
+                    .orderBy('Gender')
+                    .snapshots(),
+          ),
+      (studyYears, persons, cs) {
+        final Map<JsonRef?, List<Person>> personsByClassRef =
+            groupBy(persons, (p) => p.classId);
+
+        final classes = cs.docs
+            .map(Class.fromDoc)
+            .where((c) => personsByClassRef[c.ref] != null)
+            .toList();
+
+        mergeSort<Class>(classes, compare: (c, c2) {
+          if (c.studyYear == c2.studyYear) return c.gender.compareTo(c2.gender);
+          return studyYears[c.studyYear]!
+              .grade
+              .compareTo(studyYears[c2.studyYear]!.grade);
+        });
+
+        return {for (final c in classes) c: personsByClassRef[c.ref]!};
+      },
+    );
+  }
+
+  Stream<Map<StudyYear?, List<T>>> groupPersonsByStudyYearRef<T extends Person>(
+      [List<T>? persons]) {
+    return Rx.combineLatest2<Map<JsonRef, StudyYear>, List<T>,
+        Map<StudyYear?, List<T>>>(
+      collection('StudyYears').orderBy('Grade').snapshots().map(
+            (sys) => {
+              for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
+            },
+          ),
+      (persons != null ? Stream.value(persons) : getAllPersons())
+          .map((p) => p.whereType<T>().toList()),
+      (studyYears, persons) {
+        return {
+          for (final person in persons.groupListsBy((p) => p.studyYear).entries)
+            if (person.key != null && studyYears[person.key] != null)
+              studyYears[person.key]: person.value
+        };
+      },
+    );
   }
 }

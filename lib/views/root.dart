@@ -609,8 +609,8 @@ class _RootState extends State<Root>
                                             [],
                                           ),
                                         ),
-                                        groupByStream: (_) =>
-                                            servicesByStudyYearRef(),
+                                        groupByStream: (_) => MHDatabaseRepo.I
+                                            .groupServicesByStudyYearRef(),
                                       ),
                                     ),
                                   ),
@@ -931,7 +931,7 @@ class _RootState extends State<Root>
       objectsPaginatableStream: PaginatableStream.loadAll(
         stream: MHDatabaseRepo.instance.getAllUsers(),
       ),
-      groupByStream: usersByClass,
+      groupByStream: MHDatabaseRepo.I.groupUsersByClass,
       groupingStream: Stream.value(true),
     );
 
@@ -940,7 +940,7 @@ class _RootState extends State<Root>
       objectsPaginatableStream: PaginatableStream.loadAll(
         stream: Stream.value([]),
       ),
-      groupByStream: (_) => servicesByStudyYearRef(),
+      groupByStream: (_) => MHDatabaseRepo.I.groupServicesByStudyYearRef(),
     );
 
     _personsOptions = ListController<void, Person>(

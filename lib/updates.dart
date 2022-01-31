@@ -20,7 +20,7 @@ class Updates {
   static Future showUpdateDialog(BuildContext context,
       {bool canCancel = true}) async {
     final Version latest =
-        Version.parse(RemoteConfig.instance.getString('LatestVersion'));
+        Version.parse(FirebaseRemoteConfig.instance.getString('LatestVersion'));
     if (latest > Version.parse((await PackageInfo.fromPlatform()).version) &&
         canCancel) {
       await showDialog(
@@ -35,16 +35,16 @@ class Updates {
             actions: <Widget>[
               TextButton(
                 onPressed: () async {
-                  if (await canLaunch(RemoteConfig.instance
+                  if (await canLaunch(FirebaseRemoteConfig.instance
                       .getString('DownloadLink')
                       .replaceFirst('https://', 'https:'))) {
-                    await launch(RemoteConfig.instance
+                    await launch(FirebaseRemoteConfig.instance
                         .getString('DownloadLink')
                         .replaceFirst('https://', 'https:'));
                   } else {
                     navigator.currentState!.pop();
                     await Clipboard.setData(ClipboardData(
-                        text: RemoteConfig.instance.getString('DownloadLink')));
+                        text: FirebaseRemoteConfig.instance.getString('DownloadLink')));
                     scaffoldMessenger.currentState!.showSnackBar(
                       const SnackBar(
                         content: Text(
@@ -74,16 +74,16 @@ class Updates {
               TextButton(
                 onPressed: () async {
                   navigator.currentState!.pop();
-                  if (await canLaunch(RemoteConfig.instance
+                  if (await canLaunch(FirebaseRemoteConfig.instance
                       .getString('DownloadLink')
                       .replaceFirst('https://', 'https:'))) {
-                    await launch(RemoteConfig.instance
+                    await launch(FirebaseRemoteConfig.instance
                         .getString('DownloadLink')
                         .replaceFirst('https://', 'https:'));
                   } else {
                     navigator.currentState!.pop();
                     await Clipboard.setData(ClipboardData(
-                        text: RemoteConfig.instance.getString('DownloadLink')));
+                        text: FirebaseRemoteConfig.instance.getString('DownloadLink')));
                     scaffoldMessenger.currentState!.showSnackBar(
                       const SnackBar(
                         content: Text(
@@ -143,7 +143,7 @@ class _UpdateState extends State<Update> {
               ListTile(
                   title: const Text('آخر إصدار:'),
                   subtitle:
-                      Text(RemoteConfig.instance.getString('LatestVersion'))),
+                      Text(FirebaseRemoteConfig.instance.getString('LatestVersion'))),
             ],
           ),
         ),

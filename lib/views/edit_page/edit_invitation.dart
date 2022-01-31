@@ -13,7 +13,6 @@ import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
 import 'package:meetinghelper/repositories/database_repository.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/utils/helpers.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -569,7 +568,7 @@ class _EditInvitationState extends State<EditInvitation> {
               (users) => users.where((u) => u.uid == User.emptyUID).toList(),
             ),
       ),
-      groupByStream: usersByClass,
+      groupByStream: MHDatabaseRepo.I.groupUsersByClass,
       groupingStream: Stream.value(true),
     );
     await showDialog(

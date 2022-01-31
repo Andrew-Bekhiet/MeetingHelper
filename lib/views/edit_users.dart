@@ -4,7 +4,6 @@ import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/repositories/database_repository.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/utils/helpers.dart';
 
 class UsersPage extends StatefulWidget {
   const UsersPage({Key? key}) : super(key: key);
@@ -83,7 +82,7 @@ class _UsersPageState extends State<UsersPage> {
               (users) => users.where((u) => u.uid != User.emptyUID).toList(),
             ),
       ),
-      groupByStream: usersByClass,
+      groupByStream: MHDatabaseRepo.I.groupUsersByClass,
       groupingStream: Stream.value(true),
     );
   }

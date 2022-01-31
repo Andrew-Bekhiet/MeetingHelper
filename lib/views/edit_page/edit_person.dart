@@ -14,6 +14,7 @@ import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
+import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -1292,7 +1293,7 @@ class _EditPersonState extends State<EditPerson> {
     final controller = ServicesListController<Class>(
       objectsPaginatableStream:
           PaginatableStream.loadAll(stream: Class.getAllForUser()),
-      groupByStream: servicesByStudyYearRef,
+      groupByStream: MHDatabaseRepo.I.groupServicesByStudyYearRef,
     );
 
     await showDialog(

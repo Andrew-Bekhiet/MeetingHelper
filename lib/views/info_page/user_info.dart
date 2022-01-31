@@ -8,6 +8,7 @@ import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/user.dart';
 import 'package:meetinghelper/models/data_object_tap_handler.dart';
 import 'package:meetinghelper/models/search/search_filters.dart';
+import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/views/services_list.dart';
@@ -285,9 +286,13 @@ class _UserInfoState extends State<UserInfo> {
                                         stream: Stream.value([])),
                                 groupByStream: (_) =>
                                     user.permissions.superAccess
-                                        ? servicesByStudyYearRef()
-                                        : servicesByStudyYearRefForUser(
-                                            user.uid, user.adminServices),
+                                        ? MHDatabaseRepo.I
+                                            .groupServicesByStudyYearRef()
+                                        : MHDatabaseRepo.I
+                                            .groupServicesByStudyYearRefForUser(
+                                            user.uid,
+                                            user.adminServices,
+                                          ),
                               ),
                               autoDisposeController: true,
                             ),
@@ -311,7 +316,7 @@ class _UserInfoState extends State<UserInfo> {
                                 .where('AllowedUsers', arrayContains: user.uid),
                             mapper: User.fromDoc,
                           ),
-                          groupByStream: usersByClass,
+                          groupByStream: MHDatabaseRepo.I.groupUsersByClass,
                           groupingStream: Stream.value(true),
                         );
                         return Scaffold(

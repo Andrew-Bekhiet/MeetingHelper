@@ -16,7 +16,6 @@ import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/repositories/database_repository.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/utils/helpers.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
@@ -595,7 +594,7 @@ class _EditServiceState extends State<EditService> {
                                 .toList(),
                           ),
                     ),
-                    groupByStream: usersByClass,
+                    groupByStream: MHDatabaseRepo.I.groupUsersByClass,
                     groupingStream: Stream.value(true),
                   )..selectAll(users.data!.whereType<User>().toList()),
                   dispose: (context, c) => c.dispose(),

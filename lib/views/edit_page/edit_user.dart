@@ -489,7 +489,7 @@ class _EditUserState extends State<EditUser> {
                     providers: [
                       Provider<ListController<Class?, User>>(
                         create: (_) => ListController<Class?, User>(
-                          groupByStream: usersByClass,
+                          groupByStream: MHDatabaseRepo.I.groupUsersByClass,
                           objectsPaginatableStream: PaginatableStream.loadAll(
                             stream: MHDatabaseRepo.instance.getAllUsers(),
                           ),
@@ -830,7 +830,7 @@ class _EditUserState extends State<EditUser> {
     final controller = ServicesListController<Class>(
       objectsPaginatableStream:
           PaginatableStream.loadAll(stream: Stream.value([])),
-      groupByStream: (_) => servicesByStudyYearRef(),
+      groupByStream: (_) => MHDatabaseRepo.I.groupServicesByStudyYearRef(),
     );
 
     await showDialog(

@@ -907,7 +907,7 @@ class _SearchQueryState extends State<SearchQuery> {
       objectsPaginatableStream: PaginatableStream.loadAll(
         stream: Class.getAllForUser(),
       ),
-      groupByStream: servicesByStudyYearRef<Class>,
+      groupByStream: MHDatabaseRepo.I.groupServicesByStudyYearRef<Class>,
     );
 
     await showDialog(
@@ -952,7 +952,7 @@ class _SearchQueryState extends State<SearchQuery> {
       objectsPaginatableStream: PaginatableStream.loadAll(
         stream: Service.getAllForUser(),
       ),
-      groupByStream: servicesByStudyYearRef<Service>,
+      groupByStream: MHDatabaseRepo.I.groupServicesByStudyYearRef<Service>,
     );
 
     await showDialog(

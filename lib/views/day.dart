@@ -298,7 +298,8 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                       controller: () {
                         final tmp = baseController.copyWithNewG<StudyYear?>(
                           type: service.id,
-                          groupByStream: personsByStudyYearRef,
+                          groupByStream:
+                              MHDatabaseRepo.I.groupPersonsByStudyYearRef,
                           objectsPaginatableStream: PaginatableStream.loadAll(
                             stream: service.getPersonsMembersLive(),
                           ),
@@ -536,7 +537,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
       ),
       day: widget.record,
       dayOptions: dayOptions,
-      groupByStream: personsByClassRef,
+      groupByStream: MHDatabaseRepo.I.groupPersonsByClassRef,
       type: 'Meeting',
     );
 
