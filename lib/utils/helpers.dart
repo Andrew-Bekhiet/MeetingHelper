@@ -83,7 +83,7 @@ void import(BuildContext context) async {
         ),
       );
       final filename = DateTime.now().toIso8601String();
-      await FirebaseStorage.instance
+      await GetIt.I<StorageRepository>()
           .ref('Imports/' + filename + '.xlsx')
           .putData(
             fileData,

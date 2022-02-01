@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:async/async.dart';
 import 'package:churchdata_core/churchdata_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
+import 'package:cloud_firestore/cloud_firestore.dart' as firestore
+    show Settings;
+import 'package:cloud_firestore/cloud_firestore.dart' show FirebaseFirestore;
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
+import 'package:firebase_auth/firebase_auth.dart' as auth show FirebaseAuth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -108,8 +110,7 @@ Future<void> initFirebase() async {
 
       await auth.FirebaseAuth.instance.useAuthEmulator(kEmulatorsHost, 9099);
       await FirebaseStorage.instance.useStorageEmulator(kEmulatorsHost, 9199);
-      firestore.FirebaseFirestore.instance
-          .useFirestoreEmulator(kEmulatorsHost, 8080);
+      FirebaseFirestore.instance.useFirestoreEmulator(kEmulatorsHost, 8080);
       FirebaseFunctions.instance.useFunctionsEmulator(kEmulatorsHost, 5001);
       FirebaseDatabase.instance.useDatabaseEmulator(kEmulatorsHost, 9000);
     } else {
@@ -191,9 +192,9 @@ class AppState extends State<App> {
     if (!GetIt.I<CacheRepository>()
             .box('Settings')
             .get('FCM_Token_Registered', defaultValue: false) &&
-        auth.FirebaseAuth.instance.currentUser != null) {
+        GetIt.I<auth.FirebaseAuth>().currentUser != null) {
       try {
-        firestore.FirebaseFirestore.instance.settings = firestore.Settings(
+        GetIt.I<FirebaseFirestore>().settings = firestore.Settings(
           persistenceEnabled: true,
           sslEnabled: true,
           cacheSizeBytes: GetIt.I<CacheRepository>()
@@ -203,13 +204,13 @@ class AppState extends State<App> {
         // ignore: empty_catches
       } catch (e) {}
       try {
-        final status = (await FirebaseMessaging.instance.requestPermission())
+        final status = (await GetIt.I<FirebaseMessaging>().requestPermission())
             .authorizationStatus;
         if (status != AuthorizationStatus.denied &&
             status != AuthorizationStatus.notDetermined) {
           await GetIt.I<FunctionsService>()
               .httpsCallable('registerFCMToken')
-              .call({'token': await FirebaseMessaging.instance.getToken()});
+              .call({'token': await GetIt.I<FirebaseMessaging>().getToken()});
           await GetIt.I<CacheRepository>()
               .box('Settings')
               .put('FCM_Token_Registered', true);
@@ -225,7 +226,7 @@ class AppState extends State<App> {
 
   Future<void> loadApp(BuildContext context) async {
     try {
-      await FirebaseRemoteConfig.instance.setDefaults(<String, dynamic>{
+      await GetIt.I<FirebaseRemoteConfig>().setDefaults(<String, dynamic>{
         'LatestVersion': (await PackageInfo.fromPlatform()).version,
         'LoadApp': 'false',
         'DownloadLink':
@@ -233,18 +234,18 @@ class AppState extends State<App> {
                 (await PackageInfo.fromPlatform()).version +
                 '/MeetingHelper.apk',
       });
-      await FirebaseRemoteConfig.instance.setConfigSettings(
+      await GetIt.I<FirebaseRemoteConfig>().setConfigSettings(
         RemoteConfigSettings(
             fetchTimeout: const Duration(seconds: 30),
             minimumFetchInterval: const Duration(minutes: 2)),
       );
 
-      await FirebaseRemoteConfig.instance.fetchAndActivate();
+      await GetIt.I<FirebaseRemoteConfig>().fetchAndActivate();
       // ignore: empty_catches
     } catch (err) {}
 
     if (!kIsWeb &&
-        FirebaseRemoteConfig.instance.getString('LoadApp') == 'false') {
+        GetIt.I<FirebaseRemoteConfig>().getString('LoadApp') == 'false') {
       await Updates.showUpdateDialog(context, canCancel: false);
       throw Exception('يجب التحديث لأخر إصدار لتشغيل البرنامج');
     } else {
@@ -363,30 +364,28 @@ class AppState extends State<App> {
             'Settings': (context) => const Settings(),
             'Settings/Churches': (context) => const ChurchesPage(),
             /*MiniList(
-                parent: FirebaseFirestore.instance.collection('Churches'),
+                parent: GetIt.I<MHDatabaseRepo>().collection('Churches'),
                 pageTitle: 'الكنائس',
               ),*/
             'Settings/Fathers': (context) => const FathersPage(),
             /* MiniList(
-                parent: FirebaseFirestore.instance.collection('Fathers'),
+                parent: GetIt.I<MHDatabaseRepo>().collection('Fathers'),
                 pageTitle: 'الأباء الكهنة',
               ) */
             'Settings/StudyYears': (context) =>
                 const StudyYearsPage() /* MiniList(
-                parent: FirebaseFirestore.instance.collection('StudyYears'),
+                parent: GetIt.I<MHDatabaseRepo>().collection('StudyYears'),
                 pageTitle: 'السنوات الدراسية',
               ) */
             ,
             'Settings/Schools': (context) => MiniModelList<School>(
                   transformer: School.fromDoc,
-                  collection: firestore.FirebaseFirestore.instance
-                      .collection('Schools'),
+                  collection: GetIt.I<MHDatabaseRepo>().collection('Schools'),
                   title: 'المدارس',
                 ),
             'Settings/Colleges': (context) => MiniModelList<College>(
                   transformer: College.fromDoc,
-                  collection: firestore.FirebaseFirestore.instance
-                      .collection('Colleges'),
+                  collection: GetIt.I<MHDatabaseRepo>().collection('Colleges'),
                   title: 'الكليات',
                 ),
             'UpdateUserDataError': (context) => const UpdateUserDataErrorPage(),

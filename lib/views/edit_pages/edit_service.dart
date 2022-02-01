@@ -4,8 +4,6 @@ import 'dart:io';
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' show FieldValue;
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
-import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -461,13 +459,13 @@ class _EditServiceState extends State<EditService> {
               .ref(GetIt.I<DatabaseRepository>().collection('Services').doc());
         }
         if (changedImage != null) {
-          await FirebaseStorage.instance
+          await GetIt.I<StorageRepository>()
               .ref()
               .child('ServicesPhotos/${service.id}')
               .putFile(File(changedImage!));
           service = service.copyWith.hasPhoto(true);
         } else if (deletePhoto) {
-          await FirebaseStorage.instance
+          await GetIt.I<StorageRepository>()
               .ref()
               .child('ServicesPhotos/${service.id}')
               .delete();
@@ -475,7 +473,7 @@ class _EditServiceState extends State<EditService> {
 
         service = service.copyWith.lastEdit(
           LastEdit(
-            auth.FirebaseAuth.instance.currentUser!.uid,
+            User.instance.uid,
             DateTime.now(),
           ),
         );

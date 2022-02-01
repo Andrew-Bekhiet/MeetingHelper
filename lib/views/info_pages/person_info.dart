@@ -1,5 +1,4 @@
 import 'package:churchdata_core/churchdata_core.dart';
-import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:intl/intl.dart';
@@ -503,7 +502,7 @@ class _PersonInfoState extends State<PersonInfo> {
           true) return;
       await person.ref.update({
         'LastVisit': Timestamp.now(),
-        'LastEdit': FirebaseAuth.instance.currentUser!.uid
+        'LastEdit': User.instance.uid,
       });
       scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
         content: Text('تم بنجاح'),

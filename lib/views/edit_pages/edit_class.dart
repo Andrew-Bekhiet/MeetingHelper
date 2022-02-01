@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -356,13 +355,13 @@ class _EditClassState extends State<EditClass> {
               .ref(GetIt.I<DatabaseRepository>().collection('Classes').doc());
         }
         if (changedImage != null) {
-          await FirebaseStorage.instance
+          await GetIt.I<StorageRepository>()
               .ref()
               .child('ClassesPhotos/${class$.id}')
               .putFile(File(changedImage!));
           class$ = class$.copyWith.hasPhoto(true);
         } else if (deletePhoto) {
-          await FirebaseStorage.instance
+          await GetIt.I<StorageRepository>()
               .ref()
               .child('ClassesPhotos/${class$.id}')
               .delete();

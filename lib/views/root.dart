@@ -2,12 +2,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:churchdata_core/churchdata_core.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart' hide Notification;
@@ -629,7 +627,7 @@ class _RootState extends State<Root>
                             );
                             try {
                               final String filename = Uri.decodeComponent(
-                                  (await FirebaseFunctions.instance
+                                  (await GetIt.I<FunctionsService>()
                                           .httpsCallable('exportToExcel')
                                           .call(
                                 {
@@ -646,7 +644,7 @@ class _RootState extends State<Root>
                                           '/' +
                                           filename.replaceAll(':', ''))
                                   .create(recursive: true);
-                              await FirebaseStorage.instance
+                              await GetIt.I<StorageRepository>()
                                   .ref(filename)
                                   .writeToFile(file);
                               scaffoldMessenger.currentState!
@@ -709,7 +707,7 @@ class _RootState extends State<Root>
                           );
                           try {
                             final String filename = Uri.decodeComponent(
-                                (await FirebaseFunctions.instance
+                                (await GetIt.I<FunctionsService>()
                                         .httpsCallable('exportToExcel')
                                         .call())
                                     .data);
@@ -719,7 +717,7 @@ class _RootState extends State<Root>
                                         '/' +
                                         filename.replaceAll(':', ''))
                                 .create(recursive: true);
-                            await FirebaseStorage.instance
+                            await GetIt.I<StorageRepository>()
                                 .ref(filename)
                                 .writeToFile(file);
                             scaffoldMessenger.currentState!
@@ -1007,9 +1005,9 @@ class _RootState extends State<Root>
   Future showDynamicLink() async {
     if (kIsWeb) return;
     final PendingDynamicLinkData? data =
-        await FirebaseDynamicLinks.instance.getInitialLink();
+        await GetIt.I<FirebaseDynamicLinks>().getInitialLink();
 
-    _dynamicLinksSubscription = FirebaseDynamicLinks.instance.onLink.listen(
+    _dynamicLinksSubscription = GetIt.I<FirebaseDynamicLinks>().onLink.listen(
       (dynamicLink) async {
         final object =
             await MHDatabaseRepo.I.getObjectFromLink(dynamicLink.link);

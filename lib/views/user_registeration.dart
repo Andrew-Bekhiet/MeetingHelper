@@ -323,7 +323,7 @@ class _UserRegistrationState extends State<UserRegistration> {
       context: context,
       builder: (context) => AlertDialog(
         title: FutureBuilder<HttpsCallableResult>(
-          future: FirebaseFunctions.instance
+          future: GetIt.I<FunctionsService>()
               .httpsCallable('registerWithLink')
               .call({'link': registerationLink}),
           builder: (context, snapshot) {
@@ -377,12 +377,12 @@ class _UserRegistrationState extends State<UserRegistration> {
       ),
     );
     try {
-      await FirebaseFunctions.instance.httpsCallable('registerAccount').call({
+      await GetIt.I<FunctionsService>().httpsCallable('registerAccount').call({
         'name': _userName,
         'password': Encryption.encPswd(password),
         'lastConfession': lastConfession,
         'lastTanawol': lastTanawol,
-        'fcmToken': await FirebaseMessaging.instance.getToken(),
+        'fcmToken': await GetIt.I<FirebaseMessaging>().getToken(),
       });
       await GetIt.I<CacheRepository>()
           .box('Settings')

@@ -1,6 +1,6 @@
 import 'package:churchdata_core/churchdata_core.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/utils/globals.dart';
@@ -118,7 +118,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
       _form.currentState!.save();
       scaffoldMessenger.currentState!
           .showSnackBar(const SnackBar(content: Text('جار الحفظ')));
-      await FirebaseFunctions.instance
+      await GetIt.I<FunctionsService>()
           .httpsCallable('updateUserSpiritData')
           .call({
         'lastConfession':

@@ -65,11 +65,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     try {
                       Future<auth.UserCredential>? signInFuture;
                       if (kIsWeb) {
-                        final credential = (await auth.FirebaseAuth.instance
+                        final credential = (await GetIt.I<auth.FirebaseAuth>()
                                 .signInWithPopup(GoogleAuthProvider()))
                             .credential;
                         if (credential != null) {
-                          signInFuture = auth.FirebaseAuth.instance
+                          signInFuture = GetIt.I<auth.FirebaseAuth>()
                               .signInWithCredential(credential);
                         }
                       } else {
@@ -83,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 GoogleAuthProvider.credential(
                                     idToken: googleAuth.idToken,
                                     accessToken: googleAuth.accessToken);
-                            signInFuture = auth.FirebaseAuth.instance
+                            signInFuture = GetIt.I<auth.FirebaseAuth>()
                                 .signInWithCredential(credential);
                           }
                         }
@@ -138,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     dotenv.env['kUseFirebaseEmulators']?.toString() == 'true')
                   ElevatedButton(
                     onPressed: () async {
-                      await auth.FirebaseAuth.instance
+                      await GetIt.I<auth.FirebaseAuth>()
                           .signInWithEmailAndPassword(
                               email: 'admin@meetinghelper.org',
                               password: 'admin@meetinghelper.org');

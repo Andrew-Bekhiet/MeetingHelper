@@ -1,6 +1,6 @@
 import 'package:churchdata_core/churchdata_core.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -96,7 +96,7 @@ class _MyAccountState extends State<MyAccount> {
                             content: Text('جار التحميل'),
                             duration: Duration(minutes: 2),
                           ));
-                          await FirebaseFunctions.instance
+                          await GetIt.I<FunctionsService>()
                               .httpsCallable('deleteImage')
                               .call();
                           user.reloadImage();
@@ -371,7 +371,7 @@ class _MyAccountState extends State<MyAccount> {
           },
         ) ==
         true) {
-      await FirebaseFunctions.instance
+      await GetIt.I<FunctionsService>()
           .httpsCallable('changeUserName')
           .call({'newName': name.text, 'affectedUser': uid});
       if (mounted) setState(() {});
@@ -455,7 +455,7 @@ class _MyAccountState extends State<MyAccount> {
 
       if (user.password == Encryption.encPswd(textFields[0].text)) {
         try {
-          await FirebaseFunctions.instance
+          await GetIt.I<FunctionsService>()
               .httpsCallable('changePassword')
               .call({
             'oldPassword': textFields[0].text,

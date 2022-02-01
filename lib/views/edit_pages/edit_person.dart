@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_storage/firebase_storage.dart' show FirebaseStorage;
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -1183,13 +1182,13 @@ class _EditPersonState extends State<EditPerson> {
 
         if (widget.person is! User) {
           if (changedImage != null) {
-            await FirebaseStorage.instance
+            await GetIt.I<StorageRepository>()
                 .ref()
                 .child('PersonsPhotos/${person.id}')
                 .putFile(File(changedImage!));
             person = person.copyWith.hasPhoto(true);
           } else if (deletePhoto) {
-            await FirebaseStorage.instance
+            await GetIt.I<StorageRepository>()
                 .ref()
                 .child('PersonsPhotos/${person.id}')
                 .delete();

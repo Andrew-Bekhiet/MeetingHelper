@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:async/async.dart';
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' show FieldValue;
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -567,7 +566,7 @@ class _EditUserState extends State<EditUser> {
                   ),
                 );
                 navigator.currentState!.pop();
-                await FirebaseFunctions.instance
+                await GetIt.I<FunctionsService>()
                     .httpsCallable('deleteUser')
                     .call({'affectedUser': user.uid});
                 scaffoldMessenger.currentState!.hideCurrentSnackBar();
@@ -622,7 +621,7 @@ class _EditUserState extends State<EditUser> {
                   duration: Duration(seconds: 15),
                 ));
                 navigator.currentState!.pop();
-                await FirebaseFunctions.instance
+                await GetIt.I<FunctionsService>()
                     .httpsCallable('unApproveUser')
                     .call({'affectedUser': user.uid});
                 navigator.currentState!.pop('deleted');
@@ -692,7 +691,7 @@ class _EditUserState extends State<EditUser> {
       ),
     );
     try {
-      await FirebaseFunctions.instance
+      await GetIt.I<FunctionsService>()
           .httpsCallable('resetPassword')
           .call({'affectedUser': user.uid});
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
@@ -732,7 +731,7 @@ class _EditUserState extends State<EditUser> {
           ..removeWhere(
               (key, value) => widget.user.getUpdateMap()[key] == value);
         if (widget.user.name != user.name) {
-          await FirebaseFunctions.instance
+          await GetIt.I<FunctionsService>()
               .httpsCallable('changeUserName')
               .call({'affectedUser': user.uid, 'newName': user.name});
         }
@@ -741,7 +740,7 @@ class _EditUserState extends State<EditUser> {
           ..remove('classId');
 
         if (update.isNotEmpty) {
-          await FirebaseFunctions.instance
+          await GetIt.I<FunctionsService>()
               .httpsCallable('updatePermissions')
               .call({'affectedUser': user.uid, 'permissions': update});
         }
