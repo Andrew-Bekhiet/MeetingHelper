@@ -5,14 +5,10 @@ import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
-import 'package:meetinghelper/models/data/class.dart';
-import 'package:meetinghelper/models/data/person.dart';
-import 'package:meetinghelper/models/theme_notifier.dart';
-import 'package:meetinghelper/services/notifications_service.dart';
+import 'package:meetinghelper/models.dart';
+import 'package:meetinghelper/services.dart';
+import 'package:meetinghelper/utils/globals.dart';
 import 'package:provider/provider.dart';
-
-import '../models/data/user.dart';
-import '../utils/globals.dart';
 
 enum DateType {
   month,

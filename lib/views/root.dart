@@ -13,14 +13,14 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart' hide Notification;
 import 'package:get_it/get_it.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:meetinghelper/models/data/class.dart';
-import 'package:meetinghelper/models/data/person.dart';
-import 'package:meetinghelper/models/data/service.dart';
-import 'package:meetinghelper/models/data_object_tap_handler.dart';
-import 'package:meetinghelper/models/hive_persistence_provider.dart';
-import 'package:meetinghelper/models/theme_notifier.dart';
+import 'package:meetinghelper/controllers.dart';
+import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
-import 'package:meetinghelper/services/notifications_service.dart';
+import 'package:meetinghelper/services.dart';
+import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/helpers.dart';
+import 'package:meetinghelper/views.dart';
+import 'package:meetinghelper/widgets.dart';
 import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -28,13 +28,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:rxdart/rxdart.dart' hide Notification;
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
-
-import '../models/data/user.dart';
-import '../utils/globals.dart';
-import '../utils/helpers.dart';
-import 'auth_screen.dart';
-import 'edit_page/edit_person.dart';
-import 'services_list.dart';
 
 class Root extends StatefulWidget {
   const Root({Key? key}) : super(key: key);

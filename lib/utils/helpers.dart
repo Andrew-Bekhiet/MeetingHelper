@@ -1,23 +1,19 @@
 import 'dart:async';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/material.dart' hide Notification;
 import 'package:get_it/get_it.dart';
-import 'package:meetinghelper/models/data/class.dart';
-import 'package:meetinghelper/models/data/service.dart';
+import 'package:meetinghelper/controllers.dart';
+import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
-import 'package:meetinghelper/views/services_list.dart';
-import 'package:photo_view/photo_view.dart';
+import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/widgets.dart';
 import 'package:rxdart/rxdart.dart' hide Notification;
 import 'package:spreadsheet_decoder/spreadsheet_decoder.dart';
 
 import '../main.dart';
-import '../models/data/person.dart';
-import '../models/data/user.dart';
-import '../utils/globals.dart';
 
 List<RadioListTile> getOrderingOptions(
     BehaviorSubject<OrderOptions> orderOptions, Type type) {
@@ -239,79 +235,5 @@ Future<void> showErrorUpdateDataDialog(
     );
     await GetIt.I<CacheRepository>().box('Settings').put('DialogLastShown',
         DateTime.now().truncateToDay().millisecondsSinceEpoch);
-  }
-}
-
-class MessageIcon extends StatelessWidget {
-  const MessageIcon(this.url, {Key? key}) : super(key: key);
-
-  final String? url;
-
-  Color get color => Colors.transparent;
-
-  String get name => '';
-
-  Widget getPhoto(BuildContext context) {
-    return build(context);
-  }
-
-  Future<String> getSecondLine() async => '';
-
-  @override
-  Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints.expand(width: 55.2, height: 55.2),
-      child: Material(
-        type: MaterialType.transparency,
-        child: InkWell(
-          onTap: () => showDialog(
-            context: context,
-            builder: (context) => Dialog(
-              child: Hero(
-                tag: url!,
-                child: CachedNetworkImage(
-                  useOldImageOnUrlChange: true,
-                  imageUrl: url!,
-                  imageBuilder: (context, imageProvider) => PhotoView(
-                    imageProvider: imageProvider,
-                    tightMode: true,
-                    enableRotation: true,
-                  ),
-                  progressIndicatorBuilder: (context, url, progress) =>
-                      CircularProgressIndicator(value: progress.progress),
-                ),
-              ),
-            ),
-          ),
-          child: CachedNetworkImage(
-            useOldImageOnUrlChange: true,
-            memCacheHeight: 221,
-            imageUrl: url!,
-            progressIndicatorBuilder: (context, url, progress) =>
-                CircularProgressIndicator(value: progress.progress),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class QueryIcon extends StatelessWidget {
-  const QueryIcon({Key? key}) : super(key: key);
-
-  Color get color => Colors.transparent;
-
-  String get name => 'نتائج بحث';
-
-  Widget getPhoto(BuildContext context) {
-    return build(context);
-  }
-
-  Future<String> getSecondLine() async => '';
-
-  @override
-  Widget build(BuildContext context) {
-    return Icon(Icons.search,
-        size: MediaQuery.of(context).size.shortestSide / 7.2);
   }
 }

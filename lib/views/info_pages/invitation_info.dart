@@ -1,13 +1,11 @@
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:meetinghelper/models/data/invitation.dart';
-import 'package:meetinghelper/repositories/database_repository.dart';
+import 'package:meetinghelper/models.dart';
+import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:tinycolor2/tinycolor2.dart';
-
-import '../../models/data/user.dart';
 
 class InvitationInfo extends StatelessWidget {
   final Invitation? invitation;

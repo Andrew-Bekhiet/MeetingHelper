@@ -10,18 +10,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
-import 'package:meetinghelper/models/data/class.dart';
-import 'package:meetinghelper/models/data/person.dart';
-import 'package:meetinghelper/models/data/service.dart';
-import 'package:meetinghelper/models/data/user.dart';
-import 'package:meetinghelper/models/history/history_property.dart';
-import 'package:meetinghelper/models/history/history_record.dart';
+import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/utils/helpers.dart';
+import 'package:meetinghelper/widgets.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
-
-import 'analytics_indicators.dart';
 
 class AnalyticsPage extends StatefulWidget {
   const AnalyticsPage({

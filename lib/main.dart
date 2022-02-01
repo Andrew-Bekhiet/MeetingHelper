@@ -16,52 +16,17 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/admin.dart';
-import 'package:meetinghelper/models/theme_notifier.dart';
+import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/secrets.dart';
-import 'package:meetinghelper/services/notifications_service.dart';
-import 'package:meetinghelper/services/share_service.dart';
-import 'package:meetinghelper/views/day.dart';
-import 'package:meetinghelper/views/edit_page/edit_invitation.dart';
-import 'package:meetinghelper/views/edit_users.dart';
-import 'package:meetinghelper/views/exports.dart';
-import 'package:meetinghelper/views/invitations_page.dart';
-import 'package:meetinghelper/views/trash.dart';
+import 'package:meetinghelper/services.dart';
+import 'package:meetinghelper/updates.dart';
+import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/helpers.dart';
+import 'package:meetinghelper/views.dart';
+import 'package:meetinghelper/widgets.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:timeago/timeago.dart';
-
-import 'models/data/class.dart';
-import 'models/data/invitation.dart';
-import 'models/data/person.dart';
-import 'models/data/service.dart';
-import 'models/data/user.dart';
-import 'models/data_object_tap_handler.dart';
-import 'models/history/history_record.dart';
-import 'updates.dart';
-import 'utils/globals.dart';
-import 'utils/helpers.dart';
-import 'views/analytics/analytics_page.dart';
-import 'views/auth_screen.dart';
-import 'views/data_map.dart';
-import 'views/edit_page/edit_class.dart';
-import 'views/edit_page/edit_person.dart';
-import 'views/edit_page/edit_service.dart';
-import 'views/history.dart';
-import 'views/info_page/class_info.dart';
-import 'views/info_page/invitation_info.dart';
-import 'views/info_page/person_info.dart';
-import 'views/info_page/service_info.dart';
-import 'views/info_page/user_info.dart';
-import 'views/loading_widget.dart';
-import 'views/login.dart';
-import 'views/mini_lists/mini_list.dart';
-import 'views/my_account.dart';
-import 'views/notifications_page.dart';
-import 'views/root.dart';
-import 'views/search_query.dart';
-import 'views/settings.dart' as s;
-import 'views/update_user_data.dart';
-import 'views/user_registeration.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -395,7 +360,7 @@ class AppState extends State<App> {
             'Update': (context) => const Update(),
             'Search': (context) => const SearchQuery(),
             'DataMap': (context) => const DataMap(),
-            'Settings': (context) => const s.Settings(),
+            'Settings': (context) => const Settings(),
             'Settings/Churches': (context) => const ChurchesPage(),
             /*MiniList(
                 parent: FirebaseFirestore.instance.collection('Churches'),

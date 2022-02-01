@@ -2,9 +2,8 @@ import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:meetinghelper/models/data/person.dart';
-
-import 'data_map.dart';
+import 'package:meetinghelper/models.dart';
+import 'package:meetinghelper/views.dart';
 
 class MapView extends StatefulWidget {
   final bool editMode;

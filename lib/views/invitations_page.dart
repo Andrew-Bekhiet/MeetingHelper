@@ -1,7 +1,7 @@
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:meetinghelper/models/data/invitation.dart';
+import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/utils/globals.dart';
 
 class InvitationsPage extends StatefulWidget {

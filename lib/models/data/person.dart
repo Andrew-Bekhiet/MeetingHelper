@@ -10,7 +10,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart';
 import 'package:meetinghelper/repositories/database_repository.dart';
-import 'package:meetinghelper/views/map_view.dart';
+import 'package:meetinghelper/widgets.dart';
 
 part 'person.g.dart';
 

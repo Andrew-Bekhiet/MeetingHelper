@@ -12,19 +12,16 @@ import 'package:get_it/get_it.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:meetinghelper/models/data/class.dart';
-import 'package:meetinghelper/models/data/service.dart';
-import 'package:meetinghelper/repositories/database_repository.dart';
+import 'package:meetinghelper/models.dart';
+import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/views.dart';
+import 'package:meetinghelper/widgets.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tinycolor2/tinycolor2.dart';
-
-import '../../models/data/user.dart';
-import '../../models/search/search_filters.dart';
-import '../mini_lists/colors_list.dart';
 
 class EditService extends StatefulWidget {
   final Service? service;

@@ -2,6 +2,7 @@ import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:meetinghelper/updates.dart';
+import 'package:meetinghelper/utils/helpers.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../utils/helpers.dart';

@@ -1,8 +1,7 @@
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:get_it/get_it.dart';
-import 'package:meetinghelper/models/data.dart';
-import 'package:meetinghelper/models/history/history_record.dart';
+import 'package:meetinghelper/models.dart';
 
 class MHShareService extends ShareService {
   static MHShareService get instance => GetIt.I<MHShareService>();

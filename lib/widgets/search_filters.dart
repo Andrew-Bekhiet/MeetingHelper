@@ -1,9 +1,8 @@
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/helpers.dart';
 import 'package:rxdart/rxdart.dart';
-
-import '../../utils/helpers.dart';
 
 class FilterButton extends StatelessWidget {
   final Type type;

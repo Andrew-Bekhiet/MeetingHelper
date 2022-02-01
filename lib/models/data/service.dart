@@ -7,11 +7,9 @@ import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
-import 'package:meetinghelper/models/data/user.dart';
-import 'package:meetinghelper/repositories/database_repository.dart';
+import 'package:meetinghelper/models.dart';
+import 'package:meetinghelper/repositories.dart';
 import 'package:rxdart/rxdart.dart';
-
-import 'person.dart';
 
 part 'service.g.dart';
 

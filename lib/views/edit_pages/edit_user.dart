@@ -9,19 +9,15 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
-import 'package:meetinghelper/models/data/class.dart';
-import 'package:meetinghelper/models/data/service.dart';
-import 'package:meetinghelper/models/meta/permissions_set.dart';
-import 'package:meetinghelper/models/search/search_filters.dart';
-import 'package:meetinghelper/repositories/database_repository.dart';
+import 'package:meetinghelper/controllers.dart';
+import 'package:meetinghelper/models.dart';
+import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
-import 'package:meetinghelper/views/services_list.dart';
+import 'package:meetinghelper/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-
-import '../../models/data/user.dart';
 
 class EditUser extends StatefulWidget {
   final User user;

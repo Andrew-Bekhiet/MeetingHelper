@@ -3,25 +3,18 @@ import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:intl/intl.dart';
-import 'package:meetinghelper/models/data/class.dart';
-import 'package:meetinghelper/models/data/person.dart';
-import 'package:meetinghelper/models/data/service.dart';
-import 'package:meetinghelper/models/hive_persistence_provider.dart';
+import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
-import 'package:meetinghelper/services/notifications_service.dart';
-import 'package:meetinghelper/services/share_service.dart';
+import 'package:meetinghelper/services.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/helpers.dart';
+import 'package:meetinghelper/widgets.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tinycolor2/tinycolor2.dart';
-import 'package:tuple/tuple.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import '../../models/data/user.dart';
-import '../../models/history/history_property.dart';
-import '../../utils/helpers.dart';
 
 class PersonInfo extends StatefulWidget {
   final Person person;

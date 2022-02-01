@@ -4,11 +4,8 @@ import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:group_list_view/group_list_view.dart';
-import 'package:meetinghelper/models/data_object_tap_handler.dart';
-import 'package:meetinghelper/models/list_controllers.dart';
-
-export 'package:meetinghelper/models/list_controllers.dart'
-    show ServicesListController;
+import 'package:meetinghelper/controllers.dart';
+import 'package:meetinghelper/models.dart';
 
 class ServicesList<T extends DataObject> extends StatefulWidget {
   final ServicesListController<T> options;

@@ -3,9 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:meetinghelper/models/data/person.dart';
-import 'package:meetinghelper/models/data/user.dart';
-import 'package:meetinghelper/models/meta/permissions_set.dart';
+import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/utils/globals.dart';
 
 class MHAuthRepository extends AuthRepository<User, Person> {

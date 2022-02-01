@@ -2,8 +2,7 @@ import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart' hide Notification;
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/utils/globals.dart';
-
-import 'notification_widget.dart';
+import 'package:meetinghelper/widgets.dart';
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({Key? key}) : super(key: key);

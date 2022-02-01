@@ -5,12 +5,11 @@ import 'package:flutter/material.dart' hide Notification;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/main.dart';
-import 'package:meetinghelper/models/data.dart';
-import 'package:meetinghelper/models/data_object_tap_handler.dart';
-import 'package:meetinghelper/models/search/search_filters.dart';
+import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
-import 'package:meetinghelper/services/share_service.dart';
+import 'package:meetinghelper/services.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/widgets.dart';
 
 class MHNotificationsService extends NotificationsService {
   static MHNotificationsService get instance =>

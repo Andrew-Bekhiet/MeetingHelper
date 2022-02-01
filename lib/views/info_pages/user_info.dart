@@ -3,18 +3,13 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
-import 'package:meetinghelper/models/data/class.dart';
-import 'package:meetinghelper/models/data/person.dart';
-import 'package:meetinghelper/models/data/user.dart';
-import 'package:meetinghelper/models/data_object_tap_handler.dart';
-import 'package:meetinghelper/models/search/search_filters.dart';
+import 'package:meetinghelper/controllers.dart';
+import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
-import 'package:meetinghelper/services/share_service.dart';
+import 'package:meetinghelper/services.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/views/services_list.dart';
-import 'package:tuple/tuple.dart';
-
-import '../edit_page/edit_user.dart';
+import 'package:meetinghelper/views.dart';
+import 'package:meetinghelper/widgets.dart';
 
 class UserInfo extends StatefulWidget {
   const UserInfo({Key? key, required this.user}) : super(key: key);

@@ -1,6 +1,6 @@
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
-import 'package:meetinghelper/models/data/user.dart';
+import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/utils/globals.dart';
 
 class MiniModelList<T extends MetaObject> extends StatelessWidget {

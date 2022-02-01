@@ -6,7 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart'
 import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:meetinghelper/models/meta/permissions_set.dart';
+import 'package:meetinghelper/models/meta.dart';
 import 'package:meetinghelper/repositories.dart';
 import 'package:rxdart/rxdart.dart';
 

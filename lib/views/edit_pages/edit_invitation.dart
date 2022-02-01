@@ -7,16 +7,12 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
-import 'package:meetinghelper/models/data/class.dart';
-import 'package:meetinghelper/models/data/invitation.dart';
-import 'package:meetinghelper/models/data/person.dart';
-import 'package:meetinghelper/models/search/search_filters.dart';
-import 'package:meetinghelper/repositories/database_repository.dart';
+import 'package:meetinghelper/models.dart';
+import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/widgets/search_filters.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-
-import '../../models/data/user.dart';
 
 class EditInvitation extends StatefulWidget {
   final Invitation invitation;

@@ -3,12 +3,10 @@ import 'dart:async';
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:meetinghelper/models/history/history_record.dart';
-import 'package:meetinghelper/models/hive_persistence_provider.dart';
+import 'package:meetinghelper/models.dart';
+import 'package:meetinghelper/utils/globals.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
-
-import '../utils/globals.dart';
 
 class History extends StatefulWidget {
   final bool iServantsHistory;

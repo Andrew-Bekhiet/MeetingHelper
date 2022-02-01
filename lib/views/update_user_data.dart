@@ -2,12 +2,10 @@ import 'package:churchdata_core/churchdata_core.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/helpers.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-
-import '../models/data/user.dart';
-import '../models/meta/permissions_set.dart';
-import '../utils/helpers.dart';
 
 class UpdateUserDataErrorPage extends StatefulWidget {
   const UpdateUserDataErrorPage({Key? key}) : super(key: key);

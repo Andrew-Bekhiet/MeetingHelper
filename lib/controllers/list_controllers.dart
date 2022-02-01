@@ -3,14 +3,10 @@ import 'dart:async';
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:meetinghelper/models/data/user.dart';
+import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tuple/tuple.dart';
-
-import 'data/class.dart';
-import 'data/person.dart';
-import 'history/history_record.dart';
 
 class DayCheckListController<G, T extends Person> extends ListController<G, T> {
   final HistoryDayBase day;

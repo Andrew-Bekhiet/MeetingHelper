@@ -1,33 +1,25 @@
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
-import 'package:intl/intl.dart';
-import 'package:meetinghelper/models/data/person.dart';
-import 'package:meetinghelper/models/data/service.dart';
-import 'package:meetinghelper/models/hive_persistence_provider.dart';
+import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
-import 'package:meetinghelper/services/notifications_service.dart';
-import 'package:meetinghelper/services/share_service.dart';
+import 'package:meetinghelper/services.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/views.dart';
+import 'package:meetinghelper/widgets.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tinycolor2/tinycolor2.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
-import '../../models/data/user.dart';
-import '../../models/history/history_property.dart';
-import '../../models/search/search_filters.dart';
-import '../data_map.dart';
+class ClassInfo extends StatefulWidget {
+  final Class class$;
 
-class ServiceInfo extends StatefulWidget {
-  final Service service;
-
-  const ServiceInfo({Key? key, required this.service}) : super(key: key);
+  const ClassInfo({Key? key, required this.class$}) : super(key: key);
 
   @override
-  _ServiceInfoState createState() => _ServiceInfoState();
+  _ClassInfoState createState() => _ClassInfoState();
 }
 
-class _ServiceInfoState extends State<ServiceInfo> {
+class _ClassInfoState extends State<ClassInfo> {
   final BehaviorSubject<OrderOptions> _orderOptions =
       BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
@@ -52,10 +44,8 @@ class _ServiceInfoState extends State<ServiceInfo> {
     _listOptions = ListController<void, Person>(
       objectsPaginatableStream: PaginatableStream.loadAll(
         stream: _orderOptions.switchMap(
-          (order) => widget.service.getPersonsMembersLive(
-            orderBy: order.orderBy,
-            descending: !order.asc,
-          ),
+          (order) => widget.class$
+              .getMembersLive(orderBy: order.orderBy, descending: !order.asc),
         ),
       ),
     );
@@ -65,7 +55,7 @@ class _ServiceInfoState extends State<ServiceInfo> {
         'Share',
         'MoreOptions',
         'EditHistory',
-        'Service.Analytics',
+        'Class.Analytics',
         if (User.instance.permissions.write) 'Add'
       ]..removeWhere(HivePersistenceProvider.instance.hasCompletedStep))
           .isNotEmpty)
@@ -79,7 +69,7 @@ class _ServiceInfoState extends State<ServiceInfo> {
                 contents: [
                   TargetContent(
                     child: Text(
-                      'تعديل بيانات الخدمة',
+                      'تعديل بيانات الفصل',
                       style: Theme.of(context).textTheme.subtitle1?.copyWith(
                           color: Theme.of(context).colorScheme.onSecondary),
                     ),
@@ -109,7 +99,7 @@ class _ServiceInfoState extends State<ServiceInfo> {
               contents: [
                 TargetContent(
                   child: Text(
-                    'يمكنك ايجاد المزيد من الخيارات من هنا مثل: اشعار المستخدمين عن الخدمة',
+                    'يمكنك ايجاد المزيد من الخيارات من هنا مثل: اشعار المستخدمين عن الفصل',
                     style: Theme.of(context).textTheme.subtitle1?.copyWith(
                         color: Theme.of(context).colorScheme.onSecondary),
                   ),
@@ -126,7 +116,7 @@ class _ServiceInfoState extends State<ServiceInfo> {
                 TargetContent(
                   align: ContentAlign.top,
                   child: Text(
-                    'الاطلاع على سجل التعديلات في بيانات الخدمة',
+                    'الاطلاع على سجل التعديلات في بيانات الفصل',
                     style: Theme.of(context).textTheme.subtitle1?.copyWith(
                         color: Theme.of(context).colorScheme.onSecondary),
                   ),
@@ -143,13 +133,13 @@ class _ServiceInfoState extends State<ServiceInfo> {
                 TargetContent(
                   align: ContentAlign.top,
                   child: Text(
-                    'الأن يمكنك عرض تحليل لبيانات حضور مخدومين في الخدمة خلال فترة معينة من هنا',
+                    'الأن يمكنك عرض تحليل لبيانات حضور مخدومين الفصل خلال فترة معينة من هنا',
                     style: Theme.of(context).textTheme.subtitle1?.copyWith(
                         color: Theme.of(context).colorScheme.onSecondary),
                   ),
                 ),
               ],
-              identify: 'Service.Analytics',
+              identify: 'Class.Analytics',
               keyTarget: _analytics,
               color: Theme.of(context).colorScheme.secondary,
             ),
@@ -160,12 +150,13 @@ class _ServiceInfoState extends State<ServiceInfo> {
                   TargetContent(
                     align: ContentAlign.top,
                     child: Text(
-                      'يمكنك اضافة مخدوم داخل الخدمة بسرعة وسهولة من هنا',
+                      'يمكنك اضافة مخدوم داخل الفصل بسرعة وسهولة من هنا',
                       style: Theme.of(context).textTheme.subtitle1?.copyWith(
                           color: Theme.of(context).colorScheme.onSecondary),
                     ),
                   ),
                 ],
+                alignSkip: Alignment.topRight,
                 identify: 'Add',
                 keyTarget: _add,
                 color: Theme.of(context).colorScheme.secondary,
@@ -185,33 +176,33 @@ class _ServiceInfoState extends State<ServiceInfo> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<Service?>(
-      initialData: widget.service,
+    return StreamBuilder<Class?>(
+      initialData: widget.class$,
       stream: User.loggedInStream
           .distinct((o, n) => o.permissions.write == n.permissions.write)
           .switchMap(
-            (_) => widget.service.ref.snapshots().map(Service.fromDoc),
+            (value) => widget.class$.ref.snapshots().map(Class.fromDoc),
           ),
       builder: (context, data) {
-        if (data.data == null)
+        final Class? class$ = data.data;
+
+        if (class$ == null)
           return const Scaffold(
             body: Center(
-              child: Text('تم حذف الخدمة'),
+              child: Text('تم حذف الفصل'),
             ),
           );
-
-        final Service service = data.requireData!;
 
         return Scaffold(
           body: NestedScrollView(
             headerSliverBuilder: (context, _) => <Widget>[
               SliverAppBar(
-                backgroundColor: service.color != Colors.transparent
+                backgroundColor: class$.color != Colors.transparent
                     ? (Theme.of(context).brightness == Brightness.light
-                        ? service.color?.lighten()
-                        : service.color?.darken())
+                        ? class$.color?.lighten()
+                        : class$.color?.darken())
                     : null,
-                actions: service.ref.path.startsWith('Deleted')
+                actions: class$.ref.path.startsWith('Deleted')
                     ? <Widget>[
                         if (User.instance.permissions.write)
                           IconButton(
@@ -219,7 +210,7 @@ class _ServiceInfoState extends State<ServiceInfo> {
                             tooltip: 'استعادة',
                             onPressed: () {
                               MHDatabaseRepo.I
-                                  .recoverDocument(context, service.ref);
+                                  .recoverDocument(context, class$.ref);
                             },
                           )
                       ]
@@ -244,8 +235,8 @@ class _ServiceInfoState extends State<ServiceInfo> {
                             onPressed: () async {
                               final dynamic result = await navigator
                                   .currentState!
-                                  .pushNamed('Data/EditService',
-                                      arguments: service);
+                                  .pushNamed('Data/EditClass',
+                                      arguments: class$);
                               if (result is JsonRef) {
                                 scaffoldMessenger.currentState!.showSnackBar(
                                   const SnackBar(
@@ -283,9 +274,8 @@ class _ServiceInfoState extends State<ServiceInfo> {
                             ),
                           ),
                           onPressed: () async {
-                            // navigator.currentState.pop();
                             await MHShareService.I.shareText(
-                              (await MHShareService.I.shareService(service))
+                              (await MHShareService.I.shareClass(class$))
                                   .toString(),
                             );
                           },
@@ -294,12 +284,14 @@ class _ServiceInfoState extends State<ServiceInfo> {
                         PopupMenuButton(
                           key: _moreOptions,
                           onSelected: (_) => MHNotificationsService.I
-                              .sendNotification(context, service),
+                              .sendNotification(context, class$),
                           itemBuilder: (context) {
                             return [
                               const PopupMenuItem(
                                 value: '',
-                                child: Text('ارسال إشعار للمستخدمين عن الخدمة'),
+                                child: Text(
+                                  'ارسال إشعار للمستخدمين عن الفصل',
+                                ),
                               ),
                             ];
                           },
@@ -315,10 +307,10 @@ class _ServiceInfoState extends State<ServiceInfo> {
                       opacity: constraints.biggest.height > kToolbarHeight * 1.7
                           ? 0
                           : 1,
-                      child: Text(service.name,
+                      child: Text(class$.name,
                           style: const TextStyle(fontSize: 16.0)),
                     ),
-                    background: PhotoObjectWidget(service, circleCrop: false),
+                    background: PhotoObjectWidget(class$, circleCrop: false),
                   ),
                 ),
               ),
@@ -329,70 +321,33 @@ class _ServiceInfoState extends State<ServiceInfo> {
                     [
                       ListTile(
                         title: Text(
-                          service.name,
+                          class$.name,
                           style: Theme.of(context)
                               .textTheme
                               .headline5
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ),
-                      if (service.studyYearRange != null)
-                        ListTile(
-                          title: const Text('السنوات الدراسية:'),
-                          subtitle: FutureBuilder<String>(
-                            future: () async {
-                              if (service.studyYearRange?.from ==
-                                  service.studyYearRange?.to)
-                                return (await service.studyYearRange!.from
-                                            ?.get())
-                                        ?.data()?['Name'] as String? ??
-                                    'غير موجودة';
-
-                              final from =
-                                  (await service.studyYearRange!.from?.get())
-                                          ?.data()?['Name'] ??
-                                      'غير موجودة';
-                              final to =
-                                  (await service.studyYearRange!.to?.get())
-                                          ?.data()?['Name'] ??
-                                      'غير موجودة';
-
-                              return 'من $from الى $to';
-                            }(),
-                            builder: (context, data) {
-                              if (data.hasData) return Text(data.data!);
-                              return const LinearProgressIndicator();
-                            },
-                          ),
-                        ),
-                      if (service.validity != null)
-                        ListTile(
-                          title: const Text('الصلاحية:'),
-                          subtitle: Builder(
-                            builder: (context) {
-                              final from =
-                                  DateFormat('yyyy/M/d', 'ar-EG').format(
-                                service.validity!.start,
-                              );
-                              final to = DateFormat('yyyy/M/d', 'ar-EG').format(
-                                service.validity!.end,
-                              );
-
-                              return Text('من $from الى $to');
-                            },
-                          ),
-                        ),
                       ListTile(
-                        title: const Text('اظهار البند في السجل'),
-                        subtitle: Text(service.showInHistory ? 'نعم' : 'لا'),
+                        title: const Text('السنة الدراسية:'),
+                        subtitle: FutureBuilder<String>(
+                          future: class$.getStudyYearName(),
+                          builder: (context, data) {
+                            if (data.hasData)
+                              return Text(
+                                data.data! + ' - ' + class$.getGenderName(),
+                              );
+                            return const LinearProgressIndicator();
+                          },
+                        ),
                       ),
-                      if (!service.ref.path.startsWith('Deleted'))
+                      if (!class$.ref.path.startsWith('Deleted'))
                         ElevatedButton.icon(
                           icon: const Icon(Icons.map),
-                          onPressed: () => showMap(context, service),
+                          onPressed: () => showMap(context, class$),
                           label: const Text('إظهار المخدومين على الخريطة'),
                         ),
-                      if (!service.ref.path.startsWith('Deleted') &&
+                      if (!class$.ref.path.startsWith('Deleted') &&
                           (User.instance.permissions.manageUsers ||
                               User.instance.permissions.manageAllowedUsers))
                         ElevatedButton.icon(
@@ -400,29 +355,27 @@ class _ServiceInfoState extends State<ServiceInfo> {
                           onPressed: () => Navigator.pushNamed(
                             context,
                             'ActivityAnalysis',
-                            arguments: [service],
+                            arguments: [class$],
                           ),
                           label: const Text('تحليل نشاط الخدام'),
                         ),
-                      if (!service.ref.path.startsWith('Deleted'))
+                      if (!class$.ref.path.startsWith('Deleted'))
                         ElevatedButton.icon(
                           key: _analytics,
                           icon: const Icon(Icons.analytics_outlined),
                           label: const Text('احصائيات الحضور'),
-                          onPressed: () => _showAnalytics(context, service),
+                          onPressed: () => _showAnalytics(context, class$),
                         ),
                       const Divider(thickness: 1),
                       EditHistoryProperty(
                         'أخر تحديث للبيانات:',
-                        service.lastEdit,
-                        service.ref.collection('EditHistory'),
+                        class$.lastEdit,
+                        class$.ref.collection('EditHistory'),
                         key: _editHistory,
                       ),
-                      if (User.instance.permissions.manageUsers ||
-                          User.instance.permissions.manageAllowedUsers)
-                        _ServiceServants(service: service),
+                      _ClassServants(class$: class$),
                       Text(
-                        'المخدومين المشتركين بالخدمة:',
+                        'المخدومين بالفصل:',
                         style: Theme.of(context).textTheme.headline6,
                       ),
                       SearchFilters(
@@ -437,8 +390,8 @@ class _ServiceInfoState extends State<ServiceInfo> {
               ),
             ],
             body: SafeArea(
-              child: service.ref.path.startsWith('Deleted')
-                  ? const Text('يجب استعادة الخدمة لرؤية المخدومين بداخله')
+              child: class$.ref.path.startsWith('Deleted')
+                  ? const Text('يجب استعادة الفصل لرؤية المخدومين بداخله')
                   : DataObjectListView<void, Person>(
                       controller: _listOptions,
                       autoDisposeController: true,
@@ -463,12 +416,12 @@ class _ServiceInfoState extends State<ServiceInfo> {
           ),
           floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
           floatingActionButton: User.instance.permissions.write &&
-                  !service.ref.path.startsWith('Deleted')
+                  !class$.ref.path.startsWith('Deleted')
               ? FloatingActionButton(
                   key: _add,
                   onPressed: () => navigator.currentState!.pushNamed(
                       'Data/EditPerson',
-                      arguments: widget.service.ref),
+                      arguments: widget.class$.ref),
                   child: const Icon(Icons.person_add),
                 )
               : null,
@@ -477,115 +430,109 @@ class _ServiceInfoState extends State<ServiceInfo> {
     );
   }
 
-  void showMap(BuildContext context, Service service) {
-    navigator.currentState!.push(
-        MaterialPageRoute(builder: (context) => DataMap(service: service)));
+  void showMap(BuildContext context, Class class$) {
+    navigator.currentState!
+        .push(MaterialPageRoute(builder: (context) => DataMap(class$: class$)));
   }
 
-  void _showAnalytics(BuildContext context, Service _class) {
+  void _showAnalytics(BuildContext context, Class _class) {
     navigator.currentState!.pushNamed('Analytics', arguments: _class);
   }
 }
 
-class _ServiceServants extends StatelessWidget {
-  const _ServiceServants({
+class _ClassServants extends StatelessWidget {
+  const _ClassServants({
     Key? key,
-    required this.service,
+    required this.class$,
   }) : super(key: key);
 
-  final Service service;
+  final Class class$;
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<User>>(
-      stream: User.loggedInStream
-          .switchMap(
-            (u) => u.permissions.manageUsers
-                ? GetIt.I<DatabaseRepository>()
-                    .collection('UsersData')
-                    .where('AdminServices', arrayContains: service.ref)
-                    .snapshots()
-                : GetIt.I<DatabaseRepository>()
-                    .collection('UsersData')
-                    .where('AllowedUsers', arrayContains: u.ref)
-                    .where('AdminServices', arrayContains: service.ref)
-                    .snapshots(),
-          )
-          .map((s) => s.docs.map(User.fromDoc).toList()),
-      builder: (context, usersSnashot) {
-        if (!usersSnashot.hasData) return const LinearProgressIndicator();
-
-        final users = usersSnashot.requireData;
-
-        return ListTile(
-          title: Text(
-            'الخدام المسؤلين عن الخدمة',
-            style: Theme.of(context).textTheme.headline6,
-          ),
-          subtitle: users.isNotEmpty
-              ? GridView.builder(
-                  padding: EdgeInsets.zero,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 7,
-                    mainAxisSpacing: 10,
-                    crossAxisSpacing: 10,
-                  ),
-                  shrinkWrap: true,
-                  itemCount: users.length > 7 ? 7 : users.length,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemBuilder: (context, i) {
-                    if (users.length > 7 && i == 6) {
-                      return SizedBox.expand(
-                        child: ClipOval(
-                          child: Container(
-                            color:
-                                Theme.of(context).brightness == Brightness.light
-                                    ? Colors.black26
-                                    : Colors.black54,
-                            child: Center(
-                              child: Text('+' + (users.length - 6).toString()),
-                            ),
-                          ),
+    return ListTile(
+      title: Text(
+        'خدام الفصل',
+        style: Theme.of(context).textTheme.headline6,
+      ),
+      subtitle: class$.allowedUsers.isNotEmpty
+          ? GridView.builder(
+              padding: EdgeInsets.zero,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 7,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+              ),
+              shrinkWrap: true,
+              itemCount: class$.allowedUsers.length > 7
+                  ? 7
+                  : class$.allowedUsers.length,
+              physics: const NeverScrollableScrollPhysics(),
+              itemBuilder: (context, i) {
+                if (class$.allowedUsers.length > 7 && i == 6) {
+                  return SizedBox.expand(
+                    child: ClipOval(
+                      child: Container(
+                        color: Theme.of(context).brightness == Brightness.light
+                            ? Colors.black26
+                            : Colors.black54,
+                        child: Center(
+                          child: Text('+' +
+                              (class$.allowedUsers.length - 6).toString()),
                         ),
-                      );
-                    }
-                    return IgnorePointer(
-                      child: PhotoObjectWidget(
-                        users[i],
-                        heroTag: Object(),
                       ),
-                    );
-                  },
-                )
-              : const Text('لا يوجد خدام محددين في هذه الخدمة'),
-          onTap: users.isNotEmpty
-              ? () async {
-                  await showDialog(
-                    context: context,
-                    builder: (context) => Dialog(
-                      child: ListView.builder(
+                    ),
+                  );
+                }
+                return IgnorePointer(
+                  child: User.photoFromUID(class$.allowedUsers[i],
+                      removeHero: true),
+                );
+              },
+            )
+          : const Text('لا يوجد خدام محددين في هذا الفصل'),
+      onTap: class$.allowedUsers.isNotEmpty
+          ? () async {
+              await showDialog(
+                context: context,
+                builder: (context) => Dialog(
+                  child: FutureBuilder<List<User>>(
+                    future: Future.wait(
+                      class$.allowedUsers
+                          .map(MHDatabaseRepo.instance.getUserName),
+                    ).then(
+                      (u) => u.whereType<User>().toList(),
+                    ),
+                    builder: (context, data) {
+                      if (data.hasError) return ErrorWidget(data.error!);
+                      if (!data.hasData)
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+
+                      return ListView.builder(
                         padding: const EdgeInsetsDirectional.all(8),
                         shrinkWrap: true,
-                        itemCount: users.length,
+                        itemCount: class$.allowedUsers.length,
                         itemBuilder: (context, i) {
                           return Container(
                             margin: const EdgeInsets.symmetric(vertical: 5),
                             child: IgnorePointer(
                               child: DataObjectWidget(
-                                users[i],
+                                data.requireData[i],
                                 showSubtitle: false,
                                 wrapInCard: false,
                               ),
                             ),
                           );
                         },
-                      ),
-                    ),
-                  );
-                }
-              : null,
-        );
-      },
+                      );
+                    },
+                  ),
+                ),
+              );
+            }
+          : null,
     );
   }
 }

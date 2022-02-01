@@ -2,10 +2,7 @@ import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/utils/globals.dart';
-
-import 'views/mini_lists/churches_list.dart';
-import 'views/mini_lists/fathers_list.dart';
-import 'views/mini_lists/study_years_list.dart';
+import 'package:meetinghelper/views.dart';
 
 class ChurchesPage extends StatefulWidget {
   const ChurchesPage({Key? key}) : super(key: key);
