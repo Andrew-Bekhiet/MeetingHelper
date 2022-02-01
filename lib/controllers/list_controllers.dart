@@ -383,8 +383,9 @@ class ServicesListController<T extends DataObject>
     GroupingFunction<PreferredStudyYear?, T>? groupBy,
     GroupingStreamFunction<PreferredStudyYear?, T>? groupByStream,
     BehaviorSubject<String>? searchQuery,
-  })  : assert(
-            isSubtype<Class, T>() || isSubtype<Class, T>() || T == DataObject),
+  })  : assert(isSubtype<T, Class>() ||
+            isSubtype<T, Service>() ||
+            T == DataObject),
         super(
           objectsPaginatableStream: objectsPaginatableStream,
           searchStream: searchQuery,

@@ -338,8 +338,8 @@ class MHDatabaseRepo extends DatabaseRepository {
       groupServicesByStudyYearRef<T extends DataObject>([
     List<T>? services,
   ]) {
-    assert(isSubtype<Class, T>() ||
-        isSubtype<Service, T>() ||
+    assert(isSubtype<T, Class>() ||
+        isSubtype<T, Service>() ||
         (T == DataObject && services == null));
 
     return Rx.combineLatest3<Map<JsonRef, StudyYear>, List<Class>,
@@ -352,7 +352,7 @@ class MHDatabaseRepo extends DatabaseRepository {
               for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
             },
           ),
-      isSubtype<Class, T>() || T == DataObject
+      isSubtype<T, Class>() || T == DataObject
           ? services != null
               ? Stream.value(services as List<Class>)
               : User.loggedInStream.switchMap(
@@ -371,7 +371,7 @@ class MHDatabaseRepo extends DatabaseRepository {
                   ),
                 )
           : Stream.value([]),
-      isSubtype<Service, T>() || T == DataObject
+      isSubtype<T, Service>() || T == DataObject
           ? services != null
               ? Stream.value(services as List<Service>)
               : Service.getAllForUser()
@@ -387,7 +387,7 @@ class MHDatabaseRepo extends DatabaseRepository {
     String? uid,
     List<JsonRef> adminServices,
   ) {
-    assert(isSubtype<Class, T>() || isSubtype<Service, T>() || T == DataObject);
+    assert(isSubtype<T, Class>() || isSubtype<T, Service>() || T == DataObject);
 
     return Rx.combineLatest3<Map<JsonRef, StudyYear>, List<Class>,
         List<Service>, Map<PreferredStudyYear?, List<T>>>(
@@ -399,7 +399,7 @@ class MHDatabaseRepo extends DatabaseRepository {
               for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
             },
           ),
-      isSubtype<Service, T>()
+      isSubtype<T, Service>()
           ? Stream.value([])
           : collection('Classes')
               .where('Allowed', arrayContains: uid)
@@ -407,7 +407,7 @@ class MHDatabaseRepo extends DatabaseRepository {
               .orderBy('Gender')
               .snapshots()
               .map((cs) => cs.docs.map(Class.fromDoc).toList()),
-      adminServices.isEmpty || isSubtype<Class, T>()
+      adminServices.isEmpty || isSubtype<T, Class>()
           ? Stream.value([])
           : Rx.combineLatestList(
               adminServices.map((r) =>
