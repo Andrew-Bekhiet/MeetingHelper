@@ -6,6 +6,7 @@ import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/data/user.dart';
+import 'package:meetinghelper/models/history/history_record.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tuple/tuple.dart';
 
@@ -15,29 +16,50 @@ class MHDatabaseRepo extends DatabaseRepository {
 
   @override
   Future<DataObject?> getObjectFromLink(Uri deepLink) async {
-    if (deepLink.pathSegments[0] == 'viewPerson') {
-      if (deepLink.queryParameters['PersonId'] == '')
-        throw Exception('PersonId has an empty value which is not allowed');
+    if (deepLink.pathSegments[0] == 'PersonInfo') {
+      if (deepLink.queryParameters['Id'] == '')
+        throw Exception('Id has an empty value which is not allowed');
 
       return getPerson(
-        deepLink.queryParameters['PersonId']!,
+        deepLink.queryParameters['Id']!,
       );
-    } else if (deepLink.pathSegments[0] == 'viewUser') {
+    } else if (deepLink.pathSegments[0] == 'UserInfo') {
       if (deepLink.queryParameters['UID'] == '')
         throw Exception('UID has an empty value which is not allowed');
 
       return getUserData(
         deepLink.queryParameters['UID']!,
       );
-    } else if (deepLink.pathSegments[0] == 'viewQuery') {
-      return QueryInfo.fromJson(deepLink.queryParameters);
-    } else if (deepLink.pathSegments[0] == 'viewClass') {
-      if (deepLink.queryParameters['ClassId'] == '')
-        throw Exception('ClassId has an empty value which is not allowed');
+    } else if (deepLink.pathSegments[0] == 'ClassInfo') {
+      if (deepLink.queryParameters['Id'] == '')
+        throw Exception('Id has an empty value which is not allowed');
 
       return getClass(
-        deepLink.queryParameters['ClassId']!,
+        deepLink.queryParameters['Id']!,
       );
+    } else if (deepLink.pathSegments[0] == 'ServiceInfo') {
+      if (deepLink.queryParameters['Id'] == '')
+        throw Exception('Id has an empty value which is not allowed');
+
+      return getService(
+        deepLink.queryParameters['Id']!,
+      );
+    } else if (deepLink.pathSegments[0] == 'Day') {
+      if (deepLink.queryParameters['Id'] == '')
+        throw Exception('Id has an empty value which is not allowed');
+
+      return getDay(
+        deepLink.queryParameters['Id']!,
+      );
+    } else if (deepLink.pathSegments[0] == 'ServantsDay') {
+      if (deepLink.queryParameters['Id'] == '')
+        throw Exception('Id has an empty value which is not allowed');
+
+      return getServantsDay(
+        deepLink.queryParameters['Id']!,
+      );
+    } else if (deepLink.pathSegments[0] == 'viewQuery') {
+      return QueryInfo.fromJson(deepLink.queryParameters);
     }
 
     return null;
@@ -50,6 +72,26 @@ class MHDatabaseRepo extends DatabaseRepository {
     if (!doc.exists) return null;
 
     return Person.fromDoc(
+      doc,
+    );
+  }
+
+  Future<HistoryDay?> getDay(String id) async {
+    final doc = await collection('History').doc(id).get();
+
+    if (!doc.exists) return null;
+
+    return HistoryDay.fromDoc(
+      doc,
+    );
+  }
+
+  Future<ServantsHistoryDay?> getServantsDay(String id) async {
+    final doc = await collection('ServantsHistory').doc(id).get();
+
+    if (!doc.exists) return null;
+
+    return ServantsHistoryDay.fromDoc(
       doc,
     );
   }

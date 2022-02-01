@@ -71,7 +71,7 @@ class MHShareService extends ShareService {
     );
   }
 
-  Future<Uri> shareHistory(HistoryDay record) async {
+  Future<Uri> shareHistory(HistoryDayBase record) async {
     return (await GetIt.I<FirebaseDynamicLinks>().buildShortLink(
       DynamicLinkParameters(
         uriPrefix: uriPrefix,

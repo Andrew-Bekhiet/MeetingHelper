@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:meetinghelper/services/notifications_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -212,13 +213,17 @@ class _LoginScreenState extends State<LoginScreen> {
               await notificationsSettings.put(
                   'BirthDayTime', <String, int>{'Hours': 11, 'Minutes': 0});
             }
-            await AndroidAlarmManager.periodic(const Duration(days: 1),
-                'BirthDay'.hashCode, showBirthDayNotification,
-                exact: true,
-                startAt: DateTime(DateTime.now().year, DateTime.now().month,
-                    DateTime.now().day, 11),
-                wakeup: true,
-                rescheduleOnReboot: true);
+            await AndroidAlarmManager.periodic(
+              const Duration(days: 1),
+              'BirthDay'.hashCode,
+              MHNotificationsService.showBirthDayNotification,
+              exact: true,
+              startAt: DateTime.now().replaceTimeOfDay(
+                const TimeOfDay(hour: 11, minute: 0),
+              ),
+              wakeup: true,
+              rescheduleOnReboot: true,
+            );
           }
 
           if (user.permissions.kodasNotify) {
@@ -226,48 +231,64 @@ class _LoginScreenState extends State<LoginScreen> {
               await notificationsSettings.put('KodasTime',
                   <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
             }
-            await AndroidAlarmManager.periodic(const Duration(days: 7),
-                'Kodas'.hashCode, showKodasNotification,
-                exact: true,
-                startAt: DateTime(DateTime.now().year, DateTime.now().month,
-                    DateTime.now().day, 11),
-                rescheduleOnReboot: true);
+            await AndroidAlarmManager.periodic(
+              const Duration(days: 7),
+              'Kodas'.hashCode,
+              MHNotificationsService.showKodasNotification,
+              exact: true,
+              startAt: DateTime.now().replaceTimeOfDay(
+                const TimeOfDay(hour: 11, minute: 0),
+              ),
+              rescheduleOnReboot: true,
+            );
           }
           if (user.permissions.meetingNotify) {
             if (notificationsSettings.get('MeetingTime') == null) {
               await notificationsSettings.put('MeetingTime',
                   <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
             }
-            await AndroidAlarmManager.periodic(const Duration(days: 7),
-                'Meeting'.hashCode, showMeetingNotification,
-                exact: true,
-                startAt: DateTime(DateTime.now().year, DateTime.now().month,
-                    DateTime.now().day, 11),
-                rescheduleOnReboot: true);
+            await AndroidAlarmManager.periodic(
+              const Duration(days: 7),
+              'Meeting'.hashCode,
+              MHNotificationsService.showMeetingNotification,
+              exact: true,
+              startAt: DateTime.now().replaceTimeOfDay(
+                const TimeOfDay(hour: 11, minute: 0),
+              ),
+              rescheduleOnReboot: true,
+            );
           }
           if (user.permissions.confessionsNotify) {
             if (notificationsSettings.get('ConfessionTime') == null) {
               await notificationsSettings.put('ConfessionTime',
                   <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
             }
-            await AndroidAlarmManager.periodic(const Duration(days: 7),
-                'Confessions'.hashCode, showConfessionNotification,
-                exact: true,
-                startAt: DateTime(DateTime.now().year, DateTime.now().month,
-                    DateTime.now().day, 11),
-                rescheduleOnReboot: true);
+            await AndroidAlarmManager.periodic(
+              const Duration(days: 7),
+              'Confessions'.hashCode,
+              MHNotificationsService.showConfessionNotification,
+              exact: true,
+              startAt: DateTime.now().replaceTimeOfDay(
+                const TimeOfDay(hour: 11, minute: 0),
+              ),
+              rescheduleOnReboot: true,
+            );
           }
           if (user.permissions.tanawolNotify) {
             if (notificationsSettings.get('TanawolTime') == null) {
               await notificationsSettings.put('TanawolTime',
                   <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
             }
-            await AndroidAlarmManager.periodic(const Duration(days: 7),
-                'Tanawol'.hashCode, showTanawolNotification,
-                exact: true,
-                startAt: DateTime(DateTime.now().year, DateTime.now().month,
-                    DateTime.now().day, 11),
-                rescheduleOnReboot: true);
+            await AndroidAlarmManager.periodic(
+              const Duration(days: 7),
+              'Tanawol'.hashCode,
+              MHNotificationsService.showTanawolNotification,
+              exact: true,
+              startAt: DateTime.now().replaceTimeOfDay(
+                const TimeOfDay(hour: 11, minute: 0),
+              ),
+              rescheduleOnReboot: true,
+            );
           }
         }
       });

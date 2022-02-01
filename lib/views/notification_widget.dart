@@ -3,7 +3,6 @@ import 'package:flutter/material.dart' hide Notification;
 import 'package:get_it/get_it.dart';
 
 import '../models/data/user.dart';
-import '../utils/helpers.dart';
 
 class NotificationWidget extends StatelessWidget {
   final Notification notification;
@@ -31,12 +30,10 @@ class NotificationWidget extends StatelessWidget {
             leading: snapshot.hasData
                 ? snapshot.data is User
                     ? UserPhotoWidget(snapshot.data! as User)
-                    : snapshot.data is MessageIcon
-                        ? snapshot.data! as MessageIcon
-                        : PhotoObjectWidget(
-                            snapshot.data! as PhotoObjectBase,
-                            heroTag: snapshot.data,
-                          )
+                    : PhotoObjectWidget(
+                        snapshot.data! as PhotoObjectBase,
+                        heroTag: snapshot.data,
+                      )
                 : const CircularProgressIndicator(),
             title: Text(notification.title),
             subtitle: Text(

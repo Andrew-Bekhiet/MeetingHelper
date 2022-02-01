@@ -4,6 +4,7 @@ import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/repositories/database_repository.dart';
+import 'package:meetinghelper/services/notifications_service.dart';
 import 'package:meetinghelper/services/share_service.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:rxdart/rxdart.dart';
@@ -13,7 +14,6 @@ import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import '../../models/data/user.dart';
 import '../../models/history/history_property.dart';
 import '../../models/search/search_filters.dart';
-import '../../utils/helpers.dart';
 import '../data_map.dart';
 
 class ClassInfo extends StatefulWidget {
@@ -289,8 +289,8 @@ class _ClassInfoState extends State<ClassInfo> {
                         ),
                         PopupMenuButton(
                           key: _moreOptions,
-                          onSelected: (dynamic _) =>
-                              sendNotification(context, class$),
+                          onSelected: (_) => MHNotificationsService.I
+                              .sendNotification(context, class$),
                           itemBuilder: (context) {
                             return [
                               const PopupMenuItem(

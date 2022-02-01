@@ -8,11 +8,11 @@ import 'package:intl/intl.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/theme_notifier.dart';
+import 'package:meetinghelper/services/notifications_service.dart';
 import 'package:provider/provider.dart';
 
 import '../models/data/user.dart';
 import '../utils/globals.dart';
-import '../utils/helpers.dart';
 
 enum DateType {
   month,
@@ -389,17 +389,15 @@ class SettingsState extends State<Settings> {
                         'Minutes': value.minute
                       },
                     );
-                    await AndroidAlarmManager.periodic(const Duration(days: 1),
-                        'BirthDay'.hashCode, showBirthDayNotification,
-                        exact: true,
-                        startAt: DateTime(
-                            DateTime.now().year,
-                            DateTime.now().month,
-                            DateTime.now().day,
-                            value.hour,
-                            value.minute),
-                        wakeup: true,
-                        rescheduleOnReboot: true);
+                    await AndroidAlarmManager.periodic(
+                      const Duration(days: 1),
+                      'BirthDay'.hashCode,
+                      MHNotificationsService.showBirthDayNotification,
+                      exact: true,
+                      startAt: DateTime.now().replaceTime(value),
+                      wakeup: true,
+                      rescheduleOnReboot: true,
+                    );
                   },
                 ),
               ),
@@ -411,7 +409,8 @@ class SettingsState extends State<Settings> {
             label: 'ارسال انذار الاعتراف كل ',
             hiveKey: 'ConfessionTime',
             alarmId: 'Confessions'.hashCode,
-            notificationCallback: showConfessionNotification,
+            notificationCallback:
+                MHNotificationsService.showConfessionNotification,
           ),
         if (notifications['tanawolNotify']!) const SizedBox(height: 20),
         if (notifications['tanawolNotify']!)
@@ -419,7 +418,8 @@ class SettingsState extends State<Settings> {
             label: 'ارسال انذار التناول كل ',
             hiveKey: 'TanawolTime',
             alarmId: 'Tanawol'.hashCode,
-            notificationCallback: showTanawolNotification,
+            notificationCallback:
+                MHNotificationsService.showTanawolNotification,
           ),
         if (notifications['kodasNotify']!) const SizedBox(height: 20),
         if (notifications['kodasNotify']!)
@@ -427,7 +427,7 @@ class SettingsState extends State<Settings> {
             label: 'ارسال انذار حضور القداس كل ',
             hiveKey: 'KodasTime',
             alarmId: 'Kodas'.hashCode,
-            notificationCallback: showKodasNotification,
+            notificationCallback: MHNotificationsService.showKodasNotification,
           ),
         if (notifications['meetingNotify']!) const SizedBox(height: 20),
         if (notifications['meetingNotify']!)
@@ -435,7 +435,8 @@ class SettingsState extends State<Settings> {
             label: 'ارسال انذار حضور الاجتماع كل ',
             hiveKey: 'MeetingTime',
             alarmId: 'Meeting'.hashCode,
-            notificationCallback: showMeetingNotification,
+            notificationCallback:
+                MHNotificationsService.showMeetingNotification,
           ),
         if (notifications['visitNotify']!) const SizedBox(height: 20),
         if (notifications['visitNotify']!)
@@ -443,7 +444,7 @@ class SettingsState extends State<Settings> {
             label: 'ارسال انذار الافتقاد كل ',
             hiveKey: 'VisitTime',
             alarmId: 'Visit'.hashCode,
-            notificationCallback: showVisitNotification,
+            notificationCallback: MHNotificationsService.showVisitNotification,
           ),
       ],
     );

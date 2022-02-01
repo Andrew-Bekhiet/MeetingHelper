@@ -15,7 +15,7 @@ import 'package:tuple/tuple.dart';
 
 part 'history_record.g.dart';
 
-abstract class HistoryDayBase extends DataObject {
+abstract class HistoryDayBase extends DataObjectWithPhoto {
   final Timestamp day;
   final String? notes;
 
@@ -34,6 +34,15 @@ abstract class HistoryDayBase extends DataObject {
 
   @override
   int get hashCode => hashValues(id, day, notes);
+
+  @override
+  bool get hasPhoto => false;
+
+  @override
+  IconData get defaultIcon => Icons.event;
+
+  @override
+  Reference? get photoRef => null;
 
   JsonCollectionRef? subcollection(String? name) =>
       name != null ? ref.collection(name) : null;

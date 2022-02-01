@@ -8,6 +8,7 @@ import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/repositories.dart';
+import 'package:meetinghelper/services/notifications_service.dart';
 import 'package:meetinghelper/services/share_service.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -230,8 +231,9 @@ class _PersonInfoState extends State<PersonInfo> {
                             tooltip: 'مشاركة برابط',
                           ),
                           PopupMenuButton(
-                            onSelected: (dynamic item) async {
-                              await sendNotification(context, person);
+                            onSelected: (_) {
+                              MHNotificationsService.I
+                                  .sendNotification(context, person);
                             },
                             itemBuilder: (BuildContext context) {
                               return [

@@ -10,20 +10,22 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Notification;
 import 'package:get_it/get_it.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:meetinghelper/models/data/class.dart';
 import 'package:meetinghelper/models/data/person.dart';
 import 'package:meetinghelper/models/data/service.dart';
+import 'package:meetinghelper/models/data_object_tap_handler.dart';
 import 'package:meetinghelper/models/hive_persistence_provider.dart';
 import 'package:meetinghelper/models/theme_notifier.dart';
 import 'package:meetinghelper/repositories.dart';
+import 'package:meetinghelper/services/notifications_service.dart';
 import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:rxdart/rxdart.dart';
+import 'package:rxdart/rxdart.dart' hide Notification;
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
@@ -1016,17 +1018,19 @@ class _RootState extends State<Root>
 
     _dynamicLinksSubscription = FirebaseDynamicLinks.instance.onLink.listen(
       (dynamicLink) async {
-        final Uri deepLink = dynamicLink.link;
+        final object =
+            await MHDatabaseRepo.I.getObjectFromLink(dynamicLink.link);
 
-        await processLink(deepLink);
+        if (object != null) GetIt.I<MHDataObjectTapHandler>().onTap(object);
       },
       onError: (e) async {
         debugPrint('DynamicLinks onError $e');
       },
     );
     if (data == null) return;
-    final Uri deepLink = data.link;
-    await processLink(deepLink);
+
+    final object = await MHDatabaseRepo.I.getObjectFromLink(data.link);
+    if (object != null) GetIt.I<MHDataObjectTapHandler>().onTap(object);
   }
 
   TargetFocus _getTarget(String key, GlobalKey v) {
@@ -1355,18 +1359,24 @@ class _RootState extends State<Root>
     }
     listenToFirebaseMessaging();
     await showDynamicLink();
-    await GetIt.I<NotificationsService>().showInitialMessage(context);
-    await processClickedNotification(context);
+    await GetIt.I<MHNotificationsService>().showInitialNotification(context);
     await showBatteryOptimizationDialog();
     await showFeatures();
   }
 
   void listenToFirebaseMessaging() {
-    FirebaseMessaging.onBackgroundMessage(onBackgroundMessage);
-    FirebaseMessaging.onMessage.listen(onForegroundMessage);
+    FirebaseMessaging.onBackgroundMessage(
+      NotificationsService.onBackgroundMessageReceived,
+    );
+    FirebaseMessaging.onMessage
+        .listen(MHNotificationsService.I.onForegroundMessage);
     _firebaseMessagingSubscription =
-        FirebaseMessaging.onMessageOpenedApp.listen((m) async {
-      await GetIt.I<NotificationsService>().showInitialMessage(context);
+        FirebaseMessaging.onMessageOpenedApp.listen((message) {
+      //TODO: prevent showing notification if authenticating with biometrics
+      MHNotificationsService.I.showNotificationContents(
+        context,
+        Notification.fromRemoteMessage(message),
+      );
     });
   }
 

@@ -19,6 +19,8 @@ import 'package:meetinghelper/admin.dart';
 import 'package:meetinghelper/models/theme_notifier.dart';
 import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/secrets.dart';
+import 'package:meetinghelper/services/notifications_service.dart';
+import 'package:meetinghelper/services/share_service.dart';
 import 'package:meetinghelper/views/day.dart';
 import 'package:meetinghelper/views/edit_page/edit_invitation.dart';
 import 'package:meetinghelper/views/edit_users.dart';
@@ -91,6 +93,20 @@ Future<void> initMeetingHelper() async {
         final instance = MHDatabaseRepo();
 
         GetIt.I.registerSingleton<MHDatabaseRepo>(instance);
+
+        return instance;
+      },
+      NotificationsService: () {
+        final instance = MHNotificationsService();
+
+        GetIt.I.registerSingleton<MHNotificationsService>(instance);
+
+        return instance;
+      },
+      ShareService: () {
+        final instance = MHShareService();
+
+        GetIt.I.registerSingleton<MHShareService>(instance);
 
         return instance;
       },
