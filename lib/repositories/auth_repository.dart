@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:rxdart/rxdart.dart';
 
 class MHAuthRepository extends AuthRepository<User, Person> {
   static MHAuthRepository get instance => GetIt.I<MHAuthRepository>();
@@ -54,19 +55,22 @@ class MHAuthRepository extends AuthRepository<User, Person> {
           .doc(idTokenClaims['personId'])
           .snapshots()
           .map((doc) {
-        userSubject.add(User(
-          ref: doc.reference,
-          uid: firebaseUser?.uid ?? uid!,
-          name: firebaseUser?.displayName ?? name ?? '',
-          email: firebaseUser?.email ?? email!,
-          password: idTokenClaims['password'],
-          permissions: permissionsFromIdToken(idTokenClaims),
-          classId: doc.data()?['ClassId'],
-          allowedUsers: doc.data()?['AllowedUsers']?.cast<String>() ?? [],
-          adminServices: doc.data()?['AdminServices']?.cast<JsonRef>() ?? [],
-        ));
-        return Person.fromDoc(doc);
-      }).listen(refreshFromDoc);
+            userSubject.add(User(
+              ref: doc.reference,
+              uid: firebaseUser?.uid ?? uid!,
+              name: firebaseUser?.displayName ?? name ?? '',
+              email: firebaseUser?.email ?? email!,
+              password: idTokenClaims['password'],
+              permissions: permissionsFromIdToken(idTokenClaims),
+              classId: doc.data()?['ClassId'],
+              allowedUsers: doc.data()?['AllowedUsers']?.cast<String>() ?? [],
+              adminServices:
+                  doc.data()?['AdminServices']?.cast<JsonRef>() ?? [],
+            ));
+            return doc.exists ? Person.fromDoc(doc) : null;
+          })
+          .whereType<Person>()
+          .listen(refreshFromDoc);
     } else {
       userSubject.add(User(
         ref: currentUser?.ref ??
