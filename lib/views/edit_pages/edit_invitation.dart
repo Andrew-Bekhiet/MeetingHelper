@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:async/async.dart';
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' show FieldValue;
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -25,7 +24,7 @@ class EditInvitation extends StatefulWidget {
 class _EditInvitationState extends State<EditInvitation> {
   late Invitation invitation;
 
-  AsyncCache<String?> personName = AsyncCache(const Duration(minutes: 1));
+  AsyncMemoizerCache<String?> personName = AsyncMemoizerCache();
 
   GlobalKey<FormState> form = GlobalKey<FormState>();
 
@@ -115,7 +114,7 @@ class _EditInvitationState extends State<EditInvitation> {
                         labelText: 'ربط بخادم',
                       ),
                       child: FutureBuilder<String?>(
-                        future: personName.fetch(
+                        future: personName.runOnce(
                           () async {
                             if (invitation.permissions?['personId'] == null) {
                               return null;

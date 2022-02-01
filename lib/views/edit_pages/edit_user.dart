@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:async/async.dart';
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' show FieldValue;
 import 'package:collection/collection.dart';
@@ -27,7 +26,7 @@ class EditUser extends StatefulWidget {
 }
 
 class _EditUserState extends State<EditUser> {
-  AsyncCache<String?> className = AsyncCache(const Duration(minutes: 1));
+  AsyncMemoizerCache<String?> className = AsyncMemoizerCache();
   late User user;
   List<User>? childrenUsers;
 
@@ -157,7 +156,7 @@ class _EditUserState extends State<EditUser> {
                         labelText: 'داخل فصل',
                       ),
                       child: FutureBuilder<String?>(
-                        future: className.fetch(
+                        future: className.runOnce(
                           () => user.classId == null
                               ? Future<String?>(() => null)
                               : (user.classId

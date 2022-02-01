@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:async/async.dart';
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' show DocumentReference;
 import 'package:copy_with_extension/copy_with_extension.dart';
@@ -238,8 +237,7 @@ class Service extends DataObject implements PhotoObjectBase {
       : null;
 
   @override
-  final AsyncCache<String> photoUrlCache =
-      AsyncCache<String>(const Duration(days: 1));
+  final AsyncMemoizerCache<String> photoUrlCache = AsyncMemoizerCache<String>();
 
   @override
   IconData get defaultIcon => Icons.miscellaneous_services;
