@@ -153,7 +153,7 @@ class AppState extends State<App> {
             Updates.showUpdateDialog(context, canCancel: false);
           }
           if (snapshot.error.toString() !=
-                  'Exception: Error Update User Data' ||
+                  'Exception: Error Update User Data' &&
               User.instance.password != null)
             return Loading(
               error: true,
