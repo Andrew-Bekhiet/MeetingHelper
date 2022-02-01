@@ -120,7 +120,7 @@ class User extends UserBase implements DataObjectWithPhoto {
   bool userDataUpToDate() {
     return permissions.lastTanawol != null &&
         permissions.lastConfession != null &&
-        ((permissions.lastTanawol!.millisecondsSinceEpoch + 2592000000) >=
+        ((permissions.lastTanawol!.millisecondsSinceEpoch + 5184000000) >=
                 DateTime.now().millisecondsSinceEpoch &&
             (permissions.lastConfession!.millisecondsSinceEpoch + 5184000000) >=
                 DateTime.now().millisecondsSinceEpoch);
