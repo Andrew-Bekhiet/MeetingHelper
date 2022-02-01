@@ -66,7 +66,10 @@ Future<void> initMeetingHelper() async {
       NotificationsService: () {
         final instance = MHNotificationsService();
 
-        GetIt.I.registerSingleton<MHNotificationsService>(instance);
+        GetIt.I.registerSingleton<MHNotificationsService>(
+          instance,
+          signalsReady: true,
+        );
 
         return instance;
       },
@@ -99,14 +102,7 @@ Future<void> initFirebase() async {
     if (kDebugMode &&
         kEmulatorsHost != null &&
         dotenv.env['kUseFirebaseEmulators']?.toString() == 'true') {
-      await Firebase.initializeApp(
-        options: FirebaseOptions(
-          apiKey: dotenv.env['apiKey'] ?? 'sss',
-          appId: dotenv.env['appId'] ?? 'ss',
-          messagingSenderId: 'messagingSenderId',
-          projectId: dotenv.env['projectId']!,
-        ),
-      );
+      await Firebase.initializeApp();
 
       await auth.FirebaseAuth.instance.useAuthEmulator(kEmulatorsHost, 9099);
       await FirebaseStorage.instance.useStorageEmulator(kEmulatorsHost, 9199);
