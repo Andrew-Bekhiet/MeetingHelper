@@ -73,15 +73,12 @@ Future<void> initMeetingHelper() async {
 
         return instance;
       },
-      ShareService: () {
-        final instance = MHShareService();
-
-        GetIt.I.registerSingleton<MHShareService>(instance);
-
-        return instance;
-      },
     },
   );
+
+  final shareService = MHShareService();
+  GetIt.I.registerSingleton<ShareService>(shareService);
+  GetIt.I.registerSingleton<MHShareService>(shareService);
 
   final mhDataObjectTapHandler = MHDataObjectTapHandler(navigator);
   GetIt.I
