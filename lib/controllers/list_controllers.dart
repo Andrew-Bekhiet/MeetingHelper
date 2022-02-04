@@ -33,7 +33,9 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
     SearchFunction<T>? filter,
     GroupingFunction<G, T>? groupBy,
     GroupingStreamFunction<G, T>? groupByStream,
-  })  : assert(dayOptions.grouped.value == false || groupBy != null),
+  })  : assert(dayOptions.grouped.value == false ||
+            groupBy != null ||
+            groupByStream != null),
         _attended = BehaviorSubject<Map<String, HistoryRecord>>(),
         _objectsById = BehaviorSubject<Map<String, T>>(),
         super(
