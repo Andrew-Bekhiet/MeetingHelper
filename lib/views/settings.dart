@@ -35,7 +35,7 @@ class SettingsState extends State<Settings> {
   var settings = GetIt.I<CacheRepository>().box('Settings');
 
   var notificationsSettings = GetIt.I<CacheRepository>()
-      .box<Map<dynamic, dynamic>>('NotificationsSettings');
+      .box<NotificationSetting>('NotificationsSettings');
 
   late void Function() _save;
 
@@ -349,13 +349,18 @@ class SettingsState extends State<Settings> {
                     2021,
                     1,
                     1,
-                    notificationsSettings.get('BirthDayTime',
-                        defaultValue: <String, int>{
-                          'Hours': 11
-                        })!.cast<String, int>()['Hours']!,
-                    notificationsSettings.get('BirthDayTime', defaultValue: {
-                      'Minutes': 0
-                    })!.cast<String, int>()['Minutes']!,
+                    notificationsSettings
+                        .get(
+                          'BirthDayTime',
+                          defaultValue: const NotificationSetting(11, 0, 1),
+                        )!
+                        .hours,
+                    notificationsSettings
+                        .get(
+                          'BirthDayTime',
+                          defaultValue: const NotificationSetting(11, 0, 1),
+                        )!
+                        .minutes,
                   ),
                   resetIcon: null,
                   onShowPicker: (context, initialValue) async {
@@ -371,19 +376,16 @@ class SettingsState extends State<Settings> {
                         selected?.minute ?? initialValue.minute);
                   },
                   onSaved: (value) async {
-                    final current = notificationsSettings.get('BirthDayTime',
-                        defaultValue: {
-                          'Hours': 11,
-                          'Minutes': 0
-                        })!.cast<String, int>();
-                    if (current['Hours'] == value!.hour &&
-                        current['Minutes'] == value.minute) return;
+                    final current = notificationsSettings.get(
+                      'BirthDayTime',
+                      defaultValue: const NotificationSetting(11, 0, 1),
+                    )!;
+
+                    if (current.hours == value!.hour &&
+                        current.minutes == value.minute) return;
                     await notificationsSettings.put(
                       'BirthDayTime',
-                      <String, int>{
-                        'Hours': value.hour,
-                        'Minutes': value.minute
-                      },
+                      NotificationSetting(value.hour, value.minute, 1),
                     );
                     await AndroidAlarmManager.periodic(
                       const Duration(days: 1),
