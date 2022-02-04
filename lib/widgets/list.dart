@@ -173,7 +173,7 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
                 groupedData.data!.values.elementAt(i.section)[i.index];
             return Padding(
               padding: const EdgeInsets.fromLTRB(3, 0, 9, 0),
-              child: _buildItem(current),
+              child: buildItemWrapper(current),
             );
           },
         );
@@ -183,31 +183,31 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
 
   Widget buildListView() {
     return StreamBuilder<List<T>>(
-        stream: _listController.objectsStream,
-        builder: (context, data) {
-          if (data.hasError) return Center(child: ErrorWidget(data.error!));
-          if (!data.hasData)
-            return const Center(child: CircularProgressIndicator());
+      stream: _listController.objectsStream,
+      builder: (context, data) {
+        if (data.hasError) return Center(child: ErrorWidget(data.error!));
+        if (!data.hasData)
+          return const Center(child: CircularProgressIndicator());
 
-          final List<T> _data = data.data!;
-          if (_data.isEmpty)
-            return Center(child: Text(widget.emptyMsg ?? 'لا يوجد عناصر'));
+        final List<T> _data = data.data!;
+        if (_data.isEmpty)
+          return Center(child: Text(widget.emptyMsg ?? 'لا يوجد عناصر'));
 
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
-            addAutomaticKeepAlives: _data.length < 500,
-            cacheExtent: 200,
-            itemCount: _data.length + 1,
-            itemBuilder: (context, i) {
-              if (i == _data.length)
-                return Container(
-                    height: MediaQuery.of(context).size.height / 19);
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          addAutomaticKeepAlives: _data.length < 500,
+          cacheExtent: 200,
+          itemCount: _data.length + 1,
+          itemBuilder: (context, i) {
+            if (i == _data.length)
+              return Container(height: MediaQuery.of(context).size.height / 19);
 
-              final T current = _data[i];
-              return _buildItem(current);
-            },
-          );
-        });
+            final T current = _data[i];
+            return buildItemWrapper(current);
+          },
+        );
+      },
+    );
   }
 
   Widget buildItemWrapper(T current) {
