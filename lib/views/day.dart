@@ -7,7 +7,6 @@ import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/widgets.dart';
-import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
@@ -52,263 +51,240 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
         return Tuple2(_previous!, snapshot);
       }),
       builder: (context, snapshot) {
-        return MultiProvider(
-          providers: const [],
-          builder: (context, body) {
-            return Scaffold(
-              appBar: AppBar(
-                title: StreamBuilder<bool>(
-                  initialData: _showSearch.value,
-                  stream: _showSearch,
-                  builder: _buildSearchBar,
-                ),
-                actions: [
-                  StreamBuilder<bool>(
-                    initialData: _showSearch.value,
-                    stream: _showSearch,
-                    builder: (context, data) => !data.requireData
-                        ? IconButton(
-                            icon: const Icon(Icons.search),
-                            onPressed: () => setState(() {
-                              _searchFocus.requestFocus();
-                              _showSearch.add(true);
-                            }),
-                            tooltip: 'بحث',
-                          )
-                        : Container(),
-                  ),
-                  IconButton(
-                    key: _analyticsToday,
-                    tooltip: 'تحليل بيانات كشف اليوم',
-                    icon: const Icon(Icons.analytics_outlined),
-                    onPressed: () {
-                      navigator.currentState!.pushNamed('Analytics',
-                          arguments: {
-                            'Day': widget.record,
-                            'HistoryCollection': widget.record.ref.parent.id
-                          });
-                    },
-                  ),
-                  PopupMenuButton(
-                    key: _sorting,
-                    onSelected: (v) async {
-                      if (v == 'delete' &&
-                          User.instance.permissions.superAccess) {
-                        await _delete();
-                      } else if (v == 'sorting') {
-                        await _showSortingOptions(context);
-                      } else if (v == 'edit') {
-                        dayOptions.enabled.add(!dayOptions.enabled.value);
-                        dayOptions.sortByTimeASC.add(null);
-                        dayOptions.showOnly.add(null);
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'sorting',
-                        child: Text('تنظيم الليستة'),
-                      ),
-                      if (User.instance.permissions.changeHistory &&
-                          DateTime.now()
-                                  .difference(widget.record.day.toDate())
-                                  .inDays !=
-                              0)
-                        PopupMenuItem(
-                          value: 'edit',
-                          child: dayOptions.enabled.value
-                              ? const Text('اغلاق وضع التعديل')
-                              : const Text('تعديل الكشف'),
-                        ),
-                      if (User.instance.permissions.superAccess)
-                        const PopupMenuItem(
-                          value: 'delete',
-                          child: Text('حذف الكشف'),
-                        ),
-                    ],
-                  ),
-                ],
-                bottom: TabBar(
-                  isScrollable: true,
-                  controller: snapshot.requireData.item1,
-                  tabs: [
-                    const Tab(text: 'حضور الاجتماع'),
-                    const Tab(text: 'حضور القداس'),
-                    const Tab(text: 'الاعتراف'),
-                    ...snapshot.requireData.item2.map(
-                      (service) => Tab(text: service.name),
-                    ),
-                  ],
-                ),
+        return Scaffold(
+          appBar: AppBar(
+            title: StreamBuilder<bool>(
+              initialData: _showSearch.value,
+              stream: _showSearch,
+              builder: _buildSearchBar,
+            ),
+            actions: [
+              StreamBuilder<bool>(
+                initialData: _showSearch.value,
+                stream: _showSearch,
+                builder: (context, data) => !data.requireData
+                    ? IconButton(
+                        icon: const Icon(Icons.search),
+                        onPressed: () => setState(() {
+                          _searchFocus.requestFocus();
+                          _showSearch.add(true);
+                        }),
+                        tooltip: 'بحث',
+                      )
+                    : Container(),
               ),
-              body: body,
-              bottomNavigationBar: BottomAppBar(
-                color: Theme.of(context).colorScheme.primary,
-                shape: const CircularNotchedRectangle(),
-                child: AnimatedBuilder(
-                  animation: snapshot.requireData.item1,
-                  builder: (context, _) => StreamBuilder<Tuple2<int, int>>(
-                    stream: Rx.combineLatest2<List, Map, Tuple2<int, int>>(
-                      (snapshot.requireData.item1.index <= 2
-                              ? _listControllers[snapshot
-                                              .requireData.item1.index ==
-                                          0
+              IconButton(
+                key: _analyticsToday,
+                tooltip: 'تحليل بيانات كشف اليوم',
+                icon: const Icon(Icons.analytics_outlined),
+                onPressed: () {
+                  navigator.currentState!.pushNamed('Analytics', arguments: {
+                    'Day': widget.record,
+                    'HistoryCollection': widget.record.ref.parent.id
+                  });
+                },
+              ),
+              PopupMenuButton(
+                key: _sorting,
+                onSelected: (v) async {
+                  if (v == 'delete' && User.instance.permissions.superAccess) {
+                    await _delete();
+                  } else if (v == 'sorting') {
+                    await _showSortingOptions(context);
+                  } else if (v == 'edit') {
+                    dayOptions.enabled.add(!dayOptions.enabled.value);
+                    dayOptions.sortByTimeASC.add(null);
+                    dayOptions.showOnly.add(null);
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'sorting',
+                    child: Text('تنظيم الليستة'),
+                  ),
+                  if (User.instance.permissions.changeHistory &&
+                      DateTime.now()
+                              .difference(widget.record.day.toDate())
+                              .inDays !=
+                          0)
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: dayOptions.enabled.value
+                          ? const Text('اغلاق وضع التعديل')
+                          : const Text('تعديل الكشف'),
+                    ),
+                  if (User.instance.permissions.superAccess)
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Text('حذف الكشف'),
+                    ),
+                ],
+              ),
+            ],
+            bottom: TabBar(
+              isScrollable: true,
+              controller: snapshot.requireData.item1,
+              tabs: [
+                const Tab(text: 'حضور الاجتماع'),
+                const Tab(text: 'حضور القداس'),
+                const Tab(text: 'الاعتراف'),
+                ...snapshot.requireData.item2.map(
+                  (service) => Tab(text: service.name),
+                ),
+              ],
+            ),
+          ),
+          body: TabBarView(
+            controller: snapshot.requireData.item1,
+            children: [
+              DayCheckList<Class?, Person>(
+                autoDisposeController: false,
+                key: PageStorageKey(
+                  (widget.record is ServantsHistoryDay ? 'Users' : 'Persons') +
+                      'Meeting' +
+                      widget.record.id,
+                ),
+                controller: () {
+                  final tmp = baseController.copyWith(type: 'Meeting');
+                  _listControllers['Meeting'] = tmp;
+                  return tmp;
+                }(),
+              ),
+              DayCheckList<Class?, Person>(
+                autoDisposeController: false,
+                key: PageStorageKey(
+                  (widget.record is ServantsHistoryDay ? 'Users' : 'Persons') +
+                      'Kodas' +
+                      widget.record.id,
+                ),
+                controller: () {
+                  final tmp = baseController.copyWith(type: 'Kodas');
+                  _listControllers['Kodas'] = tmp;
+                  return tmp;
+                }(),
+              ),
+              DayCheckList<Class?, Person>(
+                autoDisposeController: false,
+                key: PageStorageKey(
+                  (widget.record is ServantsHistoryDay ? 'Users' : 'Persons') +
+                      'Confession' +
+                      widget.record.id,
+                ),
+                controller: () {
+                  final tmp = baseController.copyWith(type: 'Confession');
+                  _listControllers['Confession'] = tmp;
+                  return tmp;
+                }(),
+              ),
+              ...snapshot.requireData.item2.map(
+                (service) => DayCheckList<StudyYear?, Person>(
+                  autoDisposeController: false,
+                  key: PageStorageKey(
+                    (widget.record is ServantsHistoryDay
+                            ? 'Users'
+                            : 'Persons') +
+                        service.id +
+                        widget.record.id,
+                  ),
+                  controller: () {
+                    final tmp = baseController.copyWithNewG<StudyYear?>(
+                      type: service.id,
+                      groupByStream:
+                          MHDatabaseRepo.I.groupPersonsByStudyYearRef,
+                      objectsPaginatableStream: PaginatableStream.loadAll(
+                        stream: service.getPersonsMembersLive(),
+                      ),
+                    );
+
+                    _listControllers[service.id] = tmp;
+                    return tmp;
+                  }(),
+                ),
+              )
+            ],
+          ),
+          bottomNavigationBar: BottomAppBar(
+            color: Theme.of(context).colorScheme.primary,
+            shape: const CircularNotchedRectangle(),
+            child: AnimatedBuilder(
+              animation: snapshot.requireData.item1,
+              builder: (context, _) => StreamBuilder<Tuple2<int, int>>(
+                stream: Rx.combineLatest2<List, Map, Tuple2<int, int>>(
+                  (snapshot.requireData.item1.index <= 2
+                          ? _listControllers[
+                                  snapshot.requireData.item1.index == 0
                                       ? 'Meeting'
                                       : snapshot.requireData.item1.index == 1
                                           ? 'Kodas'
                                           : 'Confesion']
-                                  ?.objectsStream
-                              : _listControllers[snapshot
-                                      .requireData
-                                      .item2[
-                                          snapshot.requireData.item1.index - 3]
-                                      .id]
-                                  ?.objectsStream) ??
-                          Stream.value([]),
-                      (snapshot.requireData.item1.index <= 2
-                              ? _listControllers[snapshot
-                                              .requireData.item1.index ==
-                                          0
+                              ?.objectsStream
+                          : _listControllers[snapshot
+                                  .requireData
+                                  .item2[snapshot.requireData.item1.index - 3]
+                                  .id]
+                              ?.objectsStream) ??
+                      Stream.value([]),
+                  (snapshot.requireData.item1.index <= 2
+                          ? _listControllers[
+                                  snapshot.requireData.item1.index == 0
                                       ? 'Meeting'
                                       : snapshot.requireData.item1.index == 1
                                           ? 'Kodas'
                                           : 'Confession']
-                                  ?.attended
-                              : _listControllers[snapshot
-                                      .requireData
-                                      .item2[
-                                          snapshot.requireData.item1.index - 3]
-                                      .id]
-                                  ?.attended) ??
-                          Stream.value({}),
-                      (a, b) => Tuple2<int, int>(a.length, b.length),
-                    ),
-                    builder: (context, snapshot) {
-                      final TextTheme theme =
-                          Theme.of(context).primaryTextTheme;
-                      return ExpansionTile(
-                        expandedAlignment: Alignment.centerRight,
-                        title: Text(
-                          'الحضور: ' +
-                              (snapshot.data?.item2.toString() ?? '0') +
-                              ' مخدوم',
-                          style: theme.bodyText2,
-                        ),
-                        trailing: Icon(Icons.expand_more,
-                            color: theme.bodyText2?.color),
-                        leading: StreamBuilder<bool>(
-                          initialData: dayOptions.lockUnchecks.value,
-                          stream: dayOptions.lockUnchecks,
-                          builder: (context, data) {
-                            return IconButton(
-                              key: _lockUnchecks,
-                              icon: Icon(
-                                  !data.data!
-                                      ? Icons.lock_open
-                                      : Icons.lock_outlined,
-                                  color: theme.bodyText2?.color),
-                              tooltip: 'تثبيت الحضور',
-                              onPressed: () =>
-                                  dayOptions.lockUnchecks.add(!data.data!),
-                            );
-                          },
-                        ),
-                        children: [
-                          Text('الغياب: ' +
-                              ((snapshot.data?.item1 ?? 0) -
-                                      (snapshot.data?.item2 ?? 0))
-                                  .toString() +
-                              ' مخدوم'),
-                          Text('اجمالي: ' +
-                              (snapshot.data?.item1 ?? 0).toString() +
-                              ' مخدوم'),
-                        ],
-                      );
-                    },
-                  ),
+                              ?.attended
+                          : _listControllers[snapshot
+                                  .requireData
+                                  .item2[snapshot.requireData.item1.index - 3]
+                                  .id]
+                              ?.attended) ??
+                      Stream.value({}),
+                  (a, b) => Tuple2<int, int>(a.length, b.length),
                 ),
-              ),
-              extendBody: true,
-            );
-          },
-          child: Builder(
-            builder: (context) {
-              return TabBarView(
-                controller: snapshot.requireData.item1,
-                children: [
-                  DayCheckList<Class?, Person>(
-                    autoDisposeController: false,
-                    key: PageStorageKey(
-                      (widget.record is ServantsHistoryDay
-                              ? 'Users'
-                              : 'Persons') +
-                          'Meeting' +
-                          widget.record.id,
+                builder: (context, snapshot) {
+                  final TextTheme theme = Theme.of(context).primaryTextTheme;
+                  return ExpansionTile(
+                    expandedAlignment: Alignment.centerRight,
+                    title: Text(
+                      'الحضور: ' +
+                          (snapshot.data?.item2.toString() ?? '0') +
+                          ' مخدوم',
+                      style: theme.bodyText2,
                     ),
-                    controller: () {
-                      final tmp = baseController.copyWith(type: 'Meeting');
-                      _listControllers['Meeting'] = tmp;
-                      return tmp;
-                    }(),
-                  ),
-                  DayCheckList<Class?, Person>(
-                    autoDisposeController: false,
-                    key: PageStorageKey(
-                      (widget.record is ServantsHistoryDay
-                              ? 'Users'
-                              : 'Persons') +
-                          'Kodas' +
-                          widget.record.id,
-                    ),
-                    controller: () {
-                      final tmp = baseController.copyWith(type: 'Kodas');
-                      _listControllers['Kodas'] = tmp;
-                      return tmp;
-                    }(),
-                  ),
-                  DayCheckList<Class?, Person>(
-                    autoDisposeController: false,
-                    key: PageStorageKey(
-                      (widget.record is ServantsHistoryDay
-                              ? 'Users'
-                              : 'Persons') +
-                          'Confession' +
-                          widget.record.id,
-                    ),
-                    controller: () {
-                      final tmp = baseController.copyWith(type: 'Confession');
-                      _listControllers['Confession'] = tmp;
-                      return tmp;
-                    }(),
-                  ),
-                  ...snapshot.requireData.item2.map(
-                    (service) => DayCheckList<StudyYear?, Person>(
-                      autoDisposeController: false,
-                      key: PageStorageKey(
-                        (widget.record is ServantsHistoryDay
-                                ? 'Users'
-                                : 'Persons') +
-                            service.id +
-                            widget.record.id,
-                      ),
-                      controller: () {
-                        final tmp = baseController.copyWithNewG<StudyYear?>(
-                          type: service.id,
-                          groupByStream:
-                              MHDatabaseRepo.I.groupPersonsByStudyYearRef,
-                          objectsPaginatableStream: PaginatableStream.loadAll(
-                            stream: service.getPersonsMembersLive(),
-                          ),
+                    trailing:
+                        Icon(Icons.expand_more, color: theme.bodyText2?.color),
+                    leading: StreamBuilder<bool>(
+                      initialData: dayOptions.lockUnchecks.value,
+                      stream: dayOptions.lockUnchecks,
+                      builder: (context, data) {
+                        return IconButton(
+                          key: _lockUnchecks,
+                          icon: Icon(
+                              !data.data!
+                                  ? Icons.lock_open
+                                  : Icons.lock_outlined,
+                              color: theme.bodyText2?.color),
+                          tooltip: 'تثبيت الحضور',
+                          onPressed: () =>
+                              dayOptions.lockUnchecks.add(!data.data!),
                         );
-
-                        _listControllers[service.id] = tmp;
-                        return tmp;
-                      }(),
+                      },
                     ),
-                  )
-                ],
-              );
-            },
+                    children: [
+                      Text('الغياب: ' +
+                          ((snapshot.data?.item1 ?? 0) -
+                                  (snapshot.data?.item2 ?? 0))
+                              .toString() +
+                          ' مخدوم'),
+                      Text('اجمالي: ' +
+                          (snapshot.data?.item1 ?? 0).toString() +
+                          ' مخدوم'),
+                    ],
+                  );
+                },
+              ),
+            ),
           ),
+          extendBody: true,
         );
       },
     );
