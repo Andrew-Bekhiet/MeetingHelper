@@ -30,14 +30,12 @@ class SettingsState extends State<Settings> {
 
   bool? state;
 
-  GlobalKey<FormState> formKey = GlobalKey();
+  final GlobalKey<FormState> _form = GlobalKey();
 
   var settings = GetIt.I<CacheRepository>().box('Settings');
 
   var notificationsSettings = GetIt.I<CacheRepository>()
       .box<NotificationSetting>('NotificationsSettings');
-
-  late void Function() _save;
 
   @override
   Widget build(BuildContext context) {
@@ -49,267 +47,256 @@ class SettingsState extends State<Settings> {
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Form(
-            child: Builder(
-              builder: (context) {
-                _save = () {
-                  Form.of(context)!.save();
-                  scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
-                    content: Text('تم الحفظ'),
-                  ));
-                };
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    ExpandablePanel(
-                      theme: ExpandableThemeData(
-                          useInkWell: true,
-                          iconColor: Theme.of(context).iconTheme.color,
-                          bodyAlignment: ExpandablePanelBodyAlignment.right),
-                      header: const Text(
-                        'المظهر',
-                        style: TextStyle(fontSize: 24),
-                      ),
-                      collapsed: const Text('المظهر العام للبرنامج'),
-                      expanded: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+            key: _form,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                ExpandablePanel(
+                  theme: ExpandableThemeData(
+                      useInkWell: true,
+                      iconColor: Theme.of(context).iconTheme.color,
+                      bodyAlignment: ExpandablePanelBodyAlignment.right),
+                  header: const Text(
+                    'المظهر',
+                    style: TextStyle(fontSize: 24),
+                  ),
+                  collapsed: const Text('المظهر العام للبرنامج'),
+                  expanded: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: <Widget>[
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: <Widget>[
-                              ChoiceChip(
-                                label: const Text('المظهر الداكن'),
-                                selected: darkTheme ?? false,
-                                onSelected: (v) =>
-                                    setState(() => darkTheme = true),
-                              ),
-                              ChoiceChip(
-                                label: const Text('المظهر الفاتح'),
-                                selected: darkTheme == false,
-                                onSelected: (v) =>
-                                    setState(() => darkTheme = false),
-                              ),
-                              ChoiceChip(
-                                label: const Text('حسب النظام'),
-                                selected: darkTheme == null,
-                                onSelected: (v) =>
-                                    setState(() => darkTheme = null),
-                              ),
-                            ],
+                          ChoiceChip(
+                            label: const Text('المظهر الداكن'),
+                            selected: darkTheme ?? false,
+                            onSelected: (v) => setState(() => darkTheme = true),
                           ),
-                          SwitchListTile(
-                            value: greatFeastTheme,
-                            onChanged: (v) =>
-                                setState(() => greatFeastTheme = v),
-                            title: const Text(
-                                'تغيير لون البرنامج حسب أسبوع الآلام وفترة الخمسين'),
+                          ChoiceChip(
+                            label: const Text('المظهر الفاتح'),
+                            selected: darkTheme == false,
+                            onSelected: (v) =>
+                                setState(() => darkTheme = false),
                           ),
-                          ElevatedButton.icon(
-                            onPressed: () async {
-                              await GetIt.I<CacheRepository>()
-                                  .box('Settings')
-                                  .put('DarkTheme', darkTheme);
-                              await GetIt.I<CacheRepository>()
-                                  .box('Settings')
-                                  .put('GreatFeastTheme', greatFeastTheme);
+                          ChoiceChip(
+                            label: const Text('حسب النظام'),
+                            selected: darkTheme == null,
+                            onSelected: (v) => setState(() => darkTheme = null),
+                          ),
+                        ],
+                      ),
+                      SwitchListTile(
+                        value: greatFeastTheme,
+                        onChanged: (v) => setState(() => greatFeastTheme = v),
+                        title: const Text(
+                            'تغيير لون البرنامج حسب أسبوع الآلام وفترة الخمسين'),
+                      ),
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          await GetIt.I<CacheRepository>()
+                              .box('Settings')
+                              .put('DarkTheme', darkTheme);
+                          await GetIt.I<CacheRepository>()
+                              .box('Settings')
+                              .put('GreatFeastTheme', greatFeastTheme);
 
-                              GetIt.I<MHThemeNotifier>().switchTheme(
-                                darkTheme ??
-                                    WidgetsBinding.instance!.window
-                                            .platformBrightness ==
-                                        Brightness.dark,
-                              );
-                            },
-                            icon: const Icon(Icons.done),
-                            label: const Text('تغيير'),
-                          ),
-                        ],
-                      ),
-                    ),
-                    ExpandablePanel(
-                      theme: ExpandableThemeData(
-                          useInkWell: true,
-                          iconColor: Theme.of(context).iconTheme.color,
-                          bodyAlignment: ExpandablePanelBodyAlignment.right),
-                      header: const Text('بيانات إضافية',
-                          style: TextStyle(fontSize: 24)),
-                      collapsed: const Text(
-                        'الكنائس، الأباء الكهنة، الوظائف، السنوات الدراسية، المدارس والكليات',
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      expanded: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          ElevatedButton(
-                            onPressed: () => navigator.currentState!
-                                .pushNamed('Settings/Churches'),
-                            child: const Text('الكنائس'),
-                          ),
-                          ElevatedButton(
-                            onPressed: () => navigator.currentState!
-                                .pushNamed('Settings/Fathers'),
-                            child: const Text('الأباء الكهنة'),
-                          ),
-                          ElevatedButton(
-                            onPressed: () => navigator.currentState!
-                                .pushNamed('Settings/StudyYears'),
-                            child: const Text('السنوات الدراسية'),
-                          ),
-                          ElevatedButton(
-                            onPressed: () => navigator.currentState!
-                                .pushNamed('Settings/Schools'),
-                            child: const Text('المدارس'),
-                          ),
-                          ElevatedButton(
-                            onPressed: () => navigator.currentState!
-                                .pushNamed('Settings/Colleges'),
-                            child: const Text('الكليات'),
-                          ),
-                        ],
-                      ),
-                    ),
-                    ExpandablePanel(
-                      theme: ExpandableThemeData(
-                          useInkWell: true,
-                          iconColor: Theme.of(context).iconTheme.color,
-                          bodyAlignment: ExpandablePanelBodyAlignment.right),
-                      header: const Text('مظهر البيانات',
-                          style: TextStyle(fontSize: 24)),
-                      collapsed: const Text(
-                          'السطر الثاني للفصل، السطر الثاني للمخدوم',
-                          overflow: TextOverflow.ellipsis),
-                      expanded: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          Container(
-                            padding: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: DropdownButtonFormField<String?>(
-                              value: settings.get('ClassSecondLine'),
-                              items: Class.propsMetadata()
-                                  .entries
-                                  .map(
-                                    (e) => DropdownMenuItem(
-                                      value: e.key,
-                                      child: Text(e.value.label),
-                                    ),
-                                  )
-                                  .toList()
-                                ..removeWhere(
-                                    (element) => element.value == 'Color')
-                                ..add(const DropdownMenuItem(
-                                  value: 'Members',
-                                  child: Text('المخدومين بالفصل'),
-                                ))
-                                ..insert(
-                                    0,
-                                    const DropdownMenuItem(
-                                      value: null,
-                                      child: Text(''),
-                                    )),
-                              onChanged: (value) {},
-                              onSaved: (value) async {
-                                await settings.put('ClassSecondLine', value);
-                              },
-                              decoration: const InputDecoration(
-                                labelText: 'السطر الثاني للفصل:',
-                              ),
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: DropdownButtonFormField<String?>(
-                              value: settings.get('PersonSecondLine'),
-                              items: Person.propsMetadata()
-                                  .entries
-                                  .map((e) => DropdownMenuItem(
-                                        value: e.key,
-                                        child: Text(e.value.label),
-                                      ))
-                                  .toList()
-                                ..removeWhere(
-                                    (element) => element.value == 'Color')
-                                ..insert(
-                                    0,
-                                    const DropdownMenuItem(
-                                      value: null,
-                                      child: Text(''),
-                                    )),
-                              onChanged: (value) {},
-                              onSaved: (value) async {
-                                await settings.put('PersonSecondLine', value);
-                              },
-                              decoration: const InputDecoration(
-                                labelText: 'السطر الثاني للمخدوم:',
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Selector<User, Map<String, bool>>(
-                      selector: (_, user) => user.getNotificationsPermissions(),
-                      builder: (context, permission, _) {
-                        if (permission.containsValue(true)) {
-                          return ExpandablePanel(
-                            theme: ExpandableThemeData(
-                                useInkWell: true,
-                                iconColor: Theme.of(context).iconTheme.color,
-                                bodyAlignment:
-                                    ExpandablePanelBodyAlignment.right),
-                            header: const Text(
-                              'الاشعارات',
-                              style: TextStyle(fontSize: 24),
-                            ),
-                            collapsed: const Text('اعدادات الاشعارات'),
-                            expanded: _getNotificationsContent(permission),
+                          GetIt.I<MHThemeNotifier>().switchTheme(
+                            darkTheme ??
+                                WidgetsBinding
+                                        .instance!.window.platformBrightness ==
+                                    Brightness.dark,
                           );
-                        }
-                        return Container();
-                      },
-                    ),
-                    ExpandablePanel(
-                      theme: ExpandableThemeData(
-                          useInkWell: true,
-                          iconColor: Theme.of(context).iconTheme.color,
-                          bodyAlignment: ExpandablePanelBodyAlignment.right),
-                      header:
-                          const Text('أخرى', style: TextStyle(fontSize: 24)),
-                      collapsed: const Text('إعدادات أخرى'),
-                      expanded: Container(
+                        },
+                        icon: const Icon(Icons.done),
+                        label: const Text('تغيير'),
+                      ),
+                    ],
+                  ),
+                ),
+                ExpandablePanel(
+                  theme: ExpandableThemeData(
+                      useInkWell: true,
+                      iconColor: Theme.of(context).iconTheme.color,
+                      bodyAlignment: ExpandablePanelBodyAlignment.right),
+                  header: const Text('بيانات إضافية',
+                      style: TextStyle(fontSize: 24)),
+                  collapsed: const Text(
+                    'الكنائس، الأباء الكهنة، الوظائف، السنوات الدراسية، المدارس والكليات',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  expanded: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      ElevatedButton(
+                        onPressed: () => navigator.currentState!
+                            .pushNamed('Settings/Churches'),
+                        child: const Text('الكنائس'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => navigator.currentState!
+                            .pushNamed('Settings/Fathers'),
+                        child: const Text('الأباء الكهنة'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => navigator.currentState!
+                            .pushNamed('Settings/StudyYears'),
+                        child: const Text('السنوات الدراسية'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => navigator.currentState!
+                            .pushNamed('Settings/Schools'),
+                        child: const Text('المدارس'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => navigator.currentState!
+                            .pushNamed('Settings/Colleges'),
+                        child: const Text('الكليات'),
+                      ),
+                    ],
+                  ),
+                ),
+                ExpandablePanel(
+                  theme: ExpandableThemeData(
+                      useInkWell: true,
+                      iconColor: Theme.of(context).iconTheme.color,
+                      bodyAlignment: ExpandablePanelBodyAlignment.right),
+                  header: const Text('مظهر البيانات',
+                      style: TextStyle(fontSize: 24)),
+                  collapsed: const Text(
+                      'السطر الثاني للفصل، السطر الثاني للمخدوم',
+                      overflow: TextOverflow.ellipsis),
+                  expanded: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Container(
                         padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: TextFormField(
+                        child: DropdownButtonFormField<String?>(
+                          value: settings.get('ClassSecondLine'),
+                          items: Class.propsMetadata()
+                              .entries
+                              .map(
+                                (e) => DropdownMenuItem(
+                                  value: e.key,
+                                  child: Text(e.value.label),
+                                ),
+                              )
+                              .toList()
+                            ..removeWhere((element) => element.value == 'Color')
+                            ..add(const DropdownMenuItem(
+                              value: 'Members',
+                              child: Text('المخدومين بالفصل'),
+                            ))
+                            ..insert(
+                                0,
+                                const DropdownMenuItem(
+                                  value: null,
+                                  child: Text(''),
+                                )),
+                          onChanged: (value) {},
+                          onSaved: (value) async {
+                            await settings.put('ClassSecondLine', value);
+                          },
                           decoration: const InputDecoration(
-                            labelText: 'الحجم الأقصى للبيانات المؤقتة (MB):',
+                            labelText: 'السطر الثاني للفصل:',
                           ),
-                          keyboardType: TextInputType.number,
-                          textInputAction: TextInputAction.done,
-                          initialValue: ((settings.get('cacheSize',
-                                          defaultValue: 300 * 1024 * 1024) /
-                                      1024) /
-                                  1024)
-                              .truncate()
-                              .toString(),
-                          onSaved: (c) async {
-                            await settings.put(
-                                'cacheSize', int.parse(c!) * 1024 * 1024);
-                          },
-                          validator: (value) {
-                            if (value!.isEmpty) {
-                              return 'هذا الحقل مطلوب';
-                            }
-                            return null;
-                          },
                         ),
                       ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: DropdownButtonFormField<String?>(
+                          value: settings.get('PersonSecondLine'),
+                          items: Person.propsMetadata()
+                              .entries
+                              .map((e) => DropdownMenuItem(
+                                    value: e.key,
+                                    child: Text(e.value.label),
+                                  ))
+                              .toList()
+                            ..removeWhere((element) => element.value == 'Color')
+                            ..insert(
+                                0,
+                                const DropdownMenuItem(
+                                  value: null,
+                                  child: Text(''),
+                                )),
+                          onChanged: (value) {},
+                          onSaved: (value) async {
+                            await settings.put('PersonSecondLine', value);
+                          },
+                          decoration: const InputDecoration(
+                            labelText: 'السطر الثاني للمخدوم:',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Selector<User, Map<String, bool>>(
+                  selector: (_, user) => user.getNotificationsPermissions(),
+                  builder: (context, permission, _) {
+                    if (permission.containsValue(true)) {
+                      return ExpandablePanel(
+                        theme: ExpandableThemeData(
+                            useInkWell: true,
+                            iconColor: Theme.of(context).iconTheme.color,
+                            bodyAlignment: ExpandablePanelBodyAlignment.right),
+                        header: const Text(
+                          'الاشعارات',
+                          style: TextStyle(fontSize: 24),
+                        ),
+                        collapsed: const Text('اعدادات الاشعارات'),
+                        expanded: _getNotificationsContent(permission),
+                      );
+                    }
+                    return Container();
+                  },
+                ),
+                ExpandablePanel(
+                  theme: ExpandableThemeData(
+                      useInkWell: true,
+                      iconColor: Theme.of(context).iconTheme.color,
+                      bodyAlignment: ExpandablePanelBodyAlignment.right),
+                  header: const Text('أخرى', style: TextStyle(fontSize: 24)),
+                  collapsed: const Text('إعدادات أخرى'),
+                  expanded: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
+                    child: TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: 'الحجم الأقصى للبيانات المؤقتة (MB):',
+                      ),
+                      keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.done,
+                      initialValue: ((settings.get('cacheSize',
+                                      defaultValue: 300 * 1024 * 1024) /
+                                  1024) /
+                              1024)
+                          .truncate()
+                          .toString(),
+                      onSaved: (c) async {
+                        await settings.put(
+                            'cacheSize', int.parse(c!) * 1024 * 1024);
+                      },
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return 'هذا الحقل مطلوب';
+                        }
+                        return null;
+                      },
                     ),
-                  ],
-                );
-              },
+                  ),
+                ),
+              ],
             ),
           ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _save(),
+        onPressed: () {
+          _form.currentState!.save();
+          scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
+            content: Text('تم الحفظ'),
+          ));
+        },
         tooltip: 'حفظ',
         child: const Icon(Icons.save),
       ),
