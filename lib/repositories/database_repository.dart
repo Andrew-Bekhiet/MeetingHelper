@@ -560,8 +560,8 @@ class MHDatabaseRepo extends DatabaseRepository {
             },
           ),
       persons != null ? Stream.value(persons) : getAllPersons(),
-      User.loggedInStream.whereType().switchMap(
-            (user) => user.superAccess
+      User.loggedInStream.whereType<User>().switchMap(
+            (user) => user.permissions.superAccess
                 ? collection('Classes')
                     .orderBy('StudyYear')
                     .orderBy('Gender')
