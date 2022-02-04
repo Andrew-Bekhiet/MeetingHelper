@@ -22,8 +22,7 @@ class _HistoryState extends State<History> {
   final FocusNode _searchFocus = FocusNode();
   final _searchByDateRange = GlobalKey();
 
-  // ignore: prefer_typing_uninitialized_variables
-  late final _listController;
+  late final ListController<void, HistoryDayBase> _listController;
 
   @override
   Widget build(BuildContext context) {
@@ -45,13 +44,13 @@ class _HistoryState extends State<History> {
                                   .color),
                           onPressed: () => setState(
                             () {
-                              _listController.searchQuery.add('');
+                              _listController.searchSubject.add('');
                               _showSearch.add(false);
                             },
                           ),
                         ),
                         hintText: 'بحث ...'),
-                    onChanged: _listController.searchQuery.add,
+                    onChanged: _listController.searchSubject.add,
                   )
                 : const Text('السجلات');
           },
@@ -136,7 +135,7 @@ class _HistoryState extends State<History> {
         color: Theme.of(context).colorScheme.primary,
         shape: const CircularNotchedRectangle(),
         child: StreamBuilder<List>(
-          stream: _listController.objectsData,
+          stream: _listController.objectsStream,
           builder: (context, snapshot) {
             return Text(
               (snapshot.data?.length ?? 0).toString() + ' سجل',
@@ -152,11 +151,12 @@ class _HistoryState extends State<History> {
       body: widget.iServantsHistory
           ? DataObjectListView<void, ServantsHistoryDay>(
               autoDisposeController: true,
-              controller: _listController,
+              controller:
+                  _listController as ListController<void, ServantsHistoryDay>,
             )
           : DataObjectListView<void, HistoryDay>(
               autoDisposeController: true,
-              controller: _listController,
+              controller: _listController as ListController<void, HistoryDay>,
             ),
     );
   }
