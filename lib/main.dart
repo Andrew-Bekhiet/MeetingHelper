@@ -142,8 +142,7 @@ class AppState extends State<App> {
           );
 
         if (snapshot.hasError) {
-          if (snapshot.error.toString() ==
-                  'Exception: Error Update User Data' &&
+          if (!User.instance.userDataUpToDate() &&
               User.instance.password != null) {
             WidgetsBinding.instance!.addPostFrameCallback((_) {
               showErrorUpdateDataDialog(context: context);
@@ -152,14 +151,6 @@ class AppState extends State<App> {
               'Exception: يجب التحديث لأخر إصدار لتشغيل البرنامج') {
             Updates.showUpdateDialog(context, canCancel: false);
           }
-          if (snapshot.error.toString() !=
-                  'Exception: Error Update User Data' &&
-              User.instance.password != null)
-            return Loading(
-              error: true,
-              message: snapshot.error.toString(),
-              showVersionInfo: true,
-            );
         }
 
         return StreamBuilder<User?>(
@@ -171,7 +162,15 @@ class AppState extends State<App> {
             if (user == null) {
               return const LoginScreen();
             } else if (user.permissions.approved && user.password != null) {
-              return const AuthScreen(nextWidget: Root());
+              if (user.userDataUpToDate()) {
+                return const AuthScreen(nextWidget: Root());
+              } else {
+                return Loading(
+                  error: true,
+                  message: snapshot.error.toString(),
+                  showVersionInfo: true,
+                );
+              }
             } else {
               return const UserRegistration();
             }
