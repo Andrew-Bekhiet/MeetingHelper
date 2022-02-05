@@ -141,16 +141,15 @@ class AppState extends State<App> {
             showVersionInfo: true,
           );
 
-        if (snapshot.hasError) {
-          if (!User.instance.userDataUpToDate() &&
-              User.instance.password != null) {
-            WidgetsBinding.instance!.addPostFrameCallback((_) {
-              showErrorUpdateDataDialog(context: context);
-            });
-          } else if (snapshot.error.toString() ==
-              'Exception: يجب التحديث لأخر إصدار لتشغيل البرنامج') {
-            Updates.showUpdateDialog(context, canCancel: false);
-          }
+        if (MHAuthRepository.I.isSignedIn &&
+            !User.instance.userDataUpToDate() &&
+            User.instance.password != null) {
+          WidgetsBinding.instance!.addPostFrameCallback((_) {
+            showErrorUpdateDataDialog(context: context);
+          });
+        } else if (snapshot.error.toString() ==
+            'Exception: يجب التحديث لأخر إصدار لتشغيل البرنامج') {
+          Updates.showUpdateDialog(context, canCancel: false);
         }
 
         return StreamBuilder<User?>(
@@ -167,7 +166,9 @@ class AppState extends State<App> {
               } else {
                 return Loading(
                   error: true,
-                  message: snapshot.error.toString(),
+                  message: (snapshot.error ??
+                          'Exception: يجب التحديث لأخر إصدار لتشغيل البرنامج')
+                      .toString(),
                   showVersionInfo: true,
                 );
               }
