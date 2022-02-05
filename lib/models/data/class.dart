@@ -112,7 +112,7 @@ class Class extends DataObject implements PhotoObjectBase {
         'Gender': gender,
         'HasPhoto': hasPhoto,
         'Color': color?.value,
-        'LastEdit': lastEdit,
+        'LastEdit': lastEdit?.toJson(),
         'Allowed': allowedUsers
       };
 

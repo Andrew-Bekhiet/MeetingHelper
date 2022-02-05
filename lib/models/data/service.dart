@@ -225,7 +225,7 @@ class Service extends DataObject implements PhotoObjectBase {
       'StudyYearRange': studyYearRange?.toJson(),
       'Validity': validity?.toJson(),
       'ShowInHistory': showInHistory,
-      'LastEdit': lastEdit,
+      'LastEdit': lastEdit?.toJson(),
       'HasPhoto': hasPhoto,
       'Color': color?.value,
     };
