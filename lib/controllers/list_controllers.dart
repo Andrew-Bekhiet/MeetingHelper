@@ -15,7 +15,21 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
 
   late final BehaviorSubject<Map<String, HistoryRecord>> _attended;
   ValueStream<Map<String, HistoryRecord>> get attended => _attended.stream;
-  Map<String, HistoryRecord>? get attendedLatest => attended.valueOrNull;
+  Map<String, HistoryRecord>? get currentAttended => attended.valueOrNull;
+
+  @override
+  BehaviorSubject<Set<T>?> get selectionSubject {
+    final BehaviorSubject<Set<T>?> result = BehaviorSubject()
+      ..addStream(
+        _attended.map(
+          (v) => {
+            for (final i in v.keys) _objectsById.value[i]!,
+          },
+        ),
+      );
+
+    return result;
+  }
 
   late final StreamSubscription<Map<String, HistoryRecord>>? _attendedListener;
 
@@ -133,19 +147,18 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
 
     Map<String, HistoryRecord> _docsMapper(Iterable<JsonQueryDoc> docs) {
       final Map<String, T> tempSelected = {};
+      final Map<String, HistoryRecord> tempResult = {};
 
-      JsonQueryDoc _select(JsonQueryDoc d) {
-        if (objectsSubject.valueOrNull != null &&
+      for (final d in docs) {
+        if (_objectsById.valueOrNull != null &&
             _objectsById.value[d.id] != null)
           tempSelected[d.id] = _objectsById.value[d.id]!;
-        return d;
+        tempResult[d.id] = HistoryRecord.fromQueryDoc(d, day);
       }
 
       selectionSubject.add(tempSelected.values.toSet());
 
-      return {
-        for (final d in docs) _select(d).id: HistoryRecord.fromQueryDoc(d, day)
-      };
+      return tempResult;
     }
 
     final permissions = v.item1.permissions;
@@ -189,7 +202,7 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
 
   @override
   Future<void> toggleSelected(T item, {String? notes, Timestamp? time}) async {
-    if (selectionSubject.value?.contains(item) ?? false) {
+    if (_attended.value.containsKey(item.id)) {
       await deselect(item);
     } else {
       await select(item, notes: notes, time: time);
@@ -220,7 +233,7 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
   }
 
   Future<void> modifySelected(T item, {String? notes, Timestamp? time}) async {
-    assert(selectionSubject.value?.contains(item) ?? false);
+    assert(_attended.value.containsKey(item.id));
 
     await HistoryRecord(
       type: type,
@@ -236,6 +249,26 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
       notes: notes,
       isServant: T == User,
     ).update();
+  }
+
+  @override
+  void selectAll([List<T>? objects]) {
+    throw UnsupportedError('Cannot select all');
+  }
+
+  @override
+  void deselectAll([List<T>? objects]) {
+    throw UnsupportedError('Cannot deselect all');
+  }
+
+  @override
+  void exitSelectionMode() {
+    throw UnsupportedError('Cannot exit selection mode');
+  }
+
+  @override
+  void enterSelectionMode() {
+    throw UnsupportedError('Cannot enter selection mode');
   }
 
   DayCheckListController<G, T> copyWith({

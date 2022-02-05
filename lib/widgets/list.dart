@@ -227,8 +227,7 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
           } else {
             if (!_listController.dayOptions.lockUnchecks.value) {
               await _listController.toggleSelected(current);
-            } else if (!(_listController.currentSelection?.contains(current) ??
-                    false) ||
+            } else if (!attended.data!.containsKey(current.id) ||
                 _listController.dayOptions.lockUnchecks.value &&
                     await showDialog(
                           context: context,
