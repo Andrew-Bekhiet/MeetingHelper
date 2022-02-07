@@ -17,7 +17,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get_it/get_it.dart';
-import 'package:meetinghelper/admin.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/secrets.dart';
@@ -355,22 +354,31 @@ class AppState extends State<App> {
             'Search': (context) => const SearchQuery(),
             'DataMap': (context) => const DataMap(),
             'Settings': (context) => const Settings(),
-            'Settings/Churches': (context) => const ChurchesPage(),
-            /*MiniList(
-                parent: GetIt.I<MHDatabaseRepo>().collection('Churches'),
-                pageTitle: 'الكنائس',
-              ),*/
-            'Settings/Fathers': (context) => const FathersPage(),
-            /* MiniList(
-                parent: GetIt.I<MHDatabaseRepo>().collection('Fathers'),
-                pageTitle: 'الأباء الكهنة',
-              ) */
-            'Settings/StudyYears': (context) =>
-                const StudyYearsPage() /* MiniList(
-                parent: GetIt.I<MHDatabaseRepo>().collection('StudyYears'),
-                pageTitle: 'السنوات الدراسية',
-              ) */
-            ,
+            'Settings/Churches': (context) => MiniModelList<Church>(
+                  title: 'الكنائس',
+                  transformer: Church.fromDoc,
+                  add: (context) =>
+                      churchTap(context, Church.createNew(), true),
+                  modify: churchTap,
+                  collection: GetIt.I<MHDatabaseRepo>().collection('Churches'),
+                ),
+            'Settings/Fathers': (context) => MiniModelList<Father>(
+                  title: 'الأباء الكهنة',
+                  transformer: Father.fromDoc,
+                  add: (context) =>
+                      fatherTap(context, Father.createNew(), true),
+                  modify: fatherTap,
+                  collection: GetIt.I<MHDatabaseRepo>().collection('Fathers'),
+                ),
+            'Settings/StudyYears': (context) => MiniModelList<StudyYear>(
+                  title: 'السنوات الدراسية',
+                  transformer: StudyYear.fromDoc,
+                  add: (context) =>
+                      studyYearTap(context, StudyYear.createNew(), true),
+                  modify: studyYearTap,
+                  collection:
+                      GetIt.I<MHDatabaseRepo>().collection('StudyYears'),
+                ),
             'Settings/Schools': (context) => MiniModelList<School>(
                   transformer: School.fromDoc,
                   collection: GetIt.I<MHDatabaseRepo>().collection('Schools'),
