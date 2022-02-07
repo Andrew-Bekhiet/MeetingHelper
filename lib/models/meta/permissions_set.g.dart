@@ -166,30 +166,34 @@ class _$MHPermissionsSetCWProxyImpl implements _$MHPermissionsSetCWProxy {
     Object? write = const $CopyWithPlaceholder(),
   }) {
     return MHPermissionsSet(
-      approved: approved == const $CopyWithPlaceholder()
+      approved: approved == const $CopyWithPlaceholder() || approved == null
           ? _value.approved
           // ignore: cast_nullable_to_non_nullable
           : approved as bool,
-      birthdayNotify: birthdayNotify == const $CopyWithPlaceholder()
+      birthdayNotify: birthdayNotify == const $CopyWithPlaceholder() ||
+              birthdayNotify == null
           ? _value.birthdayNotify
           // ignore: cast_nullable_to_non_nullable
           : birthdayNotify as bool,
-      changeHistory: changeHistory == const $CopyWithPlaceholder()
-          ? _value.changeHistory
-          // ignore: cast_nullable_to_non_nullable
-          : changeHistory as bool,
-      confessionsNotify: confessionsNotify == const $CopyWithPlaceholder()
+      changeHistory:
+          changeHistory == const $CopyWithPlaceholder() || changeHistory == null
+              ? _value.changeHistory
+              // ignore: cast_nullable_to_non_nullable
+              : changeHistory as bool,
+      confessionsNotify: confessionsNotify == const $CopyWithPlaceholder() ||
+              confessionsNotify == null
           ? _value.confessionsNotify
           // ignore: cast_nullable_to_non_nullable
           : confessionsNotify as bool,
-      export: export == const $CopyWithPlaceholder()
+      export: export == const $CopyWithPlaceholder() || export == null
           ? _value.export
           // ignore: cast_nullable_to_non_nullable
           : export as bool,
-      kodasNotify: kodasNotify == const $CopyWithPlaceholder()
-          ? _value.kodasNotify
-          // ignore: cast_nullable_to_non_nullable
-          : kodasNotify as bool,
+      kodasNotify:
+          kodasNotify == const $CopyWithPlaceholder() || kodasNotify == null
+              ? _value.kodasNotify
+              // ignore: cast_nullable_to_non_nullable
+              : kodasNotify as bool,
       lastConfession: lastConfession == const $CopyWithPlaceholder()
           ? _value.lastConfession
           // ignore: cast_nullable_to_non_nullable
@@ -198,39 +202,46 @@ class _$MHPermissionsSetCWProxyImpl implements _$MHPermissionsSetCWProxy {
           ? _value.lastTanawol
           // ignore: cast_nullable_to_non_nullable
           : lastTanawol as DateTime?,
-      manageAllowedUsers: manageAllowedUsers == const $CopyWithPlaceholder()
+      manageAllowedUsers: manageAllowedUsers == const $CopyWithPlaceholder() ||
+              manageAllowedUsers == null
           ? _value.manageAllowedUsers
           // ignore: cast_nullable_to_non_nullable
           : manageAllowedUsers as bool,
-      manageDeleted: manageDeleted == const $CopyWithPlaceholder()
-          ? _value.manageDeleted
-          // ignore: cast_nullable_to_non_nullable
-          : manageDeleted as bool,
-      manageUsers: manageUsers == const $CopyWithPlaceholder()
-          ? _value.manageUsers
-          // ignore: cast_nullable_to_non_nullable
-          : manageUsers as bool,
-      meetingNotify: meetingNotify == const $CopyWithPlaceholder()
-          ? _value.meetingNotify
-          // ignore: cast_nullable_to_non_nullable
-          : meetingNotify as bool,
-      secretary: secretary == const $CopyWithPlaceholder()
+      manageDeleted:
+          manageDeleted == const $CopyWithPlaceholder() || manageDeleted == null
+              ? _value.manageDeleted
+              // ignore: cast_nullable_to_non_nullable
+              : manageDeleted as bool,
+      manageUsers:
+          manageUsers == const $CopyWithPlaceholder() || manageUsers == null
+              ? _value.manageUsers
+              // ignore: cast_nullable_to_non_nullable
+              : manageUsers as bool,
+      meetingNotify:
+          meetingNotify == const $CopyWithPlaceholder() || meetingNotify == null
+              ? _value.meetingNotify
+              // ignore: cast_nullable_to_non_nullable
+              : meetingNotify as bool,
+      secretary: secretary == const $CopyWithPlaceholder() || secretary == null
           ? _value.secretary
           // ignore: cast_nullable_to_non_nullable
           : secretary as bool,
-      superAccess: superAccess == const $CopyWithPlaceholder()
-          ? _value.superAccess
-          // ignore: cast_nullable_to_non_nullable
-          : superAccess as bool,
-      tanawolNotify: tanawolNotify == const $CopyWithPlaceholder()
-          ? _value.tanawolNotify
-          // ignore: cast_nullable_to_non_nullable
-          : tanawolNotify as bool,
-      visitNotify: visitNotify == const $CopyWithPlaceholder()
-          ? _value.visitNotify
-          // ignore: cast_nullable_to_non_nullable
-          : visitNotify as bool,
-      write: write == const $CopyWithPlaceholder()
+      superAccess:
+          superAccess == const $CopyWithPlaceholder() || superAccess == null
+              ? _value.superAccess
+              // ignore: cast_nullable_to_non_nullable
+              : superAccess as bool,
+      tanawolNotify:
+          tanawolNotify == const $CopyWithPlaceholder() || tanawolNotify == null
+              ? _value.tanawolNotify
+              // ignore: cast_nullable_to_non_nullable
+              : tanawolNotify as bool,
+      visitNotify:
+          visitNotify == const $CopyWithPlaceholder() || visitNotify == null
+              ? _value.visitNotify
+              // ignore: cast_nullable_to_non_nullable
+              : visitNotify as bool,
+      write: write == const $CopyWithPlaceholder() || write == null
           ? _value.write
           // ignore: cast_nullable_to_non_nullable
           : write as bool,

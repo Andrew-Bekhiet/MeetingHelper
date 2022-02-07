@@ -243,14 +243,14 @@ class _SearchQueryState extends State<SearchQuery> {
       controller: ListController(
         objectsPaginatableStream: PaginatableStream.loadAll(
           stream: (collection.id == 'Services'
-                  ? Service.getAllForUser(
+                  ? MHDatabaseRepo.I.getAllServices(
                       queryCompleter: _mainQueryCompleter,
                     )
                   : collection.id == 'Classes'
-                      ? Class.getAllForUser(
+                      ? MHDatabaseRepo.I.getAllClasses(
                           queryCompleter: _mainQueryCompleter,
                         )
-                      : MHDatabaseRepo.instance.getAllPersons(
+                      : MHDatabaseRepo.I.getAllPersons(
                           queryCompleter: _mainQueryCompleter,
                         ))
               .map(
@@ -896,7 +896,7 @@ class _SearchQueryState extends State<SearchQuery> {
 
     final _listOptions = ServicesListController<Class>(
       objectsPaginatableStream: PaginatableStream.loadAll(
-        stream: Class.getAllForUser(),
+        stream: MHDatabaseRepo.I.getAllClasses(),
       ),
       groupByStream: MHDatabaseRepo.I.groupServicesByStudyYearRef<Class>,
     );
@@ -941,7 +941,7 @@ class _SearchQueryState extends State<SearchQuery> {
 
     final _listOptions = ServicesListController<Service>(
       objectsPaginatableStream: PaginatableStream.loadAll(
-        stream: Service.getAllForUser(),
+        stream: MHDatabaseRepo.I.getAllServices(),
       ),
       groupByStream: MHDatabaseRepo.I.groupServicesByStudyYearRef<Service>,
     );

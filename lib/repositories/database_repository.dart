@@ -112,6 +112,68 @@ class MHDatabaseRepo extends DatabaseRepository {
     );
   }
 
+  Stream<List<Service>> getAllServices({
+    String orderBy = 'Name',
+    bool descending = false,
+    bool onlyShownInHistory = false,
+    QueryCompleter queryCompleter = kDefaultQueryCompleter,
+  }) {
+    if (onlyShownInHistory)
+      return getAllServices(
+        orderBy: orderBy,
+        descending: descending,
+        queryCompleter: (q, o, d) =>
+            queryCompleter(q.where('ShowInHistory', isEqualTo: true), o, d),
+      ).map(
+        (services) => services
+            .where(
+              (service) =>
+                  service.showInHistory == true &&
+                  (service.validity == null ||
+                      (DateTime.now().isAfter(service.validity!.start) &&
+                          DateTime.now().isBefore(service.validity!.end))),
+            )
+            .toList(),
+      );
+
+    return User.loggedInStream.switchMap(
+      (u) {
+        if (u.permissions.superAccess) {
+          return queryCompleter(collection('Services'), orderBy, descending)
+              .snapshots()
+              .map((c) => c.docs.map(Service.fromQueryDoc).toList());
+        } else {
+          return u.adminServices.isEmpty
+              ? Stream.value([])
+              : Rx.combineLatestList(u.adminServices.map(
+                  (r) => r.snapshots().map(Service.fromDoc),
+                )).map((s) => s.whereType<Service>().toList());
+        }
+      },
+    );
+  }
+
+  Stream<List<Class>> getAllClasses({
+    String orderBy = 'Name',
+    bool descending = false,
+    QueryCompleter queryCompleter = kDefaultQueryCompleter,
+  }) {
+    return User.loggedInStream.switchMap((u) {
+      if (u.permissions.superAccess) {
+        return queryCompleter(collection('Classes'), orderBy, descending)
+            .snapshots()
+            .map((c) => c.docs.map(Class.fromDoc).toList());
+      } else {
+        return queryCompleter(
+                collection('Classes').where('Allowed', arrayContains: u.uid),
+                orderBy,
+                descending)
+            .snapshots()
+            .map((c) => c.docs.map(Class.fromDoc).toList());
+      }
+    });
+  }
+
   Stream<List<Person>> getAllPersons({
     String orderBy = 'Name',
     bool descending = false,
@@ -119,7 +181,7 @@ class MHDatabaseRepo extends DatabaseRepository {
   }) {
     return Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
       User.loggedInStream,
-      Class.getAllForUser(),
+      getAllClasses(),
       Tuple2.new,
     ).switchMap(
       (u) {
@@ -374,7 +436,7 @@ class MHDatabaseRepo extends DatabaseRepository {
       isSubtype<T, Service>() || T == DataObject
           ? services != null
               ? Stream.value(services as List<Service>)
-              : Service.getAllForUser()
+              : getAllServices()
           : Stream.value([]),
       //
 

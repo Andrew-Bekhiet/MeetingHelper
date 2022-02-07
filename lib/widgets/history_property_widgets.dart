@@ -337,7 +337,7 @@ class DayHistoryProperty extends StatelessWidget {
 
                     if (!user.permissions.superAccess) {
                       if (notService(collection)) {
-                        return Class.getAllForUser().switchMap(
+                        return MHDatabaseRepo.I.getAllClasses().switchMap(
                           (classes) {
                             if (classes.isEmpty) return Stream.value([]);
                             if (classes.length <= 10)
@@ -368,7 +368,7 @@ class DayHistoryProperty extends StatelessWidget {
                           },
                         );
                       }
-                      return Service.getAllForUser().switchMap(
+                      return MHDatabaseRepo.I.getAllServices().switchMap(
                         (services) {
                           if (services.isEmpty) return Stream.value([]);
                           if (services.length <= 10)

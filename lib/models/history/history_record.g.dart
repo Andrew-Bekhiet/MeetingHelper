@@ -113,11 +113,11 @@ class _$HistoryRecordCWProxyImpl implements _$HistoryRecordCWProxy {
           ? _value.classId
           // ignore: cast_nullable_to_non_nullable
           : classId as DocumentReference<Map<String, dynamic>>?,
-      id: id == const $CopyWithPlaceholder()
+      id: id == const $CopyWithPlaceholder() || id == null
           ? _value.id
           // ignore: cast_nullable_to_non_nullable
           : id as String,
-      isServant: isServant == const $CopyWithPlaceholder()
+      isServant: isServant == const $CopyWithPlaceholder() || isServant == null
           ? _value.isServant
           // ignore: cast_nullable_to_non_nullable
           : isServant as bool,
@@ -141,7 +141,7 @@ class _$HistoryRecordCWProxyImpl implements _$HistoryRecordCWProxy {
           ? _value.studyYear
           // ignore: cast_nullable_to_non_nullable
           : studyYear as DocumentReference<Map<String, dynamic>>?,
-      time: time == const $CopyWithPlaceholder()
+      time: time == const $CopyWithPlaceholder() || time == null
           ? _value.time
           // ignore: cast_nullable_to_non_nullable
           : time as Timestamp,

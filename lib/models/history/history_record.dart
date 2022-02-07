@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models.dart';
+import 'package:meetinghelper/repositories.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tuple/tuple.dart';
 
@@ -305,8 +306,8 @@ class MinimalHistoryRecord {
     return Rx.combineLatest3<User?, List<Class>, List<Service>,
         Tuple3<User?, List<Class>, List<Service>>>(
       User.loggedInStream,
-      classes == null ? Class.getAllForUser() : Stream.value([]),
-      services == null ? Service.getAllForUser() : Stream.value([]),
+      classes == null ? MHDatabaseRepo.I.getAllClasses() : Stream.value([]),
+      services == null ? MHDatabaseRepo.I.getAllServices() : Stream.value([]),
       Tuple3.new,
     ).switchMap((value) {
       if (range != null && classes != null && services != null) {

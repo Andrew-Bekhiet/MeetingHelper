@@ -4,6 +4,7 @@ import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/models.dart';
+import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tuple/tuple.dart';
@@ -70,7 +71,7 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
                 Tuple3<User, List<G>, bool?>>(
                 User.loggedInStream,
                 notService(type)
-                    ? Class.getAllForUser().map((c) => c.cast())
+                    ? MHDatabaseRepo.I.getAllClasses().map((c) => c.cast<G>())
                     : Stream.value([]),
                 dayOptions.sortByTimeASC,
                 Tuple3.new,

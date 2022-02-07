@@ -45,7 +45,7 @@ class _ClassInfoState extends State<ClassInfo> {
       objectsPaginatableStream: PaginatableStream.loadAll(
         stream: _orderOptions.switchMap(
           (order) => widget.class$
-              .getMembersLive(orderBy: order.orderBy, descending: !order.asc),
+              .getMembers(orderBy: order.orderBy, descending: !order.asc),
         ),
       ),
     );

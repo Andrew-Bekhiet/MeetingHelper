@@ -46,7 +46,7 @@ class _ServiceInfoState extends State<ServiceInfo> {
     _listOptions = ListController<void, Person>(
       objectsPaginatableStream: PaginatableStream.loadAll(
         stream: _orderOptions.switchMap(
-          (order) => widget.service.getPersonsMembersLive(
+          (order) => widget.service.getPersonsMembers(
             orderBy: order.orderBy,
             descending: !order.asc,
           ),

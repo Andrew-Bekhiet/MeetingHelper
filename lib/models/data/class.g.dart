@@ -104,7 +104,7 @@ class _$ClassCWProxyImpl implements _$ClassCWProxy {
           ? _value.gender
           // ignore: cast_nullable_to_non_nullable
           : gender as bool?,
-      hasPhoto: hasPhoto == const $CopyWithPlaceholder()
+      hasPhoto: hasPhoto == const $CopyWithPlaceholder() || hasPhoto == null
           ? _value.hasPhoto
           // ignore: cast_nullable_to_non_nullable
           : hasPhoto as bool,
@@ -112,11 +112,11 @@ class _$ClassCWProxyImpl implements _$ClassCWProxy {
           ? _value.lastEdit
           // ignore: cast_nullable_to_non_nullable
           : lastEdit as LastEdit?,
-      name: name == const $CopyWithPlaceholder()
+      name: name == const $CopyWithPlaceholder() || name == null
           ? _value.name
           // ignore: cast_nullable_to_non_nullable
           : name as String,
-      ref: ref == const $CopyWithPlaceholder()
+      ref: ref == const $CopyWithPlaceholder() || ref == null
           ? _value.ref
           // ignore: cast_nullable_to_non_nullable
           : ref as DocumentReference<Map<String, dynamic>>,

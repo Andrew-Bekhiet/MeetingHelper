@@ -92,14 +92,16 @@ class _$InvitationCWProxyImpl implements _$InvitationCWProxy {
     Object? usedBy = const $CopyWithPlaceholder(),
   }) {
     return Invitation(
-      expiryDate: expiryDate == const $CopyWithPlaceholder()
-          ? _value.expiryDate
-          // ignore: cast_nullable_to_non_nullable
-          : expiryDate as DateTime,
-      generatedBy: generatedBy == const $CopyWithPlaceholder()
-          ? _value.generatedBy
-          // ignore: cast_nullable_to_non_nullable
-          : generatedBy as String,
+      expiryDate:
+          expiryDate == const $CopyWithPlaceholder() || expiryDate == null
+              ? _value.expiryDate
+              // ignore: cast_nullable_to_non_nullable
+              : expiryDate as DateTime,
+      generatedBy:
+          generatedBy == const $CopyWithPlaceholder() || generatedBy == null
+              ? _value.generatedBy
+              // ignore: cast_nullable_to_non_nullable
+              : generatedBy as String,
       generatedOn: generatedOn == const $CopyWithPlaceholder()
           ? _value.generatedOn
           // ignore: cast_nullable_to_non_nullable
@@ -112,11 +114,11 @@ class _$InvitationCWProxyImpl implements _$InvitationCWProxy {
           ? _value.permissions
           // ignore: cast_nullable_to_non_nullable
           : permissions as Map<String, dynamic>?,
-      ref: ref == const $CopyWithPlaceholder()
+      ref: ref == const $CopyWithPlaceholder() || ref == null
           ? _value.ref
           // ignore: cast_nullable_to_non_nullable
           : ref as DocumentReference<Map<String, dynamic>>,
-      title: title == const $CopyWithPlaceholder()
+      title: title == const $CopyWithPlaceholder() || title == null
           ? _value.title
           // ignore: cast_nullable_to_non_nullable
           : title as String,

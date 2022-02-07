@@ -4,6 +4,7 @@ import 'package:get_it/get_it.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:meetinghelper/models.dart';
+import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:provider/provider.dart';
@@ -141,9 +142,10 @@ class _DataMapState extends State<DataMap> {
     return StreamBuilder<List<DataObject>>(
       stream: widget.class$ == null && widget.service == null
           ? Rx.combineLatest2<List<Class>, List<Service>, List<DataObject>>(
-              Class.getAllForUser(),
-              Service.getAllForUser(),
-              (c, s) => [...c, ...s])
+              MHDatabaseRepo.I.getAllClasses(),
+              MHDatabaseRepo.I.getAllServices(),
+              (c, s) => [...c, ...s],
+            )
           : Stream.value(
               [
                 if (widget.class$ != null) widget.class$!,

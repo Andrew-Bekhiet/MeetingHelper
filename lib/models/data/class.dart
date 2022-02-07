@@ -7,10 +7,8 @@ import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/repositories.dart';
-import 'package:rxdart/rxdart.dart';
 
 import 'person.dart';
-import 'user.dart';
 
 part 'class.g.dart';
 
@@ -66,6 +64,13 @@ class Class extends DataObject implements PhotoObjectBase {
         color = data['Color'] != null ? Color(data['Color']) : null,
         super.fromJson(data, ref);
 
+  factory Class.empty() => Class(
+        ref: GetIt.I<DatabaseRepository>().collection('Classes').doc('null'),
+        name: '',
+      );
+
+  Class.fromDoc(JsonDoc data) : this.fromJson(data.data()!, data.reference);
+
   @override
   Reference? get photoRef =>
       hasPhoto ? GetIt.I<StorageRepository>().ref('ClassesPhotos/' + id) : null;
@@ -116,46 +121,20 @@ class Class extends DataObject implements PhotoObjectBase {
         'Allowed': allowedUsers
       };
 
-  Stream<List<Person>> getMembersLive(
-      {bool descending = false, String orderBy = 'Name'}) {
-    return getClassMembersLive(ref, orderBy, descending)
-        .map((l) => l.map((e) => e!).toList());
+  Stream<List<Person>> getMembers({
+    bool descending = false,
+    String orderBy = 'Name',
+  }) {
+    return getClassMembers(ref, orderBy: orderBy, descending: descending);
   }
 
   Future<String> getMembersString() async {
-    return (await getMembersLive().first)
-        .take(6)
+    return (await getClassMembers(ref,
+            queryCompleter: (q, o, d) =>
+                q.orderBy(o, descending: d).limit(6)).first)
         .map((f) => f.name)
         .toList()
         .join(',');
-  }
-
-  Future<List<Person>> getPersonMembersList(
-      [String orderBy = 'Name', bool tranucate = false]) async {
-    if (tranucate) {
-      return (await GetIt.I<DatabaseRepository>()
-              .collection('Persons')
-              .where('ClassId',
-                  isEqualTo: GetIt.I<DatabaseRepository>()
-                      .collection('Classes')
-                      .doc(id))
-              .limit(5)
-              .orderBy(orderBy)
-              .get())
-          .docs
-          .map(Person.fromDoc)
-          .toList();
-    }
-    return (await GetIt.I<DatabaseRepository>()
-            .collection('Persons')
-            .where('ClassId',
-                isEqualTo:
-                    GetIt.I<DatabaseRepository>().collection('Classes').doc(id))
-            .orderBy(orderBy)
-            .get())
-        .docs
-        .map(Person.fromDoc)
-        .toList();
   }
 
   @override
@@ -172,49 +151,21 @@ class Class extends DataObject implements PhotoObjectBase {
     return (await studyYear?.get())?.data()?['Name'] ?? '';
   }
 
-  factory Class.empty() => Class(
-        ref: GetIt.I<DatabaseRepository>().collection('Classes').doc('null'),
-        name: '',
-      );
-
-  Class.fromDoc(JsonDoc data) : this.fromJson(data.data()!, data.reference);
-
-  static Future<Class?> fromId(String id) async => Class.fromDoc(
-      await GetIt.I<DatabaseRepository>().doc('Classes/$id').get());
-
-  static Stream<List<Class>> getAllForUser(
-      {String orderBy = 'Name',
-      bool descending = false,
-      QueryCompleter queryCompleter = kDefaultQueryCompleter}) {
-    return User.loggedInStream.switchMap((u) {
-      if (u.permissions.superAccess) {
-        return queryCompleter(
-                GetIt.I<DatabaseRepository>().collection('Classes'),
-                orderBy,
-                descending)
-            .snapshots()
-            .map((c) => c.docs.map(Class.fromDoc).toList());
-      } else {
-        return queryCompleter(
-                GetIt.I<DatabaseRepository>()
-                    .collection('Classes')
-                    .where('Allowed', arrayContains: u.uid),
-                orderBy,
-                descending)
-            .snapshots()
-            .map((c) => c.docs.map(Class.fromDoc).toList());
-      }
-    });
-  }
-
-  static Stream<List<Person?>> getClassMembersLive(JsonRef id,
-      [String orderBy = 'Name', bool descending = false]) {
-    return GetIt.I<DatabaseRepository>()
-        .collection('Persons')
-        .where('ClassId', isEqualTo: id)
-        .orderBy(orderBy, descending: descending)
-        .snapshots()
-        .map((p) => p.docs.map(Person.fromDoc).toList());
+  static Stream<List<Person>> getClassMembers(
+    JsonRef ref, {
+    String orderBy = 'Name',
+    bool descending = false,
+    QueryCompleter queryCompleter = kDefaultQueryCompleter,
+  }) {
+    return GetIt.I<MHDatabaseRepo>().getAllPersons(
+      orderBy: orderBy,
+      descending: descending,
+      queryCompleter: (query, order, d) => queryCompleter(
+        query.where('ClassId', isEqualTo: ref),
+        order,
+        d,
+      ),
+    );
   }
 
   static Map<String, PropertyMetadata> propsMetadata() => {

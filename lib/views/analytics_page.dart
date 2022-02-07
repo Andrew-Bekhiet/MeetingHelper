@@ -11,6 +11,7 @@ import 'package:flutter/rendering.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models.dart';
+import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/widgets.dart';
 import 'package:path_provider/path_provider.dart';
@@ -83,7 +84,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
               ?.toDate() ??
           minAvaliable;
     else {
-      final allowed = await Class.getAllForUser().first;
+      final allowed = await MHDatabaseRepo.I.getAllClasses().first;
       if (allowed.isEmpty) return;
 
       if (allowed.length <= 10) {
@@ -143,8 +144,8 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                 initialData: widget.parents,
                 stream: Rx.combineLatest2<List<Class>, List<Service>,
                     List<DataObject>>(
-                  Class.getAllForUser(),
-                  Service.getAllForUser(),
+                  MHDatabaseRepo.I.getAllClasses(),
+                  MHDatabaseRepo.I.getAllServices(),
                   (c, s) => [...c, ...s],
                 ),
                 builder: (context, snapshot) {
@@ -311,7 +312,8 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
         body: FutureBuilder<Map<JsonRef, Service>>(
           future: _rangeStart.runOnce(_setRangeStart).then((_) async {
             return {
-              for (final service in await Service.getAllForUser().first)
+              for (final service
+                  in await MHDatabaseRepo.I.getAllServices().first)
                 service.ref: service
             };
           }),
@@ -568,8 +570,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                 initialData: widget.parents,
                 stream: Rx.combineLatest2<List<Class>, List<Service>,
                     List<DataObject>>(
-                  Class.getAllForUser(),
-                  Service.getAllForUserForHistory(),
+                  MHDatabaseRepo.I.getAllClasses(),
+                  MHDatabaseRepo.I.getAllServices(onlyShownInHistory: true),
                   (c, s) => [...c, ...s],
                 ),
                 builder: (context, snapshot) {

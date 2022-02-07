@@ -8,7 +8,6 @@ import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
-import 'package:rxdart/rxdart.dart';
 
 part 'service.g.dart';
 
@@ -52,72 +51,6 @@ class Service extends DataObject implements PhotoObjectBase {
   static Service fromQueryDoc(JsonQueryDoc doc) =>
       Service.fromJson(doc.data(), doc.reference);
 
-  static Stream<List<Service>> getAllForUser({
-    String orderBy = 'Name',
-    bool descending = false,
-    QueryCompleter queryCompleter = kDefaultQueryCompleter,
-  }) {
-    return User.loggedInStream.switchMap(
-      (u) {
-        if (u.permissions.superAccess) {
-          return queryCompleter(
-                  GetIt.I<DatabaseRepository>().collection('Services'),
-                  orderBy,
-                  descending)
-              .snapshots()
-              .map((c) => c.docs.map(fromQueryDoc).toList());
-        } else {
-          return u.adminServices.isEmpty
-              ? Stream.value([])
-              : Rx.combineLatestList(u.adminServices.map(
-                  (r) => r.snapshots().map(Service.fromDoc),
-                )).map((s) => s.whereType<Service>().toList());
-        }
-      },
-    );
-  }
-
-  static Stream<List<Service>> getAllForUserForHistory(
-      {String orderBy = 'Name',
-      bool descending = false,
-      QueryCompleter queryCompleter = kDefaultQueryCompleter}) {
-    return User.loggedInStream.switchMap((u) {
-      if (u.permissions.superAccess) {
-        return queryCompleter(
-                GetIt.I<DatabaseRepository>()
-                    .collection('Services')
-                    .where('ShowInHistory', isEqualTo: true),
-                orderBy,
-                descending)
-            .snapshots()
-            .map(
-              (c) => c.docs
-                  .map(fromQueryDoc)
-                  .where(
-                    (service) =>
-                        service.validity == null ||
-                        (DateTime.now().isAfter(service.validity!.start) &&
-                            DateTime.now().isBefore(service.validity!.end)),
-                  )
-                  .toList(),
-            );
-      } else {
-        return u.adminServices.isEmpty
-            ? Stream.value([])
-            : Rx.combineLatestList(
-                u.adminServices.map(
-                  (r) => r.snapshots().map(fromDoc).whereType<Service>().where(
-                        (service) =>
-                            service.validity == null ||
-                            (DateTime.now().isAfter(service.validity!.start) &&
-                                DateTime.now().isBefore(service.validity!.end)),
-                      ),
-                ),
-              );
-      }
-    });
-  }
-
   Service.fromJson(Json json, JsonRef ref)
       : this(
           ref: ref,
@@ -129,8 +62,9 @@ class Service extends DataObject implements PhotoObjectBase {
               : null,
           validity: json['Validity'] != null
               ? DateTimeRange(
-                  start: json['Validity']['From'].toDate(),
-                  end: json['Validity']['To'].toDate())
+                  start: (json['Validity']['From'] as Timestamp).toDate(),
+                  end: (json['Validity']['To'] as Timestamp).toDate(),
+                )
               : null,
           showInHistory: json['ShowInHistory'],
           color: json['Color'] != null ? Color(json['Color']) : null,
@@ -145,32 +79,34 @@ class Service extends DataObject implements PhotoObjectBase {
           hasPhoto: json['HasPhoto'],
         );
 
-  Stream<List<Person>> getPersonsMembersLive(
-      {bool descending = false,
-      String orderBy = 'Name',
-      QueryCompleter queryCompleter = kDefaultQueryCompleter}) {
-    return queryCompleter(
-            GetIt.I<DatabaseRepository>()
-                .collection('Persons')
-                .where('Services', arrayContains: ref),
-            orderBy,
-            descending)
-        .snapshots()
-        .map((p) => p.docs.map(Person.fromDoc).toList());
+  Stream<List<Person>> getPersonsMembers({
+    bool descending = false,
+    String orderBy = 'Name',
+    QueryCompleter queryCompleter = kDefaultQueryCompleter,
+  }) {
+    return GetIt.I<MHDatabaseRepo>().getAllPersons(
+      orderBy: orderBy,
+      descending: descending,
+      queryCompleter: (query, order, d) => queryCompleter(
+        query.where('Services', arrayContains: ref),
+        order,
+        d,
+      ),
+    );
   }
 
-  Stream<List<User>> getUsersMembersLive(
-      {bool descending = false,
-      String orderBy = 'Name',
-      QueryCompleter queryCompleter = kDefaultQueryCompleter}) {
-    return queryCompleter(
-            GetIt.I<DatabaseRepository>()
-                .collection('UsersData')
-                .where('Services', arrayContains: ref),
-            orderBy,
-            descending)
-        .snapshots()
-        .map((p) => p.docs.map(User.fromDoc).toList());
+  Stream<List<Person>> getUsersMembers({
+    bool descending = false,
+    String orderBy = 'Name',
+    QueryCompleter queryCompleter = kDefaultQueryCompleter,
+  }) {
+    return GetIt.I<MHDatabaseRepo>().getAllUsersData(
+      queryCompleter: (query, order, d) => queryCompleter(
+        query.where('Services', arrayContains: ref),
+        order,
+        d,
+      ),
+    );
   }
 
   Json formattedProps() => {
@@ -241,6 +177,7 @@ class Service extends DataObject implements PhotoObjectBase {
 
   @override
   IconData get defaultIcon => Icons.miscellaneous_services;
+
   static Map<String, PropertyMetadata> propsMetadata() => {
         'Name': const PropertyMetadata<String>(
           name: 'Name',
@@ -280,17 +217,6 @@ class Service extends DataObject implements PhotoObjectBase {
           defaultValue: false,
         ),
       };
-}
-
-@immutable
-@CopyWith(copyWithNull: true)
-class StudyYearRange {
-  final JsonRef? from;
-  final JsonRef? to;
-
-  const StudyYearRange({required this.from, required this.to});
-
-  Json toJson() => {'From': from, 'To': to};
 }
 
 extension DateTimeRangeX on DateTimeRange {

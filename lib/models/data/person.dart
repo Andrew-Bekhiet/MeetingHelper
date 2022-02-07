@@ -26,7 +26,7 @@ class Person extends PersonBase {
 
   final DateTime? lastMeeting;
 
-  final Map<String, DateTime> last;
+  final UnmodifiableMapView<String, DateTime> last;
 
   ///List of services this person is participant
   final UnmodifiableListView<JsonRef> services;
@@ -63,7 +63,7 @@ class Person extends PersonBase {
     Map<String, DateTime>? last,
     Color? color,
   })  : services = UnmodifiableListView(services ?? []),
-        last = last ?? {},
+        last = UnmodifiableMapView(last ?? {}),
         super(
           ref: ref,
           name: name,
@@ -96,7 +96,8 @@ class Person extends PersonBase {
         fatherPhone = doc.data()!['FatherPhone'],
         motherPhone = doc.data()!['MotherPhone'],
         lastMeeting = (doc.data()!['LastMeeting'] as Timestamp?)?.toDate(),
-        last = (doc.data()!['Last'] as Map?)?.cast() ?? {},
+        last = UnmodifiableMapView(
+            (doc.data()!['Last'] as Map?)?.cast<String, DateTime>() ?? {}),
         services = UnmodifiableListView(
             (doc.data()!['Services'] as List?)?.cast<JsonRef>() ?? []),
         super(
@@ -227,6 +228,7 @@ class Person extends PersonBase {
         'Services': services,
       };
 
+  //TODO: refactor
   Widget getMapView({bool useGPSIfNull = false, bool editMode = false}) {
     if (location == null && useGPSIfNull)
       return FutureBuilder<PermissionStatus>(

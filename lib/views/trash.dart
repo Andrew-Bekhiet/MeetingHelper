@@ -2,6 +2,7 @@ import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/models.dart';
+import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/widgets.dart';
 import 'package:rxdart/rxdart.dart';
@@ -310,8 +311,10 @@ class _TrashDayScreenState extends State<TrashDayScreen>
       searchStream: _searchQuery,
       objectsPaginatableStream: PaginatableStream.loadAll(
         stream: Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
-                User.loggedInStream, Class.getAllForUser(), Tuple2.new)
-            .switchMap(
+          User.loggedInStream,
+          MHDatabaseRepo.I.getAllClasses(),
+          Tuple2.new,
+        ).switchMap(
           (u) {
             if (u.item1.permissions.superAccess) {
               return widget.day.ref

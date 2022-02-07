@@ -103,14 +103,16 @@ class _$UserCWProxyImpl implements _$UserCWProxy {
     Object? uid = const $CopyWithPlaceholder(),
   }) {
     return User(
-      adminServices: adminServices == const $CopyWithPlaceholder()
-          ? _value.adminServices
-          // ignore: cast_nullable_to_non_nullable
-          : adminServices as List<DocumentReference<Map<String, dynamic>>>,
-      allowedUsers: allowedUsers == const $CopyWithPlaceholder()
-          ? _value.allowedUsers
-          // ignore: cast_nullable_to_non_nullable
-          : allowedUsers as List<String>,
+      adminServices:
+          adminServices == const $CopyWithPlaceholder() || adminServices == null
+              ? _value.adminServices
+              // ignore: cast_nullable_to_non_nullable
+              : adminServices as List<DocumentReference<Map<String, dynamic>>>,
+      allowedUsers:
+          allowedUsers == const $CopyWithPlaceholder() || allowedUsers == null
+              ? _value.allowedUsers
+              // ignore: cast_nullable_to_non_nullable
+              : allowedUsers as List<String>,
       classId: classId == const $CopyWithPlaceholder()
           ? _value.classId
           // ignore: cast_nullable_to_non_nullable
@@ -119,7 +121,7 @@ class _$UserCWProxyImpl implements _$UserCWProxy {
           ? _value.email
           // ignore: cast_nullable_to_non_nullable
           : email as String?,
-      name: name == const $CopyWithPlaceholder()
+      name: name == const $CopyWithPlaceholder() || name == null
           ? _value.name
           // ignore: cast_nullable_to_non_nullable
           : name as String,
@@ -127,15 +129,16 @@ class _$UserCWProxyImpl implements _$UserCWProxy {
           ? _value.password
           // ignore: cast_nullable_to_non_nullable
           : password as String?,
-      permissions: permissions == const $CopyWithPlaceholder()
-          ? _value.permissions
-          // ignore: cast_nullable_to_non_nullable
-          : permissions as MHPermissionsSet,
-      ref: ref == const $CopyWithPlaceholder()
+      permissions:
+          permissions == const $CopyWithPlaceholder() || permissions == null
+              ? _value.permissions
+              // ignore: cast_nullable_to_non_nullable
+              : permissions as MHPermissionsSet,
+      ref: ref == const $CopyWithPlaceholder() || ref == null
           ? _value.ref
           // ignore: cast_nullable_to_non_nullable
           : ref as DocumentReference<Map<String, dynamic>>,
-      uid: uid == const $CopyWithPlaceholder()
+      uid: uid == const $CopyWithPlaceholder() || uid == null
           ? _value.uid
           // ignore: cast_nullable_to_non_nullable
           : uid as String,

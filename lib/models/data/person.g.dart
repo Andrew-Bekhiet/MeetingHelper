@@ -284,15 +284,15 @@ class _$PersonCWProxyImpl implements _$PersonCWProxy {
           ? _value.fatherPhone
           // ignore: cast_nullable_to_non_nullable
           : fatherPhone as String?,
-      gender: gender == const $CopyWithPlaceholder()
+      gender: gender == const $CopyWithPlaceholder() || gender == null
           ? _value.gender
           // ignore: cast_nullable_to_non_nullable
           : gender as bool,
-      hasPhoto: hasPhoto == const $CopyWithPlaceholder()
+      hasPhoto: hasPhoto == const $CopyWithPlaceholder() || hasPhoto == null
           ? _value.hasPhoto
           // ignore: cast_nullable_to_non_nullable
           : hasPhoto as bool,
-      isShammas: isShammas == const $CopyWithPlaceholder()
+      isShammas: isShammas == const $CopyWithPlaceholder() || isShammas == null
           ? _value.isShammas
           // ignore: cast_nullable_to_non_nullable
           : isShammas as bool,
@@ -336,7 +336,7 @@ class _$PersonCWProxyImpl implements _$PersonCWProxy {
           ? _value.motherPhone
           // ignore: cast_nullable_to_non_nullable
           : motherPhone as String?,
-      name: name == const $CopyWithPlaceholder()
+      name: name == const $CopyWithPlaceholder() || name == null
           ? _value.name
           // ignore: cast_nullable_to_non_nullable
           : name as String,
@@ -352,7 +352,7 @@ class _$PersonCWProxyImpl implements _$PersonCWProxy {
           ? _value.phones
           // ignore: cast_nullable_to_non_nullable
           : phones as Map<String, dynamic>?,
-      ref: ref == const $CopyWithPlaceholder()
+      ref: ref == const $CopyWithPlaceholder() || ref == null
           ? _value.ref
           // ignore: cast_nullable_to_non_nullable
           : ref as DocumentReference<Map<String, dynamic>>,

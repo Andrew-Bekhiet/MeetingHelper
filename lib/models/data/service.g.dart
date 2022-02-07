@@ -11,7 +11,7 @@ abstract class _$ServiceCWProxy {
 
   Service hasPhoto(bool hasPhoto);
 
-  Service lastEdit(LastEdit lastEdit);
+  Service lastEdit(LastEdit? lastEdit);
 
   Service name(String name);
 
@@ -54,7 +54,7 @@ class _$ServiceCWProxyImpl implements _$ServiceCWProxy {
   Service hasPhoto(bool hasPhoto) => this(hasPhoto: hasPhoto);
 
   @override
-  Service lastEdit(LastEdit lastEdit) => this(lastEdit: lastEdit);
+  Service lastEdit(LastEdit? lastEdit) => this(lastEdit: lastEdit);
 
   @override
   Service name(String name) => this(name: name);
@@ -96,26 +96,27 @@ class _$ServiceCWProxyImpl implements _$ServiceCWProxy {
           ? _value.color
           // ignore: cast_nullable_to_non_nullable
           : color as Color?,
-      hasPhoto: hasPhoto == const $CopyWithPlaceholder()
+      hasPhoto: hasPhoto == const $CopyWithPlaceholder() || hasPhoto == null
           ? _value.hasPhoto
           // ignore: cast_nullable_to_non_nullable
           : hasPhoto as bool,
       lastEdit: lastEdit == const $CopyWithPlaceholder()
           ? _value.lastEdit
           // ignore: cast_nullable_to_non_nullable
-          : lastEdit as LastEdit,
-      name: name == const $CopyWithPlaceholder()
+          : lastEdit as LastEdit?,
+      name: name == const $CopyWithPlaceholder() || name == null
           ? _value.name
           // ignore: cast_nullable_to_non_nullable
           : name as String,
-      ref: ref == const $CopyWithPlaceholder()
+      ref: ref == const $CopyWithPlaceholder() || ref == null
           ? _value.ref
           // ignore: cast_nullable_to_non_nullable
           : ref as DocumentReference<Map<String, dynamic>>,
-      showInHistory: showInHistory == const $CopyWithPlaceholder()
-          ? _value.showInHistory
-          // ignore: cast_nullable_to_non_nullable
-          : showInHistory as bool,
+      showInHistory:
+          showInHistory == const $CopyWithPlaceholder() || showInHistory == null
+              ? _value.showInHistory
+              // ignore: cast_nullable_to_non_nullable
+              : showInHistory as bool,
       studyYearRange: studyYearRange == const $CopyWithPlaceholder()
           ? _value.studyYearRange
           // ignore: cast_nullable_to_non_nullable
@@ -140,95 +141,19 @@ extension $ServiceCopyWith on Service {
   /// ````
   Service copyWithNull({
     bool color = false,
+    bool lastEdit = false,
     bool studyYearRange = false,
     bool validity = false,
   }) {
     return Service(
       color: color == true ? null : this.color,
       hasPhoto: hasPhoto,
-      lastEdit: lastEdit,
+      lastEdit: lastEdit == true ? null : this.lastEdit,
       name: name,
       ref: ref,
       showInHistory: showInHistory,
       studyYearRange: studyYearRange == true ? null : this.studyYearRange,
       validity: validity == true ? null : this.validity,
-    );
-  }
-}
-
-abstract class _$StudyYearRangeCWProxy {
-  StudyYearRange from(DocumentReference<Map<String, dynamic>>? from);
-
-  StudyYearRange to(DocumentReference<Map<String, dynamic>>? to);
-
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `StudyYearRange(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// StudyYearRange(...).copyWith(id: 12, name: "My name")
-  /// ````
-  StudyYearRange call({
-    DocumentReference<Map<String, dynamic>>? from,
-    DocumentReference<Map<String, dynamic>>? to,
-  });
-}
-
-/// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfStudyYearRange.copyWith(...)`. Additionally contains functions for specific fields e.g. `instanceOfStudyYearRange.copyWith.fieldName(...)`
-class _$StudyYearRangeCWProxyImpl implements _$StudyYearRangeCWProxy {
-  final StudyYearRange _value;
-
-  const _$StudyYearRangeCWProxyImpl(this._value);
-
-  @override
-  StudyYearRange from(DocumentReference<Map<String, dynamic>>? from) =>
-      this(from: from);
-
-  @override
-  StudyYearRange to(DocumentReference<Map<String, dynamic>>? to) =>
-      this(to: to);
-
-  @override
-
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `StudyYearRange(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// StudyYearRange(...).copyWith(id: 12, name: "My name")
-  /// ````
-  StudyYearRange call({
-    Object? from = const $CopyWithPlaceholder(),
-    Object? to = const $CopyWithPlaceholder(),
-  }) {
-    return StudyYearRange(
-      from: from == const $CopyWithPlaceholder()
-          ? _value.from
-          // ignore: cast_nullable_to_non_nullable
-          : from as DocumentReference<Map<String, dynamic>>?,
-      to: to == const $CopyWithPlaceholder()
-          ? _value.to
-          // ignore: cast_nullable_to_non_nullable
-          : to as DocumentReference<Map<String, dynamic>>?,
-    );
-  }
-}
-
-extension $StudyYearRangeCopyWith on StudyYearRange {
-  /// Returns a callable class that can be used as follows: `instanceOfclass StudyYearRange.name.copyWith(...)` or like so:`instanceOfclass StudyYearRange.name.copyWith.fieldName(...)`.
-  _$StudyYearRangeCWProxy get copyWith => _$StudyYearRangeCWProxyImpl(this);
-
-  /// Copies the object with the specific fields set to `null`. If you pass `false` as a parameter, nothing will be done and it will be ignored. Don't do it. Prefer `copyWith(field: null)` or `StudyYearRange(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// StudyYearRange(...).copyWithNull(firstField: true, secondField: true)
-  /// ````
-  StudyYearRange copyWithNull({
-    bool from = false,
-    bool to = false,
-  }) {
-    return StudyYearRange(
-      from: from == true ? null : this.from,
-      to: to == true ? null : this.to,
     );
   }
 }
