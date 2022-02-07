@@ -46,10 +46,6 @@ android {
         main.java.srcDirs += 'src/main/kotlin'
     }
 
-    lintOptions {
-        disable 'InvalidPackage'
-    }
-
     defaultConfig {
         applicationId "com.AndroidQuartz.meetinghelper"
         targetSdkVersion 30
@@ -76,8 +72,6 @@ android {
         debug{
             defaultConfig.minSdkVersion 25
             signingConfig signingConfigs.debug
-            useProguard false
-            multiDexEnabled true
         }
         profile{
             defaultConfig.minSdkVersion 26
@@ -101,9 +95,4 @@ flutter {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation platform('com.google.firebase:firebase-bom:28.4.0')
-
-    implementation 'com.google.firebase:firebase-analytics'
-    implementation 'com.google.firebase:firebase-auth'
-    implementation 'com.google.firebase:firebase-firestore'
 }
