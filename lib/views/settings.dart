@@ -8,7 +8,6 @@ import 'package:intl/intl.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/services.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:provider/provider.dart';
 
 enum DateType {
   month,
@@ -231,10 +230,11 @@ class SettingsState extends State<Settings> {
                     ],
                   ),
                 ),
-                Selector<User, Map<String, bool>>(
-                  selector: (_, user) => user.getNotificationsPermissions(),
-                  builder: (context, permission, _) {
-                    if (permission.containsValue(true)) {
+                StreamBuilder<Map<String, bool>>(
+                  stream: User.loggedInStream
+                      .map((u) => u.getNotificationsPermissions()),
+                  builder: (context, permission) {
+                    if (permission.data?.containsValue(true) ?? false) {
                       return ExpandablePanel(
                         theme: ExpandableThemeData(
                             useInkWell: true,
@@ -245,7 +245,8 @@ class SettingsState extends State<Settings> {
                           style: TextStyle(fontSize: 24),
                         ),
                         collapsed: const Text('اعدادات الاشعارات'),
-                        expanded: _getNotificationsContent(permission),
+                        expanded:
+                            _getNotificationsContent(permission.requireData),
                       );
                     }
                     return Container();
