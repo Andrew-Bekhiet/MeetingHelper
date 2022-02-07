@@ -1,12 +1,12 @@
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
 
-class MHThemeNotifier extends ThemeNotifier {
+class MHThemingService extends ThemingService {
   static ThemeData getDefault({
     bool? darkTheme,
     bool? greatFeastThemeOverride,
   }) {
-    return ThemeNotifier.getDefault(
+    return ThemingService.getDefault(
       primaryOverride: Colors.amber,
       secondaryOverride: Colors.amberAccent,
       darkTheme: darkTheme,
@@ -14,10 +14,10 @@ class MHThemeNotifier extends ThemeNotifier {
     );
   }
 
-  factory MHThemeNotifier() =>
-      MHThemeNotifier.withInitialThemeata(getDefault());
+  factory MHThemingService() =>
+      MHThemingService.withInitialThemeata(getDefault());
 
-  MHThemeNotifier.withInitialThemeata(ThemeData initialTheme)
+  MHThemingService.withInitialThemeata(ThemeData initialTheme)
       : super.withInitialThemeata(initialTheme);
 
   @override

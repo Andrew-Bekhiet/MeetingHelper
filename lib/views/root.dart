@@ -895,7 +895,7 @@ class _RootState extends State<Root>
 
   @override
   void didChangePlatformBrightness() {
-    GetIt.I<MHThemeNotifier>().switchTheme(
+    GetIt.I<MHThemingService>().switchTheme(
         WidgetsBinding.instance!.window.platformBrightness == Brightness.dark);
   }
 

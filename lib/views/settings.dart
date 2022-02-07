@@ -99,7 +99,7 @@ class SettingsState extends State<Settings> {
                               .box('Settings')
                               .put('GreatFeastTheme', greatFeastTheme);
 
-                          GetIt.I<MHThemeNotifier>().switchTheme(
+                          GetIt.I<MHThemingService>().switchTheme(
                             darkTheme ??
                                 WidgetsBinding
                                         .instance!.window.platformBrightness ==

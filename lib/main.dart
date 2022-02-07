@@ -72,21 +72,27 @@ Future<void> initMeetingHelper() async {
 
         return instance;
       },
+      ThemingService: () {
+        final instance = MHThemingService();
+
+        GetIt.I.registerSingleton<MHThemingService>(instance);
+
+        return instance;
+      },
+      ShareService: () {
+        final instance = MHShareService();
+
+        GetIt.I.registerSingleton<MHShareService>(instance);
+
+        return instance;
+      },
     },
   );
-
-  final shareService = MHShareService();
-  GetIt.I.registerSingleton<ShareService>(shareService);
-  GetIt.I.registerSingleton<MHShareService>(shareService);
 
   final mhDataObjectTapHandler = MHDataObjectTapHandler(navigator);
   GetIt.I
       .registerSingleton<DefaultDataObjectTapHandler>(mhDataObjectTapHandler);
   GetIt.I.registerSingleton<MHDataObjectTapHandler>(mhDataObjectTapHandler);
-
-  final themeNotifier = MHThemeNotifier();
-  GetIt.I.registerSingleton<ThemeNotifier>(themeNotifier);
-  GetIt.I.registerSingleton<MHThemeNotifier>(themeNotifier);
 }
 
 Future<void> initFirebase() async {
@@ -253,8 +259,8 @@ class AppState extends State<App> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<ThemeData>(
-      initialData: GetIt.I<ThemeNotifier>().theme,
-      stream: GetIt.I<ThemeNotifier>().stream,
+      initialData: GetIt.I<MHThemingService>().theme,
+      stream: GetIt.I<MHThemingService>().stream,
       builder: (context, theme) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
