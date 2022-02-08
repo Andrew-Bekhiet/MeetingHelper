@@ -209,11 +209,13 @@ class _LoginScreenState extends State<LoginScreen> {
       WidgetsBinding.instance!.addPostFrameCallback((_) async {
         if (user.getNotificationsPermissions().values.toList().any((e) => e)) {
           final notificationsSettings = GetIt.I<CacheRepository>()
-              .box<Map<dynamic, dynamic>>('NotificationsSettings');
+              .box<NotificationSetting>('NotificationsSettings');
           if (user.permissions.birthdayNotify) {
             if (notificationsSettings.get('BirthDayTime') == null) {
               await notificationsSettings.put(
-                  'BirthDayTime', <String, int>{'Hours': 11, 'Minutes': 0});
+                'BirthDayTime',
+                const NotificationSetting(11, 0, 1),
+              );
             }
             await AndroidAlarmManager.periodic(
               const Duration(days: 1),
@@ -230,8 +232,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
           if (user.permissions.kodasNotify) {
             if (notificationsSettings.get('KodasTime') == null) {
-              await notificationsSettings.put('KodasTime',
-                  <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
+              await notificationsSettings.put(
+                'KodasTime',
+                const NotificationSetting(11, 0, 7),
+              );
             }
             await AndroidAlarmManager.periodic(
               const Duration(days: 7),
@@ -246,8 +250,10 @@ class _LoginScreenState extends State<LoginScreen> {
           }
           if (user.permissions.meetingNotify) {
             if (notificationsSettings.get('MeetingTime') == null) {
-              await notificationsSettings.put('MeetingTime',
-                  <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
+              await notificationsSettings.put(
+                'MeetingTime',
+                const NotificationSetting(11, 0, 7),
+              );
             }
             await AndroidAlarmManager.periodic(
               const Duration(days: 7),
@@ -262,8 +268,10 @@ class _LoginScreenState extends State<LoginScreen> {
           }
           if (user.permissions.confessionsNotify) {
             if (notificationsSettings.get('ConfessionTime') == null) {
-              await notificationsSettings.put('ConfessionTime',
-                  <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
+              await notificationsSettings.put(
+                'ConfessionTime',
+                const NotificationSetting(11, 0, 7),
+              );
             }
             await AndroidAlarmManager.periodic(
               const Duration(days: 7),
@@ -278,8 +286,10 @@ class _LoginScreenState extends State<LoginScreen> {
           }
           if (user.permissions.tanawolNotify) {
             if (notificationsSettings.get('TanawolTime') == null) {
-              await notificationsSettings.put('TanawolTime',
-                  <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
+              await notificationsSettings.put(
+                'TanawolTime',
+                const NotificationSetting(11, 0, 7),
+              );
             }
             await AndroidAlarmManager.periodic(
               const Duration(days: 7),
