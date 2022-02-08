@@ -297,20 +297,30 @@ class _ClassInfoState extends State<ClassInfo> {
                           },
                         ),
                       ],
-                expandedHeight: 250.0,
+                expandedHeight: 280,
                 stretch: true,
                 pinned: true,
-                flexibleSpace: LayoutBuilder(
-                  builder: (context, constraints) => FlexibleSpaceBar(
-                    title: AnimatedOpacity(
-                      duration: const Duration(milliseconds: 300),
-                      opacity: constraints.biggest.height > kToolbarHeight * 1.7
-                          ? 0
-                          : 1,
-                      child: Text(class$.name,
-                          style: const TextStyle(fontSize: 16.0)),
+                flexibleSpace: SafeArea(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) => FlexibleSpaceBar(
+                      title: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 300),
+                        opacity:
+                            constraints.biggest.height > kToolbarHeight * 1.7
+                                ? 0
+                                : 1,
+                        child: Text(class$.name,
+                            style: const TextStyle(fontSize: 16.0)),
+                      ),
+                      background: Theme(
+                        data: Theme.of(context).copyWith(
+                          progressIndicatorTheme: ProgressIndicatorThemeData(
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                        ),
+                        child: PhotoObjectWidget(class$, circleCrop: false),
+                      ),
                     ),
-                    background: PhotoObjectWidget(class$, circleCrop: false),
                   ),
                 ),
               ),

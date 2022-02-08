@@ -239,24 +239,33 @@ class _PersonInfoState extends State<PersonInfo> {
                             },
                           ),
                         ],
-                  expandedHeight: 250.0,
+                  expandedHeight: 280,
                   pinned: true,
-                  flexibleSpace: LayoutBuilder(
-                    builder: (context, constraints) => FlexibleSpaceBar(
-                      title: AnimatedOpacity(
-                        duration: const Duration(milliseconds: 300),
-                        opacity:
-                            constraints.biggest.height > kToolbarHeight * 1.7
-                                ? 0
-                                : 1,
-                        child: Text(
-                          person.name,
-                          overflow: TextOverflow.ellipsis,
+                  flexibleSpace: SafeArea(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) => FlexibleSpaceBar(
+                        title: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 300),
+                          opacity:
+                              constraints.biggest.height > kToolbarHeight * 1.7
+                                  ? 0
+                                  : 1,
+                          child: Text(
+                            person.name,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                      background: PhotoObjectWidget(
-                        person,
-                        circleCrop: false,
+                        background: Theme(
+                          data: Theme.of(context).copyWith(
+                            progressIndicatorTheme: ProgressIndicatorThemeData(
+                              color: Theme.of(context).colorScheme.secondary,
+                            ),
+                          ),
+                          child: PhotoObjectWidget(
+                            person,
+                            circleCrop: false,
+                          ),
+                        ),
                       ),
                     ),
                   ),

@@ -81,24 +81,27 @@ class _UserInfoState extends State<UserInfo> {
                     tooltip: 'بيانات المستخدم',
                   ),
                 ],
-                expandedHeight: 250.0,
+                expandedHeight: 280,
                 pinned: true,
-                flexibleSpace: LayoutBuilder(
-                  builder: (context, constraints) => FlexibleSpaceBar(
-                    title: AnimatedOpacity(
-                      duration: const Duration(milliseconds: 300),
-                      opacity: constraints.biggest.height > kToolbarHeight * 1.7
-                          ? 0
-                          : 1,
-                      child: Text(user.name,
-                          style: const TextStyle(
-                            fontSize: 16.0,
-                          )),
-                    ),
-                    background: UserPhotoWidget(
-                      user,
-                      circleCrop: false,
-                      showActivityStatus: false,
+                flexibleSpace: SafeArea(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) => FlexibleSpaceBar(
+                      title: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 300),
+                        opacity:
+                            constraints.biggest.height > kToolbarHeight * 1.7
+                                ? 0
+                                : 1,
+                        child: Text(user.name,
+                            style: const TextStyle(
+                              fontSize: 16.0,
+                            )),
+                      ),
+                      background: UserPhotoWidget(
+                        user,
+                        circleCrop: false,
+                        showActivityStatus: false,
+                      ),
                     ),
                   ),
                 ),
