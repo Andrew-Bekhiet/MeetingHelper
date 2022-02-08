@@ -67,7 +67,9 @@ class Service extends DataObject implements PhotoObjectBase {
                 )
               : null,
           showInHistory: json['ShowInHistory'],
-          color: json['Color'] != null ? Color(json['Color']) : null,
+          color: json['Color'] == null || json['Color'] == 0
+              ? null
+              : Color(json['Color']),
           lastEdit: json['LastEdit'] == null
               ? null
               : json['LastEdit'] is Map

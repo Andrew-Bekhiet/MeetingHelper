@@ -100,8 +100,9 @@ class Person extends PersonBase {
         super(
           ref: doc.reference,
           hasPhoto: doc.data()!['HasPhoto'] ?? false,
-          color:
-              doc.data()!['Color'] == null ? null : Color(doc.data()!['Color']),
+          color: doc.data()!['Color'] == null || doc.data()!['Color'] == 0
+              ? null
+              : Color(doc.data()!['Color']),
           name: doc.data()!['Name'],
           address: doc.data()!['Address'],
           location: doc.data()!['Location'],

@@ -61,7 +61,9 @@ class Class extends DataObject implements PhotoObjectBase {
                     data['LastEdit'],
                     data['LastEditTime']?.toDate() ?? DateTime.now(),
                   ),
-        color = data['Color'] != null ? Color(data['Color']) : null,
+        color = data['Color'] == null || data['Color'] == 0
+            ? null
+            : Color(data['Color']),
         super.fromJson(data, ref);
 
   factory Class.empty() => Class(
