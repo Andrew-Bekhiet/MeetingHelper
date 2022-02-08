@@ -6,11 +6,8 @@ import 'package:collection/collection.dart';
 import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:location/location.dart';
 import 'package:meetinghelper/repositories/database_repository.dart';
-import 'package:meetinghelper/widgets.dart';
 
 part 'person.g.dart';
 
@@ -227,45 +224,6 @@ class Person extends PersonBase {
         'Last': last,
         'Services': services,
       };
-
-  //TODO: refactor
-  Widget getMapView({bool useGPSIfNull = false, bool editMode = false}) {
-    if (location == null && useGPSIfNull)
-      return FutureBuilder<PermissionStatus>(
-        future: Location.instance.requestPermission(),
-        builder: (context, data) {
-          if (data.hasData && data.data == PermissionStatus.granted) {
-            return FutureBuilder<LocationData>(
-              future: Location.instance.getLocation(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData)
-                  return const Center(child: CircularProgressIndicator());
-                return MapView(
-                    childrenDepth: 3,
-                    initialLocation: LatLng(snapshot.data!.latitude ?? 34,
-                        snapshot.data!.longitude ?? 50),
-                    editMode: editMode,
-                    person: this);
-              },
-            );
-          }
-          return MapView(
-              childrenDepth: 3,
-              initialLocation: const LatLng(34, 50),
-              editMode: editMode,
-              person: this);
-        },
-      );
-    else if (location == null)
-      return const Text(
-        'لم يتم تحديد موقع للمنزل',
-        style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            locale: Locale('ar', 'EG')),
-      );
-    return MapView(editMode: editMode, person: this, childrenDepth: 3);
-  }
 
   Future<String> getSchoolName() async {
     return (await school?.get())?.data()?['Name'] ?? '';

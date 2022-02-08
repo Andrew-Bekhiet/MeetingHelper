@@ -7,6 +7,7 @@ import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/services.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
+import 'package:meetinghelper/views.dart';
 import 'package:meetinghelper/widgets.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rxdart/rxdart.dart';
@@ -370,10 +371,7 @@ class _PersonInfoState extends State<PersonInfo> {
                     icon: const Icon(Icons.map),
                     onPressed: () => navigator.currentState!.push(
                       MaterialPageRoute(
-                        builder: (context) => Scaffold(
-                          appBar: AppBar(title: Text(person.name)),
-                          body: person.getMapView(),
-                        ),
+                        builder: (context) => LocationMapView(person: person),
                       ),
                     ),
                     label: const Text('إظهار على الخريطة'),

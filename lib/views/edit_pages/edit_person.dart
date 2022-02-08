@@ -5,6 +5,7 @@ import 'package:churchdata_core/churchdata_core.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -1060,35 +1061,18 @@ class _EditPersonState extends State<EditPerson> {
   }
 
   void _editLocation() async {
-    final oldPoint = person.location != null
-        ? GeoPoint(person.location!.latitude, person.location!.longitude)
-        : null;
     final rslt = await navigator.currentState!.push(
       MaterialPageRoute(
-        builder: (context) => Scaffold(
-          appBar: AppBar(
-            actions: <Widget>[
-              IconButton(
-                icon: const Icon(Icons.done),
-                onPressed: () => navigator.currentState!.pop(true),
-                tooltip: 'حفظ',
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete),
-                onPressed: () => navigator.currentState!.pop(false),
-                tooltip: 'حذف التحديد',
-              )
-            ],
-            title: Text('تعديل مكان ${person.name} على الخريطة'),
-          ),
-          body: person.getMapView(editMode: true, useGPSIfNull: true),
+        builder: (context) => LocationMapView(
+          person: person,
+          editable: true,
         ),
       ),
     );
     if (rslt == false) {
       person = person.copyWith.location(null);
-    } else {
-      person = person.copyWith.location(rslt ?? oldPoint);
+    } else if (rslt != null) {
+      person = person.copyWith.location((rslt as LatLng?)?.toGeoPoint());
     }
     _nextFocus();
   }

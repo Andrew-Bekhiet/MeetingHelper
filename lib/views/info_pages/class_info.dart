@@ -431,8 +431,8 @@ class _ClassInfoState extends State<ClassInfo> {
   }
 
   void showMap(BuildContext context, Class class$) {
-    navigator.currentState!
-        .push(MaterialPageRoute(builder: (context) => DataMap(class$: class$)));
+    navigator.currentState!.push(MaterialPageRoute(
+        builder: (context) => MHMapView(initialClass: class$)));
   }
 
   void _showAnalytics(BuildContext context, Class _class) {

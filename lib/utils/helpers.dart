@@ -5,6 +5,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/material.dart' hide Notification;
 import 'package:get_it/get_it.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
 import 'package:meetinghelper/controllers.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
@@ -235,5 +237,13 @@ Future<void> showErrorUpdateDataDialog(
     );
     await GetIt.I<CacheRepository>().box('Settings').put('DialogLastShown',
         DateTime.now().truncateToDay().millisecondsSinceEpoch);
+  }
+}
+
+extension LocationDataX on LocationData {
+  LatLng? toLatLng() {
+    return latitude != null && longitude != null
+        ? LatLng(latitude!, longitude!)
+        : null;
   }
 }

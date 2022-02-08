@@ -472,8 +472,8 @@ class _ServiceInfoState extends State<ServiceInfo> {
   }
 
   void showMap(BuildContext context, Service service) {
-    navigator.currentState!.push(
-        MaterialPageRoute(builder: (context) => DataMap(service: service)));
+    navigator.currentState!.push(MaterialPageRoute(
+        builder: (context) => MHMapView(initialService: service)));
   }
 
   void _showAnalytics(BuildContext context, Service _class) {

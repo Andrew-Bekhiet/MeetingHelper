@@ -358,7 +358,7 @@ class AppState extends State<App> {
                     ModalRoute.of(context)!.settings.arguments! as Invitation),
             'Update': (context) => const Update(),
             'Search': (context) => const SearchQuery(),
-            'DataMap': (context) => const DataMap(),
+            'DataMap': (context) => const MHMapView(),
             'Settings': (context) => const Settings(),
             'Settings/Churches': (context) => MiniModelList<Church>(
                   title: 'الكنائس',
