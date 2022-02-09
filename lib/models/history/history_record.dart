@@ -19,7 +19,7 @@ abstract class HistoryDayBase extends DataObjectWithPhoto {
   final String? notes;
 
   HistoryDayBase({required JsonRef ref})
-      : day = DateTime.now().truncateToDay().toTimestamp(),
+      : day = DateTime.now().truncateToUTCDay().toTimestamp(),
         notes = '',
         super(ref, '');
 
