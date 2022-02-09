@@ -58,7 +58,12 @@ class MHDataObjectTapHandler extends DefaultDataObjectTapHandler {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              PhotoObjectWidget(user),
+              PhotoObjectWidget(
+                user,
+                constraints: const BoxConstraints(
+                  maxHeight: 100,
+                ),
+              ),
               Text(
                 'البريد الاكتروني: ' + user.email!,
               ),
