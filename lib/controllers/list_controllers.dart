@@ -20,14 +20,15 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
 
   @override
   BehaviorSubject<Set<T>?> get selectionSubject {
-    final BehaviorSubject<Set<T>?> result = BehaviorSubject()
-      ..addStream(
-        _attended.map(
-          (v) => {
+    final BehaviorSubject<Set<T>?> result = BehaviorSubject();
+
+    _attended
+        .map(
+          (v) => ListController.setWrapper<T>({
             for (final i in v.keys) _objectsById.value[i]!,
-          },
-        ),
-      );
+          }),
+        )
+        .listen(result.add, onError: result.addError, onDone: result.close);
 
     return result;
   }
@@ -156,8 +157,6 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
           tempSelected[d.id] = _objectsById.value[d.id]!;
         tempResult[d.id] = HistoryRecord.fromQueryDoc(d, day);
       }
-
-      selectionSubject.add(tempSelected.values.toSet());
 
       return tempResult;
     }
