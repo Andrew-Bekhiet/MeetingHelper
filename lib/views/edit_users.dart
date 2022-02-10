@@ -21,16 +21,16 @@ class _UsersPageState extends State<UsersPage> {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          IconButton(
-            icon: const Icon(Icons.link),
-            tooltip: 'لينكات الدعوة',
-            onPressed: () => navigator.currentState!.pushNamed('Invitations'),
-          ),
           if (!_showSearch)
             IconButton(
               icon: const Icon(Icons.search),
               onPressed: () => setState(() => _showSearch = true),
             ),
+          IconButton(
+            icon: const Icon(Icons.link),
+            tooltip: 'لينكات الدعوة',
+            onPressed: () => navigator.currentState!.pushNamed('Invitations'),
+          ),
         ],
         title: _showSearch
             ? TextField(
