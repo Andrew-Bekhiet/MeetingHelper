@@ -26,6 +26,8 @@ class User extends UserBase implements DataObjectWithPhoto {
 
   final List<String> allowedUsers;
   final List<JsonRef> adminServices;
+  final DateTime? lastTanawol;
+  final DateTime? lastConfession;
 
   @override
   // ignore: overridden_fields
@@ -38,6 +40,8 @@ class User extends UserBase implements DataObjectWithPhoto {
   User({
     required this.ref,
     required String uid,
+    this.lastTanawol,
+this.lastConfession,
     this.classId,
     String? email,
     this.password,
@@ -47,19 +51,21 @@ class User extends UserBase implements DataObjectWithPhoto {
     this.adminServices = const [],
   }) : super(uid: uid, name: name, email: email, permissions: permissions);
 
-  User.fromJson(Json data, this.ref)
+  /* User.fromJson(Json data, this.ref)
       : password = null,
         classId = data['ClassId'],
         permissions = MHPermissionsSet.fromJson(data['Permissions'] ?? {}),
         allowedUsers = data['AllowedUsers']?.cast<String>() ?? [],
         adminServices = data['AdminServices']?.cast<JsonRef>() ?? [],
+        lastTanawol = (data['LastTanawol'] as Timestamp?)?.toDate(),
+  lastConfession = (data['LastConfession'] as Timestamp?)?.toDate(),
         super(
           uid: data['UID'] ?? emptyUID,
           name: data['Name'] ?? '',
           email: data['Email'] ?? '',
         );
 
-  User.fromDoc(JsonDoc data) : this.fromJson(data.data()!, data.reference);
+  User.fromDoc(JsonDoc data) : this.fromJson(data.data()!, data.reference); */
 
   @override
   Color? get color => null;
@@ -99,13 +105,6 @@ class User extends UserBase implements DataObjectWithPhoto {
   @override
   Future<String> getSecondLine() async => getPermissions();
 
-  Json getUpdateMap() {
-    return {
-      'name': name,
-      'permissions': permissions.toJson(),
-    };
-  }
-
   void reloadImage() {
     photoUrlCache.invalidate();
   }
@@ -113,16 +112,18 @@ class User extends UserBase implements DataObjectWithPhoto {
   @override
   Json toJson() => {
         ...super.toJson(),
+        'LastTanawol':lastTanawol,
+'LastConfession':lastConfession,
         'AllowedUsers': allowedUsers,
         'AdminServices': adminServices,
       };
 
   bool userDataUpToDate() {
-    return permissions.lastTanawol != null &&
-        permissions.lastConfession != null &&
-        ((permissions.lastTanawol!.millisecondsSinceEpoch + 5184000000) >=
+    return lastTanawol != null &&
+        lastConfession != null &&
+        ((lastTanawol!.millisecondsSinceEpoch + 5184000000) >=
                 DateTime.now().millisecondsSinceEpoch &&
-            (permissions.lastConfession!.millisecondsSinceEpoch + 5184000000) >=
+            (lastConfession!.millisecondsSinceEpoch + 5184000000) >=
                 DateTime.now().millisecondsSinceEpoch);
   }
 

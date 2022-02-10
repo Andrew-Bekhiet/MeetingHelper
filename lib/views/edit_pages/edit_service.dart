@@ -502,7 +502,7 @@ class _EditServiceState extends State<EditService> {
                   .where('AdminServices', arrayContains: service.ref)
                   .get())
               .docs
-              .map(User.fromDoc)
+              .map(UserWithPerson.fromDoc)
               .toList();
           for (final item in oldAllowed) {
             if (!allowedUsers!.contains(item)) {
@@ -575,7 +575,7 @@ class _EditServiceState extends State<EditService> {
                       .collection('UsersData')
                       .where('AdminServices', arrayContains: service.ref)
                       .get()
-                      .then((value) => value.docs.map(User.fromDoc).toList()),
+                      .then((value) => value.docs.map(UserWithPerson.fromDoc).toList()),
               builder: (context, users) {
                 if (!users.hasData)
                   return const Center(child: CircularProgressIndicator());

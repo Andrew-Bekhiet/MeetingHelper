@@ -30,7 +30,7 @@ class MHDataObjectTapHandler extends DefaultDataObjectTapHandler {
     navigator.pushNamed('PersonInfo', arguments: person);
   }
 
-  void userTap(User user) async {
+  void userTap(UserWithPerson user) async {
     if (user.permissions.approved) {
       await navigator.pushNamed('UserInfo', arguments: user);
     } else {
@@ -58,10 +58,11 @@ class MHDataObjectTapHandler extends DefaultDataObjectTapHandler {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              PhotoObjectWidget(
-                user,
-                constraints: const BoxConstraints(
-                  maxHeight: 100,
+              SizedBox(
+                height: 200,
+                width: 200,
+                child: PhotoObjectWidget(
+                  user,
                 ),
               ),
               Text(
@@ -101,7 +102,7 @@ class MHDataObjectTapHandler extends DefaultDataObjectTapHandler {
           await GetIt.I<LoggingService>().reportError(
             err as Exception,
             stackTrace: stack,
-            data: user.toJson(),
+            data: user.userJson(),
           );
         }
       } else if (rslt == 'delete') {
@@ -128,7 +129,7 @@ class MHDataObjectTapHandler extends DefaultDataObjectTapHandler {
           await GetIt.I<LoggingService>().reportError(
             err as Exception,
             stackTrace: stack,
-            data: user.toJson(),
+            data: user.userJson(),
           );
         }
       }
@@ -143,7 +144,7 @@ class MHDataObjectTapHandler extends DefaultDataObjectTapHandler {
       serviceTap(object);
     else if (object is Person)
       personTap(object);
-    else if (object is User)
+    else if (object is UserWithPerson)
       userTap(object);
     else if (object is HistoryDayBase)
       historyTap(object);

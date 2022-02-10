@@ -103,7 +103,7 @@ class _RootState extends State<Root>
 
   late final ServicesListController _servicesOptions;
   late final ListController<void, Person> _personsOptions;
-  late final ListController<Class?, User> _usersOptions;
+  late final ListController<Class?, UserWithPerson> _usersOptions;
 
   GlobalKey _createOrGetFeatureKey(String key) {
     _features[key] ??= GlobalKey();
@@ -326,10 +326,11 @@ class _RootState extends State<Root>
         children: [
           if (User.instance.permissions.manageUsers ||
               User.instance.permissions.manageAllowedUsers)
-            DataObjectListView<Class?, User>(
+            DataObjectListView<Class?, UserWithPerson>(
               key: const PageStorageKey('mainUsersList'),
               autoDisposeController: false,
               controller: _usersOptions,
+              onTap: GetIt.I<MHDataObjectTapHandler>().personTap,
             ),
           ServicesList(
             key: const PageStorageKey('mainClassesList'),
@@ -919,12 +920,19 @@ class _RootState extends State<Root>
   void initState() {
     super.initState();
     initializeDateFormatting('ar_EG');
-    _usersOptions = ListController<Class?, User>(
+    _usersOptions = ListController<Class?, UserWithPerson>(
       searchStream: _searchQuery,
       objectsPaginatableStream: PaginatableStream.loadAll(
-        stream: MHDatabaseRepo.instance.getAllUsers(),
+        stream: MHDatabaseRepo.instance.getAllUsersData(),
       ),
-      groupByStream: MHDatabaseRepo.I.groupUsersByClass,
+      groupByStream: (u) => MHDatabaseRepo.I.groupUsersByClass(u).map(
+            (event) => event.map(
+              (key, value) => MapEntry(
+                key,
+                value.cast<UserWithPerson>(),
+              ),
+            ),
+          ),
       groupingStream: Stream.value(true),
     );
 

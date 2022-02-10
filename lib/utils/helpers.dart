@@ -209,12 +209,12 @@ Future<void> showErrorUpdateDataDialog(
               final user = User.instance;
               await navigator.currentState!
                   .pushNamed('UpdateUserDataError', arguments: user);
-              if (user.permissions.lastTanawol != null &&
-                  user.permissions.lastConfession != null &&
-                  ((user.permissions.lastTanawol!.millisecondsSinceEpoch +
+              if (user.lastTanawol != null &&
+                  user.lastConfession != null &&
+                  ((user.lastTanawol!.millisecondsSinceEpoch +
                               2592000000) >
                           DateTime.now().millisecondsSinceEpoch &&
-                      (user.permissions.lastConfession!.millisecondsSinceEpoch +
+                      (user.lastConfession!.millisecondsSinceEpoch +
                               5184000000) >
                           DateTime.now().millisecondsSinceEpoch)) {
                 navigator.currentState!.pop();

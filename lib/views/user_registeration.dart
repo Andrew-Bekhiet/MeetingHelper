@@ -45,9 +45,9 @@ class _UserRegistrationState extends State<UserRegistration> {
         final user = userSnapshot.data!;
 
         if (user.permissions.approved) {
-          lastTanawol ??= user.permissions.lastTanawol?.millisecondsSinceEpoch;
+          lastTanawol ??= user.lastTanawol?.millisecondsSinceEpoch;
           lastConfession ??=
-              user.permissions.lastConfession?.millisecondsSinceEpoch;
+              user.lastConfession?.millisecondsSinceEpoch;
           if (_userName.text.isEmpty)
             WidgetsBinding.instance!
                 .addPostFrameCallback((_) => _userName.text = user.name);

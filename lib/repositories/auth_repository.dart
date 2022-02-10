@@ -56,6 +56,9 @@ class MHAuthRepository extends AuthRepository<User, Person> {
           .snapshots()
           .map((doc) {
             userSubject.add(User(
+              lastTanawol: (doc.data()?['LastTanawol'] as Timestamp?)?.toDate(),
+              lastConfession:
+                  (doc.data()?['LastConfession'] as Timestamp?)?.toDate(),
               ref: doc.reference,
               uid: firebaseUser?.uid ?? uid!,
               name: firebaseUser?.displayName ?? name ?? '',
@@ -82,6 +85,8 @@ class MHAuthRepository extends AuthRepository<User, Person> {
         email: firebaseUser?.email ?? email!,
         password: idTokenClaims['password'],
         permissions: permissionsFromIdToken(idTokenClaims),
+        lastTanawol: currentUser?.lastTanawol,
+        lastConfession: currentUser?.lastConfession,
         classId: currentUser?.classId,
         allowedUsers: currentUser?.allowedUsers ?? [],
         adminServices: currentUser?.adminServices ?? [],
@@ -104,6 +109,8 @@ class MHAuthRepository extends AuthRepository<User, Person> {
       email: firebaseUser?.email ?? email!,
       password: idTokenClaims['password'],
       permissions: permissionsFromIdToken(idTokenClaims),
+      lastTanawol: currentUser?.lastTanawol,
+      lastConfession: currentUser?.lastConfession,
       classId: currentUser?.classId,
       allowedUsers: currentUser?.allowedUsers ?? [],
       adminServices: currentUser?.adminServices ?? [],

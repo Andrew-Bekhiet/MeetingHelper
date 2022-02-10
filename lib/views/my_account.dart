@@ -191,12 +191,12 @@ class _MyAccountState extends State<MyAccount> {
                 children: <Widget>[
                   Expanded(
                     child: Text(
-                        user.permissions.lastTanawol?.toDurationString() ?? ''),
+                        user.lastTanawol?.toDurationString() ?? ''),
                   ),
                   Text(
-                    user.permissions.lastTanawol != null
+                    user.lastTanawol != null
                         ? DateFormat('yyyy/M/d')
-                            .format(user.permissions.lastTanawol!)
+                            .format(user.lastTanawol!)
                         : '',
                     style: Theme.of(context).textTheme.overline,
                   ),
@@ -209,13 +209,13 @@ class _MyAccountState extends State<MyAccount> {
                 children: <Widget>[
                   Expanded(
                     child: Text(
-                        user.permissions.lastConfession?.toDurationString() ??
+                        user.lastConfession?.toDurationString() ??
                             ''),
                   ),
                   Text(
-                    user.permissions.lastConfession != null
+                    user.lastConfession != null
                         ? DateFormat('yyyy/M/d')
-                            .format(user.permissions.lastConfession!)
+                            .format(user.lastConfession!)
                         : '',
                     style: Theme.of(context).textTheme.overline,
                   ),

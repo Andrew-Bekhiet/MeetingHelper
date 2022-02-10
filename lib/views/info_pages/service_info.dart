@@ -515,7 +515,7 @@ class _ServiceServants extends StatelessWidget {
                     .where('AdminServices', arrayContains: service.ref)
                     .snapshots(),
           )
-          .map((s) => s.docs.map(User.fromDoc).toList()),
+          .map((s) => s.docs.map(UserWithPerson.fromDoc).toList()),
       builder: (context, usersSnashot) {
         if (!usersSnashot.hasData) return const LinearProgressIndicator();
 

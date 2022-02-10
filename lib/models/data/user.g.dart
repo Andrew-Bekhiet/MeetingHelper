@@ -16,6 +16,10 @@ abstract class _$UserCWProxy {
 
   User email(String? email);
 
+  User lastConfession(DateTime? lastConfession);
+
+  User lastTanawol(DateTime? lastTanawol);
+
   User name(String name);
 
   User password(String? password);
@@ -37,6 +41,8 @@ abstract class _$UserCWProxy {
     List<String>? allowedUsers,
     DocumentReference<Map<String, dynamic>>? classId,
     String? email,
+    DateTime? lastConfession,
+    DateTime? lastTanawol,
     String? name,
     String? password,
     MHPermissionsSet? permissions,
@@ -68,6 +74,13 @@ class _$UserCWProxyImpl implements _$UserCWProxy {
   User email(String? email) => this(email: email);
 
   @override
+  User lastConfession(DateTime? lastConfession) =>
+      this(lastConfession: lastConfession);
+
+  @override
+  User lastTanawol(DateTime? lastTanawol) => this(lastTanawol: lastTanawol);
+
+  @override
   User name(String name) => this(name: name);
 
   @override
@@ -96,6 +109,8 @@ class _$UserCWProxyImpl implements _$UserCWProxy {
     Object? allowedUsers = const $CopyWithPlaceholder(),
     Object? classId = const $CopyWithPlaceholder(),
     Object? email = const $CopyWithPlaceholder(),
+    Object? lastConfession = const $CopyWithPlaceholder(),
+    Object? lastTanawol = const $CopyWithPlaceholder(),
     Object? name = const $CopyWithPlaceholder(),
     Object? password = const $CopyWithPlaceholder(),
     Object? permissions = const $CopyWithPlaceholder(),
@@ -121,6 +136,14 @@ class _$UserCWProxyImpl implements _$UserCWProxy {
           ? _value.email
           // ignore: cast_nullable_to_non_nullable
           : email as String?,
+      lastConfession: lastConfession == const $CopyWithPlaceholder()
+          ? _value.lastConfession
+          // ignore: cast_nullable_to_non_nullable
+          : lastConfession as DateTime?,
+      lastTanawol: lastTanawol == const $CopyWithPlaceholder()
+          ? _value.lastTanawol
+          // ignore: cast_nullable_to_non_nullable
+          : lastTanawol as DateTime?,
       name: name == const $CopyWithPlaceholder() || name == null
           ? _value.name
           // ignore: cast_nullable_to_non_nullable
@@ -159,6 +182,8 @@ extension $UserCopyWith on User {
   User copyWithNull({
     bool classId = false,
     bool email = false,
+    bool lastConfession = false,
+    bool lastTanawol = false,
     bool password = false,
   }) {
     return User(
@@ -166,6 +191,8 @@ extension $UserCopyWith on User {
       allowedUsers: allowedUsers,
       classId: classId == true ? null : this.classId,
       email: email == true ? null : this.email,
+      lastConfession: lastConfession == true ? null : this.lastConfession,
+      lastTanawol: lastTanawol == true ? null : this.lastTanawol,
       name: name,
       password: password == true ? null : this.password,
       permissions: permissions,

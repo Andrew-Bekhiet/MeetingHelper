@@ -7,10 +7,6 @@ part 'permissions_set.g.dart';
 @immutable
 @CopyWith(copyWithNull: true)
 class MHPermissionsSet extends PermissionsSet implements Serializable {
-  final DateTime? lastConfession;
-
-  final DateTime? lastTanawol;
-
   MHPermissionsSet({
     bool superAccess = false,
     bool manageDeleted = false,
@@ -27,8 +23,6 @@ class MHPermissionsSet extends PermissionsSet implements Serializable {
     bool meetingNotify = false,
     bool visitNotify = false,
     bool approved = false,
-    required DateTime? lastConfession,
-    required DateTime? lastTanawol,
   }) : this.fromSet(
           permissions: {
             if (superAccess) 'superAccess',
@@ -47,12 +41,9 @@ class MHPermissionsSet extends PermissionsSet implements Serializable {
             if (visitNotify) 'visitNotify',
             if (approved) 'approved',
           },
-          lastConfession: lastConfession,
-          lastTanawol: lastTanawol,
         );
 
-  const MHPermissionsSet.empty()
-      : this.fromSet(lastConfession: null, lastTanawol: null);
+  const MHPermissionsSet.empty() : this.fromSet();
 
   MHPermissionsSet.fromJson(Json permissions)
       : this.fromSet(
@@ -60,15 +51,10 @@ class MHPermissionsSet extends PermissionsSet implements Serializable {
               .where((kv) => kv.value.toString() == 'true')
               .map((kv) => kv.key)
               .toSet(),
-          lastConfession: permissions['lastConfession']!=null?DateTime.fromMillisecondsSinceEpoch(
-              permissions['lastConfession']):null,
-          lastTanawol:
-              permissions['lastTanawol']!=null?DateTime.fromMillisecondsSinceEpoch(permissions['lastTanawol']):null,
         );
+
   const MHPermissionsSet.fromSet({
     Set<String> permissions = const <String>{},
-    required this.lastConfession,
-    required this.lastTanawol,
   }) : super.fromSet(permissions);
 
   bool get approved => permissions.contains('approved');
@@ -91,9 +77,21 @@ class MHPermissionsSet extends PermissionsSet implements Serializable {
   @override
   Json toJson() {
     return {
-      'permissions': permissions,
-      'lastConfession': lastConfession?.millisecondsSinceEpoch,
-      'lastTanawol': lastTanawol?.millisecondsSinceEpoch,
+      'approved': approved,
+      'birthdayNotify': birthdayNotify,
+      'changeHistory': changeHistory,
+      'confessionsNotify': confessionsNotify,
+      'export': export,
+      'kodasNotify': kodasNotify,
+      'manageAllowedUsers': manageAllowedUsers,
+      'manageDeleted': manageDeleted,
+      'manageUsers': manageUsers,
+      'meetingNotify': meetingNotify,
+      'secretary': secretary,
+      'superAccess': superAccess,
+      'tanawolNotify': tanawolNotify,
+      'visitNotify': visitNotify,
+      'write': write,
     };
   }
 }

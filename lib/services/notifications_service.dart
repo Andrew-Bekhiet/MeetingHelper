@@ -49,7 +49,12 @@ class MHNotificationsService extends NotificationsService {
     final controller = ListController<Class?, User>(
       objectsPaginatableStream: PaginatableStream.loadAll(
         stream: GetIt.I<MHDatabaseRepo>().collection('Users').snapshots().map(
-              (s) => s.docs.map(User.fromDoc).toList(),
+              (s) => s.docs
+                  .map(
+                    (d) => User(
+                        ref: d.reference, uid: d.id, name: d.data()['Name']),
+                  )
+                  .toList(),
             ),
       ),
       groupingStream: Stream.value(true),

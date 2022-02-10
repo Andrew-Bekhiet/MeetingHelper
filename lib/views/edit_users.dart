@@ -1,7 +1,7 @@
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
-import 'package:meetinghelper/models/data/class.dart';
-import 'package:meetinghelper/models/data/user.dart';
+import 'package:get_it/get_it.dart';
+import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories/database_repository.dart';
 import 'package:meetinghelper/utils/globals.dart';
 
@@ -14,7 +14,7 @@ class UsersPage extends StatefulWidget {
 
 class _UsersPageState extends State<UsersPage> {
   bool _showSearch = false;
-  late final ListController<Class?, User> _listOptions;
+  late final ListController<Class?, UserWithPerson> _listOptions;
 
   @override
   Widget build(BuildContext context) {
@@ -65,9 +65,10 @@ class _UsersPageState extends State<UsersPage> {
           },
         ),
       ),
-      body: DataObjectListView(
+      body: DataObjectListView<Class?, UserWithPerson>(
         autoDisposeController: true,
         controller: _listOptions,
+        onTap: GetIt.I<MHDataObjectTapHandler>().userTap,
       ),
     );
   }
@@ -76,13 +77,20 @@ class _UsersPageState extends State<UsersPage> {
   void initState() {
     super.initState();
 
-    _listOptions = ListController<Class?, User>(
+    _listOptions = ListController<Class?, UserWithPerson>(
       objectsPaginatableStream: PaginatableStream.loadAll(
-        stream: MHDatabaseRepo.instance.getAllUsers().map(
+        stream: MHDatabaseRepo.instance.getAllUsersData().map(
               (users) => users.where((u) => u.uid != User.emptyUID).toList(),
             ),
       ),
-      groupByStream: MHDatabaseRepo.I.groupUsersByClass,
+      groupByStream: (u) => MHDatabaseRepo.I.groupUsersByClass(u).map(
+            (event) => event.map(
+              (key, value) => MapEntry(
+                key,
+                value.cast<UserWithPerson>(),
+              ),
+            ),
+          ),
       groupingStream: Stream.value(true),
     );
   }

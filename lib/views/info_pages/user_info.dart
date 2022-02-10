@@ -14,7 +14,7 @@ import 'package:meetinghelper/widgets.dart';
 class UserInfo extends StatefulWidget {
   const UserInfo({Key? key, required this.user}) : super(key: key);
 
-  final User user;
+  final UserWithPerson user;
 
   @override
   _UserInfoState createState() => _UserInfoState();
@@ -24,14 +24,11 @@ class _UserInfoState extends State<UserInfo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: StreamBuilder<Tuple2<User, Person?>>(
-        initialData: Tuple2(widget.user, null),
-        stream: widget.user.ref.snapshots().map(
-              (d) => Tuple2(User.fromDoc(d), Person.fromDoc(d)),
-            ),
+      body: StreamBuilder<UserWithPerson>(
+        initialData: widget.user,
+        stream: widget.user.ref.snapshots().map(UserWithPerson.fromDoc),
         builder: (context, data) {
-          final User user = data.data!.item1;
-          final Person? person = data.data!.item2;
+          final UserWithPerson user = data.data!;
 
           return NestedScrollView(
             headerSliverBuilder: (context, _) => <Widget>[
@@ -45,13 +42,7 @@ class _UserInfoState extends State<UserInfo> {
                           builder: (co) => EditUser(user: user),
                         ),
                       );
-                      if (result is JsonRef) {
-                        scaffoldMessenger.currentState!.showSnackBar(
-                          const SnackBar(
-                            content: Text('تم الحفظ بنجاح'),
-                          ),
-                        );
-                      } else if (result == 'deleted') {
+                      if (result == 'deleted') {
                         scaffoldMessenger.currentState!.hideCurrentSnackBar();
                         scaffoldMessenger.currentState!.showSnackBar(
                           const SnackBar(
@@ -76,7 +67,7 @@ class _UserInfoState extends State<UserInfo> {
                   IconButton(
                     icon: const Icon(Icons.info),
                     onPressed: () {
-                      GetIt.I<MHDataObjectTapHandler>().personTap(person!);
+                      GetIt.I<MHDataObjectTapHandler>().personTap(user);
                     },
                     tooltip: 'بيانات المستخدم',
                   ),
@@ -97,10 +88,17 @@ class _UserInfoState extends State<UserInfo> {
                               fontSize: 16.0,
                             )),
                       ),
-                      background: UserPhotoWidget(
-                        user,
-                        circleCrop: false,
-                        showActivityStatus: false,
+                      background: Theme(
+                        data: Theme.of(context).copyWith(
+                          progressIndicatorTheme: ProgressIndicatorThemeData(
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                        ),
+                        child: UserPhotoWidget(
+                          user,
+                          circleCrop: false,
+                          showActivityStatus: false,
+                        ),
                       ),
                     ),
                   ),
@@ -140,15 +138,13 @@ class _UserInfoState extends State<UserInfo> {
                   subtitle: Row(
                     children: <Widget>[
                       Expanded(
-                        child: user.permissions.lastTanawol != null
-                            ? Text(user.permissions.lastTanawol!
-                                .toDurationString())
+                        child: user.lastTanawol != null
+                            ? Text(user.lastTanawol!.toDurationString())
                             : const Text('لا يمكن التحديد'),
                       ),
                       Text(
-                        user.permissions.lastTanawol != null
-                            ? DateFormat('yyyy/M/d')
-                                .format(user.permissions.lastTanawol!)
+                        user.lastTanawol != null
+                            ? DateFormat('yyyy/M/d').format(user.lastTanawol!)
                             : '',
                         style: Theme.of(context).textTheme.overline,
                       ),
@@ -160,15 +156,14 @@ class _UserInfoState extends State<UserInfo> {
                   subtitle: Row(
                     children: <Widget>[
                       Expanded(
-                        child: user.permissions.lastConfession != null
-                            ? Text(user.permissions.lastConfession!
-                                .toDurationString())
+                        child: user.lastConfession != null
+                            ? Text(user.lastConfession!.toDurationString())
                             : const Text('لا يمكن التحديد'),
                       ),
                       Text(
-                        user.permissions.lastConfession != null
+                        user.lastConfession != null
                             ? DateFormat('yyyy/M/d')
-                                .format(user.permissions.lastConfession!)
+                                .format(user.lastConfession!)
                             : '',
                         style: Theme.of(context).textTheme.overline,
                       ),
@@ -282,7 +277,10 @@ class _UserInfoState extends State<UserInfo> {
                               options: ServicesListController(
                                 objectsPaginatableStream:
                                     PaginatableStream.loadAll(
-                                        stream: Stream.value([])),
+                                  stream: Stream.value(
+                                    [],
+                                  ),
+                                ),
                                 groupByStream: (_) =>
                                     user.permissions.superAccess
                                         ? MHDatabaseRepo.I
@@ -302,8 +300,11 @@ class _UserInfoState extends State<UserInfo> {
                   ),
                 ),
                 ElevatedButton.icon(
-                  label: Text('المستخدمين المسؤول عنهم ' + user.name,
-                      textScaleFactor: 0.95, overflow: TextOverflow.fade),
+                  label: Text(
+                    'المستخدمين المسؤول عنهم ' + user.name,
+                    textScaleFactor: 0.95,
+                    overflow: TextOverflow.fade,
+                  ),
                   icon: const Icon(Icons.shield),
                   onPressed: () => navigator.currentState!.push(
                     MaterialPageRoute(
@@ -313,7 +314,7 @@ class _UserInfoState extends State<UserInfo> {
                             query: GetIt.I<DatabaseRepository>()
                                 .collection('UsersData')
                                 .where('AllowedUsers', arrayContains: user.uid),
-                            mapper: User.fromDoc,
+                            mapper: UserWithPerson.fromDoc,
                           ),
                           groupByStream: MHDatabaseRepo.I.groupUsersByClass,
                           groupingStream: Stream.value(true),
@@ -356,6 +357,7 @@ class _UserInfoState extends State<UserInfo> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 60),
               ],
             ),
           );

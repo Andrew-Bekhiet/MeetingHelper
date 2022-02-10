@@ -38,12 +38,12 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                       ? const Icon(Icons.done, color: Colors.green)
                       : const Icon(Icons.close, color: Colors.red),
                 ),
-                initialValue: user.permissions.lastTanawol,
+                initialValue: user.lastTanawol,
                 onTap: (state) async {
                   state.didChange(
                     await _selectDate(
                             'تاريخ أخر تناول', state.value ?? DateTime.now()) ??
-                        user.permissions.lastTanawol,
+                        user.lastTanawol,
                   );
                 },
                 builder: (context, state) {
@@ -51,9 +51,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                       ? Text(DateFormat('yyyy/M/d').format(state.value!))
                       : null;
                 },
-                onSaved: (v) => user = user.copyWith.permissions(
-                  user.permissions.copyWith.lastTanawol(v),
-                ),
+                onSaved: (v) => user = user.copyWith.lastTanawol(v),
                 validator: (value) => value == null
                     ? 'برجاء اختيار تاريخ أخر تناول'
                     : value.isBefore(
@@ -70,12 +68,12 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                       ? const Icon(Icons.done, color: Colors.green)
                       : const Icon(Icons.close, color: Colors.red),
                 ),
-                initialValue: user.permissions.lastConfession,
+                initialValue: user.lastConfession,
                 onTap: (state) async {
                   state.didChange(
                     await _selectDate('تاريخ أخر اعتراف',
                             state.value ?? DateTime.now()) ??
-                        user.permissions.lastConfession,
+                        user.lastConfession,
                   );
                 },
                 builder: (context, state) {
@@ -83,9 +81,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                       ? Text(DateFormat('yyyy/M/d').format(state.value!))
                       : null;
                 },
-                onSaved: (v) => user = user.copyWith.permissions(
-                  user.permissions.copyWith.lastConfession(v),
-                ),
+                onSaved: (v) => user = user.copyWith.lastConfession(v),
                 validator: (value) => value == null
                     ? 'برجاء اختيار تاريخ أخر اعتراف'
                     : value.isBefore(
@@ -108,8 +104,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
 
   Future save() async {
     try {
-      if (user.permissions.lastConfession == null ||
-          user.permissions.lastTanawol == null) {
+      if (user.lastConfession == null || user.lastTanawol == null) {
         scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
             content: Text('برجاء ادخال تاريخ أخر الاعتراف والتناول')));
         return;
@@ -121,9 +116,8 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
       await GetIt.I<FunctionsService>()
           .httpsCallable('updateUserSpiritData')
           .call({
-        'lastConfession':
-            user.permissions.lastConfession!.millisecondsSinceEpoch,
-        'lastTanawol': user.permissions.lastTanawol!.millisecondsSinceEpoch
+        'lastConfession': user.lastConfession!.millisecondsSinceEpoch,
+        'lastTanawol': user.lastTanawol!.millisecondsSinceEpoch
       });
       navigator.currentState!.pop();
     } catch (err, stack) {
@@ -132,7 +126,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
           stackTrace: stack,
           withScope: (scope) => scope
             ..setTag('LasErrorIn', '_UpdateUserDataErrorState.save')
-            ..setExtra('User', {'UID': user.uid, ...user.getUpdateMap()}));
+            ..setExtra('User', {'UID': user.uid, ...user.toJson()}));
     }
   }
 

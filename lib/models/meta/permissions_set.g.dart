@@ -19,10 +19,6 @@ abstract class _$MHPermissionsSetCWProxy {
 
   MHPermissionsSet kodasNotify(bool kodasNotify);
 
-  MHPermissionsSet lastConfession(DateTime? lastConfession);
-
-  MHPermissionsSet lastTanawol(DateTime? lastTanawol);
-
   MHPermissionsSet manageAllowedUsers(bool manageAllowedUsers);
 
   MHPermissionsSet manageDeleted(bool manageDeleted);
@@ -54,8 +50,6 @@ abstract class _$MHPermissionsSetCWProxy {
     bool? confessionsNotify,
     bool? export,
     bool? kodasNotify,
-    DateTime? lastConfession,
-    DateTime? lastTanawol,
     bool? manageAllowedUsers,
     bool? manageDeleted,
     bool? manageUsers,
@@ -95,14 +89,6 @@ class _$MHPermissionsSetCWProxyImpl implements _$MHPermissionsSetCWProxy {
   @override
   MHPermissionsSet kodasNotify(bool kodasNotify) =>
       this(kodasNotify: kodasNotify);
-
-  @override
-  MHPermissionsSet lastConfession(DateTime? lastConfession) =>
-      this(lastConfession: lastConfession);
-
-  @override
-  MHPermissionsSet lastTanawol(DateTime? lastTanawol) =>
-      this(lastTanawol: lastTanawol);
 
   @override
   MHPermissionsSet manageAllowedUsers(bool manageAllowedUsers) =>
@@ -153,8 +139,6 @@ class _$MHPermissionsSetCWProxyImpl implements _$MHPermissionsSetCWProxy {
     Object? confessionsNotify = const $CopyWithPlaceholder(),
     Object? export = const $CopyWithPlaceholder(),
     Object? kodasNotify = const $CopyWithPlaceholder(),
-    Object? lastConfession = const $CopyWithPlaceholder(),
-    Object? lastTanawol = const $CopyWithPlaceholder(),
     Object? manageAllowedUsers = const $CopyWithPlaceholder(),
     Object? manageDeleted = const $CopyWithPlaceholder(),
     Object? manageUsers = const $CopyWithPlaceholder(),
@@ -194,14 +178,6 @@ class _$MHPermissionsSetCWProxyImpl implements _$MHPermissionsSetCWProxy {
               ? _value.kodasNotify
               // ignore: cast_nullable_to_non_nullable
               : kodasNotify as bool,
-      lastConfession: lastConfession == const $CopyWithPlaceholder()
-          ? _value.lastConfession
-          // ignore: cast_nullable_to_non_nullable
-          : lastConfession as DateTime?,
-      lastTanawol: lastTanawol == const $CopyWithPlaceholder()
-          ? _value.lastTanawol
-          // ignore: cast_nullable_to_non_nullable
-          : lastTanawol as DateTime?,
       manageAllowedUsers: manageAllowedUsers == const $CopyWithPlaceholder() ||
               manageAllowedUsers == null
           ? _value.manageAllowedUsers
@@ -252,35 +228,4 @@ class _$MHPermissionsSetCWProxyImpl implements _$MHPermissionsSetCWProxy {
 extension $MHPermissionsSetCopyWith on MHPermissionsSet {
   /// Returns a callable class that can be used as follows: `instanceOfclass MHPermissionsSet extends PermissionsSet implements Serializable.name.copyWith(...)` or like so:`instanceOfclass MHPermissionsSet extends PermissionsSet implements Serializable.name.copyWith.fieldName(...)`.
   _$MHPermissionsSetCWProxy get copyWith => _$MHPermissionsSetCWProxyImpl(this);
-
-  /// Copies the object with the specific fields set to `null`. If you pass `false` as a parameter, nothing will be done and it will be ignored. Don't do it. Prefer `copyWith(field: null)` or `MHPermissionsSet(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// MHPermissionsSet(...).copyWithNull(firstField: true, secondField: true)
-  /// ````
-  MHPermissionsSet copyWithNull({
-    bool lastConfession = false,
-    bool lastTanawol = false,
-  }) {
-    return MHPermissionsSet(
-      approved: approved,
-      birthdayNotify: birthdayNotify,
-      changeHistory: changeHistory,
-      confessionsNotify: confessionsNotify,
-      export: export,
-      kodasNotify: kodasNotify,
-      lastConfession: lastConfession == true ? null : this.lastConfession,
-      lastTanawol: lastTanawol == true ? null : this.lastTanawol,
-      manageAllowedUsers: manageAllowedUsers,
-      manageDeleted: manageDeleted,
-      manageUsers: manageUsers,
-      meetingNotify: meetingNotify,
-      secretary: secretary,
-      superAccess: superAccess,
-      tanawolNotify: tanawolNotify,
-      visitNotify: visitNotify,
-      write: write,
-    );
-  }
 }

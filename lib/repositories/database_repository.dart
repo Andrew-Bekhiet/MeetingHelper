@@ -278,7 +278,7 @@ class MHDatabaseRepo extends DatabaseRepository {
     return null;
   }
 
-  Future<User?> getUser(String? uid) async {
+  Future<UserWithPerson?> getUser(String? uid) async {
     final user =
         (await collection('UsersData').where('UID', isEqualTo: uid).get())
             .docs
@@ -286,11 +286,11 @@ class MHDatabaseRepo extends DatabaseRepository {
 
     if (user == null) return null;
 
-    return User.fromDoc(user);
+    return UserWithPerson.fromDoc(user);
   }
 
   @override
-  Future<Person?> getUserData(String uid) async {
+  Future<UserWithPerson?> getUserData(String uid) async {
     final user =
         (await collection('UsersData').where('UID', isEqualTo: uid).get())
             .docs
@@ -298,7 +298,7 @@ class MHDatabaseRepo extends DatabaseRepository {
 
     if (user == null) return null;
 
-    return Person.fromDoc(user);
+    return UserWithPerson.fromDoc(user);
   }
 
   Stream<List<User>> getAllUsers({
@@ -311,11 +311,11 @@ class MHDatabaseRepo extends DatabaseRepository {
             !u.permissions.secretary)
           return queryCompleter(collection('Users'), 'Name', false)
               .snapshots()
-              .map((p) => p.docs.map(User.fromDoc).toList());
+              .map((p) => p.docs.map((d)=>User(ref:d.reference,uid:d.id, name:d.data()['Name'])).toList());
         if (u.permissions.manageUsers || u.permissions.secretary) {
           return queryCompleter(collection('UsersData'), 'Name', false)
               .snapshots()
-              .map((p) => p.docs.map(User.fromDoc).toList());
+              .map((p) => p.docs.map(UserWithPerson.fromDoc).toList());
         } else {
           return queryCompleter(
                   collection('UsersData')
@@ -323,13 +323,13 @@ class MHDatabaseRepo extends DatabaseRepository {
                   'Name',
                   false)
               .snapshots()
-              .map((p) => p.docs.map(User.fromDoc).toList());
+              .map((p) => p.docs.map(UserWithPerson.fromDoc).toList());
         }
       },
     );
   }
 
-  Stream<List<Person>> getAllUsersData({
+  Stream<List<UserWithPerson>> getAllUsersData({
     QueryCompleter queryCompleter = kDefaultQueryCompleter,
   }) {
     return User.loggedInStream.switchMap(
@@ -343,17 +343,15 @@ class MHDatabaseRepo extends DatabaseRepository {
           return queryCompleter(collection('UsersData'), 'Name', false)
               .snapshots()
               .map(
-                (p) => p.docs.map(Person.fromDoc).toList(),
+                (p) => p.docs.map(UserWithPerson.fromDoc).toList(),
               );
         } else {
           return queryCompleter(
-                  collection('UsersData')
-                      .where('AllowedUsers', arrayContains: u.uid),
-                  'Name',
-                  false)
-              .snapshots()
-              .map(
-                (p) => p.docs.map(Person.fromDoc).toList(),
+            collection('UsersData').where('AllowedUsers', arrayContains: u.uid),
+            'Name',
+            false,
+          ).snapshots().map(
+                (p) => p.docs.map(UserWithPerson.fromDoc).toList(),
               );
         }
       },
@@ -364,7 +362,7 @@ class MHDatabaseRepo extends DatabaseRepository {
     return collection('Users')
         .orderBy('Name')
         .snapshots()
-        .map((p) => p.docs.map(User.fromDoc).toList());
+        .map((p) => p.docs.map((d) => User(ref: d.reference, uid: d.id, name: d.data()['Name'])).toList());
   }
 
   Stream<List<User>> getAllSemiManagers([
@@ -378,7 +376,7 @@ class MHDatabaseRepo extends DatabaseRepository {
                 'Name',
                 false)
             .snapshots()
-            .map((p) => p.docs.map(User.fromDoc).toList());
+            .map((p) => p.docs.map(UserWithPerson.fromDoc).toList());
       } else {
         return queryCompleter(
                 collection('UsersData')
@@ -387,7 +385,7 @@ class MHDatabaseRepo extends DatabaseRepository {
                 'Name',
                 false)
             .snapshots()
-            .map((p) => p.docs.map(User.fromDoc).toList());
+            .map((p) => p.docs.map(UserWithPerson.fromDoc).toList());
       }
     });
   }
@@ -461,7 +459,7 @@ class MHDatabaseRepo extends DatabaseRepository {
               for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
             },
           ),
-      isSubtype<T, Service>()
+      isSubtype<Service, T>()
           ? Stream.value([])
           : collection('Classes')
               .where('Allowed', arrayContains: uid)
@@ -469,7 +467,7 @@ class MHDatabaseRepo extends DatabaseRepository {
               .orderBy('Gender')
               .snapshots()
               .map((cs) => cs.docs.map(Class.fromDoc).toList()),
-      adminServices.isEmpty || isSubtype<T, Class>()
+      adminServices.isEmpty || isSubtype<Class, T>()
           ? Stream.value([])
           : Rx.combineLatestList(
               adminServices.map((r) =>
