@@ -34,8 +34,8 @@ class Person extends PersonBase {
     String name = '',
     String? phone,
     Json? phones,
-    this.fatherPhone = '',
-    this.motherPhone = '',
+    this.fatherPhone,
+    this.motherPhone,
     String? address,
     GeoPoint? location,
     bool hasPhoto = false,
@@ -88,50 +88,50 @@ class Person extends PersonBase {
           hasPhoto: hasPhoto,
         );
 
-  Person.fromDoc(JsonDoc doc)
-      : classId = doc.data()!['ClassId'],
-        fatherPhone = doc.data()!['FatherPhone'],
-        motherPhone = doc.data()!['MotherPhone'],
-        lastMeeting = (doc.data()!['LastMeeting'] as Timestamp?)?.toDate(),
+  Person.fromDoc(JsonDoc doc) : this.fromJson(doc.data()!, doc.reference);
+  Person.fromJson(Json json, JsonRef ref)
+      : classId = json['ClassId'],
+        fatherPhone = json['FatherPhone'],
+        motherPhone = json['MotherPhone'],
+        lastMeeting = (json['LastMeeting'] as Timestamp?)?.toDate(),
         last = UnmodifiableMapView(
-            (doc.data()!['Last'] as Map?)?.cast<String, DateTime>() ?? {}),
+            (json['Last'] as Map?)?.cast<String, DateTime>() ?? {}),
         services = UnmodifiableListView(
-            (doc.data()!['Services'] as List?)?.cast<JsonRef>() ?? []),
+            (json['Services'] as List?)?.cast<JsonRef>() ?? []),
         super(
-          ref: doc.reference,
-          hasPhoto: doc.data()!['HasPhoto'] ?? false,
-          color: doc.data()!['Color'] == null || doc.data()!['Color'] == 0
+          ref: ref,
+          hasPhoto: json['HasPhoto'] ?? false,
+          color: json['Color'] == null || json['Color'] == 0
               ? null
-              : Color(doc.data()!['Color']),
-          name: doc.data()!['Name'],
-          address: doc.data()!['Address'],
-          location: doc.data()!['Location'],
-          mainPhone: doc.data()!['Phone'],
-          otherPhones: (doc.data()!['Phones'] as Map?)?.cast() ?? {},
-          birthDate: (doc.data()!['BirthDate'] as Timestamp?)?.toDate(),
-          school: doc.data()!['School'],
-          college: doc.data()!['College'],
-          church: doc.data()!['Church'],
-          cFather: doc.data()!['CFather'],
-          lastKodas: (doc.data()!['LastKodas'] as Timestamp?)?.toDate(),
-          lastTanawol: (doc.data()!['LastTanawol'] as Timestamp?)?.toDate(),
-          lastConfession:
-              (doc.data()!['LastConfession'] as Timestamp?)?.toDate(),
-          lastCall: (doc.data()!['LastCall'] as Timestamp?)?.toDate(),
-          lastVisit: (doc.data()!['LastVisit'] as Timestamp?)?.toDate(),
-          lastEdit: doc.data()!['LastEdit'] == null
+              : Color(json['Color']),
+          name: json['Name'],
+          address: json['Address'],
+          location: json['Location'],
+          mainPhone: json['Phone'],
+          otherPhones: (json['Phones'] as Map?)?.cast() ?? {},
+          birthDate: (json['BirthDate'] as Timestamp?)?.toDate(),
+          school: json['School'],
+          college: json['College'],
+          church: json['Church'],
+          cFather: json['CFather'],
+          lastKodas: (json['LastKodas'] as Timestamp?)?.toDate(),
+          lastTanawol: (json['LastTanawol'] as Timestamp?)?.toDate(),
+          lastConfession: (json['LastConfession'] as Timestamp?)?.toDate(),
+          lastCall: (json['LastCall'] as Timestamp?)?.toDate(),
+          lastVisit: (json['LastVisit'] as Timestamp?)?.toDate(),
+          lastEdit: json['LastEdit'] == null
               ? null
-              : doc.data()!['LastEdit'] is Map
-                  ? LastEdit.fromJson(doc.data()!['LastEdit'])
+              : json['LastEdit'] is Map
+                  ? LastEdit.fromJson(json['LastEdit'])
                   : LastEdit(
-                      doc.data()!['LastEdit'],
-                      doc.data()!['LastEditTime']?.toDate() ?? DateTime.now(),
+                      json['LastEdit'],
+                      json['LastEditTime']?.toDate() ?? DateTime.now(),
                     ),
-          notes: doc.data()!['Notes'],
-          isShammas: doc.data()!['IsShammas'] ?? false,
-          gender: doc.data()!['Gender'] ?? true,
-          shammasLevel: doc.data()!['ShammasLevel'],
-          studyYear: doc.data()!['StudyYear'],
+          notes: json['Notes'],
+          isShammas: json['IsShammas'] ?? false,
+          gender: json['Gender'] ?? true,
+          shammasLevel: json['ShammasLevel'],
+          studyYear: json['StudyYear'],
         );
 
   factory Person.empty() => Person(
