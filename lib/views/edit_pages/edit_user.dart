@@ -1,8 +1,6 @@
 import 'dart:async';
 
 import 'package:churchdata_core/churchdata_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart' show FieldValue;
-import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -10,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:meetinghelper/controllers.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
+import 'package:meetinghelper/services.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/widgets.dart';
@@ -18,7 +17,7 @@ import 'package:rxdart/rxdart.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 class EditUser extends StatefulWidget {
-  final User user;
+  final UserWithPerson user;
 
   const EditUser({Key? key, required this.user}) : super(key: key);
   @override
@@ -27,7 +26,7 @@ class EditUser extends StatefulWidget {
 
 class _EditUserState extends State<EditUser> {
   AsyncMemoizerCache<String?> className = AsyncMemoizerCache();
-  late User user;
+  late UserWithPerson user;
   List<User>? childrenUsers;
 
   GlobalKey<FormState> form = GlobalKey<FormState>();
@@ -103,21 +102,19 @@ class _EditUserState extends State<EditUser> {
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: InkWell(
-                    onTap: () async => user = user.copyWith.permissions(
-                      user.permissions.copyWith.lastTanawol(
-                        await _selectDate(
-                          'تاريخ أخر تناول',
-                          user.permissions.lastTanawol ?? DateTime.now(),
-                        ),
+                    onTap: () async => user = user.copyWith.lastTanawol(
+                      await _selectDate(
+                        'تاريخ أخر تناول',
+                        user.lastTanawol ?? DateTime.now(),
                       ),
                     ),
                     child: InputDecorator(
                       decoration: const InputDecoration(
                         labelText: 'تاريخ أخر تناول',
                       ),
-                      child: user.permissions.lastTanawol != null
+                      child: user.lastTanawol != null
                           ? Text(DateFormat('yyyy/M/d').format(
-                              user.permissions.lastTanawol!,
+                              user.lastTanawol!,
                             ))
                           : const Text('لا يمكن التحديد'),
                     ),
@@ -126,21 +123,19 @@ class _EditUserState extends State<EditUser> {
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: InkWell(
-                    onTap: () async => user = user.copyWith.permissions(
-                      user.permissions.copyWith.lastConfession(
-                        await _selectDate(
-                          'تاريخ أخر اعتراف',
-                          user.permissions.lastConfession ?? DateTime.now(),
-                        ),
+                    onTap: () async => user = user.copyWith.lastConfession(
+                      await _selectDate(
+                        'تاريخ أخر اعتراف',
+                        user.lastConfession ?? DateTime.now(),
                       ),
                     ),
                     child: InputDecorator(
                       decoration: const InputDecoration(
                         labelText: 'تاريخ أخر اعتراف',
                       ),
-                      child: user.permissions.lastConfession != null
+                      child: user.lastConfession != null
                           ? Text(DateFormat('yyyy/M/d').format(
-                              user.permissions.lastConfession!,
+                              user.lastConfession!,
                             ))
                           : const Text('لا يمكن التحديد'),
                     ),
@@ -449,6 +444,7 @@ class _EditUserState extends State<EditUser> {
                   icon: const Icon(Icons.lock_open),
                   label: const Text('إعادة تعيين كلمة السر'),
                 ),
+                const SizedBox(height: 60),
               ],
             ),
           ),
@@ -474,7 +470,8 @@ class _EditUserState extends State<EditUser> {
                         .where('AllowedUsers', arrayContains: user.uid)
                         .snapshots()
                         .map(
-                          (value) => value.docs.map(User.fromDoc).toList(),
+                          (value) =>
+                              value.docs.map(UserWithPerson.fromDoc).toList(),
                         ),
                 builder: (c, users) {
                   if (!users.hasData)
@@ -537,8 +534,7 @@ class _EditUserState extends State<EditUser> {
     );
 
     user = user.copyWith.adminServices(
-      (await selectServices<DataObject>(
-                  selected.whereType<DataObject>().toList()))
+      (await selectServices<Service>(selected.whereType<Service>().toList()))
               ?.map((s) => s.ref)
               .toList() ??
           user.adminServices,
@@ -726,62 +722,13 @@ class _EditUserState extends State<EditUser> {
           content: Text('جار الحفظ...'),
           duration: Duration(seconds: 15),
         ));
-        final update = user.getUpdateMap()
-          ..removeWhere(
-              (key, value) => widget.user.getUpdateMap()[key] == value);
-        if (widget.user.name != user.name) {
-          await GetIt.I<FunctionsService>()
-              .httpsCallable('changeUserName')
-              .call({'affectedUser': user.uid, 'newName': user.name});
-        }
-        update
-          ..remove('name')
-          ..remove('classId');
 
-        if (update.isNotEmpty) {
-          await GetIt.I<FunctionsService>()
-              .httpsCallable('updatePermissions')
-              .call({'affectedUser': user.uid, 'permissions': update});
-        }
-        if (childrenUsers != null) {
-          final batch = GetIt.I<DatabaseRepository>().batch();
-          final oldChildren = (await GetIt.I<DatabaseRepository>()
-                  .collection('UsersData')
-                  .where('AllowedUsers', arrayContains: user.uid)
-                  .get())
-              .docs
-              .map(User.fromDoc)
-              .toList();
-          for (final item in oldChildren) {
-            if (!childrenUsers!.contains(item)) {
-              batch.update(item.ref, {
-                'AllowedUsers': FieldValue.arrayRemove([user.uid])
-              });
-            }
-          }
-          for (final item in childrenUsers!) {
-            if (!oldChildren.contains(item)) {
-              batch.update(item.ref, {
-                'AllowedUsers': FieldValue.arrayUnion([user.uid])
-              });
-            }
-          }
-          await batch.commit();
-        }
+        await GetIt.I<MHFunctionsService>().updateUser(
+          old: widget.user,
+          new$: user,
+          childrenUsers: childrenUsers,
+        );
 
-        if (widget.user.classId != user.classId &&
-            !const DeepCollectionEquality.unordered()
-                .equals(user.adminServices, widget.user.adminServices)) {
-          await user.ref.update({
-            'ClassId': user.classId,
-            'AdminServices': user.adminServices,
-          });
-        } else if (widget.user.classId != user.classId) {
-          await user.ref.update({'ClassId': user.classId});
-        } else if (!const DeepCollectionEquality.unordered()
-            .equals(user.adminServices, widget.user.adminServices)) {
-          await user.ref.update({'AdminServices': user.adminServices});
-        }
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
         navigator.currentState!.pop(user);
         scaffoldMessenger.currentState!.showSnackBar(

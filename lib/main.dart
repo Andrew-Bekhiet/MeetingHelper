@@ -72,6 +72,13 @@ Future<void> initMeetingHelper() async {
 
         return instance;
       },
+      FunctionsService: () {
+        final instance = MHFunctionsService();
+
+        GetIt.I.registerSingleton<MHFunctionsService>(instance);
+
+        return instance;
+      },
       ThemingService: () {
         final instance = MHThemingService();
 
@@ -352,7 +359,8 @@ class AppState extends State<App> {
                       : ModalRoute.of(context)!.settings.arguments is Person,
                 ),
             'UserInfo': (context) => UserInfo(
-                user: ModalRoute.of(context)!.settings.arguments! as User),
+                user: ModalRoute.of(context)!.settings.arguments!
+                    as UserWithPerson),
             'InvitationInfo': (context) => InvitationInfo(
                 invitation:
                     ModalRoute.of(context)!.settings.arguments! as Invitation),
