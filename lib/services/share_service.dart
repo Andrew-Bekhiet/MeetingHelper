@@ -59,7 +59,7 @@ class MHShareService extends ShareService {
       return shareUser(object);
     } else if (object is QueryInfo) {
       return shareQuery(object);
-    } else if (object is HistoryDay) {
+    } else if (object is HistoryDayBase) {
       return shareHistory(object);
     }
 

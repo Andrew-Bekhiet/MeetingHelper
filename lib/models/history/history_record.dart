@@ -48,7 +48,7 @@ abstract class HistoryDayBase extends DataObjectWithPhoto {
 
   @override
   bool operator ==(dynamic other) =>
-      other is HistoryDay && other.hashCode == hashCode;
+      other is HistoryDayBase && other.hashCode == hashCode;
 
   @override
   Json toJson() => {'Day': day, 'Notes': notes};

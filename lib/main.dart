@@ -419,10 +419,11 @@ class AppState extends State<App> {
                 return AnalyticsPage(parents: [
                   ModalRoute.of(context)!.settings.arguments! as DataObject
                 ]);
-              else if (ModalRoute.of(context)!.settings.arguments is HistoryDay)
+              else if (ModalRoute.of(context)!.settings.arguments
+                  is HistoryDayBase)
                 return AnalyticsPage(
                     day: ModalRoute.of(context)!.settings.arguments!
-                        as HistoryDay);
+                        as HistoryDayBase);
               else {
                 final Json args =
                     ModalRoute.of(context)!.settings.arguments! as Json;

@@ -33,7 +33,7 @@ class AttendanceChart extends StatelessWidget {
   final List<Class>? classes;
   final List<StudyYear>? studyYears;
   final String collectionGroup;
-  final List<HistoryDay>? days;
+  final List<HistoryDayBase>? days;
   final bool isServant;
   final DateTimeRange range;
   final rnd = RandomColor();

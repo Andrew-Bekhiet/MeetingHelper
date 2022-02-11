@@ -28,7 +28,7 @@ class AnalyticsPage extends StatefulWidget {
   }) : super(key: key);
 
   final List<DataObject>? parents;
-  final HistoryDay? day;
+  final HistoryDayBase? day;
   final String historyColection;
   final DateTimeRange? range;
 
@@ -580,7 +580,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                     return const Center(child: CircularProgressIndicator());
                   parents ??= snapshot.data;
 
-                  return StreamBuilder<List<HistoryDay>>(
+                  return StreamBuilder<List<HistoryDayBase>>(
                     initialData: widget.day != null ? [widget.day!] : null,
                     stream: (_isOneDay
                             ? GetIt.I<DatabaseRepository>()
