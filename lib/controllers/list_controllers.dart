@@ -10,6 +10,8 @@ import 'package:rxdart/rxdart.dart';
 import 'package:tuple/tuple.dart';
 
 class DayCheckListController<G, T extends Person> extends ListController<G, T> {
+  bool _isDisposing = false;
+
   final HistoryDayBase day;
   final String type;
   final HistoryDayOptions dayOptions;
@@ -20,6 +22,7 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
 
   @override
   BehaviorSubject<Set<T>?> get selectionSubject {
+    if (_isDisposing) return BehaviorSubject.seeded(null);
     final BehaviorSubject<Set<T>?> result = BehaviorSubject();
 
     _attended
@@ -352,6 +355,7 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
 
   @override
   Future<void> dispose() async {
+    _isDisposing = true;
     await super.dispose();
 
     await _attendedListener?.cancel();
