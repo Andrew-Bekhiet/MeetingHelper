@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:rxdart/rxdart.dart';
 
 class InvitationsPage extends StatefulWidget {
   const InvitationsPage({Key? key}) : super(key: key);
@@ -12,8 +13,8 @@ class InvitationsPage extends StatefulWidget {
 }
 
 class _InvitationsPageState extends State<InvitationsPage> {
-  final options = ListController<void, Invitation>(
-    searchStream: Stream.value(''),
+  final controller = ListController<void, Invitation>(
+    searchStream: BehaviorSubject.seeded(''),
     objectsPaginatableStream: PaginatableStream.query(
       query: GetIt.I<DatabaseRepository>().collection('Invitations'),
       mapper: Invitation.fromQueryDoc,
@@ -26,7 +27,7 @@ class _InvitationsPageState extends State<InvitationsPage> {
       appBar: AppBar(title: const Text('لينكات الدعوة')),
       body: DataObjectListView<void, Invitation>(
         autoDisposeController: true,
-        controller: options,
+        controller: controller,
         onTap: (i) =>
             navigator.currentState!.pushNamed('InvitationInfo', arguments: i),
       ),
@@ -36,7 +37,7 @@ class _InvitationsPageState extends State<InvitationsPage> {
         color: Theme.of(context).colorScheme.primary,
         shape: const CircularNotchedRectangle(),
         child: StreamBuilder<List<Invitation?>>(
-          stream: options.objectsStream,
+          stream: controller.objectsStream,
           builder: (context, snapshot) {
             return Text((snapshot.data?.length ?? 0).toString() + ' دعوة',
                 textAlign: TextAlign.center,
