@@ -1,19 +1,22 @@
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:meetinghelper/exceptions/update_user_data_exception.dart';
 import 'package:meetinghelper/updates.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../exceptions/unsupported_version_exception.dart';
 import '../utils/helpers.dart';
 
 class Loading extends StatelessWidget {
-  final bool error;
-  final String? message;
+  final Object? exception;
   final bool showVersionInfo;
-  const Loading(
-      {this.error = false, this.message, this.showVersionInfo = false})
-      : super(key: null);
+
+  const Loading({
+    this.exception,
+    this.showVersionInfo = false,
+  }) : super(key: null);
 
   String _getAssetImage() {
     final riseDay = getRiseDay();
@@ -46,21 +49,20 @@ class Loading extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(error
+                  Text(exception != null
                       ? 'لا يمكن تحميل البرنامج في الوقت الحالي'
                       : 'جار التحميل...'),
-                  if (error)
+                  if (exception != null)
                     OutlinedButton.icon(
                       label: const Text('اضغط لمزيد من المعلومات'),
                       icon: const Icon(Icons.error),
                       onPressed: () {
-                        if (message == 'Exception: Error Update User Data')
+                        if (exception is UpdateUserDataException)
                           showErrorUpdateDataDialog(context: context);
-                        else if (message ==
-                            'Exception: يجب التحديث لأخر إصدار لتشغيل البرنامج')
+                        else if (exception is UnsupportedVersionException)
                           Updates.showUpdateDialog(context, canCancel: false);
                         else
-                          showErrorDialog(context, message);
+                          showErrorDialog(context, exception.toString());
                       },
                     )
                   else
@@ -68,7 +70,7 @@ class Loading extends StatelessWidget {
                 ],
               ),
             ),
-            if (showVersionInfo || error)
+            if (showVersionInfo || exception != null)
               Align(
                 alignment: Alignment.bottomRight,
                 child: FutureBuilder<PackageInfo>(

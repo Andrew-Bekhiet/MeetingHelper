@@ -9,7 +9,6 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth show FirebaseAuth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
@@ -17,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get_it/get_it.dart';
+import 'package:meetinghelper/exceptions/update_user_data_exception.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/secrets.dart';
@@ -28,6 +28,8 @@ import 'package:meetinghelper/views.dart';
 import 'package:meetinghelper/widgets.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:timeago/timeago.dart';
+
+import 'exceptions/unsupported_version_exception.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -108,10 +110,11 @@ Future<void> initMeetingHelper() async {
 }
 
 Future<void> initFirebase() async {
-  try {
-    await dotenv.load();
+  await dotenv.load();
 
-    final String? kEmulatorsHost = dotenv.env['kEmulatorsHost'];
+  final String? kEmulatorsHost = dotenv.env['kEmulatorsHost'];
+
+  try {
     //Firebase initialization
     if (kDebugMode &&
         kEmulatorsHost != null &&
@@ -131,6 +134,16 @@ Future<void> initFirebase() async {
   }
 
   registerFirebaseDependencies();
+
+  GetIt.I<FirebaseFirestore>().settings = firestore.Settings(
+    persistenceEnabled: true,
+    sslEnabled: !kDebugMode &&
+        kEmulatorsHost == null &&
+        dotenv.env['kUseFirebaseEmulators']?.toString() != 'true',
+    cacheSizeBytes: GetIt.I<CacheRepository>()
+        .box('Settings')
+        .get('cacheSize', defaultValue: 300 * 1024 * 1024),
+  );
 }
 
 class MeetingHelperApp extends StatefulWidget {
@@ -141,7 +154,7 @@ class MeetingHelperApp extends StatefulWidget {
 }
 
 class _MeetingHelperAppState extends State<MeetingHelperApp> {
-  final AsyncMemoizer<void> _appLoader = AsyncMemoizer();
+  final AsyncMemoizer<void> _latestVersionChecker = AsyncMemoizer();
 
   @override
   void initState() {
@@ -149,50 +162,15 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
     setLocaleMessages('ar', ArMessages());
   }
 
-  Future configureFirebaseMessaging() async {
-    if (!GetIt.I<CacheRepository>()
-            .box('Settings')
-            .get('FCM_Token_Registered', defaultValue: false) &&
-        GetIt.I<auth.FirebaseAuth>().currentUser != null) {
-      try {
-        GetIt.I<FirebaseFirestore>().settings = firestore.Settings(
-          persistenceEnabled: true,
-          sslEnabled: true,
-          cacheSizeBytes: GetIt.I<CacheRepository>()
-              .box('Settings')
-              .get('cacheSize', defaultValue: 300 * 1024 * 1024),
-        );
-        // ignore: empty_catches
-      } catch (e) {}
-      try {
-        final status = (await GetIt.I<FirebaseMessaging>().requestPermission())
-            .authorizationStatus;
-        if (status != AuthorizationStatus.denied &&
-            status != AuthorizationStatus.notDetermined) {
-          await GetIt.I<FunctionsService>()
-              .httpsCallable('registerFCMToken')
-              .call({'token': await GetIt.I<FirebaseMessaging>().getToken()});
-          await GetIt.I<CacheRepository>()
-              .box('Settings')
-              .put('FCM_Token_Registered', true);
-        }
-      } catch (err, stack) {
-        await GetIt.I<LoggingService>().reportError(
-          err as Exception,
-          stackTrace: stack,
-        );
-      }
-    }
-  }
-
-  Future<void> loadApp(BuildContext context) async {
+  Future<void> checkLatestVersion(BuildContext context) async {
+    final appVersion = (await PackageInfo.fromPlatform()).version;
     try {
       await GetIt.I<FirebaseRemoteConfig>().setDefaults(<String, dynamic>{
-        'LatestVersion': (await PackageInfo.fromPlatform()).version,
+        'LatestVersion': appVersion,
         'LoadApp': 'false',
         'DownloadLink':
             'https://github.com/Andrew-Bekhiet/MeetingHelper/releases/download/v' +
-                (await PackageInfo.fromPlatform()).version +
+                appVersion +
                 '/MeetingHelper.apk',
       });
       await GetIt.I<FirebaseRemoteConfig>().setConfigSettings(
@@ -208,37 +186,26 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
 
     if (!kIsWeb &&
         GetIt.I<FirebaseRemoteConfig>().getString('LoadApp') == 'false') {
-      await Updates.showUpdateDialog(context, canCancel: false);
-      throw Exception('يجب التحديث لأخر إصدار لتشغيل البرنامج');
+      throw UnsupportedVersionException(version: appVersion);
     } else {
-      await configureFirebaseMessaging();
-
       if (GetIt.I<MHAuthRepository>().isSignedIn &&
           !User.instance.userDataUpToDate()) {
-        throw Exception('Error Update User Data');
+        throw UpdateUserDataException(
+          lastTanawol: User.instance.lastTanawol,
+          lastConfession: User.instance.lastConfession,
+        );
       }
     }
   }
 
   Widget buildLoadAppWidget(BuildContext context) {
     return FutureBuilder<void>(
-      future: _appLoader.runOnce(() => loadApp(context)),
+      future: _latestVersionChecker.runOnce(() => checkLatestVersion(context)),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done)
           return const Loading(
             showVersionInfo: true,
           );
-
-        if (MHAuthRepository.I.isSignedIn &&
-            !User.instance.userDataUpToDate() &&
-            User.instance.password != null) {
-          WidgetsBinding.instance!.addPostFrameCallback((_) {
-            showErrorUpdateDataDialog(context: context);
-          });
-        } else if (snapshot.error.toString() ==
-            'Exception: يجب التحديث لأخر إصدار لتشغيل البرنامج') {
-          Updates.showUpdateDialog(context, canCancel: false);
-        }
 
         return StreamBuilder<User?>(
           initialData: GetIt.I<MHAuthRepository>().currentUser,
@@ -246,17 +213,25 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
           builder: (context, userSnapshot) {
             final user = userSnapshot.data;
 
+            if (user?.password != null &&
+                snapshot.error is UpdateUserDataException) {
+              WidgetsBinding.instance!.addPostFrameCallback((_) {
+                showErrorUpdateDataDialog(context: context);
+              });
+            } else if (snapshot.error is UnsupportedVersionException) {
+              WidgetsBinding.instance!.addPostFrameCallback((_) {
+                Updates.showUpdateDialog(context, canCancel: false);
+              });
+            }
+
             if (user == null) {
               return const LoginScreen();
             } else if (user.permissions.approved && user.password != null) {
-              if (user.userDataUpToDate()) {
+              if (!snapshot.hasError) {
                 return const AuthScreen(nextWidget: Root());
               } else {
                 return Loading(
-                  error: true,
-                  message: (snapshot.error ??
-                          'Exception: يجب التحديث لأخر إصدار لتشغيل البرنامج')
-                      .toString(),
+                  exception: snapshot.error,
                   showVersionInfo: true,
                 );
               }
