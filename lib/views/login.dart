@@ -74,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         }
                       } else {
                         final GoogleSignInAccount? googleUser =
-                            await GoogleSignIn().signIn();
+                            await GetIt.I<GoogleSignIn>().signIn();
                         if (googleUser != null) {
                           final GoogleSignInAuthentication googleAuth =
                               await googleUser.authentication;

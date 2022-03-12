@@ -35,7 +35,7 @@ void main() async {
   await initMeetingHelper();
 
   runApp(
-    const App(),
+    const MeetingHelperApp(),
   );
 }
 
@@ -51,6 +51,7 @@ Future<void> initMeetingHelper() async {
         GetIt.I.registerSingleton<MHAuthRepository>(
           instance,
           signalsReady: true,
+          dispose: (a) => a.dispose(),
         );
 
         return instance;
@@ -68,6 +69,7 @@ Future<void> initMeetingHelper() async {
         GetIt.I.registerSingleton<MHNotificationsService>(
           instance,
           signalsReady: true,
+          dispose: (n) => n.dispose(),
         );
 
         return instance;
@@ -82,7 +84,10 @@ Future<void> initMeetingHelper() async {
       ThemingService: () {
         final instance = MHThemingService();
 
-        GetIt.I.registerSingleton<MHThemingService>(instance);
+        GetIt.I.registerSingleton<MHThemingService>(
+          instance,
+          dispose: (t) => t.dispose(),
+        );
 
         return instance;
       },
@@ -96,10 +101,10 @@ Future<void> initMeetingHelper() async {
     },
   );
 
-  final mhDataObjectTapHandler = MHDataObjectTapHandler(navigator);
-  GetIt.I
-      .registerSingleton<DefaultDataObjectTapHandler>(mhDataObjectTapHandler);
-  GetIt.I.registerSingleton<MHDataObjectTapHandler>(mhDataObjectTapHandler);
+  final mhDataObjectTapHandler = MHViewableObjectTapHandler(navigator);
+  GetIt.I.registerSingleton<DefaultViewableObjectTapHandler>(
+      mhDataObjectTapHandler);
+  GetIt.I.registerSingleton<MHViewableObjectTapHandler>(mhDataObjectTapHandler);
 }
 
 Future<void> initFirebase() async {
@@ -128,69 +133,20 @@ Future<void> initFirebase() async {
   registerFirebaseDependencies();
 }
 
-class App extends StatefulWidget {
-  const App({Key? key}) : super(key: key);
+class MeetingHelperApp extends StatefulWidget {
+  const MeetingHelperApp({Key? key}) : super(key: key);
 
   @override
-  AppState createState() => AppState();
+  _MeetingHelperAppState createState() => _MeetingHelperAppState();
 }
 
-class AppState extends State<App> {
+class _MeetingHelperAppState extends State<MeetingHelperApp> {
   final AsyncMemoizer<void> _appLoader = AsyncMemoizer();
 
   @override
   void initState() {
     super.initState();
     setLocaleMessages('ar', ArMessages());
-  }
-
-  Widget buildLoadAppWidget(BuildContext context) {
-    return FutureBuilder<void>(
-      future: _appLoader.runOnce(() => loadApp(context)),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done)
-          return const Loading(
-            showVersionInfo: true,
-          );
-
-        if (MHAuthRepository.I.isSignedIn &&
-            !User.instance.userDataUpToDate() &&
-            User.instance.password != null) {
-          WidgetsBinding.instance!.addPostFrameCallback((_) {
-            showErrorUpdateDataDialog(context: context);
-          });
-        } else if (snapshot.error.toString() ==
-            'Exception: يجب التحديث لأخر إصدار لتشغيل البرنامج') {
-          Updates.showUpdateDialog(context, canCancel: false);
-        }
-
-        return StreamBuilder<User?>(
-          initialData: GetIt.I<MHAuthRepository>().currentUser,
-          stream: GetIt.I<MHAuthRepository>().userStream,
-          builder: (context, userSnapshot) {
-            final user = userSnapshot.data;
-
-            if (user == null) {
-              return const LoginScreen();
-            } else if (user.permissions.approved && user.password != null) {
-              if (user.userDataUpToDate()) {
-                return const AuthScreen(nextWidget: Root());
-              } else {
-                return Loading(
-                  error: true,
-                  message: (snapshot.error ??
-                          'Exception: يجب التحديث لأخر إصدار لتشغيل البرنامج')
-                      .toString(),
-                  showVersionInfo: true,
-                );
-              }
-            } else {
-              return const UserRegistration();
-            }
-          },
-        );
-      },
-    );
   }
 
   Future configureFirebaseMessaging() async {
@@ -241,8 +197,9 @@ class AppState extends State<App> {
       });
       await GetIt.I<FirebaseRemoteConfig>().setConfigSettings(
         RemoteConfigSettings(
-            fetchTimeout: const Duration(seconds: 30),
-            minimumFetchInterval: const Duration(minutes: 2)),
+          fetchTimeout: const Duration(seconds: 30),
+          minimumFetchInterval: const Duration(minutes: 2),
+        ),
       );
 
       await GetIt.I<FirebaseRemoteConfig>().fetchAndActivate();
@@ -261,6 +218,55 @@ class AppState extends State<App> {
         throw Exception('Error Update User Data');
       }
     }
+  }
+
+  Widget buildLoadAppWidget(BuildContext context) {
+    return FutureBuilder<void>(
+      future: _appLoader.runOnce(() => loadApp(context)),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done)
+          return const Loading(
+            showVersionInfo: true,
+          );
+
+        if (MHAuthRepository.I.isSignedIn &&
+            !User.instance.userDataUpToDate() &&
+            User.instance.password != null) {
+          WidgetsBinding.instance!.addPostFrameCallback((_) {
+            showErrorUpdateDataDialog(context: context);
+          });
+        } else if (snapshot.error.toString() ==
+            'Exception: يجب التحديث لأخر إصدار لتشغيل البرنامج') {
+          Updates.showUpdateDialog(context, canCancel: false);
+        }
+
+        return StreamBuilder<User?>(
+          initialData: GetIt.I<MHAuthRepository>().currentUser,
+          stream: GetIt.I<MHAuthRepository>().userStream,
+          builder: (context, userSnapshot) {
+            final user = userSnapshot.data;
+
+            if (user == null) {
+              return const LoginScreen();
+            } else if (user.permissions.approved && user.password != null) {
+              if (user.userDataUpToDate()) {
+                return const AuthScreen(nextWidget: Root());
+              } else {
+                return Loading(
+                  error: true,
+                  message: (snapshot.error ??
+                          'Exception: يجب التحديث لأخر إصدار لتشغيل البرنامج')
+                      .toString(),
+                  showVersionInfo: true,
+                );
+              }
+            } else {
+              return const UserRegistration();
+            }
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -390,6 +396,7 @@ class AppState extends State<App> {
                   add: (context) =>
                       studyYearTap(context, StudyYear.createNew(), true),
                   modify: studyYearTap,
+                  completer: (q) => q.orderBy('Grade'),
                   collection:
                       GetIt.I<MHDatabaseRepo>().collection('StudyYears'),
                 ),

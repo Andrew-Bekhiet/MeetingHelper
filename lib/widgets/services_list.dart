@@ -128,13 +128,13 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
                   mainAxisSize: MainAxisSize.min,
                   children: services.data![studyYear]!.map(
                     (c) {
-                      return DataObjectWidget(
+                      return ViewableObjectWidget(
                         c,
                         showSubtitle: false,
                         onTap: () {
                           if (widget.options.currentSelection == null) {
                             widget.onTap == null
-                                ? GetIt.I<MHDataObjectTapHandler>().onTap(c)
+                                ? GetIt.I<MHViewableObjectTapHandler>().onTap(c)
                                 : widget.onTap!(c);
                           } else {
                             widget.options.toggleSelected(c);
@@ -228,13 +228,14 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
                       mainAxisSize: MainAxisSize.min,
                       children: services.data![studyYear]!.map(
                         (c) {
-                          return DataObjectWidget(
+                          return ViewableObjectWidget(
                             c,
                             showSubtitle: false,
                             onTap: () {
                               if (widget.options.currentSelection == null) {
                                 widget.onTap == null
-                                    ? GetIt.I<MHDataObjectTapHandler>().onTap(c)
+                                    ? GetIt.I<MHViewableObjectTapHandler>()
+                                        .onTap(c)
                                     : widget.onTap!(c);
                               } else {
                                 widget.options.toggleSelected(c);
@@ -272,7 +273,7 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
             else
               return Padding(
                 padding: const EdgeInsets.fromLTRB(3, 0, 9, 0),
-                child: DataObjectWidget(
+                child: ViewableObjectWidget(
                   services.data![studyYear]![0],
                   showSubtitle: false,
                   trailing: StreamBuilder<Set<DataObject>?>(
@@ -299,7 +300,7 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
                   onTap: () {
                     if (widget.options.currentSelection == null) {
                       widget.onTap == null
-                          ? GetIt.I<MHDataObjectTapHandler>()
+                          ? GetIt.I<MHViewableObjectTapHandler>()
                               .onTap(services.data![studyYear]![0])
                           : widget.onTap!(services.data![studyYear]![0]);
                     } else {

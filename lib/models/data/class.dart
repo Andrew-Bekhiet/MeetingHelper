@@ -180,9 +180,10 @@ class Class extends DataObject implements PhotoObjectBase {
           name: 'StudyYear',
           label: 'سنة الدراسة',
           defaultValue: null,
-          collection: GetIt.I<DatabaseRepository>()
+          query: GetIt.I<DatabaseRepository>()
               .collection('StudyYears')
               .orderBy('Grade'),
+          collectionName: 'StudyYears',
         ),
         'Gender': const PropertyMetadata<bool>(
           name: 'Gender',
@@ -208,8 +209,9 @@ class Class extends DataObject implements PhotoObjectBase {
           name: 'LastEdit',
           label: 'أخر تعديل',
           defaultValue: null,
-          collection:
+          query:
               GetIt.I<DatabaseRepository>().collection('Users').orderBy('Name'),
+          collectionName: 'Users',
         ),
       };
 }

@@ -210,8 +210,9 @@ class Service extends DataObject implements PhotoObjectBase {
           name: 'LastEdit',
           label: 'أخر تعديل',
           defaultValue: null,
-          collection:
+          query:
               GetIt.I<DatabaseRepository>().collection('Users').orderBy('Name'),
+          collectionName: 'Users',
         ),
         'HasPhoto': const PropertyMetadata<bool>(
           name: 'HasPhoto',

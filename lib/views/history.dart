@@ -17,12 +17,27 @@ class History extends StatefulWidget {
 }
 
 class _HistoryState extends State<History> {
-  final BehaviorSubject<Stream<JsonQuery>?> list = BehaviorSubject.seeded(null);
   final BehaviorSubject<bool> _showSearch = BehaviorSubject<bool>.seeded(false);
   final FocusNode _searchFocus = FocusNode();
   final _searchByDateRange = GlobalKey();
 
-  late final ListController<void, HistoryDayBase> _listController;
+  bool _filteredQuery = false;
+  late final BehaviorSubject<QueryOfJson> query =
+      BehaviorSubject.seeded(getOriginalQuery());
+  late final ListController<void, HistoryDayBase> _listController =
+      widget.iServantsHistory
+          ? ListController<void, ServantsHistoryDay>(
+              objectsPaginatableStream: PaginatableStream(
+                query: query,
+                mapper: ServantsHistoryDay.fromQueryDoc,
+              ),
+            )
+          : ListController<void, HistoryDay>(
+              objectsPaginatableStream: PaginatableStream(
+                query: query,
+                mapper: HistoryDay.fromQueryDoc,
+              ),
+            );
 
   @override
   Widget build(BuildContext context) {
@@ -73,16 +88,16 @@ class _HistoryState extends State<History> {
                   : Container();
             },
           ),
-          StreamBuilder<Stream?>(
-            stream: list,
+          StreamBuilder<QueryOfJson>(
+            stream: query,
             builder: (context, data) => IconButton(
               key: _searchByDateRange,
-              icon: !data.hasData
+              icon: !_filteredQuery
                   ? const Icon(Icons.calendar_today)
                   : const Icon(Icons.clear),
-              tooltip: !data.hasData ? 'بحث بالتاريخ' : 'محو البحث',
+              tooltip: !_filteredQuery ? 'بحث بالتاريخ' : 'محو البحث',
               onPressed: () async {
-                if (!data.hasData) {
+                if (!_filteredQuery) {
                   final DateTimeRange? result = await showDateRangePicker(
                     builder: (context, dialog) => Theme(
                       data: Theme.of(context).copyWith(
@@ -106,21 +121,26 @@ class _HistoryState extends State<History> {
                     ),
                   );
                   if (result == null) return;
-                  list.add(GetIt.I<DatabaseRepository>()
-                      .collection((widget.iServantsHistory ? 'Servants' : '') +
-                          'History')
-                      .orderBy('Day', descending: true)
-                      .where('Day',
-                          isGreaterThanOrEqualTo: Timestamp.fromDate(
-                              result.start.subtract(const Duration(days: 1))))
-                      .where(
-                        'Day',
-                        isLessThanOrEqualTo: Timestamp.fromDate(
-                            result.end.add(const Duration(days: 1))),
-                      )
-                      .snapshots());
+
+                  _filteredQuery = true;
+                  query.add(
+                    GetIt.I<DatabaseRepository>()
+                        .collection(
+                            (widget.iServantsHistory ? 'Servants' : '') +
+                                'History')
+                        .orderBy('Day', descending: true)
+                        .where('Day',
+                            isGreaterThanOrEqualTo: Timestamp.fromDate(
+                                result.start.subtract(const Duration(days: 1))))
+                        .where(
+                          'Day',
+                          isLessThanOrEqualTo: Timestamp.fromDate(
+                              result.end.add(const Duration(days: 1))),
+                        ),
+                  );
                 } else {
-                  list.add(null);
+                  _filteredQuery = false;
+                  query.add(getOriginalQuery());
                 }
               },
             ),
@@ -198,30 +218,22 @@ class _HistoryState extends State<History> {
           },
         ).show();
     });
+  }
 
-    _listController = widget.iServantsHistory
-        ? ListController<void, ServantsHistoryDay>(
-            objectsPaginatableStream: PaginatableStream.query(
-              query: GetIt.I<DatabaseRepository>()
-                  .collection('ServantsHistory')
-                  .orderBy('Day', descending: true),
-              mapper: ServantsHistoryDay.fromQueryDoc,
-            ),
-          )
-        : ListController<void, HistoryDay>(
-            objectsPaginatableStream: PaginatableStream.query(
-              query: GetIt.I<DatabaseRepository>()
-                  .collection('History')
-                  .orderBy('Day', descending: true),
-              mapper: HistoryDay.fromQueryDoc,
-            ),
-          );
+  QueryOfJson getOriginalQuery() {
+    return widget.iServantsHistory
+        ? GetIt.I<DatabaseRepository>()
+            .collection('ServantsHistory')
+            .orderBy('Day', descending: true)
+        : GetIt.I<DatabaseRepository>()
+            .collection('History')
+            .orderBy('Day', descending: true);
   }
 
   @override
   Future<void> dispose() async {
     super.dispose();
     await _showSearch.close();
-    await list.close();
+    await query.close();
   }
 }

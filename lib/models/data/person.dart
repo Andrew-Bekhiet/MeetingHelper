@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:churchdata_core/churchdata_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart' show DocumentReference;
+import 'package:cloud_firestore/cloud_firestore.dart'
+    show DocumentReference, FieldPath;
 import 'package:collection/collection.dart';
 import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:flutter/material.dart';
@@ -299,31 +300,37 @@ class Person extends PersonBase {
           label: 'تاريخ الميلاد',
           defaultValue: null,
         ),
-        'BirthDay': const PropertyMetadata<DateTime>(
+        'BirthDay': PropertyMetadata<DateTime>(
           name: 'BirthDay',
           label: 'يوم الميلاد',
-          defaultValue: null,
+          defaultValue: DateTime.now(),
         ),
         'StudyYear': PropertyMetadata<JsonRef>(
           name: 'StudyYear',
           label: 'سنة الدراسة',
           defaultValue: null,
-          collection: GetIt.I<DatabaseRepository>()
+          query: GetIt.I<DatabaseRepository>()
               .collection('StudyYears')
               .orderBy('Grade'),
+          collectionName: 'StudyYears',
         ),
         'ClassId': PropertyMetadata<JsonRef>(
           name: 'ClassId',
           label: 'داخل فصل',
           defaultValue: null,
-          collection: GetIt.I<DatabaseRepository>()
+          query: GetIt.I<DatabaseRepository>()
               .collection('Classes')
               .orderBy('Grade'),
+          collectionName: 'Classes',
         ),
-        'Services': const PropertyMetadata<List>(
+        'Services': PropertyMetadata<JsonRef>(
           name: 'Services',
           label: 'الخدمات المشارك بها',
-          defaultValue: [],
+          defaultValue: null,
+          query: GetIt.I<DatabaseRepository>()
+              .collection('Services')
+              .orderBy(FieldPath.fromString('StudyYearRange.From')),
+          collectionName: 'Services',
         ),
         'Gender': const PropertyMetadata<bool>(
           name: 'Gender',
@@ -354,33 +361,37 @@ class Person extends PersonBase {
           name: 'School',
           label: 'المدرسة',
           defaultValue: null,
-          collection: GetIt.I<DatabaseRepository>()
+          query: GetIt.I<DatabaseRepository>()
               .collection('Schools')
               .orderBy('Name'),
+          collectionName: 'Schools',
         ),
         'College': PropertyMetadata<JsonRef>(
           name: 'College',
           label: 'الكلية',
           defaultValue: null,
-          collection: GetIt.I<DatabaseRepository>()
+          query: GetIt.I<DatabaseRepository>()
               .collection('Colleges')
               .orderBy('Name'),
+          collectionName: 'Colleges',
         ),
         'Church': PropertyMetadata<JsonRef>(
           name: 'Church',
           label: 'الكنيسة',
           defaultValue: null,
-          collection: GetIt.I<DatabaseRepository>()
+          query: GetIt.I<DatabaseRepository>()
               .collection('Churches')
               .orderBy('Name'),
+          collectionName: 'Churches',
         ),
         'CFather': PropertyMetadata<JsonRef>(
           name: 'CFather',
           label: 'أب الاعتراف',
           defaultValue: null,
-          collection: GetIt.I<DatabaseRepository>()
+          query: GetIt.I<DatabaseRepository>()
               .collection('Fathers')
               .orderBy('Name'),
+          collectionName: 'Fathers',
         ),
         'Notes': const PropertyMetadata<String>(
           name: 'Notes',
@@ -426,8 +437,9 @@ class Person extends PersonBase {
           name: 'LastEdit',
           label: 'أخر تعديل',
           defaultValue: null,
-          collection:
+          query:
               GetIt.I<DatabaseRepository>().collection('Users').orderBy('Name'),
+          collectionName: 'Users',
         ),
         'HasPhoto': const PropertyMetadata<bool>(
           name: 'HasPhoto',

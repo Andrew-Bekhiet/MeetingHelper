@@ -29,7 +29,8 @@ abstract class HistoryDayBase extends DataObjectWithPhoto {
         super.fromJson(data, ref);
 
   @override
-  String get name => DateFormat('d / M   yyyy', 'ar-EG').format(day.toDate());
+  String get name =>
+      DateFormat('EEEE\t\tyyyy/M/d', 'ar-EG').format(day.toDate());
 
   @override
   int get hashCode => hashValues(id, day, notes);

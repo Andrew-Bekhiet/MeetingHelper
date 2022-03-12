@@ -349,7 +349,7 @@ class _PersonInfoState extends State<PersonInfo> {
                           builder: (context, _class) =>
                               _class.connectionState == ConnectionState.done &&
                                       _class.hasData
-                                  ? DataObjectWidget<Class>(_class.data!,
+                                  ? ViewableObjectWidget<Class>(_class.data!,
                                       isDense: true)
                                   : _class.connectionState ==
                                           ConnectionState.done
@@ -694,7 +694,7 @@ class _PersonServices extends StatelessWidget {
                           itemBuilder: (context, i) {
                             return Container(
                               margin: const EdgeInsets.symmetric(vertical: 5),
-                              child: DataObjectWidget<Service>(
+                              child: ViewableObjectWidget<Service>(
                                 data.requireData[i],
                                 showSubtitle: false,
                                 wrapInCard: false,

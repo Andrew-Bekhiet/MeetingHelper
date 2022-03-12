@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -16,6 +18,23 @@ class MHNotificationsService extends NotificationsService {
       GetIt.I<MHNotificationsService>();
   static MHNotificationsService get I => GetIt.I<MHNotificationsService>();
 
+  late final StreamSubscription<RemoteMessage> onMessageOpenedAppSubscription;
+
+  @override
+  void listenToFirebaseMessaging() {
+    FirebaseMessaging.onBackgroundMessage(
+        NotificationsService.onBackgroundMessageReceived);
+    onForegroundMessageSubscription =
+        FirebaseMessaging.onMessage.listen(onForegroundMessage);
+    onMessageOpenedAppSubscription =
+        FirebaseMessaging.onMessageOpenedApp.listen((message) {
+      showNotificationContents(
+        mainScfld.currentContext!,
+        Notification.fromRemoteMessage(message),
+      );
+    });
+  }
+
   void onForegroundMessage(RemoteMessage message) async {
     await NotificationsService.storeNotification(message);
 
@@ -32,16 +51,23 @@ class MHNotificationsService extends NotificationsService {
 
   @override
   Future<void> showNotificationContents(
-      BuildContext context, Notification notification) async {
+    BuildContext context,
+    Notification notification, {
+    List<Widget>? actions,
+  }) async {
     if (notification.type == NotificationType.LocalNotification &&
         notification.additionalData?['Query'] != null) {
-      return GetIt.I<MHDataObjectTapHandler>().onTap(
+      return GetIt.I<MHViewableObjectTapHandler>().onTap(
         QueryInfo.fromJson(
           notification.additionalData?['Query'],
         ),
       );
     }
-    await super.showNotificationContents(context, notification);
+    await super.showNotificationContents(
+      context,
+      notification,
+      actions: actions,
+    );
   }
 
   Future<void> sendNotification(
@@ -96,7 +122,7 @@ class MHNotificationsService extends NotificationsService {
                     trailing,
                     subtitle,
                   }) =>
-                      DataObjectWidget(
+                      ViewableObjectWidget(
                     current,
                     onTap: () => onTap!(current),
                     trailing: trailing,
@@ -185,6 +211,12 @@ class MHNotificationsService extends NotificationsService {
             .toString(),
       });
     }
+  }
+
+  @override
+  Future<void> dispose() async {
+    await super.dispose();
+    await onMessageOpenedAppSubscription.cancel();
   }
 
   //

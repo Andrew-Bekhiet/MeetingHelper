@@ -11,7 +11,7 @@ class MHDatabaseRepo extends DatabaseRepository {
   static MHDatabaseRepo get I => instance;
 
   @override
-  Future<DataObject?> getObjectFromLink(Uri deepLink) async {
+  Future<Viewable?> getObjectFromLink(Uri deepLink) async {
     if (deepLink.pathSegments[0] == 'PersonInfo') {
       if (deepLink.queryParameters['Id'] == '')
         throw Exception('Id has an empty value which is not allowed');
@@ -311,7 +311,10 @@ class MHDatabaseRepo extends DatabaseRepository {
             !u.permissions.secretary)
           return queryCompleter(collection('Users'), 'Name', false)
               .snapshots()
-              .map((p) => p.docs.map((d)=>User(ref:d.reference,uid:d.id, name:d.data()['Name'])).toList());
+              .map((p) => p.docs
+                  .map((d) =>
+                      User(ref: d.reference, uid: d.id, name: d.data()['Name']))
+                  .toList());
         if (u.permissions.manageUsers || u.permissions.secretary) {
           return queryCompleter(collection('UsersData'), 'Name', false)
               .snapshots()
@@ -359,10 +362,9 @@ class MHDatabaseRepo extends DatabaseRepository {
   }
 
   Stream<List<User>> getAllUsersNames() {
-    return collection('Users')
-        .orderBy('Name')
-        .snapshots()
-        .map((p) => p.docs.map((d) => User(ref: d.reference, uid: d.id, name: d.data()['Name'])).toList());
+    return collection('Users').orderBy('Name').snapshots().map((p) => p.docs
+        .map((d) => User(ref: d.reference, uid: d.id, name: d.data()['Name']))
+        .toList());
   }
 
   Stream<List<User>> getAllSemiManagers([
@@ -482,9 +484,9 @@ class MHDatabaseRepo extends DatabaseRepository {
     List<Class> classes,
     List<Service> services,
   ) {
-    final combined = [...classes, ...services];
+    final combined = [...classes, ...services].cast<T>();
 
-    mergeSort<T>(combined.cast<T>(), compare: (c, c2) {
+    mergeSort<T>(combined, compare: (c, c2) {
       if (c is Class && c2 is Class) {
         if (c.studyYear == c2.studyYear) return c.gender.compareTo(c2.gender);
         return studyYears[c.studyYear]!
@@ -521,7 +523,7 @@ class MHDatabaseRepo extends DatabaseRepository {
     }
 
     return groupBy<T, PreferredStudyYear?>(
-      combined.cast<T>(),
+      combined,
       (c) {
         if (c is Class)
           return studyYears[c.studyYear] != null
@@ -587,10 +589,9 @@ class MHDatabaseRepo extends DatabaseRepository {
                     color: Colors.redAccent,
                     ref: collection('Classes').doc('Unknown'),
                   ),
-        ).entries;
+        ).entries.toList();
 
-        mergeSort<MapEntry<Class?, List<User>>>(rslt.toList(),
-            compare: (c, c2) {
+        mergeSort<MapEntry<Class?, List<User>>>(rslt, compare: (c, c2) {
           if (c.key == null || c.key!.name == '{لا يمكن قراءة اسم الفصل}')
             return 1;
 

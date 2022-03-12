@@ -15,7 +15,7 @@ class NotificationWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<DataObject?>(
+    return FutureBuilder<Viewable?>(
       future: notification.attachmentLink != null
           ? GetIt.I<DatabaseRepository>().getObjectFromLink(
               Uri.parse(notification.attachmentLink!),

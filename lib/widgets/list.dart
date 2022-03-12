@@ -69,6 +69,7 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
         G? o, {
         void Function(G)? onLongPress,
         void Function(G)? onTap,
+        void Function()? onTapOnNull,
         bool? showSubtitle,
         Widget? trailing,
         Widget? subtitle,
@@ -78,6 +79,7 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
             onLongPress:
                 onLongPress != null ? (o) => onLongPress(o as G) : null,
             onTap: onTap != null ? (o) => onTap(o as G) : null,
+            onTapOnNull: onTapOnNull,
             showSubtitle: showSubtitle,
             trailing: trailing,
             subtitle: subtitle,
@@ -222,7 +224,7 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
         onTap: (T current) async {
           if (!_listController.dayOptions.enabled.value) {
             widget.onTap == null
-                ? GetIt.I<MHDataObjectTapHandler>().onTap(current)
+                ? GetIt.I<MHViewableObjectTapHandler>().onTap(current)
                 : widget.onTap!(current);
           } else {
             if (!_listController.dayOptions.lockUnchecks.value) {
@@ -414,7 +416,7 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
               TextButton(
                 onPressed: () {
                   navigator.currentState!.pop();
-                  GetIt.I<MHDataObjectTapHandler>().onTap(current);
+                  GetIt.I<MHViewableObjectTapHandler>().onTap(current);
                 },
                 child: Text('عرض بيانات ' + current.name),
               ),

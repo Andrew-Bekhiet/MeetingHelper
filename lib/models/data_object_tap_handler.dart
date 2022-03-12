@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/models.dart';
 
-class MHDataObjectTapHandler extends DefaultDataObjectTapHandler {
-  MHDataObjectTapHandler(GlobalKey<NavigatorState> navigatorKey)
+class MHViewableObjectTapHandler extends DefaultViewableObjectTapHandler {
+  MHViewableObjectTapHandler(GlobalKey<NavigatorState> navigatorKey)
       : super(navigatorKey);
 
   ScaffoldMessengerState get scaffoldMessenger =>
@@ -137,7 +137,7 @@ class MHDataObjectTapHandler extends DefaultDataObjectTapHandler {
   }
 
   @override
-  void onTap(DataObject object) {
+  void onTap(Viewable object) {
     if (object is Class)
       classTap(object);
     else if (object is Service)
@@ -148,6 +148,8 @@ class MHDataObjectTapHandler extends DefaultDataObjectTapHandler {
       userTap(object);
     else if (object is HistoryDayBase)
       historyTap(object);
+    else if (object is QueryInfo)
+      navigator.pushNamed('SearchQuery', arguments: object);
     else
       throw UnimplementedError();
   }

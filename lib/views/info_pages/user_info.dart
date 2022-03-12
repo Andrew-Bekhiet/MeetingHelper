@@ -67,7 +67,7 @@ class _UserInfoState extends State<UserInfo> {
                   IconButton(
                     icon: const Icon(Icons.info),
                     onPressed: () {
-                      GetIt.I<MHDataObjectTapHandler>().personTap(user);
+                      GetIt.I<MHViewableObjectTapHandler>().personTap(user);
                     },
                     tooltip: 'بيانات المستخدم',
                   ),
@@ -177,7 +177,7 @@ class _UserInfoState extends State<UserInfo> {
                       ? FutureBuilder<Class?>(
                           future: MHDatabaseRepo.I.getClass(user.classId!.id),
                           builder: (context, _class) => _class.hasData
-                              ? DataObjectWidget<Class>(_class.data!,
+                              ? ViewableObjectWidget<Class>(_class.data!,
                                   isDense: true)
                               : const LinearProgressIndicator(),
                         )

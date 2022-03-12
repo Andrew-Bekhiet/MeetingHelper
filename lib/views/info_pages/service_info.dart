@@ -575,7 +575,7 @@ class _ServiceServants extends StatelessWidget {
                           return Container(
                             margin: const EdgeInsets.symmetric(vertical: 5),
                             child: IgnorePointer(
-                              child: DataObjectWidget(
+                              child: ViewableObjectWidget(
                                 users[i],
                                 showSubtitle: false,
                                 wrapInCard: false,

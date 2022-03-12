@@ -487,7 +487,7 @@ class _EditClassState extends State<EditClass> {
                     trailing,
                     subtitle,
                   }) =>
-                      DataObjectWidget(
+                      ViewableObjectWidget(
                     current,
                     onTap: () => onTap!(current),
                     trailing: trailing,

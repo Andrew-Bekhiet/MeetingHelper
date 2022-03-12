@@ -221,7 +221,7 @@ class AttendancePercent extends StatelessWidget {
                       style: Theme.of(context).textTheme.headline6),
                 )
               : null,
-          radius: 160.0,
+          radius: 80.0,
           lineWidth: 15.0,
           percent: attends / total,
           animation: true,
@@ -381,7 +381,8 @@ class ClassesAttendanceIndicator extends StatelessWidget {
                             : studyYears!.length,
                         pointColorMapper: (parent, _) =>
                             usedColorsMap[parent.item2.id] ??=
-                                parent.item2.color == Colors.transparent
+                                parent.item2.color == null ||
+                                        parent.item2.color == Colors.transparent
                                     ? rnd.randomColor(
                                         colorBrightness:
                                             Theme.of(context).brightness ==

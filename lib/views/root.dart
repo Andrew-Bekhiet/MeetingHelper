@@ -5,7 +5,6 @@ import 'package:churchdata_core/churchdata_core.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart' hide Notification;
@@ -38,7 +37,6 @@ class _RootState extends State<Root>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final StreamSubscription<PendingDynamicLinkData>
       _dynamicLinksSubscription;
-  late final StreamSubscription<RemoteMessage> _firebaseMessagingSubscription;
 
   TabController? _tabController;
   Timer? _keepAliveTimer;
@@ -330,7 +328,7 @@ class _RootState extends State<Root>
               key: const PageStorageKey('mainUsersList'),
               autoDisposeController: false,
               controller: _usersOptions,
-              onTap: GetIt.I<MHDataObjectTapHandler>().personTap,
+              onTap: GetIt.I<MHViewableObjectTapHandler>().personTap,
             ),
           ServicesList(
             key: const PageStorageKey('mainClassesList'),
@@ -872,11 +870,27 @@ class _RootState extends State<Root>
               .then((value) {
             _pushed = false;
             _timeout = false;
+
             if (_dynamicLinksSubscription.isPaused)
               _dynamicLinksSubscription.resume();
-            if (_firebaseMessagingSubscription.isPaused)
-              _firebaseMessagingSubscription.resume();
+            if (MHNotificationsService
+                .I.onMessageOpenedAppSubscription.isPaused)
+              MHNotificationsService.I.onMessageOpenedAppSubscription.resume();
+            if (MHNotificationsService
+                    .I.onForegroundMessageSubscription?.isPaused ??
+                false)
+              MHNotificationsService.I.onForegroundMessageSubscription
+                  ?.resume();
           });
+        } else {
+          if (_dynamicLinksSubscription.isPaused)
+            _dynamicLinksSubscription.resume();
+          if (MHNotificationsService.I.onMessageOpenedAppSubscription.isPaused)
+            MHNotificationsService.I.onMessageOpenedAppSubscription.resume();
+          if (MHNotificationsService
+                  .I.onForegroundMessageSubscription?.isPaused ??
+              false)
+            MHNotificationsService.I.onForegroundMessageSubscription?.resume();
         }
         _keepAlive(true);
         _recordActive();
@@ -888,8 +902,6 @@ class _RootState extends State<Root>
         _recordLastSeen();
         if (!_dynamicLinksSubscription.isPaused)
           _dynamicLinksSubscription.pause();
-        if (!_firebaseMessagingSubscription.isPaused)
-          _firebaseMessagingSubscription.pause();
         break;
     }
   }
@@ -905,7 +917,6 @@ class _RootState extends State<Root>
     super.dispose();
     WidgetsBinding.instance!.removeObserver(this);
 
-    await _firebaseMessagingSubscription.cancel();
     await _dynamicLinksSubscription.cancel();
 
     await _showSearch.close();
@@ -1020,7 +1031,7 @@ class _RootState extends State<Root>
         final object =
             await MHDatabaseRepo.I.getObjectFromLink(dynamicLink.link);
 
-        if (object != null) GetIt.I<MHDataObjectTapHandler>().onTap(object);
+        if (object != null) GetIt.I<MHViewableObjectTapHandler>().onTap(object);
       },
       onError: (e) async {
         debugPrint('DynamicLinks onError $e');
@@ -1029,7 +1040,7 @@ class _RootState extends State<Root>
     if (data == null) return;
 
     final object = await MHDatabaseRepo.I.getObjectFromLink(data.link);
-    if (object != null) GetIt.I<MHDataObjectTapHandler>().onTap(object);
+    if (object != null) GetIt.I<MHViewableObjectTapHandler>().onTap(object);
   }
 
   TargetFocus _getTarget(String key, GlobalKey v) {
@@ -1356,27 +1367,11 @@ class _RootState extends State<Root>
     if (!User.instance.userDataUpToDate()) {
       await showErrorUpdateDataDialog(context: context, pushApp: false);
     }
-    listenToFirebaseMessaging();
+
     await showDynamicLink();
     await GetIt.I<MHNotificationsService>().showInitialNotification(context);
     await showBatteryOptimizationDialog();
     await showFeatures();
-  }
-
-  void listenToFirebaseMessaging() {
-    FirebaseMessaging.onBackgroundMessage(
-      NotificationsService.onBackgroundMessageReceived,
-    );
-    FirebaseMessaging.onMessage
-        .listen(MHNotificationsService.I.onForegroundMessage);
-    _firebaseMessagingSubscription =
-        FirebaseMessaging.onMessageOpenedApp.listen((message) {
-      //TODO: prevent showing notification if authenticating with biometrics
-      MHNotificationsService.I.showNotificationContents(
-        context,
-        Notification.fromRemoteMessage(message),
-      );
-    });
   }
 
   void _keepAlive(bool visible) {
@@ -1386,7 +1381,12 @@ class _RootState extends State<Root>
     } else {
       _keepAliveTimer = Timer(
         const Duration(minutes: 1),
-        () => _timeout = true,
+        () {
+          _timeout = true;
+          _dynamicLinksSubscription.pause();
+          MHNotificationsService.I.onMessageOpenedAppSubscription.pause();
+          MHNotificationsService.I.onForegroundMessageSubscription?.pause();
+        },
       );
     }
   }

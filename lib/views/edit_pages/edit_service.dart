@@ -575,7 +575,8 @@ class _EditServiceState extends State<EditService> {
                       .collection('UsersData')
                       .where('AdminServices', arrayContains: service.ref)
                       .get()
-                      .then((value) => value.docs.map(UserWithPerson.fromDoc).toList()),
+                      .then((value) =>
+                          value.docs.map(UserWithPerson.fromDoc).toList()),
               builder: (context, users) {
                 if (!users.hasData)
                   return const Center(child: CircularProgressIndicator());
@@ -627,7 +628,7 @@ class _EditServiceState extends State<EditService> {
                         trailing,
                         subtitle,
                       }) =>
-                          DataObjectWidget(
+                          ViewableObjectWidget(
                         current,
                         onTap: () => onTap!(current),
                         trailing: trailing,

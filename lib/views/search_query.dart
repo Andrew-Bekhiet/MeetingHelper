@@ -1,4 +1,5 @@
 import 'package:churchdata_core/churchdata_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' show FieldPath;
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -129,15 +130,20 @@ class _SearchQueryState extends State<SearchQuery> {
                         .toList(),
                     onChanged: (p) => setState(
                       () {
-                        query = query.copyWith(
-                          fieldPath: p,
-                          queryValue: properties[collection]
-                                  ?[fieldPath.split('.')[0]]
-                              ?.defaultValue,
-                        );
+                        query = query
+                            .copyWith(
+                              queryValue:
+                                  properties[collection]?[p!]?.defaultValue,
+                              fieldPath: p,
+                            )
+                            .copyWithNull(
+                              queryValue:
+                                  properties[collection]?[p!]?.defaultValue ==
+                                      null,
+                            );
                       },
                     ),
-                    value: fieldPath.split('.')[0],
+                    value: fieldPath,
                   ),
                 ),
                 const SizedBox(width: 5),
@@ -155,10 +161,9 @@ class _SearchQueryState extends State<SearchQuery> {
               ],
             ),
             Builder(
-              key: ValueKey(valueWidget[
-                  properties[collection]![fieldPath.split('.')[0]]!.type]!),
-              builder: valueWidget[
-                      properties[collection]![fieldPath.split('.')[0]]!.type]!
+              key: ValueKey(
+                  valueWidget[properties[collection]![fieldPath]!.type]!),
+              builder: valueWidget[properties[collection]![fieldPath]!.type]!
                   .builder,
             ),
             CheckboxListTile(
@@ -176,8 +181,7 @@ class _SearchQueryState extends State<SearchQuery> {
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       key: ValueKey(valueWidget[
-                          properties[collection]![fieldPath.split('.')[0]]!
-                              .type]!),
+                          properties[collection]![fieldPath]!.type]!),
                       isExpanded: true,
                       value: orderBy,
                       items: properties[collection]!
@@ -199,8 +203,7 @@ class _SearchQueryState extends State<SearchQuery> {
                   Expanded(
                     child: DropdownButtonFormField<bool>(
                       key: ValueKey(valueWidget[
-                          properties[collection]![fieldPath.split('.')[0]]!
-                              .type]!),
+                          properties[collection]![fieldPath]!.type]!),
                       isExpanded: true,
                       value: descending,
                       items: const [
@@ -235,7 +238,7 @@ class _SearchQueryState extends State<SearchQuery> {
 
   void execute() async {
     QueryOfJson _mainQueryCompleter(QueryOfJson q, _, __) =>
-        valueWidget[properties[collection]![fieldPath.split('.')[0]]!.type]!
+        valueWidget[properties[collection]![fieldPath]!.type]!
             .completeQuery(q, queryValue);
 
     final DataObjectListView body = DataObjectListView(
@@ -495,17 +498,35 @@ class _SearchQueryState extends State<SearchQuery> {
         queryCompleter: (q, value) {
           if (value == null)
             return q.where(
-              fieldPath,
+              fieldPath.contains('.')
+                  ? FieldPath.fromString(fieldPath)
+                  : fieldPath,
               isNull: operator == '=',
             );
           else if (operator == '>')
-            return q.where(fieldPath, isGreaterThanOrEqualTo: value);
+            return q.where(
+                fieldPath.contains('.')
+                    ? FieldPath.fromString(fieldPath)
+                    : fieldPath,
+                isGreaterThanOrEqualTo: value);
           else if (operator == '<')
-            return q.where(fieldPath, isLessThanOrEqualTo: value);
+            return q.where(
+                fieldPath.contains('.')
+                    ? FieldPath.fromString(fieldPath)
+                    : fieldPath,
+                isLessThanOrEqualTo: value);
           else if (operator == '!=')
-            return q.where(fieldPath, isNotEqualTo: value);
+            return q.where(
+                fieldPath.contains('.')
+                    ? FieldPath.fromString(fieldPath)
+                    : fieldPath,
+                isNotEqualTo: value);
 
-          return q.where(fieldPath, isEqualTo: value);
+          return q.where(
+              fieldPath.contains('.')
+                  ? FieldPath.fromString(fieldPath)
+                  : fieldPath,
+              isEqualTo: value);
         },
       ),
       bool: PropertyQuery<bool>(
@@ -641,8 +662,10 @@ class _SearchQueryState extends State<SearchQuery> {
 
                           return IgnorePointer(
                             ignoringSemantics: false,
-                            child: DataObjectWidget<Class>(classData.data!,
-                                isDense: true),
+                            child: ViewableObjectWidget<Class>(
+                              classData.data!,
+                              isDense: true,
+                            ),
                           );
                         },
                       )
@@ -666,7 +689,7 @@ class _SearchQueryState extends State<SearchQuery> {
 
                           return IgnorePointer(
                             ignoringSemantics: false,
-                            child: DataObjectWidget<User>(userData.data!,
+                            child: ViewableObjectWidget<User>(userData.data!,
                                 isDense: true),
                           );
                         },
@@ -678,15 +701,15 @@ class _SearchQueryState extends State<SearchQuery> {
 
           return FutureBuilder<JsonQuery>(
             key: ValueKey('Select' + fieldPath),
-            future: properties[collection]![fieldPath.split('.')[0]]!
-                .collection!
-                .get(),
+            future: properties[collection]![fieldPath]!.query!.get(),
             builder: (context, data) {
               if (data.hasData) {
                 return DropdownButtonFormField<JsonRef?>(
                   value: queryValue != null &&
                           queryValue is JsonRef &&
-                          queryValue.path.startsWith('Schools/')
+                          (queryValue as JsonRef).parent.id.startsWith(
+                              properties[collection]![fieldPath]!
+                                  .collectionName!)
                       ? queryValue
                       : null,
                   items: data.data!.docs
@@ -708,9 +731,7 @@ class _SearchQueryState extends State<SearchQuery> {
                     query = query.copyWith.queryValue(value);
                   },
                   decoration: InputDecoration(
-                      labelText:
-                          properties[collection]![fieldPath.split('.')[0]]!
-                              .label),
+                      labelText: properties[collection]![fieldPath]!.label),
                 );
               }
               return const LinearProgressIndicator();
@@ -753,7 +774,8 @@ class _SearchQueryState extends State<SearchQuery> {
 
                           return IgnorePointer(
                             ignoringSemantics: false,
-                            child: DataObjectWidget<Service>(serviceData.data!,
+                            child: ViewableObjectWidget<Service>(
+                                serviceData.data!,
                                 isDense: true),
                           );
                         },
@@ -778,7 +800,7 @@ class _SearchQueryState extends State<SearchQuery> {
 
                           return IgnorePointer(
                             ignoringSemantics: false,
-                            child: DataObjectWidget<User>(userData.data!,
+                            child: ViewableObjectWidget<User>(userData.data!,
                                 isDense: true),
                           );
                         },
@@ -808,7 +830,7 @@ class _SearchQueryState extends State<SearchQuery> {
       ),
       Json: PropertyQuery<DateTime>(
         builder: (context) {
-          if (fieldPath.split('.')[0] == 'Last') {
+          if (fieldPath == 'Last') {
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -834,7 +856,7 @@ class _SearchQueryState extends State<SearchQuery> {
 
                                   return IgnorePointer(
                                     ignoringSemantics: false,
-                                    child: DataObjectWidget<Service>(
+                                    child: ViewableObjectWidget<Service>(
                                         serviceData.data!,
                                         isDense: true),
                                   );

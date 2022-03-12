@@ -211,8 +211,7 @@ Future<void> showErrorUpdateDataDialog(
                   .pushNamed('UpdateUserDataError', arguments: user);
               if (user.lastTanawol != null &&
                   user.lastConfession != null &&
-                  ((user.lastTanawol!.millisecondsSinceEpoch +
-                              2592000000) >
+                  ((user.lastTanawol!.millisecondsSinceEpoch + 2592000000) >
                           DateTime.now().millisecondsSinceEpoch &&
                       (user.lastConfession!.millisecondsSinceEpoch +
                               5184000000) >
@@ -220,8 +219,8 @@ Future<void> showErrorUpdateDataDialog(
                 navigator.currentState!.pop();
                 if (pushApp)
                   // ignore: unawaited_futures
-                  navigator.currentState!.pushReplacement(
-                      MaterialPageRoute(builder: (context) => const App()));
+                  navigator.currentState!.pushReplacement(MaterialPageRoute(
+                      builder: (context) => const MeetingHelperApp()));
               }
             },
             icon: const Icon(Icons.update),

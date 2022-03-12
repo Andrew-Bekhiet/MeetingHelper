@@ -414,7 +414,7 @@ class DayHistoryProperty extends StatelessWidget {
                     itemCount: history.data!.length,
                     itemBuilder: (context, i) => Card(
                       child: ListTile(
-                        onTap: () => GetIt.I<MHDataObjectTapHandler>()
+                        onTap: () => GetIt.I<MHViewableObjectTapHandler>()
                             .historyTap(history.data![i].parent),
                         title: Text(DateFormat('yyyy/M/d h:m a', 'ar-EG')
                             .format(history.data![i].time.toDate())),

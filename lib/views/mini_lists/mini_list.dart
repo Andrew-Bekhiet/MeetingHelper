@@ -7,18 +7,22 @@ import 'package:meetinghelper/utils/globals.dart';
 class MiniModelList<T extends MetaObject> extends StatelessWidget {
   final String title;
   final JsonCollectionRef collection;
+  late final QueryOfJson Function(QueryOfJson) completer;
   final void Function(BuildContext)? add;
   final void Function(BuildContext, T, bool)? modify;
   final T Function(JsonQueryDoc) transformer;
 
-  const MiniModelList({
+  MiniModelList({
     Key? key,
     required this.title,
     required this.collection,
     this.add,
     this.modify,
     required this.transformer,
-  }) : super(key: key);
+    QueryOfJson Function(QueryOfJson)? completer,
+  }) : super(key: key) {
+    completer = completer ?? (q) => q.orderBy('Name');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,8 +47,10 @@ class MiniModelList<T extends MetaObject> extends StatelessWidget {
             _defaultModify(context, item, false);
         },
         controller: ListController(
-          objectsPaginatableStream:
-              PaginatableStream.query(query: collection, mapper: transformer),
+          objectsPaginatableStream: PaginatableStream.query(
+            query: completer(collection),
+            mapper: transformer,
+          ),
         ),
         autoDisposeController: true,
       ),
@@ -114,7 +120,7 @@ class MiniModelList<T extends MetaObject> extends StatelessWidget {
                 if (modify == null)
                   _defaultModify(
                     context,
-                    (item as dynamic).copyWith(name: name.text) as T,
+                    item.copyWithName(name: name.text) as T,
                     !editMode,
                   );
               },
