@@ -547,20 +547,29 @@ export const importFromExcel = runWith({
           string | number | Record<string, any>
         >;
 
+        console.log("Importing Person:", person);
+        console.dir(person, { depth: null });
+
         rslt["ClassId"] = firestore()
           .collection("Classes")
           .doc(person["ClassId"] as string);
-        rslt["Name"] = person["Name"];
-        rslt["Phone"] = person["Phone Number"];
-        rslt["FatherPhone"] = person["Father Phone Number"];
-        rslt["MotherPhone"] = person["Mother Phone Number"];
-        rslt["Phones"] = {};
-        rslt["Services"] = JSON.parse(person["Services"] as string, (k, v) =>
-          firestore().collection("Services").doc(v)
-        );
 
-        rslt["Address"] = person["Address"];
-        rslt["Color"] = person["Color"];
+        rslt["Name"] = person["Name"] ?? "{بلا اسم}";
+        rslt["Phone"] = person["Phone Number"] ?? null;
+        rslt["FatherPhone"] = person["Father Phone Number"] ?? null;
+        rslt["MotherPhone"] = person["Mother Phone Number"] ?? null;
+        rslt["Phones"] = {};
+        rslt["Services"] =
+          person["Services"] !== null &&
+          person["Services"] !== undefined &&
+          (JSON.parse(person["Services"] as string) as Array<string>).length > 0
+            ? JSON.parse(person["Services"] as string, (k, v) =>
+                firestore().collection("Services").doc(v)
+              )
+            : [];
+
+        rslt["Address"] = person["Address"] ?? "";
+        rslt["Color"] = person["Color"] ?? 0;
         if (person["Birth Date"] !== "" && person["Birth Date"]) {
           const _birthDay = dateFromExcelSerial(person["Birth Date"] as number);
           rslt["BirthDate"] = Timestamp.fromDate(_birthDay);
@@ -581,7 +590,7 @@ export const importFromExcel = runWith({
           }
         }
 
-        rslt["Notes"] = person["Notes"];
+        rslt["Notes"] = person["Notes"] ?? "";
         rslt["Location"] = person["Location"]
           ? new firestore.GeoPoint(
               Number.parseFloat((person["Location"] as string).split(",")[1]),
@@ -590,25 +599,13 @@ export const importFromExcel = runWith({
           : null;
         rslt["School"] = firestore()
           .collection("Schools")
-          .doc(
-            schools[person["School"] as string]
-              ? schools[person["School"] as string]
-              : "null"
-          );
+          .doc(schools[person["School"] as string] ?? "null");
         rslt["Church"] = firestore()
           .collection("Churches")
-          .doc(
-            churches[person["Church"] as string]
-              ? churches[person["Church"] as string]
-              : "null"
-          );
+          .doc(churches[person["Church"] as string] ?? "null");
         rslt["CFather"] = firestore()
           .collection("Fathers")
-          .doc(
-            cfathers[person["Confession Father"] as string]
-              ? cfathers[person["Confession Father"] as string]
-              : "null"
-          );
+          .doc(cfathers[person["Confession Father"] as string] ?? "null");
 
         setTimestampProp("LastTanawol", "Last Tanawol");
         setTimestampProp("LastConfession", "Last Confession");
@@ -616,7 +613,7 @@ export const importFromExcel = runWith({
         setTimestampProp("LastMeeting", "Last Meeting");
         setTimestampProp("LastCall", "Last Call");
         setTimestampProp("LastVisit", "Last Visit");
-        rslt["LastEdit"] = users[person["Last Edit"] as string];
+        rslt["LastEdit"] = users[person["Last Edit"] as string] ?? null;
 
         //Remove all known fields and keep others as phone numbers
         Object.assign(rslt["Phones"], person);

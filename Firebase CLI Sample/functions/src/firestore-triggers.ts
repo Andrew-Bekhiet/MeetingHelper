@@ -19,9 +19,7 @@ export const onClassUpdated = firestore_1
       if (changeType === "update" || changeType === "create") {
         const batch = firestore().batch();
         batch.create(change.after.ref.collection("EditHistory").doc(), {
-          By: change.after.data()!.LastEdit
-            ? change.after.data()!.LastEdit
-            : null,
+          By: change.after.data()!.LastEdit ?? null,
           Time: FieldValue.serverTimestamp(),
           ClassId: change.after.ref,
         });
@@ -105,9 +103,7 @@ export const onServiceUpdated = firestore_1
       if (changeType === "update" || changeType === "create") {
         const batch = firestore().batch();
         batch.create(change.after.ref.collection("EditHistory").doc(), {
-          By: change.after.data()!.LastEdit
-            ? change.after.data()!.LastEdit
-            : null,
+          By: change.after.data()!.LastEdit ?? null,
           Time: FieldValue.serverTimestamp(),
           Services: [change.after.ref],
         });
@@ -259,15 +255,11 @@ export const onPersonUpdated = firestore_1
         (change.before?.data()?.LastVisit as Timestamp)?.seconds
       ) {
         batch.create(change.after.ref.collection("VisitHistory").doc(), {
-          By: change.after.data()?.LastEdit
-            ? change.after.data()?.LastEdit
-            : null,
+          By: change.after.data()?.LastEdit ?? null,
           Time: change.after.data()?.LastVisit,
           ClassId: change.after.data()?.ClassId,
           PersonId: change.after.ref,
-          Services: change.after.data()?.Services
-            ? change.after.data()?.Services
-            : null,
+          Services: change.after.data()?.Services ?? null,
         });
       }
       if (
@@ -278,9 +270,7 @@ export const onPersonUpdated = firestore_1
           Time: change.after.data()?.LastConfession,
           ClassId: change.after.data()?.ClassId,
           PersonId: change.after.ref,
-          Services: change.after.data()?.Services
-            ? change.after.data()?.Services
-            : null,
+          Services: change.after.data()?.Services ?? null,
         });
       }
       if (
@@ -288,27 +278,19 @@ export const onPersonUpdated = firestore_1
         (change.before?.data()?.LastCall as Timestamp)?.seconds
       ) {
         batch.create(change.after.ref.collection("CallHistory").doc(), {
-          By: change.after.data()?.LastEdit
-            ? change.after.data()?.LastEdit
-            : null,
+          By: change.after.data()?.LastEdit ?? null,
           Time: change.after.data()?.LastCall,
           ClassId: change.after.data()?.ClassId,
           PersonId: change.after.ref,
-          Services: change.after.data()?.Services
-            ? change.after.data()?.Services
-            : null,
+          Services: change.after.data()?.Services ?? null,
         });
       }
       batch.create(change.after.ref.collection("EditHistory").doc(), {
-        By: change.after.data()?.LastEdit
-          ? change.after.data()?.LastEdit
-          : null,
+        By: change.after.data()?.LastEdit ?? null,
         Time: FieldValue.serverTimestamp(),
         ClassId: change.after.data()?.ClassId,
         PersonId: change.after.ref,
-        Services: change.after.data()?.Services
-          ? change.after.data()?.Services
-          : null,
+        Services: change.after.data()?.Services ?? null,
       });
 
       if (change.after.data()?.ClassId)
@@ -447,15 +429,11 @@ export const onUserUpdated = firestore_1
         (change.before?.data()?.LastVisit as Timestamp)?.seconds
       ) {
         batch.create(change.after.ref.collection("VisitHistory").doc(), {
-          By: change.after.data()?.LastEdit
-            ? change.after.data()?.LastEdit
-            : null,
+          By: change.after.data()?.LastEdit ?? null,
           Time: change.after.data()?.LastVisit,
           ClassId: change.after.data()?.ClassId,
           PersonId: change.after.ref,
-          Services: change.after.data()?.Services
-            ? change.after.data()?.Services
-            : null,
+          Services: change.after.data()?.Services ?? null,
         });
       }
       if (
@@ -466,9 +444,7 @@ export const onUserUpdated = firestore_1
           Time: change.after.data()?.LastConfession,
           ClassId: change.after.data()?.ClassId,
           PersonId: change.after.ref,
-          Services: change.after.data()?.Services
-            ? change.after.data()?.Services
-            : null,
+          Services: change.after.data()?.Services ?? null,
         });
       }
       if (
@@ -476,27 +452,19 @@ export const onUserUpdated = firestore_1
         (change.before?.data()?.LastCall as Timestamp)?.seconds
       ) {
         batch.create(change.after.ref.collection("CallHistory").doc(), {
-          By: change.after.data()?.LastEdit
-            ? change.after.data()?.LastEdit
-            : null,
+          By: change.after.data()?.LastEdit ?? null,
           Time: change.after.data()?.LastCall,
           ClassId: change.after.data()?.ClassId,
           PersonId: change.after.ref,
-          Services: change.after.data()?.Services
-            ? change.after.data()?.Services
-            : null,
+          Services: change.after.data()?.Services ?? null,
         });
       }
       batch.create(change.after.ref.collection("EditHistory").doc(), {
-        By: change.after.data()?.LastEdit
-          ? change.after.data()?.LastEdit
-          : null,
+        By: change.after.data()?.LastEdit ?? null,
         Time: FieldValue.serverTimestamp(),
         ClassId: change.after.data()?.ClassId,
         PersonId: change.after.ref,
-        Services: change.after.data()?.Services
-          ? change.after.data()?.Services
-          : null,
+        Services: change.after.data()?.Services ?? null,
       });
 
       if (change.after.data()?.ClassId)

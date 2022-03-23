@@ -85,8 +85,8 @@ export const onUserSignUp = auth_1.user().onCreate(async (user) => {
   );
   await doc.set({
     UID: user.uid,
-    Name: user.displayName ? user.displayName : null,
-    Email: user.email ? user.email : null,
+    Name: user.displayName ?? null,
+    Email: user.email ?? null,
     ClassId: null,
     AllowedUsers: [],
     LastTanawol: null,
