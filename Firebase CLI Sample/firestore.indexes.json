@@ -15,6 +15,20 @@
       ]
     },
     {
+      "collectionGroup": "CallHistory",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "Services",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "Time",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "Classes",
       "queryScope": "COLLECTION",
       "fields": [
@@ -75,6 +89,52 @@
       ]
     },
     {
+      "collectionGroup": "Confession",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "IsServant",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Time",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Confession",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "ClassId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Time",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Confession",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "ID",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Time",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "EditHistory",
       "queryScope": "COLLECTION_GROUP",
       "fields": [
@@ -95,6 +155,20 @@
         {
           "fieldPath": "ClassId",
           "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Time",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "EditHistory",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "Services",
+          "arrayConfig": "CONTAINS"
         },
         {
           "fieldPath": "Time",
@@ -489,6 +563,48 @@
       ]
     },
     {
+      "collectionGroup": "Persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "Services",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "BirthDay",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "Services",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "Name",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Services",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ShowInHistory",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Name",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "Tanawol",
       "queryScope": "COLLECTION_GROUP",
       "fields": [
@@ -673,12 +789,40 @@
       ]
     },
     {
+      "collectionGroup": "UsersData",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "Services",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "Name",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "VisitHistory",
       "queryScope": "COLLECTION_GROUP",
       "fields": [
         {
           "fieldPath": "ClassId",
           "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Time",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "VisitHistory",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "Services",
+          "arrayConfig": "CONTAINS"
         },
         {
           "fieldPath": "Time",
@@ -710,6 +854,28 @@
         },
         {
           "arrayConfig": "CONTAINS",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Confession",
+      "fieldPath": "ID",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "arrayConfig": "CONTAINS",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "ASCENDING",
           "queryScope": "COLLECTION_GROUP"
         }
       ]

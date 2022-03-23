@@ -14,11 +14,11 @@ service cloud.firestore {
       return ['ClassId','Name','Phone','FatherPhone','MotherPhone','Phones','Address','HasPhoto',
             'Color','BirthDate','BirthDay','Last','LastTanawol','LastConfession','LastKodas',
             'LastMeeting','LastCall','LastVisit','LastEdit','Notes','School','Church','CFather',
-            'Location','IsShammas','Gender','ShammasLevel','StudyYear','Services'
+            'Location','IsShammas','Gender','ShammasLevel','StudyYear','College','Services'
           ].toSet();
     }
 
-    function checkUserRegistered(){
+    function checkUserRegistered() {
       return request.auth.uid != null
         && request.auth.token.approved
         && (
@@ -124,7 +124,9 @@ service cloud.firestore {
           && request.auth.token.write
           && personFields().hasAll(request.resource.data.diff(resource.data).affectedKeys())
           && (request.auth.token.superAccess
-            || (!request.resource.data.keys().hasAny(['ClassId'])
+            || ((!request.resource.data.keys().hasAny(['ClassId'])
+                || request.resource.data.ClassId == null
+              )
               && get(/databases/$(database)/documents/UsersData/$(request.auth.token.personId))
                 .data
                 .AdminServices.toSet()
@@ -231,7 +233,7 @@ service cloud.firestore {
     }
 
     match /UsersData {
-      function checkCanEditUser(classId){
+      function checkCanEditUser(){
         return checkUserRegistered()
           && (request.auth.token.manageUsers
             || (request.auth.token.manageAllowedUsers
@@ -239,12 +241,13 @@ service cloud.firestore {
             )
           )
           && (request.auth.token.superAccess
-            || classId == null
-            || request.auth.uid in get(classId).data.Allowed
+            || request.resource.data.ClassId == null
+            || request.auth.uid in get(request.resource.data.ClassId).data.Allowed
+            || resource.data.ClassId == request.resource.data.ClassId
           );
       }
 
-      function checkCanCreateUser(classId){
+      function checkCanCreateUser(){
         return checkUserRegistered()
           && (request.auth.token.manageUsers
             || (request.auth.token.manageAllowedUsers
@@ -252,8 +255,8 @@ service cloud.firestore {
             )
           )
           && (request.auth.token.superAccess
-            || classId == null
-            || request.auth.uid in get(classId).data.Allowed
+            || request.resource.data.ClassId == null
+            || request.auth.uid in get(request.resource.data.ClassId).data.Allowed
           );
       }
 
@@ -265,23 +268,24 @@ service cloud.firestore {
       }
 
       match /{user} {
-        allow read: if checkUserRegistered()
+        allow read: if request.auth.uid != null
+          && request.auth.token.approved
           && (user == request.auth.token.personId
             || checkCanReadUser(user)
           );
 
-        allow create: if checkCanCreateUser(request.resource.data.ClassId)
+        allow create: if checkCanCreateUser()
           && !request.resource.data.keys().hasAny(['Permissions', 'UID', 'Email'])
           && personFields().union(['AdminServices','AllowedUsers'].toSet()).hasAll(request.resource.data.keys().toSet());
 
         allow update: if checkUserRegistered()
           && (user == request.auth.token.personId
-            || checkCanEditUser(resource.data.ClassId)
+            || checkCanEditUser()
           )
           && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['Permissions', 'UID', 'Email'])
           && personFields().union(['AdminServices', 'AllowedUsers'].toSet()).hasAll(request.resource.data.diff(resource.data).affectedKeys());
 
-        allow delete: if checkCanEditUser(resource.data.ClassId)
+        allow delete: if checkCanEditUser()
           && !resource.data.keys().hasAny(['UID']);
 
         match /{history=**} {
@@ -319,6 +323,19 @@ service cloud.firestore {
             }
           }
         }
+
+        match /Services {
+          allow list: if checkUserRegistered()
+            && request.auth.token.superAccess
+            && request.auth.token.manageDeleted == true;
+          
+          match /{_service}{  
+            allow read: if checkUserRegistered()
+              && request.auth.token.manageDeleted == true
+              && request.auth.token.superAccess;
+          }
+        }
+
         match /Persons {
           allow list: if checkUserRegistered()
             && request.auth.token.superAccess
@@ -352,9 +369,9 @@ service cloud.firestore {
           && request.auth.token.write;
         
         allow create: if checkUserRegistered()
-          && (request.resource.data.Day.toMillis() % 86400000 == 0)
-          && request.resource.data.Day.date().toMillis() == request.time.date().toMillis()
-          && historyDay == string(request.resource.data.Day.year()) + '-' + (request.resource.data.Day.month() > 9 ? '' : '0') + string(request.resource.data.Day.month()) + '-' + (request.resource.data.Day.day() > 9 ? '' : '0') + string(request.resource.data.Day.day())
+          && debug(request.resource.data.Day.toMillis() % 86400000 == 0)
+          && debug(request.resource.data.Day.date().toMillis() == request.time.date().toMillis())
+          && debug(historyDay) == string(request.resource.data.Day.year()) + '-' + (request.resource.data.Day.month() > 9 ? '' : '0') + string(request.resource.data.Day.month()) + '-' + (request.resource.data.Day.day() > 9 ? '' : '0') + string(request.resource.data.Day.day())
           && request.auth.token.write;
         
         allow update: if checkUserRegistered()
@@ -511,6 +528,7 @@ service cloud.firestore {
               )
               && historyRecordFields().hasAll(request.resource.data.diff(request.method == 'create' ? {} : resource.data).affectedKeys())
               && request.resource.data.ID == request.resource.id
+              && exists(/databases/$(database)/documents/UsersData/$(request.resource.id))
               && request.resource.data.RecordedBy == request.auth.uid
               && (request.method == 'update'
                 ? (section == 'Meeting' || section == 'Kodas' || section == 'Confession'
@@ -658,6 +676,17 @@ service cloud.firestore {
       }
     }
     match /StudyYears {
+      allow read: if checkUserRegistered();
+      allow write: if checkUserRegistered()
+        && request.auth.token.write;
+      
+      match /{item} {
+        allow read: if checkUserRegistered();
+        allow write: if checkUserRegistered()
+          && request.auth.token.write;
+      }
+    }
+    match /Colleges {
       allow read: if checkUserRegistered();
       allow write: if checkUserRegistered()
         && request.auth.token.write;
