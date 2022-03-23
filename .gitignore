@@ -98,7 +98,7 @@ Designs.ai
 Logo.jpeg
 Users.txt
 logs/
-MeetingHelper.code-workspace
+*.code-workspace
 .env
 lib/secrets.dart
 web/firebase-messaging-sw.js
