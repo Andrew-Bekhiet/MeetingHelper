@@ -27,175 +27,161 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  bool _loading = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('تسجيل الدخول'),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
+      appBar: const _LoginTitle(),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
           children: <Widget>[
-            Text('خدمة مدارس الأحد',
-                style: Theme.of(context).textTheme.headline4),
-            Container(height: MediaQuery.of(context).size.height / 19),
             SizedBox(
-              height: MediaQuery.of(context).size.height / 7.6,
-              width: MediaQuery.of(context).size.width / 3.42,
-              child: Image.asset(
-                'assets/Logo.png',
-                fit: BoxFit.scaleDown,
-              ),
+              height: 200,
+              width: 200,
+              child: Image.asset('assets/Logo.png'),
             ),
-            Container(height: MediaQuery.of(context).size.height / 38),
-            const Text('قم بتسجيل الدخول أو انشاء حساب'),
-            Container(height: 30),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: <Widget>[
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    primary: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+            const SizedBox(
+              height: 10,
+            ),
+            Text(
+              'قم بتسجيل الدخول أو انشاء حساب',
+              style: Theme.of(context).textTheme.headline6,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                primary: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onPressed: _loading ? null : _loginWithGoogle,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(16.0, 16.0, 32.0, 16.0),
+                    child: Image.asset(
+                      'assets/google_logo.png',
+                      width: 30,
+                      height: 30,
                     ),
                   ),
-                  onPressed: () async {
-                    try {
-                      Future<auth.UserCredential>? signInFuture;
-                      if (kIsWeb) {
-                        final credential = (await GetIt.I<auth.FirebaseAuth>()
-                                .signInWithPopup(GoogleAuthProvider()))
-                            .credential;
-                        if (credential != null) {
-                          signInFuture = GetIt.I<auth.FirebaseAuth>()
-                              .signInWithCredential(credential);
-                        }
-                      } else {
-                        final GoogleSignInAccount? googleUser =
-                            await GetIt.I<GoogleSignIn>().signIn();
-                        if (googleUser != null) {
-                          final GoogleSignInAuthentication googleAuth =
-                              await googleUser.authentication;
-                          if (googleAuth.accessToken != null) {
-                            final AuthCredential credential =
-                                GoogleAuthProvider.credential(
-                                    idToken: googleAuth.idToken,
-                                    accessToken: googleAuth.accessToken);
-                            signInFuture = GetIt.I<auth.FirebaseAuth>()
-                                .signInWithCredential(credential);
-                          }
-                        }
-                      }
-                      if (signInFuture != null) {
-                        await signInFuture.catchError((er) {
-                          if (er.toString().contains(
-                              'An account already exists with the same email address')) {
-                            showDialog(
-                              context: context,
-                              builder: (context) => const AlertDialog(
-                                content: Text(
-                                    'هذا الحساب مسجل من قبل بنفس البريد الاكتروني'
-                                    '\n'
-                                    'جرب تسجيل الدخول بفيسبوك'),
-                              ),
-                            );
-                          }
-                        });
-                        await User.loggedInStream.next;
-                        await setupSettings();
-                      }
-                    } catch (err, stack) {
-                      await Sentry.captureException(err,
-                          stackTrace: stack,
-                          withScope: (scope) => scope.setTag('LasErrorIn',
-                              '_LoginScreenState.build.Login.onPressed'));
-                      await showErrorDialog(context, err.toString());
-                    }
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Container(
-                        padding:
-                            const EdgeInsets.fromLTRB(16.0, 16.0, 32.0, 16.0),
-                        child: Image.asset(
-                          'assets/google_logo.png',
-                          width: 30,
-                          height: 30,
+                  Expanded(
+                    child: _loading
+                        ? const Center(child: CircularProgressIndicator())
+                        : const Text(
+                            'تسجيل الدخول بجوجل',
+                            style: TextStyle(fontSize: 20, color: Colors.black),
+                          ),
+                  )
+                ],
+              ),
+            ),
+            if (kDebugMode &&
+                dotenv.env['kUseFirebaseEmulators']?.toString() == 'true')
+              ElevatedButton(
+                onPressed: () async {
+                  await GetIt.I<auth.FirebaseAuth>().signInWithEmailAndPassword(
+                      email: 'admin@meetinghelper.org',
+                      password: 'admin@meetinghelper.org');
+                },
+                child: const Text('{debug only} Email and password'),
+              ),
+            Container(height: MediaQuery.of(context).size.height / 38),
+            RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                style:
+                    const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                children: [
+                  TextSpan(
+                    style: Theme.of(context).textTheme.bodyText2,
+                    text: 'بتسجيل دخولك فإنك توافق على ',
+                  ),
+                  TextSpan(
+                    style: Theme.of(context).textTheme.bodyText2?.copyWith(
+                          color: Colors.blue,
                         ),
-                      ),
-                      const Expanded(
-                        child: Text(
-                          'Google',
-                          style: TextStyle(color: Colors.black),
+                    text: 'شروط الاستخدام',
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () async {
+                        const url =
+                            'https://church-data.flycricket.io/terms.html';
+                        if (await canLaunch(url)) {
+                          await launch(url);
+                        }
+                      },
+                  ),
+                  TextSpan(
+                    style: Theme.of(context).textTheme.bodyText2,
+                    text: ' و',
+                  ),
+                  TextSpan(
+                    style: Theme.of(context).textTheme.bodyText2?.copyWith(
+                          color: Colors.blue,
                         ),
-                      )
-                    ],
+                    text: 'سياسة الخصوصية',
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () async {
+                        const url =
+                            'https://church-data.flycricket.io/privacy.html';
+                        if (await canLaunch(url)) {
+                          await launch(url);
+                        }
+                      },
                   ),
-                ),
-                if (kDebugMode &&
-                    dotenv.env['kUseFirebaseEmulators']?.toString() == 'true')
-                  ElevatedButton(
-                    onPressed: () async {
-                      await GetIt.I<auth.FirebaseAuth>()
-                          .signInWithEmailAndPassword(
-                              email: 'admin@meetinghelper.org',
-                              password: 'admin@meetinghelper.org');
-                    },
-                    child: const Text('{debug only} Email and password'),
-                  ),
-                Container(height: MediaQuery.of(context).size.height / 38),
-                RichText(
-                  textAlign: TextAlign.center,
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        style: Theme.of(context).textTheme.bodyText2,
-                        text: 'بتسجيل دخولك فإنك توافق على ',
-                      ),
-                      TextSpan(
-                        style: Theme.of(context).textTheme.bodyText2?.copyWith(
-                              color: Colors.blue,
-                            ),
-                        text: 'شروط الاستخدام',
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () async {
-                            const url =
-                                'https://church-data.flycricket.io/terms.html';
-                            if (await canLaunch(url)) {
-                              await launch(url);
-                            }
-                          },
-                      ),
-                      TextSpan(
-                        style: Theme.of(context).textTheme.bodyText2,
-                        text: ' و',
-                      ),
-                      TextSpan(
-                        style: Theme.of(context).textTheme.bodyText2?.copyWith(
-                              color: Colors.blue,
-                            ),
-                        text: 'سياسة الخصوصية',
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () async {
-                            const url =
-                                'https://church-data.flycricket.io/privacy.html';
-                            if (await canLaunch(url)) {
-                              await launch(url);
-                            }
-                          },
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _loginWithGoogle() async {
+    setState(() => _loading = true);
+    try {
+      Future<auth.UserCredential>? signInFuture;
+      if (kIsWeb) {
+        final credential = (await GetIt.I<auth.FirebaseAuth>()
+                .signInWithPopup(GoogleAuthProvider()))
+            .credential;
+        if (credential != null) {
+          signInFuture =
+              GetIt.I<auth.FirebaseAuth>().signInWithCredential(credential);
+        }
+      } else {
+        final googleUser = await GetIt.I<GoogleSignIn>().signIn();
+        if (googleUser != null) {
+          final googleAuth = await googleUser.authentication;
+          if (googleAuth.accessToken != null) {
+            final credential = GoogleAuthProvider.credential(
+                idToken: googleAuth.idToken,
+                accessToken: googleAuth.accessToken);
+            signInFuture =
+                GetIt.I<auth.FirebaseAuth>().signInWithCredential(credential);
+          }
+        }
+      }
+      if (signInFuture != null) {
+        await signInFuture;
+        setState(() => _loading = false);
+        await User.loggedInStream.next;
+        await setupSettings();
+      }
+    } catch (err, stack) {
+      setState(() => _loading = false);
+      await Sentry.captureException(err,
+          stackTrace: stack,
+          withScope: (scope) => scope.setTag(
+              'LasErrorIn', '_LoginScreenState.build.Login.onPressed'));
+      await showErrorDialog(context, err.toString());
+    }
   }
 
   Future<bool> setupSettings() async {
@@ -314,4 +300,35 @@ class _LoginScreenState extends State<LoginScreen> {
       return false;
     }
   }
+}
+
+class _LoginTitle extends StatelessWidget with PreferredSizeWidget {
+  const _LoginTitle({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Container(
+        margin: const EdgeInsets.all(10),
+        child: Center(
+          child: Text(
+            'خدمة مدارس الأحد',
+            style: Theme.of(context).textTheme.headline4?.copyWith(
+                  color: Theme.of(context)
+                      .textTheme
+                      .headline6
+                      ?.color
+                      ?.withOpacity(1),
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 30);
 }

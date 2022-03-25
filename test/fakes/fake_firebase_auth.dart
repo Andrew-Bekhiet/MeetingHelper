@@ -12,8 +12,9 @@ class MockFirebaseAuth implements FirebaseAuth {
   final userChangedStreamController = BehaviorSubject<User?>();
   Stream<User?> get userChangedStream => userChangedStreamController.stream;
   User? _currentUser;
+  MyMockUser? userWhenSignIn;
 
-  MockFirebaseAuth({MyMockUser? mockUser}) {
+  MockFirebaseAuth({MyMockUser? mockUser, this.userWhenSignIn}) {
     if (mockUser != null) {
       signInUser(mockUser);
     } else {
@@ -72,7 +73,7 @@ class MockFirebaseAuth implements FirebaseAuth {
   }
 
   Future<UserCredential> _fakeSignIn({bool isAnonymous = false}) {
-    return signInUser(null, isAnonymous);
+    return signInUser(userWhenSignIn, isAnonymous);
   }
 
   Stream<User> get onAuthStateChanged =>
