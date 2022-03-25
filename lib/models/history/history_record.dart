@@ -54,24 +54,6 @@ abstract class HistoryDayBase extends DataObjectWithPhoto {
   @override
   Json toJson() => {'Day': day, 'Notes': notes};
 
-  static HistoryDay? fromDoc(JsonDoc data) => data.exists
-      ? HistoryDay._createFromData(data.data()!, data.reference)
-      : null;
-
-  static HistoryDay fromQueryDoc(JsonQueryDoc data) =>
-      HistoryDay._createFromData(data.data(), data.reference);
-
-  static Future<HistoryDay?> fromId(String id) async => HistoryDay.fromDoc(
-      await GetIt.I<DatabaseRepository>().doc('History/$id').get());
-
-  static Future<Stream<JsonQuery>> getAllForUser(
-      {String orderBy = 'Day', bool descending = false}) async {
-    return GetIt.I<DatabaseRepository>()
-        .collection('History')
-        .orderBy(orderBy, descending: descending)
-        .snapshots();
-  }
-
   @override
   Future<String> getSecondLine() {
     return SynchronousFuture(
@@ -101,7 +83,7 @@ class HistoryDay extends HistoryDayBase {
       ? HistoryDay._createFromData(data.data()!, data.reference)
       : null;
 
-  static HistoryDay fromQueryDoc(JsonQueryDoc data) =>
+  factory HistoryDay.fromQueryDoc(JsonQueryDoc data) =>
       HistoryDay._createFromData(data.data(), data.reference);
 
   static Future<HistoryDay?> fromId(String id) async => HistoryDay.fromDoc(
@@ -132,7 +114,7 @@ class ServantsHistoryDay extends HistoryDayBase {
       ? ServantsHistoryDay._createFromData(data.data()!, data.reference)
       : null;
 
-  static ServantsHistoryDay fromQueryDoc(JsonQueryDoc data) =>
+  factory ServantsHistoryDay.fromQueryDoc(JsonQueryDoc data) =>
       ServantsHistoryDay._createFromData(data.data(), data.reference);
 
   ServantsHistoryDay._createFromData(Json data, JsonRef ref)
@@ -171,18 +153,18 @@ class HistoryRecord {
   final JsonRef? classId;
   final bool isServant;
 
-  HistoryRecord(
-      {required this.type,
-      this.parent,
-      required this.id,
-      required this.classId,
-      required this.time,
-      required this.recordedBy,
-      List<JsonRef>? services,
-      this.studyYear,
-      this.notes,
-      this.isServant = false})
-      : services = services ?? [];
+  HistoryRecord({
+    required this.id,
+    required this.type,
+    required this.classId,
+    required this.time,
+    required this.recordedBy,
+    this.parent,
+    List<JsonRef>? services,
+    this.studyYear,
+    this.notes,
+    this.isServant = false,
+  }) : services = services ?? [];
 
   static HistoryRecord? fromDoc(HistoryDayBase? parent, JsonDoc doc) =>
       doc.exists ? HistoryRecord._fromDoc(parent, doc) : null;
@@ -238,13 +220,14 @@ class HistoryRecord {
 
 /// Used in EditHistory, CallHistory, etc...
 class MinimalHistoryRecord {
-  MinimalHistoryRecord(
-      {required this.ref,
-      this.classId,
-      this.personId,
-      this.services,
-      required this.time,
-      required this.by});
+  MinimalHistoryRecord({
+    required this.ref,
+    required this.time,
+    required this.by,
+    this.classId,
+    this.personId,
+    this.services,
+  });
 
   static MinimalHistoryRecord? fromDoc(JsonDoc doc) {
     if (!doc.exists) return null;
@@ -258,7 +241,7 @@ class MinimalHistoryRecord {
     );
   }
 
-  static MinimalHistoryRecord fromQueryDoc(JsonQueryDoc doc) {
+  factory MinimalHistoryRecord.fromQueryDoc(JsonQueryDoc doc) {
     return MinimalHistoryRecord(
       ref: doc.reference,
       classId: doc.data()['ClassId'],

@@ -13,12 +13,12 @@ class MiniModelList<T extends MetaObject> extends StatelessWidget {
   final T Function(JsonQueryDoc) transformer;
 
   MiniModelList({
-    Key? key,
     required this.title,
     required this.collection,
+    required this.transformer,
+    Key? key,
     this.add,
     this.modify,
-    required this.transformer,
     QueryOfJson Function(QueryOfJson)? completer,
   }) : super(key: key) {
     completer = completer ?? (q) => q.orderBy('Name');
@@ -41,10 +41,11 @@ class MiniModelList<T extends MetaObject> extends StatelessWidget {
           onTap: () => onTap?.call(current),
         ),
         onTap: (item) {
-          if (modify != null)
+          if (modify != null) {
             modify!(context, item, false);
-          else
+          } else {
             _defaultModify(context, item, false);
+          }
         },
         controller: ListController(
           objectsPaginatableStream: PaginatableStream.query(
@@ -103,7 +104,8 @@ class MiniModelList<T extends MetaObject> extends StatelessWidget {
     );
   }
 
-  void _defaultModify(BuildContext context, T item, bool editMode) async {
+  Future<void> _defaultModify(
+      BuildContext context, T item, bool editMode) async {
     final name = TextEditingController(text: item.name);
     await showDialog(
       context: context,
@@ -117,12 +119,13 @@ class MiniModelList<T extends MetaObject> extends StatelessWidget {
                   await item.ref.update({'Name': name.text});
                 }
                 navigator.currentState!.pop();
-                if (modify == null)
-                  _defaultModify(
+                if (modify == null) {
+                  await _defaultModify(
                     context,
                     item.copyWithName(name: name.text) as T,
                     !editMode,
                   );
+                }
               },
               label: Text(editMode ? 'حفظ' : 'تعديل'),
             ),
@@ -185,7 +188,8 @@ class MiniModelList<T extends MetaObject> extends StatelessWidget {
   }
 }
 
-void churchTap(BuildContext context, Church _church, bool editMode) async {
+Future<void> churchTap(
+    BuildContext context, Church _church, bool editMode) async {
   Church church = _church;
   final title = TextStyle(
     fontSize: 22,
@@ -207,7 +211,7 @@ void churchTap(BuildContext context, Church _church, bool editMode) async {
                   .set(church.toJson());
             }
             navigator.currentState!.pop();
-            churchTap(context, church, !editMode);
+            await churchTap(context, church, !editMode);
           },
           child: Text(editMode ? 'حفظ' : 'تعديل'),
         ),
@@ -306,7 +310,8 @@ void churchTap(BuildContext context, Church _church, bool editMode) async {
   );
 }
 
-void fatherTap(BuildContext context, Father _father, bool editMode) async {
+Future<void> fatherTap(
+    BuildContext context, Father _father, bool editMode) async {
   Father father = _father;
   final title = TextStyle(
     fontSize: 22,
@@ -328,7 +333,7 @@ void fatherTap(BuildContext context, Father _father, bool editMode) async {
                   .set(father.toJson());
             }
             navigator.currentState!.pop();
-            fatherTap(context, father, !editMode);
+            await fatherTap(context, father, !editMode);
           },
           child: Text(editMode ? 'حفظ' : 'تعديل'),
         ),
@@ -441,7 +446,8 @@ void fatherTap(BuildContext context, Father _father, bool editMode) async {
   );
 }
 
-void studyYearTap(BuildContext context, StudyYear _year, bool editMode) async {
+Future<void> studyYearTap(
+    BuildContext context, StudyYear _year, bool editMode) async {
   StudyYear year = _year;
   final title = TextStyle(
     fontSize: 22,
@@ -463,7 +469,7 @@ void studyYearTap(BuildContext context, StudyYear _year, bool editMode) async {
                   .set(year.toJson());
             }
             navigator.currentState!.pop();
-            studyYearTap(context, year, !editMode);
+            await studyYearTap(context, year, !editMode);
           },
           child: Text(editMode ? 'حفظ' : 'تعديل'),
         ),

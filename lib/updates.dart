@@ -22,47 +22,7 @@ class Updates {
       {bool canCancel = true}) async {
     final Version latest = Version.parse(
         GetIt.I<FirebaseRemoteConfig>().getString('LatestVersion'));
-    if (latest > Version.parse((await PackageInfo.fromPlatform()).version) &&
-        canCancel) {
-      await showDialog(
-        barrierDismissible: canCancel,
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text(''),
-            content: Text(canCancel
-                ? 'هل تريد التحديث إلى إصدار $latest؟'
-                : 'للأسف فإصدار البرنامج الحالي غير مدعوم\nيرجى تحديث البرنامج'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () async {
-                  if (await canLaunch(GetIt.I<FirebaseRemoteConfig>()
-                      .getString('DownloadLink')
-                      .replaceFirst('https://', 'https:'))) {
-                    await launch(GetIt.I<FirebaseRemoteConfig>()
-                        .getString('DownloadLink')
-                        .replaceFirst('https://', 'https:'));
-                  } else {
-                    navigator.currentState!.pop();
-                    await Clipboard.setData(ClipboardData(
-                        text: GetIt.I<FirebaseRemoteConfig>()
-                            .getString('DownloadLink')));
-                    scaffoldMessenger.currentState!.showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                            'حدث خطأ أثناء فتح رابط التحديث وتم نقله الى الحافظة'),
-                      ),
-                    );
-                  }
-                },
-                child: Text(canCancel ? 'نعم' : 'تحديث'),
-              ),
-            ],
-          );
-        },
-      );
-    } else if (latest >
-        Version.parse((await PackageInfo.fromPlatform()).version)) {
+    if (latest > Version.parse((await PackageInfo.fromPlatform()).version)) {
       await showDialog(
         barrierDismissible: canCancel,
         context: context,

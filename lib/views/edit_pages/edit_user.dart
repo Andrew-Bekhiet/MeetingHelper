@@ -19,7 +19,10 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 class EditUser extends StatefulWidget {
   final UserWithPerson user;
 
-  const EditUser({Key? key, required this.user}) : super(key: key);
+  const EditUser({
+    required this.user,
+    Key? key,
+  }) : super(key: key);
   @override
   _EditUserState createState() => _EditUserState();
 }
@@ -35,7 +38,7 @@ class _EditUserState extends State<EditUser> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: NestedScrollView(
-        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
           return <Widget>[
             SliverAppBar(
               expandedHeight: 250.0,
@@ -458,7 +461,7 @@ class _EditUserState extends State<EditUser> {
     );
   }
 
-  void editChildrenUsers() async {
+  Future<void> editChildrenUsers() async {
     childrenUsers = await navigator.currentState!.push(
           MaterialPageRoute(
             builder: (context) {
@@ -474,8 +477,9 @@ class _EditUserState extends State<EditUser> {
                               value.docs.map(UserWithPerson.fromDoc).toList(),
                         ),
                 builder: (c, users) {
-                  if (!users.hasData)
+                  if (!users.hasData) {
                     return const Center(child: CircularProgressIndicator());
+                  }
                   return MultiProvider(
                     providers: [
                       Provider<ListController<Class?, User>>(
@@ -523,7 +527,7 @@ class _EditUserState extends State<EditUser> {
         childrenUsers;
   }
 
-  void editAdminServices() async {
+  Future<void> editAdminServices() async {
     final selected = await Future.wait(
       user.adminServices.map(
         (e) async {
@@ -767,7 +771,7 @@ class _EditUserState extends State<EditUser> {
     return null;
   }
 
-  void _selectClass() async {
+  Future<void> _selectClass() async {
     final controller = ServicesListController<Class>(
       objectsPaginatableStream:
           PaginatableStream.loadAll(stream: Stream.value([])),

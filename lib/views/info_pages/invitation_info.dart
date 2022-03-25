@@ -24,12 +24,13 @@ class InvitationInfo extends StatelessWidget {
       stream: invitation!.ref.snapshots().map(Invitation.fromDoc),
       builder: (context, data) {
         final Invitation? invitation = data.data;
-        if (invitation == null)
+        if (invitation == null) {
           return const Scaffold(
             body: Center(
               child: Text('تم حذف الدعوة'),
             ),
           );
+        }
         return Scaffold(
             body: CustomScrollView(
           slivers: [

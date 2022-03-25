@@ -15,18 +15,18 @@ class Invitation extends DataObject {
   const Invitation({
     required JsonRef ref,
     required String title,
-    this.link,
-    this.usedBy,
     required this.generatedBy,
-    this.permissions,
     required this.generatedOn,
     required this.expiryDate,
+    this.link,
+    this.usedBy,
+    this.permissions,
   }) : super(ref, title);
 
   static Invitation? fromDoc(JsonDoc doc) =>
       doc.exists ? Invitation.createFromData(doc.data()!, doc.reference) : null;
 
-  static Invitation fromQueryDoc(JsonQueryDoc doc) =>
+  factory Invitation.fromQueryDoc(JsonQueryDoc doc) =>
       Invitation.createFromData(doc.data(), doc.reference);
 
   Invitation.createFromData(Json data, JsonRef ref)
@@ -63,9 +63,10 @@ class Invitation extends DataObject {
 
   @override
   Future<String> getSecondLine() async {
-    if (used && usedBy != null)
+    if (used && usedBy != null) {
       return 'تم الاستخدام بواسطة: ' +
           ((await MHDatabaseRepo.instance.getUserName(usedBy!))?.name ?? '');
+    }
     return 'ينتهي في ' + DateFormat('yyyy/M/d', 'ar-EG').format(expiryDate);
   }
 

@@ -10,7 +10,10 @@ import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 class History extends StatefulWidget {
   final bool iServantsHistory;
-  const History({Key? key, required this.iServantsHistory}) : super(key: key);
+  const History({
+    required this.iServantsHistory,
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _HistoryState();
@@ -187,7 +190,7 @@ class _HistoryState extends State<History> {
     WidgetsBinding.instance!.addPostFrameCallback((_) {
       if ((['SearchByDateRange']
             ..removeWhere(HivePersistenceProvider.instance.hasCompletedStep))
-          .isNotEmpty)
+          .isNotEmpty) {
         TutorialCoachMark(
           context,
           focusAnimationDuration: const Duration(milliseconds: 200),
@@ -217,6 +220,7 @@ class _HistoryState extends State<History> {
             await HivePersistenceProvider.instance.completeStep(t.identify);
           },
         ).show();
+      }
     });
   }
 

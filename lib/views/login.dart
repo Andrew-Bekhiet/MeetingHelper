@@ -91,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (signInFuture != null) {
                         await signInFuture.catchError((er) {
                           if (er.toString().contains(
-                              'An account already exists with the same email address'))
+                              'An account already exists with the same email address')) {
                             showDialog(
                               context: context,
                               builder: (context) => const AlertDialog(
@@ -101,6 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     'جرب تسجيل الدخول بفيسبوك'),
                               ),
                             );
+                          }
                         });
                         await User.loggedInStream.next;
                         await setupSettings();

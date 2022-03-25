@@ -31,7 +31,7 @@ import 'package:timeago/timeago.dart';
 
 import 'exceptions/unsupported_version_exception.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await initMeetingHelper();
@@ -155,6 +155,7 @@ class MeetingHelperApp extends StatefulWidget {
 
 class _MeetingHelperAppState extends State<MeetingHelperApp> {
   final AsyncMemoizer<void> _latestVersionChecker = AsyncMemoizer();
+  bool errorDialogShown = false;
 
   @override
   void initState() {
@@ -187,14 +188,12 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
     if (!kIsWeb &&
         GetIt.I<FirebaseRemoteConfig>().getString('LoadApp') == 'false') {
       throw UnsupportedVersionException(version: appVersion);
-    } else {
-      if (GetIt.I<MHAuthRepository>().isSignedIn &&
-          !User.instance.userDataUpToDate()) {
-        throw UpdateUserDataException(
-          lastTanawol: User.instance.lastTanawol,
-          lastConfession: User.instance.lastConfession,
-        );
-      }
+    } else if (GetIt.I<MHAuthRepository>().isSignedIn &&
+        !User.instance.userDataUpToDate()) {
+      throw UpdateUserDataException(
+        lastTanawol: User.instance.lastTanawol,
+        lastConfession: User.instance.lastConfession,
+      );
     }
   }
 
@@ -202,10 +201,11 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
     return FutureBuilder<void>(
       future: _latestVersionChecker.runOnce(() => checkLatestVersion(context)),
       builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done)
+        if (snapshot.connectionState != ConnectionState.done) {
           return const Loading(
             showVersionInfo: true,
           );
+        }
 
         return StreamBuilder<User?>(
           initialData: GetIt.I<MHAuthRepository>().currentUser,
@@ -213,28 +213,33 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
           builder: (context, userSnapshot) {
             final user = userSnapshot.data;
 
-            if (user?.password != null &&
-                snapshot.error is UpdateUserDataException) {
-              WidgetsBinding.instance!.addPostFrameCallback((_) {
-                showErrorUpdateDataDialog(context: context);
-              });
-            } else if (snapshot.error is UnsupportedVersionException) {
-              WidgetsBinding.instance!.addPostFrameCallback((_) {
-                Updates.showUpdateDialog(context, canCancel: false);
-              });
+            if (!errorDialogShown) {
+              if (user?.password != null &&
+                  snapshot.error is UpdateUserDataException) {
+                WidgetsBinding.instance!.addPostFrameCallback((_) async {
+                  await showErrorUpdateDataDialog(context: context);
+                  errorDialogShown = false;
+                });
+                errorDialogShown = true;
+              } else if (snapshot.error is UnsupportedVersionException) {
+                WidgetsBinding.instance!.addPostFrameCallback((_) async {
+                  await Updates.showUpdateDialog(context, canCancel: false);
+                  errorDialogShown = false;
+                });
+                errorDialogShown = true;
+              }
             }
 
-            if (user == null) {
+            if (snapshot.error is UnsupportedVersionException ||
+                (snapshot.hasError && user?.password != null)) {
+              return Loading(
+                exception: snapshot.error,
+                showVersionInfo: true,
+              );
+            } else if (user == null) {
               return const LoginScreen();
             } else if (user.permissions.approved && user.password != null) {
-              if (!snapshot.hasError) {
-                return const AuthScreen(nextWidget: Root());
-              } else {
-                return Loading(
-                  exception: snapshot.error,
-                  showVersionInfo: true,
-                );
-              }
+              return const AuthScreen(nextWidget: Root());
             } else {
               return const UserRegistration();
             }
@@ -265,13 +270,14 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
                 service:
                     ModalRoute.of(context)!.settings.arguments as Service?),
             'Data/EditPerson': (context) {
-              if (ModalRoute.of(context)?.settings.arguments == null)
+              if (ModalRoute.of(context)?.settings.arguments == null) {
                 return EditPerson(person: Person.empty());
-              else if (ModalRoute.of(context)!.settings.arguments is Person)
+              } else if (ModalRoute.of(context)!.settings.arguments is Person) {
                 return EditPerson(
                     person:
                         ModalRoute.of(context)!.settings.arguments! as Person);
-              else if (ModalRoute.of(context)!.settings.arguments is JsonRef) {
+              } else if (ModalRoute.of(context)!.settings.arguments
+                  is JsonRef) {
                 final parent =
                     ModalRoute.of(context)!.settings.arguments! as JsonRef;
                 final Person person = Person.empty();
@@ -295,24 +301,26 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
                       Invitation.empty(),
                 ),
             'Day': (context) {
-              if (ModalRoute.of(context)?.settings.arguments != null)
+              if (ModalRoute.of(context)?.settings.arguments != null) {
                 return Day(
                     record: ModalRoute.of(context)!.settings.arguments!
                         as HistoryDay);
-              else
+              } else {
                 return Day(
                   record: HistoryDay(),
                 );
+              }
             },
             'ServantsDay': (context) {
-              if (ModalRoute.of(context)?.settings.arguments != null)
+              if (ModalRoute.of(context)?.settings.arguments != null) {
                 return Day(
                     record: ModalRoute.of(context)!.settings.arguments!
                         as ServantsHistoryDay);
-              else
+              } else {
                 return Day(
                   record: ServantsHistoryDay(),
                 );
+              }
             },
             'Trash': (context) => const Trash(),
             'History': (context) => const History(iServantsHistory: false),
@@ -393,20 +401,21 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
                       as List<DataObject>?,
                 ),
             'Analytics': (context) {
-              if (ModalRoute.of(context)!.settings.arguments is Person)
+              if (ModalRoute.of(context)!.settings.arguments is Person) {
                 return PersonAnalyticsPage(
                     person:
                         ModalRoute.of(context)!.settings.arguments! as Person);
-              else if (ModalRoute.of(context)!.settings.arguments is DataObject)
+              } else if (ModalRoute.of(context)!.settings.arguments
+                  is DataObject) {
                 return AnalyticsPage(parents: [
                   ModalRoute.of(context)!.settings.arguments! as DataObject
                 ]);
-              else if (ModalRoute.of(context)!.settings.arguments
-                  is HistoryDayBase)
+              } else if (ModalRoute.of(context)!.settings.arguments
+                  is HistoryDayBase) {
                 return AnalyticsPage(
                     day: ModalRoute.of(context)!.settings.arguments!
                         as HistoryDayBase);
-              else {
+              } else {
                 final Json args =
                     ModalRoute.of(context)!.settings.arguments! as Json;
                 return AnalyticsPage(

@@ -46,7 +46,7 @@ class _EditPersonState extends State<EditPerson> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: NestedScrollView(
-        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
           return <Widget>[
             SliverAppBar(
               actions: <Widget>[
@@ -280,9 +280,10 @@ class _EditPersonState extends State<EditPerson> {
                               ),
                             ),
                           ) !=
-                          null)
+                          null) {
                         setState(() => person = person.copyWith
                             .phones({...person.phones, name.text: ''}));
+                      }
                     },
                   ),
                   TappableFormField<DateTime?>(
@@ -425,10 +426,11 @@ class _EditPersonState extends State<EditPerson> {
                                     ),
                               ),
                               builder: (context, servicesSnapshot) {
-                                if (!servicesSnapshot.hasData)
+                                if (!servicesSnapshot.hasData) {
                                   return const LinearProgressIndicator();
+                                }
 
-                                if (state.value!.length > 2)
+                                if (state.value!.length > 2) {
                                   return Text(
                                     servicesSnapshot.requireData
                                             .take(2)
@@ -437,6 +439,7 @@ class _EditPersonState extends State<EditPerson> {
                                         (state.value!.length - 2).toString() +
                                         ' أخرين',
                                   );
+                                }
 
                                 return Text(
                                     servicesSnapshot.requireData.join(' و'));
@@ -453,7 +456,7 @@ class _EditPersonState extends State<EditPerson> {
                               null;
                     }(),
                     builder: (context, showGender) {
-                      if (widget.person is User || (showGender.data ?? false))
+                      if (widget.person is User || (showGender.data ?? false)) {
                         return Container(
                           margin: const EdgeInsets.symmetric(vertical: 8),
                           child: FormField<bool>(
@@ -498,6 +501,7 @@ class _EditPersonState extends State<EditPerson> {
                                     : null,
                           ),
                         );
+                      }
                       return const SizedBox();
                     },
                   ),
@@ -614,10 +618,10 @@ class _EditPersonState extends State<EditPerson> {
                           'true';
                     }(),
                     builder: (context, data) {
-                      if (data.hasError)
+                      if (data.hasError) {
                         return ErrorWidget(data.error!);
-                      else if (data.hasData) {
-                        if (data.requireData)
+                      } else if (data.hasData) {
+                        if (data.requireData) {
                           return Container(
                             margin: const EdgeInsets.symmetric(vertical: 8),
                             child: Row(
@@ -680,7 +684,7 @@ class _EditPersonState extends State<EditPerson> {
                               ],
                             ),
                           );
-                        else
+                        } else {
                           return Container(
                             margin: const EdgeInsets.symmetric(vertical: 8),
                             child: Row(
@@ -744,6 +748,7 @@ class _EditPersonState extends State<EditPerson> {
                               ],
                             ),
                           );
+                        }
                       }
                       return const LinearProgressIndicator();
                     },
@@ -1060,7 +1065,7 @@ class _EditPersonState extends State<EditPerson> {
     );
   }
 
-  void _editLocation() async {
+  Future<void> _editLocation() async {
     final rslt = await navigator.currentState!.push(
       MaterialPageRoute(
         builder: (context) => LocationMapView(
@@ -1083,7 +1088,7 @@ class _EditPersonState extends State<EditPerson> {
     person = (widget.person ?? Person.empty()).copyWith();
   }
 
-  void _selectColor() async {
+  Future<void> _selectColor() async {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1112,7 +1117,7 @@ class _EditPersonState extends State<EditPerson> {
     _nextFocus();
   }
 
-  void _delete() async {
+  Future<void> _delete() async {
     if (await showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -1238,12 +1243,13 @@ class _EditPersonState extends State<EditPerson> {
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
         navigator.currentState!.pop(person.ref);
       } else {
-        if (person.classId != null || person.services.isNotEmpty)
+        if (person.classId != null || person.services.isNotEmpty) {
           scaffoldMessenger.currentState!.showSnackBar(
             const SnackBar(
               content: Text('يرجى التحقق من الييانات المدخلة'),
             ),
           );
+        }
         await showDialog(
           context: context,
           builder: (context) => const AlertDialog(
@@ -1268,7 +1274,7 @@ class _EditPersonState extends State<EditPerson> {
     }
   }
 
-  void _selectClass(FormFieldState<JsonRef?> state) async {
+  Future<void> _selectClass(FormFieldState<JsonRef?> state) async {
     final controller = ServicesListController<Class>(
       objectsPaginatableStream:
           PaginatableStream.loadAll(stream: MHDatabaseRepo.I.getAllClasses()),
@@ -1418,13 +1424,14 @@ class _EditPersonState extends State<EditPerson> {
       setState(() {});
       return;
     }
-    if (source as bool && !(await Permission.camera.request()).isGranted)
+    if (source as bool && !(await Permission.camera.request()).isGranted) {
       return;
+    }
 
     final selectedImage = await ImagePicker()
         .pickImage(source: source ? ImageSource.camera : ImageSource.gallery);
     if (selectedImage == null) return;
-    changedImage = (await ImageCropper.cropImage(
+    changedImage = (await ImageCropper().cropImage(
       sourcePath: selectedImage.path,
       cropStyle: CropStyle.circle,
       androidUiSettings: AndroidUiSettings(

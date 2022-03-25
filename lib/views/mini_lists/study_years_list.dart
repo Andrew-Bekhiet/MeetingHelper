@@ -8,8 +8,11 @@ class StudyYearsEditList extends StatefulWidget {
   final Stream<List<StudyYear>> list;
 
   final Function(StudyYear)? tap;
-  const StudyYearsEditList({Key? key, required this.list, this.tap})
-      : super(key: key);
+  const StudyYearsEditList({
+    required this.list,
+    Key? key,
+    this.tap,
+  }) : super(key: key);
 
   @override
   _StudyYearsEditListState createState() => _StudyYearsEditListState();

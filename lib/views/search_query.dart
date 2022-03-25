@@ -236,7 +236,7 @@ class _SearchQueryState extends State<SearchQuery> {
     );
   }
 
-  void execute() async {
+  Future<void> execute() async {
     QueryOfJson _mainQueryCompleter(QueryOfJson q, _, __) =>
         valueWidget[properties[collection]![fieldPath]!.type]!
             .completeQuery(q, queryValue);
@@ -399,20 +399,21 @@ class _SearchQueryState extends State<SearchQuery> {
           ],
         ),
         queryCompleter: (q, value) {
-          if (value == null)
+          if (value == null) {
             return q.where(
               fieldPath,
               isNull: operator == '=',
             );
-          else {
+          } else {
             final effectiveValue = fieldPath == 'BirthDay'
                 ? Timestamp.fromDate(DateTime(1970, value.month, value.day))
                 : Timestamp.fromDate(value);
 
-            if (operator == '>')
+            if (operator == '>') {
               return q.where(fieldPath, isGreaterThanOrEqualTo: effectiveValue);
-            else if (operator == '<')
+            } else if (operator == '<') {
               return q.where(fieldPath, isLessThanOrEqualTo: effectiveValue);
+            }
 
             return q
                 .where(
@@ -433,7 +434,7 @@ class _SearchQueryState extends State<SearchQuery> {
       ),
       String: PropertyQuery<String>(
         builder: (context) {
-          if (fieldPath == 'ShammasLevel')
+          if (fieldPath == 'ShammasLevel') {
             return DropdownButtonFormField<String>(
               key: const ValueKey('SelectShammasLevel'),
               value: [
@@ -476,6 +477,7 @@ class _SearchQueryState extends State<SearchQuery> {
                 labelText: 'رتبة الشموسية',
               ),
             );
+          }
 
           return Container(
             key: const ValueKey('EnterString'),
@@ -496,31 +498,32 @@ class _SearchQueryState extends State<SearchQuery> {
           );
         },
         queryCompleter: (q, value) {
-          if (value == null)
+          if (value == null) {
             return q.where(
               fieldPath.contains('.')
                   ? FieldPath.fromString(fieldPath)
                   : fieldPath,
               isNull: operator == '=',
             );
-          else if (operator == '>')
+          } else if (operator == '>') {
             return q.where(
                 fieldPath.contains('.')
                     ? FieldPath.fromString(fieldPath)
                     : fieldPath,
                 isGreaterThanOrEqualTo: value);
-          else if (operator == '<')
+          } else if (operator == '<') {
             return q.where(
                 fieldPath.contains('.')
                     ? FieldPath.fromString(fieldPath)
                     : fieldPath,
                 isLessThanOrEqualTo: value);
-          else if (operator == '!=')
+          } else if (operator == '!=') {
             return q.where(
                 fieldPath.contains('.')
                     ? FieldPath.fromString(fieldPath)
                     : fieldPath,
                 isNotEqualTo: value);
+          }
 
           return q.where(
               fieldPath.contains('.')
@@ -568,17 +571,18 @@ class _SearchQueryState extends State<SearchQuery> {
                 },
               ),
         queryCompleter: (q, value) {
-          if (value == null)
+          if (value == null) {
             return q.where(
               fieldPath,
               isNull: operator == '=',
             );
-          else if (operator == '>')
+          } else if (operator == '>') {
             return q.where(fieldPath, isGreaterThanOrEqualTo: value);
-          else if (operator == '<')
+          } else if (operator == '<') {
             return q.where(fieldPath, isLessThanOrEqualTo: value);
-          else if (operator == '!=')
+          } else if (operator == '!=') {
             return q.where(fieldPath, isNotEqualTo: value);
+          }
 
           return q.where(fieldPath, isEqualTo: value);
         },
@@ -627,17 +631,18 @@ class _SearchQueryState extends State<SearchQuery> {
           ),
         ),
         queryCompleter: (q, value) {
-          if (value == null)
+          if (value == null) {
             return q.where(
               fieldPath,
               isNull: operator == '=',
             );
-          else if (operator == '>')
+          } else if (operator == '>') {
             return q.where(fieldPath, isGreaterThanOrEqualTo: value);
-          else if (operator == '<')
+          } else if (operator == '<') {
             return q.where(fieldPath, isLessThanOrEqualTo: value);
-          else if (operator == '!=')
+          } else if (operator == '!=') {
             return q.where(fieldPath, isNotEqualTo: value);
+          }
 
           return q.where(fieldPath, isEqualTo: value);
         },
@@ -657,8 +662,9 @@ class _SearchQueryState extends State<SearchQuery> {
                         future: Future(() async =>
                             Class.fromDoc(await (queryValue as JsonRef).get())),
                         builder: (context, classData) {
-                          if (!classData.hasData)
+                          if (!classData.hasData) {
                             return const LinearProgressIndicator();
+                          }
 
                           return IgnorePointer(
                             ignoringSemantics: false,
@@ -684,8 +690,9 @@ class _SearchQueryState extends State<SearchQuery> {
                     ? FutureBuilder<User?>(
                         future: MHDatabaseRepo.instance.getUserName(queryValue),
                         builder: (context, userData) {
-                          if (!userData.hasData)
+                          if (!userData.hasData) {
                             return const LinearProgressIndicator();
+                          }
 
                           return IgnorePointer(
                             ignoringSemantics: false,
@@ -739,17 +746,18 @@ class _SearchQueryState extends State<SearchQuery> {
           );
         },
         queryCompleter: (q, value) {
-          if (value == null)
+          if (value == null) {
             return q.where(
               fieldPath,
               isNull: operator == '=',
             );
-          else if (operator == '>')
+          } else if (operator == '>') {
             return q.where(fieldPath, isGreaterThanOrEqualTo: value);
-          else if (operator == '<')
+          } else if (operator == '<') {
             return q.where(fieldPath, isLessThanOrEqualTo: value);
-          else if (operator == '!=')
+          } else if (operator == '!=') {
             return q.where(fieldPath, isNotEqualTo: value);
+          }
 
           return q.where(fieldPath, isEqualTo: value);
         },
@@ -769,8 +777,9 @@ class _SearchQueryState extends State<SearchQuery> {
                         future: Future(() async => Service.fromDoc(
                             await (queryValue as JsonRef).get())!),
                         builder: (context, serviceData) {
-                          if (!serviceData.hasData)
+                          if (!serviceData.hasData) {
                             return const LinearProgressIndicator();
+                          }
 
                           return IgnorePointer(
                             ignoringSemantics: false,
@@ -795,8 +804,9 @@ class _SearchQueryState extends State<SearchQuery> {
                     ? FutureBuilder<User?>(
                         future: MHDatabaseRepo.instance.getUserName(queryValue),
                         builder: (context, userData) {
-                          if (!userData.hasData)
+                          if (!userData.hasData) {
                             return const LinearProgressIndicator();
+                          }
 
                           return IgnorePointer(
                             ignoringSemantics: false,
@@ -813,17 +823,18 @@ class _SearchQueryState extends State<SearchQuery> {
           return Container();
         },
         queryCompleter: (q, value) {
-          if (value == null)
+          if (value == null) {
             return q.where(
               fieldPath,
               isNull: operator == '=',
             );
-          else if (operator == '>')
+          } else if (operator == '>') {
             return q.where(fieldPath, isGreaterThanOrEqualTo: value);
-          else if (operator == '<')
+          } else if (operator == '<') {
             return q.where(fieldPath, isLessThanOrEqualTo: value);
-          else if (operator == '!=')
+          } else if (operator == '!=') {
             return q.where(fieldPath, isNotEqualTo: value);
+          }
 
           return q.where(fieldPath, arrayContains: value);
         },
@@ -851,8 +862,9 @@ class _SearchQueryState extends State<SearchQuery> {
                                         .doc(fieldPath.split('.')[1])
                                         .get())!),
                                 builder: (context, serviceData) {
-                                  if (!serviceData.hasData)
+                                  if (!serviceData.hasData) {
                                     return const LinearProgressIndicator();
+                                  }
 
                                   return IgnorePointer(
                                     ignoringSemantics: false,
@@ -875,17 +887,18 @@ class _SearchQueryState extends State<SearchQuery> {
           return const SizedBox();
         },
         queryCompleter: (q, value) {
-          if (value == null)
+          if (value == null) {
             return q.where(
               fieldPath,
               isNull: operator == '=',
             );
-          else if (operator == '>')
+          } else if (operator == '>') {
             return q.where(fieldPath, isGreaterThanOrEqualTo: value);
-          else if (operator == '<')
+          } else if (operator == '<') {
             return q.where(fieldPath, isLessThanOrEqualTo: value);
-          else if (operator == '!=')
+          } else if (operator == '!=') {
             return q.where(fieldPath, isNotEqualTo: value);
+          }
 
           return q.where(fieldPath, isEqualTo: value);
         },
@@ -912,7 +925,7 @@ class _SearchQueryState extends State<SearchQuery> {
     }
   }
 
-  void _selectClass() async {
+  Future<void> _selectClass() async {
     final BehaviorSubject<OrderOptions> _orderOptions =
         BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
@@ -957,7 +970,7 @@ class _SearchQueryState extends State<SearchQuery> {
     await _orderOptions.close();
   }
 
-  void _selectService([bool forFieldPath = false]) async {
+  Future<void> _selectService([bool forFieldPath = false]) async {
     final BehaviorSubject<OrderOptions> _orderOptions =
         BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
@@ -985,14 +998,15 @@ class _SearchQueryState extends State<SearchQuery> {
                     onTap: (value) {
                       navigator.currentState!.pop();
                       setState(() {
-                        if (forFieldPath)
+                        if (forFieldPath) {
                           query = query.copyWith.fieldPath(
                               fieldPath.contains('.')
                                   ? fieldPath.replaceAll(
                                       RegExp(r'\.[^.]+$'), '.' + value.id)
                                   : fieldPath + '.' + value.id);
-                        else
+                        } else {
                           query = query.copyWith.queryValue(value.ref);
+                        }
                       });
                     },
                     options: _listOptions,
@@ -1009,7 +1023,7 @@ class _SearchQueryState extends State<SearchQuery> {
     await _orderOptions.close();
   }
 
-  void _selectUser([bool onlyUID = false]) async {
+  Future<void> _selectUser([bool onlyUID = false]) async {
     final BehaviorSubject<OrderOptions> _orderOptions =
         BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
@@ -1056,17 +1070,18 @@ class _SearchQueryState extends State<SearchQuery> {
     await _orderOptions.close();
   }
 
-  void _selectDate() async {
+  Future<void> _selectDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: queryValue is! DateTime ? DateTime.now() : queryValue,
       firstDate: DateTime(1500),
       lastDate: DateTime(2201),
     );
-    if (picked != null)
+    if (picked != null) {
       setState(() {
         query = query.copyWith.queryValue(picked);
       });
+    }
   }
 }
 

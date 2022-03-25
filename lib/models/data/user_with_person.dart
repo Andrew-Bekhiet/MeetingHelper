@@ -24,13 +24,13 @@ class UserWithPerson extends Person implements User {
   final List<JsonRef> adminServices;
 
   UserWithPerson({
+    required JsonRef ref,
     required this.uid,
-    this.email,
     required this.permissions,
-    this.password,
     required this.allowedUsers,
     required this.adminServices,
-    required JsonRef ref,
+    this.email,
+    this.password,
     JsonRef? classId,
     String name = '',
     String? phone,

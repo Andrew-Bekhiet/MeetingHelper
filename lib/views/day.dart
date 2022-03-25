@@ -14,7 +14,7 @@ import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 class Day extends StatefulWidget {
   final HistoryDayBase record;
 
-  const Day({Key? key, required this.record}) : super(key: key);
+  const Day({required this.record, Key? key}) : super(key: key);
 
   @override
   State<Day> createState() => _DayState();
@@ -44,11 +44,12 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
       stream: MHDatabaseRepo.I
           .getAllServices(onlyShownInHistory: true)
           .map((snapshot) {
-        if (snapshot.length + 3 != _previous?.length)
+        if (snapshot.length + 3 != _previous?.length) {
           _previous = TabController(
               length: snapshot.length + 3,
               vsync: this,
               initialIndex: _previous?.index ?? 0);
+        }
 
         return Tuple2(_previous!, snapshot);
       }),
@@ -515,8 +516,9 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
     );
 
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) async {
-      if (DateTime.now().difference(widget.record.day.toDate()).inDays != 0)
+      if (DateTime.now().difference(widget.record.day.toDate()).inDays != 0) {
         return;
+      }
       try {
         if (!(await widget.record.ref.get()).exists) {
           await widget.record.ref.set(widget.record.toJson());
@@ -560,7 +562,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
 
       if ((['Sorting', 'AnalyticsToday', 'LockUnchecks']
             ..removeWhere(HivePersistenceProvider.instance.hasCompletedStep))
-          .isNotEmpty)
+          .isNotEmpty) {
         TutorialCoachMark(
           context,
           focusAnimationDuration: const Duration(milliseconds: 200),
@@ -626,6 +628,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
             await HivePersistenceProvider.instance.completeStep(t.identify);
           },
         ).show();
+      }
     });
   }
 

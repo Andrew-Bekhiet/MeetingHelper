@@ -58,10 +58,11 @@ class _MHMapViewState extends State<MHMapView> {
       ),
       builder: (context, snapshot) {
         if (snapshot.hasError) return ErrorWidget(snapshot.error!);
-        if (!snapshot.hasData)
+        if (!snapshot.hasData) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
+        }
 
         final selected = snapshot.data!;
 
@@ -76,14 +77,16 @@ class _MHMapViewState extends State<MHMapView> {
                 onPressed: () async {
                   final rslt = await selectServices(selected);
 
-                  if (rslt?.isEmpty ?? false)
+                  if (rslt?.isEmpty ?? false) {
                     await showDialog(
                       context: context,
                       builder: (context) => const AlertDialog(
                         content: Text('برجاء اختيار فصل أو خدمة على الأقل'),
                       ),
                     );
-                  else if (rslt != null) selectedServices.add(rslt);
+                  } else if (rslt != null) {
+                    selectedServices.add(rslt);
+                  }
                 },
               )
             ],
@@ -129,15 +132,17 @@ class _MHMapViewState extends State<MHMapView> {
                 future:
                     Location.instance.requestPermission().then((perm) async {
                   if (perm == PermissionStatus.granted ||
-                      perm == PermissionStatus.grantedLimited)
+                      perm == PermissionStatus.grantedLimited) {
                     return Location.instance.getLocation();
+                  }
                   return null;
                 }),
                 builder: (context, locationData) {
-                  if (locationData.connectionState == ConnectionState.waiting)
+                  if (locationData.connectionState == ConnectionState.waiting) {
                     return const Center(
                       child: CircularProgressIndicator(),
                     );
+                  }
 
                   return GoogleMap(
                     myLocationEnabled: true,
@@ -189,7 +194,8 @@ class _MHMapViewState extends State<MHMapView> {
   void initState() {
     super.initState();
     WidgetsBinding.instance!.addPostFrameCallback((_) {
-      if (!HivePersistenceProvider.instance.hasCompletedStep('ShowHideClasses'))
+      if (!HivePersistenceProvider.instance
+          .hasCompletedStep('ShowHideClasses')) {
         TutorialCoachMark(
           context,
           focusAnimationDuration: const Duration(milliseconds: 200),
@@ -218,6 +224,7 @@ class _MHMapViewState extends State<MHMapView> {
             await HivePersistenceProvider.instance.completeStep(t.identify);
           },
         ).show();
+      }
     });
   }
 }

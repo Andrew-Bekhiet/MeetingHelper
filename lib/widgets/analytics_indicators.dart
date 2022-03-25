@@ -14,16 +14,16 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:tuple/tuple.dart';
 
 class AttendanceChart extends StatelessWidget {
-  AttendanceChart(
-      {Key? key,
-      this.classes,
-      this.studyYears,
-      required this.range,
-      this.days,
-      required this.collectionGroup,
-      this.isServant = false,
-      required this.title})
-      : assert(classes != null ||
+  AttendanceChart({
+    required this.range,
+    required this.collectionGroup,
+    required this.title,
+    Key? key,
+    this.classes,
+    this.studyYears,
+    this.days,
+    this.isServant = false,
+  })  : assert(classes != null ||
             (collectionGroup != 'Meeting' &&
                 collectionGroup != 'Kodas' &&
                 collectionGroup != 'Confession' &&
@@ -70,8 +70,9 @@ class AttendanceChart extends StatelessWidget {
     return Rx.combineLatestList<JsonQuery>(classes!.split(10).map((c) {
       var query =
           GetIt.I<DatabaseRepository>().collectionGroup(collectionGroup);
-      if (notService(collectionGroup))
+      if (notService(collectionGroup)) {
         query = query.where('ClassId', whereIn: c.map((e) => e.ref).toList());
+      }
       query = query
           .where('Time',
               isGreaterThanOrEqualTo: Timestamp.fromDate(range.start))
@@ -95,9 +96,10 @@ class AttendanceChart extends StatelessWidget {
       stream: _getStream(),
       builder: (context, history) {
         if (history.hasError) return ErrorWidget(history.error!);
-        if (!history.hasData)
+        if (!history.hasData) {
           return const Center(child: CircularProgressIndicator());
-        if (history.data!.isEmpty)
+        }
+        if (history.data!.isEmpty) {
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -110,6 +112,7 @@ class AttendanceChart extends StatelessWidget {
               const Center(child: Text('لا يوجد سجل')),
             ],
           );
+        }
 
         mergeSort(history.data!,
             compare: (dynamic o, dynamic n) => o.time.millisecondsSinceEpoch
@@ -193,13 +196,13 @@ class AttendanceChart extends StatelessWidget {
 
 class AttendancePercent extends StatelessWidget {
   const AttendancePercent({
+    required this.total,
+    required this.attends,
     Key? key,
     this.label,
     this.attendanceLabel,
     this.absenseLabel,
     this.totalLabel,
-    required this.total,
-    required this.attends,
   }) : super(key: key);
 
   final String? absenseLabel;
@@ -273,8 +276,8 @@ class AttendancePercent extends StatelessWidget {
 
 class ClassesAttendanceIndicator extends StatelessWidget {
   ClassesAttendanceIndicator({
-    Key? key,
     required this.collection,
+    Key? key,
     this.classes,
     this.isServant = false,
     this.studyYears,
@@ -311,8 +314,9 @@ class ClassesAttendanceIndicator extends StatelessWidget {
               .map((s) => s.docs.map(HistoryRecord.fromQueryDoc).toList()),
       builder: (context, snapshot) {
         if (snapshot.hasError) return ErrorWidget(snapshot.error!);
-        if (!snapshot.hasData)
+        if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
+        }
 
         return StreamBuilder<int>(
           stream: classes != null
@@ -353,11 +357,13 @@ class ClassesAttendanceIndicator extends StatelessWidget {
                       .map((s) => s.size),
           builder: (context, persons) {
             if (persons.hasError) return ErrorWidget(persons.error!);
-            if (!persons.hasData)
+            if (!persons.hasData) {
               return const Center(child: CircularProgressIndicator());
-            if (persons.data == 0)
+            }
+            if (persons.data == 0) {
               return const Center(
                   child: Text('لا يوجد مخدومين في الفصول المحددة'));
+            }
 
             final Map<JsonRef, DataObject> groupedClasses = {
               for (final c in classes ?? studyYears!) c.ref: c
@@ -428,11 +434,11 @@ class ClassesAttendanceIndicator extends StatelessWidget {
 
 class PersonAttendanceIndicator extends StatelessWidget {
   const PersonAttendanceIndicator({
-    Key? key,
     required this.id,
     required this.total,
     required this.range,
     required this.collectionGroup,
+    Key? key,
     this.label,
     this.attendanceLabel,
     this.absenseLabel,
@@ -520,8 +526,9 @@ class PersonAttendanceIndicator extends StatelessWidget {
       stream: _getHistoryForUser(),
       builder: (context, history) {
         if (history.hasError) return ErrorWidget(history.error!);
-        if (!history.hasData)
+        if (!history.hasData) {
           return const Center(child: CircularProgressIndicator());
+        }
 
         return AttendancePercent(
           label: label,
@@ -537,12 +544,12 @@ class PersonAttendanceIndicator extends StatelessWidget {
 
 class HistoryAnalysisWidget extends StatelessWidget {
   HistoryAnalysisWidget({
-    Key? key,
     required this.range,
     required this.parents,
     required this.classesByRef,
     required this.collectionGroup,
     required this.title,
+    Key? key,
     this.showUsers = true,
   }) : super(key: key);
 
@@ -566,9 +573,10 @@ class HistoryAnalysisWidget extends StatelessWidget {
           services: parents.whereType<Service>().toList()),
       builder: (context, daysData) {
         if (daysData.hasError) return ErrorWidget(daysData.error!);
-        if (!daysData.hasData)
+        if (!daysData.hasData) {
           return const Center(child: CircularProgressIndicator());
-        if (daysData.data!.isEmpty)
+        }
+        if (daysData.data!.isEmpty) {
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -581,6 +589,7 @@ class HistoryAnalysisWidget extends StatelessWidget {
               const Center(child: Text('لا يوجد سجل')),
             ],
           );
+        }
 
         final List<MinimalHistoryRecord> data =
             daysData.data!.map(MinimalHistoryRecord.fromQueryDoc).toList();
@@ -599,11 +608,13 @@ class HistoryAnalysisWidget extends StatelessWidget {
 
         final refsCount = <JsonRef, List<MinimalHistoryRecord>>{};
         for (final record in data) {
-          if (record.classId != null && parentsRefs.contains(record.classId))
+          if (record.classId != null && parentsRefs.contains(record.classId)) {
             (refsCount[record.classId!] ??= []).add(record);
+          }
           if (record.services != null) {
-            for (final s in record.services!)
+            for (final s in record.services!) {
               if (parentsRefs.contains(s)) (refsCount[s] ??= []).add(record);
+            }
           }
         }
 
@@ -648,8 +659,9 @@ class HistoryAnalysisWidget extends StatelessWidget {
                 future: MHDatabaseRepo.instance.getAllUsersNames().first,
                 builder: (context, usersData) {
                   if (usersData.hasError) return ErrorWidget(usersData.error!);
-                  if (!usersData.hasData)
+                  if (!usersData.hasData) {
                     return const Center(child: CircularProgressIndicator());
+                  }
                   final usersByID = {for (var u in usersData.data!) u.id: u};
                   final pieData =
                       groupBy<MinimalHistoryRecord, String?>(data, (s) => s.by)
@@ -679,14 +691,14 @@ class HistoryAnalysisWidget extends StatelessWidget {
 }
 
 class CartesianChart<T> extends StatelessWidget {
-  const CartesianChart(
-      {Key? key,
-      this.parents,
-      required this.range,
-      this.showMax = false,
-      required this.data,
-      required this.title})
-      : assert(parents != null || !showMax),
+  const CartesianChart({
+    required this.range,
+    required this.data,
+    required this.title,
+    Key? key,
+    this.parents,
+    this.showMax = false,
+  })  : assert(parents != null || !showMax),
         super(key: key);
 
   final List<JsonRef>? parents;
@@ -731,7 +743,7 @@ class CartesianChart<T> extends StatelessWidget {
               ]).map((p) => p.expand((o) => o).toList())
             : Stream.value(null),
         builder: (context, persons) {
-          if (data.isEmpty)
+          if (data.isEmpty) {
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -744,10 +756,12 @@ class CartesianChart<T> extends StatelessWidget {
                 const Center(child: Text('لا يوجد سجل')),
               ],
             );
+          }
 
           if (persons.hasError) return ErrorWidget(persons.error!);
-          if (!persons.hasData && showMax)
+          if (!persons.hasData && showMax) {
             return const Center(child: CircularProgressIndicator.adaptive());
+          }
 
           return Column(
             mainAxisSize: MainAxisSize.min,
@@ -841,9 +855,9 @@ class CartesianChart<T> extends StatelessWidget {
 
 class PieChart<T> extends StatelessWidget {
   const PieChart({
-    Key? key,
     required this.total,
     required this.pieData,
+    Key? key,
     this.nameGetter,
     this.pointColorMapper,
   })  : assert(nameGetter != null || T == String || null is T),

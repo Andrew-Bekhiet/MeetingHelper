@@ -4,6 +4,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/models.dart';
+import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -15,20 +16,21 @@ class MHAuthRepository extends AuthRepository<User, Person> {
   bool connectionChanged(DatabaseEvent snapshot) {
     final bool connected = super.connectionChanged(snapshot);
 
-    if (connected && (mainScfld.currentState?.mounted ?? false))
+    if (connected && (mainScfld.currentState?.mounted ?? false)) {
       scaffoldMessenger.currentState!.showSnackBar(
         const SnackBar(
           backgroundColor: Colors.greenAccent,
           content: Text('تم استرجاع الاتصال بالانترنت'),
         ),
       );
-    else if (mainScfld.currentState?.mounted ?? false)
+    } else if (mainScfld.currentState?.mounted ?? false) {
       scaffoldMessenger.currentState!.showSnackBar(
         const SnackBar(
           backgroundColor: Colors.redAccent,
           content: Text('لا يوجد اتصال بالانترنت!'),
         ),
       );
+    }
     return connected;
   }
 
@@ -50,7 +52,7 @@ class MHAuthRepository extends AuthRepository<User, Person> {
 
     if (idTokenClaims['personId'] != currentUserData?.ref.id) {
       personListener?.cancel();
-      personListener = GetIt.I<DatabaseRepository>()
+      personListener = MHDatabaseRepo.I
           .collection('UsersData')
           .doc(idTokenClaims['personId'])
           .snapshots()
@@ -101,7 +103,7 @@ class MHAuthRepository extends AuthRepository<User, Person> {
 
     return User(
       ref: currentUser?.ref ??
-          GetIt.I<DatabaseRepository>()
+          MHDatabaseRepo.I
               .collection('UsersData')
               .doc(idTokenClaims['personId'] ?? 'null'),
       uid: firebaseUser?.uid ?? uid!,

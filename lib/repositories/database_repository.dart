@@ -13,43 +13,49 @@ class MHDatabaseRepo extends DatabaseRepository {
   @override
   Future<Viewable?> getObjectFromLink(Uri deepLink) async {
     if (deepLink.pathSegments[0] == 'PersonInfo') {
-      if (deepLink.queryParameters['Id'] == '')
+      if (deepLink.queryParameters['Id'] == '') {
         throw Exception('Id has an empty value which is not allowed');
+      }
 
       return getPerson(
         deepLink.queryParameters['Id']!,
       );
     } else if (deepLink.pathSegments[0] == 'UserInfo') {
-      if (deepLink.queryParameters['UID'] == '')
+      if (deepLink.queryParameters['UID'] == '') {
         throw Exception('UID has an empty value which is not allowed');
+      }
 
       return getUserData(
         deepLink.queryParameters['UID']!,
       );
     } else if (deepLink.pathSegments[0] == 'ClassInfo') {
-      if (deepLink.queryParameters['Id'] == '')
+      if (deepLink.queryParameters['Id'] == '') {
         throw Exception('Id has an empty value which is not allowed');
+      }
 
       return getClass(
         deepLink.queryParameters['Id']!,
       );
     } else if (deepLink.pathSegments[0] == 'ServiceInfo') {
-      if (deepLink.queryParameters['Id'] == '')
+      if (deepLink.queryParameters['Id'] == '') {
         throw Exception('Id has an empty value which is not allowed');
+      }
 
       return getService(
         deepLink.queryParameters['Id']!,
       );
     } else if (deepLink.pathSegments[0] == 'Day') {
-      if (deepLink.queryParameters['Id'] == '')
+      if (deepLink.queryParameters['Id'] == '') {
         throw Exception('Id has an empty value which is not allowed');
+      }
 
       return getDay(
         deepLink.queryParameters['Id']!,
       );
     } else if (deepLink.pathSegments[0] == 'ServantsDay') {
-      if (deepLink.queryParameters['Id'] == '')
+      if (deepLink.queryParameters['Id'] == '') {
         throw Exception('Id has an empty value which is not allowed');
+      }
 
       return getServantsDay(
         deepLink.queryParameters['Id']!,
@@ -118,7 +124,7 @@ class MHDatabaseRepo extends DatabaseRepository {
     bool onlyShownInHistory = false,
     QueryCompleter queryCompleter = kDefaultQueryCompleter,
   }) {
-    if (onlyShownInHistory)
+    if (onlyShownInHistory) {
       return getAllServices(
         orderBy: orderBy,
         descending: descending,
@@ -135,6 +141,7 @@ class MHDatabaseRepo extends DatabaseRepository {
             )
             .toList(),
       );
+    }
 
     return User.loggedInStream.switchMap(
       (u) {
@@ -245,18 +252,24 @@ class MHDatabaseRepo extends DatabaseRepository {
           (a, b) => {...a, ...b}.sortedByCompare(
             (p) => p.toJson()[orderBy],
             (o, n) {
-              if (o is String && n is String)
+              if (o is String && n is String) {
                 return descending ? -o.compareTo(n) : o.compareTo(n);
-              if (o is int && n is int)
+              }
+              if (o is int && n is int) {
                 return descending ? -o.compareTo(n) : o.compareTo(n);
-              if (o is Timestamp && n is Timestamp)
+              }
+              if (o is Timestamp && n is Timestamp) {
                 return descending ? -o.compareTo(n) : o.compareTo(n);
-              if (o is Timestamp && n is Timestamp)
+              }
+              if (o is Timestamp && n is Timestamp) {
                 return descending ? -o.compareTo(n) : o.compareTo(n);
-              if (o is DateTime && n is DateTime)
+              }
+              if (o is DateTime && n is DateTime) {
                 return descending ? -o.compareTo(n) : o.compareTo(n);
-              if (o is DateTime && n is DateTime)
+              }
+              if (o is DateTime && n is DateTime) {
                 return descending ? -o.compareTo(n) : o.compareTo(n);
+              }
               return 0;
             },
           ),
@@ -268,12 +281,13 @@ class MHDatabaseRepo extends DatabaseRepository {
   Future<User?> getUserName(String uid) async {
     final document = await collection('Users').doc(uid).get();
 
-    if (document.exists)
+    if (document.exists) {
       return User(
         ref: document.reference,
         uid: uid,
         name: document.data()?['Name'],
       );
+    }
 
     return null;
   }
@@ -308,13 +322,14 @@ class MHDatabaseRepo extends DatabaseRepository {
       (u) {
         if (!u.permissions.manageUsers &&
             !u.permissions.manageAllowedUsers &&
-            !u.permissions.secretary)
+            !u.permissions.secretary) {
           return queryCompleter(collection('Users'), 'Name', false)
               .snapshots()
               .map((p) => p.docs
                   .map((d) =>
                       User(ref: d.reference, uid: d.id, name: d.data()['Name']))
                   .toList());
+        }
         if (u.permissions.manageUsers || u.permissions.secretary) {
           return queryCompleter(collection('UsersData'), 'Name', false)
               .snapshots()
@@ -339,8 +354,9 @@ class MHDatabaseRepo extends DatabaseRepository {
       (u) {
         if (!u.permissions.manageUsers &&
             !u.permissions.manageAllowedUsers &&
-            !u.permissions.secretary)
+            !u.permissions.secretary) {
           throw UnsupportedError('Insuffecient Permissions');
+        }
 
         if (u.permissions.manageUsers || u.permissions.secretary) {
           return queryCompleter(collection('UsersData'), 'Name', false)
@@ -499,42 +515,47 @@ class MHDatabaseRepo extends DatabaseRepository {
                 (studyYears[c2.studyYearRange?.to]?.grade ?? 0));
       } else if (c is Class &&
           c2 is Service &&
-          c2.studyYearRange?.from != c2.studyYearRange?.to)
+          c2.studyYearRange?.from != c2.studyYearRange?.to) {
         return -1;
-      else if (c2 is Class &&
+      } else if (c2 is Class &&
           c is Service &&
-          c.studyYearRange?.from != c.studyYearRange?.to) return 1;
+          c.studyYearRange?.from != c.studyYearRange?.to) {
+        return 1;
+      }
       return 0;
     });
 
     double? _getPreferredGrade(int? from, int? to) {
       if (from == null || to == null) return null;
 
-      if (from >= -3 && to <= 0)
+      if (from >= -3 && to <= 0) {
         return 0.1;
-      else if (from >= 1 && to <= 6)
+      } else if (from >= 1 && to <= 6) {
         return 1.1;
-      else if (from >= 7 && to <= 9)
+      } else if (from >= 7 && to <= 9) {
         return 2.1;
-      else if (from >= 10 && to <= 12)
+      } else if (from >= 10 && to <= 12) {
         return 3.1;
-      else if (from >= 13 && to <= 18) return 4.1;
+      } else if (from >= 13 && to <= 18) {
+        return 4.1;
+      }
       return null;
     }
 
     return groupBy<T, PreferredStudyYear?>(
       combined,
       (c) {
-        if (c is Class)
+        if (c is Class) {
           return studyYears[c.studyYear] != null
               ? PreferredStudyYear.fromStudyYear(studyYears[c.studyYear]!)
               : null;
-        else if (c is Service && c.studyYearRange?.from == c.studyYearRange?.to)
+        } else if (c is Service &&
+            c.studyYearRange?.from == c.studyYearRange?.to) {
           return studyYears[c.studyYearRange?.from] != null
               ? PreferredStudyYear.fromStudyYear(
                   studyYears[c.studyYearRange?.from]!)
               : null;
-        else if (c is Service)
+        } else if (c is Service) {
           return studyYears[c.studyYearRange?.to] != null
               ? PreferredStudyYear.fromStudyYear(
                   studyYears[c.studyYearRange?.to]!,
@@ -542,6 +563,7 @@ class MHDatabaseRepo extends DatabaseRepository {
                       studyYears[c.studyYearRange?.to]!.grade),
                 )
               : null;
+        }
 
         return null;
       },
@@ -592,14 +614,17 @@ class MHDatabaseRepo extends DatabaseRepository {
         ).entries.toList();
 
         mergeSort<MapEntry<Class?, List<User>>>(rslt, compare: (c, c2) {
-          if (c.key == null || c.key!.name == '{لا يمكن قراءة اسم الفصل}')
+          if (c.key == null || c.key!.name == '{لا يمكن قراءة اسم الفصل}') {
             return 1;
+          }
 
-          if (c2.key == null || c2.key!.name == '{لا يمكن قراءة اسم الفصل}')
+          if (c2.key == null || c2.key!.name == '{لا يمكن قراءة اسم الفصل}') {
             return -1;
+          }
 
-          if (studyYears[c.key!.studyYear!] == studyYears[c2.key!.studyYear!])
+          if (studyYears[c.key!.studyYear!] == studyYears[c2.key!.studyYear!]) {
             return c.key!.gender.compareTo(c2.key!.gender);
+          }
 
           return studyYears[c.key!.studyYear]!
               .grade

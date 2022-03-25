@@ -12,10 +12,10 @@ class LocationMapView extends StatefulWidget {
   final Person person;
 
   const LocationMapView({
+    required this.person,
     Key? key,
     this.editable = false,
     this.initialPosition,
-    required this.person,
   }) : super(key: key);
 
   @override
@@ -55,16 +55,18 @@ class _LocationMapViewState extends State<LocationMapView> {
         future: location == null && widget.initialPosition == null
             ? Location.instance.requestPermission().then((perm) async {
                 if (perm == PermissionStatus.granted ||
-                    perm == PermissionStatus.grantedLimited)
+                    perm == PermissionStatus.grantedLimited) {
                   return Location.instance.getLocation();
+                }
                 return null;
               })
             : Future.value(null),
         builder: (context, locationData) {
-          if (locationData.connectionState == ConnectionState.waiting)
+          if (locationData.connectionState == ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(),
             );
+          }
 
           return GoogleMap(
             myLocationEnabled: true,

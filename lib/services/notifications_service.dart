@@ -35,7 +35,7 @@ class MHNotificationsService extends NotificationsService {
     });
   }
 
-  void onForegroundMessage(RemoteMessage message) async {
+  Future<void> onForegroundMessage(RemoteMessage message) async {
     await NotificationsService.storeNotification(message);
 
     scaffoldMessenger.currentState!.showSnackBar(
@@ -240,7 +240,7 @@ class MHNotificationsService extends NotificationsService {
     }
   }
 
-  static void showKodasNotification() async {
+  static Future<void> showKodasNotification() async {
     await initMeetingHelper();
 
     if (MHAuthRepository.I.currentUser == null) return;
@@ -302,7 +302,7 @@ class MHNotificationsService extends NotificationsService {
     }
   }
 
-  static void showMeetingNotification() async {
+  static Future<void> showMeetingNotification() async {
     await initMeetingHelper();
 
     if (MHAuthRepository.I.currentUser == null) return;
@@ -364,7 +364,7 @@ class MHNotificationsService extends NotificationsService {
     }
   }
 
-  static void showTanawolNotification() async {
+  static Future<void> showTanawolNotification() async {
     await initMeetingHelper();
 
     if (MHAuthRepository.I.currentUser == null) return;
@@ -426,7 +426,7 @@ class MHNotificationsService extends NotificationsService {
     }
   }
 
-  static void showVisitNotification() async {
+  static Future<void> showVisitNotification() async {
     await initMeetingHelper();
 
     if (MHAuthRepository.I.currentUser == null) return;
@@ -488,7 +488,7 @@ class MHNotificationsService extends NotificationsService {
     }
   }
 
-  static void showConfessionNotification() async {
+  static Future<void> showConfessionNotification() async {
     await initMeetingHelper();
 
     if (MHAuthRepository.I.currentUser == null) return;
@@ -550,7 +550,7 @@ class MHNotificationsService extends NotificationsService {
     }
   }
 
-  static void showBirthDayNotification() async {
+  static Future<void> showBirthDayNotification() async {
     await initMeetingHelper();
 
     if (MHAuthRepository.I.currentUser == null) return;

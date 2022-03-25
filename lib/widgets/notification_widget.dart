@@ -22,8 +22,9 @@ class NotificationWidget extends StatelessWidget {
             )
           : null,
       builder: (context, snapshot) {
-        if (snapshot.hasError)
+        if (snapshot.hasError) {
           return Center(child: ErrorWidget(snapshot.error!));
+        }
         return Card(
           child: ListTile(
             leading: snapshot.hasData

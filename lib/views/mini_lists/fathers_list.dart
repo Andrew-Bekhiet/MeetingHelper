@@ -8,8 +8,11 @@ class FathersEditList extends StatefulWidget {
   final Stream<List<Father>> list;
 
   final Function(Father)? tap;
-  const FathersEditList({Key? key, required this.list, this.tap})
-      : super(key: key);
+  const FathersEditList({
+    required this.list,
+    Key? key,
+    this.tap,
+  }) : super(key: key);
 
   @override
   _FathersEditListState createState() => _FathersEditListState();

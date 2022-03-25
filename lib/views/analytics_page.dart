@@ -37,9 +37,11 @@ class AnalyticsPage extends StatefulWidget {
 }
 
 class PersonAnalyticsPage extends StatefulWidget {
-  const PersonAnalyticsPage(
-      {Key? key, required this.person, this.colection = 'History'})
-      : super(key: key);
+  const PersonAnalyticsPage({
+    required this.person,
+    Key? key,
+    this.colection = 'History',
+  }) : super(key: key);
 
   final String colection;
   final Person person;
@@ -72,7 +74,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
   Future<void> _setRangeStart() async {
     if (minAvaliableSet) return;
 
-    if (User.instance.permissions.superAccess)
+    if (User.instance.permissions.superAccess) {
       minAvaliable = ((await GetIt.I<DatabaseRepository>()
                       .collectionGroup('EditHistory')
                       .orderBy('Time')
@@ -83,7 +85,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                   ?.data()['Time'] as Timestamp?)
               ?.toDate() ??
           minAvaliable;
-    else {
+    } else {
       final allowed = await MHDatabaseRepo.I.getAllClasses().first;
       if (allowed.isEmpty) return;
 
@@ -150,8 +152,9 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                 ),
                 builder: (context, snapshot) {
                   if (snapshot.hasError) return ErrorWidget(snapshot.error!);
-                  if (!snapshot.hasData)
+                  if (!snapshot.hasData) {
                     return const Center(child: CircularProgressIndicator());
+                  }
 
                   parents ??= snapshot.data;
                   final classesByRef = {for (final a in parents!) a.ref: a};
@@ -215,9 +218,9 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                             tooltip: 'اختيار الفصول',
                             onPressed: () async {
                               final rslt = await selectServices(parents);
-                              if (rslt != null && rslt.isNotEmpty)
+                              if (rslt != null && rslt.isNotEmpty) {
                                 setState(() => parents = rslt);
-                              else if (rslt != null)
+                              } else if (rslt != null) {
                                 await showDialog(
                                   context: context,
                                   builder: (context) => const AlertDialog(
@@ -225,6 +228,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                                         Text('برجاء اختيار فصل واحد على الأقل'),
                                   ),
                                 );
+                              }
                             },
                           ),
                         ),
@@ -318,8 +322,9 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
             };
           }),
           builder: (context, servicesSnapshot) {
-            if (servicesSnapshot.connectionState != ConnectionState.done)
+            if (servicesSnapshot.connectionState != ConnectionState.done) {
               return const Center(child: CircularProgressIndicator());
+            }
 
             return StreamBuilder<JsonQuery>(
               stream: GetIt.I<DatabaseRepository>()
@@ -335,11 +340,13 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
                   .snapshots(),
               builder: (context, data) {
                 if (data.hasError) return ErrorWidget(data.error!);
-                if (!data.hasData)
+                if (!data.hasData) {
                   return const Center(child: CircularProgressIndicator());
+                }
 
-                if (data.data!.docs.isEmpty)
+                if (data.data!.docs.isEmpty) {
                   return const Center(child: Text('لا يوجد سجل'));
+                }
 
                 return SingleChildScrollView(
                   child: Column(
@@ -576,8 +583,9 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                 ),
                 builder: (context, snapshot) {
                   if (snapshot.hasError) return ErrorWidget(snapshot.error!);
-                  if (!snapshot.hasData)
+                  if (!snapshot.hasData) {
                     return const Center(child: CircularProgressIndicator());
+                  }
                   parents ??= snapshot.data;
 
                   return StreamBuilder<List<HistoryDayBase>>(
@@ -609,8 +617,9 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                         .map((s) =>
                             s.docs.map(HistoryDay.fromQueryDoc).toList()),
                     builder: (context, daysData) {
-                      if (daysData.hasError)
+                      if (daysData.hasError) {
                         return ErrorWidget(daysData.error!);
+                      }
                       if (!daysData.hasData || _sourceChanged) {
                         _sourceChanged = false;
                         return const Center(child: CircularProgressIndicator());
@@ -665,7 +674,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                   if (rslt != null && rslt.isNotEmpty) {
                                     _sourceChanged = true;
                                     setState(() => parents = rslt);
-                                  } else if (rslt != null)
+                                  } else if (rslt != null) {
                                     await showDialog(
                                       context: context,
                                       builder: (context) => const AlertDialog(
@@ -673,6 +682,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                             Text('برجاء اختيار فصل على الأقل'),
                                       ),
                                     );
+                                  }
                                 },
                               ),
                             ),
@@ -818,7 +828,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   }
 }
 
-void takeScreenshot(GlobalKey key) async {
+Future<void> takeScreenshot(GlobalKey key) async {
   final RenderRepaintBoundary? boundary =
       key.currentContext!.findRenderObject() as RenderRepaintBoundary?;
   WidgetsBinding.instance!.addPostFrameCallback(

@@ -16,7 +16,10 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 class EditInvitation extends StatefulWidget {
   final Invitation invitation;
 
-  const EditInvitation({Key? key, required this.invitation}) : super(key: key);
+  const EditInvitation({
+    required this.invitation,
+    Key? key,
+  }) : super(key: key);
   @override
   _EditInvitationState createState() => _EditInvitationState();
 }
@@ -32,7 +35,7 @@ class _EditInvitationState extends State<EditInvitation> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: NestedScrollView(
-        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
           return <Widget>[
             SliverAppBar(
               expandedHeight: 250.0,
@@ -400,7 +403,7 @@ class _EditInvitationState extends State<EditInvitation> {
     );
   }
 
-  void deleteInvitation() async {
+  Future<void> deleteInvitation() async {
     if (await showDialog(
           context: context,
           builder: (innerContext) => AlertDialog(
@@ -547,8 +550,9 @@ class _EditInvitationState extends State<EditInvitation> {
     if (picked != null && picked != initialDate) {
       final time = await showTimePicker(
           context: context, initialTime: TimeOfDay.fromDateTime(initialDate));
-      if (time != null)
+      if (time != null) {
         picked = picked.add(Duration(hours: time.hour, minutes: time.minute));
+      }
       setState(() {});
       FocusScope.of(context).nextFocus();
       return picked;
@@ -556,7 +560,7 @@ class _EditInvitationState extends State<EditInvitation> {
     return null;
   }
 
-  void _selectPerson() async {
+  Future<void> _selectPerson() async {
     final controller = ListController<Class?, User>(
       objectsPaginatableStream: PaginatableStream.loadAll(
         stream: MHDatabaseRepo.instance.getAllUsers().map(
@@ -588,8 +592,9 @@ class _EditInvitationState extends State<EditInvitation> {
                     onTap: (person) {
                       navigator.currentState!.pop();
 
-                      if (invitation.permissions == null)
+                      if (invitation.permissions == null) {
                         invitation = invitation.copyWith.permissions({});
+                      }
 
                       invitation = invitation.copyWith.permissions(
                         {

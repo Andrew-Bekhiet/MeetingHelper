@@ -57,12 +57,13 @@ class Loading extends StatelessWidget {
                       label: const Text('اضغط لمزيد من المعلومات'),
                       icon: const Icon(Icons.error),
                       onPressed: () {
-                        if (exception is UpdateUserDataException)
+                        if (exception is UpdateUserDataException) {
                           showErrorUpdateDataDialog(context: context);
-                        else if (exception is UnsupportedVersionException)
+                        } else if (exception is UnsupportedVersionException) {
                           Updates.showUpdateDialog(context, canCancel: false);
-                        else
+                        } else {
                           showErrorDialog(context, exception.toString());
+                        }
                       },
                     )
                   else

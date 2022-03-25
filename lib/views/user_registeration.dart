@@ -46,11 +46,11 @@ class _UserRegistrationState extends State<UserRegistration> {
 
         if (user.permissions.approved) {
           lastTanawol ??= user.lastTanawol?.millisecondsSinceEpoch;
-          lastConfession ??=
-              user.lastConfession?.millisecondsSinceEpoch;
-          if (_userName.text.isEmpty)
+          lastConfession ??= user.lastConfession?.millisecondsSinceEpoch;
+          if (_userName.text.isEmpty) {
             WidgetsBinding.instance!
                 .addPostFrameCallback((_) => _userName.text = user.name);
+          }
           return Scaffold(
             resizeToAvoidBottomInset: !kIsWeb,
             appBar: AppBar(
@@ -316,7 +316,7 @@ class _UserRegistrationState extends State<UserRegistration> {
     );
   }
 
-  void _registerUser(String registerationLink) async {
+  Future<void> _registerUser(String registerationLink) async {
     // ignore: unawaited_futures
     showDialog(
       barrierDismissible: false,
@@ -362,7 +362,7 @@ class _UserRegistrationState extends State<UserRegistration> {
     return initialDate;
   }
 
-  void _submit(String password, String _userName) async {
+  Future<void> _submit(String password, String _userName) async {
     if (!_formKey.currentState!.validate()) return;
     // ignore: unawaited_futures
     scaffoldMessenger.currentState!.showSnackBar(

@@ -69,7 +69,7 @@ bool notService(String subcollection) =>
     subcollection == 'Kodas' ||
     subcollection == 'Confession';
 
-void import(BuildContext context) async {
+Future<void> import(BuildContext context) async {
   try {
     final picked = await FilePicker.platform.pickFiles(
         allowedExtensions: ['xlsx'], withData: true, type: FileType.custom);
@@ -172,7 +172,7 @@ Future<void> showErrorDialog(BuildContext context, String? message,
   return showDialog(
     context: context,
     barrierDismissible: false, // user must tap button!
-    builder: (BuildContext context) => AlertDialog(
+    builder: (context) => AlertDialog(
       title: title != null ? Text(title) : null,
       content: Text(message!),
       actions: <Widget>[
@@ -217,10 +217,13 @@ Future<void> showErrorUpdateDataDialog(
                               5184000000) >
                           DateTime.now().millisecondsSinceEpoch)) {
                 navigator.currentState!.pop();
-                if (pushApp)
-                  // ignore: unawaited_futures
-                  navigator.currentState!.pushReplacement(MaterialPageRoute(
-                      builder: (context) => const MeetingHelperApp()));
+                if (pushApp) {
+                  unawaited(navigator.currentState!.pushReplacement(
+                    MaterialPageRoute(
+                      builder: (context) => const MeetingHelperApp(),
+                    ),
+                  ));
+                }
               }
             },
             icon: const Icon(Icons.update),

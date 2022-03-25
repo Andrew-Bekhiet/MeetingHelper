@@ -10,7 +10,7 @@ class MHViewableObjectTapHandler extends DefaultViewableObjectTapHandler {
   ScaffoldMessengerState get scaffoldMessenger =>
       ScaffoldMessenger.of(navigatorKey.currentContext!);
 
-  void historyTap(HistoryDayBase? history) async {
+  Future<void> historyTap(HistoryDayBase? history) async {
     if (history is! ServantsHistoryDay) {
       await navigator.pushNamed('Day', arguments: history);
     } else {
@@ -30,7 +30,7 @@ class MHViewableObjectTapHandler extends DefaultViewableObjectTapHandler {
     navigator.pushNamed('PersonInfo', arguments: person);
   }
 
-  void userTap(UserWithPerson user) async {
+  Future<void> userTap(UserWithPerson user) async {
     if (user.permissions.approved) {
       await navigator.pushNamed('UserInfo', arguments: user);
     } else {
@@ -88,7 +88,7 @@ class MHViewableObjectTapHandler extends DefaultViewableObjectTapHandler {
           final approvedUser = user.copyWith
               .permissions(user.permissions.copyWith(approved: true));
 
-          userTap(approvedUser);
+          await userTap(approvedUser);
 
           scaffoldMessenger
             ..hideCurrentSnackBar()
@@ -138,19 +138,20 @@ class MHViewableObjectTapHandler extends DefaultViewableObjectTapHandler {
 
   @override
   void onTap(Viewable object) {
-    if (object is Class)
+    if (object is Class) {
       classTap(object);
-    else if (object is Service)
+    } else if (object is Service) {
       serviceTap(object);
-    else if (object is Person)
+    } else if (object is Person) {
       personTap(object);
-    else if (object is UserWithPerson)
+    } else if (object is UserWithPerson) {
       userTap(object);
-    else if (object is HistoryDayBase)
+    } else if (object is HistoryDayBase) {
       historyTap(object);
-    else if (object is QueryInfo)
+    } else if (object is QueryInfo) {
       navigator.pushNamed('SearchQuery', arguments: object);
-    else
+    } else {
       throw UnimplementedError();
+    }
   }
 }

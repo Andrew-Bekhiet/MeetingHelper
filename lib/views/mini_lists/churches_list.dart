@@ -8,8 +8,11 @@ class ChurchesEditList extends StatefulWidget {
   final Stream<List<Church>> list;
 
   final Function(Church)? tap;
-  const ChurchesEditList({Key? key, required this.list, this.tap})
-      : super(key: key);
+  const ChurchesEditList({
+    required this.list,
+    Key? key,
+    this.tap,
+  }) : super(key: key);
 
   @override
   _ChurchesEditListState createState() => _ChurchesEditListState();

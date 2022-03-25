@@ -22,7 +22,7 @@ import 'package:tinycolor2/tinycolor2.dart';
 class EditClass extends StatefulWidget {
   final Class? class$;
 
-  const EditClass({Key? key, required this.class$}) : super(key: key);
+  const EditClass({required this.class$, Key? key}) : super(key: key);
   @override
   _EditClassState createState() => _EditClassState();
 }
@@ -38,7 +38,7 @@ class _EditClassState extends State<EditClass> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: NestedScrollView(
-        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
           return <Widget>[
             SliverAppBar(
               actions: <Widget>[
@@ -270,15 +270,16 @@ class _EditClassState extends State<EditClass> {
       setState(() {});
       return;
     }
-    if (source as bool && !(await Permission.camera.request()).isGranted)
+    if (source as bool && !(await Permission.camera.request()).isGranted) {
       return;
+    }
 
     final selectedImage = await ImagePicker()
         .pickImage(source: source ? ImageSource.camera : ImageSource.gallery);
     if (selectedImage == null) return;
     changedImage = kIsWeb
         ? selectedImage.path
-        : (await ImageCropper.cropImage(
+        : (await ImageCropper().cropImage(
                 sourcePath: selectedImage.path,
                 androidUiSettings: AndroidUiSettings(
                     toolbarTitle: 'قص الصورة',
@@ -290,7 +291,7 @@ class _EditClassState extends State<EditClass> {
     setState(() {});
   }
 
-  void _delete() async {
+  Future<void> _delete() async {
     if (await showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -402,7 +403,7 @@ class _EditClassState extends State<EditClass> {
     }
   }
 
-  void selectColor() async {
+  Future<void> selectColor() async {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -430,7 +431,7 @@ class _EditClassState extends State<EditClass> {
     );
   }
 
-  void _selectAllowedUsers() async {
+  Future<void> _selectAllowedUsers() async {
     final rslt = await navigator.currentState!.push(
       MaterialPageRoute(
         builder: (context) => FutureBuilder<List<User?>>(
@@ -438,8 +439,9 @@ class _EditClassState extends State<EditClass> {
             class$.allowedUsers.map(MHDatabaseRepo.instance.getUserName),
           ),
           builder: (context, users) {
-            if (!users.hasData)
+            if (!users.hasData) {
               return const Center(child: CircularProgressIndicator());
+            }
 
             return Provider<ListController<Class?, User>>(
               create: (_) => ListController<Class?, User>(

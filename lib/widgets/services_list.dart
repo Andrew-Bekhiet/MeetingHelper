@@ -13,9 +13,9 @@ class ServicesList<T extends DataObject> extends StatefulWidget {
   final void Function(T)? onTap;
 
   const ServicesList({
-    Key? key,
     required this.options,
     required this.autoDisposeController,
+    Key? key,
     this.onTap,
   }) : super(key: key);
   @override
@@ -37,13 +37,14 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
       stream: widget.options.groupedObjectsStream,
       builder: (context, services) {
         if (services.hasError) return ErrorWidget(services.error!);
-        if (!services.hasData)
+        if (!services.hasData) {
           return const Center(child: CircularProgressIndicator());
+        }
 
         final groupedStudyYears = {
           for (final entry in groupBy<PreferredStudyYear?, double>(
             services.data!.keys,
-            (PreferredStudyYear? s) {
+            (s) {
               if (s?.preferredGroup != null) return s!.preferredGroup!;
 
               switch (s?.grade) {
@@ -92,10 +93,11 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
               ? groupedStudyYears.values.elementAt(i).length
               : 0,
           groupHeaderBuilder: (context, section) {
-            if (groupedStudyYears.keys.length == section)
+            if (groupedStudyYears.keys.length == section) {
               return Container(
                 height: 50,
               );
+            }
 
             final service =
                 groupedStudyYears.keys.elementAt(section).truncate() !=
@@ -103,25 +105,30 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
                     ? 'خدمات '
                     : '';
 
-            if (groupedStudyYears.keys.elementAt(section).truncate() < 1)
+            if (groupedStudyYears.keys.elementAt(section).truncate() < 1) {
               return ListTile(title: Text(service + 'KG'));
-            else if (groupedStudyYears.keys.elementAt(section).truncate() < 2)
+            } else if (groupedStudyYears.keys.elementAt(section).truncate() <
+                2) {
               return ListTile(title: Text(service + 'ابتدائي'));
-            else if (groupedStudyYears.keys.elementAt(section).truncate() < 3)
+            } else if (groupedStudyYears.keys.elementAt(section).truncate() <
+                3) {
               return ListTile(title: Text(service + 'اعدادي'));
-            else if (groupedStudyYears.keys.elementAt(section).truncate() < 4)
+            } else if (groupedStudyYears.keys.elementAt(section).truncate() <
+                4) {
               return ListTile(title: Text(service + 'ثانوي'));
-            else if (groupedStudyYears.keys.elementAt(section).truncate() < 5)
+            } else if (groupedStudyYears.keys.elementAt(section).truncate() <
+                5) {
               return ListTile(title: Text(service + 'جامعة'));
-            else
+            } else {
               return const ListTile(title: Text('خدمات أخرى'));
+            }
           },
           itemBuilder: (context, index) {
             final studyYear = groupedStudyYears.values
                 .elementAt(index.section)
                 .elementAt(index.index);
 
-            if (studyYear == null)
+            if (studyYear == null) {
               return Padding(
                 padding: const EdgeInsets.fromLTRB(3, 0, 9, 0),
                 child: Column(
@@ -163,8 +170,9 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
                   ).toList(),
                 ),
               );
+            }
 
-            if (services.data![studyYear]!.length > 1)
+            if (services.data![studyYear]!.length > 1) {
               return Padding(
                 padding: const EdgeInsets.fromLTRB(3, 0, 9, 0),
                 child: ExpandablePanel(
@@ -270,7 +278,7 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
                       hasIcon: false),
                 ),
               );
-            else
+            } else {
               return Padding(
                 padding: const EdgeInsets.fromLTRB(3, 0, 9, 0),
                 child: ViewableObjectWidget(
@@ -310,6 +318,7 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
                   },
                 ),
               );
+            }
           },
         );
       },

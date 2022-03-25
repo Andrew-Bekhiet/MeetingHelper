@@ -55,7 +55,7 @@ class _RootState extends State<Root>
   final BehaviorSubject<String> _searchQuery =
       BehaviorSubject<String>.seeded('');
 
-  void addTap() async {
+  Future<void> addTap() async {
     if (_tabController!.index == _tabController!.length - 2) {
       if (User.instance.permissions.manageUsers ||
           User.instance.permissions.manageAllowedUsers) {
@@ -74,10 +74,11 @@ class _RootState extends State<Root>
             ],
           ),
         );
-        if (rslt == true)
+        if (rslt == true) {
           unawaited(navigator.currentState!.pushNamed('Data/EditClass'));
-        else if (rslt == false)
+        } else if (rslt == false) {
           unawaited(navigator.currentState!.pushNamed('Data/EditService'));
+        }
       } else {
         unawaited(navigator.currentState!.pushNamed('Data/EditClass'));
       }
@@ -381,11 +382,12 @@ class _RootState extends State<Root>
                       u.permissions.manageAllowedUsers)
                   .distinct(),
               builder: (context, data) {
-                if (!data.data!)
+                if (!data.data!) {
                   return const SizedBox(
                     width: 0,
                     height: 0,
                   );
+                }
 
                 return ListTile(
                   leading: const Icon(Icons.admin_panel_settings),
@@ -521,11 +523,12 @@ class _RootState extends State<Root>
                   .map((u) => u.permissions.manageDeleted)
                   .distinct(),
               builder: (context, data) {
-                if (!data.data!)
+                if (!data.data!) {
                   return const SizedBox(
                     width: 0,
                     height: 0,
                   );
+                }
 
                 return ListTile(
                   leading: const Icon(Icons.delete_outline),
@@ -871,26 +874,33 @@ class _RootState extends State<Root>
             _pushed = false;
             _timeout = false;
 
-            if (_dynamicLinksSubscription.isPaused)
+            if (_dynamicLinksSubscription.isPaused) {
               _dynamicLinksSubscription.resume();
+            }
             if (MHNotificationsService
-                .I.onMessageOpenedAppSubscription.isPaused)
+                .I.onMessageOpenedAppSubscription.isPaused) {
               MHNotificationsService.I.onMessageOpenedAppSubscription.resume();
+            }
             if (MHNotificationsService
                     .I.onForegroundMessageSubscription?.isPaused ??
-                false)
+                false) {
               MHNotificationsService.I.onForegroundMessageSubscription
                   ?.resume();
+            }
           });
         } else {
-          if (_dynamicLinksSubscription.isPaused)
+          if (_dynamicLinksSubscription.isPaused) {
             _dynamicLinksSubscription.resume();
-          if (MHNotificationsService.I.onMessageOpenedAppSubscription.isPaused)
+          }
+          if (MHNotificationsService
+              .I.onMessageOpenedAppSubscription.isPaused) {
             MHNotificationsService.I.onMessageOpenedAppSubscription.resume();
+          }
           if (MHNotificationsService
                   .I.onForegroundMessageSubscription?.isPaused ??
-              false)
+              false) {
             MHNotificationsService.I.onForegroundMessageSubscription?.resume();
+          }
         }
         _keepAlive(true);
         _recordActive();
@@ -900,8 +910,9 @@ class _RootState extends State<Root>
       case AppLifecycleState.paused:
         _keepAlive(false);
         _recordLastSeen();
-        if (!_dynamicLinksSubscription.isPaused)
+        if (!_dynamicLinksSubscription.isPaused) {
           _dynamicLinksSubscription.pause();
+        }
         break;
     }
   }
@@ -1362,7 +1373,7 @@ class _RootState extends State<Root>
     return _completer.future;
   }
 
-  void showPendingUIDialogs() async {
+  Future<void> showPendingUIDialogs() async {
     dialogsNotShown = false;
     if (!User.instance.userDataUpToDate()) {
       await showErrorUpdateDataDialog(context: context, pushApp: false);

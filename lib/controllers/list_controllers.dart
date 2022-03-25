@@ -156,8 +156,9 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
 
       for (final d in docs) {
         if (_objectsById.valueOrNull != null &&
-            _objectsById.value[d.id] != null)
+            _objectsById.value[d.id] != null) {
           tempSelected[d.id] = _objectsById.value[d.id]!;
+        }
         tempResult[d.id] = HistoryRecord.fromQueryDoc(d, day);
       }
 
@@ -309,14 +310,16 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
     Stream<String>? searchQuery,
     GroupingStreamFunction<NewG, T>? groupByStream,
   }) {
-    if (this.groupBy != null && groupBy == null)
+    if (this.groupBy != null && groupBy == null) {
       throw UnsupportedError(
         '`groupBy` must be provided if this.groupBy != null',
       );
-    if (this.groupByStream != null && groupByStream == null)
+    }
+    if (this.groupByStream != null && groupByStream == null) {
       throw UnsupportedError(
         '`groupByStream` must be provided if this.groupByStream != null',
       );
+    }
 
     return DayCheckListController<NewG, T>(
       day: day ?? this.day,
@@ -332,10 +335,10 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
 
   DayCheckListController<NewG, NewT>
       copyWithNewTypes<NewG, NewT extends Person>({
+    required PaginatableStream<NewT> objectsPaginatableStream,
     HistoryDayBase? day,
     String? type,
     HistoryDayOptions? dayOptions,
-    required PaginatableStream<NewT> objectsPaginatableStream,
     Stream<String>? searchQuery,
     SearchFunction<NewT>? filter,
     GroupingFunction<NewG, NewT>? groupBy,
@@ -447,7 +450,7 @@ class ServicesListController<T extends DataObject>
   @override
   StreamSubscription<Map<PreferredStudyYear?, List<T>>>
       getGroupedObjectsSubscription() {
-    if (groupByStream != null)
+    if (groupByStream != null) {
       return groupingSubject
           .switchMap(
             (g) => g
@@ -466,6 +469,7 @@ class ServicesListController<T extends DataObject>
           )
           .listen(groupedObjectsSubject.add,
               onError: groupedObjectsSubject.addError);
+    }
 
     return Rx.combineLatest3<bool, String, List<T>,
         Map<PreferredStudyYear?, List<T>>>(

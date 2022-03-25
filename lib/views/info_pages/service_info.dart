@@ -15,7 +15,7 @@ import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 class ServiceInfo extends StatefulWidget {
   final Service service;
 
-  const ServiceInfo({Key? key, required this.service}) : super(key: key);
+  const ServiceInfo({required this.service, Key? key}) : super(key: key);
 
   @override
   _ServiceInfoState createState() => _ServiceInfoState();
@@ -62,7 +62,7 @@ class _ServiceInfoState extends State<ServiceInfo> {
         'Service.Analytics',
         if (User.instance.permissions.write) 'Add'
       ]..removeWhere(HivePersistenceProvider.instance.hasCompletedStep))
-          .isNotEmpty)
+          .isNotEmpty) {
         TutorialCoachMark(
           context,
           focusAnimationDuration: const Duration(milliseconds: 200),
@@ -174,6 +174,7 @@ class _ServiceInfoState extends State<ServiceInfo> {
             await HivePersistenceProvider.instance.completeStep(t.identify);
           },
         ).show();
+      }
     });
   }
 
@@ -187,12 +188,13 @@ class _ServiceInfoState extends State<ServiceInfo> {
             (_) => widget.service.ref.snapshots().map(Service.fromDoc),
           ),
       builder: (context, data) {
-        if (data.data == null)
+        if (data.data == null) {
           return const Scaffold(
             body: Center(
               child: Text('تم حذف الخدمة'),
             ),
           );
+        }
 
         final Service service = data.requireData!;
 
@@ -346,11 +348,12 @@ class _ServiceInfoState extends State<ServiceInfo> {
                           subtitle: FutureBuilder<String>(
                             future: () async {
                               if (service.studyYearRange?.from ==
-                                  service.studyYearRange?.to)
+                                  service.studyYearRange?.to) {
                                 return (await service.studyYearRange!.from
                                             ?.get())
                                         ?.data()?['Name'] as String? ??
                                     'غير موجودة';
+                              }
 
                               final from =
                                   (await service.studyYearRange!.from?.get())
@@ -493,8 +496,8 @@ class _ServiceInfoState extends State<ServiceInfo> {
 
 class _ServiceServants extends StatelessWidget {
   const _ServiceServants({
-    Key? key,
     required this.service,
+    Key? key,
   }) : super(key: key);
 
   final Service service;

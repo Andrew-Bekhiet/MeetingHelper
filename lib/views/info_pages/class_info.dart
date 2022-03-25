@@ -13,7 +13,10 @@ import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 class ClassInfo extends StatefulWidget {
   final Class class$;
 
-  const ClassInfo({Key? key, required this.class$}) : super(key: key);
+  const ClassInfo({
+    required this.class$,
+    Key? key,
+  }) : super(key: key);
 
   @override
   _ClassInfoState createState() => _ClassInfoState();
@@ -58,7 +61,7 @@ class _ClassInfoState extends State<ClassInfo> {
         'Class.Analytics',
         if (User.instance.permissions.write) 'Add'
       ]..removeWhere(HivePersistenceProvider.instance.hasCompletedStep))
-          .isNotEmpty)
+          .isNotEmpty) {
         TutorialCoachMark(
           context,
           focusAnimationDuration: const Duration(milliseconds: 200),
@@ -171,6 +174,7 @@ class _ClassInfoState extends State<ClassInfo> {
             await HivePersistenceProvider.instance.completeStep(t.identify);
           },
         ).show();
+      }
     });
   }
 
@@ -186,12 +190,13 @@ class _ClassInfoState extends State<ClassInfo> {
       builder: (context, data) {
         final Class? class$ = data.data;
 
-        if (class$ == null)
+        if (class$ == null) {
           return const Scaffold(
             body: Center(
               child: Text('تم حذف الفصل'),
             ),
           );
+        }
 
         return Scaffold(
           body: NestedScrollView(
@@ -343,10 +348,11 @@ class _ClassInfoState extends State<ClassInfo> {
                         subtitle: FutureBuilder<String>(
                           future: class$.getStudyYearName(),
                           builder: (context, data) {
-                            if (data.hasData)
+                            if (data.hasData) {
                               return Text(
                                 data.data! + ' - ' + class$.getGenderName(),
                               );
+                            }
                             return const LinearProgressIndicator();
                           },
                         ),
@@ -452,8 +458,8 @@ class _ClassInfoState extends State<ClassInfo> {
 
 class _ClassServants extends StatelessWidget {
   const _ClassServants({
-    Key? key,
     required this.class$,
+    Key? key,
   }) : super(key: key);
 
   final Class class$;
@@ -515,10 +521,11 @@ class _ClassServants extends StatelessWidget {
                     ),
                     builder: (context, data) {
                       if (data.hasError) return ErrorWidget(data.error!);
-                      if (!data.hasData)
+                      if (!data.hasData) {
                         return const Center(
                           child: CircularProgressIndicator(),
                         );
+                      }
 
                       return ListView.builder(
                         padding: const EdgeInsetsDirectional.all(8),

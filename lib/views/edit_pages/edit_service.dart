@@ -24,7 +24,10 @@ import 'package:tinycolor2/tinycolor2.dart';
 class EditService extends StatefulWidget {
   final Service? service;
 
-  const EditService({Key? key, required this.service}) : super(key: key);
+  const EditService({
+    required this.service,
+    Key? key,
+  }) : super(key: key);
   @override
   _EditServiceState createState() => _EditServiceState();
 }
@@ -41,7 +44,7 @@ class _EditServiceState extends State<EditService> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: NestedScrollView(
-        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
           return <Widget>[
             SliverAppBar(
               actions: <Widget>[
@@ -131,8 +134,9 @@ class _EditServiceState extends State<EditService> {
                     child: FutureBuilder<List<StudyYear>>(
                       future: StudyYear.getAll().first,
                       builder: (conext, data) {
-                        if (!data.hasData)
+                        if (!data.hasData) {
                           return const LinearProgressIndicator();
+                        }
 
                         return InputDecorator(
                           decoration: InputDecoration(
@@ -168,15 +172,16 @@ class _EditServiceState extends State<EditService> {
                                       ),
                                     ),
                                   onChanged: (value) {
-                                    if (service.studyYearRange == null)
+                                    if (service.studyYearRange == null) {
                                       service.copyWith.studyYearRange(
                                         StudyYearRange(from: value, to: null),
                                       );
-                                    else
+                                    } else {
                                       service = service.copyWith.studyYearRange(
                                         service.studyYearRange!.copyWith
                                             .from(value),
                                       );
+                                    }
 
                                     setState(() {});
 
@@ -208,15 +213,16 @@ class _EditServiceState extends State<EditService> {
                                       ),
                                     ),
                                   onChanged: (value) {
-                                    if (service.studyYearRange == null)
+                                    if (service.studyYearRange == null) {
                                       service = service.copyWith.studyYearRange(
                                         StudyYearRange(from: null, to: value),
                                       );
-                                    else
+                                    } else {
                                       service = service.copyWith.studyYearRange(
                                         service.studyYearRange!.copyWith
                                             .to(value),
                                       );
+                                    }
 
                                     setState(() {});
 
@@ -372,15 +378,16 @@ class _EditServiceState extends State<EditService> {
       setState(() {});
       return;
     }
-    if (source as bool && !(await Permission.camera.request()).isGranted)
+    if (source as bool && !(await Permission.camera.request()).isGranted) {
       return;
+    }
 
     final selectedImage = await ImagePicker()
         .pickImage(source: source ? ImageSource.camera : ImageSource.gallery);
     if (selectedImage == null) return;
     changedImage = kIsWeb
         ? selectedImage.path
-        : (await ImageCropper.cropImage(
+        : (await ImageCropper().cropImage(
                 sourcePath: selectedImage.path,
                 androidUiSettings: AndroidUiSettings(
                     toolbarTitle: 'قص الصورة',
@@ -392,7 +399,7 @@ class _EditServiceState extends State<EditService> {
     setState(() {});
   }
 
-  void _delete() async {
+  Future<void> _delete() async {
     if (await showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -537,7 +544,7 @@ class _EditServiceState extends State<EditService> {
     }
   }
 
-  void selectColor() async {
+  Future<void> selectColor() async {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -565,7 +572,7 @@ class _EditServiceState extends State<EditService> {
     );
   }
 
-  void _selectAllowedUsers() async {
+  Future<void> _selectAllowedUsers() async {
     allowedUsers = await navigator.currentState!.push(
           MaterialPageRoute(
             builder: (context) => FutureBuilder<List<User?>>(
@@ -578,8 +585,9 @@ class _EditServiceState extends State<EditService> {
                       .then((value) =>
                           value.docs.map(UserWithPerson.fromDoc).toList()),
               builder: (context, users) {
-                if (!users.hasData)
+                if (!users.hasData) {
                   return const Center(child: CircularProgressIndicator());
+                }
 
                 return Provider<ListController<Class?, User>>(
                   create: (_) => ListController<Class?, User>(

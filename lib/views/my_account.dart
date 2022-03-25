@@ -112,7 +112,7 @@ class _MyAccountState extends State<MyAccount> {
                       source:
                           source ? ImageSource.camera : ImageSource.gallery);
                   if (selectedImage == null) return;
-                  final finalImage = await ImageCropper.cropImage(
+                  final finalImage = await ImageCropper().cropImage(
                       sourcePath: selectedImage.path,
                       cropStyle: CropStyle.circle,
                       androidUiSettings: AndroidUiSettings(
@@ -190,13 +190,11 @@ class _MyAccountState extends State<MyAccount> {
               subtitle: Row(
                 children: <Widget>[
                   Expanded(
-                    child: Text(
-                        user.lastTanawol?.toDurationString() ?? ''),
+                    child: Text(user.lastTanawol?.toDurationString() ?? ''),
                   ),
                   Text(
                     user.lastTanawol != null
-                        ? DateFormat('yyyy/M/d')
-                            .format(user.lastTanawol!)
+                        ? DateFormat('yyyy/M/d').format(user.lastTanawol!)
                         : '',
                     style: Theme.of(context).textTheme.overline,
                   ),
@@ -208,14 +206,11 @@ class _MyAccountState extends State<MyAccount> {
               subtitle: Row(
                 children: <Widget>[
                   Expanded(
-                    child: Text(
-                        user.lastConfession?.toDurationString() ??
-                            ''),
+                    child: Text(user.lastConfession?.toDurationString() ?? ''),
                   ),
                   Text(
                     user.lastConfession != null
-                        ? DateFormat('yyyy/M/d')
-                            .format(user.lastConfession!)
+                        ? DateFormat('yyyy/M/d').format(user.lastConfession!)
                         : '',
                     style: Theme.of(context).textTheme.overline,
                   ),
@@ -307,7 +302,7 @@ class _MyAccountState extends State<MyAccount> {
     );
   }
 
-  void changeName(String? oldName, String? uid) async {
+  Future<void> changeName(String? oldName, String? uid) async {
     final name = TextEditingController(text: oldName);
     if (await showDialog(
           context: context,
@@ -357,7 +352,7 @@ class _MyAccountState extends State<MyAccount> {
     }
   }
 
-  void changePass() async {
+  Future<void> changePass() async {
     if (await showDialog(
           context: context,
           builder: (context) {

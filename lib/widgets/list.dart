@@ -42,14 +42,14 @@ class DayCheckList<G, T extends Person> extends StatefulWidget {
   final String? emptyMsg;
 
   const DayCheckList({
-    Key? key,
     required this.controller,
+    required this.autoDisposeController,
+    Key? key,
     this.itemBuilder,
     this.groupBuilder,
     this.onTap,
     this.onLongPress,
     this.emptyMsg = 'لا يوجد مخدومين',
-    required this.autoDisposeController,
   }) : super(key: key);
 
   @override
@@ -66,13 +66,13 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
   GroupBuilder<G> get _buildGroup =>
       widget.groupBuilder ??
       (
-        G? o, {
-        void Function(G)? onLongPress,
-        void Function(G)? onTap,
-        void Function()? onTapOnNull,
-        bool? showSubtitle,
-        Widget? trailing,
-        Widget? subtitle,
+        o, {
+        onLongPress,
+        onTap,
+        onTapOnNull,
+        showSubtitle,
+        trailing,
+        subtitle,
       }) =>
           defaultGroupBuilder<DataObject>(
             o as DataObject?,
@@ -98,8 +98,9 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
       stream: _listController.dayOptions.grouped,
       builder: (context, grouped) {
         if (grouped.hasError) return Center(child: ErrorWidget(grouped.error!));
-        if (!grouped.hasData)
+        if (!grouped.hasData) {
           return const Center(child: CircularProgressIndicator());
+        }
 
         if (grouped.data!) {
           return buildGroupedListView();
@@ -116,11 +117,13 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
       builder: (context, groupedData) {
         if (groupedData.hasError) return ErrorWidget(groupedData.error!);
 
-        if (!groupedData.hasData)
+        if (!groupedData.hasData) {
           return const Center(child: CircularProgressIndicator());
+        }
 
-        if (groupedData.data!.isEmpty)
+        if (groupedData.data!.isEmpty) {
           return Center(child: Text(widget.emptyMsg ?? 'لا يوجد عناصر'));
+        }
 
         return GroupListView(
           padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -132,8 +135,9 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
           },
           cacheExtent: 500,
           groupHeaderBuilder: (context, i) {
-            if (i == groupedData.data!.length)
+            if (i == groupedData.data!.length) {
               return Container(height: MediaQuery.of(context).size.height / 15);
+            }
 
             return StreamBuilder<bool?>(
               stream: _listController.dayOptions.showSubtitlesInGroups,
@@ -188,12 +192,14 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
       stream: _listController.objectsStream,
       builder: (context, data) {
         if (data.hasError) return Center(child: ErrorWidget(data.error!));
-        if (!data.hasData)
+        if (!data.hasData) {
           return const Center(child: CircularProgressIndicator());
+        }
 
         final List<T> _data = data.data!;
-        if (_data.isEmpty)
+        if (_data.isEmpty) {
           return Center(child: Text(widget.emptyMsg ?? 'لا يوجد عناصر'));
+        }
 
         return ListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -201,8 +207,9 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
           cacheExtent: 200,
           itemCount: _data.length + 1,
           itemBuilder: (context, i) {
-            if (i == _data.length)
+            if (i == _data.length) {
               return Container(height: MediaQuery.of(context).size.height / 19);
+            }
 
             final T current = _data[i];
             return buildItemWrapper(current);
@@ -221,7 +228,7 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
         onLongPress: widget.onLongPress ??
             ((o) => _showRecordDialog(
                 o, _listController.attended.value[current.id])),
-        onTap: (T current) async {
+        onTap: (current) async {
           if (!_listController.dayOptions.enabled.value) {
             widget.onTap == null
                 ? GetIt.I<MHViewableObjectTapHandler>().onTap(current)
@@ -277,7 +284,7 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
     );
   }
 
-  void _showRecordDialog(T current, HistoryRecord? oRecord) async {
+  Future<void> _showRecordDialog(T current, HistoryRecord? oRecord) async {
     var record = oRecord != null
         ? HistoryRecord(
             classId: current.classId,
@@ -346,8 +353,9 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
                                             .toTimestamp(),
                                         isServant: T == User,
                                       );
-                                    } else
+                                    } else {
                                       record = null;
+                                    }
                                     setState(() {});
                                   }
                                 : null,

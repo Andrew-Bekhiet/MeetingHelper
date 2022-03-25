@@ -12,7 +12,10 @@ import 'package:meetinghelper/views.dart';
 import 'package:meetinghelper/widgets.dart';
 
 class UserInfo extends StatefulWidget {
-  const UserInfo({Key? key, required this.user}) : super(key: key);
+  const UserInfo({
+    required this.user,
+    Key? key,
+  }) : super(key: key);
 
   final UserWithPerson user;
 

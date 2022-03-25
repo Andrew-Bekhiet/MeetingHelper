@@ -21,8 +21,8 @@ class PersonInfo extends StatefulWidget {
   final bool showMotherAndFatherPhones;
 
   const PersonInfo({
-    Key? key,
     required this.person,
+    Key? key,
     this.showMotherAndFatherPhones = true,
   }) : super(key: key);
 
@@ -46,7 +46,7 @@ class _PersonInfoState extends State<PersonInfo> {
         'Person.Share',
         if (User.instance.permissions.write) 'Person.LastVisit'
       ]..removeWhere(HivePersistenceProvider.instance.hasCompletedStep))
-          .isNotEmpty)
+          .isNotEmpty) {
         TutorialCoachMark(
           context,
           focusAnimationDuration: const Duration(milliseconds: 200),
@@ -110,6 +110,7 @@ class _PersonInfoState extends State<PersonInfo> {
             await HivePersistenceProvider.instance.completeStep(t.identify);
           },
         ).show();
+      }
     });
   }
 
@@ -126,17 +127,17 @@ class _PersonInfoState extends State<PersonInfo> {
         final write = User.instance.permissions.write;
         final Person? person = data.data;
 
-        if (person == null)
+        if (person == null) {
           return const Scaffold(
             body: Center(
               child: Text('تم حذف المخدوم'),
             ),
           );
+        }
 
         return Scaffold(
           body: NestedScrollView(
-            headerSliverBuilder:
-                (BuildContext context, bool innerBoxIsScrolled) {
+            headerSliverBuilder: (context, innerBoxIsScrolled) {
               return <Widget>[
                 SliverAppBar(
                   backgroundColor:
@@ -228,7 +229,7 @@ class _PersonInfoState extends State<PersonInfo> {
                               MHNotificationsService.I
                                   .sendNotification(context, person);
                             },
-                            itemBuilder: (BuildContext context) {
+                            itemBuilder: (context) {
                               return [
                                 const PopupMenuItem(
                                   value: '',
@@ -402,13 +403,14 @@ class _PersonInfoState extends State<PersonInfo> {
                             : await person.getSchoolName());
                   }(),
                   builder: (context, data) {
-                    if (data.hasError)
+                    if (data.hasError) {
                       return ErrorWidget(data.error!);
-                    else if (data.hasData)
+                    } else if (data.hasData) {
                       return ListTile(
                         title: Text(data.requireData.item1),
                         subtitle: Text(data.requireData.item2),
                       );
+                    }
 
                     return const LinearProgressIndicator();
                   },
@@ -488,7 +490,7 @@ class _PersonInfoState extends State<PersonInfo> {
     );
   }
 
-  void recordLastVisit(BuildContext context, Person person) async {
+  Future<void> recordLastVisit(BuildContext context, Person person) async {
     try {
       if (await showDialog(
             context: context,
@@ -523,7 +525,7 @@ class _PersonInfoState extends State<PersonInfo> {
     }
   }
 
-  void _phoneCall(BuildContext context, String? number) async {
+  Future<void> _phoneCall(BuildContext context, String? number) async {
     final result = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -575,8 +577,9 @@ class _PersonInfoState extends State<PersonInfo> {
           ),
         );
       }
-    } else
+    } else {
       await launch('tel://' + formatPhone(number ?? '', false));
+    }
   }
 
   void _showAnalytics(BuildContext context, Person person) {
@@ -623,8 +626,8 @@ class _PersonInfoState extends State<PersonInfo> {
 
 class _PersonServices extends StatelessWidget {
   const _PersonServices({
-    Key? key,
     required this.person,
+    Key? key,
   }) : super(key: key);
 
   final Person person;
@@ -645,16 +648,18 @@ class _PersonServices extends StatelessWidget {
                     ),
               ),
               builder: (context, servicesSnapshot) {
-                if (!servicesSnapshot.hasData)
+                if (!servicesSnapshot.hasData) {
                   return const LinearProgressIndicator();
+                }
 
-                if (person.services.length > 2)
+                if (person.services.length > 2) {
                   return Text(
                     servicesSnapshot.requireData.take(2).join(' و') +
                         'و ' +
                         (person.services.length - 2).toString() +
                         ' أخرين',
                   );
+                }
 
                 return Text(servicesSnapshot.requireData.join(' و'));
               },
@@ -682,10 +687,11 @@ class _PersonServices extends StatelessWidget {
                       }(),
                       builder: (context, data) {
                         if (data.hasError) return ErrorWidget(data.error!);
-                        if (!data.hasData)
+                        if (!data.hasData) {
                           return const Center(
                             child: CircularProgressIndicator(),
                           );
+                        }
 
                         return ListView.builder(
                           padding: const EdgeInsetsDirectional.all(8),

@@ -36,7 +36,7 @@ class Service extends DataObject implements PhotoObjectBase {
     this.hasPhoto = false,
   }) : super(ref, name);
 
-  static Service empty() {
+  factory Service.empty() {
     return Service(
       ref: GetIt.I<DatabaseRepository>().collection('Services').doc('null'),
       name: '',
@@ -48,7 +48,7 @@ class Service extends DataObject implements PhotoObjectBase {
   static Service? fromDoc(JsonDoc doc) =>
       doc.data() != null ? Service.fromJson(doc.data()!, doc.reference) : null;
 
-  static Service fromQueryDoc(JsonQueryDoc doc) =>
+  factory Service.fromQueryDoc(JsonQueryDoc doc) =>
       Service.fromJson(doc.data(), doc.reference);
 
   Service.fromJson(Json json, JsonRef ref)
@@ -115,10 +115,11 @@ class Service extends DataObject implements PhotoObjectBase {
         'Name': name,
         'StudyYearRange': Future(
           () async {
-            if (studyYearRange?.from == studyYearRange?.to)
+            if (studyYearRange?.from == studyYearRange?.to) {
               return (await studyYearRange!.from?.get())?.data()?['Name']
                       as String? ??
                   'غير موجودة';
+            }
 
             final from = (await studyYearRange!.from?.get())?.data()?['Name'] ??
                 'غير موجودة';

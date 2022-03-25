@@ -48,11 +48,13 @@ class HistoryProperty extends StatelessWidget {
               child: FutureBuilder<List<AuditRecord>>(
                 future: AuditRecord.getAllFromRef(historyRef),
                 builder: (context, history) {
-                  if (!history.hasData)
+                  if (!history.hasData) {
                     return const Center(child: CircularProgressIndicator());
+                  }
                   if (history.hasError) return ErrorWidget(history.error!);
-                  if (history.data!.isEmpty)
+                  if (history.data!.isEmpty) {
                     return const Center(child: Text('لا يوجد سجل'));
+                  }
                   return ListView.builder(
                     itemCount: history.data!.length,
                     itemBuilder: (context, i) => FutureBuilder<JsonDoc>(
@@ -163,11 +165,13 @@ class EditHistoryProperty extends StatelessWidget {
                   child: FutureBuilder<List<AuditRecord>>(
                     future: AuditRecord.getAllFromRef(historyRef),
                     builder: (context, history) {
-                      if (!history.hasData)
+                      if (!history.hasData) {
                         return const Center(child: CircularProgressIndicator());
+                      }
                       if (history.hasError) return ErrorWidget(history.error!);
-                      if (history.data!.isEmpty)
+                      if (history.data!.isEmpty) {
                         return const Center(child: Text('لا يوجد سجل'));
+                      }
                       return ListView.builder(
                         itemCount: history.data!.length,
                         itemBuilder: (context, i) => FutureBuilder<User?>(
@@ -248,11 +252,13 @@ class TimeHistoryProperty extends StatelessWidget {
               child: FutureBuilder<List<AuditRecord>>(
                 future: AuditRecord.getAllFromRef(historyRef),
                 builder: (context, history) {
-                  if (!history.hasData)
+                  if (!history.hasData) {
                     return const Center(child: CircularProgressIndicator());
+                  }
                   if (history.hasError) return ErrorWidget(history.error!);
-                  if (history.data!.isEmpty)
+                  if (history.data!.isEmpty) {
                     return const Center(child: Text('لا يوجد سجل'));
+                  }
                   return ListView.builder(
                     itemCount: history.data!.length,
                     itemBuilder: (context, i) => ListTile(
@@ -340,13 +346,14 @@ class DayHistoryProperty extends StatelessWidget {
                         return MHDatabaseRepo.I.getAllClasses().switchMap(
                           (classes) {
                             if (classes.isEmpty) return Stream.value([]);
-                            if (classes.length <= 10)
+                            if (classes.length <= 10) {
                               return _completeQuery(
                                 query.where(
                                   'ClassId',
                                   whereIn: classes.map((c) => c.ref).toList(),
                                 ),
                               );
+                            }
 
                             return Rx.combineLatest<List<HistoryRecord>,
                                 List<HistoryRecord>>(
@@ -371,7 +378,7 @@ class DayHistoryProperty extends StatelessWidget {
                       return MHDatabaseRepo.I.getAllServices().switchMap(
                         (services) {
                           if (services.isEmpty) return Stream.value([]);
-                          if (services.length <= 10)
+                          if (services.length <= 10) {
                             return _completeQuery(
                               query.where(
                                 'Services',
@@ -379,6 +386,7 @@ class DayHistoryProperty extends StatelessWidget {
                                     services.map((c) => c.ref).toList(),
                               ),
                             );
+                          }
 
                           return Rx.combineLatest<List<HistoryRecord>,
                               List<HistoryRecord>>(
@@ -406,10 +414,12 @@ class DayHistoryProperty extends StatelessWidget {
                 ),
                 builder: (context, history) {
                   if (history.hasError) return ErrorWidget(history.error!);
-                  if (!history.hasData)
+                  if (!history.hasData) {
                     return const Center(child: CircularProgressIndicator());
-                  if (history.data!.isEmpty)
+                  }
+                  if (history.data!.isEmpty) {
                     return const Center(child: Text('لا يوجد سجل'));
+                  }
                   return ListView.builder(
                     itemCount: history.data!.length,
                     itemBuilder: (context, i) => Card(
