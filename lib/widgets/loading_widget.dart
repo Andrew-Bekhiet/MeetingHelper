@@ -11,11 +11,9 @@ import '../utils/helpers.dart';
 
 class Loading extends StatelessWidget {
   final Object? exception;
-  final bool showVersionInfo;
 
   const Loading({
     this.exception,
-    this.showVersionInfo = false,
   }) : super(key: null);
 
   String _getAssetImage() {
@@ -71,7 +69,7 @@ class Loading extends StatelessWidget {
                 ],
               ),
             ),
-            if (showVersionInfo || exception != null)
+            if (exception != null)
               Align(
                 alignment: Alignment.bottomRight,
                 child: FutureBuilder<PackageInfo>(

@@ -202,9 +202,7 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
       future: _latestVersionChecker.runOnce(() => checkLatestVersion(context)),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Loading(
-            showVersionInfo: true,
-          );
+          return const Loading();
         }
 
         return StreamBuilder<User?>(
@@ -234,7 +232,6 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
                 (snapshot.hasError && user?.password != null)) {
               return Loading(
                 exception: snapshot.error,
-                showVersionInfo: true,
               );
             } else if (user == null) {
               return const LoginScreen();
