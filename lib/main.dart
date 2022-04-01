@@ -10,7 +10,6 @@ import 'package:firebase_auth/firebase_auth.dart' as auth show FirebaseAuth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -107,6 +106,16 @@ Future<void> initMeetingHelper() async {
   GetIt.I.registerSingleton<DefaultViewableObjectTapHandler>(
       mhDataObjectTapHandler);
   GetIt.I.registerSingleton<MHViewableObjectTapHandler>(mhDataObjectTapHandler);
+
+  GetIt.I<FirebaseFirestore>().settings = firestore.Settings(
+    persistenceEnabled: true,
+    sslEnabled: !kDebugMode &&
+        dotenv.env['kEmulatorsHost'] == null &&
+        dotenv.env['kUseFirebaseEmulators']?.toString() != 'true',
+    cacheSizeBytes: GetIt.I<CacheRepository>()
+        .box('Settings')
+        .get('cacheSize', defaultValue: 300 * 1024 * 1024),
+  );
 }
 
 Future<void> initFirebase() async {
@@ -122,7 +131,7 @@ Future<void> initFirebase() async {
       await Firebase.initializeApp();
 
       await auth.FirebaseAuth.instance.useAuthEmulator(kEmulatorsHost, 9099);
-      await FirebaseStorage.instance.useStorageEmulator(kEmulatorsHost, 9199);
+      // await FirebaseStorage.instance.useStorageEmulator(kEmulatorsHost, 9199);
       FirebaseFirestore.instance.useFirestoreEmulator(kEmulatorsHost, 8080);
       FirebaseFunctions.instance.useFunctionsEmulator(kEmulatorsHost, 5001);
       FirebaseDatabase.instance.useDatabaseEmulator(kEmulatorsHost, 9000);
@@ -134,16 +143,6 @@ Future<void> initFirebase() async {
   }
 
   registerFirebaseDependencies();
-
-  GetIt.I<FirebaseFirestore>().settings = firestore.Settings(
-    persistenceEnabled: true,
-    sslEnabled: !kDebugMode &&
-        kEmulatorsHost == null &&
-        dotenv.env['kUseFirebaseEmulators']?.toString() != 'true',
-    cacheSizeBytes: GetIt.I<CacheRepository>()
-        .box('Settings')
-        .get('cacheSize', defaultValue: 300 * 1024 * 1024),
-  );
 }
 
 class MeetingHelperApp extends StatefulWidget {
@@ -186,6 +185,7 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
     } catch (err) {}
 
     if (!kIsWeb &&
+        kReleaseMode &&
         GetIt.I<FirebaseRemoteConfig>().getString('LoadApp') == 'false') {
       throw UnsupportedVersionException(version: appVersion);
     } else if (GetIt.I<MHAuthRepository>().isSignedIn &&
@@ -277,12 +277,12 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
                   is JsonRef) {
                 final parent =
                     ModalRoute.of(context)!.settings.arguments! as JsonRef;
-                final Person person = Person.empty();
+                Person person = Person.empty();
 
                 if (parent.parent.id == 'Classes') {
-                  person.copyWith.classId(parent);
+                  person = person.copyWith.classId(parent);
                 } else if (parent.parent.id == 'Services') {
-                  person.copyWith.services([parent]);
+                  person = person.copyWith.services([parent]);
                 }
 
                 return EditPerson(person: person);
@@ -357,24 +357,36 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
             'Settings/Churches': (context) => MiniModelList<Church>(
                   title: 'الكنائس',
                   transformer: Church.fromDoc,
-                  add: (context) =>
-                      churchTap(context, Church.createNew(), true),
+                  add: (context) => churchTap(
+                    context,
+                    Church.createNew(),
+                    true,
+                    canDelete: false,
+                  ),
                   modify: churchTap,
                   collection: GetIt.I<MHDatabaseRepo>().collection('Churches'),
                 ),
             'Settings/Fathers': (context) => MiniModelList<Father>(
                   title: 'الأباء الكهنة',
                   transformer: Father.fromDoc,
-                  add: (context) =>
-                      fatherTap(context, Father.createNew(), true),
+                  add: (context) => fatherTap(
+                    context,
+                    Father.createNew(),
+                    true,
+                    canDelete: false,
+                  ),
                   modify: fatherTap,
                   collection: GetIt.I<MHDatabaseRepo>().collection('Fathers'),
                 ),
             'Settings/StudyYears': (context) => MiniModelList<StudyYear>(
                   title: 'السنوات الدراسية',
                   transformer: StudyYear.fromDoc,
-                  add: (context) =>
-                      studyYearTap(context, StudyYear.createNew(), true),
+                  add: (context) => studyYearTap(
+                    context,
+                    StudyYear.createNew(),
+                    true,
+                    canDelete: false,
+                  ),
                   modify: studyYearTap,
                   completer: (q) => q.orderBy('Grade'),
                   collection:
