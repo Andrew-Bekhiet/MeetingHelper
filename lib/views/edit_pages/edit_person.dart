@@ -1162,14 +1162,14 @@ class _EditPersonState extends State<EditPerson> {
             duration: Duration(minutes: 1),
           ),
         );
-        final update = person.id != 'null' || widget.person is User;
+        final update = (await person.ref.get()).exists;
 
-        if (!update) {
+        if (person.id == 'null' && !update) {
           person = person.copyWith
               .ref(GetIt.I<DatabaseRepository>().collection('Persons').doc());
         }
 
-        if (widget.person is! User) {
+        if (widget.person?.ref.parent.id != 'UsersData') {
           if (changedImage != null) {
             await GetIt.I<StorageRepository>()
                 .ref()
