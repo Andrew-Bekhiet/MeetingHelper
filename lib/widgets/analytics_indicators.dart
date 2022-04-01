@@ -882,6 +882,9 @@ class PieChart<T> extends StatelessWidget {
           overflowMode: LegendItemOverflowMode.scroll,
           orientation: LegendItemOrientation.vertical,
           isResponsive: true,
+          width: '100%',
+          height: '35%',
+          padding: 0,
           alignment: ChartAlignment.center,
         ),
         series: [
