@@ -5,21 +5,25 @@ class ColorsList extends StatelessWidget {
   final List<Color>? colors;
 
   final Color? selectedColor;
-  final void Function(Color)? onSelect;
-  const ColorsList({Key? key, this.colors, this.selectedColor, this.onSelect})
-      : super(key: key);
+  final void Function(Color) onSelect;
+  const ColorsList({
+    required this.onSelect,
+    Key? key,
+    this.colors,
+    this.selectedColor,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     if (colors == null) {
       return BlockPicker(
-        pickerColor: selectedColor!,
-        onColorChanged: onSelect!,
+        pickerColor: selectedColor ?? Colors.transparent,
+        onColorChanged: onSelect,
       );
     } else {
       return BlockPicker(
-        pickerColor: selectedColor!,
-        onColorChanged: onSelect!,
+        pickerColor: selectedColor ?? Colors.transparent,
+        onColorChanged: onSelect,
         availableColors: colors!,
       );
     }

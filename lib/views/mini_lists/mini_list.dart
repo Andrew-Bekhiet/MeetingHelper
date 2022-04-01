@@ -21,7 +21,7 @@ class MiniModelList<T extends MetaObject> extends StatelessWidget {
     this.modify,
     QueryOfJson Function(QueryOfJson)? completer,
   }) : super(key: key) {
-    completer = completer ?? (q) => q.orderBy('Name');
+    this.completer = completer ?? (q) => q.orderBy('Name');
   }
 
   @override
@@ -165,6 +165,7 @@ class MiniModelList<T extends MetaObject> extends StatelessWidget {
         ],
         content: SingleChildScrollView(
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               if (editMode)
@@ -189,7 +190,11 @@ class MiniModelList<T extends MetaObject> extends StatelessWidget {
 }
 
 Future<void> churchTap(
-    BuildContext context, Church _church, bool editMode) async {
+  BuildContext context,
+  Church _church,
+  bool editMode, {
+  bool canDelete = true,
+}) async {
   Church church = _church;
   final title = TextStyle(
     fontSize: 22,
@@ -215,7 +220,7 @@ Future<void> churchTap(
           },
           child: Text(editMode ? 'حفظ' : 'تعديل'),
         ),
-        if (editMode)
+        if (editMode && canDelete)
           TextButton(
             onPressed: () async {
               await showDialog(
@@ -249,11 +254,10 @@ Future<void> churchTap(
           ),
       ],
       title: Text(church.name),
-      scrollable: true,
       content: SizedBox(
         width: 300,
-        height: 700,
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             DefaultTextStyle(
@@ -284,25 +288,24 @@ Future<void> churchTap(
                 stream: church.getChildren(),
                 builder: (con, data) {
                   if (data.hasData) {
-                    return Expanded(
-                      child: ListView.builder(
-                        itemCount: data.data!.length,
-                        itemBuilder: (context, i) {
-                          final current = data.data![i];
-                          return Card(
-                            child: ListTile(
-                              onTap: () => fatherTap(context, current, false),
-                              title: Text(current.name),
-                            ),
-                          );
-                        },
-                      ),
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: data.data!.length,
+                      itemBuilder: (context, i) {
+                        final current = data.data![i];
+                        return Card(
+                          child: ListTile(
+                            onTap: () => fatherTap(context, current, false),
+                            title: Text(current.name),
+                          ),
+                        );
+                      },
                     );
                   } else {
                     return const Center(child: CircularProgressIndicator());
                   }
                 },
-              )
+              ),
           ],
         ),
       ),
@@ -311,7 +314,11 @@ Future<void> churchTap(
 }
 
 Future<void> fatherTap(
-    BuildContext context, Father _father, bool editMode) async {
+  BuildContext context,
+  Father _father,
+  bool editMode, {
+  bool canDelete = true,
+}) async {
   Father father = _father;
   final title = TextStyle(
     fontSize: 22,
@@ -337,7 +344,7 @@ Future<void> fatherTap(
           },
           child: Text(editMode ? 'حفظ' : 'تعديل'),
         ),
-        if (editMode)
+        if (editMode && canDelete)
           TextButton(
             onPressed: () async {
               await showDialog(
@@ -373,6 +380,7 @@ Future<void> fatherTap(
       title: Text(father.name),
       content: SingleChildScrollView(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text('الاسم:', style: title),
@@ -447,7 +455,11 @@ Future<void> fatherTap(
 }
 
 Future<void> studyYearTap(
-    BuildContext context, StudyYear _year, bool editMode) async {
+  BuildContext context,
+  StudyYear _year,
+  bool editMode, {
+  bool canDelete = true,
+}) async {
   StudyYear year = _year;
   final title = TextStyle(
     fontSize: 22,
@@ -473,7 +485,7 @@ Future<void> studyYearTap(
           },
           child: Text(editMode ? 'حفظ' : 'تعديل'),
         ),
-        if (editMode)
+        if (editMode && canDelete)
           TextButton(
             onPressed: () async {
               await showDialog(
@@ -509,6 +521,7 @@ Future<void> studyYearTap(
       title: Text(year.name),
       content: SingleChildScrollView(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             DefaultTextStyle(
