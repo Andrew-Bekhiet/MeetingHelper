@@ -45,9 +45,11 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(
               height: 10,
             ),
-            Text(
-              'قم بتسجيل الدخول أو انشاء حساب',
-              style: Theme.of(context).textTheme.headline6,
+            Center(
+              child: Text(
+                'قم بتسجيل الدخول أو انشاء حساب',
+                style: Theme.of(context).textTheme.headline6,
+              ),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
