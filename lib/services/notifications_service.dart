@@ -241,7 +241,7 @@ class MHNotificationsService extends NotificationsService {
   }
 
   static Future<void> showKodasNotification() async {
-    await initMeetingHelper();
+    if (!GetIt.I.isRegistered<MHAuthRepository>()) await initMeetingHelper();
 
     if (MHAuthRepository.I.currentUser == null) return;
 
@@ -303,7 +303,9 @@ class MHNotificationsService extends NotificationsService {
   }
 
   static Future<void> showMeetingNotification() async {
-    await initMeetingHelper();
+    if (!GetIt.I.isRegistered<MHAuthRepository>()) {
+      await initMeetingHelper();
+    }
 
     if (MHAuthRepository.I.currentUser == null) return;
 
@@ -365,7 +367,7 @@ class MHNotificationsService extends NotificationsService {
   }
 
   static Future<void> showTanawolNotification() async {
-    await initMeetingHelper();
+    if (!GetIt.I.isRegistered<MHAuthRepository>()) await initMeetingHelper();
 
     if (MHAuthRepository.I.currentUser == null) return;
 
@@ -427,7 +429,7 @@ class MHNotificationsService extends NotificationsService {
   }
 
   static Future<void> showVisitNotification() async {
-    await initMeetingHelper();
+    if (!GetIt.I.isRegistered<MHAuthRepository>()) await initMeetingHelper();
 
     if (MHAuthRepository.I.currentUser == null) return;
 
@@ -489,7 +491,7 @@ class MHNotificationsService extends NotificationsService {
   }
 
   static Future<void> showConfessionNotification() async {
-    await initMeetingHelper();
+    if (!GetIt.I.isRegistered<MHAuthRepository>()) await initMeetingHelper();
 
     if (MHAuthRepository.I.currentUser == null) return;
 
@@ -551,7 +553,7 @@ class MHNotificationsService extends NotificationsService {
   }
 
   static Future<void> showBirthDayNotification() async {
-    await initMeetingHelper();
+    if (!GetIt.I.isRegistered<MHAuthRepository>()) await initMeetingHelper();
 
     if (MHAuthRepository.I.currentUser == null) return;
 
