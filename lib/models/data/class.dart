@@ -55,12 +55,10 @@ class Class extends DataObject implements PhotoObjectBase {
             UnmodifiableListView(data['Allowed']?.cast<String>() ?? []),
         lastEdit = data['LastEdit'] == null
             ? null
-            : data['LastEdit'] is Map
-                ? LastEdit.fromJson(data['LastEdit'])
-                : LastEdit(
-                    data['LastEdit'],
-                    data['LastEditTime']?.toDate() ?? DateTime.now(),
-                  ),
+            : LastEdit(
+                data['LastEdit'],
+                data['LastEditTime']?.toDate() ?? DateTime.now(),
+              ),
         color = data['Color'] == null || data['Color'] == 0
             ? null
             : Color(data['Color']),
@@ -119,7 +117,8 @@ class Class extends DataObject implements PhotoObjectBase {
         'Gender': gender,
         'HasPhoto': hasPhoto,
         'Color': color?.value,
-        'LastEdit': lastEdit?.toJson(),
+        'LastEdit': lastEdit?.uid,
+        'LastEditTime': lastEdit?.time,
         'Allowed': allowedUsers
       };
 
@@ -212,6 +211,11 @@ class Class extends DataObject implements PhotoObjectBase {
           query:
               GetIt.I<DatabaseRepository>().collection('Users').orderBy('Name'),
           collectionName: 'Users',
+        ),
+        'LastEditTime': const PropertyMetadata<DateTime>(
+          name: 'LastEditTime',
+          label: 'وقت أخر تعديل',
+          defaultValue: null,
         ),
       };
 }

@@ -122,12 +122,10 @@ class Person extends PersonBase {
           lastVisit: (json['LastVisit'] as Timestamp?)?.toDate(),
           lastEdit: json['LastEdit'] == null
               ? null
-              : json['LastEdit'] is Map
-                  ? LastEdit.fromJson(json['LastEdit'])
-                  : LastEdit(
-                      json['LastEdit'],
-                      json['LastEditTime']?.toDate() ?? DateTime.now(),
-                    ),
+              : LastEdit(
+                  json['LastEdit'],
+                  json['LastEditTime']?.toDate() ?? DateTime.now(),
+                ),
           notes: json['Notes'],
           isShammas: json['IsShammas'] ?? false,
           gender: json['Gender'] ?? true,
@@ -214,7 +212,8 @@ class Person extends PersonBase {
   Json toJson() => {
         ...super.toJson()
           ..remove('MainPhone')
-          ..remove('OtherPhones'),
+          ..remove('OtherPhones')
+          ..remove('LastEdit'),
         'ClassId': classId,
         'Phone': phone,
         'FatherPhone': fatherPhone,
@@ -224,6 +223,8 @@ class Person extends PersonBase {
         'HasPhoto': hasPhoto,
         'LastMeeting': lastMeeting,
         'Last': last,
+        'LastEdit': lastEdit?.uid,
+        'LastEditTime': lastEdit?.time,
         'Services': services,
       };
 
@@ -440,6 +441,11 @@ class Person extends PersonBase {
           query:
               GetIt.I<DatabaseRepository>().collection('Users').orderBy('Name'),
           collectionName: 'Users',
+        ),
+        'LastEditTime': const PropertyMetadata<DateTime>(
+          name: 'LastEditTime',
+          label: 'وقت أخر تعديل',
+          defaultValue: null,
         ),
         'HasPhoto': const PropertyMetadata<bool>(
           name: 'HasPhoto',

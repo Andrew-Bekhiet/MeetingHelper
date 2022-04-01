@@ -72,12 +72,10 @@ class Service extends DataObject implements PhotoObjectBase {
               : Color(json['Color']),
           lastEdit: json['LastEdit'] == null
               ? null
-              : json['LastEdit'] is Map
-                  ? LastEdit.fromJson(json['LastEdit'])
-                  : LastEdit(
-                      json['LastEdit'],
-                      json['LastEditTime']?.toDate() ?? DateTime.now(),
-                    ),
+              : LastEdit(
+                  json['LastEdit'],
+                  json['LastEditTime']?.toDate() ?? DateTime.now(),
+                ),
           hasPhoto: json['HasPhoto'],
         );
 
@@ -164,7 +162,8 @@ class Service extends DataObject implements PhotoObjectBase {
       'StudyYearRange': studyYearRange?.toJson(),
       'Validity': validity?.toJson(),
       'ShowInHistory': showInHistory,
-      'LastEdit': lastEdit?.toJson(),
+      'LastEdit': lastEdit?.uid,
+      'LastEditTime': lastEdit?.time,
       'HasPhoto': hasPhoto,
       'Color': color?.value,
     };
@@ -214,6 +213,11 @@ class Service extends DataObject implements PhotoObjectBase {
           query:
               GetIt.I<DatabaseRepository>().collection('Users').orderBy('Name'),
           collectionName: 'Users',
+        ),
+        'LastEditTime': const PropertyMetadata<DateTime>(
+          name: 'LastEditTime',
+          label: 'وقت أخر تعديل',
+          defaultValue: null,
         ),
         'HasPhoto': const PropertyMetadata<bool>(
           name: 'HasPhoto',
