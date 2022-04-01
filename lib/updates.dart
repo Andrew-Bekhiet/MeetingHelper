@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get_it/get_it.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:version/version.dart';
@@ -19,48 +20,9 @@ class Update extends StatefulWidget {
 class Updates {
   static Future showUpdateDialog(BuildContext context,
       {bool canCancel = true}) async {
-    final Version latest =
-        Version.parse(RemoteConfig.instance.getString('LatestVersion'));
-    if (latest > Version.parse((await PackageInfo.fromPlatform()).version) &&
-        canCancel) {
-      await showDialog(
-        barrierDismissible: canCancel,
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text(''),
-            content: Text(canCancel
-                ? 'هل تريد التحديث إلى إصدار $latest؟'
-                : 'للأسف فإصدار البرنامج الحالي غير مدعوم\nيرجى تحديث البرنامج'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () async {
-                  if (await canLaunch(RemoteConfig.instance
-                      .getString('DownloadLink')
-                      .replaceFirst('https://', 'https:'))) {
-                    await launch(RemoteConfig.instance
-                        .getString('DownloadLink')
-                        .replaceFirst('https://', 'https:'));
-                  } else {
-                    navigator.currentState!.pop();
-                    await Clipboard.setData(ClipboardData(
-                        text: RemoteConfig.instance.getString('DownloadLink')));
-                    scaffoldMessenger.currentState!.showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                            'حدث خطأ أثناء فتح رابط التحديث وتم نقله الى الحافظة'),
-                      ),
-                    );
-                  }
-                },
-                child: Text(canCancel ? 'نعم' : 'تحديث'),
-              ),
-            ],
-          );
-        },
-      );
-    } else if (latest >
-        Version.parse((await PackageInfo.fromPlatform()).version)) {
+    final Version latest = Version.parse(
+        GetIt.I<FirebaseRemoteConfig>().getString('LatestVersion'));
+    if (latest > Version.parse((await PackageInfo.fromPlatform()).version)) {
       await showDialog(
         barrierDismissible: canCancel,
         context: context,
@@ -74,16 +36,17 @@ class Updates {
               TextButton(
                 onPressed: () async {
                   navigator.currentState!.pop();
-                  if (await canLaunch(RemoteConfig.instance
+                  if (await canLaunch(GetIt.I<FirebaseRemoteConfig>()
                       .getString('DownloadLink')
                       .replaceFirst('https://', 'https:'))) {
-                    await launch(RemoteConfig.instance
+                    await launch(GetIt.I<FirebaseRemoteConfig>()
                         .getString('DownloadLink')
                         .replaceFirst('https://', 'https:'));
                   } else {
                     navigator.currentState!.pop();
                     await Clipboard.setData(ClipboardData(
-                        text: RemoteConfig.instance.getString('DownloadLink')));
+                        text: GetIt.I<FirebaseRemoteConfig>()
+                            .getString('DownloadLink')));
                     scaffoldMessenger.currentState!.showSnackBar(
                       const SnackBar(
                         content: Text(
@@ -142,8 +105,8 @@ class _UpdateState extends State<Update> {
               ),
               ListTile(
                   title: const Text('آخر إصدار:'),
-                  subtitle:
-                      Text(RemoteConfig.instance.getString('LatestVersion'))),
+                  subtitle: Text(GetIt.I<FirebaseRemoteConfig>()
+                      .getString('LatestVersion'))),
             ],
           ),
         ),

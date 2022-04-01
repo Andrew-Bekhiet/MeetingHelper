@@ -1,10 +1,9 @@
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
-import 'package:meetinghelper/models/data/user.dart';
-import 'package:meetinghelper/models/list_controllers.dart';
+import 'package:get_it/get_it.dart';
+import 'package:meetinghelper/models.dart';
+import 'package:meetinghelper/repositories/database_repository.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/utils/helpers.dart';
-
-import 'lists/users_list.dart';
 
 class UsersPage extends StatefulWidget {
   const UsersPage({Key? key}) : super(key: key);
@@ -15,22 +14,23 @@ class UsersPage extends StatefulWidget {
 
 class _UsersPageState extends State<UsersPage> {
   bool _showSearch = false;
-  late final DataObjectListController<User> _listOptions;
+  late final ListController<Class?, UserWithPerson> _listOptions;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          IconButton(
-              icon: const Icon(Icons.link),
-              tooltip: 'لينكات الدعوة',
-              onPressed: () =>
-                  navigator.currentState!.pushNamed('Invitations')),
           if (!_showSearch)
             IconButton(
-                icon: const Icon(Icons.search),
-                onPressed: () => setState(() => _showSearch = true)),
+              icon: const Icon(Icons.search),
+              onPressed: () => setState(() => _showSearch = true),
+            ),
+          IconButton(
+            icon: const Icon(Icons.link),
+            tooltip: 'لينكات الدعوة',
+            onPressed: () => navigator.currentState!.pushNamed('Invitations'),
+          ),
         ],
         title: _showSearch
             ? TextField(
@@ -39,14 +39,14 @@ class _UsersPageState extends State<UsersPage> {
                       icon: const Icon(Icons.close),
                       onPressed: () => setState(
                         () {
-                          _listOptions.searchQuery.add('');
+                          _listOptions.searchSubject.add('');
                           _showSearch = false;
                         },
                       ),
                     ),
                     hintStyle: Theme.of(context).primaryTextTheme.headline6,
                     hintText: 'بحث ...'),
-                onChanged: _listOptions.searchQuery.add,
+                onChanged: _listOptions.searchSubject.add,
               )
             : const Text('المستخدمون'),
       ),
@@ -54,7 +54,7 @@ class _UsersPageState extends State<UsersPage> {
         color: Theme.of(context).colorScheme.primary,
         shape: const CircularNotchedRectangle(),
         child: StreamBuilder<List>(
-          stream: _listOptions.objectsData,
+          stream: _listOptions.objectsStream,
           builder: (context, snapshot) {
             return Text(
               (snapshot.data?.length ?? 0).toString() + ' مستخدم',
@@ -65,9 +65,10 @@ class _UsersPageState extends State<UsersPage> {
           },
         ),
       ),
-      body: UsersList(
+      body: DataObjectListView<Class?, UserWithPerson>(
         autoDisposeController: true,
-        listOptions: _listOptions,
+        controller: _listOptions,
+        onTap: GetIt.I<MHViewableObjectTapHandler>().userTap,
       ),
     );
   }
@@ -76,10 +77,21 @@ class _UsersPageState extends State<UsersPage> {
   void initState() {
     super.initState();
 
-    _listOptions = DataObjectListController<User>(
-      itemsStream: User.getAllForUserForEdit()
-          .map((users) => users.where((u) => u.uid != null).toList()),
-      tap: userTap,
+    _listOptions = ListController<Class?, UserWithPerson>(
+      objectsPaginatableStream: PaginatableStream.loadAll(
+        stream: MHDatabaseRepo.instance.getAllUsersData().map(
+              (users) => users.where((u) => u.uid != User.emptyUID).toList(),
+            ),
+      ),
+      groupByStream: (u) => MHDatabaseRepo.I.groupUsersByClass(u).map(
+            (event) => event.map(
+              (key, value) => MapEntry(
+                key,
+                value.cast<UserWithPerson>(),
+              ),
+            ),
+          ),
+      groupingStream: Stream.value(true),
     );
   }
 }

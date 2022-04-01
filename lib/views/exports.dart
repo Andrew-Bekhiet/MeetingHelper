@@ -19,8 +19,9 @@ class Exports extends StatelessWidget {
             (await getApplicationDocumentsDirectory()).path + '/Exports'));
       }(), builder: (context, snapshot) {
         if (snapshot.hasError) return ErrorWidget(snapshot.error!);
-        if (snapshot.connectionState != ConnectionState.done)
+        if (snapshot.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
+        }
         return ListView.builder(
           itemCount: snapshot.data!.length,
           itemBuilder: (context, i) => Card(

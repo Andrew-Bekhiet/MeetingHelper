@@ -1,14 +1,15 @@
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
-import 'package:meetinghelper/models/data/user.dart';
+import 'package:meetinghelper/models.dart';
+import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/utils/encryption_keys.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
-import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 class UserRegistration extends StatefulWidget {
@@ -37,27 +38,34 @@ class _UserRegistrationState extends State<UserRegistration> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<User>(
-      builder: (context, user, _) {
-        if (user.approved) {
+    return StreamBuilder<User>(
+      initialData: User.instance,
+      stream: User.loggedInStream,
+      builder: (context, userSnapshot) {
+        final user = userSnapshot.data!;
+
+        if (user.permissions.approved) {
           lastTanawol ??= user.lastTanawol?.millisecondsSinceEpoch;
           lastConfession ??= user.lastConfession?.millisecondsSinceEpoch;
-          if (_userName.text.isEmpty)
+          if (_userName.text.isEmpty) {
             WidgetsBinding.instance!
                 .addPostFrameCallback((_) => _userName.text = user.name);
+          }
           return Scaffold(
             resizeToAvoidBottomInset: !kIsWeb,
             appBar: AppBar(
               actions: <Widget>[
                 IconButton(
-                    icon: const Icon(
-                        IconData(0xe9ba, fontFamily: 'MaterialIconsR')),
-                    tooltip: 'تسجيل الخروج',
-                    onPressed: () async {
-                      await Hive.box('Settings')
-                          .put('FCM_Token_Registered', false);
-                      await User.instance.signOut();
-                    })
+                  icon: const Icon(
+                      IconData(0xe9ba, fontFamily: 'MaterialIconsR')),
+                  tooltip: 'تسجيل الخروج',
+                  onPressed: () async {
+                    await GetIt.I<CacheRepository>()
+                        .box('Settings')
+                        .put('FCM_Token_Registered', false);
+                    await MHAuthRepository.I.signOut();
+                  },
+                ),
               ],
               leading: Container(),
               title: const Text('تسجيل حساب جديد'),
@@ -251,14 +259,16 @@ class _UserRegistrationState extends State<UserRegistration> {
             title: const Text('في انتظار الموافقة'),
             actions: <Widget>[
               IconButton(
-                  icon: const Icon(
-                      IconData(0xe9ba, fontFamily: 'MaterialIconsR')),
-                  tooltip: 'تسجيل الخروج',
-                  onPressed: () async {
-                    await Hive.box('Settings')
-                        .put('FCM_Token_Registered', false);
-                    await User.instance.signOut();
-                  })
+                icon:
+                    const Icon(IconData(0xe9ba, fontFamily: 'MaterialIconsR')),
+                tooltip: 'تسجيل الخروج',
+                onPressed: () async {
+                  await GetIt.I<CacheRepository>()
+                      .box('Settings')
+                      .put('FCM_Token_Registered', false);
+                  await MHAuthRepository.I.signOut();
+                },
+              ),
             ],
           ),
           body: Column(
@@ -306,14 +316,14 @@ class _UserRegistrationState extends State<UserRegistration> {
     );
   }
 
-  void _registerUser(String registerationLink) async {
+  Future<void> _registerUser(String registerationLink) async {
     // ignore: unawaited_futures
     showDialog(
       barrierDismissible: false,
       context: context,
       builder: (context) => AlertDialog(
         title: FutureBuilder<HttpsCallableResult>(
-          future: FirebaseFunctions.instance
+          future: GetIt.I<FunctionsService>()
               .httpsCallable('registerWithLink')
               .call({'link': registerationLink}),
           builder: (context, snapshot) {
@@ -352,7 +362,7 @@ class _UserRegistrationState extends State<UserRegistration> {
     return initialDate;
   }
 
-  void _submit(String password, String _userName) async {
+  Future<void> _submit(String password, String _userName) async {
     if (!_formKey.currentState!.validate()) return;
     // ignore: unawaited_futures
     scaffoldMessenger.currentState!.showSnackBar(
@@ -367,14 +377,16 @@ class _UserRegistrationState extends State<UserRegistration> {
       ),
     );
     try {
-      await FirebaseFunctions.instance.httpsCallable('registerAccount').call({
+      await GetIt.I<FunctionsService>().httpsCallable('registerAccount').call({
         'name': _userName,
         'password': Encryption.encPswd(password),
         'lastConfession': lastConfession,
         'lastTanawol': lastTanawol,
-        'fcmToken': await FirebaseMessaging.instance.getToken(),
+        'fcmToken': await GetIt.I<FirebaseMessaging>().getToken(),
       });
-      await Hive.box('Settings').put('FCM_Token_Registered', true);
+      await GetIt.I<CacheRepository>()
+          .box('Settings')
+          .put('FCM_Token_Registered', true);
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
     } catch (err, stack) {
       await Sentry.captureException(err,

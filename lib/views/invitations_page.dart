@@ -1,9 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
-import 'package:meetinghelper/models/data/invitation.dart';
-import 'package:meetinghelper/models/list_controllers.dart';
+import 'package:get_it/get_it.dart';
+import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/views/list.dart';
+import 'package:rxdart/rxdart.dart';
 
 class InvitationsPage extends StatefulWidget {
   const InvitationsPage({Key? key}) : super(key: key);
@@ -13,23 +13,23 @@ class InvitationsPage extends StatefulWidget {
 }
 
 class _InvitationsPageState extends State<InvitationsPage> {
-  final options = DataObjectListController<Invitation>(
-    searchQuery: Stream.value(''),
-    itemsStream: FirebaseFirestore.instance
-        .collection('Invitations')
-        .snapshots()
-        .map((s) => s.docs.map(Invitation.fromQueryDoc).toList()),
-    tap: (dynamic i) =>
-        navigator.currentState!.pushNamed('InvitationInfo', arguments: i),
+  final controller = ListController<void, Invitation>(
+    searchStream: BehaviorSubject.seeded(''),
+    objectsPaginatableStream: PaginatableStream.query(
+      query: GetIt.I<DatabaseRepository>().collection('Invitations'),
+      mapper: Invitation.fromQueryDoc,
+    ),
   );
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('لينكات الدعوة')),
-      body: DataObjectList<Invitation>(
-        disposeController: true,
-        options: options,
+      body: DataObjectListView<void, Invitation>(
+        autoDisposeController: true,
+        controller: controller,
+        onTap: (i) =>
+            navigator.currentState!.pushNamed('InvitationInfo', arguments: i),
       ),
       extendBody: true,
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
@@ -37,7 +37,7 @@ class _InvitationsPageState extends State<InvitationsPage> {
         color: Theme.of(context).colorScheme.primary,
         shape: const CircularNotchedRectangle(),
         child: StreamBuilder<List<Invitation?>>(
-          stream: options.objectsData,
+          stream: controller.objectsStream,
           builder: (context, snapshot) {
             return Text((snapshot.data?.length ?? 0).toString() + ' دعوة',
                 textAlign: TextAlign.center,

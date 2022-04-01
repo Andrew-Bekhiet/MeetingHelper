@@ -1,41 +1,30 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:flutter/material.dart' hide Notification;
+import 'package:get_it/get_it.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:meetinghelper/models/data/class.dart';
-import 'package:meetinghelper/models/data/person.dart';
-import 'package:meetinghelper/models/data/service.dart';
-import 'package:meetinghelper/models/hive_persistence_provider.dart';
-import 'package:meetinghelper/models/super_classes.dart';
-import 'package:meetinghelper/views/lists/lists.dart';
+import 'package:meetinghelper/controllers.dart';
+import 'package:meetinghelper/models.dart';
+import 'package:meetinghelper/repositories.dart';
+import 'package:meetinghelper/services.dart';
+import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/helpers.dart';
+import 'package:meetinghelper/views.dart';
+import 'package:meetinghelper/widgets.dart';
 import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:provider/provider.dart';
-import 'package:rxdart/rxdart.dart';
+import 'package:rxdart/rxdart.dart' hide Notification;
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
-
-import '../models/data/user.dart';
-import '../models/list_controllers.dart';
-import '../utils/globals.dart';
-import '../utils/helpers.dart';
-import 'auth_screen.dart';
-import 'edit_page/edit_person.dart';
-import 'list.dart';
-import 'services_list.dart';
 
 class Root extends StatefulWidget {
   const Root({Key? key}) : super(key: key);
@@ -48,7 +37,6 @@ class _RootState extends State<Root>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final StreamSubscription<PendingDynamicLinkData>
       _dynamicLinksSubscription;
-  late final StreamSubscription<RemoteMessage> _firebaseMessagingSubscription;
 
   TabController? _tabController;
   Timer? _keepAliveTimer;
@@ -67,9 +55,10 @@ class _RootState extends State<Root>
   final BehaviorSubject<String> _searchQuery =
       BehaviorSubject<String>.seeded('');
 
-  void addTap() async {
+  Future<void> addTap() async {
     if (_tabController!.index == _tabController!.length - 2) {
-      if (User.instance.manageUsers || User.instance.manageAllowedUsers) {
+      if (User.instance.permissions.manageUsers ||
+          User.instance.permissions.manageAllowedUsers) {
         final rslt = await showDialog(
           context: context,
           builder: (context) => SimpleDialog(
@@ -85,10 +74,11 @@ class _RootState extends State<Root>
             ],
           ),
         );
-        if (rslt == true)
+        if (rslt == true) {
           unawaited(navigator.currentState!.pushNamed('Data/EditClass'));
-        else if (rslt == false)
+        } else if (rslt == false) {
           unawaited(navigator.currentState!.pushNamed('Data/EditService'));
+        }
       } else {
         unawaited(navigator.currentState!.pushNamed('Data/EditClass'));
       }
@@ -99,10 +89,9 @@ class _RootState extends State<Root>
         MaterialPageRoute(
           builder: (context) {
             return EditPerson(
-              person: User(
-                name: '',
-                email: '',
-                ref: FirebaseFirestore.instance.collection('UsersData').doc(),
+              person: Person(
+                ref:
+                    GetIt.I<DatabaseRepository>().collection('UsersData').doc(),
               ),
             );
           },
@@ -111,9 +100,9 @@ class _RootState extends State<Root>
     }
   }
 
-  late ServicesListController _servicesOptions;
-  late DataObjectListController<Person> _personsOptions;
-  late DataObjectListController<User> _usersOptions;
+  late final ServicesListController _servicesOptions;
+  late final ListController<void, Person> _personsOptions;
+  late final ListController<Class?, UserWithPerson> _usersOptions;
 
   GlobalKey _createOrGetFeatureKey(String key) {
     _features[key] ??= GlobalKey();
@@ -153,7 +142,7 @@ class _RootState extends State<Root>
                                 icon: const Icon(Icons.select_all),
                                 label: const Text('تحديد لا شئ'),
                                 onPressed: () {
-                                  _personsOptions.selectNone();
+                                  _personsOptions.deselectAll();
                                   navigator.currentState!.pop();
                                 },
                               ),
@@ -170,8 +159,9 @@ class _RootState extends State<Root>
                                       onChanged: (value) {
                                         _personsOrder.add(
                                           OrderOptions(
-                                              orderBy: value,
-                                              asc: _personsOrder.value.asc),
+                                            orderBy: value!,
+                                            asc: _personsOrder.value.asc,
+                                          ),
                                         );
                                         navigator.currentState!.pop();
                                       },
@@ -230,7 +220,8 @@ class _RootState extends State<Root>
         bottom: TabBar(
           controller: _tabController,
           tabs: [
-            if (User.instance.manageUsers || User.instance.manageAllowedUsers)
+            if (User.instance.permissions.manageUsers ||
+                User.instance.permissions.manageAllowedUsers)
               Tab(
                 key: _createOrGetFeatureKey('Servants'),
                 text: 'الخدام',
@@ -307,10 +298,10 @@ class _RootState extends State<Root>
           animation: _tabController!,
           builder: (context, _) => StreamBuilder<dynamic>(
             stream: _tabController!.index == _tabController!.length - 1
-                ? _personsOptions.objectsData
+                ? _personsOptions.objectsStream
                 : _tabController!.index == _tabController!.length - 2
-                    ? _servicesOptions.objectsData
-                    : _usersOptions.objectsData,
+                    ? _servicesOptions.objectsStream
+                    : _usersOptions.objectsStream,
             builder: (context, snapshot) {
               return Text(
                 (snapshot.data?.length ?? 0).toString() +
@@ -332,21 +323,23 @@ class _RootState extends State<Root>
       body: TabBarView(
         controller: _tabController,
         children: [
-          if (User.instance.manageUsers || User.instance.manageAllowedUsers)
-            UsersList(
+          if (User.instance.permissions.manageUsers ||
+              User.instance.permissions.manageAllowedUsers)
+            DataObjectListView<Class?, UserWithPerson>(
               key: const PageStorageKey('mainUsersList'),
               autoDisposeController: false,
-              listOptions: _usersOptions,
+              controller: _usersOptions,
+              onTap: GetIt.I<MHViewableObjectTapHandler>().personTap,
             ),
           ServicesList(
             key: const PageStorageKey('mainClassesList'),
             autoDisposeController: false,
             options: _servicesOptions,
           ),
-          DataObjectList<Person>(
+          DataObjectListView<void, Person>(
             key: const PageStorageKey('mainPersonsList'),
-            disposeController: false,
-            options: _personsOptions,
+            autoDisposeController: false,
+            controller: _personsOptions,
           ),
         ],
       ),
@@ -367,11 +360,11 @@ class _RootState extends State<Root>
             ),
             ListTile(
               key: _createOrGetFeatureKey('MyAccount'),
-              leading: StreamBuilder<User>(
-                stream: User.instance.stream,
+              leading: StreamBuilder<User?>(
+                stream: User.loggedInStream,
                 initialData: User.instance,
                 builder: (context, snapshot) {
-                  return snapshot.data!.getPhoto(true, false);
+                  return UserPhotoWidget(snapshot.data!);
                 },
               ),
               title: const Text('حسابي'),
@@ -380,16 +373,22 @@ class _RootState extends State<Root>
                 navigator.currentState!.pushNamed('MyAccount');
               },
             ),
-            Selector<User, bool>(
+            StreamBuilder<bool>(
               key: _createOrGetFeatureKey('ManageUsers'),
-              selector: (_, user) =>
-                  user.manageUsers || user.manageAllowedUsers,
-              builder: (c, permission, data) {
-                if (!permission)
+              initialData: false,
+              stream: User.loggedInStream
+                  .map((u) =>
+                      u.permissions.manageUsers ||
+                      u.permissions.manageAllowedUsers)
+                  .distinct(),
+              builder: (context, data) {
+                if (!data.data!) {
                   return const SizedBox(
                     width: 0,
                     height: 0,
                   );
+                }
+
                 return ListTile(
                   leading: const Icon(Icons.admin_panel_settings),
                   onTap: () async {
@@ -425,10 +424,13 @@ class _RootState extends State<Root>
                 navigator.currentState!.pushNamed('Day');
               },
             ),
-            Selector<User, bool?>(
+            StreamBuilder<bool>(
               key: _createOrGetFeatureKey('AddServantsHistory'),
-              selector: (_, user) => user.secretary,
-              builder: (c, permission, data) => permission!
+              initialData: false,
+              stream: User.loggedInStream
+                  .map((u) => u.permissions.secretary)
+                  .distinct(),
+              builder: (context, data) => data.data!
                   ? ListTile(
                       leading: const Icon(Icons.add),
                       title: const Text('كشف حضور الخدام'),
@@ -448,10 +450,13 @@ class _RootState extends State<Root>
                 navigator.currentState!.pushNamed('History');
               },
             ),
-            Selector<User, bool?>(
+            StreamBuilder<bool>(
               key: _createOrGetFeatureKey('ServantsHistory'),
-              selector: (_, user) => user.secretary,
-              builder: (c, permission, data) => permission!
+              initialData: false,
+              stream: User.loggedInStream
+                  .map((u) => u.permissions.secretary)
+                  .distinct(),
+              builder: (context, data) => data.data!
                   ? ListTile(
                       leading: const Icon(Icons.history),
                       title: const Text('سجل الخدام'),
@@ -482,10 +487,15 @@ class _RootState extends State<Root>
                     arguments: {'HistoryCollection': 'ServantsHistory'});
               },
             ),
-            Consumer<User>(
+            StreamBuilder<bool>(
+              initialData: false,
+              stream: User.loggedInStream
+                  .map((u) =>
+                      u.permissions.manageUsers ||
+                      u.permissions.manageAllowedUsers)
+                  .distinct(),
               key: _createOrGetFeatureKey('ActivityAnalysis'),
-              builder: (context, user, _) => user.manageUsers ||
-                      user.manageAllowedUsers
+              builder: (context, user) => user.data!
                   ? ListTile(
                       leading: const Icon(Icons.analytics_outlined),
                       title: const Text('تحليل بيانات الخدمة'),
@@ -506,15 +516,20 @@ class _RootState extends State<Root>
                 navigator.currentState!.pushNamed('Search');
               },
             ),
-            Selector<User, bool?>(
+            StreamBuilder<bool>(
               key: _createOrGetFeatureKey('ManageDeleted'),
-              selector: (_, user) => user.manageDeleted,
-              builder: (context, permission, _) {
-                if (!permission!)
+              initialData: false,
+              stream: User.loggedInStream
+                  .map((u) => u.permissions.manageDeleted)
+                  .distinct(),
+              builder: (context, data) {
+                if (!data.data!) {
                   return const SizedBox(
                     width: 0,
                     height: 0,
                   );
+                }
+
                 return ListTile(
                   leading: const Icon(Icons.delete_outline),
                   onTap: () {
@@ -553,10 +568,13 @@ class _RootState extends State<Root>
                 import(context);
               },
             ),
-            Selector<User, bool?>(
-              selector: (_, user) => user.export,
-              builder: (context2, permission, _) {
-                return permission!
+            StreamBuilder<bool>(
+              initialData: false,
+              stream: User.loggedInStream
+                  .map((u) => u.permissions.export)
+                  .distinct(),
+              builder: (context, data) {
+                return data.data!
                     ? ListTile(
                         leading: const Icon(Icons.cloud_download),
                         title: const Text('تصدير فصل إلى ملف اكسل'),
@@ -574,12 +592,20 @@ class _RootState extends State<Root>
                                   Expanded(
                                     child: ServicesList(
                                       autoDisposeController: true,
-                                      options: ServicesListController(
-                                        tap: (_class) =>
-                                            navigator.currentState!.pop(
-                                          _class,
+                                      onTap: (_class) =>
+                                          navigator.currentState!.pop(
+                                        _class,
+                                      ),
+                                      options:
+                                          ServicesListController<DataObject>(
+                                        objectsPaginatableStream:
+                                            PaginatableStream.loadAll(
+                                          stream: Stream.value(
+                                            [],
+                                          ),
                                         ),
-                                        itemsStream: servicesByStudyYearRef(),
+                                        groupByStream: (_) => MHDatabaseRepo.I
+                                            .groupServicesByStudyYearRef(),
                                       ),
                                     ),
                                   ),
@@ -603,7 +629,7 @@ class _RootState extends State<Root>
                             );
                             try {
                               final String filename = Uri.decodeComponent(
-                                  (await FirebaseFunctions.instance
+                                  (await GetIt.I<FunctionsService>()
                                           .httpsCallable('exportToExcel')
                                           .call(
                                 {
@@ -620,7 +646,7 @@ class _RootState extends State<Root>
                                           '/' +
                                           filename.replaceAll(':', ''))
                                   .create(recursive: true);
-                              await FirebaseStorage.instance
+                              await GetIt.I<StorageRepository>()
                                   .ref(filename)
                                   .writeToFile(file);
                               scaffoldMessenger.currentState!
@@ -655,10 +681,13 @@ class _RootState extends State<Root>
                     : Container();
               },
             ),
-            Selector<User, bool?>(
-              selector: (_, user) => user.export,
-              builder: (context2, permission, _) {
-                return permission!
+            StreamBuilder<bool>(
+              initialData: false,
+              stream: User.loggedInStream
+                  .map((u) => u.permissions.export)
+                  .distinct(),
+              builder: (context, data) {
+                return data.data!
                     ? ListTile(
                         leading: const Icon(Icons.cloud_download),
                         title: const Text('تصدير جميع البيانات'),
@@ -680,7 +709,7 @@ class _RootState extends State<Root>
                           );
                           try {
                             final String filename = Uri.decodeComponent(
-                                (await FirebaseFunctions.instance
+                                (await GetIt.I<FunctionsService>()
                                         .httpsCallable('exportToExcel')
                                         .call())
                                     .data);
@@ -690,7 +719,7 @@ class _RootState extends State<Root>
                                         '/' +
                                         filename.replaceAll(':', ''))
                                 .create(recursive: true);
-                            await FirebaseStorage.instance
+                            await GetIt.I<StorageRepository>()
                                 .ref(filename)
                                 .writeToFile(file);
                             scaffoldMessenger.currentState!
@@ -723,13 +752,19 @@ class _RootState extends State<Root>
                     : Container();
               },
             ),
-            Selector<User, bool?>(
-              selector: (_, user) => user.export,
-              builder: (context, user, _) => ListTile(
-                leading: const Icon(Icons.list_alt),
-                title: const Text('عمليات التصدير السابقة'),
-                onTap: () => navigator.currentState!.pushNamed('ExportOps'),
-              ),
+            StreamBuilder<bool>(
+              initialData: false,
+              stream: User.loggedInStream
+                  .map((u) => u.permissions.export)
+                  .distinct(),
+              builder: (context, data) => data.data!
+                  ? ListTile(
+                      leading: const Icon(Icons.list_alt),
+                      title: const Text('عمليات التصدير السابقة'),
+                      onTap: () =>
+                          navigator.currentState!.pushNamed('ExportOps'),
+                    )
+                  : Container(),
             ),
             const Divider(),
             if (!kIsWeb)
@@ -807,8 +842,10 @@ class _RootState extends State<Root>
               title: const Text('تسجيل الخروج'),
               onTap: () async {
                 mainScfld.currentState!.openEndDrawer();
-                await Hive.box('Settings').put('FCM_Token_Registered', false);
-                await User.instance.signOut();
+                await GetIt.I<CacheRepository>()
+                    .box('Settings')
+                    .put('FCM_Token_Registered', false);
+                await MHAuthRepository.I.signOut();
                 unawaited(navigator.currentState!.pushReplacementNamed('/'));
               },
             ),
@@ -836,11 +873,34 @@ class _RootState extends State<Root>
               .then((value) {
             _pushed = false;
             _timeout = false;
-            if (_dynamicLinksSubscription.isPaused)
+
+            if (_dynamicLinksSubscription.isPaused) {
               _dynamicLinksSubscription.resume();
-            if (_firebaseMessagingSubscription.isPaused)
-              _firebaseMessagingSubscription.resume();
+            }
+            if (MHNotificationsService
+                .I.onMessageOpenedAppSubscription.isPaused) {
+              MHNotificationsService.I.onMessageOpenedAppSubscription.resume();
+            }
+            if (MHNotificationsService
+                    .I.onForegroundMessageSubscription?.isPaused ??
+                false) {
+              MHNotificationsService.I.onForegroundMessageSubscription
+                  ?.resume();
+            }
           });
+        } else {
+          if (_dynamicLinksSubscription.isPaused) {
+            _dynamicLinksSubscription.resume();
+          }
+          if (MHNotificationsService
+              .I.onMessageOpenedAppSubscription.isPaused) {
+            MHNotificationsService.I.onMessageOpenedAppSubscription.resume();
+          }
+          if (MHNotificationsService
+                  .I.onForegroundMessageSubscription?.isPaused ??
+              false) {
+            MHNotificationsService.I.onForegroundMessageSubscription?.resume();
+          }
         }
         _keepAlive(true);
         _recordActive();
@@ -850,17 +910,17 @@ class _RootState extends State<Root>
       case AppLifecycleState.paused:
         _keepAlive(false);
         _recordLastSeen();
-        if (!_dynamicLinksSubscription.isPaused)
+        if (!_dynamicLinksSubscription.isPaused) {
           _dynamicLinksSubscription.pause();
-        if (!_firebaseMessagingSubscription.isPaused)
-          _firebaseMessagingSubscription.pause();
+        }
         break;
     }
   }
 
   @override
   void didChangePlatformBrightness() {
-    changeTheme(context: mainScfld.currentContext!);
+    GetIt.I<MHThemingService>().switchTheme(
+        WidgetsBinding.instance!.window.platformBrightness == Brightness.dark);
   }
 
   @override
@@ -868,7 +928,6 @@ class _RootState extends State<Root>
     super.dispose();
     WidgetsBinding.instance!.removeObserver(this);
 
-    await _firebaseMessagingSubscription.cancel();
     await _dynamicLinksSubscription.cancel();
 
     await _showSearch.close();
@@ -883,33 +942,52 @@ class _RootState extends State<Root>
   void initState() {
     super.initState();
     initializeDateFormatting('ar_EG');
-    _usersOptions = DataObjectListController<User>(
-      searchQuery: _searchQuery,
-      tap: personTap,
-      itemsStream: User.getAllForUser(),
+    _usersOptions = ListController<Class?, UserWithPerson>(
+      searchStream: _searchQuery,
+      objectsPaginatableStream: PaginatableStream.loadAll(
+        stream: MHDatabaseRepo.instance.getAllUsersData(),
+      ),
+      groupByStream: (u) => MHDatabaseRepo.I.groupUsersByClass(u).map(
+            (event) => event.map(
+              (key, value) => MapEntry(
+                key,
+                value.cast<UserWithPerson>(),
+              ),
+            ),
+          ),
+      groupingStream: Stream.value(true),
     );
+
     _servicesOptions = ServicesListController(
       searchQuery: _searchQuery,
-      itemsStream: servicesByStudyYearRef(),
-      tap: dataObjectTap,
+      objectsPaginatableStream: PaginatableStream.loadAll(
+        stream: Stream.value([]),
+      ),
+      groupByStream: (_) => MHDatabaseRepo.I.groupServicesByStudyYearRef(),
     );
-    _personsOptions = DataObjectListController<Person>(
-      searchQuery: _searchQuery,
-      tap: personTap,
+
+    _personsOptions = ListController<void, Person>(
+      searchStream: _searchQuery,
       //Listen to Ordering options and combine it
       //with the Data Stream from Firestore
-      itemsStream: _personsOrder.switchMap(
-        (order) => Person.getAllForUser(
-            orderBy: order.orderBy ?? 'Name', descending: !order.asc!),
+      objectsPaginatableStream: PaginatableStream.loadAll(
+        stream: _personsOrder.switchMap(
+          (order) => MHDatabaseRepo.instance.getAllPersons(
+            orderBy: order.orderBy,
+            descending: !order.asc,
+          ),
+        ),
       ),
     );
+
     _tabController = TabController(
         vsync: this,
-        initialIndex:
-            User.instance.manageUsers || User.instance.manageAllowedUsers
-                ? 1
-                : 0,
-        length: User.instance.manageUsers || User.instance.manageAllowedUsers
+        initialIndex: User.instance.permissions.manageUsers ||
+                User.instance.permissions.manageAllowedUsers
+            ? 1
+            : 0,
+        length: User.instance.permissions.manageUsers ||
+                User.instance.permissions.manageAllowedUsers
             ? 3
             : 2);
     WidgetsBinding.instance!.addObserver(this);
@@ -923,7 +1001,9 @@ class _RootState extends State<Root>
     if (!kIsWeb &&
         (await DeviceInfoPlugin().androidInfo).version.sdkInt! >= 23 &&
         !(await Permission.ignoreBatteryOptimizations.status).isGranted &&
-        Hive.box('Settings').get('ShowBatteryDialog', defaultValue: true)) {
+        GetIt.I<CacheRepository>()
+            .box('Settings')
+            .get('ShowBatteryDialog', defaultValue: true)) {
       await showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -939,7 +1019,9 @@ class _RootState extends State<Root>
             ),
             TextButton(
               onPressed: () async {
-                await Hive.box('Settings').put('ShowBatteryDialog', false);
+                await GetIt.I<CacheRepository>()
+                    .box('Settings')
+                    .put('ShowBatteryDialog', false);
                 navigator.currentState!.pop();
               },
               child: const Text('عدم الاظهار مجددًا'),
@@ -953,21 +1035,23 @@ class _RootState extends State<Root>
   Future showDynamicLink() async {
     if (kIsWeb) return;
     final PendingDynamicLinkData? data =
-        await FirebaseDynamicLinks.instance.getInitialLink();
+        await GetIt.I<FirebaseDynamicLinks>().getInitialLink();
 
-    _dynamicLinksSubscription = FirebaseDynamicLinks.instance.onLink.listen(
+    _dynamicLinksSubscription = GetIt.I<FirebaseDynamicLinks>().onLink.listen(
       (dynamicLink) async {
-        final Uri deepLink = dynamicLink.link;
+        final object =
+            await MHDatabaseRepo.I.getObjectFromLink(dynamicLink.link);
 
-        await processLink(deepLink);
+        if (object != null) GetIt.I<MHViewableObjectTapHandler>().onTap(object);
       },
       onError: (e) async {
         debugPrint('DynamicLinks onError $e');
       },
     );
     if (data == null) return;
-    final Uri deepLink = data.link;
-    await processLink(deepLink);
+
+    final object = await MHDatabaseRepo.I.getObjectFromLink(data.link);
+    if (object != null) GetIt.I<MHViewableObjectTapHandler>().onTap(object);
   }
 
   TargetFocus _getTarget(String key, GlobalKey v) {
@@ -1230,17 +1314,19 @@ class _RootState extends State<Root>
       'Servants',
       'Search',
       'MyAccount',
-      if (User.instance.manageUsers || User.instance.manageAllowedUsers)
+      if (User.instance.permissions.manageUsers ||
+          User.instance.permissions.manageAllowedUsers)
         'ManageUsers',
       'AddHistory',
-      if (User.instance.secretary) 'AddServantsHistory',
+      if (User.instance.permissions.secretary) 'AddServantsHistory',
       'History',
-      if (User.instance.secretary) 'ServantsHistory',
+      if (User.instance.permissions.secretary) 'ServantsHistory',
       'Analytics',
-      if (User.instance.manageUsers || User.instance.manageAllowedUsers)
+      if (User.instance.permissions.manageUsers ||
+          User.instance.permissions.manageAllowedUsers)
         'ActivityAnalysis',
       'AdvancedSearch',
-      if (User.instance.manageDeleted) 'ManageDeleted',
+      if (User.instance.permissions.manageDeleted) 'ManageDeleted',
       'DataMap',
       'Settings'
     ]..removeWhere(HivePersistenceProvider.instance.hasCompletedStep);
@@ -1287,26 +1373,16 @@ class _RootState extends State<Root>
     return _completer.future;
   }
 
-  void showPendingUIDialogs() async {
+  Future<void> showPendingUIDialogs() async {
     dialogsNotShown = false;
-    if (!await User.instance.userDataUpToDate()) {
+    if (!User.instance.userDataUpToDate()) {
       await showErrorUpdateDataDialog(context: context, pushApp: false);
     }
-    listenToFirebaseMessaging();
+
     await showDynamicLink();
-    await showPendingMessage();
-    await processClickedNotification(context);
+    await GetIt.I<MHNotificationsService>().showInitialNotification(context);
     await showBatteryOptimizationDialog();
     await showFeatures();
-  }
-
-  void listenToFirebaseMessaging() {
-    FirebaseMessaging.onBackgroundMessage(onBackgroundMessage);
-    FirebaseMessaging.onMessage.listen(onForegroundMessage);
-    _firebaseMessagingSubscription =
-        FirebaseMessaging.onMessageOpenedApp.listen((m) async {
-      await showPendingMessage();
-    });
   }
 
   void _keepAlive(bool visible) {
@@ -1316,16 +1392,21 @@ class _RootState extends State<Root>
     } else {
       _keepAliveTimer = Timer(
         const Duration(minutes: 1),
-        () => _timeout = true,
+        () {
+          _timeout = true;
+          _dynamicLinksSubscription.pause();
+          MHNotificationsService.I.onMessageOpenedAppSubscription.pause();
+          MHNotificationsService.I.onForegroundMessageSubscription?.pause();
+        },
       );
     }
   }
 
   Future<void> _recordActive() async {
-    await User.instance.recordActive();
+    await MHAuthRepository.I.recordActive();
   }
 
   Future<void> _recordLastSeen() async {
-    await User.instance.recordLastSeen();
+    await MHAuthRepository.I.recordLastSeen();
   }
 }

@@ -1,8 +1,7 @@
 import 'dart:async';
 
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
-import 'package:meetinghelper/models/mini_models.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
 
 class InnerListState extends State<_InnerSchoolsList> {
   String filter = '';
@@ -11,12 +10,13 @@ class InnerListState extends State<_InnerSchoolsList> {
     return Column(
       children: <Widget>[
         TextField(
-            decoration: const InputDecoration(hintText: 'بحث...'),
-            onChanged: (text) {
-              setState(() {
-                filter = text;
-              });
-            }),
+          decoration: const InputDecoration(hintText: 'بحث...'),
+          onChanged: (text) {
+            setState(() {
+              filter = text;
+            });
+          },
+        ),
         Expanded(
           child: RefreshIndicator(
             onRefresh: () async {
@@ -87,8 +87,11 @@ class SchoolsEditList extends StatefulWidget {
   final Future<JsonQuery> list;
 
   final Function(School)? tap;
-  const SchoolsEditList({Key? key, required this.list, this.tap})
-      : super(key: key);
+  const SchoolsEditList({
+    required this.list,
+    Key? key,
+    this.tap,
+  }) : super(key: key);
 
   @override
   _SchoolsEditListState createState() => _SchoolsEditListState();
@@ -99,8 +102,12 @@ class SchoolsList extends StatefulWidget {
 
   final Function(List<School>?)? finished;
   final Stream<School>? original;
-  const SchoolsList({Key? key, this.list, this.finished, this.original})
-      : super(key: key);
+  const SchoolsList({
+    Key? key,
+    this.list,
+    this.finished,
+    this.original,
+  }) : super(key: key);
 
   @override
   _SchoolsListState createState() => _SchoolsListState();

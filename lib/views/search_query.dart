@@ -1,28 +1,20 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' show FieldPath;
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
-import 'package:meetinghelper/models/data/class.dart';
-import 'package:meetinghelper/models/data/person.dart';
-import 'package:meetinghelper/models/data/service.dart';
-import 'package:meetinghelper/models/data_object_widget.dart';
-import 'package:meetinghelper/models/list_controllers.dart';
-import 'package:meetinghelper/models/property_metadata.dart';
-import 'package:meetinghelper/models/super_classes.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
-import 'package:meetinghelper/views/services_list.dart';
+import 'package:meetinghelper/controllers.dart';
+import 'package:meetinghelper/models.dart';
+import 'package:meetinghelper/repositories.dart';
+import 'package:meetinghelper/services.dart';
+import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/views.dart';
+import 'package:meetinghelper/widgets.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:share_plus/share_plus.dart';
-
-import '../models/data/user.dart';
-import '../models/search/search_filters.dart';
-import '../utils/globals.dart';
-import '../utils/helpers.dart';
-import 'list.dart';
-import 'mini_lists/colors_list.dart';
 
 class SearchQuery extends StatefulWidget {
-  final Json? query;
+  final QueryInfo? query;
 
   const SearchQuery({Key? key, this.query}) : super(key: key);
 
@@ -31,18 +23,20 @@ class SearchQuery extends StatefulWidget {
 }
 
 class _SearchQueryState extends State<SearchQuery> {
-  JsonCollectionRef collection =
-      FirebaseFirestore.instance.collection('Persons');
+  late QueryInfo query;
 
-  String fieldPath = 'Name';
+  JsonCollectionRef get collection => query.collection;
 
-  String operator = '=';
+  String get fieldPath => query.fieldPath;
 
-  dynamic queryValue = '';
+  String get operator => query.operator;
 
-  bool order = false;
-  String orderBy = 'Name';
-  bool descending = false;
+  dynamic get queryValue => query.queryValue;
+
+  bool get order => query.order;
+
+  String? get orderBy => query.orderBy;
+  bool? get descending => query.descending;
 
   final List<DropdownMenuItem<String>> operatorItems = const [
     DropdownMenuItem(value: '=', child: Text('=')),
@@ -56,11 +50,12 @@ class _SearchQueryState extends State<SearchQuery> {
   ];
 
   final Map<JsonCollectionRef, Map<String, PropertyMetadata>> properties = {
-    FirebaseFirestore.instance.collection('Services'): Service.propsMetadata()
-      ..remove('StudyYearRange')
-      ..remove('Validity'),
-    FirebaseFirestore.instance.collection('Classes'): Class.propsMetadata(),
-    FirebaseFirestore.instance.collection('Persons'): Person.propsMetadata()
+    GetIt.I<DatabaseRepository>().collection('Services'):
+        Service.propsMetadata()
+          ..remove('StudyYearRange')
+          ..remove('Validity'),
+    GetIt.I<DatabaseRepository>().collection('Classes'): Class.propsMetadata(),
+    GetIt.I<DatabaseRepository>().collection('Persons'): Person.propsMetadata()
       ..remove('Phones'),
   };
 
@@ -89,24 +84,28 @@ class _SearchQueryState extends State<SearchQuery> {
                     value: collection,
                     items: [
                       DropdownMenuItem(
-                        value:
-                            FirebaseFirestore.instance.collection('Services'),
+                        value: GetIt.I<DatabaseRepository>()
+                            .collection('Services'),
                         child: const Text('الخدمات'),
                       ),
                       DropdownMenuItem(
-                        value: FirebaseFirestore.instance.collection('Classes'),
+                        value:
+                            GetIt.I<DatabaseRepository>().collection('Classes'),
                         child: const Text('الفصول'),
                       ),
                       DropdownMenuItem(
-                        value: FirebaseFirestore.instance.collection('Persons'),
+                        value:
+                            GetIt.I<DatabaseRepository>().collection('Persons'),
                         child: const Text('المخدومين'),
                       ),
                     ],
                     onChanged: (v) => setState(() {
-                      collection = v!;
-                      fieldPath = 'Name';
-                      queryValue =
-                          properties[collection]?['Name']?.defaultValue;
+                      query = query.copyWith(
+                        collection: v,
+                        fieldPath: 'Name',
+                        queryValue:
+                            properties[collection]?['Name']?.defaultValue,
+                      );
                     }),
                   ),
                 ),
@@ -129,13 +128,22 @@ class _SearchQueryState extends State<SearchQuery> {
                           ),
                         )
                         .toList(),
-                    onChanged: (p) => setState(() {
-                      fieldPath = p!;
-                      queryValue = properties[collection]
-                              ?[fieldPath.split('.')[0]]
-                          ?.defaultValue;
-                    }),
-                    value: fieldPath.split('.')[0],
+                    onChanged: (p) => setState(
+                      () {
+                        query = query
+                            .copyWith(
+                              queryValue:
+                                  properties[collection]?[p!]?.defaultValue,
+                              fieldPath: p,
+                            )
+                            .copyWithNull(
+                              queryValue:
+                                  properties[collection]?[p!]?.defaultValue ==
+                                      null,
+                            );
+                      },
+                    ),
+                    value: fieldPath,
                   ),
                 ),
                 const SizedBox(width: 5),
@@ -145,22 +153,23 @@ class _SearchQueryState extends State<SearchQuery> {
                   child: DropdownButtonFormField<String>(
                     isExpanded: true,
                     items: operatorItems,
-                    onChanged: (o) => setState(() => operator = o!),
+                    onChanged: (o) =>
+                        setState(() => query = query.copyWith.operator(o!)),
                     value: operator,
                   ),
                 ),
               ],
             ),
             Builder(
-              key: ValueKey(valueWidget[
-                  properties[collection]![fieldPath.split('.')[0]]!.type]!),
-              builder: valueWidget[
-                      properties[collection]![fieldPath.split('.')[0]]!.type]!
+              key: ValueKey(
+                  valueWidget[properties[collection]![fieldPath]!.type]!),
+              builder: valueWidget[properties[collection]![fieldPath]!.type]!
                   .builder,
             ),
             CheckboxListTile(
               value: order,
-              onChanged: (v) => setState(() => order = v!),
+              onChanged: (v) =>
+                  setState(() => query = query.copyWith.order(v!)),
               title: const Text(
                   'ترتيب النتائج (قد يستغرق وقت مع النتائج الكبيرة)'),
             ),
@@ -172,8 +181,7 @@ class _SearchQueryState extends State<SearchQuery> {
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       key: ValueKey(valueWidget[
-                          properties[collection]![fieldPath.split('.')[0]]!
-                              .type]!),
+                          properties[collection]![fieldPath]!.type]!),
                       isExpanded: true,
                       value: orderBy,
                       items: properties[collection]!
@@ -187,7 +195,7 @@ class _SearchQueryState extends State<SearchQuery> {
                           .toList(),
                       onChanged: (value) {
                         setState(() {
-                          orderBy = value!;
+                          query = query.copyWith.orderBy(value);
                         });
                       },
                     ),
@@ -195,8 +203,7 @@ class _SearchQueryState extends State<SearchQuery> {
                   Expanded(
                     child: DropdownButtonFormField<bool>(
                       key: ValueKey(valueWidget[
-                          properties[collection]![fieldPath.split('.')[0]]!
-                              .type]!),
+                          properties[collection]![fieldPath]!.type]!),
                       isExpanded: true,
                       value: descending,
                       items: const [
@@ -211,7 +218,7 @@ class _SearchQueryState extends State<SearchQuery> {
                       ],
                       onChanged: (value) {
                         setState(() {
-                          descending = value!;
+                          query = query.copyWith.descending(value);
                         });
                       },
                     ),
@@ -229,52 +236,54 @@ class _SearchQueryState extends State<SearchQuery> {
     );
   }
 
-  void execute() async {
-    Query<Json> _mainQueryCompleter(Query<Json> q, _, __) =>
-        valueWidget[properties[collection]![fieldPath.split('.')[0]]!.type]!
+  Future<void> execute() async {
+    QueryOfJson _mainQueryCompleter(QueryOfJson q, _, __) =>
+        valueWidget[properties[collection]![fieldPath]!.type]!
             .completeQuery(q, queryValue);
 
-    final DataObjectList body = DataObjectList(
-      disposeController: false,
-      options: DataObjectListController(
-        itemsStream: (collection.id == 'Services'
-                ? Service.getAllForUser(
-                    queryCompleter: _mainQueryCompleter,
-                  )
-                : collection.id == 'Classes'
-                    ? Class.getAllForUser(
-                        queryCompleter: _mainQueryCompleter,
-                      )
-                    : Person.getAllForUser(
-                        queryCompleter: _mainQueryCompleter,
-                      ) as Stream<List<DataObject>>)
-            .map(
-          (rslt) {
-            if (!order) return rslt;
+    final DataObjectListView body = DataObjectListView(
+      autoDisposeController: false,
+      controller: ListController(
+        objectsPaginatableStream: PaginatableStream.loadAll(
+          stream: (collection.id == 'Services'
+                  ? MHDatabaseRepo.I.getAllServices(
+                      queryCompleter: _mainQueryCompleter,
+                    )
+                  : collection.id == 'Classes'
+                      ? MHDatabaseRepo.I.getAllClasses(
+                          queryCompleter: _mainQueryCompleter,
+                        )
+                      : MHDatabaseRepo.I.getAllPersons(
+                          queryCompleter: _mainQueryCompleter,
+                        ))
+              .map(
+            (rslt) {
+              if (!order) return rslt;
 
-            final sorted = rslt.cast<DataObject>().sublist(0);
-            mergeSort(sorted, compare: (previous, next) {
-              if (previous == null || next == null) {
-                if (previous == null) return -1;
-                if (next == null) return 1;
+              final sorted = rslt.cast<DataObject>().sublist(0);
+              mergeSort(sorted, compare: (previous, next) {
+                if (previous == null || next == null) {
+                  if (previous == null) return -1;
+                  if (next == null) return 1;
+                  return 0;
+                }
+
+                final p = previous as DataObject;
+                final n = next as DataObject;
+
+                if (p.toJson()[orderBy] is Comparable &&
+                    n.toJson()[orderBy] is Comparable) {
+                  return descending!
+                      ? -(p.toJson()[orderBy] ?? '')
+                          .compareTo(n.toJson()[orderBy] ?? '')
+                      : (p.toJson()[orderBy] ?? '')
+                          .compareTo(n.toJson()[orderBy] ?? '');
+                }
                 return 0;
-              }
-
-              final p = previous as DataObject;
-              final n = next as DataObject;
-
-              if (p.getMap()[orderBy] is Comparable &&
-                  n.getMap()[orderBy] is Comparable) {
-                return descending
-                    ? -(p.getMap()[orderBy] ?? '')
-                        .compareTo(n.getMap()[orderBy] ?? '')
-                    : (p.getMap()[orderBy] ?? '')
-                        .compareTo(n.getMap()[orderBy] ?? '');
-              }
-              return 0;
-            });
-            return sorted;
-          },
+              });
+              return sorted;
+            },
+          ),
         ),
       ),
     );
@@ -288,29 +297,34 @@ class _SearchQueryState extends State<SearchQuery> {
                 IconButton(
                   icon: const Icon(Icons.share),
                   onPressed: () async {
-                    await Share.share(
-                      await shareQuery({
-                        'collection': collection.id,
-                        'fieldPath': fieldPath,
-                        'operator': operator,
-                        'queryValue': queryValue == null
-                            ? null
-                            : queryValue is bool
-                                ? 'B' + queryValue
-                                : queryValue is JsonRef
-                                    ? 'D' + (queryValue as JsonRef).path
-                                    : (queryValue is DateTime
-                                        ? 'T' +
-                                            (queryValue as DateTime)
-                                                .millisecondsSinceEpoch
-                                                .toString()
-                                        : (queryValue is int
-                                            ? 'I' + queryValue.toString()
-                                            : 'S' + queryValue.toString())),
-                        'order': order.toString(),
-                        'orderBy': orderBy,
-                        'descending': descending.toString(),
-                      }),
+                    await MHShareService.I.shareText(
+                      (await MHShareService.I.shareQuery(
+                        QueryInfo.fromJson(
+                          {
+                            'collection': collection.id,
+                            'fieldPath': fieldPath,
+                            'operator': operator,
+                            'queryValue': queryValue == null
+                                ? null
+                                : queryValue is bool
+                                    ? 'B' + queryValue
+                                    : queryValue is JsonRef
+                                        ? 'D' + (queryValue as JsonRef).path
+                                        : (queryValue is DateTime
+                                            ? 'T' +
+                                                (queryValue as DateTime)
+                                                    .millisecondsSinceEpoch
+                                                    .toString()
+                                            : (queryValue is int
+                                                ? 'I' + queryValue.toString()
+                                                : 'S' + queryValue.toString())),
+                            'order': order.toString(),
+                            'orderBy': orderBy,
+                            'descending': descending.toString(),
+                          },
+                        ),
+                      ))
+                          .toString(),
                     );
                   },
                   tooltip: 'مشاركة النتائج برابط',
@@ -322,7 +336,7 @@ class _SearchQueryState extends State<SearchQuery> {
                     : collection.id == 'Classes'
                         ? Class
                         : Person,
-                options: body.options!,
+                options: body.controller,
                 textStyle: Theme.of(context).textTheme.headline6!.copyWith(
                     color: Theme.of(context).primaryTextTheme.headline6!.color),
                 disableOrdering: true,
@@ -333,7 +347,7 @@ class _SearchQueryState extends State<SearchQuery> {
               color: Theme.of(context).colorScheme.primary,
               shape: const CircularNotchedRectangle(),
               child: StreamBuilder<dynamic>(
-                stream: body.options!.objectsData,
+                stream: body.controller.objectsStream,
                 builder: (context, snapshot) {
                   return Text(
                     (snapshot.data?.length ?? 0).toString() + ' عنصر',
@@ -349,7 +363,7 @@ class _SearchQueryState extends State<SearchQuery> {
         },
       ),
     );
-    await body.options!.dispose();
+    await body.controller.dispose();
   }
 
   @override
@@ -378,27 +392,28 @@ class _SearchQueryState extends State<SearchQuery> {
             ),
             OutlinedButton(
               onPressed: () => setState(() {
-                queryValue = null;
+                query = query.copyWith.queryValue(null);
               }),
               child: const Text('بحث عن تاريخ فارغ'),
             ),
           ],
         ),
         queryCompleter: (q, value) {
-          if (value == null)
+          if (value == null) {
             return q.where(
               fieldPath,
               isNull: operator == '=',
             );
-          else {
+          } else {
             final effectiveValue = fieldPath == 'BirthDay'
                 ? Timestamp.fromDate(DateTime(1970, value.month, value.day))
                 : Timestamp.fromDate(value);
 
-            if (operator == '>')
+            if (operator == '>') {
               return q.where(fieldPath, isGreaterThanOrEqualTo: effectiveValue);
-            else if (operator == '<')
+            } else if (operator == '<') {
               return q.where(fieldPath, isLessThanOrEqualTo: effectiveValue);
+            }
 
             return q
                 .where(
@@ -419,7 +434,7 @@ class _SearchQueryState extends State<SearchQuery> {
       ),
       String: PropertyQuery<String>(
         builder: (context) {
-          if (fieldPath == 'ShammasLevel')
+          if (fieldPath == 'ShammasLevel') {
             return DropdownButtonFormField<String>(
               key: const ValueKey('SelectShammasLevel'),
               value: [
@@ -455,13 +470,14 @@ class _SearchQueryState extends State<SearchQuery> {
                 ),
               onChanged: (value) {
                 setState(() {
-                  queryValue = value;
+                  query = query.copyWith.queryValue(value);
                 });
               },
               decoration: const InputDecoration(
                 labelText: 'رتبة الشموسية',
               ),
             );
+          }
 
           return Container(
             key: const ValueKey('EnterString'),
@@ -473,7 +489,7 @@ class _SearchQueryState extends State<SearchQuery> {
               ),
               textInputAction: TextInputAction.done,
               initialValue: queryValue is String ? queryValue : '',
-              onChanged: (v) => queryValue = v,
+              onChanged: (v) => query = query.copyWith.queryValue(v),
               onFieldSubmitted: (_) => execute(),
               validator: (value) {
                 return null;
@@ -482,19 +498,38 @@ class _SearchQueryState extends State<SearchQuery> {
           );
         },
         queryCompleter: (q, value) {
-          if (value == null)
+          if (value == null) {
             return q.where(
-              fieldPath,
+              fieldPath.contains('.')
+                  ? FieldPath.fromString(fieldPath)
+                  : fieldPath,
               isNull: operator == '=',
             );
-          else if (operator == '>')
-            return q.where(fieldPath, isGreaterThanOrEqualTo: value);
-          else if (operator == '<')
-            return q.where(fieldPath, isLessThanOrEqualTo: value);
-          else if (operator == '!=')
-            return q.where(fieldPath, isNotEqualTo: value);
+          } else if (operator == '>') {
+            return q.where(
+                fieldPath.contains('.')
+                    ? FieldPath.fromString(fieldPath)
+                    : fieldPath,
+                isGreaterThanOrEqualTo: value);
+          } else if (operator == '<') {
+            return q.where(
+                fieldPath.contains('.')
+                    ? FieldPath.fromString(fieldPath)
+                    : fieldPath,
+                isLessThanOrEqualTo: value);
+          } else if (operator == '!=') {
+            return q.where(
+                fieldPath.contains('.')
+                    ? FieldPath.fromString(fieldPath)
+                    : fieldPath,
+                isNotEqualTo: value);
+          }
 
-          return q.where(fieldPath, isEqualTo: value);
+          return q.where(
+              fieldPath.contains('.')
+                  ? FieldPath.fromString(fieldPath)
+                  : fieldPath,
+              isEqualTo: value);
         },
       ),
       bool: PropertyQuery<bool>(
@@ -519,7 +554,7 @@ class _SearchQueryState extends State<SearchQuery> {
                       .toList(),
                   onChanged: (v) {
                     setState(() {
-                      queryValue = v;
+                      query = query.copyWith.queryValue(v);
                     });
                   },
                 ),
@@ -531,22 +566,23 @@ class _SearchQueryState extends State<SearchQuery> {
                 value: queryValue,
                 onChanged: (v) {
                   setState(() {
-                    queryValue = v;
+                    query = query.copyWith.queryValue(v);
                   });
                 },
               ),
         queryCompleter: (q, value) {
-          if (value == null)
+          if (value == null) {
             return q.where(
               fieldPath,
               isNull: operator == '=',
             );
-          else if (operator == '>')
+          } else if (operator == '>') {
             return q.where(fieldPath, isGreaterThanOrEqualTo: value);
-          else if (operator == '<')
+          } else if (operator == '<') {
             return q.where(fieldPath, isLessThanOrEqualTo: value);
-          else if (operator == '!=')
+          } else if (operator == '!=') {
             return q.where(fieldPath, isNotEqualTo: value);
+          }
 
           return q.where(fieldPath, isEqualTo: value);
         },
@@ -565,7 +601,8 @@ class _SearchQueryState extends State<SearchQuery> {
                       onPressed: () {
                         navigator.currentState!.pop();
                         setState(() {
-                          queryValue = Colors.transparent.value;
+                          query = query.copyWith
+                              .queryValue(Colors.transparent.value);
                         });
                       },
                       child: const Text('بلا لون'),
@@ -578,7 +615,7 @@ class _SearchQueryState extends State<SearchQuery> {
                     onSelect: (color) {
                       navigator.currentState!.pop();
                       setState(() {
-                        queryValue = color.value;
+                        query = query.copyWith.queryValue(color.value);
                       });
                     },
                   ),
@@ -594,17 +631,18 @@ class _SearchQueryState extends State<SearchQuery> {
           ),
         ),
         queryCompleter: (q, value) {
-          if (value == null)
+          if (value == null) {
             return q.where(
               fieldPath,
               isNull: operator == '=',
             );
-          else if (operator == '>')
+          } else if (operator == '>') {
             return q.where(fieldPath, isGreaterThanOrEqualTo: value);
-          else if (operator == '<')
+          } else if (operator == '<') {
             return q.where(fieldPath, isLessThanOrEqualTo: value);
-          else if (operator == '!=')
+          } else if (operator == '!=') {
             return q.where(fieldPath, isNotEqualTo: value);
+          }
 
           return q.where(fieldPath, isEqualTo: value);
         },
@@ -621,16 +659,19 @@ class _SearchQueryState extends State<SearchQuery> {
                 ),
                 child: queryValue != null && queryValue is JsonRef
                     ? FutureBuilder<Class>(
-                        future: Future(() async => Class.fromDoc(
-                            await (queryValue as JsonRef).get())!),
+                        future: Future(() async =>
+                            Class.fromDoc(await (queryValue as JsonRef).get())),
                         builder: (context, classData) {
-                          if (!classData.hasData)
+                          if (!classData.hasData) {
                             return const LinearProgressIndicator();
+                          }
 
                           return IgnorePointer(
                             ignoringSemantics: false,
-                            child: DataObjectWidget<Class>(classData.data!,
-                                isDense: true),
+                            child: ViewableObjectWidget<Class>(
+                              classData.data!,
+                              isDense: true,
+                            ),
                           );
                         },
                       )
@@ -646,15 +687,16 @@ class _SearchQueryState extends State<SearchQuery> {
                   labelText: 'اختيار خادم',
                 ),
                 child: queryValue != null && queryValue is String
-                    ? FutureBuilder<User>(
-                        future: User.fromID(queryValue),
+                    ? FutureBuilder<User?>(
+                        future: MHDatabaseRepo.instance.getUserName(queryValue),
                         builder: (context, userData) {
-                          if (!userData.hasData)
+                          if (!userData.hasData) {
                             return const LinearProgressIndicator();
+                          }
 
                           return IgnorePointer(
                             ignoringSemantics: false,
-                            child: DataObjectWidget<User>(userData.data!,
+                            child: ViewableObjectWidget<User>(userData.data!,
                                 isDense: true),
                           );
                         },
@@ -666,15 +708,15 @@ class _SearchQueryState extends State<SearchQuery> {
 
           return FutureBuilder<JsonQuery>(
             key: ValueKey('Select' + fieldPath),
-            future: properties[collection]![fieldPath.split('.')[0]]!
-                .collection!
-                .get(),
+            future: properties[collection]![fieldPath]!.query!.get(),
             builder: (context, data) {
               if (data.hasData) {
                 return DropdownButtonFormField<JsonRef?>(
                   value: queryValue != null &&
                           queryValue is JsonRef &&
-                          queryValue.path.startsWith('Schools/')
+                          (queryValue as JsonRef).parent.id.startsWith(
+                              properties[collection]![fieldPath]!
+                                  .collectionName!)
                       ? queryValue
                       : null,
                   items: data.data!.docs
@@ -693,12 +735,10 @@ class _SearchQueryState extends State<SearchQuery> {
                       ),
                     ),
                   onChanged: (value) async {
-                    queryValue = value;
+                    query = query.copyWith.queryValue(value);
                   },
                   decoration: InputDecoration(
-                      labelText:
-                          properties[collection]![fieldPath.split('.')[0]]!
-                              .label),
+                      labelText: properties[collection]![fieldPath]!.label),
                 );
               }
               return const LinearProgressIndicator();
@@ -706,17 +746,18 @@ class _SearchQueryState extends State<SearchQuery> {
           );
         },
         queryCompleter: (q, value) {
-          if (value == null)
+          if (value == null) {
             return q.where(
               fieldPath,
               isNull: operator == '=',
             );
-          else if (operator == '>')
+          } else if (operator == '>') {
             return q.where(fieldPath, isGreaterThanOrEqualTo: value);
-          else if (operator == '<')
+          } else if (operator == '<') {
             return q.where(fieldPath, isLessThanOrEqualTo: value);
-          else if (operator == '!=')
+          } else if (operator == '!=') {
             return q.where(fieldPath, isNotEqualTo: value);
+          }
 
           return q.where(fieldPath, isEqualTo: value);
         },
@@ -736,12 +777,14 @@ class _SearchQueryState extends State<SearchQuery> {
                         future: Future(() async => Service.fromDoc(
                             await (queryValue as JsonRef).get())!),
                         builder: (context, serviceData) {
-                          if (!serviceData.hasData)
+                          if (!serviceData.hasData) {
                             return const LinearProgressIndicator();
+                          }
 
                           return IgnorePointer(
                             ignoringSemantics: false,
-                            child: DataObjectWidget<Service>(serviceData.data!,
+                            child: ViewableObjectWidget<Service>(
+                                serviceData.data!,
                                 isDense: true),
                           );
                         },
@@ -758,15 +801,16 @@ class _SearchQueryState extends State<SearchQuery> {
                   labelText: 'اختيار خادم',
                 ),
                 child: queryValue != null && queryValue is String
-                    ? FutureBuilder<User>(
-                        future: User.fromID(queryValue),
+                    ? FutureBuilder<User?>(
+                        future: MHDatabaseRepo.instance.getUserName(queryValue),
                         builder: (context, userData) {
-                          if (!userData.hasData)
+                          if (!userData.hasData) {
                             return const LinearProgressIndicator();
+                          }
 
                           return IgnorePointer(
                             ignoringSemantics: false,
-                            child: DataObjectWidget<User>(userData.data!,
+                            child: ViewableObjectWidget<User>(userData.data!,
                                 isDense: true),
                           );
                         },
@@ -779,24 +823,25 @@ class _SearchQueryState extends State<SearchQuery> {
           return Container();
         },
         queryCompleter: (q, value) {
-          if (value == null)
+          if (value == null) {
             return q.where(
               fieldPath,
               isNull: operator == '=',
             );
-          else if (operator == '>')
+          } else if (operator == '>') {
             return q.where(fieldPath, isGreaterThanOrEqualTo: value);
-          else if (operator == '<')
+          } else if (operator == '<') {
             return q.where(fieldPath, isLessThanOrEqualTo: value);
-          else if (operator == '!=')
+          } else if (operator == '!=') {
             return q.where(fieldPath, isNotEqualTo: value);
+          }
 
           return q.where(fieldPath, arrayContains: value);
         },
       ),
       Json: PropertyQuery<DateTime>(
         builder: (context) {
-          if (fieldPath.split('.')[0] == 'Last') {
+          if (fieldPath == 'Last') {
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -812,17 +857,18 @@ class _SearchQueryState extends State<SearchQuery> {
                             ? FutureBuilder<Service>(
                                 key: ValueKey(fieldPath),
                                 future: Future(() async => Service.fromDoc(
-                                    await FirebaseFirestore.instance
+                                    await GetIt.I<DatabaseRepository>()
                                         .collection('Services')
                                         .doc(fieldPath.split('.')[1])
                                         .get())!),
                                 builder: (context, serviceData) {
-                                  if (!serviceData.hasData)
+                                  if (!serviceData.hasData) {
                                     return const LinearProgressIndicator();
+                                  }
 
                                   return IgnorePointer(
                                     ignoringSemantics: false,
-                                    child: DataObjectWidget<Service>(
+                                    child: ViewableObjectWidget<Service>(
                                         serviceData.data!,
                                         isDense: true),
                                   );
@@ -841,17 +887,18 @@ class _SearchQueryState extends State<SearchQuery> {
           return const SizedBox();
         },
         queryCompleter: (q, value) {
-          if (value == null)
+          if (value == null) {
             return q.where(
               fieldPath,
               isNull: operator == '=',
             );
-          else if (operator == '>')
+          } else if (operator == '>') {
             return q.where(fieldPath, isGreaterThanOrEqualTo: value);
-          else if (operator == '<')
+          } else if (operator == '<') {
             return q.where(fieldPath, isLessThanOrEqualTo: value);
-          else if (operator == '!=')
+          } else if (operator == '!=') {
             return q.where(fieldPath, isNotEqualTo: value);
+          }
 
           return q.where(fieldPath, isEqualTo: value);
         },
@@ -859,57 +906,35 @@ class _SearchQueryState extends State<SearchQuery> {
     };
 
     if (widget.query != null) {
-      collection = widget.query!['collection'] == 'Services'
-          ? FirebaseFirestore.instance.collection('Services')
-          : widget.query!['collection'] == 'Classes'
-              ? FirebaseFirestore.instance.collection('Classes')
-              : FirebaseFirestore.instance.collection('Persons');
-
-      fieldPath = widget.query!['fieldPath'] ?? 'Name';
-
-      operator = widget.query!['operator'] ?? '=';
-
-      queryValue = widget.query!['queryValue'] != null
-          ? widget.query!['queryValue'].toString().startsWith('B')
-              ? widget.query!['queryValue'].toString().substring(1) == 'true'
-              : widget.query!['queryValue'].toString().startsWith('D')
-                  ? FirebaseFirestore.instance
-                      .doc(widget.query!['queryValue'].toString().substring(1))
-                  : (widget.query!['queryValue'].toString().startsWith('T')
-                      ? DateTime.fromMillisecondsSinceEpoch(int.parse(
-                          widget.query!['queryValue'].toString().substring(1)))
-                      : (widget.query!['queryValue'].toString().startsWith('I')
-                          ? int.parse(widget.query!['queryValue']
-                              .toString()
-                              .substring(1))
-                          : widget.query!['queryValue']
-                              .toString()
-                              .substring(1)))
-          : null;
-
-      order = widget.query!['order'] == 'true';
-      orderBy = widget.query!['orderBy'] ?? 'Name';
-      descending = widget.query!['descending'] == 'true';
+      query = widget.query!;
 
       WidgetsBinding.instance!.addPostFrameCallback((_) {
         setState(() {});
         execute();
       });
+    } else {
+      query = QueryInfo(
+        collection: GetIt.I<DatabaseRepository>().collection('Persons'),
+        fieldPath: 'Name',
+        operator: '=',
+        queryValue: '',
+        order: false,
+        orderBy: 'Name',
+        descending: false,
+      );
     }
   }
 
-  void _selectClass() async {
+  Future<void> _selectClass() async {
     final BehaviorSubject<OrderOptions> _orderOptions =
         BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
     final _listOptions = ServicesListController<Class>(
-        tap: (value) {
-          navigator.currentState!.pop();
-          setState(() {
-            queryValue = value.ref;
-          });
-        },
-        itemsStream: servicesByStudyYearRef<Class>());
+      objectsPaginatableStream: PaginatableStream.loadAll(
+        stream: MHDatabaseRepo.I.getAllClasses(),
+      ),
+      groupByStream: MHDatabaseRepo.I.groupServicesByStudyYearRef<Class>,
+    );
 
     await showDialog(
       context: context,
@@ -925,7 +950,15 @@ class _SearchQueryState extends State<SearchQuery> {
                     textStyle: Theme.of(context).textTheme.bodyText2),
                 Expanded(
                   child: ServicesList<Class>(
-                      options: _listOptions, autoDisposeController: false),
+                    onTap: (value) {
+                      navigator.currentState!.pop();
+                      setState(() {
+                        query = query.copyWith.queryValue(value.ref);
+                      });
+                    },
+                    options: _listOptions,
+                    autoDisposeController: false,
+                  ),
                 ),
               ],
             ),
@@ -937,23 +970,16 @@ class _SearchQueryState extends State<SearchQuery> {
     await _orderOptions.close();
   }
 
-  void _selectService([bool forFieldPath = false]) async {
+  Future<void> _selectService([bool forFieldPath = false]) async {
     final BehaviorSubject<OrderOptions> _orderOptions =
         BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
     final _listOptions = ServicesListController<Service>(
-        tap: (value) {
-          navigator.currentState!.pop();
-          setState(() {
-            if (forFieldPath)
-              fieldPath = fieldPath.contains('.')
-                  ? fieldPath.replaceAll(RegExp(r'\.[^.]+$'), '.' + value.id)
-                  : fieldPath + '.' + value.id;
-            else
-              queryValue = value.ref;
-          });
-        },
-        itemsStream: servicesByStudyYearRef<Service>());
+      objectsPaginatableStream: PaginatableStream.loadAll(
+        stream: MHDatabaseRepo.I.getAllServices(),
+      ),
+      groupByStream: MHDatabaseRepo.I.groupServicesByStudyYearRef<Service>,
+    );
 
     await showDialog(
       context: context,
@@ -969,7 +995,23 @@ class _SearchQueryState extends State<SearchQuery> {
                     textStyle: Theme.of(context).textTheme.bodyText2),
                 Expanded(
                   child: ServicesList<Service>(
-                      options: _listOptions, autoDisposeController: false),
+                    onTap: (value) {
+                      navigator.currentState!.pop();
+                      setState(() {
+                        if (forFieldPath) {
+                          query = query.copyWith.fieldPath(
+                              fieldPath.contains('.')
+                                  ? fieldPath.replaceAll(
+                                      RegExp(r'\.[^.]+$'), '.' + value.id)
+                                  : fieldPath + '.' + value.id);
+                        } else {
+                          query = query.copyWith.queryValue(value.ref);
+                        }
+                      });
+                    },
+                    options: _listOptions,
+                    autoDisposeController: false,
+                  ),
                 ),
               ],
             ),
@@ -981,19 +1023,15 @@ class _SearchQueryState extends State<SearchQuery> {
     await _orderOptions.close();
   }
 
-  void _selectUser([bool onlyUID = false]) async {
+  Future<void> _selectUser([bool onlyUID = false]) async {
     final BehaviorSubject<OrderOptions> _orderOptions =
         BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
-    final _listOptions = DataObjectListController<User>(
-      tap: (value) {
-        navigator.currentState!.pop();
-        setState(() {
-          queryValue = onlyUID ? value.uid : value.ref;
-        });
-      },
-      itemsStream: _orderOptions.switchMap(
-        (order) => User.getAllForUser(),
+    final _listOptions = ListController<void, User>(
+      objectsPaginatableStream: PaginatableStream.loadAll(
+        stream: _orderOptions.switchMap(
+          (order) => MHDatabaseRepo.instance.getAllUsers(),
+        ),
       ),
     );
 
@@ -1010,9 +1048,16 @@ class _SearchQueryState extends State<SearchQuery> {
                     orderOptions: _orderOptions,
                     textStyle: Theme.of(context).textTheme.bodyText2),
                 Expanded(
-                  child: DataObjectList<User>(
-                    disposeController: false,
-                    options: _listOptions,
+                  child: DataObjectListView<void, User>(
+                    onTap: (value) {
+                      navigator.currentState!.pop();
+                      setState(() {
+                        query = query.copyWith
+                            .queryValue(onlyUID ? value.uid : value.ref);
+                      });
+                    },
+                    autoDisposeController: false,
+                    controller: _listOptions,
                   ),
                 ),
               ],
@@ -1025,28 +1070,29 @@ class _SearchQueryState extends State<SearchQuery> {
     await _orderOptions.close();
   }
 
-  void _selectDate() async {
+  Future<void> _selectDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: queryValue is! DateTime ? DateTime.now() : queryValue,
       firstDate: DateTime(1500),
       lastDate: DateTime(2201),
     );
-    if (picked != null)
+    if (picked != null) {
       setState(() {
-        queryValue = picked;
+        query = query.copyWith.queryValue(picked);
       });
+    }
   }
 }
 
 @immutable
 class PropertyQuery<T> {
   final Widget Function(BuildContext) builder;
-  final Query<Json> Function(Query<Json> query, T? value) queryCompleter;
+  final QueryOfJson Function(QueryOfJson query, T? value) queryCompleter;
 
   const PropertyQuery({required this.builder, required this.queryCompleter});
 
-  Query<Json> completeQuery(Query<Json> q, dynamic v) {
+  QueryOfJson completeQuery(QueryOfJson q, dynamic v) {
     if (v is T?) return queryCompleter(q, v);
     throw TypeError();
   }

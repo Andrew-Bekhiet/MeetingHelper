@@ -1,34 +1,46 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
-import 'package:meetinghelper/models/history/history_record.dart';
-import 'package:meetinghelper/models/hive_persistence_provider.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
+import 'package:get_it/get_it.dart';
+import 'package:meetinghelper/models.dart';
+import 'package:meetinghelper/utils/globals.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
-import '../models/list_controllers.dart';
-import '../utils/globals.dart';
-import '../utils/helpers.dart';
-import 'list.dart';
-
 class History extends StatefulWidget {
   final bool iServantsHistory;
-  const History({Key? key, required this.iServantsHistory}) : super(key: key);
+  const History({
+    required this.iServantsHistory,
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _HistoryState();
 }
 
 class _HistoryState extends State<History> {
-  final BehaviorSubject<Stream<JsonQuery>?> list = BehaviorSubject.seeded(null);
   final BehaviorSubject<bool> _showSearch = BehaviorSubject<bool>.seeded(false);
   final FocusNode _searchFocus = FocusNode();
   final _searchByDateRange = GlobalKey();
 
-  // ignore: prefer_typing_uninitialized_variables
-  late final _listController;
+  bool _filteredQuery = false;
+  late final BehaviorSubject<QueryOfJson> query =
+      BehaviorSubject.seeded(getOriginalQuery());
+  late final ListController<void, HistoryDayBase> _listController =
+      widget.iServantsHistory
+          ? ListController<void, ServantsHistoryDay>(
+              objectsPaginatableStream: PaginatableStream(
+                query: query,
+                mapper: ServantsHistoryDay.fromQueryDoc,
+              ),
+            )
+          : ListController<void, HistoryDay>(
+              objectsPaginatableStream: PaginatableStream(
+                query: query,
+                mapper: HistoryDay.fromQueryDoc,
+              ),
+            );
 
   @override
   Widget build(BuildContext context) {
@@ -50,13 +62,13 @@ class _HistoryState extends State<History> {
                                   .color),
                           onPressed: () => setState(
                             () {
-                              _listController.searchQuery.add('');
+                              _listController.searchSubject.add('');
                               _showSearch.add(false);
                             },
                           ),
                         ),
                         hintText: 'بحث ...'),
-                    onChanged: _listController.searchQuery.add,
+                    onChanged: _listController.searchSubject.add,
                   )
                 : const Text('السجلات');
           },
@@ -79,16 +91,16 @@ class _HistoryState extends State<History> {
                   : Container();
             },
           ),
-          StreamBuilder<Stream?>(
-            stream: list,
+          StreamBuilder<QueryOfJson>(
+            stream: query,
             builder: (context, data) => IconButton(
               key: _searchByDateRange,
-              icon: !data.hasData
+              icon: !_filteredQuery
                   ? const Icon(Icons.calendar_today)
                   : const Icon(Icons.clear),
-              tooltip: !data.hasData ? 'بحث بالتاريخ' : 'محو البحث',
+              tooltip: !_filteredQuery ? 'بحث بالتاريخ' : 'محو البحث',
               onPressed: () async {
-                if (!data.hasData) {
+                if (!_filteredQuery) {
                   final DateTimeRange? result = await showDateRangePicker(
                     builder: (context, dialog) => Theme(
                       data: Theme.of(context).copyWith(
@@ -112,21 +124,26 @@ class _HistoryState extends State<History> {
                     ),
                   );
                   if (result == null) return;
-                  list.add(FirebaseFirestore.instance
-                      .collection((widget.iServantsHistory ? 'Servants' : '') +
-                          'History')
-                      .orderBy('Day', descending: true)
-                      .where('Day',
-                          isGreaterThanOrEqualTo: Timestamp.fromDate(
-                              result.start.subtract(const Duration(days: 1))))
-                      .where(
-                        'Day',
-                        isLessThanOrEqualTo: Timestamp.fromDate(
-                            result.end.add(const Duration(days: 1))),
-                      )
-                      .snapshots());
+
+                  _filteredQuery = true;
+                  query.add(
+                    GetIt.I<DatabaseRepository>()
+                        .collection(
+                            (widget.iServantsHistory ? 'Servants' : '') +
+                                'History')
+                        .orderBy('Day', descending: true)
+                        .where('Day',
+                            isGreaterThanOrEqualTo: Timestamp.fromDate(
+                                result.start.subtract(const Duration(days: 1))))
+                        .where(
+                          'Day',
+                          isLessThanOrEqualTo: Timestamp.fromDate(
+                              result.end.add(const Duration(days: 1))),
+                        ),
+                  );
                 } else {
-                  list.add(null);
+                  _filteredQuery = false;
+                  query.add(getOriginalQuery());
                 }
               },
             ),
@@ -141,7 +158,7 @@ class _HistoryState extends State<History> {
         color: Theme.of(context).colorScheme.primary,
         shape: const CircularNotchedRectangle(),
         child: StreamBuilder<List>(
-          stream: _listController.objectsData,
+          stream: _listController.objectsStream,
           builder: (context, snapshot) {
             return Text(
               (snapshot.data?.length ?? 0).toString() + ' سجل',
@@ -155,13 +172,14 @@ class _HistoryState extends State<History> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
       extendBody: true,
       body: widget.iServantsHistory
-          ? DataObjectList<ServantsHistoryDay>(
-              disposeController: true,
-              options: _listController,
+          ? DataObjectListView<void, ServantsHistoryDay>(
+              autoDisposeController: true,
+              controller:
+                  _listController as ListController<void, ServantsHistoryDay>,
             )
-          : DataObjectList<HistoryDay>(
-              disposeController: true,
-              options: _listController,
+          : DataObjectListView<void, HistoryDay>(
+              autoDisposeController: true,
+              controller: _listController as ListController<void, HistoryDay>,
             ),
     );
   }
@@ -172,7 +190,7 @@ class _HistoryState extends State<History> {
     WidgetsBinding.instance!.addPostFrameCallback((_) {
       if ((['SearchByDateRange']
             ..removeWhere(HivePersistenceProvider.instance.hasCompletedStep))
-          .isNotEmpty)
+          .isNotEmpty) {
         TutorialCoachMark(
           context,
           focusAnimationDuration: const Duration(milliseconds: 200),
@@ -202,45 +220,24 @@ class _HistoryState extends State<History> {
             await HivePersistenceProvider.instance.completeStep(t.identify);
           },
         ).show();
+      }
     });
+  }
 
-    _listController = widget.iServantsHistory
-        ? DataObjectListController<ServantsHistoryDay>(
-            tap: historyTap,
-            itemsStream: list
-                .switchMap(
-                  (q) =>
-                      q ??
-                      FirebaseFirestore.instance
-                          .collection('ServantsHistory')
-                          .orderBy('Day', descending: true)
-                          .snapshots(),
-                )
-                .map(
-                  (s) => s.docs.map(ServantsHistoryDay.fromQueryDoc).toList(),
-                ),
-          )
-        : DataObjectListController<HistoryDay>(
-            tap: historyTap,
-            itemsStream: list
-                .switchMap(
-                  (q) =>
-                      q ??
-                      FirebaseFirestore.instance
-                          .collection('History')
-                          .orderBy('Day', descending: true)
-                          .snapshots(),
-                )
-                .map(
-                  (s) => s.docs.map(HistoryDay.fromQueryDoc).toList(),
-                ),
-          );
+  QueryOfJson getOriginalQuery() {
+    return widget.iServantsHistory
+        ? GetIt.I<DatabaseRepository>()
+            .collection('ServantsHistory')
+            .orderBy('Day', descending: true)
+        : GetIt.I<DatabaseRepository>()
+            .collection('History')
+            .orderBy('Day', descending: true);
   }
 
   @override
   Future<void> dispose() async {
     super.dispose();
     await _showSearch.close();
-    await list.close();
+    await query.close();
   }
 }

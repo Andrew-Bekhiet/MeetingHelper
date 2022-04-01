@@ -1,17 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
-import 'package:meetinghelper/models/data/class.dart';
-import 'package:meetinghelper/models/data/person.dart';
-import 'package:meetinghelper/models/data/service.dart';
-import 'package:meetinghelper/models/data/user.dart';
-import 'package:meetinghelper/models/list_controllers.dart';
+import 'package:get_it/get_it.dart';
+import 'package:meetinghelper/models.dart';
+import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/utils/helpers.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
+import 'package:meetinghelper/widgets.dart';
 import 'package:rxdart/rxdart.dart';
-
-import '../models/super_classes.dart';
-import 'list.dart';
+import 'package:tuple/tuple.dart';
 
 class Trash extends StatelessWidget {
   const Trash({Key? key}) : super(key: key);
@@ -20,26 +15,20 @@ class Trash extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('سلة المحذوفات')),
-      body: DataObjectList<TrashDay>(
-        disposeController: true,
-        options: DataObjectListController<TrashDay>(
-          onLongPress: (_) {},
-          tap: (day) {
-            navigator.currentState!.push(
-                MaterialPageRoute(builder: (context) => TrashDayScreen(day)));
-          },
-          searchQuery: BehaviorSubject<String>.seeded(''),
-          itemsStream: FirebaseFirestore.instance
-              .collection('Deleted')
-              .orderBy('Time', descending: true)
-              .snapshots()
-              .map(
-                (s) => s.docs
-                    .map(
-                      (d) => TrashDay(d.data()['Time'].toDate(), d.reference),
-                    )
-                    .toList(),
-              ),
+      body: DataObjectListView<void, TrashDay>(
+        autoDisposeController: true,
+        onLongPress: (_) {},
+        onTap: (day) {
+          navigator.currentState!.push(
+              MaterialPageRoute(builder: (context) => TrashDayScreen(day)));
+        },
+        controller: ListController(
+          objectsPaginatableStream: PaginatableStream.query(
+            query: GetIt.I<DatabaseRepository>()
+                .collection('Deleted')
+                .orderBy('Time', descending: true),
+            mapper: (d) => TrashDay(d.data()['Time'].toDate(), d.reference),
+          ),
         ),
       ),
     );
@@ -49,27 +38,16 @@ class Trash extends StatelessWidget {
 class TrashDay extends DataObject {
   final DateTime date;
   TrashDay(this.date, JsonRef ref)
-      : super(ref, date.toUtc().toIso8601String().split('T')[0],
-            Colors.transparent);
+      : super(ref, date.toUtc().toIso8601String().split('T')[0]);
 
   @override
-  Json formattedProps() {
-    return {'Time': toDurationString(Timestamp.fromDate(date))};
-  }
-
-  @override
-  Json getMap() {
+  Json toJson() {
     return {'Time': Timestamp.fromDate(date)};
   }
 
   @override
   Future<String?> getSecondLine() async {
     return name;
-  }
-
-  @override
-  TrashDay copyWith() {
-    throw UnimplementedError();
   }
 }
 
@@ -94,9 +72,9 @@ class _TrashDayScreenState extends State<TrashDayScreen>
   final BehaviorSubject<String> _searchQuery =
       BehaviorSubject<String>.seeded('');
 
-  late final DataObjectListController<Person> _personsOptions;
-  late final DataObjectListController<Class> _classesOptions;
-  late final DataObjectListController<Service> _servicesOptions;
+  late final ListController<void, Person> _personsOptions;
+  late final ListController<void, Class> _classesOptions;
+  late final ListController<void, Service> _servicesOptions;
 
   @override
   Widget build(BuildContext context) {
@@ -130,7 +108,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                 icon: const Icon(Icons.select_all),
                                 label: const Text('تحديد لا شئ'),
                                 onPressed: () {
-                                  _personsOptions.selectNone();
+                                  _personsOptions.deselectAll();
                                   navigator.currentState!.pop();
                                 },
                               ),
@@ -260,10 +238,10 @@ class _TrashDayScreenState extends State<TrashDayScreen>
           animation: _tabController!,
           builder: (context, _) => StreamBuilder<List>(
             stream: _tabController!.index == 0
-                ? _servicesOptions.objectsData
+                ? _servicesOptions.objectsStream
                 : _tabController!.index == 1
-                    ? _classesOptions.objectsData
-                    : _personsOptions.objectsData,
+                    ? _classesOptions.objectsStream
+                    : _personsOptions.objectsStream,
             builder: (context, snapshot) {
               return Text(
                 (snapshot.data?.length ?? 0).toString() +
@@ -281,22 +259,22 @@ class _TrashDayScreenState extends State<TrashDayScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          if (User.instance.superAccess)
-            DataObjectList<Service>(
-              disposeController: true,
-              options: _servicesOptions,
+          if (User.instance.permissions.superAccess)
+            DataObjectListView<void, Service>(
+              autoDisposeController: true,
+              controller: _servicesOptions,
             )
           else
             const Center(
               child: Text('يلزم صلاحية رؤية جميع البيانات لاسترجاع الخدمات'),
             ),
-          DataObjectList<Class>(
-            disposeController: true,
-            options: _classesOptions,
+          DataObjectListView<void, Class>(
+            autoDisposeController: true,
+            controller: _classesOptions,
           ),
-          DataObjectList<Person>(
-            disposeController: true,
-            options: _personsOptions,
+          DataObjectListView<void, Person>(
+            autoDisposeController: true,
+            controller: _personsOptions,
           ),
         ],
       ),
@@ -309,55 +287,57 @@ class _TrashDayScreenState extends State<TrashDayScreen>
     _tabController = TabController(vsync: this, length: 3, initialIndex: 1);
     WidgetsBinding.instance!.addObserver(this);
 
-    _servicesOptions = DataObjectListController<Service>(
-      searchQuery: _searchQuery,
-      tap: serviceTap,
-      itemsStream: widget.day.ref.collection('Services').snapshots().map(
-            (s) => s.docs.map(Service.fromQueryDoc).toList(),
-          ),
+    _servicesOptions = ListController<void, Service>(
+      searchStream: _searchQuery,
+      objectsPaginatableStream: PaginatableStream.query(
+          query: widget.day.ref.collection('Services'),
+          mapper: Service.fromQueryDoc),
     );
 
-    _classesOptions = DataObjectListController<Class>(
-      searchQuery: _searchQuery,
-      tap: classTap,
-      itemsStream: (User.instance.superAccess
-              ? widget.day.ref.collection('Classes').snapshots()
-              : FirebaseFirestore.instance
-                  .collection('Classes')
-                  .where('Allowed', arrayContains: User.instance.uid)
-                  .snapshots())
-          .map(
-        (s) => s.docs.map(Class.fromQueryDoc).toList(),
+    _classesOptions = ListController<void, Class>(
+      searchStream: _searchQuery,
+      objectsPaginatableStream: PaginatableStream.query(
+        query: User.instance.permissions.superAccess
+            ? widget.day.ref.collection('Classes')
+            : GetIt.I<DatabaseRepository>().collection('Classes').where(
+                  'Allowed',
+                  arrayContains: User.instance.uid,
+                ),
+        mapper: Class.fromDoc,
       ),
     );
-    _personsOptions = DataObjectListController<Person>(
-      searchQuery: _searchQuery,
-      tap: personTap,
-      itemsStream:
-          Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
-                  User.instance.stream,
-                  Class.getAllForUser(),
-                  Tuple2<User, List<Class>>.new)
-              .switchMap((u) {
-        if (u.item1.superAccess) {
-          return widget.day.ref
-              .collection('Persons')
-              .snapshots()
-              .map((p) => p.docs.map(Person.fromQueryDoc).toList());
-        } else if (u.item2.length <= 10) {
-          return widget.day.ref
-              .collection('Persons')
-              .where('ClassId', whereIn: u.item2.map((e) => e.ref).toList())
-              .snapshots()
-              .map((p) => p.docs.map(Person.fromQueryDoc).toList());
-        }
-        return Rx.combineLatestList<JsonQuery>(u.item2.split(10).map((c) =>
-            widget.day.ref
-                .collection('Persons')
-                .where('ClassId', whereIn: c.map((e) => e.ref).toList())
-                .snapshots())).map(
-            (s) => s.expand((n) => n.docs).map(Person.fromQueryDoc).toList());
-      }),
+
+    _personsOptions = ListController<void, Person>(
+      searchStream: _searchQuery,
+      objectsPaginatableStream: PaginatableStream.loadAll(
+        stream: Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
+          User.loggedInStream,
+          MHDatabaseRepo.I.getAllClasses(),
+          Tuple2.new,
+        ).switchMap(
+          (u) {
+            if (u.item1.permissions.superAccess) {
+              return widget.day.ref
+                  .collection('Persons')
+                  .snapshots()
+                  .map((p) => p.docs.map(Person.fromDoc).toList());
+            } else if (u.item2.length <= 10) {
+              return widget.day.ref
+                  .collection('Persons')
+                  .where('ClassId', whereIn: u.item2.map((e) => e.ref).toList())
+                  .snapshots()
+                  .map((p) => p.docs.map(Person.fromDoc).toList());
+            }
+            return Rx.combineLatestList<JsonQuery>(u.item2.split(10).map((c) =>
+                widget.day.ref
+                    .collection('Persons')
+                    .where('ClassId', whereIn: c.map((e) => e.ref).toList())
+                    .snapshots())).map(
+              (s) => s.expand((n) => n.docs).map(Person.fromDoc).toList(),
+            );
+          },
+        ),
+      ),
     );
   }
 

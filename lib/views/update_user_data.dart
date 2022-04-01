@@ -1,13 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
+import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/views/form_widgets/tapable_form_field.dart';
+import 'package:meetinghelper/utils/helpers.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-
-import '../models/data/user.dart';
-import '../utils/helpers.dart';
 
 class UpdateUserDataErrorPage extends StatefulWidget {
   const UpdateUserDataErrorPage({Key? key}) : super(key: key);
@@ -17,7 +15,7 @@ class UpdateUserDataErrorPage extends StatefulWidget {
 }
 
 class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
-  final user = User.instance;
+  User user = User.instance.copyWith();
   final GlobalKey<FormState> _form = GlobalKey<FormState>();
 
   @override
@@ -31,7 +29,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              TapableFormField<Timestamp?>(
+              TappableFormField<DateTime?>(
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 decoration: (context, state) => InputDecoration(
                   errorText: state.errorText,
@@ -42,26 +40,26 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                 ),
                 initialValue: user.lastTanawol,
                 onTap: (state) async {
-                  state.didChange(await _selectDate(
-                          'تاريخ أخر تناول', state.value ?? Timestamp.now()) ??
-                      user.lastTanawol);
+                  state.didChange(
+                    await _selectDate(
+                            'تاريخ أخر تناول', state.value ?? DateTime.now()) ??
+                        user.lastTanawol,
+                  );
                 },
                 builder: (context, state) {
                   return state.value != null
-                      ? Text(
-                          DateFormat('yyyy/M/d').format(state.value!.toDate()))
+                      ? Text(DateFormat('yyyy/M/d').format(state.value!))
                       : null;
                 },
-                // ignore: unnecessary_null_checks
-                onSaved: (v) => user.lastTanawol = v!,
+                onSaved: (v) => user = user.copyWith.lastTanawol(v),
                 validator: (value) => value == null
                     ? 'برجاء اختيار تاريخ أخر تناول'
-                    : value.toDate().isBefore(
+                    : value.isBefore(
                             DateTime.now().subtract(const Duration(days: 60)))
                         ? 'يجب أن يكون التاريخ منذ شهرين على الأكثر'
                         : null,
               ),
-              TapableFormField<Timestamp?>(
+              TappableFormField<DateTime?>(
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 decoration: (context, state) => InputDecoration(
                   errorText: state.errorText,
@@ -72,21 +70,21 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                 ),
                 initialValue: user.lastConfession,
                 onTap: (state) async {
-                  state.didChange(await _selectDate(
-                          'تاريخ أخر اعتراف', state.value ?? Timestamp.now()) ??
-                      user.lastConfession);
+                  state.didChange(
+                    await _selectDate('تاريخ أخر اعتراف',
+                            state.value ?? DateTime.now()) ??
+                        user.lastConfession,
+                  );
                 },
                 builder: (context, state) {
                   return state.value != null
-                      ? Text(
-                          DateFormat('yyyy/M/d').format(state.value!.toDate()))
+                      ? Text(DateFormat('yyyy/M/d').format(state.value!))
                       : null;
                 },
-                // ignore: unnecessary_null_checks
-                onSaved: (v) => user.lastConfession = v!,
+                onSaved: (v) => user = user.copyWith.lastConfession(v),
                 validator: (value) => value == null
                     ? 'برجاء اختيار تاريخ أخر اعتراف'
-                    : value.toDate().isBefore(
+                    : value.isBefore(
                             DateTime.now().subtract(const Duration(days: 60)))
                         ? 'يجب أن يكون التاريخ منذ شهرين على الأكثر'
                         : null,
@@ -115,7 +113,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
       _form.currentState!.save();
       scaffoldMessenger.currentState!
           .showSnackBar(const SnackBar(content: Text('جار الحفظ')));
-      await FirebaseFunctions.instance
+      await GetIt.I<FunctionsService>()
           .httpsCallable('updateUserSpiritData')
           .call({
         'lastConfession': user.lastConfession!.millisecondsSinceEpoch,
@@ -128,20 +126,20 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
           stackTrace: stack,
           withScope: (scope) => scope
             ..setTag('LasErrorIn', '_UpdateUserDataErrorState.save')
-            ..setExtra('User', {'UID': user.uid, ...user.getUpdateMap()}));
+            ..setExtra('User', {'UID': user.uid, ...user.toJson()}));
     }
   }
 
-  Future<Timestamp?> _selectDate(String helpText, Timestamp initialDate) async {
+  Future<DateTime?> _selectDate(String helpText, DateTime initialDate) async {
     final picked = await showDatePicker(
         helpText: helpText,
         locale: const Locale('ar', 'EG'),
         context: context,
-        initialDate: initialDate.toDate(),
+        initialDate: initialDate,
         firstDate: DateTime(1900),
         lastDate: DateTime.now());
-    if (picked != null && picked != initialDate.toDate()) {
-      return Timestamp.fromDate(picked);
+    if (picked != null && picked != initialDate) {
+      return picked;
     }
     return null;
   }

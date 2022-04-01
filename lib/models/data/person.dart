@@ -1,154 +1,145 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata_core/churchdata_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'
+    show DocumentReference, FieldPath;
 import 'package:collection/collection.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:hive/hive.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
-import 'package:location/location.dart';
-import 'package:meetinghelper/models/super_classes.dart';
-import 'package:meetinghelper/utils/helpers.dart';
-import 'package:meetinghelper/utils/typedefs.dart';
-import 'package:meetinghelper/views/map_view.dart';
-import 'package:rxdart/rxdart.dart';
-import 'package:tuple/tuple.dart';
+import 'package:meetinghelper/repositories/database_repository.dart';
 
-import '../property_metadata.dart';
-import 'class.dart';
-import 'user.dart';
+part 'person.g.dart';
 
-class Person extends DataObject with PhotoObject, ChildObject<Class> {
-  JsonRef? classId;
+@immutable
+@CopyWith(copyWithNull: true)
+class Person extends PersonBase {
+  final JsonRef? classId;
 
-  String? address;
-  GeoPoint? location;
+  String? get phone => super.mainPhone;
+  final String? fatherPhone;
+  final String? motherPhone;
+  Json get phones => super.otherPhones;
 
-  String? phone;
-  String? fatherPhone;
-  String? motherPhone;
-  Json phones;
+  final DateTime? lastMeeting;
 
-  Timestamp? birthDate;
-
-  JsonRef? school;
-  JsonRef? college;
-  JsonRef? church;
-  JsonRef? cFather;
-
-  Timestamp? lastMeeting;
-  Timestamp? lastKodas;
-
-  Timestamp? lastTanawol;
-  Timestamp? lastConfession;
-  Timestamp? lastCall;
-
-  Map<String, Timestamp> last;
-
-  Timestamp? lastVisit;
-  String? lastEdit;
-  String? notes;
-
-  bool isShammas;
-
-  /// IsMale?
-  bool gender;
-  String? shammasLevel;
-  JsonRef? studyYear;
+  final UnmodifiableMapView<String, DateTime> last;
 
   ///List of services this person is participant
-  List<JsonRef> services;
+  final UnmodifiableListView<JsonRef> services;
 
-  Person(
-      {String? id,
-      JsonRef? ref,
-      this.classId,
-      String name = '',
-      this.phone = '',
-      Json? phones,
-      this.fatherPhone = '',
-      this.motherPhone = '',
-      this.address = '',
-      this.location,
-      bool hasPhoto = false,
-      this.birthDate,
-      this.lastTanawol,
-      this.lastConfession,
-      this.lastKodas,
-      this.lastMeeting,
-      this.lastCall,
-      this.lastVisit,
-      this.lastEdit,
-      this.notes = '',
-      this.school,
-      this.college,
-      this.church,
-      this.cFather,
-      this.isShammas = false,
-      this.gender = true,
-      this.shammasLevel,
-      this.studyYear,
-      List<JsonRef>? services,
-      Map<String, Timestamp>? last,
-      Color color = Colors.transparent})
-      : services = services ?? [],
-        phones = phones ?? {},
-        last = last ?? {},
+  Person({
+    required JsonRef ref,
+    this.classId,
+    String name = '',
+    String? phone,
+    Json? phones,
+    this.fatherPhone,
+    this.motherPhone,
+    String? address,
+    GeoPoint? location,
+    bool hasPhoto = false,
+    DateTime? birthDate,
+    DateTime? lastTanawol,
+    DateTime? lastConfession,
+    DateTime? lastKodas,
+    this.lastMeeting,
+    DateTime? lastCall,
+    DateTime? lastVisit,
+    LastEdit? lastEdit,
+    String? notes,
+    JsonRef? school,
+    JsonRef? college,
+    JsonRef? church,
+    JsonRef? cFather,
+    bool isShammas = false,
+    bool gender = true,
+    String? shammasLevel,
+    JsonRef? studyYear,
+    List<JsonRef>? services,
+    Map<String, DateTime>? last,
+    Color? color,
+  })  : services = UnmodifiableListView(services ?? []),
+        last = UnmodifiableMapView(last ?? {}),
         super(
-            ref ??
-                FirebaseFirestore.instance
-                    .collection('Persons')
-                    .doc(id ?? 'null'),
-            name,
-            color) {
-    this.hasPhoto = hasPhoto;
-    defaultIcon = Icons.person;
-  }
+          ref: ref,
+          name: name,
+          color: color,
+          address: address,
+          location: location,
+          mainPhone: phone,
+          otherPhones: phones ?? {},
+          birthDate: birthDate,
+          school: school,
+          college: college,
+          church: church,
+          cFather: cFather,
+          lastKodas: lastKodas,
+          lastTanawol: lastTanawol,
+          lastConfession: lastConfession,
+          lastCall: lastCall,
+          lastVisit: lastVisit,
+          lastEdit: lastEdit,
+          notes: notes,
+          isShammas: isShammas,
+          gender: gender,
+          shammasLevel: shammasLevel,
+          studyYear: studyYear,
+          hasPhoto: hasPhoto,
+        );
 
-  Person.createFromData(Map<dynamic, dynamic> data, JsonRef ref)
-      : classId = data['ClassId'],
-        phone = data['Phone'],
-        fatherPhone = data['FatherPhone'],
-        motherPhone = data['MotherPhone'],
-        phones = (data['Phones'] as Map?)?.cast() ?? {},
-        address = data['Address'],
-        location = data['Location'],
-        birthDate = data['BirthDate'],
-        lastConfession = data['LastConfession'],
-        lastTanawol = data['LastTanawol'],
-        lastKodas = data['LastKodas'],
-        lastMeeting = data['LastMeeting'],
-        lastCall = data['LastCall'],
-        lastVisit = data['LastVisit'],
-        lastEdit = data['LastEdit'],
-        last = (data['Last'] as Map?)?.cast() ?? {},
-        notes = data['Notes'],
-        school = data['School'],
-        college = data['College'],
-        church = data['Church'],
-        cFather = data['CFather'],
-        isShammas = data['IsShammas'] ?? false,
-        gender = data['Gender'] ?? true,
-        shammasLevel = data['ShammasLevel'],
-        studyYear = data['StudyYear'],
-        services = (data['Services'] as List?)?.cast<JsonRef>() ?? [],
-        super.createFromData(data, ref) {
-    hasPhoto = data['HasPhoto'] ?? false;
-    defaultIcon = Icons.person;
-  }
+  Person.fromDoc(JsonDoc doc) : this.fromJson(doc.data()!, doc.reference);
+  Person.fromJson(Json json, JsonRef ref)
+      : classId = json['ClassId'],
+        fatherPhone = json['FatherPhone'],
+        motherPhone = json['MotherPhone'],
+        lastMeeting = (json['LastMeeting'] as Timestamp?)?.toDate(),
+        last = UnmodifiableMapView(
+            (json['Last'] as Map?)?.cast<String, DateTime>() ?? {}),
+        services = UnmodifiableListView(
+            (json['Services'] as List?)?.cast<JsonRef>() ?? []),
+        super(
+          ref: ref,
+          hasPhoto: json['HasPhoto'] ?? false,
+          color: json['Color'] == null || json['Color'] == 0
+              ? null
+              : Color(json['Color']),
+          name: json['Name'],
+          address: json['Address'],
+          location: json['Location'],
+          mainPhone: json['Phone'],
+          otherPhones: (json['Phones'] as Map?)?.cast() ?? {},
+          birthDate: (json['BirthDate'] as Timestamp?)?.toDate(),
+          school: json['School'],
+          college: json['College'],
+          church: json['Church'],
+          cFather: json['CFather'],
+          lastKodas: (json['LastKodas'] as Timestamp?)?.toDate(),
+          lastTanawol: (json['LastTanawol'] as Timestamp?)?.toDate(),
+          lastConfession: (json['LastConfession'] as Timestamp?)?.toDate(),
+          lastCall: (json['LastCall'] as Timestamp?)?.toDate(),
+          lastVisit: (json['LastVisit'] as Timestamp?)?.toDate(),
+          lastEdit: json['LastEdit'] == null
+              ? null
+              : LastEdit(
+                  json['LastEdit'],
+                  json['LastEditTime']?.toDate() ?? DateTime.now(),
+                ),
+          notes: json['Notes'],
+          isShammas: json['IsShammas'] ?? false,
+          gender: json['Gender'] ?? true,
+          shammasLevel: json['ShammasLevel'],
+          studyYear: json['StudyYear'],
+        );
 
-  Timestamp? get birthDay => birthDate != null
-      ? Timestamp.fromDate(
-          DateTime(1970, birthDate!.toDate().month, birthDate!.toDate().day))
+  factory Person.empty() => Person(
+        ref: GetIt.I<DatabaseRepository>().collection('Persons').doc('null'),
+      );
+
+  DateTime? get birthDay => birthDate != null
+      ? DateTime(1970, birthDate!.month, birthDate!.day)
       : null;
-
-  @override
-  JsonRef? get parentId => classId;
-
-  @override
-  Reference get photoRef =>
-      FirebaseStorage.instance.ref().child('PersonsPhotos/$id');
 
   Future<String> getCFatherName() async {
     return (await cFather?.get())?.data()?['Name'] ?? '';
@@ -173,7 +164,6 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
     return (await classId?.get())?.data()?['Name'] ?? '';
   }
 
-  @override
   Json formattedProps() => {
         'ClassId': getClassName(),
         'Name': name,
@@ -182,25 +172,25 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
         'MotherPhone': motherPhone ?? '',
         'Phones': null,
         'Address': address,
-        'BirthDate': toDurationString(birthDate, appendSince: false),
-        'BirthDay': birthDay != null
-            ? DateFormat('d/M').format(birthDay!.toDate())
-            : '',
-        'LastTanawol': toDurationString(lastTanawol),
-        'LastCall': toDurationString(lastCall),
-        'LastConfession': toDurationString(lastConfession),
-        'LastKodas': toDurationString(lastKodas),
-        'LastMeeting': toDurationString(lastMeeting),
-        'LastVisit': toDurationString(lastVisit),
+        'BirthDate': birthDate?.toDurationString(appendSince: false),
+        'BirthDay': birthDay != null ? DateFormat('d/M').format(birthDay!) : '',
+        'LastTanawol': lastTanawol?.toDurationString(),
+        'LastCall': lastCall?.toDurationString(),
+        'LastConfession': lastConfession?.toDurationString(),
+        'LastKodas': lastKodas?.toDurationString(),
+        'LastMeeting': lastMeeting?.toDurationString(),
+        'LastVisit': lastVisit?.toDurationString(),
         'Last':
-            last.map((key, value) => MapEntry(key, toDurationString(value))),
+            last.map((key, value) => MapEntry(key, value.toDurationString())),
         'Notes': notes ?? '',
         'IsShammas': isShammas ? 'تعم' : 'لا',
         'Gender': gender ? 'ذكر' : 'أنثى',
         'ShammasLevel': shammasLevel,
         'HasPhoto': hasPhoto ? 'نعم' : 'لا',
-        'Color': '0x' + color.value.toRadixString(16),
-        'LastEdit': User.onlyName(lastEdit),
+        'Color': color != null ? '0x' + color!.value.toRadixString(16) : null,
+        'LastEdit': lastEdit != null
+            ? MHDatabaseRepo.instance.getUserName(lastEdit!.uid)
+            : null,
         'School': getSchoolName(),
         'College': getCollegeName(),
         'Church': getChurchName(),
@@ -219,82 +209,24 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
       };
 
   @override
-  Json getMap() => {
+  Json toJson() => {
+        ...super.toJson()
+          ..remove('MainPhone')
+          ..remove('OtherPhones')
+          ..remove('LastEdit'),
         'ClassId': classId,
-        'Name': name,
         'Phone': phone,
         'FatherPhone': fatherPhone,
         'MotherPhone': motherPhone,
         'Phones': phones.map(MapEntry.new)
           ..removeWhere((k, v) => v.toString().isEmpty),
-        'Address': address,
         'HasPhoto': hasPhoto,
-        'Color': color.value,
-        'BirthDate': birthDate,
-        'BirthDay': birthDay,
-        'LastTanawol': lastTanawol,
-        'LastConfession': lastConfession,
-        'LastKodas': lastKodas,
         'LastMeeting': lastMeeting,
-        'LastCall': lastCall,
-        'LastVisit': lastVisit,
-        'LastEdit': lastEdit,
         'Last': last,
-        'Notes': notes,
-        'School': school,
-        'College': college,
-        'Church': church,
-        'CFather': cFather,
-        'Location': location,
-        'IsShammas': isShammas,
-        'Gender': gender,
-        'ShammasLevel': shammasLevel,
-        'StudyYear': studyYear,
+        'LastEdit': lastEdit?.uid,
+        'LastEditTime': lastEdit?.time,
         'Services': services,
       };
-
-  Widget getMapView({bool useGPSIfNull = false, bool editMode = false}) {
-    if (location == null && useGPSIfNull)
-      return FutureBuilder<PermissionStatus>(
-        future: Location.instance.requestPermission(),
-        builder: (context, data) {
-          if (data.hasData && data.data == PermissionStatus.granted) {
-            return FutureBuilder<LocationData>(
-              future: Location.instance.getLocation(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData)
-                  return const Center(child: CircularProgressIndicator());
-                return MapView(
-                    childrenDepth: 3,
-                    initialLocation: LatLng(snapshot.data!.latitude ?? 34,
-                        snapshot.data!.longitude ?? 50),
-                    editMode: editMode,
-                    person: this);
-              },
-            );
-          }
-          return MapView(
-              childrenDepth: 3,
-              initialLocation: const LatLng(34, 50),
-              editMode: editMode,
-              person: this);
-        },
-      );
-    else if (location == null)
-      return const Text(
-        'لم يتم تحديد موقع للمنزل',
-        style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            locale: Locale('ar', 'EG')),
-      );
-    return MapView(editMode: editMode, person: this, childrenDepth: 3);
-  }
-
-  @override
-  Future<String> getParentName() {
-    return getClassName();
-  }
 
   Future<String> getSchoolName() async {
     return (await school?.get())?.data()?['Name'] ?? '';
@@ -326,101 +258,19 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
   }
 
   @override
-  FutureOr<String?> getSecondLine() async {
-    final String? key = Hive.box('Settings').get('PersonSecondLine');
+  Future<String?> getSecondLine() async {
+    final String? key =
+        GetIt.I<CacheRepository>().box('Settings').get('PersonSecondLine');
 
     if (key == null) return null;
 
     return formattedProps()[key];
   }
 
-  static Person? fromDoc(JsonDoc data) =>
-      data.exists ? Person.createFromData(data.data()!, data.reference) : null;
-
-  static Person fromQueryDoc(JsonQueryDoc data) =>
-      Person.createFromData(data.data(), data.reference);
-
-  static Future<Person?> fromId(String id) async =>
-      Person.fromDoc(await FirebaseFirestore.instance.doc('Persons/$id').get());
-
-  static Stream<List<Person>> getAllForUser(
-      {String orderBy = 'Name',
-      bool descending = false,
-      Query<Json> Function(Query<Json>, String, bool) queryCompleter =
-          kDefaultQueryCompleter}) {
-    return Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
-            User.instance.stream,
-            Class.getAllForUser(),
-            Tuple2<User, List<Class>>.new)
-        .switchMap(
-      (u) {
-        if (u.item1.superAccess) {
-          return queryCompleter(
-                  FirebaseFirestore.instance.collection('Persons'),
-                  orderBy,
-                  descending)
-              .snapshots()
-              .map((p) => p.docs.map(fromQueryDoc).toList());
-        }
-
-        return Rx.combineLatest2<List<Person>, List<Person>, List<Person>>(
-          //Persons from Classes
-          u.item2.isNotEmpty
-              ? u.item2.length <= 10
-                  ? queryCompleter(
-                          FirebaseFirestore.instance.collection('Persons').where('ClassId',
-                              whereIn: u.item2.map((e) => e.ref).toList()),
-                          orderBy,
-                          descending)
-                      .snapshots()
-                      .map((p) => p.docs.map(fromQueryDoc).toList())
-                  : Rx.combineLatestList<JsonQuery>(u.item2.split(10).map((c) => queryCompleter(
-                          FirebaseFirestore.instance
-                              .collection('Persons')
-                              .where('ClassId', whereIn: c.map((e) => e.ref).toList()),
-                          orderBy,
-                          descending)
-                      .snapshots())).map((s) => s.expand((n) => n.docs).map(fromQueryDoc).toList())
-              : Stream.value([]),
-          //Persons from Services
-          u.item1.adminServices.isNotEmpty
-              ? u.item1.adminServices.length <= 10
-                  ? queryCompleter(
-                          FirebaseFirestore.instance
-                              .collection('Persons')
-                              .where('Services',
-                                  arrayContainsAny: u.item1.adminServices),
-                          orderBy,
-                          descending)
-                      .snapshots()
-                      .map((p) => p.docs.map(fromQueryDoc).toList())
-                  : Rx.combineLatestList<JsonQuery>(u.item1.adminServices
-                      .split(10)
-                      .map((c) =>
-                          queryCompleter(FirebaseFirestore.instance.collection('Persons').where('Services', arrayContainsAny: c), orderBy, descending)
-                              .snapshots())).map(
-                      (s) => s.expand((n) => n.docs).map(fromQueryDoc).toList())
-              : Stream.value([]),
-          (a, b) => {...a, ...b}.sortedByCompare(
-            (p) => p.getMap()[orderBy],
-            (o, n) {
-              if (o is String && n is String)
-                return descending ? -o.compareTo(n) : o.compareTo(n);
-              if (o is int && n is int)
-                return descending ? -o.compareTo(n) : o.compareTo(n);
-              if (o is Timestamp && n is Timestamp)
-                return descending ? -o.compareTo(n) : o.compareTo(n);
-              if (o is Timestamp && n is Timestamp)
-                return descending ? -o.compareTo(n) : o.compareTo(n);
-              return 0;
-            },
-          ),
-        );
-      },
-    );
-  }
-
   static Map<String, PropertyMetadata> propsMetadata() => {
+        ...PersonBase.propsMetadata
+          ..remove('MainPhone')
+          ..remove('OtherPhones'),
         'Name': const PropertyMetadata<String>(
           name: 'Name',
           label: 'الاسم',
@@ -451,30 +301,37 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
           label: 'تاريخ الميلاد',
           defaultValue: null,
         ),
-        'BirthDay': const PropertyMetadata<DateTime>(
+        'BirthDay': PropertyMetadata<DateTime>(
           name: 'BirthDay',
           label: 'يوم الميلاد',
-          defaultValue: null,
+          defaultValue: DateTime.now(),
         ),
         'StudyYear': PropertyMetadata<JsonRef>(
           name: 'StudyYear',
           label: 'سنة الدراسة',
           defaultValue: null,
-          collection: FirebaseFirestore.instance
+          query: GetIt.I<DatabaseRepository>()
               .collection('StudyYears')
               .orderBy('Grade'),
+          collectionName: 'StudyYears',
         ),
         'ClassId': PropertyMetadata<JsonRef>(
           name: 'ClassId',
           label: 'داخل فصل',
           defaultValue: null,
-          collection:
-              FirebaseFirestore.instance.collection('Classes').orderBy('Grade'),
+          query: GetIt.I<DatabaseRepository>()
+              .collection('Classes')
+              .orderBy('Grade'),
+          collectionName: 'Classes',
         ),
-        'Services': const PropertyMetadata<List>(
+        'Services': PropertyMetadata<JsonRef>(
           name: 'Services',
           label: 'الخدمات المشارك بها',
-          defaultValue: [],
+          defaultValue: null,
+          query: GetIt.I<DatabaseRepository>()
+              .collection('Services')
+              .orderBy(FieldPath.fromString('StudyYearRange.From')),
+          collectionName: 'Services',
         ),
         'Gender': const PropertyMetadata<bool>(
           name: 'Gender',
@@ -505,29 +362,37 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
           name: 'School',
           label: 'المدرسة',
           defaultValue: null,
-          collection:
-              FirebaseFirestore.instance.collection('Schools').orderBy('Name'),
+          query: GetIt.I<DatabaseRepository>()
+              .collection('Schools')
+              .orderBy('Name'),
+          collectionName: 'Schools',
         ),
         'College': PropertyMetadata<JsonRef>(
           name: 'College',
           label: 'الكلية',
           defaultValue: null,
-          collection:
-              FirebaseFirestore.instance.collection('Colleges').orderBy('Name'),
+          query: GetIt.I<DatabaseRepository>()
+              .collection('Colleges')
+              .orderBy('Name'),
+          collectionName: 'Colleges',
         ),
         'Church': PropertyMetadata<JsonRef>(
           name: 'Church',
           label: 'الكنيسة',
           defaultValue: null,
-          collection:
-              FirebaseFirestore.instance.collection('Churches').orderBy('Name'),
+          query: GetIt.I<DatabaseRepository>()
+              .collection('Churches')
+              .orderBy('Name'),
+          collectionName: 'Churches',
         ),
         'CFather': PropertyMetadata<JsonRef>(
           name: 'CFather',
           label: 'أب الاعتراف',
           defaultValue: null,
-          collection:
-              FirebaseFirestore.instance.collection('Fathers').orderBy('Name'),
+          query: GetIt.I<DatabaseRepository>()
+              .collection('Fathers')
+              .orderBy('Name'),
+          collectionName: 'Fathers',
         ),
         'Notes': const PropertyMetadata<String>(
           name: 'Notes',
@@ -573,8 +438,14 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
           name: 'LastEdit',
           label: 'أخر تعديل',
           defaultValue: null,
-          collection:
-              FirebaseFirestore.instance.collection('Users').orderBy('Name'),
+          query:
+              GetIt.I<DatabaseRepository>().collection('Users').orderBy('Name'),
+          collectionName: 'Users',
+        ),
+        'LastEditTime': const PropertyMetadata<DateTime>(
+          name: 'LastEditTime',
+          label: 'وقت أخر تعديل',
+          defaultValue: null,
         ),
         'HasPhoto': const PropertyMetadata<bool>(
           name: 'HasPhoto',
@@ -587,9 +458,4 @@ class Person extends DataObject with PhotoObject, ChildObject<Class> {
           defaultValue: Colors.transparent,
         ),
       };
-
-  @override
-  Person copyWith() {
-    return Person.createFromData(getMap(), ref);
-  }
 }

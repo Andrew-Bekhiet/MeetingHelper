@@ -39,15 +39,11 @@ android {
         debugKey.load(new FileInputStream(dKeystorePropertiesFile))
     }
 
-    compileSdkVersion 30
+    compileSdkVersion 31
     buildToolsVersion '30.0.3'
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
-    }
-
-    lintOptions {
-        disable 'InvalidPackage'
     }
 
     defaultConfig {
@@ -76,8 +72,6 @@ android {
         debug{
             defaultConfig.minSdkVersion 25
             signingConfig signingConfigs.debug
-            useProguard false
-            multiDexEnabled true
         }
         profile{
             defaultConfig.minSdkVersion 26
@@ -101,9 +95,4 @@ flutter {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation platform('com.google.firebase:firebase-bom:28.4.0')
-
-    implementation 'com.google.firebase:firebase-analytics'
-    implementation 'com.google.firebase:firebase-auth'
-    implementation 'com.google.firebase:firebase-firestore'
 }

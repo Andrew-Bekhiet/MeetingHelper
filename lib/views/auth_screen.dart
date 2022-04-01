@@ -1,15 +1,13 @@
 import 'dart:async';
 
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:meetinghelper/models.dart';
+import 'package:meetinghelper/utils/encryption_keys.dart';
 import 'package:meetinghelper/utils/globals.dart';
-
-import '../models/data/user.dart';
-import '../utils/encryption_keys.dart';
-import '../utils/helpers.dart';
-
-export 'package:tuple/tuple.dart';
+import 'package:meetinghelper/utils/helpers.dart';
 
 var authKey = GlobalKey<ScaffoldState>();
 final LocalAuthentication _localAuthentication = LocalAuthentication();
@@ -117,7 +115,7 @@ class _AuthScreenState extends State<AuthScreen> {
     _authenticate();
   }
 
-  void _authenticate() async {
+  Future<void> _authenticate() async {
     try {
       if (kIsWeb || !await _localAuthentication.canCheckBiometrics) return;
       _authCompleter = Completer<bool>();
@@ -128,17 +126,16 @@ class _AuthScreenState extends State<AuthScreen> {
       if (!_authCompleter.isCompleted) _authCompleter.complete(value);
       if (value) {
         if (widget.nextRoute != null) {
-          // ignore: unawaited_futures
-          navigator.currentState!.pushReplacementNamed(widget.nextRoute!);
+          unawaited(
+              navigator.currentState!.pushReplacementNamed(widget.nextRoute!));
         } else if (widget.nextWidget == null) {
           navigator.currentState!.pop(true);
         } else {
-          // ignore: unawaited_futures
-          navigator.currentState!.pushReplacement(
+          unawaited(navigator.currentState!.pushReplacement(
             MaterialPageRoute(builder: (con) {
               return widget.nextWidget!;
             }),
-          );
+          ));
         }
       }
     } on Exception catch (e) {
@@ -157,11 +154,12 @@ class _AuthScreenState extends State<AuthScreen> {
     } else if (User.instance.password == encryptedPassword) {
       encryptedPassword = null;
       if (widget.nextWidget != null) {
-        await navigator.currentState!.pushReplacement(
+        unawaited(navigator.currentState!.pushReplacement(
           MaterialPageRoute(builder: (c) => widget.nextWidget!),
-        );
+        ));
       } else if (widget.nextRoute != null) {
-        await navigator.currentState!.pushReplacementNamed(widget.nextRoute!);
+        unawaited(
+            navigator.currentState!.pushReplacementNamed(widget.nextRoute!));
       } else {
         navigator.currentState!.pop(true);
       }
