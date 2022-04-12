@@ -102,7 +102,7 @@ class SettingsState extends State<Settings> {
                           GetIt.I<MHThemingService>().switchTheme(
                             darkTheme ??
                                 WidgetsBinding
-                                        .instance!.window.platformBrightness ==
+                                        .instance.window.platformBrightness ==
                                     Brightness.dark,
                           );
                         },
@@ -188,7 +188,6 @@ class SettingsState extends State<Settings> {
                             ..insert(
                                 0,
                                 const DropdownMenuItem(
-                                  value: null,
                                   child: Text(''),
                                 )),
                           onChanged: (value) {},
@@ -215,7 +214,6 @@ class SettingsState extends State<Settings> {
                             ..insert(
                                 0,
                                 const DropdownMenuItem(
-                                  value: null,
                                   child: Text(''),
                                 )),
                           onChanged: (value) {},
@@ -380,6 +378,7 @@ class SettingsState extends State<Settings> {
                       'BirthDay'.hashCode,
                       MHNotificationsService.showBirthDayNotification,
                       exact: true,
+                      allowWhileIdle: true,
                       startAt: DateTime.now().replaceTime(value),
                       wakeup: true,
                       rescheduleOnReboot: true,
