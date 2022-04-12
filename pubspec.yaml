@@ -85,6 +85,8 @@ dev_dependencies:
       url: https://github.com/Andrew-Bekhiet/churchdata_core_mocks
       ref: master
   mockito: ^5.1.0
+  build_runner: ^2.1.8
+  copy_with_extension_gen: ^4.0.1
 
 flutter_icons:
   image_path: "Logo.png"
