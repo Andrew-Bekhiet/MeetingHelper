@@ -1,3 +1,5 @@
+import 'package:churchdata_core_mocks/churchdata_core.dart';
+import 'package:churchdata_core_mocks/churchdata_core.mocks.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,8 +9,6 @@ import 'package:meetinghelper/widgets/loading_widget.dart';
 import 'package:mockito/mockito.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import '../churchdata_core.dart';
-import '../churchdata_core.mocks.dart';
 import '../utils.dart';
 
 void main() {

@@ -1,4 +1,10 @@
 import 'package:churchdata_core/churchdata_core.dart';
+import 'package:churchdata_core_mocks/churchdata_core.mocks.dart';
+import 'package:churchdata_core_mocks/fakes/fake_cache_repo.dart';
+import 'package:churchdata_core_mocks/fakes/fake_firebase_auth.dart';
+import 'package:churchdata_core_mocks/fakes/fake_notifications_repo.dart';
+import 'package:churchdata_core_mocks/fakes/mock_user.dart';
+import 'package:churchdata_core_mocks/models/basic_data_object.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
@@ -14,13 +20,7 @@ import 'package:mock_data/mock_data.dart';
 import 'package:mockito/mockito.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import 'churchdata_core.mocks.dart';
-import 'fakes/fake_cache_repo.dart';
-import 'fakes/fake_firebase_auth.dart';
-import 'fakes/fake_notifications_repo.dart';
 import 'fakes/fake_secure_storage.dart';
-import 'fakes/mock_user.dart';
-import 'models/basic_data_object.dart';
 
 Future<void> setUpMHPlatformChannels() async {
   dotenv = FakeDotEnv();

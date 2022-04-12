@@ -1,4 +1,8 @@
 import 'package:churchdata_core/churchdata_core.dart';
+import 'package:churchdata_core_mocks/churchdata_core.dart';
+import 'package:churchdata_core_mocks/churchdata_core.mocks.dart';
+import 'package:churchdata_core_mocks/fakes/fake_firebase_auth.dart';
+import 'package:churchdata_core_mocks/fakes/mock_user.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -8,10 +12,6 @@ import 'package:meetinghelper/repositories/auth_repository.dart';
 import 'package:meetinghelper/views.dart';
 import 'package:mockito/mockito.dart';
 
-import '../churchdata_core.dart';
-import '../churchdata_core.mocks.dart';
-import '../fakes/fake_firebase_auth.dart';
-import '../fakes/mock_user.dart';
 import '../utils.dart';
 
 void main() {

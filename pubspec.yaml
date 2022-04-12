@@ -14,7 +14,9 @@ dependencies:
   async: ^2.8.2
   cached_network_image: ^3.2.0
   churchdata_core:
-    path: ../churchdata_core
+    git:
+      url: https://github.com/Andrew-Bekhiet/churchdata_core
+      ref: master
   cloud_firestore: ^3.1.7
   cloud_functions: ^3.2.7
   collection: ^1.15.0
@@ -78,26 +80,11 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+  churchdata_core_mocks:
+    git:
+      url: https://github.com/Andrew-Bekhiet/churchdata_core_mocks
+      ref: master
   mockito: ^5.1.0
-  build_runner: ^2.1.8
-  copy_with_extension_gen: ^4.0.1
-  hive_generator: ^1.1.2
-  hive_test: ^1.0.1
-  fake_cloud_firestore: ^1.2.2
-  firebase_storage_mocks: ^0.5.0
-  firebase_auth_mocks: ^0.8.2
-  firebase_database_mocks: ^0.3.2
-  google_sign_in_mocks: ^0.2.1
-  network_image_mock: ^2.0.1
-  mock_data: ^2.0.0
-  flutter_launcher_icons: ^0.9.2
-  flutter_native_splash: ^2.1.1
-  firebase_messaging_platform_interface: ^3.2.1
-  flutter_local_notifications_platform_interface: ^5.0.0
-  timezone: ^0.8.0
-  flutter_secure_storage_platform_interface: ^1.0.0
-  equatable: ^2.0.3
-  plugin_platform_interface: ^2.1.2
 
 flutter_icons:
   image_path: "Logo.png"

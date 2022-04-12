@@ -11,8 +11,8 @@ import 'package:meetinghelper/views.dart';
 import 'package:meetinghelper/widgets.dart';
 import 'package:mockito/mockito.dart';
 
-import 'churchdata_core.dart';
-import 'churchdata_core.mocks.dart';
+import 'package:churchdata_core_mocks/churchdata_core.dart';
+import 'package:churchdata_core_mocks/churchdata_core.mocks.dart';
 import 'utils.dart';
 
 void main() {
