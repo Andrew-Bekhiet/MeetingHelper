@@ -59,7 +59,7 @@ class MHNotificationsService extends NotificationsService {
         notification.additionalData?['Query'] != null) {
       return GetIt.I<MHViewableObjectTapHandler>().onTap(
         QueryInfo.fromJson(
-          notification.additionalData?['Query'],
+          (notification.additionalData!['Query'] as Map).cast(),
         ),
       );
     }
