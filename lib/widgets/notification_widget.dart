@@ -27,14 +27,50 @@ class NotificationWidget extends StatelessWidget {
         }
         return Card(
           child: ListTile(
-            leading: snapshot.hasData
-                ? snapshot.data is User
-                    ? UserPhotoWidget(snapshot.data! as User)
-                    : PhotoObjectWidget(
-                        snapshot.data! as PhotoObjectBase,
-                        heroTag: snapshot.data,
-                      )
-                : const CircularProgressIndicator(),
+            leading: () {
+              if (snapshot.hasData) {
+                if (snapshot.data is User) {
+                  return UserPhotoWidget(snapshot.data! as User);
+                } else if (snapshot.data is PhotoObjectBase) {
+                  return PhotoObjectWidget(
+                    snapshot.data! as PhotoObjectBase,
+                    heroTag: snapshot.data,
+                  );
+                }
+              } else if (notification.additionalData?['Query'] != null) {
+                final query = QueryInfo.fromJson(
+                    (notification.additionalData!['Query'] as Map).cast());
+
+                if (query.fieldPath == 'BirthDay') {
+                  return Container(
+                    width:
+                        Theme.of(context).listTileTheme.minLeadingWidth ?? 40,
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.cake),
+                  );
+                } else if (query.fieldPath.startsWith('Last')) {
+                  return Container(
+                    width:
+                        Theme.of(context).listTileTheme.minLeadingWidth ?? 40,
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.warning),
+                  );
+                } else {
+                  return Container(
+                    width:
+                        Theme.of(context).listTileTheme.minLeadingWidth ?? 40,
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.search),
+                  );
+                }
+              }
+
+              return Container(
+                width: Theme.of(context).listTileTheme.minLeadingWidth ?? 40,
+                alignment: Alignment.center,
+                child: const Icon(Icons.notifications),
+              );
+            }(),
             title: Text(notification.title),
             subtitle: Text(
               notification.body,
