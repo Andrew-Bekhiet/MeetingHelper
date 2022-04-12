@@ -243,9 +243,14 @@ class _MyAccountState extends State<MyAccount> {
                 leading: Icon(Icons.history),
                 title: Text('تعديل الكشوفات القديمة'),
               ),
+            if (user.permissions.recordHistory)
+              const ListTile(
+                leading: Icon(Icons.history),
+                title: Text('تسجيل حضور المخدومين'),
+              ),
             if (user.permissions.secretary)
               const ListTile(
-                leading: Icon(Icons.shield),
+                leading: Icon(Icons.history),
                 title: Text('تسجيل حضور الخدام'),
               ),
             if (user.permissions.write)

@@ -243,6 +243,24 @@ class _EditInvitationState extends State<EditInvitation> {
                 ),
                 ListTile(
                   trailing: Checkbox(
+                    value: invitation.permissions!['recordHistory'] ?? false,
+                    onChanged: (v) => setState(
+                      () => invitation = invitation.copyWith.permissions(
+                        {
+                          ...invitation.permissions ?? {},
+                          'recordHistory': v,
+                        },
+                      ),
+                    ),
+                  ),
+                  leading: const Icon(Icons.history),
+                  title: const Text('تسجيل حضور المخدومين'),
+                  onTap: () => setState(() =>
+                      widget.invitation.permissions!['recordHistory'] =
+                          !(invitation.permissions!['recordHistory'] ?? false)),
+                ),
+                ListTile(
+                  trailing: Checkbox(
                     value: invitation.permissions!['secretary'] ?? false,
                     onChanged: (v) => setState(
                       () => invitation = invitation.copyWith.permissions(
@@ -253,7 +271,7 @@ class _EditInvitationState extends State<EditInvitation> {
                       ),
                     ),
                   ),
-                  leading: const Icon(Icons.shield),
+                  leading: const Icon(Icons.history),
                   title: const Text('تسجيل حضور الخدام'),
                   onTap: () => setState(() =>
                       widget.invitation.permissions!['secretary'] =

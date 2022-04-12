@@ -146,6 +146,7 @@ class UserWithPerson extends Person implements User {
       if (permissions.manageAllowedUsers) rslt += 'تعديل مستخدمين محددين،';
       if (permissions.superAccess) rslt += 'رؤية جميع البيانات،';
       if (permissions.manageDeleted) rslt += 'استرجاع المحئوفات،';
+      if (permissions.recordHistory) rslt += 'تسجيل حضور المخدومين';
       if (permissions.secretary) rslt += 'تسجيل حضور الخدام،';
       if (permissions.changeHistory) rslt += 'تعديل كشوفات القديمة';
       if (permissions.export) rslt += 'تصدير فصل،';

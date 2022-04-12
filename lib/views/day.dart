@@ -498,7 +498,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
     dayOptions = HistoryDayOptions(
       grouped: !isSameDay,
       showOnly: isSameDay ? null : true,
-      enabled: isSameDay,
+      enabled: isSameDay && User.instance.permissions.recordHistory,
       sortByTimeASC: isSameDay ? null : true,
     );
 
@@ -515,7 +515,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
       type: 'Meeting',
     );
 
-    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) async {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       if (DateTime.now().difference(widget.record.day.toDate()).inDays != 0) {
         return;
       }

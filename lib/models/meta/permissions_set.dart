@@ -12,6 +12,7 @@ class MHPermissionsSet extends PermissionsSet implements Serializable {
     bool manageDeleted = false,
     bool write = false,
     bool secretary = false,
+    bool recordHistory = false,
     bool changeHistory = false,
     bool manageUsers = false,
     bool manageAllowedUsers = false,
@@ -29,6 +30,7 @@ class MHPermissionsSet extends PermissionsSet implements Serializable {
             if (manageDeleted) 'manageDeleted',
             if (write) 'write',
             if (secretary) 'secretary',
+            if (recordHistory) 'recordHistory',
             if (changeHistory) 'changeHistory',
             if (manageUsers) 'manageUsers',
             if (manageAllowedUsers) 'manageAllowedUsers',
@@ -68,6 +70,7 @@ class MHPermissionsSet extends PermissionsSet implements Serializable {
   bool get manageUsers => permissions.contains('manageUsers');
   bool get meetingNotify => permissions.contains('meetingNotify');
   bool get secretary => permissions.contains('secretary');
+  bool get recordHistory => permissions.contains('recordHistory');
   bool get superAccess => permissions.contains('superAccess');
   bool get tanawolNotify => permissions.contains('tanawolNotify');
 
@@ -88,6 +91,7 @@ class MHPermissionsSet extends PermissionsSet implements Serializable {
       'manageUsers': manageUsers,
       'meetingNotify': meetingNotify,
       'secretary': secretary,
+      'recordHistory': recordHistory,
       'superAccess': superAccess,
       'tanawolNotify': tanawolNotify,
       'visitNotify': visitNotify,

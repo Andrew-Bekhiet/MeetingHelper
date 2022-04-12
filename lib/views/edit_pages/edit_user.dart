@@ -272,6 +272,25 @@ class _EditUserState extends State<EditUser> {
                 ),
                 ListTile(
                   trailing: Checkbox(
+                    value: user.permissions.recordHistory,
+                    onChanged: (v) => setState(
+                      () => user = user.copyWith.permissions(
+                        user.permissions.copyWith.recordHistory(v!),
+                      ),
+                    ),
+                  ),
+                  leading: const Icon(Icons.history),
+                  title: const Text('تسجيل حضور المخدومين'),
+                  onTap: () => setState(
+                    () => user = user.copyWith.permissions(
+                      user.permissions.copyWith.recordHistory(
+                        !user.permissions.recordHistory,
+                      ),
+                    ),
+                  ),
+                ),
+                ListTile(
+                  trailing: Checkbox(
                     value: user.permissions.secretary,
                     onChanged: (v) => setState(
                       () => user = user.copyWith.permissions(
@@ -279,7 +298,7 @@ class _EditUserState extends State<EditUser> {
                       ),
                     ),
                   ),
-                  leading: const Icon(Icons.shield),
+                  leading: const Icon(Icons.history),
                   title: const Text('تسجيل حضور الخدام'),
                   onTap: () => setState(
                     () => user = user.copyWith.permissions(

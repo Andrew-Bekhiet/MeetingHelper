@@ -415,14 +415,22 @@ class _RootState extends State<Root>
               },
             ),
             const Divider(),
-            ListTile(
+            StreamBuilder<bool>(
               key: _createOrGetFeatureKey('AddHistory'),
-              leading: const Icon(Icons.add),
-              title: const Text('كشف حضور المخدومين'),
-              onTap: () {
-                mainScfld.currentState!.openEndDrawer();
-                navigator.currentState!.pushNamed('Day');
-              },
+              initialData: false,
+              stream: User.loggedInStream
+                  .map((u) => u.permissions.recordHistory)
+                  .distinct(),
+              builder: (context, data) => data.data!
+                  ? ListTile(
+                      leading: const Icon(Icons.add),
+                      title: const Text('كشف حضور المخدومين'),
+                      onTap: () {
+                        mainScfld.currentState!.openEndDrawer();
+                        navigator.currentState!.pushNamed('Day');
+                      },
+                    )
+                  : Container(),
             ),
             StreamBuilder<bool>(
               key: _createOrGetFeatureKey('AddServantsHistory'),
@@ -478,15 +486,16 @@ class _RootState extends State<Root>
                     arguments: {'HistoryCollection': 'History'});
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.analytics_outlined),
-              title: const Text('تحليل بيانات سجل الخدام'),
-              onTap: () {
-                mainScfld.currentState!.openEndDrawer();
-                navigator.currentState!.pushNamed('Analytics',
-                    arguments: {'HistoryCollection': 'ServantsHistory'});
-              },
-            ),
+            if (User.instance.permissions.secretary)
+              ListTile(
+                leading: const Icon(Icons.analytics_outlined),
+                title: const Text('تحليل بيانات سجل الخدام'),
+                onTap: () {
+                  mainScfld.currentState!.openEndDrawer();
+                  navigator.currentState!.pushNamed('Analytics',
+                      arguments: {'HistoryCollection': 'ServantsHistory'});
+                },
+              ),
             StreamBuilder<bool>(
               initialData: false,
               stream: User.loggedInStream
@@ -920,13 +929,13 @@ class _RootState extends State<Root>
   @override
   void didChangePlatformBrightness() {
     GetIt.I<MHThemingService>().switchTheme(
-        WidgetsBinding.instance!.window.platformBrightness == Brightness.dark);
+        WidgetsBinding.instance.window.platformBrightness == Brightness.dark);
   }
 
   @override
   Future<void> dispose() async {
     super.dispose();
-    WidgetsBinding.instance!.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
 
     await _dynamicLinksSubscription.cancel();
 
@@ -990,9 +999,9 @@ class _RootState extends State<Root>
                 User.instance.permissions.manageAllowedUsers
             ? 3
             : 2);
-    WidgetsBinding.instance!.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     _keepAlive(true);
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (dialogsNotShown) showPendingUIDialogs();
     });
   }
@@ -1317,7 +1326,7 @@ class _RootState extends State<Root>
       if (User.instance.permissions.manageUsers ||
           User.instance.permissions.manageAllowedUsers)
         'ManageUsers',
-      'AddHistory',
+      if (User.instance.permissions.recordHistory) 'AddHistory',
       if (User.instance.permissions.secretary) 'AddServantsHistory',
       'History',
       if (User.instance.permissions.secretary) 'ServantsHistory',

@@ -237,9 +237,14 @@ class InvitationInfo extends StatelessWidget {
                             leading: Icon(Icons.history),
                             title: Text('تعديل الكشوفات القديمة'),
                           ),
+                        if (invitation.permissions!['recordHistory'] == true)
+                          const ListTile(
+                            leading: Icon(Icons.history),
+                            title: Text('تسجيل حضور المخدومين'),
+                          ),
                         if (invitation.permissions!['secretary'] == true)
                           const ListTile(
-                            leading: Icon(Icons.shield),
+                            leading: Icon(Icons.history),
                             title: Text('تسجيل حضور الخدام'),
                           ),
                         if (invitation.permissions!['write'] == true)

@@ -27,6 +27,8 @@ abstract class _$MHPermissionsSetCWProxy {
 
   MHPermissionsSet meetingNotify(bool meetingNotify);
 
+  MHPermissionsSet recordHistory(bool recordHistory);
+
   MHPermissionsSet secretary(bool secretary);
 
   MHPermissionsSet superAccess(bool superAccess);
@@ -54,6 +56,7 @@ abstract class _$MHPermissionsSetCWProxy {
     bool? manageDeleted,
     bool? manageUsers,
     bool? meetingNotify,
+    bool? recordHistory,
     bool? secretary,
     bool? superAccess,
     bool? tanawolNotify,
@@ -107,6 +110,10 @@ class _$MHPermissionsSetCWProxyImpl implements _$MHPermissionsSetCWProxy {
       this(meetingNotify: meetingNotify);
 
   @override
+  MHPermissionsSet recordHistory(bool recordHistory) =>
+      this(recordHistory: recordHistory);
+
+  @override
   MHPermissionsSet secretary(bool secretary) => this(secretary: secretary);
 
   @override
@@ -143,6 +150,7 @@ class _$MHPermissionsSetCWProxyImpl implements _$MHPermissionsSetCWProxy {
     Object? manageDeleted = const $CopyWithPlaceholder(),
     Object? manageUsers = const $CopyWithPlaceholder(),
     Object? meetingNotify = const $CopyWithPlaceholder(),
+    Object? recordHistory = const $CopyWithPlaceholder(),
     Object? secretary = const $CopyWithPlaceholder(),
     Object? superAccess = const $CopyWithPlaceholder(),
     Object? tanawolNotify = const $CopyWithPlaceholder(),
@@ -198,6 +206,11 @@ class _$MHPermissionsSetCWProxyImpl implements _$MHPermissionsSetCWProxy {
               ? _value.meetingNotify
               // ignore: cast_nullable_to_non_nullable
               : meetingNotify as bool,
+      recordHistory:
+          recordHistory == const $CopyWithPlaceholder() || recordHistory == null
+              ? _value.recordHistory
+              // ignore: cast_nullable_to_non_nullable
+              : recordHistory as bool,
       secretary: secretary == const $CopyWithPlaceholder() || secretary == null
           ? _value.secretary
           // ignore: cast_nullable_to_non_nullable
