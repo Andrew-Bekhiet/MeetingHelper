@@ -146,7 +146,7 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Future _submit(String password) async {
-    String? encryptedPassword = Encryption.encPswd(password);
+    String? encryptedPassword = Encryption.encryptPassword(password);
     if (password.isEmpty) {
       encryptedPassword = null;
       await showErrorDialog(context, 'كلمة سر فارغة!');

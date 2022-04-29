@@ -48,7 +48,7 @@ class _UserRegistrationState extends State<UserRegistration> {
           lastTanawol ??= user.lastTanawol?.millisecondsSinceEpoch;
           lastConfession ??= user.lastConfession?.millisecondsSinceEpoch;
           if (_userName.text.isEmpty) {
-            WidgetsBinding.instance!
+            WidgetsBinding.instance
                 .addPostFrameCallback((_) => _userName.text = user.name);
           }
           return Scaffold(
@@ -331,7 +331,8 @@ class _UserRegistrationState extends State<UserRegistration> {
               return Text(
                   (snapshot.error! as FirebaseFunctionsException).message!);
             } else if (snapshot.connectionState == ConnectionState.done) {
-              navigator.currentState!.pop();
+              WidgetsBinding.instance
+                  .addPostFrameCallback((_) => navigator.currentState!.pop());
             }
             return Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -379,7 +380,7 @@ class _UserRegistrationState extends State<UserRegistration> {
     try {
       await GetIt.I<FunctionsService>().httpsCallable('registerAccount').call({
         'name': _userName,
-        'password': Encryption.encPswd(password),
+        'password': Encryption.encryptPassword(password),
         'lastConfession': lastConfession,
         'lastTanawol': lastTanawol,
         'fcmToken': await GetIt.I<FirebaseMessaging>().getToken(),

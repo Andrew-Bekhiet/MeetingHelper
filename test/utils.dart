@@ -22,7 +22,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import 'fakes/fake_secure_storage.dart';
 
-Future<void> setUpMHPlatformChannels() async {
+void setUpMHPlatformChannels() {
   dotenv = FakeDotEnv();
 
   FlutterSecureStoragePlatform.instance = FakeFlutterSecureStoragePlatform();
@@ -81,6 +81,7 @@ Future<void> initFakeCore() async {
           signalsReady: true,
           dispose: (a) => a.dispose(),
         );
+        GetIt.I.signalReady(instance);
 
         return instance;
       },
@@ -168,12 +169,16 @@ Future<MyMockUser> signInMockUser(
   return mockUser;
 }
 
-MaterialApp wrapWithMaterialApp(Widget home,
-    {Map<String, Widget Function(BuildContext)>? routes,
-    GlobalKey<NavigatorState>? navigatorKey}) {
+MaterialApp wrapWithMaterialApp(
+  Widget home, {
+  Map<String, Widget Function(BuildContext)>? routes,
+  GlobalKey<NavigatorState>? navigatorKey,
+  GlobalKey<ScaffoldMessengerState>? scaffoldMessengerKey,
+}) {
   return MaterialApp(
     home: home,
     navigatorKey: navigatorKey,
+    scaffoldMessengerKey: scaffoldMessengerKey,
     routes: routes ?? {},
   );
 }

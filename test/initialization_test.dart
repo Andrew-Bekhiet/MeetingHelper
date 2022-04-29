@@ -1,4 +1,6 @@
 import 'package:churchdata_core/churchdata_core.dart';
+import 'package:churchdata_core_mocks/churchdata_core.dart';
+import 'package:churchdata_core_mocks/churchdata_core.mocks.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
@@ -11,8 +13,6 @@ import 'package:meetinghelper/views.dart';
 import 'package:meetinghelper/widgets.dart';
 import 'package:mockito/mockito.dart';
 
-import 'package:churchdata_core_mocks/churchdata_core.dart';
-import 'package:churchdata_core_mocks/churchdata_core.mocks.dart';
 import 'utils.dart';
 
 void main() {
@@ -21,7 +21,7 @@ void main() {
     () {
       setUp(() async {
         registerFirebaseMocks();
-        await setUpMHPlatformChannels();
+        setUpMHPlatformChannels();
         await initFakeCore();
 
         when((GetIt.I<FirebaseMessaging>() as MockFirebaseMessaging)

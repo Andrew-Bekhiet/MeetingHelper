@@ -432,13 +432,13 @@ class _MyAccountState extends State<MyAccount> {
         textFields[0].text.isNotEmpty) {
       final User user = User.instance;
 
-      if (user.password == Encryption.encPswd(textFields[0].text)) {
+      if (user.password == Encryption.encryptPassword(textFields[0].text)) {
         try {
           await GetIt.I<FunctionsService>()
               .httpsCallable('changePassword')
               .call({
             'oldPassword': textFields[0].text,
-            'newPassword': Encryption.encPswd(textFields[1].text)
+            'newPassword': Encryption.encryptPassword(textFields[1].text)
           });
         } catch (err, stack) {
           await Sentry.captureException(err,

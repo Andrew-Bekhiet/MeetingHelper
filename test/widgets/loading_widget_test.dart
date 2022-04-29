@@ -17,7 +17,7 @@ void main() {
     () {
       setUp(() async {
         registerFirebaseMocks();
-        await setUpMHPlatformChannels();
+        setUpMHPlatformChannels();
       });
 
       tearDown(() async {

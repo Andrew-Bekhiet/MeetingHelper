@@ -20,7 +20,7 @@ void main() {
     () {
       setUp(() async {
         registerFirebaseMocks();
-        await setUpMHPlatformChannels();
+        setUpMHPlatformChannels();
         await initFakeCore();
 
         when((GetIt.I<FirebaseMessaging>() as MockFirebaseMessaging)
