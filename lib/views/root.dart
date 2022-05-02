@@ -398,8 +398,9 @@ class _RootState extends State<Root>
                       // ignore: unawaited_futures
                       navigator.currentState!.push(
                         MaterialPageRoute(
-                          builder: (context) => const AuthScreen(
-                            nextRoute: 'ManageUsers',
+                          builder: (context) => AuthScreen(
+                            onSuccess: () => navigator.currentState!
+                                .pushReplacementNamed('ManageUsers'),
                           ),
                         ),
                       );
@@ -875,7 +876,9 @@ class _RootState extends State<Root>
             MaterialPageRoute(
               builder: (context) => WillPopScope(
                 onWillPop: () => Future.delayed(Duration.zero, () => false),
-                child: const AuthScreen(),
+                child: AuthScreen(
+                  onSuccess: () => navigator.currentState!.pop(true),
+                ),
               ),
             ),
           )

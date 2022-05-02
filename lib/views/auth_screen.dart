@@ -6,22 +6,22 @@ import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/utils/encryption_keys.dart';
-import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/utils/helpers.dart';
-
-var authKey = GlobalKey<ScaffoldState>();
-final LocalAuthentication _localAuthentication = LocalAuthentication();
 
 class AuthScreen extends StatefulWidget {
-  final Widget? nextWidget;
-  final String? nextRoute;
-  const AuthScreen({Key? key, this.nextWidget, this.nextRoute})
-      : super(key: key);
+  final void Function() onSuccess;
+
+  const AuthScreen({
+    required this.onSuccess,
+    Key? key,
+  }) : super(key: key);
+
   @override
   _AuthScreenState createState() => _AuthScreenState();
 }
 
 class _AuthScreenState extends State<AuthScreen> {
+  static final LocalAuthentication _localAuthentication = LocalAuthentication();
+
   final TextEditingController _passwordText = TextEditingController();
   final FocusNode _passwordFocus = FocusNode();
 
@@ -45,6 +45,12 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _authenticate();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder<bool>(
       future: () async {
@@ -54,7 +60,6 @@ class _AuthScreenState extends State<AuthScreen> {
         bool? canCheckBio = false;
         if (future.hasData) canCheckBio = future.data;
         return Scaffold(
-          key: authKey,
           resizeToAvoidBottomInset: !kIsWeb,
           appBar: AppBar(
             leading: Container(),
@@ -109,12 +114,6 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _authenticate();
-  }
-
   Future<void> _authenticate() async {
     try {
       if (kIsWeb || !await _localAuthentication.canCheckBiometrics) return;
@@ -125,18 +124,7 @@ class _AuthScreenState extends State<AuthScreen> {
           useErrorDialogs: false);
       if (!_authCompleter.isCompleted) _authCompleter.complete(value);
       if (value) {
-        if (widget.nextRoute != null) {
-          unawaited(
-              navigator.currentState!.pushReplacementNamed(widget.nextRoute!));
-        } else if (widget.nextWidget == null) {
-          navigator.currentState!.pop(true);
-        } else {
-          unawaited(navigator.currentState!.pushReplacement(
-            MaterialPageRoute(builder: (con) {
-              return widget.nextWidget!;
-            }),
-          ));
-        }
+        widget.onSuccess();
       }
     } on Exception catch (e) {
       _authCompleter.completeError(e);
@@ -146,29 +134,35 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Future _submit(String password) async {
-    String? encryptedPassword = Encryption.encryptPassword(password);
     if (password.isEmpty) {
-      encryptedPassword = null;
-      await showErrorDialog(context, 'كلمة سر فارغة!');
-      setState(() {});
-    } else if (User.instance.password == encryptedPassword) {
-      encryptedPassword = null;
-      if (widget.nextWidget != null) {
-        unawaited(navigator.currentState!.pushReplacement(
-          MaterialPageRoute(builder: (c) => widget.nextWidget!),
-        ));
-      } else if (widget.nextRoute != null) {
-        unawaited(
-            navigator.currentState!.pushReplacementNamed(widget.nextRoute!));
-      } else {
-        navigator.currentState!.pop(true);
-      }
-    } else {
-      encryptedPassword = null;
-      await showErrorDialog(context, 'كلمة سر خاطئة!');
-      _passwordText.clear();
+      await showDialog(
+        context: context,
+        builder: (context) => const AlertDialog(
+          title: Text(
+            'كلمة سر فارغة!',
+          ),
+        ),
+      );
       setState(() {});
     }
-    encryptedPassword = null;
+
+    String? encryptedPassword = Encryption.encryptPassword(password);
+    if (User.instance.password == encryptedPassword) {
+      encryptedPassword = null;
+
+      widget.onSuccess();
+    } else {
+      encryptedPassword = null;
+      _passwordText.clear();
+
+      await showDialog(
+        context: context,
+        builder: (context) => const AlertDialog(
+          title: Text(
+            'كلمة سر خاطئة!',
+          ),
+        ),
+      );
+    }
   }
 }

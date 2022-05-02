@@ -236,7 +236,13 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
             } else if (user == null) {
               return const LoginScreen();
             } else if (user.permissions.approved && user.password != null) {
-              return const AuthScreen(nextWidget: Root());
+              return AuthScreen(
+                onSuccess: () => Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context) => const Root(),
+                  ),
+                ),
+              );
             } else {
               return const UserRegistration();
             }
