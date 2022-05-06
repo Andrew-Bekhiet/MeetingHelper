@@ -1,10 +1,16 @@
 import 'package:churchdata_core/churchdata_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 
 class HivePersistenceProvider {
   HivePersistenceProvider._();
 
-  static HivePersistenceProvider instance = HivePersistenceProvider._();
+  static HivePersistenceProvider _instance = HivePersistenceProvider._();
+
+  static HivePersistenceProvider get instance => _instance;
+
+  @visibleForTesting
+  static set instance(HivePersistenceProvider instance) => _instance = instance;
 
   final _box = GetIt.I<CacheRepository>().box<bool>('FeatureDiscovery');
 
