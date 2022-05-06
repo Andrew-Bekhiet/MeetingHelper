@@ -185,7 +185,9 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
     } catch (err) {}
 
     if (!kIsWeb &&
-        kReleaseMode &&
+        (kReleaseMode ||
+            GetIt.I<FirebaseRemoteConfig>().runtimeType !=
+                FirebaseRemoteConfig) &&
         GetIt.I<FirebaseRemoteConfig>().getString('LoadApp') == 'false') {
       throw UnsupportedVersionException(version: appVersion);
     } else if (GetIt.I<MHAuthRepository>().isSignedIn &&
