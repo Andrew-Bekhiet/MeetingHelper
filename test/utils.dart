@@ -6,6 +6,8 @@ import 'package:churchdata_core_mocks/fakes/fake_notifications_repo.dart';
 import 'package:churchdata_core_mocks/fakes/mock_user.dart';
 import 'package:churchdata_core_mocks/models/basic_data_object.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,13 +16,16 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_secure_storage_platform_interface/flutter_secure_storage_platform_interface.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:meetinghelper/models/data/user.dart' as u;
 import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/services.dart';
 import 'package:mock_data/mock_data.dart';
 import 'package:mockito/mockito.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:rxdart/rxdart.dart';
 
 import 'fakes/fake_secure_storage.dart';
+import 'views/root_test.mocks.dart';
 
 void setUpMHPlatformChannels() {
   dotenv = FakeDotEnv();
@@ -57,6 +62,18 @@ void setUpMHPlatformChannels() {
     (GetIt.I<FirebaseRemoteConfig>() as MockFirebaseRemoteConfig)
         .getString('LoadApp'),
   ).thenReturn('true');
+
+  when((GetIt.I<FirebaseDynamicLinks>() as MockFirebaseDynamicLinks).onLink)
+      .thenAnswer(
+    (_) async* {},
+  );
+  when((GetIt.I<FirebaseDynamicLinks>() as MockFirebaseDynamicLinks)
+          .getInitialLink())
+      .thenAnswer((_) async => null);
+  when(GetIt.I<FirebaseMessaging>().getInitialMessage())
+      .thenAnswer((_) async => null);
+  when((GetIt.I<FirebaseMessaging>() as MockFirebaseMessaging).isSupported())
+      .thenReturn(false);
 }
 
 Future<void> initFakeCore() async {
@@ -167,6 +184,18 @@ Future<MyMockUser> signInMockUser(
   );
   await (GetIt.I<FirebaseAuth>() as MockFirebaseAuth).signInUser(mockUser);
   return mockUser;
+}
+
+Future<void> mockMHUser({u.User? user}) async {
+  GetIt.I.pushNewScope();
+  GetIt.I.registerSingleton<MHAuthRepository>(MockMHAuthRepository());
+
+  when(GetIt.I<MHAuthRepository>().currentUser).thenReturn(user);
+  when(GetIt.I<MHAuthRepository>().userStream).thenAnswer(
+    (_) => BehaviorSubject.seeded(
+      user,
+    ),
+  );
 }
 
 MaterialApp wrapWithMaterialApp(

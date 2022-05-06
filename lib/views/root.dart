@@ -281,15 +281,24 @@ class _RootState extends State<Root>
       ),
       extendBody: true,
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
-      floatingActionButton: FloatingActionButton(
-        onPressed: addTap,
-        child: AnimatedBuilder(
-          animation: _tabController!,
-          builder: (context, _) => Icon(
-              _tabController!.index == _tabController!.length - 2
-                  ? Icons.group_add
-                  : Icons.person_add),
-        ),
+      floatingActionButton: StreamBuilder<bool>(
+        stream: User.loggedInStream.map((u) => u.permissions.write).distinct(),
+        builder: (context, userData) {
+          if (userData.data ?? false) {
+            return FloatingActionButton(
+              onPressed: addTap,
+              child: AnimatedBuilder(
+                animation: _tabController!,
+                builder: (context, _) => Icon(
+                    _tabController!.index == _tabController!.length - 2
+                        ? Icons.group_add
+                        : Icons.person_add),
+              ),
+            );
+          }
+
+          return const SizedBox(width: 0, height: 0);
+        },
       ),
       bottomNavigationBar: BottomAppBar(
         color: Theme.of(context).colorScheme.primary,

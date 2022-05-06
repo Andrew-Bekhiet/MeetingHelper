@@ -5,14 +5,13 @@ import 'package:churchdata_core/churchdata_core.dart';
 import 'package:churchdata_core_mocks/churchdata_core.dart';
 import 'package:churchdata_core_mocks/churchdata_core.mocks.dart';
 import 'package:churchdata_core_mocks/fakes/fake_functions_repo.dart';
-import 'package:churchdata_core_mocks/fakes/mock_user.dart';
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories/auth_repository.dart';
 import 'package:meetinghelper/utils/encryption_keys.dart';
 import 'package:meetinghelper/utils/globals.dart';
@@ -22,8 +21,6 @@ import 'package:mockito/mockito.dart';
 import '../utils.dart';
 
 void main() {
-  LiveTestWidgetsFlutterBinding();
-
   group(
     'UserRegisteration View tests: ',
     () {
@@ -46,19 +43,23 @@ void main() {
         () {
           setUp(
             () async {
-              await signInMockUser(
-                user: MyMockUser(
-                  email: 'a@a.com',
+              await mockMHUser(
+                user: User(
+                  ref: GetIt.I<DatabaseRepository>()
+                      .collection('UsersData')
+                      .doc('personId'),
+                  uid: 'uid',
+                  name: 'displayName',
+                  email: 'email',
+                  password: 'password',
+                  permissions: MHPermissionsSet(),
+                  lastTanawol: DateTime.now(),
+                  lastConfession: DateTime.now(),
                 ),
-                claims: {},
               );
-              await MHAuthRepository.I.userStream.nextNonNull;
-            },
-          );
 
-          tearDown(
-            () async {
-              await MHAuthRepository.I.signOut();
+              when(GetIt.I<MHAuthRepository>().signOut())
+                  .thenAnswer((_) async {});
             },
           );
 
@@ -132,8 +133,7 @@ void main() {
               await tester.tap(find.byTooltip('تسجيل الخروج'));
               await tester.idle();
 
-              expect(MHAuthRepository.I.currentUser, isNull);
-              expect(GetIt.I<FirebaseAuth>().currentUser, isNull);
+              verify(MHAuthRepository.I.signOut());
             },
           );
         },
@@ -144,21 +144,21 @@ void main() {
         () {
           setUp(
             () async {
-              await signInMockUser(
-                user: MyMockUser(
-                  email: 'a@a.com',
+              await mockMHUser(
+                user: User(
+                  ref: GetIt.I<DatabaseRepository>()
+                      .collection('UsersData')
+                      .doc('personId'),
+                  uid: 'uid',
+                  name: 'displayName',
+                  email: 'email',
+                  password: 'password',
+                  permissions: MHPermissionsSet(approved: true),
                 ),
-                claims: {
-                  'approved': true,
-                },
               );
-              await MHAuthRepository.I.userStream.nextNonNull;
-            },
-          );
 
-          tearDown(
-            () async {
-              await MHAuthRepository.I.signOut();
+              when(GetIt.I<MHAuthRepository>().signOut())
+                  .thenAnswer((_) async {});
             },
           );
 
@@ -318,8 +318,7 @@ void main() {
               await tester.tap(find.byTooltip('تسجيل الخروج'));
               await tester.idle();
 
-              expect(MHAuthRepository.I.currentUser, isNull);
-              expect(GetIt.I<FirebaseAuth>().currentUser, isNull);
+              verify(MHAuthRepository.I.signOut());
             },
           );
         },

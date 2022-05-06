@@ -17,7 +17,7 @@ import 'utils.dart';
 
 void main() {
   group(
-    'App main initialization -> ',
+    'App main initialization:',
     () {
       setUp(() async {
         registerFirebaseMocks();
@@ -43,7 +43,7 @@ void main() {
       });
 
       group(
-        'Normal ->',
+        'Normal:',
         () {
           testWidgets(
             'No signed in user',
@@ -114,7 +114,7 @@ void main() {
         },
       );
       group(
-        'Errors ->',
+        'Errors:',
         () {
           testWidgets(
             'Outdated lastTanawol and lastConfession',
