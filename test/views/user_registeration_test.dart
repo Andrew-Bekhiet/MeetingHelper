@@ -22,7 +22,7 @@ import 'package:mockito/mockito.dart';
 import '../utils.dart';
 
 void main() {
-  LiveTestWidgetsFlutterBinding.ensureInitialized();
+  LiveTestWidgetsFlutterBinding();
 
   group(
     'UserRegisteration View tests: ',
