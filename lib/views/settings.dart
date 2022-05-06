@@ -102,7 +102,7 @@ class SettingsState extends State<Settings> {
                           GetIt.I<MHThemingService>().switchTheme(
                             darkTheme ??
                                 WidgetsBinding
-                                        .instance.window.platformBrightness ==
+                                        .instance?.window.platformBrightness ==
                                     Brightness.dark,
                           );
                         },

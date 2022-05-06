@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -113,17 +115,19 @@ class _MyAccountState extends State<MyAccount> {
                           source ? ImageSource.camera : ImageSource.gallery);
                   if (selectedImage == null) return;
                   final finalImage = await ImageCropper().cropImage(
-                      sourcePath: selectedImage.path,
-                      cropStyle: CropStyle.circle,
-                      androidUiSettings: AndroidUiSettings(
-                          toolbarTitle: 'قص الصورة',
-                          toolbarColor: Theme.of(context).colorScheme.primary,
-                          toolbarWidgetColor: Theme.of(context)
-                              .primaryTextTheme
-                              .headline6!
-                              .color,
-                          initAspectRatio: CropAspectRatioPreset.square,
-                          lockAspectRatio: false));
+                    sourcePath: selectedImage.path,
+                    cropStyle: CropStyle.circle,
+                    uiSettings: [
+                      AndroidUiSettings(
+                        toolbarTitle: 'قص الصورة',
+                        toolbarColor: Theme.of(context).colorScheme.primary,
+                        toolbarWidgetColor:
+                            Theme.of(context).primaryTextTheme.headline6!.color,
+                        initAspectRatio: CropAspectRatioPreset.square,
+                        lockAspectRatio: false,
+                      ),
+                    ],
+                  );
                   if (await showDialog(
                         context: context,
                         builder: (context) => AlertDialog(
@@ -147,7 +151,7 @@ class _MyAccountState extends State<MyAccount> {
                       content: Text('جار التحميل'),
                       duration: Duration(minutes: 2),
                     ));
-                    await user.photoRef.putFile(finalImage!);
+                    await user.photoRef.putFile(File(finalImage!.path));
                     user.reloadImage();
                     setState(() {});
                     scaffoldMessenger.currentState!.hideCurrentSnackBar();

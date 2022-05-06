@@ -280,12 +280,16 @@ class _EditClassState extends State<EditClass> {
     changedImage = kIsWeb
         ? selectedImage.path
         : (await ImageCropper().cropImage(
-                sourcePath: selectedImage.path,
-                androidUiSettings: AndroidUiSettings(
-                    toolbarTitle: 'قص الصورة',
-                    toolbarColor: Theme.of(context).colorScheme.primary,
-                    initAspectRatio: CropAspectRatioPreset.original,
-                    lockAspectRatio: false)))
+            sourcePath: selectedImage.path,
+            uiSettings: [
+              AndroidUiSettings(
+                toolbarTitle: 'قص الصورة',
+                toolbarColor: Theme.of(context).colorScheme.primary,
+                initAspectRatio: CropAspectRatioPreset.original,
+                lockAspectRatio: false,
+              ),
+            ],
+          ))
             ?.path;
     deletePhoto = false;
     setState(() {});

@@ -1434,11 +1434,14 @@ class _EditPersonState extends State<EditPerson> {
     changedImage = (await ImageCropper().cropImage(
       sourcePath: selectedImage.path,
       cropStyle: CropStyle.circle,
-      androidUiSettings: AndroidUiSettings(
+      uiSettings: [
+        AndroidUiSettings(
           toolbarTitle: 'قص الصورة',
           toolbarColor: Theme.of(context).colorScheme.primary,
           initAspectRatio: CropAspectRatioPreset.square,
-          lockAspectRatio: false),
+          lockAspectRatio: false,
+        ),
+      ],
     ))
         ?.path;
     deletePhoto = false;

@@ -547,7 +547,8 @@ class _PersonInfoState extends State<PersonInfo> {
     if (result == null) return;
     if (result) {
       await Permission.phone.request();
-      await launch('tel:' + formatPhone(number ?? '', false));
+      await launchUrl(
+          Uri(scheme: 'tel', path: formatPhone(number ?? '', false)));
       final recordLastCall = await showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -578,7 +579,8 @@ class _PersonInfoState extends State<PersonInfo> {
         );
       }
     } else {
-      await launch('tel://' + formatPhone(number ?? '', false));
+      await launchUrl(
+          Uri(scheme: 'tel', path: formatPhone(number ?? '', false)));
     }
   }
 

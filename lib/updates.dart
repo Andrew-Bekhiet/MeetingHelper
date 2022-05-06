@@ -36,12 +36,11 @@ class Updates {
               TextButton(
                 onPressed: () async {
                   navigator.currentState!.pop();
-                  if (await canLaunch(GetIt.I<FirebaseRemoteConfig>()
-                      .getString('DownloadLink')
-                      .replaceFirst('https://', 'https:'))) {
-                    await launch(GetIt.I<FirebaseRemoteConfig>()
-                        .getString('DownloadLink')
-                        .replaceFirst('https://', 'https:'));
+                  if (await canLaunchUrl(Uri.parse(
+                      GetIt.I<FirebaseRemoteConfig>()
+                          .getString('DownloadLink')))) {
+                    await launchUrl(Uri.parse(GetIt.I<FirebaseRemoteConfig>()
+                        .getString('DownloadLink')));
                   } else {
                     navigator.currentState!.pop();
                     await Clipboard.setData(ClipboardData(

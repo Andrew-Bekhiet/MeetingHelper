@@ -932,13 +932,13 @@ class _RootState extends State<Root>
   @override
   void didChangePlatformBrightness() {
     GetIt.I<MHThemingService>().switchTheme(
-        WidgetsBinding.instance.window.platformBrightness == Brightness.dark);
+        WidgetsBinding.instance?.window.platformBrightness == Brightness.dark);
   }
 
   @override
   Future<void> dispose() async {
     super.dispose();
-    WidgetsBinding.instance.removeObserver(this);
+    WidgetsBinding.instance?.removeObserver(this);
 
     await _dynamicLinksSubscription.cancel();
 
@@ -1002,9 +1002,9 @@ class _RootState extends State<Root>
                 User.instance.permissions.manageAllowedUsers
             ? 3
             : 2);
-    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance?.addObserver(this);
     _keepAlive(true);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance?.addPostFrameCallback((_) {
       if (dialogsNotShown) showPendingUIDialogs();
     });
   }
@@ -1044,7 +1044,7 @@ class _RootState extends State<Root>
     }
   }
 
-  Future showDynamicLink() async {
+  Future<void> showDynamicLink() async {
     if (kIsWeb) return;
     final PendingDynamicLinkData? data =
         await GetIt.I<FirebaseDynamicLinks>().getInitialLink();

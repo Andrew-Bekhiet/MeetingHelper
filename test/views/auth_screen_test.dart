@@ -3,15 +3,13 @@ import 'package:churchdata_core_mocks/churchdata_core.dart';
 import 'package:churchdata_core_mocks/churchdata_core.mocks.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
-import 'package:local_auth/local_auth.dart';
+import 'package:local_auth_platform_interface/local_auth_platform_interface.dart';
 import 'package:meetinghelper/repositories/auth_repository.dart';
 import 'package:meetinghelper/utils/encryption_keys.dart';
 import 'package:meetinghelper/views/auth_screen.dart';
 import 'package:mockito/mockito.dart';
-import 'package:platform/platform.dart';
 
 import '../utils.dart';
 
@@ -38,28 +36,7 @@ void main() {
         () {
           setUp(
             () async {
-              setMockPathProviderPlatform(
-                FakePlatform(
-                  operatingSystem: Platform.android,
-                ),
-              );
-
-              TestDefaultBinaryMessengerBinding.instance!.defaultBinaryMessenger
-                  .setMockMessageHandler(
-                'plugins.flutter.io/local_auth',
-                (c) async {
-                  final methodName =
-                      const StandardMethodCodec().decodeMethodCall(c).method;
-                  if (methodName == 'getAvailableBiometrics') {
-                    return const StandardMethodCodec()
-                        .encodeSuccessEnvelope(['fingerprint']);
-                  } else if (methodName == 'authenticate') {
-                    return const StandardMethodCodec()
-                        .encodeSuccessEnvelope(true);
-                  }
-                  return null;
-                },
-              );
+              LocalAuthPlatform.instance = FakeLocalAuthPlatform(true);
             },
           );
 
@@ -157,25 +134,7 @@ void main() {
         () {
           setUp(
             () async {
-              setMockPathProviderPlatform(
-                FakePlatform(
-                  operatingSystem: Platform.android,
-                ),
-              );
-
-              TestDefaultBinaryMessengerBinding.instance!.defaultBinaryMessenger
-                  .setMockMessageHandler(
-                'plugins.flutter.io/local_auth',
-                (c) async {
-                  final methodName =
-                      const StandardMethodCodec().decodeMethodCall(c).method;
-                  if (methodName == 'getAvailableBiometrics') {
-                    return const StandardMethodCodec()
-                        .encodeSuccessEnvelope([]);
-                  }
-                  return null;
-                },
-              );
+              LocalAuthPlatform.instance = FakeLocalAuthPlatform(false);
             },
           );
 
@@ -333,4 +292,23 @@ void main() {
       );
     },
   );
+}
+
+class FakeLocalAuthPlatform extends LocalAuthPlatform {
+  final bool authSupported;
+
+  FakeLocalAuthPlatform(this.authSupported);
+
+  @override
+  Future<bool> authenticate({
+    required String localizedReason,
+    required Iterable<AuthMessages> authMessages,
+    AuthenticationOptions options = const AuthenticationOptions(),
+  }) async =>
+      true;
+
+  @override
+  Future<bool> deviceSupportsBiometrics() async {
+    return authSupported;
+  }
 }

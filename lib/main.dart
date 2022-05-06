@@ -214,13 +214,13 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
             if (!errorDialogShown) {
               if (user?.password != null &&
                   snapshot.error is UpdateUserDataException) {
-                WidgetsBinding.instance.addPostFrameCallback((_) async {
+                WidgetsBinding.instance?.addPostFrameCallback((_) async {
                   await showErrorUpdateDataDialog(context: context);
                   errorDialogShown = false;
                 });
                 errorDialogShown = true;
               } else if (snapshot.error is UnsupportedVersionException) {
-                WidgetsBinding.instance.addPostFrameCallback((_) async {
+                WidgetsBinding.instance?.addPostFrameCallback((_) async {
                   await Updates.showUpdateDialog(context, canCancel: false);
                   errorDialogShown = false;
                 });
