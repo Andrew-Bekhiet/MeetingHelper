@@ -15,6 +15,7 @@ import '../utils.dart';
 @GenerateMocks([MHAuthRepository])
 void main() {
   late GlobalKey<NavigatorState> navigatorKey;
+  final StructureTestVariants structureTestVariants = StructureTestVariants();
 
   group(
     'Root View tests:',
@@ -39,7 +40,6 @@ void main() {
         await GetIt.I.reset();
       });
 
-      final structureTestVariants = StructureTestVariants();
       testWidgets(
         'Structure',
         (tester) async {

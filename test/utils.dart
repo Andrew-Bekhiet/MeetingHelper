@@ -190,6 +190,7 @@ Future<void> mockMHUser({u.User? user}) async {
   GetIt.I.pushNewScope();
   GetIt.I.registerSingleton<MHAuthRepository>(MockMHAuthRepository());
 
+  when(GetIt.I<MHAuthRepository>().isSignedIn).thenReturn(user != null);
   when(GetIt.I<MHAuthRepository>().currentUser).thenReturn(user);
   when(GetIt.I<MHAuthRepository>().userStream).thenAnswer(
     (_) => BehaviorSubject.seeded(
