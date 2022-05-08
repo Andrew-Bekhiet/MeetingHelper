@@ -1,20 +1,25 @@
+import 'dart:math';
+
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:churchdata_core_mocks/churchdata_core.dart';
+import 'package:collection/collection.dart';
 import 'package:device_info_plus_platform_interface/device_info_plus_platform_interface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/models.dart';
-import 'package:meetinghelper/repositories/auth_repository.dart';
+import 'package:meetinghelper/repositories.dart';
+import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/views/edit_pages/edit_person.dart';
 import 'package:meetinghelper/views/root.dart';
 import 'package:meetinghelper/widgets.dart';
+import 'package:mock_data/mock_data.dart';
 import 'package:mockito/annotations.dart';
 
 import '../utils.dart';
 
 @GenerateMocks([MHAuthRepository])
 void main() {
-  late GlobalKey<NavigatorState> navigatorKey;
   final StructureTestVariants structureTestVariants = StructureTestVariants();
 
   group(
@@ -27,10 +32,10 @@ void main() {
 
         DeviceInfoPlatform.instance = FakeDeviceInfo();
 
-        navigatorKey = GlobalKey();
+        navigator = GlobalKey();
 
         GetIt.I.registerSingleton<MHViewableObjectTapHandler>(
-            MHViewableObjectTapHandler(navigatorKey));
+            MHViewableObjectTapHandler(navigator));
 
         HivePersistenceProvider.instance =
             AllCompletedHivePersistenceProvider();
@@ -48,7 +53,7 @@ void main() {
           await tester.pumpWidget(
             wrapWithMaterialApp(
               const Root(),
-              navigatorKey: navigatorKey,
+              navigatorKey: navigator,
             ),
           );
           await tester.pumpAndSettle();
@@ -188,8 +193,413 @@ void main() {
         },
         variant: structureTestVariants,
       );
+
+      group(
+        'Functionality:',
+        () {
+          setUp(
+            () async {
+              await mockMHUser(
+                user: User(
+                  ref: GetIt.I<DatabaseRepository>()
+                      .collection('UsersData')
+                      .doc('personId'),
+                  uid: 'uid',
+                  name: 'displayName',
+                  email: 'email',
+                  password: 'password',
+                  permissions: MHPermissionsSet.fromJson(
+                    const {
+                      'approved': true,
+                      'birthdayNotify': true,
+                      'changeHistory': true,
+                      'confessionsNotify': true,
+                      'export': true,
+                      'kodasNotify': true,
+                      'manageAllowedUsers': true,
+                      'manageDeleted': true,
+                      'manageUsers': true,
+                      'meetingNotify': true,
+                      'secretary': true,
+                      'recordHistory': true,
+                      'superAccess': true,
+                      'tanawolNotify': true,
+                      'visitNotify': true,
+                      'write': true,
+                      'personId': 'personId',
+                    },
+                  ),
+                  lastTanawol: DateTime.now(),
+                  lastConfession: DateTime.now(),
+                ),
+              );
+            },
+          );
+          testWidgets(
+            'Adding new entity',
+            (tester) async {
+              await tester.pumpWidget(
+                wrapWithMaterialApp(
+                  const Root(),
+                  navigatorKey: navigator,
+                  routes: {
+                    'Data/EditClass': (context) => const Text('EditClass'),
+                    'Data/EditService': (context) => const Text('EditService'),
+                    'Data/EditPerson': (context) => const Text('EditPerson'),
+                  },
+                ),
+              );
+              await tester.pumpAndSettle();
+
+              await tester.tap(find.widgetWithIcon(
+                FloatingActionButton,
+                Icons.group_add,
+              ));
+              await tester.pumpAndSettle();
+
+              expect(find.byType(Dialog), findsOneWidget);
+              expect(find.text('اضافة فصل'), findsOneWidget);
+              expect(find.text('اضافة خدمة'), findsOneWidget);
+
+              await tester.tap(find.text('اضافة فصل'));
+              await tester.pumpAndSettle();
+
+              expect(find.text('EditClass'), findsOneWidget);
+
+              navigator.currentState!.pop();
+              await tester.pumpAndSettle();
+
+              await tester.tap(find.widgetWithIcon(
+                FloatingActionButton,
+                Icons.group_add,
+              ));
+              await tester.pumpAndSettle();
+
+              await tester.tap(find.text('اضافة خدمة'));
+              await tester.pumpAndSettle();
+
+              expect(find.text('EditService'), findsOneWidget);
+
+              navigator.currentState!.pop();
+              await tester.pumpAndSettle();
+
+              await tester.tap(
+                find.descendant(
+                    of: find.byType(TabBar), matching: find.text('الخدام')),
+              );
+              await tester.pumpAndSettle();
+
+              await tester.tap(find.widgetWithIcon(
+                FloatingActionButton,
+                Icons.person_add,
+              ));
+              await tester.pumpAndSettle();
+
+              expect(find.byType(EditPerson), findsOneWidget);
+              expect(
+                  tester
+                      .firstWidget<EditPerson>(find.byType(EditPerson))
+                      .person,
+                  isNotNull);
+              expect(
+                  tester
+                      .firstWidget<EditPerson>(find.byType(EditPerson))
+                      .person!
+                      .ref
+                      .parent
+                      .id,
+                  'UsersData');
+
+              navigator.currentState!.pop();
+              await tester.pumpAndSettle();
+
+              await tester.tap(
+                find.descendant(
+                    of: find.byType(TabBar), matching: find.text('المخدومين')),
+              );
+              await tester.pumpAndSettle();
+
+              await tester.tap(find.widgetWithIcon(
+                FloatingActionButton,
+                Icons.person_add,
+              ));
+              await tester.pumpAndSettle();
+
+              expect(find.text('EditPerson'), findsOneWidget);
+            },
+          );
+
+          testWidgets(
+            'Displayed data',
+            (tester) async {
+              final mockData = await setUpMockData();
+
+              await tester.binding
+                  .setSurfaceSize(const Size(1080 * 3, 2400 * 3));
+
+              await tester.pumpWidget(
+                wrapWithMaterialApp(
+                  const Root(),
+                  navigatorKey: navigator,
+                ),
+              );
+              await tester.pumpAndSettle();
+
+              /* expect(find.text('ابتدائي'), findsOneWidget);
+              expect(find.text('اعدادي'), findsOneWidget);
+              expect(find.text('ثانوي'), findsOneWidget);
+
+              expect(find.text(studyYears.values.first.name), findsOneWidget);
+              await tester.tap(find.text(studyYears.values.first.name));
+              await tester.pumpAndSettle();
+
+              for (final class$ in classes) {
+                expect(
+                  find.widgetWithText(
+                    ViewableObjectWidget<Class>,
+                    class$.name,
+                  ),
+                  findsOneWidget,
+                );
+              } */
+              await tester.tap(find.text('المخدومين'));
+              await tester.pumpAndSettle();
+
+              for (final person in mockData.item1) {
+                expect(
+                  find.widgetWithText(
+                    ViewableObjectWidget<Person>,
+                    person.name,
+                  ),
+                  findsOneWidget,
+                );
+              }
+
+              await tester.tap(find.text('الخدام'));
+              await tester.pumpAndSettle();
+
+              await tester.tap(find.text('غير محددة'));
+              await tester.pumpAndSettle();
+
+              for (final user in mockData.item2) {
+                expect(
+                  find.widgetWithText(
+                    ViewableObjectWidget<UserWithPerson>,
+                    user.name,
+                  ),
+                  findsOneWidget,
+                );
+              }
+            },
+          );
+
+          testWidgets(
+            'Search',
+            (tester) async {
+              final mockData = await setUpMockData();
+
+              await tester.binding
+                  .setSurfaceSize(const Size(1080 * 3, 2400 * 3));
+
+              await tester.pumpWidget(
+                wrapWithMaterialApp(
+                  const Root(),
+                  navigatorKey: navigator,
+                ),
+              );
+              await tester.pumpAndSettle();
+
+              await tester.tap(find.text('المخدومين'));
+              await tester.pumpAndSettle();
+
+              await tester.tap(find.byIcon(Icons.search));
+              await tester.pumpAndSettle();
+
+              expect(
+                find.descendant(
+                  of: find.byType(AppBar),
+                  matching: find.byType(TextField),
+                ),
+                findsOneWidget,
+              );
+
+              final searchString = mockData
+                  .item1[Random().nextInt(mockData.item1.length)].name
+                  .substring(0, 3);
+
+              await tester.enterText(
+                find.descendant(
+                  of: find.byType(AppBar),
+                  matching: find.byType(TextField),
+                ),
+                searchString,
+              );
+              await tester.pumpAndSettle();
+
+              for (final person in mockData.item1) {
+                expect(
+                  find.widgetWithText(
+                    ViewableObjectWidget<Person>,
+                    person.name,
+                  ),
+                  person.name.contains(searchString)
+                      ? findsOneWidget
+                      : findsNothing,
+                );
+              }
+
+              await tester.tap(find.text('الخدام'));
+              await tester.pumpAndSettle();
+
+              if (mockData.item2
+                  .where((u) => u.name.contains(searchString))
+                  .isNotEmpty) {
+                await tester.tap(find.text('غير محددة'));
+                await tester.pumpAndSettle();
+              }
+
+              for (final user in mockData.item2) {
+                expect(
+                  find.widgetWithText(
+                    ViewableObjectWidget<UserWithPerson>,
+                    user.name,
+                  ),
+                  user.name.contains(searchString)
+                      ? findsOneWidget
+                      : findsNothing,
+                );
+              }
+            },
+          );
+        },
+      );
     },
   );
+}
+
+Future<Tuple2<List<Person>, List<UserWithPerson>>> setUpMockData() async {
+  final personsRef = MHDatabaseRepo.I.collection('Persons');
+  final usersRef = MHDatabaseRepo.I.collection('UsersData');
+  /* final classesRef = MHDatabaseRepo.I.collection('Classes');
+              final servicesRef = MHDatabaseRepo.I.collection('Services');
+              final studyYearsRef = MHDatabaseRepo.I.collection('StudyYears'); */
+
+  final persons = List.generate(
+    20,
+    (_) => Person(
+      ref: personsRef.doc(),
+      name: mockName() + '-' + mockString(),
+    ),
+  ).sorted(
+    (a, b) => a.name.compareTo(b.name),
+  );
+
+  final users = List.generate(
+    20,
+    (_) => UserWithPerson(
+      uid: 'uid',
+      permissions: const MHPermissionsSet.empty(),
+      adminServices: const [],
+      allowedUsers: const [],
+      ref: usersRef.doc(),
+      name: mockName() + '-' + mockString(),
+    ),
+  ).sorted(
+    (a, b) => a.name.compareTo(b.name),
+  );
+
+  /* final studyYears = {
+                1: StudyYear(
+                  ref: studyYearsRef.doc(),
+                  name: 'أولى ابتدائي',
+                  grade: 1,
+                ),
+                2: StudyYear(
+                  ref: studyYearsRef.doc(),
+                  name: 'تانية ابتدائي',
+                  grade: 2,
+                ),
+                7: StudyYear(
+                  ref: studyYearsRef.doc(),
+                  name: 'أولى اعدادي',
+                  grade: 7,
+                ),
+                10: StudyYear(
+                  ref: studyYearsRef.doc(),
+                  name: 'أولى ثانوي',
+                  grade: 10,
+                ),
+              };
+
+              final classes = [
+                Class(
+                  ref: classesRef.doc(),
+                  name: '1 ب ولاد',
+                  studyYear: studyYears[1]!.ref,
+                ),
+                Class(
+                  ref: classesRef.doc(),
+                  name: '1 ب ولاد',
+                  studyYear: studyYears[1]!.ref,
+                  gender: false,
+                ),
+                Class(
+                  ref: classesRef.doc(),
+                  name: '2 ب',
+                  studyYear: studyYears[2]!.ref,
+                  gender: null,
+                ),
+                Class(
+                  ref: classesRef.doc(),
+                  name: '1 ع',
+                  studyYear: studyYears[7]!.ref,
+                  gender: null,
+                ),
+                Class(
+                  ref: classesRef.doc(),
+                  name: '1 ث',
+                  studyYear: studyYears[10]!.ref,
+                  gender: null,
+                ),
+              ];
+
+              final service = Service(
+                ref: servicesRef.doc(),
+                name: 'خدمة أخرى',
+                lastEdit: null,
+              ); */
+
+  await Future.wait(persons
+          .map(
+            (p) => p.set(),
+          )
+          .followedBy(
+            users.map(
+              (u) => u.ref.set(
+                {
+                  ...u.userJson(),
+                  'Permissions': u.permissions.toJson(),
+                },
+              ),
+            ),
+          )
+      /* .followedBy(
+                      studyYears.values.map(
+                        (s) => s.set(),
+                      ),
+                    )
+                    .followedBy(
+                      classes.map(
+                        (s) => s.set(),
+                      ),
+                    )
+                    .followedBy(
+                  [
+                    service.set(),
+                  ],
+                ), */
+      );
+  return Tuple2(persons, users);
 }
 
 class AllCompletedHivePersistenceProvider implements HivePersistenceProvider {
