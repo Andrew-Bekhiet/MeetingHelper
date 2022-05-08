@@ -16,6 +16,7 @@ part 'class.g.dart';
 @CopyWith(copyWithNull: true)
 class Class extends DataObject implements PhotoObjectBase {
   final JsonRef? studyYear;
+  //Male=true, Female=false, Both=null
   final bool? gender;
 
   final UnmodifiableListView<String> allowedUsers;
