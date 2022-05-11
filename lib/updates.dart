@@ -11,7 +11,7 @@ import 'package:version/version.dart';
 import 'utils/globals.dart';
 
 class Update extends StatefulWidget {
-  const Update({Key? key}) : super(key: key);
+  const Update({super.key});
 
   @override
   _UpdateState createState() => _UpdateState();

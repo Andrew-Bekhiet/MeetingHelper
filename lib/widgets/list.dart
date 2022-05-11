@@ -44,13 +44,13 @@ class DayCheckList<G, T extends Person> extends StatefulWidget {
   const DayCheckList({
     required this.controller,
     required this.autoDisposeController,
-    Key? key,
+    super.key,
     this.itemBuilder,
     this.groupBuilder,
     this.onTap,
     this.onLongPress,
     this.emptyMsg = 'لا يوجد مخدومين',
-  }) : super(key: key);
+  });
 
   @override
   _DayCheckListState<G, T> createState() => _DayCheckListState<G, T>();

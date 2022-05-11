@@ -16,7 +16,7 @@ import 'package:rxdart/rxdart.dart';
 class SearchQuery extends StatefulWidget {
   final QueryInfo? query;
 
-  const SearchQuery({Key? key, this.query}) : super(key: key);
+  const SearchQuery({super.key, this.query});
 
   @override
   _SearchQueryState createState() => _SearchQueryState();
@@ -464,7 +464,6 @@ class _SearchQueryState extends State<SearchQuery> {
                 ..insert(
                   0,
                   const DropdownMenuItem(
-                    value: null,
                     child: Text(''),
                   ),
                 ),
@@ -588,7 +587,7 @@ class _SearchQueryState extends State<SearchQuery> {
         },
       ),
       Color: PropertyQuery<int>(
-        builder: (context) => Container(
+        builder: (context) => ColoredBox(
           color: queryValue is int ? Color(queryValue) : Colors.transparent,
           child: InkWell(
             key: const ValueKey('SelectColor'),
@@ -730,7 +729,6 @@ class _SearchQueryState extends State<SearchQuery> {
                     ..insert(
                       0,
                       const DropdownMenuItem(
-                        value: null,
                         child: Text('(فارغ)'),
                       ),
                     ),
@@ -908,7 +906,7 @@ class _SearchQueryState extends State<SearchQuery> {
     if (widget.query != null) {
       query = widget.query!;
 
-      WidgetsBinding.instance!.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         setState(() {});
         execute();
       });

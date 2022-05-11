@@ -20,7 +20,7 @@ import '../models/data/user.dart';
 import '../utils/helpers.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -195,7 +195,7 @@ class _LoginScreenState extends State<LoginScreen> {
       settings.get('ClassSecondLine') ??
           await settings.put('ClassSecondLine', 'Gender');
 
-      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (user.getNotificationsPermissions().values.toList().any((e) => e)) {
           final notificationsSettings = GetIt.I<CacheRepository>()
               .box<NotificationSetting>('NotificationsSettings');
@@ -306,8 +306,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
 class _LoginTitle extends StatelessWidget with PreferredSizeWidget {
   const _LoginTitle({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

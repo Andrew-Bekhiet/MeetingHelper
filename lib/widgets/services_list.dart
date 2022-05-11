@@ -15,9 +15,9 @@ class ServicesList<T extends DataObject> extends StatefulWidget {
   const ServicesList({
     required this.options,
     required this.autoDisposeController,
-    Key? key,
+    super.key,
     this.onTap,
-  }) : super(key: key);
+  });
   @override
   _ServicesListState<T> createState() => _ServicesListState<T>();
 }

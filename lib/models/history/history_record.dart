@@ -23,10 +23,10 @@ abstract class HistoryDayBase extends DataObjectWithPhoto {
         notes = '',
         super(ref, '');
 
-  HistoryDayBase._createFromData(Json data, JsonRef ref)
+  HistoryDayBase._createFromData(super.data, super.ref)
       : day = data['Day'],
         notes = data['Notes'],
-        super.fromJson(data, ref);
+        super.fromJson();
 
   @override
   String get name =>
@@ -76,8 +76,7 @@ class HistoryDay extends HistoryDayBase {
               .doc(DateTime.now().toIso8601String().split('T')[0]),
         );
 
-  HistoryDay._createFromData(Json data, JsonRef ref)
-      : super._createFromData(data, ref);
+  HistoryDay._createFromData(super.data, super.ref) : super._createFromData();
 
   static HistoryDay? fromDoc(JsonDoc data) => data.exists
       ? HistoryDay._createFromData(data.data()!, data.reference)
@@ -117,8 +116,8 @@ class ServantsHistoryDay extends HistoryDayBase {
   factory ServantsHistoryDay.fromQueryDoc(JsonQueryDoc data) =>
       ServantsHistoryDay._createFromData(data.data(), data.reference);
 
-  ServantsHistoryDay._createFromData(Json data, JsonRef ref)
-      : super._createFromData(data, ref);
+  ServantsHistoryDay._createFromData(super.data, super.ref)
+      : super._createFromData();
 
   static Future<ServantsHistoryDay?> fromId(String id) async =>
       ServantsHistoryDay.fromDoc(

@@ -20,12 +20,12 @@ import 'package:share_plus/share_plus.dart';
 
 class AnalyticsPage extends StatefulWidget {
   const AnalyticsPage({
-    Key? key,
+    super.key,
     this.parents,
     this.range,
     this.historyColection = 'History',
     this.day,
-  }) : super(key: key);
+  });
 
   final List<DataObject>? parents;
   final HistoryDayBase? day;
@@ -39,9 +39,9 @@ class AnalyticsPage extends StatefulWidget {
 class PersonAnalyticsPage extends StatefulWidget {
   const PersonAnalyticsPage({
     required this.person,
-    Key? key,
+    super.key,
     this.colection = 'History',
-  }) : super(key: key);
+  });
 
   final String colection;
   final Person person;
@@ -51,7 +51,7 @@ class PersonAnalyticsPage extends StatefulWidget {
 }
 
 class ActivityAnalysis extends StatefulWidget {
-  const ActivityAnalysis({Key? key, this.parents}) : super(key: key);
+  const ActivityAnalysis({super.key, this.parents});
 
   final List<DataObject>? parents;
 
@@ -831,7 +831,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
 Future<void> takeScreenshot(GlobalKey key) async {
   final RenderRepaintBoundary? boundary =
       key.currentContext!.findRenderObject() as RenderRepaintBoundary?;
-  WidgetsBinding.instance!.addPostFrameCallback(
+  WidgetsBinding.instance.addPostFrameCallback(
     (_) async {
       final ui.Image image = await boundary!.toImage(pixelRatio: 2);
       final ByteData byteData =

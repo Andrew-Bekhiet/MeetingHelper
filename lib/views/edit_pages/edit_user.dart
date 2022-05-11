@@ -21,8 +21,8 @@ class EditUser extends StatefulWidget {
 
   const EditUser({
     required this.user,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
   @override
   _EditUserState createState() => _EditUserState();
 }
@@ -551,7 +551,7 @@ class _EditUserState extends State<EditUser> {
       user.adminServices.map(
         (e) async {
           final data = await e.get();
-          if (data.exists) return Service.fromDoc(data)!;
+          if (data.exists) return Service.fromDoc(data);
         },
       ),
     );

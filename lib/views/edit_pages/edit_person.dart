@@ -24,7 +24,7 @@ import 'package:tinycolor2/tinycolor2.dart';
 class EditPerson extends StatefulWidget {
   final Person? person;
 
-  const EditPerson({Key? key, this.person}) : super(key: key);
+  const EditPerson({super.key, this.person});
 
   @override
   _EditPersonState createState() => _EditPersonState();
@@ -344,7 +344,6 @@ class _EditPersonState extends State<EditPerson> {
                                 ..insert(
                                   0,
                                   const DropdownMenuItem(
-                                    value: null,
                                     child: Text(''),
                                   ),
                                 ),
@@ -567,7 +566,6 @@ class _EditPersonState extends State<EditPerson> {
                           ..insert(
                             0,
                             const DropdownMenuItem(
-                              value: null,
                               child: Text(''),
                             ),
                           ),
@@ -650,7 +648,6 @@ class _EditPersonState extends State<EditPerson> {
                                               ..insert(
                                                 0,
                                                 const DropdownMenuItem(
-                                                  value: null,
                                                   child: Text(''),
                                                 ),
                                               ),
@@ -714,7 +711,6 @@ class _EditPersonState extends State<EditPerson> {
                                               ..insert(
                                                 0,
                                                 const DropdownMenuItem(
-                                                  value: null,
                                                   child: Text(''),
                                                 ),
                                               ),
@@ -780,7 +776,6 @@ class _EditPersonState extends State<EditPerson> {
                                       ..insert(
                                         0,
                                         const DropdownMenuItem(
-                                          value: null,
                                           child: Text(''),
                                         ),
                                       ),
@@ -835,7 +830,6 @@ class _EditPersonState extends State<EditPerson> {
                                     ..insert(
                                       0,
                                       const DropdownMenuItem(
-                                        value: null,
                                         child: Text(''),
                                       ),
                                     ),
@@ -1377,7 +1371,7 @@ class _EditPersonState extends State<EditPerson> {
       (state.value ?? []).map(
         (e) async {
           final data = await e.get();
-          if (data.exists) return Service.fromDoc(data)!;
+          if (data.exists) return Service.fromDoc(data);
         },
       ),
     );

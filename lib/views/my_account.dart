@@ -14,7 +14,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 class MyAccount extends StatefulWidget {
-  const MyAccount({Key? key}) : super(key: key);
+  const MyAccount({super.key});
 
   @override
   _MyAccountState createState() => _MyAccountState();

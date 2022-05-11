@@ -15,7 +15,7 @@ import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 class ServiceInfo extends StatefulWidget {
   final Service service;
 
-  const ServiceInfo({required this.service, Key? key}) : super(key: key);
+  const ServiceInfo({required this.service, super.key});
 
   @override
   _ServiceInfoState createState() => _ServiceInfoState();
@@ -53,7 +53,7 @@ class _ServiceInfoState extends State<ServiceInfo> {
         ),
       ),
     );
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (([
         if (User.instance.permissions.write) 'Edit',
         'Share',
@@ -497,8 +497,7 @@ class _ServiceInfoState extends State<ServiceInfo> {
 class _ServiceServants extends StatelessWidget {
   const _ServiceServants({
     required this.service,
-    Key? key,
-  }) : super(key: key);
+  });
 
   final Service service;
 
@@ -544,7 +543,7 @@ class _ServiceServants extends StatelessWidget {
                     if (users.length > 7 && i == 6) {
                       return SizedBox.expand(
                         child: ClipOval(
-                          child: Container(
+                          child: ColoredBox(
                             color:
                                 Theme.of(context).brightness == Brightness.light
                                     ? Colors.black26

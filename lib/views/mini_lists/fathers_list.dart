@@ -10,9 +10,9 @@ class FathersEditList extends StatefulWidget {
   final Function(Father)? tap;
   const FathersEditList({
     required this.list,
-    Key? key,
+    super.key,
     this.tap,
-  }) : super(key: key);
+  });
 
   @override
   _FathersEditListState createState() => _FathersEditListState();

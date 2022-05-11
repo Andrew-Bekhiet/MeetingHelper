@@ -22,7 +22,7 @@ import 'package:tinycolor2/tinycolor2.dart';
 class EditClass extends StatefulWidget {
   final Class? class$;
 
-  const EditClass({required this.class$, Key? key}) : super(key: key);
+  const EditClass({required this.class$, super.key});
   @override
   _EditClassState createState() => _EditClassState();
 }
@@ -147,7 +147,6 @@ class _EditClassState extends State<EditClass> {
                                 ..insert(
                                   0,
                                   const DropdownMenuItem(
-                                    value: null,
                                     child: Text(''),
                                   ),
                                 ),

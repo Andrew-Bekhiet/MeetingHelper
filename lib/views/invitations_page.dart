@@ -6,7 +6,7 @@ import 'package:meetinghelper/utils/globals.dart';
 import 'package:rxdart/rxdart.dart';
 
 class InvitationsPage extends StatefulWidget {
-  const InvitationsPage({Key? key}) : super(key: key);
+  const InvitationsPage({super.key});
 
   @override
   _InvitationsPageState createState() => _InvitationsPageState();

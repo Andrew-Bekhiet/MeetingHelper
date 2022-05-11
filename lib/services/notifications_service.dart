@@ -224,7 +224,7 @@ class MHNotificationsService extends NotificationsService {
   //
 
   static Future<void> onNotificationClicked(String? payload) async {
-    if (WidgetsBinding.instance?.renderViewElement != null &&
+    if (WidgetsBinding.instance.renderViewElement != null &&
         GetIt.I.isRegistered<MHNotificationsService>() &&
         payload != null &&
         GetIt.I<CacheRepository>()

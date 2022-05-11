@@ -15,8 +15,8 @@ class ClassInfo extends StatefulWidget {
 
   const ClassInfo({
     required this.class$,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   _ClassInfoState createState() => _ClassInfoState();
@@ -52,7 +52,7 @@ class _ClassInfoState extends State<ClassInfo> {
         ),
       ),
     );
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (([
         if (User.instance.permissions.write) 'Edit',
         'Share',
@@ -459,8 +459,7 @@ class _ClassInfoState extends State<ClassInfo> {
 class _ClassServants extends StatelessWidget {
   const _ClassServants({
     required this.class$,
-    Key? key,
-  }) : super(key: key);
+  });
 
   final Class class$;
 
@@ -488,7 +487,7 @@ class _ClassServants extends StatelessWidget {
                 if (class$.allowedUsers.length > 7 && i == 6) {
                   return SizedBox.expand(
                     child: ClipOval(
-                      child: Container(
+                      child: ColoredBox(
                         color: Theme.of(context).brightness == Brightness.light
                             ? Colors.black26
                             : Colors.black54,

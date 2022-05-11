@@ -39,17 +39,17 @@ class User extends UserBase implements DataObjectWithPhoto {
 
   User({
     required this.ref,
-    required String name,
-    required String uid,
+    required super.name,
+    required super.uid,
     this.lastTanawol,
     this.lastConfession,
     this.classId,
-    String? email,
+    super.email,
     this.password,
     this.permissions = const MHPermissionsSet.empty(),
     this.allowedUsers = const [],
     this.adminServices = const [],
-  }) : super(uid: uid, name: name, email: email, permissions: permissions);
+  }) : super(permissions: permissions);
 
   /* User.fromJson(Json data, this.ref)
       : password = null,

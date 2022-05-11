@@ -10,8 +10,7 @@ import 'package:rxdart/rxdart.dart';
 
 class HistoryProperty extends StatelessWidget {
   const HistoryProperty(this.name, this.value, this.historyRef,
-      {Key? key, this.showTime = true})
-      : super(key: key);
+      {super.key, this.showTime = true});
 
   final String name;
   final DateTime? value;
@@ -97,8 +96,7 @@ class HistoryProperty extends StatelessWidget {
 
 class EditHistoryProperty extends StatelessWidget {
   const EditHistoryProperty(this.name, this.lastEdit, this.historyRef,
-      {Key? key, this.showTime = true})
-      : super(key: key);
+      {super.key, this.showTime = true});
 
   final String name;
   final LastEdit? lastEdit;
@@ -214,8 +212,7 @@ class EditHistoryProperty extends StatelessWidget {
 
 class TimeHistoryProperty extends StatelessWidget {
   const TimeHistoryProperty(this.name, this.value, this.historyRef,
-      {Key? key, this.showTime = true})
-      : super(key: key);
+      {super.key, this.showTime = true});
 
   final String name;
   final DateTime? value;
@@ -281,8 +278,7 @@ class TimeHistoryProperty extends StatelessWidget {
 
 class DayHistoryProperty extends StatelessWidget {
   const DayHistoryProperty(this.name, this.value, this.id, this.collection,
-      {Key? key})
-      : super(key: key);
+      {super.key});
 
   final String name;
   final DateTime? value;

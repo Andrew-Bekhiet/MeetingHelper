@@ -9,7 +9,7 @@ import 'package:rxdart/rxdart.dart';
 import 'package:tuple/tuple.dart';
 
 class Trash extends StatelessWidget {
-  const Trash({Key? key}) : super(key: key);
+  const Trash({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +53,7 @@ class TrashDay extends DataObject {
 
 class TrashDayScreen extends StatefulWidget {
   final TrashDay day;
-  const TrashDayScreen(this.day, {Key? key}) : super(key: key);
+  const TrashDayScreen(this.day, {super.key});
 
   @override
   _TrashDayScreenState createState() => _TrashDayScreenState();
@@ -285,7 +285,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
   void initState() {
     super.initState();
     _tabController = TabController(vsync: this, length: 3, initialIndex: 1);
-    WidgetsBinding.instance!.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
 
     _servicesOptions = ListController<void, Service>(
       searchStream: _searchQuery,
@@ -344,7 +344,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
   @override
   Future<void> dispose() async {
     super.dispose();
-    WidgetsBinding.instance!.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     await _showSearch.close();
     await _personsOrder.close();
     await _searchQuery.close();

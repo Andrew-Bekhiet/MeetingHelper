@@ -10,9 +10,9 @@ class ChurchesEditList extends StatefulWidget {
   final Function(Church)? tap;
   const ChurchesEditList({
     required this.list,
-    Key? key,
+    super.key,
     this.tap,
-  }) : super(key: key);
+  });
 
   @override
   _ChurchesEditListState createState() => _ChurchesEditListState();

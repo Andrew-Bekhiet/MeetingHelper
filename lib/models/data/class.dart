@@ -48,7 +48,7 @@ class Class extends DataObject implements PhotoObjectBase {
           name,
         );
 
-  Class.fromJson(Json data, JsonRef ref)
+  Class.fromJson(super.data, super.ref)
       : gender = data['Gender'],
         studyYear = data['StudyYear'],
         hasPhoto = data['HasPhoto'] ?? false,
@@ -63,7 +63,7 @@ class Class extends DataObject implements PhotoObjectBase {
         color = data['Color'] == null || data['Color'] == 0
             ? null
             : Color(data['Color']),
-        super.fromJson(data, ref);
+        super.fromJson();
 
   factory Class.empty() => Class(
         ref: GetIt.I<DatabaseRepository>().collection('Classes').doc('null'),

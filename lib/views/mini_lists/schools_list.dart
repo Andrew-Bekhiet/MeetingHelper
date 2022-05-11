@@ -89,9 +89,9 @@ class SchoolsEditList extends StatefulWidget {
   final Function(School)? tap;
   const SchoolsEditList({
     required this.list,
-    Key? key,
+    super.key,
     this.tap,
-  }) : super(key: key);
+  });
 
   @override
   _SchoolsEditListState createState() => _SchoolsEditListState();
@@ -103,11 +103,11 @@ class SchoolsList extends StatefulWidget {
   final Function(List<School>?)? finished;
   final Stream<School>? original;
   const SchoolsList({
-    Key? key,
+    super.key,
     this.list,
     this.finished,
     this.original,
-  }) : super(key: key);
+  });
 
   @override
   _SchoolsListState createState() => _SchoolsListState();

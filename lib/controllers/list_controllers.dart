@@ -50,8 +50,8 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
     required PaginatableStream<T> query,
     Stream<String>? searchQuery,
     SearchFunction<T>? filter,
-    GroupingFunction<G, T>? groupBy,
-    GroupingStreamFunction<G, T>? groupByStream,
+    super.groupBy,
+    super.groupByStream,
   })  : assert(dayOptions.grouped.value == false ||
             groupBy != null ||
             groupByStream != null),
@@ -61,8 +61,6 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
           objectsPaginatableStream: query,
           searchStream: searchQuery,
           groupingStream: dayOptions.grouped,
-          groupBy: groupBy,
-          groupByStream: groupByStream,
           filter: filter ??
               (o, f) => o
                   .where((e) => filterString(e.name).contains(filterString(f)))
@@ -421,18 +419,15 @@ class ServicesListController<T extends DataObject>
   }
 
   ServicesListController({
-    required PaginatableStream<T> objectsPaginatableStream,
-    GroupingFunction<PreferredStudyYear?, T>? groupBy,
-    GroupingStreamFunction<PreferredStudyYear?, T>? groupByStream,
+    required super.objectsPaginatableStream,
+    super.groupBy,
+    super.groupByStream,
     BehaviorSubject<String>? searchQuery,
   })  : assert(isSubtype<T, Class>() ||
             isSubtype<T, Service>() ||
             T == DataObject),
         super(
-          objectsPaginatableStream: objectsPaginatableStream,
           searchStream: searchQuery,
-          groupBy: groupBy,
-          groupByStream: groupByStream,
           groupingStream: Stream.value(true),
         );
 

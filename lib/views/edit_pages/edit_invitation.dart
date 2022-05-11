@@ -18,8 +18,8 @@ class EditInvitation extends StatefulWidget {
 
   const EditInvitation({
     required this.invitation,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
   @override
   _EditInvitationState createState() => _EditInvitationState();
 }

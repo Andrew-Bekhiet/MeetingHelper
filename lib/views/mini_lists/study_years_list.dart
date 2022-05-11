@@ -10,9 +10,9 @@ class StudyYearsEditList extends StatefulWidget {
   final Function(StudyYear)? tap;
   const StudyYearsEditList({
     required this.list,
-    Key? key,
+    super.key,
     this.tap,
-  }) : super(key: key);
+  });
 
   @override
   _StudyYearsEditListState createState() => _StudyYearsEditListState();

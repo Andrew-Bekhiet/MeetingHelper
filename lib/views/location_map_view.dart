@@ -13,10 +13,10 @@ class LocationMapView extends StatefulWidget {
 
   const LocationMapView({
     required this.person,
-    Key? key,
+    super.key,
     this.editable = false,
     this.initialPosition,
-  }) : super(key: key);
+  });
 
   @override
   _LocationMapViewState createState() => _LocationMapViewState();
@@ -60,7 +60,7 @@ class _LocationMapViewState extends State<LocationMapView> {
                 }
                 return null;
               })
-            : Future.value(null),
+            : Future.value(),
         builder: (context, locationData) {
           if (locationData.connectionState == ConnectionState.waiting) {
             return const Center(

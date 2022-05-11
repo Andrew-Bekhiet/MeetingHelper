@@ -8,7 +8,7 @@ import 'package:meetinghelper/utils/helpers.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 class UpdateUserDataErrorPage extends StatefulWidget {
-  const UpdateUserDataErrorPage({Key? key}) : super(key: key);
+  const UpdateUserDataErrorPage({super.key});
 
   @override
   State<StatefulWidget> createState() => _UpdateUserDataErrorState();

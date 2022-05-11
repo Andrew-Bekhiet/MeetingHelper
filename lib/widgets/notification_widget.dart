@@ -9,9 +9,9 @@ class NotificationWidget extends StatelessWidget {
 
   const NotificationWidget(
     this.notification, {
-    Key? key,
+    super.key,
     this.longPress,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

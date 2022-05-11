@@ -13,9 +13,9 @@ class FilterButton extends StatelessWidget {
     this.type,
     this.controller,
     this.orderOptions, {
-    Key? key,
+    super.key,
     this.disableOrdering = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -58,9 +58,9 @@ class SearchField extends StatelessWidget {
   SearchField({
     required this.textStyle,
     required this.searchStream,
-    Key? key,
+    super.key,
     this.showSuffix = true,
-  }) : super(key: key);
+  });
   final TextStyle? textStyle;
   final TextEditingController _textController = TextEditingController();
   final BehaviorSubject<String> searchStream;
@@ -99,10 +99,10 @@ class SearchFilters extends StatelessWidget {
     this.type, {
     required this.textStyle,
     required this.options,
-    Key? key,
+    super.key,
     this.disableOrdering = false,
     this.orderOptions,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

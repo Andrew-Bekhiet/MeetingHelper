@@ -12,8 +12,8 @@ class AuthScreen extends StatefulWidget {
 
   const AuthScreen({
     required this.onSuccess,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   _AuthScreenState createState() => _AuthScreenState();

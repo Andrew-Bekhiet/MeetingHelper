@@ -18,17 +18,16 @@ class AttendanceChart extends StatelessWidget {
     required this.range,
     required this.collectionGroup,
     required this.title,
-    Key? key,
+    super.key,
     this.classes,
     this.studyYears,
     this.days,
     this.isServant = false,
-  })  : assert(classes != null ||
+  }) : assert(classes != null ||
             (collectionGroup != 'Meeting' &&
                 collectionGroup != 'Kodas' &&
                 collectionGroup != 'Confession' &&
-                studyYears != null)),
-        super(key: key);
+                studyYears != null));
 
   final List<Class>? classes;
   final List<StudyYear>? studyYears;
@@ -198,12 +197,12 @@ class AttendancePercent extends StatelessWidget {
   const AttendancePercent({
     required this.total,
     required this.attends,
-    Key? key,
+    super.key,
     this.label,
     this.attendanceLabel,
     this.absenseLabel,
     this.totalLabel,
-  }) : super(key: key);
+  });
 
   final String? absenseLabel;
   final String? attendanceLabel;
@@ -277,16 +276,15 @@ class AttendancePercent extends StatelessWidget {
 class ClassesAttendanceIndicator extends StatelessWidget {
   ClassesAttendanceIndicator({
     required this.collection,
-    Key? key,
+    super.key,
     this.classes,
     this.isServant = false,
     this.studyYears,
-  })  : assert(classes != null ||
+  }) : assert(classes != null ||
             (collection.id != 'Meeting' &&
                 collection.id != 'Kodas' &&
                 collection.id != 'Confession' &&
-                studyYears != null)),
-        super(key: key);
+                studyYears != null));
 
   final List<Class>? classes;
   final List<StudyYear>? studyYears;
@@ -438,11 +436,11 @@ class PersonAttendanceIndicator extends StatelessWidget {
     required this.total,
     required this.range,
     required this.collectionGroup,
-    Key? key,
+    super.key,
     this.label,
     this.attendanceLabel,
     this.absenseLabel,
-  }) : super(key: key);
+  });
 
   final String? absenseLabel;
   final String? attendanceLabel;
@@ -549,9 +547,9 @@ class HistoryAnalysisWidget extends StatelessWidget {
     required this.classesByRef,
     required this.collectionGroup,
     required this.title,
-    Key? key,
+    super.key,
     this.showUsers = true,
-  }) : super(key: key);
+  });
 
   final List<DataObject> parents;
   final Map<JsonRef, DataObject> classesByRef;
@@ -628,7 +626,6 @@ class HistoryAnalysisWidget extends StatelessWidget {
               parents: parents.map((o) => o.ref).toList(),
               range: range,
               data: groupedData,
-              showMax: false,
             ),
             ListTile(
               title: Center(child: Text('تحليل ' + title + ' لكل فصل')),
@@ -695,11 +692,10 @@ class CartesianChart<T> extends StatelessWidget {
     required this.range,
     required this.data,
     required this.title,
-    Key? key,
+    super.key,
     this.parents,
     this.showMax = false,
-  })  : assert(parents != null || !showMax),
-        super(key: key);
+  }) : assert(parents != null || !showMax);
 
   final List<JsonRef>? parents;
   final Map<Timestamp, List<T>> data;
@@ -857,11 +853,10 @@ class PieChart<T> extends StatelessWidget {
   const PieChart({
     required this.total,
     required this.pieData,
-    Key? key,
+    super.key,
     this.nameGetter,
     this.pointColorMapper,
-  })  : assert(nameGetter != null || T == String || null is T),
-        super(key: key);
+  }) : assert(nameGetter != null || T == String || null is T);
 
   final Color? Function(Tuple2<int, T>, int)? pointColorMapper;
   final String? Function(T)? nameGetter;

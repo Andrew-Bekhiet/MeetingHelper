@@ -16,9 +16,8 @@ class MHMapView extends StatefulWidget {
   final Class? initialClass;
   final Service? initialService;
 
-  const MHMapView({this.initialClass, Key? key, this.initialService})
-      : assert(!(initialClass != null && initialService != null)),
-        super(key: key);
+  const MHMapView({this.initialClass, super.key, this.initialService})
+      : assert(!(initialClass != null && initialService != null));
   @override
   _MHMapViewState createState() => _MHMapViewState();
 }
@@ -193,7 +192,7 @@ class _MHMapViewState extends State<MHMapView> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!HivePersistenceProvider.instance
           .hasCompletedStep('ShowHideClasses')) {
         TutorialCoachMark(

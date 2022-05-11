@@ -14,7 +14,7 @@ import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 class Day extends StatefulWidget {
   final HistoryDayBase record;
 
-  const Day({required this.record, Key? key}) : super(key: key);
+  const Day({required this.record, super.key});
 
   @override
   State<Day> createState() => _DayState();
@@ -515,7 +515,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
       type: 'Meeting',
     );
 
-    WidgetsBinding.instance?.addPostFrameCallback((timeStamp) async {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       if (DateTime.now().difference(widget.record.day.toDate()).inDays != 0) {
         return;
       }

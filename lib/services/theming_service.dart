@@ -17,8 +17,8 @@ class MHThemingService extends ThemingService {
   factory MHThemingService() =>
       MHThemingService.withInitialThemeata(getDefault());
 
-  MHThemingService.withInitialThemeata(ThemeData initialTheme)
-      : super.withInitialThemeata(initialTheme);
+  MHThemingService.withInitialThemeata(super.initialTheme)
+      : super.withInitialThemeata();
 
   @override
   void switchTheme(bool darkTheme) {

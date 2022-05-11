@@ -13,7 +13,7 @@ import 'package:meetinghelper/utils/helpers.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 class UserRegistration extends StatefulWidget {
-  const UserRegistration({Key? key}) : super(key: key);
+  const UserRegistration({super.key});
 
   @override
   _UserRegistrationState createState() => _UserRegistrationState();
@@ -49,7 +49,7 @@ class _UserRegistrationState extends State<UserRegistration> {
           lastConfession ??= user.lastConfession?.millisecondsSinceEpoch;
           if (_userName.text.isEmpty) {
             WidgetsBinding.instance
-                ?.addPostFrameCallback((_) => _userName.text = user.name);
+                .addPostFrameCallback((_) => _userName.text = user.name);
           }
           return Scaffold(
             resizeToAvoidBottomInset: !kIsWeb,
@@ -332,7 +332,7 @@ class _UserRegistrationState extends State<UserRegistration> {
                   (snapshot.error! as FirebaseFunctionsException).message!);
             } else if (snapshot.connectionState == ConnectionState.done) {
               WidgetsBinding.instance
-                  ?.addPostFrameCallback((_) => navigator.currentState!.pop());
+                  .addPostFrameCallback((_) => navigator.currentState!.pop());
             }
             return Row(
               crossAxisAlignment: CrossAxisAlignment.start,

@@ -10,7 +10,7 @@ import 'package:tinycolor2/tinycolor2.dart';
 class InvitationInfo extends StatelessWidget {
   final Invitation? invitation;
 
-  const InvitationInfo({Key? key, this.invitation}) : super(key: key);
+  const InvitationInfo({super.key, this.invitation});
 
   void addTap(BuildContext context) {
     navigator.currentState!

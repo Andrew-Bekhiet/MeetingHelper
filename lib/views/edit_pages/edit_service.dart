@@ -26,8 +26,8 @@ class EditService extends StatefulWidget {
 
   const EditService({
     required this.service,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
   @override
   _EditServiceState createState() => _EditServiceState();
 }
@@ -167,7 +167,6 @@ class _EditServiceState extends State<EditService> {
                                     ..insert(
                                       0,
                                       const DropdownMenuItem(
-                                        value: null,
                                         child: Text(''),
                                       ),
                                     ),
@@ -208,7 +207,6 @@ class _EditServiceState extends State<EditService> {
                                     ..insert(
                                       0,
                                       const DropdownMenuItem(
-                                        value: null,
                                         child: Text(''),
                                       ),
                                     ),

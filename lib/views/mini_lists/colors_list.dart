@@ -8,10 +8,10 @@ class ColorsList extends StatelessWidget {
   final void Function(Color) onSelect;
   const ColorsList({
     required this.onSelect,
-    Key? key,
+    super.key,
     this.colors,
     this.selectedColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

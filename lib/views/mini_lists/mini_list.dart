@@ -16,11 +16,11 @@ class MiniModelList<T extends MetaObject> extends StatelessWidget {
     required this.title,
     required this.collection,
     required this.transformer,
-    Key? key,
+    super.key,
     this.add,
     this.modify,
     QueryOfJson Function(QueryOfJson)? completer,
-  }) : super(key: key) {
+  }) {
     this.completer = completer ?? (q) => q.orderBy('Name');
   }
 
@@ -412,7 +412,6 @@ Future<void> fatherTap(
                           ..insert(
                             0,
                             const DropdownMenuItem(
-                              value: null,
                               child: Text(''),
                             ),
                           ),

@@ -22,9 +22,9 @@ class PersonInfo extends StatefulWidget {
 
   const PersonInfo({
     required this.person,
-    Key? key,
+    super.key,
     this.showMotherAndFatherPhones = true,
-  }) : super(key: key);
+  });
 
   @override
   _PersonInfoState createState() => _PersonInfoState();
@@ -38,7 +38,7 @@ class _PersonInfoState extends State<PersonInfo> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance!.addPostFrameCallback((_) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       await Future.delayed(const Duration(milliseconds: 300));
 
       if (([
@@ -629,8 +629,7 @@ class _PersonInfoState extends State<PersonInfo> {
 class _PersonServices extends StatelessWidget {
   const _PersonServices({
     required this.person,
-    Key? key,
-  }) : super(key: key);
+  });
 
   final Person person;
 

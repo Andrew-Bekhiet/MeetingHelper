@@ -6,7 +6,7 @@ import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 
 class Exports extends StatelessWidget {
-  const Exports({Key? key}) : super(key: key);
+  const Exports({super.key});
 
   @override
   Widget build(BuildContext context) {

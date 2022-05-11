@@ -12,8 +12,8 @@ class History extends StatefulWidget {
   final bool iServantsHistory;
   const History({
     required this.iServantsHistory,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<StatefulWidget> createState() => _HistoryState();
@@ -187,7 +187,7 @@ class _HistoryState extends State<History> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if ((['SearchByDateRange']
             ..removeWhere(HivePersistenceProvider.instance.hasCompletedStep))
           .isNotEmpty) {

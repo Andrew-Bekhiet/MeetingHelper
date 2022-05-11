@@ -16,7 +16,7 @@ enum DateType {
 }
 
 class Settings extends StatefulWidget {
-  const Settings({Key? key}) : super(key: key);
+  const Settings({super.key});
 
   @override
   SettingsState createState() => SettingsState();
@@ -102,7 +102,7 @@ class SettingsState extends State<Settings> {
                           GetIt.I<MHThemingService>().switchTheme(
                             darkTheme ??
                                 WidgetsBinding
-                                        .instance?.window.platformBrightness ==
+                                        .instance.window.platformBrightness ==
                                     Brightness.dark,
                           );
                         },
