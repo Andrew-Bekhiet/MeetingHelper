@@ -7,7 +7,6 @@ import 'package:firebase_auth_platform_interface/firebase_auth_platform_interfac
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:meetinghelper/models.dart';
@@ -84,7 +83,8 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             if (kDebugMode &&
-                dotenv.env['kUseFirebaseEmulators']?.toString() == 'true')
+                GetIt.I<CacheRepository>().box('Dev').get('kEmulatorsHost') !=
+                    null)
               ElevatedButton(
                 onPressed: () async {
                   await GetIt.I<auth.FirebaseAuth>().signInWithEmailAndPassword(
