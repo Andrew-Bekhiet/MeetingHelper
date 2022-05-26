@@ -569,22 +569,27 @@ class _ServiceServants extends StatelessWidget {
                   await showDialog(
                     context: context,
                     builder: (context) => Dialog(
-                      child: ListView.builder(
-                        padding: const EdgeInsetsDirectional.all(8),
-                        shrinkWrap: true,
-                        itemCount: users.length,
-                        itemBuilder: (context, i) {
-                          return Container(
-                            margin: const EdgeInsets.symmetric(vertical: 5),
-                            child: IgnorePointer(
-                              child: ViewableObjectWidget(
-                                users[i],
-                                showSubtitle: false,
-                                wrapInCard: false,
-                              ),
-                            ),
-                          );
-                        },
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ListView.builder(
+                            padding: const EdgeInsetsDirectional.all(8),
+                            shrinkWrap: true,
+                            itemCount: users.length,
+                            itemBuilder: (context, i) {
+                              return Container(
+                                margin: const EdgeInsets.symmetric(vertical: 5),
+                                child: IgnorePointer(
+                                  child: ViewableObjectWidget(
+                                    users[i],
+                                    showSubtitle: false,
+                                    wrapInCard: false,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
                       ),
                     ),
                   );

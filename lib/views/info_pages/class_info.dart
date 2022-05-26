@@ -511,39 +511,44 @@ class _ClassServants extends StatelessWidget {
               await showDialog(
                 context: context,
                 builder: (context) => Dialog(
-                  child: FutureBuilder<List<User>>(
-                    future: Future.wait(
-                      class$.allowedUsers
-                          .map(MHDatabaseRepo.instance.getUserName),
-                    ).then(
-                      (u) => u.whereType<User>().toList(),
-                    ),
-                    builder: (context, data) {
-                      if (data.hasError) return ErrorWidget(data.error!);
-                      if (!data.hasData) {
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      }
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      FutureBuilder<List<User>>(
+                        future: Future.wait(
+                          class$.allowedUsers
+                              .map(MHDatabaseRepo.instance.getUserName),
+                        ).then(
+                          (u) => u.whereType<User>().toList(),
+                        ),
+                        builder: (context, data) {
+                          if (data.hasError) return ErrorWidget(data.error!);
+                          if (!data.hasData) {
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          }
 
-                      return ListView.builder(
-                        padding: const EdgeInsetsDirectional.all(8),
-                        shrinkWrap: true,
-                        itemCount: class$.allowedUsers.length,
-                        itemBuilder: (context, i) {
-                          return Container(
-                            margin: const EdgeInsets.symmetric(vertical: 5),
-                            child: IgnorePointer(
-                              child: ViewableObjectWidget(
-                                data.requireData[i],
-                                showSubtitle: false,
-                                wrapInCard: false,
-                              ),
-                            ),
+                          return ListView.builder(
+                            padding: const EdgeInsetsDirectional.all(8),
+                            shrinkWrap: true,
+                            itemCount: class$.allowedUsers.length,
+                            itemBuilder: (context, i) {
+                              return Container(
+                                margin: const EdgeInsets.symmetric(vertical: 5),
+                                child: IgnorePointer(
+                                  child: ViewableObjectWidget(
+                                    data.requireData[i],
+                                    showSubtitle: false,
+                                    wrapInCard: false,
+                                  ),
+                                ),
+                              );
+                            },
                           );
                         },
-                      );
-                    },
+                      ),
+                    ],
                   ),
                 ),
               );
