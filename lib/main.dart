@@ -13,9 +13,9 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get_it/get_it.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:meetinghelper/exceptions/update_user_data_exception.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
@@ -108,27 +108,41 @@ Future<void> initMeetingHelper() async {
       mhDataObjectTapHandler);
   GetIt.I.registerSingleton<MHViewableObjectTapHandler>(mhDataObjectTapHandler);
 
-  GetIt.I<FirebaseFirestore>().settings = firestore.Settings(
-    persistenceEnabled: true,
-    sslEnabled: !kDebugMode &&
-        dotenv.env['kEmulatorsHost'] == null &&
-        dotenv.env['kUseFirebaseEmulators']?.toString() != 'true',
-    cacheSizeBytes: GetIt.I<CacheRepository>()
-        .box('Settings')
-        .get('cacheSize', defaultValue: 300 * 1024 * 1024),
-  );
+  if (kDebugMode) {
+    final devBox = await Hive.openBox('Dev');
+
+    GetIt.I<FirebaseFirestore>().settings = firestore.Settings(
+      persistenceEnabled: true,
+      sslEnabled: devBox.get('kEmulatorsHost') == null ||
+          devBox.get('kEmulatorsHost') == '',
+      cacheSizeBytes: GetIt.I<CacheRepository>()
+          .box('Settings')
+          .get('cacheSize', defaultValue: 300 * 1024 * 1024),
+    );
+  } else {
+    GetIt.I<FirebaseFirestore>().settings = firestore.Settings(
+      persistenceEnabled: true,
+      sslEnabled: true,
+      cacheSizeBytes: GetIt.I<CacheRepository>()
+          .box('Settings')
+          .get('cacheSize', defaultValue: 300 * 1024 * 1024),
+    );
+  }
 }
 
 Future<void> initFirebase() async {
-  await dotenv.load();
+  String? kEmulatorsHost;
 
-  final String? kEmulatorsHost = dotenv.env['kEmulatorsHost'];
+  if (kDebugMode) {
+    await Hive.initFlutter();
+
+    final devBox = await Hive.openBox('Dev');
+    kEmulatorsHost = devBox.get('kEmulatorsHost');
+  }
 
   try {
     //Firebase initialization
-    if (kDebugMode &&
-        kEmulatorsHost != null &&
-        dotenv.env['kUseFirebaseEmulators']?.toString() == 'true') {
+    if (kEmulatorsHost != null) {
       await Firebase.initializeApp();
 
       await auth.FirebaseAuth.instance.useAuthEmulator(kEmulatorsHost, 9099);
@@ -142,7 +156,6 @@ Future<void> initFirebase() async {
   } catch (e) {
     await Firebase.initializeApp();
   }
-
   await FirebaseAppCheck.instance.activate();
 
   registerFirebaseDependencies();
