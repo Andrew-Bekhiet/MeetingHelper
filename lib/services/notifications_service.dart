@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -19,6 +20,21 @@ class MHNotificationsService extends NotificationsService {
   static MHNotificationsService get I => GetIt.I<MHNotificationsService>();
 
   late final StreamSubscription<RemoteMessage> onMessageOpenedAppSubscription;
+
+  @override
+  @protected
+  Future<void> initPlugins() async {
+    if (!kIsWeb) await AndroidAlarmManager.initialize();
+
+    await GetIt.I<FlutterLocalNotificationsPlugin>().initialize(
+      const InitializationSettings(
+        android: AndroidInitializationSettings('warning'),
+      ),
+      onSelectNotification: onNotificationClicked,
+    );
+
+    GetIt.I.signalReady(this);
+  }
 
   @override
   void listenToFirebaseMessaging() {
@@ -227,15 +243,16 @@ class MHNotificationsService extends NotificationsService {
     if (WidgetsBinding.instance.renderViewElement != null &&
         GetIt.I.isRegistered<MHNotificationsService>() &&
         payload != null &&
+        int.tryParse(payload) != null &&
         GetIt.I<CacheRepository>()
                 .box<Notification>('Notifications')
-                .get(payload) !=
+                .getAt(int.parse(payload)) !=
             null) {
       await GetIt.I<MHNotificationsService>().showNotificationContents(
         mainScfld.currentContext!,
         GetIt.I<CacheRepository>()
             .box<Notification>('Notifications')
-            .get(payload)!,
+            .getAt(int.parse(payload))!,
       );
     }
   }
