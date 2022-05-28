@@ -87,20 +87,7 @@ class Service extends DataObject implements PhotoObjectBase {
     return GetIt.I<MHDatabaseRepo>().getAllPersons(
       orderBy: orderBy,
       descending: descending,
-      queryCompleter: (query, order, d) => queryCompleter(
-        query.where('Services', arrayContains: ref),
-        order,
-        d,
-      ),
-    );
-  }
-
-  Stream<List<Person>> getUsersMembers({
-    bool descending = false,
-    String orderBy = 'Name',
-    QueryCompleter queryCompleter = kDefaultQueryCompleter,
-  }) {
-    return GetIt.I<MHDatabaseRepo>().getAllUsersData(
+      useRootCollection: true,
       queryCompleter: (query, order, d) => queryCompleter(
         query.where('Services', arrayContains: ref),
         order,

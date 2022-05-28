@@ -162,6 +162,7 @@ class Class extends DataObject implements PhotoObjectBase {
     return GetIt.I<MHDatabaseRepo>().getAllPersons(
       orderBy: orderBy,
       descending: descending,
+      useRootCollection: true,
       queryCompleter: (query, order, d) => queryCompleter(
         query.where('ClassId', isEqualTo: ref),
         order,

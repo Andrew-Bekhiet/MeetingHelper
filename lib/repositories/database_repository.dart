@@ -163,8 +163,15 @@ class MHDatabaseRepo extends DatabaseRepository {
   Stream<List<Class>> getAllClasses({
     String orderBy = 'Name',
     bool descending = false,
+    bool useRootCollection = false,
     QueryCompleter queryCompleter = kDefaultQueryCompleter,
   }) {
+    if (useRootCollection) {
+      return queryCompleter(collection('Classes'), orderBy, descending)
+          .snapshots()
+          .map((c) => c.docs.map(Class.fromDoc).toList());
+    }
+
     return User.loggedInStream.switchMap((u) {
       if (u.permissions.superAccess) {
         return queryCompleter(collection('Classes'), orderBy, descending)
@@ -184,8 +191,15 @@ class MHDatabaseRepo extends DatabaseRepository {
   Stream<List<Person>> getAllPersons({
     String orderBy = 'Name',
     bool descending = false,
+    bool useRootCollection = false,
     QueryCompleter queryCompleter = kDefaultQueryCompleter,
   }) {
+    if (useRootCollection) {
+      return queryCompleter(collection('Persons'), orderBy, descending)
+          .snapshots()
+          .map((p) => p.docs.map(Person.fromDoc).toList());
+    }
+
     return Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
       User.loggedInStream,
       getAllClasses(),

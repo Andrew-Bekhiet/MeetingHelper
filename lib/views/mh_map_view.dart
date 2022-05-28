@@ -97,6 +97,7 @@ class _MHMapViewState extends State<MHMapView> {
                   (c) {
                     return GetIt.I<MHDatabaseRepo>()
                         .getAllPersons(
+                          useRootCollection: true,
                           queryCompleter: (q, _, __) => q.where(
                             'ClassId',
                             whereIn: c.map((e) => e.ref).toList(),
@@ -109,6 +110,7 @@ class _MHMapViewState extends State<MHMapView> {
                   (s) {
                     return GetIt.I<MHDatabaseRepo>()
                         .getAllPersons(
+                          useRootCollection: true,
                           queryCompleter: (q, _, __) => q.where(
                             'Services',
                             arrayContainsAny: s.map((e) => e.ref).toList(),
