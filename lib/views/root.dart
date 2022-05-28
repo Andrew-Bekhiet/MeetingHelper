@@ -305,28 +305,54 @@ class _RootState extends State<Root>
         shape: const CircularNotchedRectangle(),
         child: AnimatedBuilder(
           animation: _tabController!,
-          builder: (context, _) => StreamBuilder<dynamic>(
-            stream: _tabController!.index == _tabController!.length - 1
-                ? _personsOptions.objectsStream
-                : _tabController!.index == _tabController!.length - 2
-                    ? _servicesOptions.objectsStream
-                    : _usersOptions.objectsStream,
-            builder: (context, snapshot) {
-              return Text(
-                (snapshot.data?.length ?? 0).toString() +
-                    ' ' +
-                    (_tabController!.index == _tabController!.length - 1
-                        ? 'مخدوم'
-                        : _tabController!.index == _tabController!.length - 2
-                            ? 'خدمة'
-                            : 'خادم'),
-                textAlign: TextAlign.center,
-                strutStyle:
-                    StrutStyle(height: IconTheme.of(context).size! / 7.5),
-                style: Theme.of(context).primaryTextTheme.bodyText1,
+          builder: (context, _) {
+            if (_tabController!.index == _tabController!.length - 1) {
+              return StreamBuilder<List<Person>>(
+                stream: _personsOptions.objectsStream,
+                builder: (context, snapshot) {
+                  return Text(
+                    (snapshot.data?.length ?? 0).toString() + ' مخدوم',
+                    textAlign: TextAlign.center,
+                    strutStyle:
+                        StrutStyle(height: IconTheme.of(context).size! / 7.5),
+                    style: Theme.of(context).primaryTextTheme.bodyText1,
+                  );
+                },
               );
-            },
-          ),
+            } else if (_tabController!.index == _tabController!.length - 2) {
+              return StreamBuilder<Map<PreferredStudyYear?, List<DataObject>>>(
+                stream: _servicesOptions.groupedObjectsStream,
+                builder: (context, snapshot) {
+                  return Text(
+                    (snapshot.data?.length ?? 0).toString() +
+                        ' خدمة و' +
+                        (snapshot.data?.values
+                                    .fold<int>(0, (p, c) => p + c.length) ??
+                                0)
+                            .toString() +
+                        ' فصل',
+                    textAlign: TextAlign.center,
+                    strutStyle:
+                        StrutStyle(height: IconTheme.of(context).size! / 7.5),
+                    style: Theme.of(context).primaryTextTheme.bodyText1,
+                  );
+                },
+              );
+            }
+
+            return StreamBuilder<List<UserWithPerson>>(
+              stream: _usersOptions.objectsStream,
+              builder: (context, snapshot) {
+                return Text(
+                  (snapshot.data?.length ?? 0).toString() + ' خادم',
+                  textAlign: TextAlign.center,
+                  strutStyle:
+                      StrutStyle(height: IconTheme.of(context).size! / 7.5),
+                  style: Theme.of(context).primaryTextTheme.bodyText1,
+                );
+              },
+            );
+          },
         ),
       ),
       body: TabBarView(
