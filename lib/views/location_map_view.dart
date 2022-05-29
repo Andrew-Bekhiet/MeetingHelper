@@ -25,6 +25,7 @@ class LocationMapView extends StatefulWidget {
 
 class _LocationMapViewState extends State<LocationMapView> {
   LatLng? location;
+  late GoogleMapController _mapController;
   final deviceLocation = AsyncMemoizer<LocationData?>();
 
   @override
@@ -37,15 +38,13 @@ class _LocationMapViewState extends State<LocationMapView> {
   Widget build(BuildContext context) {
     return FutureBuilder<LocationData?>(
       future: deviceLocation.runOnce(
-        () => location == null && widget.initialPosition == null
-            ? Location.instance.requestPermission().then((perm) async {
-                if (perm == PermissionStatus.granted ||
-                    perm == PermissionStatus.grantedLimited) {
-                  return Location.instance.getLocation();
-                }
-                return null;
-              })
-            : Future.value(),
+        () => Location.instance.requestPermission().then((perm) async {
+          if (perm == PermissionStatus.granted ||
+              perm == PermissionStatus.grantedLimited) {
+            return Location.instance.getLocation();
+          }
+          return null;
+        }),
       ),
       builder: (context, locationData) {
         return Scaffold(
@@ -53,24 +52,6 @@ class _LocationMapViewState extends State<LocationMapView> {
             title: Text('موقع ' + widget.person.name),
             actions: widget.editable
                 ? [
-                    if (locationData.hasData)
-                      IconButton(
-                        onPressed: () async {
-                          location = await Location.instance
-                              .requestPermission()
-                              .then((perm) async {
-                            if (perm == PermissionStatus.granted ||
-                                perm == PermissionStatus.grantedLimited) {
-                              return (await Location.instance.getLocation())
-                                  .toLatLng();
-                            }
-                            return locationData.data?.toLatLng();
-                          });
-                          setState(() {});
-                        },
-                        icon: const Icon(Icons.my_location),
-                        tooltip: 'اختيار الموقع الحالي',
-                      ),
                     IconButton(
                       onPressed: () => navigator.currentState!.pop(location),
                       icon: const Icon(Icons.done),
@@ -81,6 +62,88 @@ class _LocationMapViewState extends State<LocationMapView> {
                       onPressed: () => navigator.currentState!.pop(false),
                       tooltip: 'حذف التحديد',
                     ),
+                    PopupMenuButton(
+                      onSelected: (v) async {
+                        if (v == 'FromCoordinates') {
+                          final _latController = TextEditingController();
+                          final _lngController = TextEditingController();
+                          final rslt = await showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  TextFormField(
+                                    decoration: const InputDecoration(
+                                      labelText: 'Latitude',
+                                    ),
+                                    controller: _latController,
+                                  ),
+                                  TextFormField(
+                                    decoration: const InputDecoration(
+                                      labelText: 'Lngitude',
+                                    ),
+                                    controller: _lngController,
+                                  ),
+                                ],
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(true),
+                                  child: const Text('تم'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (rslt != true ||
+                              double.tryParse(_latController.text) == null ||
+                              double.tryParse(_lngController.text) == null) {
+                            return;
+                          }
+
+                          location = LatLng(
+                            double.parse(_latController.text),
+                            double.parse(_lngController.text),
+                          );
+
+                          setState(() {});
+
+                          await _mapController
+                              .moveCamera(CameraUpdate.newLatLng(location!));
+                        } else if (v == 'FromLocation') {
+                          location = await Location.instance
+                                  .requestPermission()
+                                  .then((perm) async {
+                                if (perm == PermissionStatus.granted ||
+                                    perm == PermissionStatus.grantedLimited) {
+                                  return (await Location.instance.getLocation())
+                                      .toLatLng();
+                                }
+                                return locationData.data?.toLatLng();
+                              }) ??
+                              location;
+
+                          setState(() {});
+
+                          if (location != null) {
+                            await _mapController
+                                .moveCamera(CameraUpdate.newLatLng(location!));
+                          }
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        if (locationData.hasData)
+                          const PopupMenuItem(
+                            value: 'FromLocation',
+                            child: Text('اختيار الموقع الحالي'),
+                          ),
+                        const PopupMenuItem(
+                          value: 'FromCoordinates',
+                          child: Text('اختيار الموقع من الاحداثيات'),
+                        ),
+                      ],
+                    ),
                   ]
                 : null,
           ),
@@ -89,6 +152,7 @@ class _LocationMapViewState extends State<LocationMapView> {
                   child: CircularProgressIndicator(),
                 )
               : GoogleMap(
+                  onMapCreated: (c) => _mapController = c,
                   myLocationEnabled: true,
                   onTap: widget.editable
                       ? (point) {
