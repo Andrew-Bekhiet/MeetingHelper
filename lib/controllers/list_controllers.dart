@@ -167,7 +167,7 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
 
     if (permissions.superAccess ||
         (day is ServantsHistoryDay && permissions.secretary) ||
-        notService(type)) {
+        !notService(type)) {
       if (v.item3 != null) {
         return ref!
             .orderBy('Time', descending: !v.item3!)
@@ -176,30 +176,54 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
       }
       return ref!.snapshots().map((s) => _docsMapper(s.docs));
     } else if (v.item2.length <= 10) {
-      if (v.item3 != null) {
+      if (v.item3 != null && v.item2.isEmpty) {
         return ref!
-            .where('ClassId', whereIn: v.item2)
             .orderBy('Time', descending: !v.item3!)
             .snapshots()
             .map((s) => _docsMapper(s.docs));
+      } else if (v.item3 != null) {
+        return ref!
+            .where(
+              'ClassId',
+              whereIn: v.item2
+                  .whereType<DocumentObject>()
+                  .map((e) => e.ref)
+                  .toList(),
+            )
+            .orderBy('Time', descending: !v.item3!)
+            .snapshots()
+            .map((s) => _docsMapper(s.docs));
+      } else if (v.item2.isEmpty) {
+        return ref!.snapshots().map((s) => _docsMapper(s.docs));
+      } else {
+        return ref!
+            .where(
+              'ClassId',
+              whereIn: v.item2
+                  .whereType<DocumentObject>()
+                  .map((e) => e.ref)
+                  .toList(),
+            )
+            .snapshots()
+            .map((s) => _docsMapper(s.docs));
       }
-      return ref!
-          .where('ClassId', whereIn: v.item2)
-          .snapshots()
-          .map((s) => _docsMapper(s.docs));
     }
 
     if (v.item3 != null) {
       return Rx.combineLatestList<JsonQuery>(v.item2.split(10).map((c) => ref!
-          .where('ClassId', whereIn: c)
+          .where(
+            'ClassId',
+            whereIn: c.whereType<DocumentObject>().map((e) => e.ref).toList(),
+          )
           .orderBy('Time', descending: !v.item3!)
           .snapshots())).map((s) => s.expand((n) => n.docs)).map(_docsMapper);
     }
-    return Rx.combineLatestList<JsonQuery>(v.item2
-            .split(10)
-            .map((c) => ref!.where('ClassId', whereIn: c).snapshots()))
-        .map((s) => s.expand((n) => n.docs))
-        .map(_docsMapper);
+    return Rx.combineLatestList<JsonQuery>(v.item2.split(10).map((c) => ref!
+        .where(
+          'ClassId',
+          whereIn: c.whereType<DocumentObject>().map((e) => e.ref).toList(),
+        )
+        .snapshots())).map((s) => s.expand((n) => n.docs)).map(_docsMapper);
   }
 
   @override

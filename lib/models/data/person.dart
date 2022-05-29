@@ -73,8 +73,9 @@ class Person extends PersonBase {
         fatherPhone = json['FatherPhone'],
         motherPhone = json['MotherPhone'],
         lastMeeting = (json['LastMeeting'] as Timestamp?)?.toDate(),
-        last = UnmodifiableMapView(
-            (json['Last'] as Map?)?.cast<String, DateTime>() ?? {}),
+        last = UnmodifiableMapView((json['Last'] as Map?)?.map(
+                (key, value) => MapEntry(key, (value as Timestamp).toDate())) ??
+            {}),
         services = UnmodifiableListView(
             (json['Services'] as List?)?.cast<JsonRef>() ?? []),
         super(
