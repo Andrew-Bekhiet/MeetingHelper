@@ -11,7 +11,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_secure_storage_platform_interface/flutter_secure_storage_platform_interface.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -28,8 +27,6 @@ import 'fakes/fake_secure_storage.dart';
 import 'views/root_test.mocks.dart';
 
 void setUpMHPlatformChannels() {
-  dotenv = FakeDotEnv();
-
   FlutterSecureStoragePlatform.instance = FakeFlutterSecureStoragePlatform();
 
   TestDefaultBinaryMessengerBinding.instance!.defaultBinaryMessenger
@@ -229,11 +226,6 @@ Future<List<BasicDataObject>> populateWithRandomPersons(JsonCollectionRef ref,
     ),
   );
   return list;
-}
-
-class FakeDotEnv extends DotEnv {
-  @override
-  Map<String, String> get env => {};
 }
 
 class FakeLoggingService implements LoggingService {
