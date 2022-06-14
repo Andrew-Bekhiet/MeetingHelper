@@ -16,14 +16,18 @@ class MHAuthRepository extends AuthRepository<User, Person> {
   bool connectionChanged(DatabaseEvent snapshot) {
     final bool connected = super.connectionChanged(snapshot);
 
-    if (connected && (mainScfld.currentState?.mounted ?? false)) {
+    if (WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
+      return connected;
+    }
+
+    if (connected && (scaffoldMessenger.currentState?.mounted ?? false)) {
       scaffoldMessenger.currentState!.showSnackBar(
         const SnackBar(
           backgroundColor: Colors.greenAccent,
           content: Text('تم استرجاع الاتصال بالانترنت'),
         ),
       );
-    } else if (mainScfld.currentState?.mounted ?? false) {
+    } else if (scaffoldMessenger.currentState?.mounted ?? false) {
       scaffoldMessenger.currentState!.showSnackBar(
         const SnackBar(
           backgroundColor: Colors.redAccent,
