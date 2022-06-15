@@ -149,7 +149,7 @@ class InvitationInfo extends StatelessWidget {
                         : const Text('لم يتم الاستخدام بعد'),
                     subtitle: invitation.used
                         ? FutureBuilder<User?>(
-                            future: MHDatabaseRepo.instance.getUserName(
+                            future: MHDatabaseRepo.instance.users.getUserName(
                               invitation.usedBy!,
                             ),
                             builder: (context, data) => data.hasData
@@ -161,7 +161,7 @@ class InvitationInfo extends StatelessWidget {
                   ListTile(
                     title: const Text('تم توليد اللينك بواسطة'),
                     subtitle: FutureBuilder<User?>(
-                        future: MHDatabaseRepo.instance.getUserName(
+                        future: MHDatabaseRepo.instance.users.getUserName(
                           invitation.generatedBy,
                         ),
                         builder: (context, data) => data.hasData

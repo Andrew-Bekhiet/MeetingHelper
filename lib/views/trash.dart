@@ -312,7 +312,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
       objectsPaginatableStream: PaginatableStream.loadAll(
         stream: Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
           User.loggedInStream,
-          MHDatabaseRepo.I.getAllClasses(),
+          MHDatabaseRepo.I.classes.getAll(),
           Tuple2.new,
         ).switchMap(
           (u) {

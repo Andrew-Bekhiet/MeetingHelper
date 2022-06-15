@@ -84,16 +84,16 @@ class Service extends DataObject implements PhotoObjectBase {
     String orderBy = 'Name',
     QueryCompleter queryCompleter = kDefaultQueryCompleter,
   }) {
-    return GetIt.I<MHDatabaseRepo>().getAllPersons(
-      orderBy: orderBy,
-      descending: descending,
-      useRootCollection: true,
-      queryCompleter: (query, order, d) => queryCompleter(
-        query.where('Services', arrayContains: ref),
-        order,
-        d,
-      ),
-    );
+    return GetIt.I<MHDatabaseRepo>().persons.getAll(
+          orderBy: orderBy,
+          descending: descending,
+          useRootCollection: true,
+          queryCompleter: (query, order, d) => queryCompleter(
+            query.where('Services', arrayContains: ref),
+            order,
+            d,
+          ),
+        );
   }
 
   Json formattedProps() => {
@@ -126,7 +126,7 @@ class Service extends DataObject implements PhotoObjectBase {
         }(),
         'ShowInHistory': showInHistory ? 'نعم' : 'لا',
         'LastEdit': lastEdit != null
-            ? MHDatabaseRepo.instance.getUserName(lastEdit!.uid)
+            ? MHDatabaseRepo.instance.users.getUserName(lastEdit!.uid)
             : null,
         'HasPhoto': hasPhoto ? 'نعم' : 'لا',
         'Color': color != null ? '0x' + color!.value.toRadixString(16) : null,

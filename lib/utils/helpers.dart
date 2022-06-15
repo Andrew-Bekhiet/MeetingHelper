@@ -126,7 +126,8 @@ Future<List<T>?> selectServices<T extends DataObject>(List<T>? selected) async {
   final _controller = ServicesListController<T>(
     objectsPaginatableStream:
         PaginatableStream.loadAll(stream: Stream.value([])),
-    groupByStream: (_) => MHDatabaseRepo.I.groupServicesByStudyYearRef<T>(),
+    groupByStream: (_) =>
+        MHDatabaseRepo.I.services.groupServicesByStudyYearRef<T>(),
   )..selectAll(selected);
 
   if (await navigator.currentState!.push(

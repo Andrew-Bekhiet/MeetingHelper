@@ -100,14 +100,15 @@ class Class extends DataObject implements PhotoObjectBase {
             : Future.wait(
                 allowedUsers.take(3).map(
                       (r) async =>
-                          await MHDatabaseRepo.instance.getUserName(r) ?? '',
+                          await MHDatabaseRepo.instance.users.getUserName(r) ??
+                          '',
                     ),
               ).then((d) => d.join(',')).catchError((_) => ''),
         'Members': getMembersString(),
         'HasPhoto': hasPhoto ? 'نعم' : 'لا',
         'Color': color != null ? '0x' + color!.value.toRadixString(16) : null,
         'LastEdit': lastEdit != null
-            ? MHDatabaseRepo.instance.getUserName(lastEdit!.uid)
+            ? MHDatabaseRepo.instance.users.getUserName(lastEdit!.uid)
             : null,
       };
 
@@ -159,16 +160,16 @@ class Class extends DataObject implements PhotoObjectBase {
     bool descending = false,
     QueryCompleter queryCompleter = kDefaultQueryCompleter,
   }) {
-    return GetIt.I<MHDatabaseRepo>().getAllPersons(
-      orderBy: orderBy,
-      descending: descending,
-      useRootCollection: true,
-      queryCompleter: (query, order, d) => queryCompleter(
-        query.where('ClassId', isEqualTo: ref),
-        order,
-        d,
-      ),
-    );
+    return GetIt.I<MHDatabaseRepo>().persons.getAll(
+          orderBy: orderBy,
+          descending: descending,
+          useRootCollection: true,
+          queryCompleter: (query, order, d) => queryCompleter(
+            query.where('ClassId', isEqualTo: ref),
+            order,
+            d,
+          ),
+        );
   }
 
   static Map<String, PropertyMetadata> propsMetadata() => {

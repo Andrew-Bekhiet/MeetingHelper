@@ -581,11 +581,11 @@ class _EditInvitationState extends State<EditInvitation> {
   Future<void> _selectPerson() async {
     final controller = ListController<Class?, User>(
       objectsPaginatableStream: PaginatableStream.loadAll(
-        stream: MHDatabaseRepo.instance.getAllUsers().map(
+        stream: MHDatabaseRepo.instance.users.getAllUsers().map(
               (users) => users.where((u) => u.uid == User.emptyUID).toList(),
             ),
       ),
-      groupByStream: MHDatabaseRepo.I.groupUsersByClass,
+      groupByStream: MHDatabaseRepo.I.users.groupUsersByClass,
       groupingStream: Stream.value(true),
     );
     await showDialog(

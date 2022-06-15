@@ -86,7 +86,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
               ?.toDate() ??
           minAvaliable;
     } else {
-      final allowed = await MHDatabaseRepo.I.getAllClasses().first;
+      final allowed = await MHDatabaseRepo.I.classes.getAll().first;
       if (allowed.isEmpty) return;
 
       if (allowed.length <= 10) {
@@ -146,8 +146,8 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                 initialData: widget.parents,
                 stream: Rx.combineLatest2<List<Class>, List<Service>,
                     List<DataObject>>(
-                  MHDatabaseRepo.I.getAllClasses(),
-                  MHDatabaseRepo.I.getAllServices(),
+                  MHDatabaseRepo.I.classes.getAll(),
+                  MHDatabaseRepo.I.services.getAll(),
                   (c, s) => [...c, ...s],
                 ),
                 builder: (context, snapshot) {
@@ -317,7 +317,7 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
           future: _rangeStart.runOnce(_setRangeStart).then((_) async {
             return {
               for (final service
-                  in await MHDatabaseRepo.I.getAllServices().first)
+                  in await MHDatabaseRepo.I.services.getAll().first)
                 service.ref: service
             };
           }),
@@ -577,8 +577,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                 initialData: widget.parents,
                 stream: Rx.combineLatest2<List<Class>, List<Service>,
                     List<DataObject>>(
-                  MHDatabaseRepo.I.getAllClasses(),
-                  MHDatabaseRepo.I.getAllServices(onlyShownInHistory: true),
+                  MHDatabaseRepo.I.classes.getAll(),
+                  MHDatabaseRepo.I.services.getAll(onlyShownInHistory: true),
                   (c, s) => [...c, ...s],
                 ),
                 builder: (context, snapshot) {

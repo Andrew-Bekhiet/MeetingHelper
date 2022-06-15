@@ -289,8 +289,8 @@ class MinimalHistoryRecord {
     return Rx.combineLatest3<User?, List<Class>, List<Service>,
         Tuple3<User?, List<Class>, List<Service>>>(
       User.loggedInStream,
-      classes == null ? MHDatabaseRepo.I.getAllClasses() : Stream.value([]),
-      services == null ? MHDatabaseRepo.I.getAllServices() : Stream.value([]),
+      classes == null ? MHDatabaseRepo.I.classes.getAll() : Stream.value([]),
+      services == null ? MHDatabaseRepo.I.services.getAll() : Stream.value([]),
       Tuple3.new,
     ).switchMap((value) {
       if (range != null && classes != null && services != null) {

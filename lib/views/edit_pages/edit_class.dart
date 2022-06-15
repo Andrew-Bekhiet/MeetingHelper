@@ -439,7 +439,7 @@ class _EditClassState extends State<EditClass> {
       MaterialPageRoute(
         builder: (context) => FutureBuilder<List<User?>>(
           future: Future.wait(
-            class$.allowedUsers.map(MHDatabaseRepo.instance.getUserName),
+            class$.allowedUsers.map(MHDatabaseRepo.instance.users.getUserName),
           ),
           builder: (context, users) {
             if (!users.hasData) {
@@ -449,12 +449,12 @@ class _EditClassState extends State<EditClass> {
             return Provider<ListController<Class?, User>>(
               create: (_) => ListController<Class?, User>(
                 objectsPaginatableStream: PaginatableStream.loadAll(
-                  stream: MHDatabaseRepo.instance.getAllUsersNames().map(
+                  stream: MHDatabaseRepo.instance.users.getAllUsersNames().map(
                         (users) =>
                             users.where((u) => u.uid != User.emptyUID).toList(),
                       ),
                 ),
-                groupByStream: MHDatabaseRepo.I.groupUsersByClass,
+                groupByStream: MHDatabaseRepo.I.users.groupUsersByClass,
                 groupingStream: Stream.value(true),
               )..selectAll(users.data!.whereType<User>().toList()),
               dispose: (context, c) => c.dispose(),

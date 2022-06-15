@@ -1271,8 +1271,8 @@ class _EditPersonState extends State<EditPerson> {
   Future<void> _selectClass(FormFieldState<JsonRef?> state) async {
     final controller = ServicesListController<Class>(
       objectsPaginatableStream:
-          PaginatableStream.loadAll(stream: MHDatabaseRepo.I.getAllClasses()),
-      groupByStream: MHDatabaseRepo.I.groupServicesByStudyYearRef,
+          PaginatableStream.loadAll(stream: MHDatabaseRepo.I.classes.getAll()),
+      groupByStream: MHDatabaseRepo.I.services.groupServicesByStudyYearRef,
     );
 
     await showDialog(

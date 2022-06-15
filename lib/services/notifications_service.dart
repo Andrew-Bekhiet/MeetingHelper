@@ -100,7 +100,7 @@ class MHNotificationsService extends NotificationsService {
             ),
       ),
       groupingStream: Stream.value(true),
-      groupByStream: MHDatabaseRepo.I.groupUsersByClass,
+      groupByStream: MHDatabaseRepo.I.users.groupUsersByClass,
     )..enterSelectionMode();
 
     final List<User>? users = await showDialog(
@@ -262,8 +262,8 @@ class MHNotificationsService extends NotificationsService {
 
     if (MHAuthRepository.I.currentUser == null) return;
 
-    final persons = await MHDatabaseRepo.instance
-        .getAllPersons(
+    final persons = await MHDatabaseRepo.instance.persons
+        .getAll(
           queryCompleter: (q, _, __) => q
               .where(
                 'LastKodas',
@@ -326,8 +326,8 @@ class MHNotificationsService extends NotificationsService {
 
     if (MHAuthRepository.I.currentUser == null) return;
 
-    final persons = await MHDatabaseRepo.instance
-        .getAllPersons(
+    final persons = await MHDatabaseRepo.instance.persons
+        .getAll(
           queryCompleter: (q, _, __) => q
               .where(
                 'LastMeeting',
@@ -388,8 +388,8 @@ class MHNotificationsService extends NotificationsService {
 
     if (MHAuthRepository.I.currentUser == null) return;
 
-    final persons = await MHDatabaseRepo.instance
-        .getAllPersons(
+    final persons = await MHDatabaseRepo.instance.persons
+        .getAll(
           queryCompleter: (q, _, __) => q
               .where(
                 'LastTanawol',
@@ -450,8 +450,8 @@ class MHNotificationsService extends NotificationsService {
 
     if (MHAuthRepository.I.currentUser == null) return;
 
-    final persons = await MHDatabaseRepo.instance
-        .getAllPersons(
+    final persons = await MHDatabaseRepo.instance.persons
+        .getAll(
           queryCompleter: (q, _, __) => q
               .where(
                 'LastVisit',
@@ -512,8 +512,8 @@ class MHNotificationsService extends NotificationsService {
 
     if (MHAuthRepository.I.currentUser == null) return;
 
-    final persons = await MHDatabaseRepo.instance
-        .getAllPersons(
+    final persons = await MHDatabaseRepo.instance.persons
+        .getAll(
           queryCompleter: (q, _, __) => q
               .where(
                 'LastConfession',
@@ -574,8 +574,8 @@ class MHNotificationsService extends NotificationsService {
 
     if (MHAuthRepository.I.currentUser == null) return;
 
-    final persons = await MHDatabaseRepo.instance
-        .getAllPersons(
+    final persons = await MHDatabaseRepo.instance.persons
+        .getAll(
             queryCompleter: (q, _, __) => q
                 .where(
                   'BirthDay',

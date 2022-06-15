@@ -107,7 +107,7 @@ class EditHistoryProperty extends StatelessWidget {
   Widget build(BuildContext context) {
     return FutureBuilder<User?>(
       future: lastEdit?.uid != null
-          ? MHDatabaseRepo.instance.getUserName(lastEdit!.uid)
+          ? MHDatabaseRepo.instance.users.getUserName(lastEdit!.uid)
           : null,
       builder: (context, user) {
         return ListTile(
@@ -173,7 +173,7 @@ class EditHistoryProperty extends StatelessWidget {
                       return ListView.builder(
                         itemCount: history.data!.length,
                         itemBuilder: (context, i) => FutureBuilder<User?>(
-                          future: MHDatabaseRepo.instance
+                          future: MHDatabaseRepo.instance.users
                               .getUserName(history.data![i].by ?? ''),
                           builder: (context, user) {
                             return ListTile(
@@ -339,7 +339,7 @@ class DayHistoryProperty extends StatelessWidget {
 
                     if (!user.permissions.superAccess) {
                       if (notService(collection)) {
-                        return MHDatabaseRepo.I.getAllClasses().switchMap(
+                        return MHDatabaseRepo.I.classes.getAll().switchMap(
                           (classes) {
                             if (classes.isEmpty) return Stream.value([]);
                             if (classes.length <= 10) {
@@ -371,7 +371,7 @@ class DayHistoryProperty extends StatelessWidget {
                           },
                         );
                       }
-                      return MHDatabaseRepo.I.getAllServices().switchMap(
+                      return MHDatabaseRepo.I.services.getAll().switchMap(
                         (services) {
                           if (services.isEmpty) return Stream.value([]);
                           if (services.length <= 10) {

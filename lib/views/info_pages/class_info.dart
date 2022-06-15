@@ -517,7 +517,7 @@ class _ClassServants extends StatelessWidget {
                       FutureBuilder<List<User>>(
                         future: Future.wait(
                           class$.allowedUsers
-                              .map(MHDatabaseRepo.instance.getUserName),
+                              .map(MHDatabaseRepo.instance.users.getUserName),
                         ).then(
                           (u) => u.whereType<User>().toList(),
                         ),

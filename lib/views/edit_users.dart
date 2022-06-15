@@ -79,11 +79,11 @@ class _UsersPageState extends State<UsersPage> {
 
     _listOptions = ListController<Class?, UserWithPerson>(
       objectsPaginatableStream: PaginatableStream.loadAll(
-        stream: MHDatabaseRepo.instance.getAllUsersData().map(
+        stream: MHDatabaseRepo.instance.users.getAllUsersData().map(
               (users) => users.where((u) => u.uid != User.emptyUID).toList(),
             ),
       ),
-      groupByStream: (u) => MHDatabaseRepo.I.groupUsersByClass(u).map(
+      groupByStream: (u) => MHDatabaseRepo.I.users.groupUsersByClass(u).map(
             (event) => event.map(
               (key, value) => MapEntry(
                 key,

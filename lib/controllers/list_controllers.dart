@@ -73,7 +73,7 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
                 Tuple3<User, List<G>, bool?>>(
                 User.loggedInStream,
                 notService(type)
-                    ? MHDatabaseRepo.I.getAllClasses().map((c) => c.cast<G>())
+                    ? MHDatabaseRepo.I.classes.getAll().map((c) => c.cast<G>())
                     : Stream.value([]),
                 dayOptions.sortByTimeASC,
                 Tuple3.new,

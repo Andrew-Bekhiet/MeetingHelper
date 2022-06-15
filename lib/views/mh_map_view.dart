@@ -45,8 +45,8 @@ class _MHMapViewState extends State<MHMapView> {
 
           return widget.initialClass == null && widget.initialService == null
               ? Rx.combineLatest2<List<Class>, List<Service>, List<DataObject>>(
-                  MHDatabaseRepo.I.getAllClasses(),
-                  MHDatabaseRepo.I.getAllServices(),
+                  MHDatabaseRepo.I.classes.getAll(),
+                  MHDatabaseRepo.I.services.getAll(),
                   (c, s) => [...c, ...s],
                 )
               : Stream.value(
@@ -112,7 +112,8 @@ class _MHMapViewState extends State<MHMapView> {
                 ...selected.whereType<Class>().toList().split(10).map(
                   (c) {
                     return GetIt.I<MHDatabaseRepo>()
-                        .getAllPersons(
+                        .persons
+                        .getAll(
                           useRootCollection: true,
                           queryCompleter: (q, _, __) => q.where(
                             'ClassId',
@@ -125,7 +126,8 @@ class _MHMapViewState extends State<MHMapView> {
                 ...selected.whereType<Service>().toList().split(10).map(
                   (s) {
                     return GetIt.I<MHDatabaseRepo>()
-                        .getAllPersons(
+                        .persons
+                        .getAll(
                           useRootCollection: true,
                           queryCompleter: (q, _, __) => q.where(
                             'Services',

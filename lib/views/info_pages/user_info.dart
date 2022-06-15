@@ -175,16 +175,17 @@ class _UserInfoState extends State<UserInfo> {
                 ),
                 ListTile(
                   title: const Text('داخل فصل:'),
-                  subtitle: user.classId != null &&
-                          user.classId!.parent.id != 'null'
-                      ? FutureBuilder<Class?>(
-                          future: MHDatabaseRepo.I.getClass(user.classId!.id),
-                          builder: (context, _class) => _class.hasData
-                              ? ViewableObjectWidget<Class>(_class.data!,
-                                  isDense: true)
-                              : const LinearProgressIndicator(),
-                        )
-                      : const Text('غير موجود'),
+                  subtitle:
+                      user.classId != null && user.classId!.parent.id != 'null'
+                          ? FutureBuilder<Class?>(
+                              future: MHDatabaseRepo.I.classes
+                                  .getById(user.classId!.id),
+                              builder: (context, _class) => _class.hasData
+                                  ? ViewableObjectWidget<Class>(_class.data!,
+                                      isDense: true)
+                                  : const LinearProgressIndicator(),
+                            )
+                          : const Text('غير موجود'),
                 ),
                 ListTile(
                   title: const Text('الصلاحيات:'),
@@ -291,9 +292,9 @@ class _UserInfoState extends State<UserInfo> {
                                 ),
                                 groupByStream: (_) =>
                                     user.permissions.superAccess
-                                        ? MHDatabaseRepo.I
+                                        ? MHDatabaseRepo.I.services
                                             .groupServicesByStudyYearRef()
-                                        : MHDatabaseRepo.I
+                                        : MHDatabaseRepo.I.services
                                             .groupServicesByStudyYearRefForUser(
                                             user.uid,
                                             user.adminServices,
@@ -324,7 +325,8 @@ class _UserInfoState extends State<UserInfo> {
                                 .where('AllowedUsers', arrayContains: user.uid),
                             mapper: UserWithPerson.fromDoc,
                           ),
-                          groupByStream: MHDatabaseRepo.I.groupUsersByClass,
+                          groupByStream:
+                              MHDatabaseRepo.I.users.groupUsersByClass,
                           groupingStream: Stream.value(true),
                         );
                         return Scaffold(

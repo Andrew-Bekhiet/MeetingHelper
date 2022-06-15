@@ -649,7 +649,8 @@ class _RootState extends State<Root>
                                             [],
                                           ),
                                         ),
-                                        groupByStream: (_) => MHDatabaseRepo.I
+                                        groupByStream: (_) => MHDatabaseRepo
+                                            .I.services
                                             .groupServicesByStudyYearRef(),
                                       ),
                                     ),
@@ -992,9 +993,9 @@ class _RootState extends State<Root>
     _usersOptions = ListController<Class?, UserWithPerson>(
       searchStream: _searchQuery,
       objectsPaginatableStream: PaginatableStream.loadAll(
-        stream: MHDatabaseRepo.instance.getAllUsersData(),
+        stream: MHDatabaseRepo.instance.users.getAllUsersData(),
       ),
-      groupByStream: (u) => MHDatabaseRepo.I.groupUsersByClass(u).map(
+      groupByStream: (u) => MHDatabaseRepo.I.users.groupUsersByClass(u).map(
             (event) => event.map(
               (key, value) => MapEntry(
                 key,
@@ -1010,7 +1011,8 @@ class _RootState extends State<Root>
       objectsPaginatableStream: PaginatableStream.loadAll(
         stream: Stream.value([]),
       ),
-      groupByStream: (_) => MHDatabaseRepo.I.groupServicesByStudyYearRef(),
+      groupByStream: (_) =>
+          MHDatabaseRepo.I.services.groupServicesByStudyYearRef(),
     );
 
     _personsOptions = ListController<void, Person>(
@@ -1019,7 +1021,7 @@ class _RootState extends State<Root>
       //with the Data Stream from Firestore
       objectsPaginatableStream: PaginatableStream.loadAll(
         stream: _personsOrder.switchMap(
-          (order) => MHDatabaseRepo.instance.getAllPersons(
+          (order) => MHDatabaseRepo.instance.persons.getAll(
             orderBy: order.orderBy,
             descending: !order.asc,
           ),

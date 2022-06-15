@@ -65,7 +65,8 @@ class Invitation extends DataObject {
   Future<String> getSecondLine() async {
     if (used && usedBy != null) {
       return 'تم الاستخدام بواسطة: ' +
-          ((await MHDatabaseRepo.instance.getUserName(usedBy!))?.name ?? '');
+          ((await MHDatabaseRepo.instance.users.getUserName(usedBy!))?.name ??
+              '');
     }
     return 'ينتهي في ' + DateFormat('yyyy/M/d', 'ar-EG').format(expiryDate);
   }

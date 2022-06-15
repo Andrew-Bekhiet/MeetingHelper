@@ -168,7 +168,7 @@ class Person extends PersonBase {
         'HasPhoto': hasPhoto ? 'نعم' : 'لا',
         'Color': color != null ? '0x' + color!.value.toRadixString(16) : null,
         'LastEdit': lastEdit != null
-            ? MHDatabaseRepo.instance.getUserName(lastEdit!.uid)
+            ? MHDatabaseRepo.instance.users.getUserName(lastEdit!.uid)
             : null,
         'School': getSchoolName(),
         'College': getCollegeName(),

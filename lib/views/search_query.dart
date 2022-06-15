@@ -246,14 +246,14 @@ class _SearchQueryState extends State<SearchQuery> {
       controller: ListController(
         objectsPaginatableStream: PaginatableStream.loadAll(
           stream: (collection.id == 'Services'
-                  ? MHDatabaseRepo.I.getAllServices(
+                  ? MHDatabaseRepo.I.services.getAll(
                       queryCompleter: _mainQueryCompleter,
                     )
                   : collection.id == 'Classes'
-                      ? MHDatabaseRepo.I.getAllClasses(
+                      ? MHDatabaseRepo.I.classes.getAll(
                           queryCompleter: _mainQueryCompleter,
                         )
-                      : MHDatabaseRepo.I.getAllPersons(
+                      : MHDatabaseRepo.I.persons.getAll(
                           queryCompleter: _mainQueryCompleter,
                         ))
               .map(
@@ -687,7 +687,8 @@ class _SearchQueryState extends State<SearchQuery> {
                 ),
                 child: queryValue != null && queryValue is String
                     ? FutureBuilder<User?>(
-                        future: MHDatabaseRepo.instance.getUserName(queryValue),
+                        future: MHDatabaseRepo.instance.users
+                            .getUserName(queryValue),
                         builder: (context, userData) {
                           if (!userData.hasData) {
                             return const LinearProgressIndicator();
@@ -800,7 +801,8 @@ class _SearchQueryState extends State<SearchQuery> {
                 ),
                 child: queryValue != null && queryValue is String
                     ? FutureBuilder<User?>(
-                        future: MHDatabaseRepo.instance.getUserName(queryValue),
+                        future: MHDatabaseRepo.instance.users
+                            .getUserName(queryValue),
                         builder: (context, userData) {
                           if (!userData.hasData) {
                             return const LinearProgressIndicator();
@@ -929,9 +931,10 @@ class _SearchQueryState extends State<SearchQuery> {
 
     final _listOptions = ServicesListController<Class>(
       objectsPaginatableStream: PaginatableStream.loadAll(
-        stream: MHDatabaseRepo.I.getAllClasses(),
+        stream: MHDatabaseRepo.I.classes.getAll(),
       ),
-      groupByStream: MHDatabaseRepo.I.groupServicesByStudyYearRef<Class>,
+      groupByStream:
+          MHDatabaseRepo.I.services.groupServicesByStudyYearRef<Class>,
     );
 
     await showDialog(
@@ -974,9 +977,10 @@ class _SearchQueryState extends State<SearchQuery> {
 
     final _listOptions = ServicesListController<Service>(
       objectsPaginatableStream: PaginatableStream.loadAll(
-        stream: MHDatabaseRepo.I.getAllServices(),
+        stream: MHDatabaseRepo.I.services.getAll(),
       ),
-      groupByStream: MHDatabaseRepo.I.groupServicesByStudyYearRef<Service>,
+      groupByStream:
+          MHDatabaseRepo.I.services.groupServicesByStudyYearRef<Service>,
     );
 
     await showDialog(
@@ -1028,7 +1032,7 @@ class _SearchQueryState extends State<SearchQuery> {
     final _listOptions = ListController<void, User>(
       objectsPaginatableStream: PaginatableStream.loadAll(
         stream: _orderOptions.switchMap(
-          (order) => MHDatabaseRepo.instance.getAllUsers(),
+          (order) => MHDatabaseRepo.instance.users.getAllUsers(),
         ),
       ),
     );

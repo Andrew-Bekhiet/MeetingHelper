@@ -594,13 +594,14 @@ class _EditServiceState extends State<EditService> {
                 return Provider<ListController<Class?, User>>(
                   create: (_) => ListController<Class?, User>(
                     objectsPaginatableStream: PaginatableStream.loadAll(
-                      stream: MHDatabaseRepo.instance.getAllUsersNames().map(
-                            (users) => users
-                                .where((u) => u.uid != User.emptyUID)
-                                .toList(),
-                          ),
+                      stream:
+                          MHDatabaseRepo.instance.users.getAllUsersNames().map(
+                                (users) => users
+                                    .where((u) => u.uid != User.emptyUID)
+                                    .toList(),
+                              ),
                     ),
-                    groupByStream: MHDatabaseRepo.I.groupUsersByClass,
+                    groupByStream: MHDatabaseRepo.I.users.groupUsersByClass,
                     groupingStream: Stream.value(true),
                   )..selectAll(users.data!.whereType<User>().toList()),
                   dispose: (context, c) => c.dispose(),

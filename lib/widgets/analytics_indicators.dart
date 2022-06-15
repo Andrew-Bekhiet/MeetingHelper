@@ -454,8 +454,8 @@ class PersonAttendanceIndicator extends StatelessWidget {
     return Rx.combineLatest3<User?, List<Class>, List<Service>,
                 Tuple3<User?, List<Class>, List<Service>>>(
             User.loggedInStream,
-            MHDatabaseRepo.I.getAllClasses(),
-            MHDatabaseRepo.I.getAllServices(),
+            MHDatabaseRepo.I.classes.getAll(),
+            MHDatabaseRepo.I.services.getAll(),
             Tuple3.new)
         .switchMap((u) {
       if (u.item1 == null) return Stream.value([]);
@@ -653,7 +653,7 @@ class HistoryAnalysisWidget extends StatelessWidget {
               ),
             if (showUsers)
               FutureBuilder<List<User>>(
-                future: MHDatabaseRepo.instance.getAllUsersNames().first,
+                future: MHDatabaseRepo.instance.users.getAllUsersNames().first,
                 builder: (context, usersData) {
                   if (usersData.hasError) return ErrorWidget(usersData.error!);
                   if (!usersData.hasData) {

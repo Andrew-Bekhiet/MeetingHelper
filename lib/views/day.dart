@@ -41,8 +41,8 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return StreamBuilder<Tuple2<TabController, List<Service>>>(
       initialData: Tuple2(_previous!, []),
-      stream: MHDatabaseRepo.I
-          .getAllServices(onlyShownInHistory: true)
+      stream: MHDatabaseRepo.I.services
+          .getAll(onlyShownInHistory: true)
           .map((snapshot) {
         if (snapshot.length + 3 != _previous?.length) {
           _previous = TabController(
@@ -193,7 +193,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                     final tmp = baseController.copyWithNewG<StudyYear?>(
                       type: service.id,
                       groupByStream:
-                          MHDatabaseRepo.I.groupPersonsByStudyYearRef,
+                          MHDatabaseRepo.I.persons.groupPersonsByStudyYearRef,
                       objectsPaginatableStream: PaginatableStream.loadAll(
                         stream: service.getPersonsMembers(),
                       ),
@@ -506,12 +506,12 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
       searchQuery: _searchSubject,
       query: PaginatableStream.loadAll(
         stream: widget.record is ServantsHistoryDay
-            ? MHDatabaseRepo.instance.getAllUsersData()
-            : MHDatabaseRepo.instance.getAllPersons(),
+            ? MHDatabaseRepo.instance.users.getAllUsersData()
+            : MHDatabaseRepo.instance.persons.getAll(),
       ),
       day: widget.record,
       dayOptions: dayOptions,
-      groupByStream: MHDatabaseRepo.I.groupPersonsByClassRef,
+      groupByStream: MHDatabaseRepo.I.persons.groupPersonsByClassRef,
       type: 'Meeting',
     );
 

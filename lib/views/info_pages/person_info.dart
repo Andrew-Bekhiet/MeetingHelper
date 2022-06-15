@@ -346,7 +346,8 @@ class _PersonInfoState extends State<PersonInfo> {
                   subtitle: person.classId != null &&
                           person.classId!.parent.id != 'null'
                       ? FutureBuilder<Class?>(
-                          future: MHDatabaseRepo.I.getClass(person.classId!.id),
+                          future: MHDatabaseRepo.I.classes
+                              .getById(person.classId!.id),
                           builder: (context, _class) =>
                               _class.connectionState == ConnectionState.done &&
                                       _class.hasData
