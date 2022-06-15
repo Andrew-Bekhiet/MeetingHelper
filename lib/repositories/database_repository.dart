@@ -247,7 +247,7 @@ class MHDatabaseRepo extends DatabaseRepository {
     if (useRootCollection) {
       return queryCompleter(collection('Persons'), orderBy, descending)
           .snapshots()
-          .map((p) => p.docs.map(Person.fromDoc).toList());
+          .map((p) => p.docs.map(Person.fromDoc).toSet().toList());
     }
 
     return Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
