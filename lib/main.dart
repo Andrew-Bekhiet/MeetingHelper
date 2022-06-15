@@ -109,10 +109,6 @@ Future<void> initMeetingHelper() async {
       mhDataObjectTapHandler);
   GetIt.I.registerSingleton<MHViewableObjectTapHandler>(mhDataObjectTapHandler);
 
-  GetIt.I.registerSingleton<SupabaseClient>(
-    SupabaseClient(supabaseURL, supabaseKey),
-  );
-
   if (kDebugMode) {
     final devBox = await Hive.openBox('Dev');
 
@@ -133,6 +129,10 @@ Future<void> initMeetingHelper() async {
           .get('cacheSize', defaultValue: 300 * 1024 * 1024),
     );
   }
+
+  GetIt.I.registerSingleton<SupabaseClient>(
+    SupabaseClient(supabaseURL, supabaseKey),
+  );
 }
 
 Future<void> initFirebase() async {
