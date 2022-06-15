@@ -113,8 +113,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       ..onTap = () async {
                         const url =
                             'https://church-data.flycricket.io/terms.html';
-                        if (await canLaunch(url)) {
-                          await launch(url);
+                        if (await canLaunchUrl(Uri.parse(url))) {
+                          await launchUrl(Uri.parse(url));
                         }
                       },
                   ),
@@ -131,8 +131,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       ..onTap = () async {
                         const url =
                             'https://church-data.flycricket.io/privacy.html';
-                        if (await canLaunch(url)) {
-                          await launch(url);
+                        if (await canLaunchUrl(Uri.parse(url))) {
+                          await launchUrl(Uri.parse(url));
                         }
                       },
                   ),
@@ -305,9 +305,7 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 
 class _LoginTitle extends StatelessWidget with PreferredSizeWidget {
-  const _LoginTitle({
-    super.key,
-  });
+  const _LoginTitle();
 
   @override
   Widget build(BuildContext context) {
