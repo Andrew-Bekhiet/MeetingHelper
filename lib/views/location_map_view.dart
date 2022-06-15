@@ -79,9 +79,12 @@ class _LocationMapViewState extends State<LocationMapView> {
                                     ),
                                     controller: _latController,
                                   ),
+                                  const SizedBox(
+                                    height: 10,
+                                  ),
                                   TextFormField(
                                     decoration: const InputDecoration(
-                                      labelText: 'Lngitude',
+                                      labelText: 'Longitude',
                                     ),
                                     controller: _lngController,
                                   ),
