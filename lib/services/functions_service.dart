@@ -3,6 +3,10 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:meetinghelper/models.dart';
 
 class MHFunctionsService extends FunctionsService {
+  Future<void> refreshSupabaseToken() async {
+    await httpsCallable('refreshSupabaseToken').call();
+  }
+
   Future<HttpsCallableResult> updateUser({
     required UserWithPerson old,
     required UserWithPerson new$,

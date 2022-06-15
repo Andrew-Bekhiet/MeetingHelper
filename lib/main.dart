@@ -27,6 +27,7 @@ import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/views.dart';
 import 'package:meetinghelper/widgets.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:supabase/supabase.dart' hide User;
 import 'package:timeago/timeago.dart';
 
 import 'exceptions/unsupported_version_exception.dart';
@@ -107,6 +108,10 @@ Future<void> initMeetingHelper() async {
   GetIt.I.registerSingleton<DefaultViewableObjectTapHandler>(
       mhDataObjectTapHandler);
   GetIt.I.registerSingleton<MHViewableObjectTapHandler>(mhDataObjectTapHandler);
+
+  GetIt.I.registerSingleton<SupabaseClient>(
+    SupabaseClient(supabaseURL, supabaseKey),
+  );
 
   if (kDebugMode) {
     final devBox = await Hive.openBox('Dev');

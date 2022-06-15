@@ -1,9 +1,16 @@
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:collection/collection.dart';
+import 'package:convert/convert.dart';
+import 'package:dart_jts/dart_jts.dart' as p;
+import 'package:dart_postgis/dart_postgis.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:meetinghelper/models.dart';
+import 'package:meetinghelper/repositories/auth_repository.dart';
+import 'package:meetinghelper/services.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:supabase/supabase.dart' show SupabaseClient;
 import 'package:tuple/tuple.dart';
 
 class MHDatabaseRepo extends DatabaseRepository {
@@ -117,6 +124,49 @@ class MHDatabaseRepo extends DatabaseRepository {
       doc,
     );
   }
+
+  Future<List<Polygon>> getAllAreas() => GetIt.I<SupabaseClient>()
+          .from('areas')
+          .select('id, color, bounds')
+          .execute()
+          .then(
+        (value) async {
+          if (value.error?.message == 'JWT expired') {
+            await MHAuthRepository.I.refreshSupabaseToken();
+            return getAllAreas();
+          }
+
+          final parser = BinaryParser();
+
+          return (value.data as List)
+              .map(
+                (e) {
+                  if (e?['bounds'] == null) {
+                    return null;
+                  }
+
+                  final color = e['color'] != null
+                      ? Color(e['color'])
+                      : GetIt.I<MHThemingService>().theme.colorScheme.primary;
+                  return Polygon(
+                    polygonId: PolygonId(e['id']),
+                    fillColor: color.withOpacity(0.2),
+                    strokeWidth: 1,
+                    strokeColor: color,
+                    points: (parser.parse(hex.decode(e['bounds'])) as p.Polygon)
+                            .shell
+                            ?.points
+                            .toCoordinateArray()
+                            .map((c) => LatLng(c.y, c.x))
+                            .toList() ??
+                        [],
+                  );
+                },
+              )
+              .whereType<Polygon>()
+              .toList();
+        },
+      );
 
   Stream<List<Service>> getAllServices({
     String orderBy = 'Name',

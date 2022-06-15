@@ -23,6 +23,7 @@ class User extends UserBase implements DataObjectWithPhoto {
       MHAuthRepository.I.userStream.whereType<User>();
 
   final String? password;
+  final String? supabaseToken;
 
   final List<String> allowedUsers;
   final List<JsonRef> adminServices;
@@ -46,6 +47,7 @@ class User extends UserBase implements DataObjectWithPhoto {
     this.classId,
     super.email,
     this.password,
+    this.supabaseToken,
     this.permissions = const MHPermissionsSet.empty(),
     this.allowedUsers = const [],
     this.adminServices = const [],

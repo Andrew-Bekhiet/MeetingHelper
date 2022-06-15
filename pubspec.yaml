@@ -4,7 +4,7 @@ description: null
 # The following line prevents the package from being accidentally published to
 # pub.dev using `pub publish`. This is preferred for private packages.
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
-version: 8.0.4-beta+19
+version: 8.1.0-beta+20
 
 environment:
   sdk: ">=2.17.0 <3.0.0"
@@ -21,8 +21,11 @@ dependencies:
   cloud_functions: ^3.2.7
   collection: ^1.15.0
   connectivity_plus: ^2.2.0
+  convert: ^3.0.2
   copy_with_extension: ^4.0.0
   cupertino_icons: ^1.0.4
+  dart_jts: ^0.2.1+1
+  dart_postgis: ^0.2.0
   datetime_picker_formfield: ^2.0.0
   device_info_plus: ^3.2.1
   expandable: ^5.0.1
@@ -68,6 +71,7 @@ dependencies:
   sentry_flutter: ^6.3.0
   share_plus: ^4.0.3
   spreadsheet_decoder: ^2.0.2
+  supabase: ^0.3.4+1
   syncfusion_flutter_charts: ^20.1.52
   timeago: ^3.2.2
   tinycolor2: ^2.0.0

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_database/firebase_database.dart';
@@ -5,8 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
+import 'package:meetinghelper/services.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:supabase/supabase.dart' hide User;
 
 class MHAuthRepository extends AuthRepository<User, Person> {
   static MHAuthRepository get instance => GetIt.I<MHAuthRepository>();
@@ -70,6 +74,7 @@ class MHAuthRepository extends AuthRepository<User, Person> {
               name: firebaseUser?.displayName ?? name ?? '',
               email: firebaseUser?.email ?? email!,
               password: idTokenClaims['password'],
+              supabaseToken: idTokenClaims['supabaseToken'],
               permissions: permissionsFromIdToken(idTokenClaims),
               classId: doc.data()?['ClassId'],
               allowedUsers: doc.data()?['AllowedUsers']?.cast<String>() ?? [],
@@ -90,6 +95,7 @@ class MHAuthRepository extends AuthRepository<User, Person> {
         name: firebaseUser?.displayName ?? name ?? '',
         email: firebaseUser?.email ?? email!,
         password: idTokenClaims['password'],
+        supabaseToken: idTokenClaims['supabaseToken'],
         permissions: permissionsFromIdToken(idTokenClaims),
         lastTanawol: currentUser?.lastTanawol,
         lastConfession: currentUser?.lastConfession,
@@ -98,6 +104,7 @@ class MHAuthRepository extends AuthRepository<User, Person> {
         adminServices: currentUser?.adminServices ?? [],
       ));
     }
+    refreshSupabaseToken(idTokenClaims['supabaseToken']);
 
     connectionListener ??= GetIt.I<FirebaseDatabase>()
         .ref()
@@ -114,6 +121,7 @@ class MHAuthRepository extends AuthRepository<User, Person> {
       name: firebaseUser?.displayName ?? name ?? '',
       email: firebaseUser?.email ?? email!,
       password: idTokenClaims['password'],
+      supabaseToken: idTokenClaims['supabaseToken'],
       permissions: permissionsFromIdToken(idTokenClaims),
       lastTanawol: currentUser?.lastTanawol,
       lastConfession: currentUser?.lastConfession,
@@ -121,5 +129,31 @@ class MHAuthRepository extends AuthRepository<User, Person> {
       allowedUsers: currentUser?.allowedUsers ?? [],
       adminServices: currentUser?.adminServices ?? [],
     );
+  }
+
+  Future<void> refreshSupabaseToken([String? supabaseToken]) async {
+    await Future.delayed(const Duration(seconds: 1));
+    if (!GetIt.I.isRegistered<SupabaseClient>() || !GetIt.I.allReadySync()) {
+      await GetIt.I.allReady();
+    }
+
+    if (supabaseToken == null ||
+        DateTime.fromMillisecondsSinceEpoch(json.decode(
+                  utf8.decode(
+                    base64.decode(
+                      supabaseToken.split('.')[1].padRight(
+                          supabaseToken.split('.')[1].length +
+                              4 -
+                              (supabaseToken.split('.')[1].length % 4),
+                          '='),
+                    ),
+                  ),
+                )['exp'] ~/
+                1000)
+            .isAfter(DateTime.now())) {
+      await GetIt.I<MHFunctionsService>().refreshSupabaseToken();
+    } else {
+      GetIt.I<SupabaseClient>().auth.setAuth(supabaseToken);
+    }
   }
 }
