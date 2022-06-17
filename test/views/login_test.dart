@@ -77,7 +77,6 @@ void main() {
               mockUser;
 
           await tester.pumpWidget(wrapWithMaterialApp(const LoginScreen()));
-
           await tester.tap(
             find.image(const AssetImage('assets/google_logo.png')),
           );
