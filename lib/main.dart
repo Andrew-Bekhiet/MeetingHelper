@@ -32,6 +32,9 @@ import 'package:timeago/timeago.dart';
 
 import 'exceptions/unsupported_version_exception.dart';
 
+Completer<void> _initialization = Completer();
+bool _initializing = false;
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -43,6 +46,9 @@ Future<void> main() async {
 }
 
 Future<void> initMeetingHelper() async {
+  if (_initializing) return _initialization.future;
+  _initializing = true;
+
   await initFirebase();
 
   await initCore(
@@ -133,6 +139,8 @@ Future<void> initMeetingHelper() async {
   GetIt.I.registerSingleton<SupabaseClient>(
     SupabaseClient(supabaseURL, supabaseKey),
   );
+
+  return _initialization.complete();
 }
 
 Future<void> initFirebase() async {
