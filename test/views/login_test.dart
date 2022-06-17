@@ -1,9 +1,8 @@
-import 'package:churchdata_core/churchdata_core.dart';
 import 'package:churchdata_core_mocks/churchdata_core.dart';
 import 'package:churchdata_core_mocks/churchdata_core.mocks.dart';
 import 'package:churchdata_core_mocks/fakes/fake_firebase_auth.dart';
 import 'package:churchdata_core_mocks/fakes/mock_user.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -16,12 +15,17 @@ import '../utils.dart';
 
 void main() {
   group(
-    'Login View tests ->',
+    'Login View tests: ',
     () {
       setUp(() async {
         registerFirebaseMocks();
         setUpMHPlatformChannels();
         await initFakeCore();
+
+        GetIt.I.unregister(
+            instance: MHAuthRepository.I, disposingFunction: (_) {});
+
+        await mockMHUser();
 
         when((GetIt.I<FirebaseMessaging>() as MockFirebaseMessaging)
                 .isSupported())
@@ -53,8 +57,6 @@ void main() {
       testWidgets(
         'Login',
         (tester) async {
-          GetIt.I.pushNewScope();
-          await initFakeCore();
           final mockUser = MyMockUser(
             uid: 'uid',
             displayName: 'User Name',
@@ -79,9 +81,8 @@ void main() {
           await tester.tap(
             find.image(const AssetImage('assets/google_logo.png')),
           );
-          await MHAuthRepository.I.userStream.nextNonNull;
 
-          expect(MHAuthRepository.I.isSignedIn, isTrue);
+          expect(GetIt.I<FirebaseAuth>().currentUser, mockUser);
         },
       );
     },
