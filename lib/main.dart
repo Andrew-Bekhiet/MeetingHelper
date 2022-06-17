@@ -211,38 +211,40 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
                 FirebaseRemoteConfig) &&
         GetIt.I<FirebaseRemoteConfig>().getString('LoadApp') == 'false') {
       throw UnsupportedVersionException(version: appVersion);
-    } else if (GetIt.I<MHAuthRepository>().isSignedIn &&
-        !User.instance.userDataUpToDate()) {
-      throw UpdateUserDataException(
-        lastTanawol: User.instance.lastTanawol,
-        lastConfession: User.instance.lastConfession,
-      );
     }
   }
 
   Widget buildLoadAppWidget(BuildContext context) {
     return FutureBuilder<void>(
       future: _latestVersionChecker.runOnce(() => checkLatestVersion(context)),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
+      builder: (context, versionCheck) {
+        if (versionCheck.connectionState != ConnectionState.done) {
           return const Loading();
         }
 
         return StreamBuilder<User?>(
           initialData: GetIt.I<MHAuthRepository>().currentUser,
-          stream: GetIt.I<MHAuthRepository>().userStream,
+          stream: GetIt.I<MHAuthRepository>().userStream.map(
+                (event) => GetIt.I<MHAuthRepository>().isSignedIn &&
+                        User.instance.password != null &&
+                        !User.instance.userDataUpToDate()
+                    ? throw UpdateUserDataException(
+                        lastTanawol: User.instance.lastTanawol,
+                        lastConfession: User.instance.lastConfession,
+                      )
+                    : event,
+              ),
           builder: (context, userSnapshot) {
             final user = userSnapshot.data;
 
             if (!errorDialogShown) {
-              if (user?.password != null &&
-                  snapshot.error is UpdateUserDataException) {
+              if (userSnapshot.error is UpdateUserDataException) {
                 WidgetsBinding.instance.addPostFrameCallback((_) async {
                   await showErrorUpdateDataDialog(context: context);
                   errorDialogShown = false;
                 });
                 errorDialogShown = true;
-              } else if (snapshot.error is UnsupportedVersionException) {
+              } else if (versionCheck.error is UnsupportedVersionException) {
                 WidgetsBinding.instance.addPostFrameCallback((_) async {
                   await Updates.showUpdateDialog(context, canCancel: false);
                   errorDialogShown = false;
@@ -251,10 +253,10 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
               }
             }
 
-            if (snapshot.error is UnsupportedVersionException ||
-                (snapshot.hasError && user?.password != null)) {
+            if (versionCheck.error is UnsupportedVersionException ||
+                (userSnapshot.error is UpdateUserDataException)) {
               return Loading(
-                exception: snapshot.error,
+                exception: versionCheck.error ?? userSnapshot.error,
               );
             } else if (user == null) {
               return const LoginScreen();
