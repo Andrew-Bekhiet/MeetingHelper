@@ -47,19 +47,21 @@ class MHAuthRepository extends AuthRepository<User, Person> {
       MHPermissionsSet.fromJson(idTokenClaims);
 
   @override
-  User refreshFromIdToken(
+  Future<User> refreshFromIdToken(
     Json idTokenClaims, {
     auth.User? firebaseUser,
     String? uid,
     String? name,
     String? email,
     String? phone,
-  }) {
+  }) async {
     assert(
         firebaseUser != null || (name != null && uid != null && email != null));
 
+    await refreshSupabaseToken(idTokenClaims['supabaseToken']);
+
     if (idTokenClaims['personId'] != currentUserData?.ref.id) {
-      personListener?.cancel();
+      await personListener?.cancel();
       personListener = MHDatabaseRepo.I
           .collection('UsersData')
           .doc(idTokenClaims['personId'])
@@ -104,12 +106,12 @@ class MHAuthRepository extends AuthRepository<User, Person> {
         adminServices: currentUser?.adminServices ?? [],
       ));
     }
-    refreshSupabaseToken(idTokenClaims['supabaseToken']);
 
     connectionListener ??= GetIt.I<FirebaseDatabase>()
         .ref()
         .child('.info/connected')
         .onValue
+        .skip(2)
         .listen(connectionChanged);
 
     return User(
@@ -132,10 +134,7 @@ class MHAuthRepository extends AuthRepository<User, Person> {
   }
 
   Future<void> refreshSupabaseToken([String? supabaseToken]) async {
-    await Future.delayed(const Duration(seconds: 1));
-    if (!GetIt.I.isRegistered<SupabaseClient>() || !GetIt.I.allReadySync()) {
-      await GetIt.I.allReady();
-    }
+    if (!GetIt.I.isRegistered(instance: this) || !userSubject.hasValue) return;
 
     if (supabaseToken == null ||
         DateTime.fromMillisecondsSinceEpoch(json.decode(
