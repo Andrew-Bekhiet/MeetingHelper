@@ -104,11 +104,6 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
 
   Future save() async {
     try {
-      if (user.lastConfession == null || user.lastTanawol == null) {
-        scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
-            content: Text('برجاء ادخال تاريخ أخر الاعتراف والتناول')));
-        return;
-      }
       if (!_form.currentState!.validate()) return;
       _form.currentState!.save();
       scaffoldMessenger.currentState!
