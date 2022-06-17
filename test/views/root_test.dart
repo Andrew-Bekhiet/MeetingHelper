@@ -108,7 +108,7 @@ void main() {
           );
           await tester.pumpAndSettle();
           expect(find.byType(ServicesList), findsOneWidget);
-          expect(find.text('0 خدمة'), findsOneWidget);
+          expect(find.text('0 خدمة و0 فصل'), findsOneWidget);
 
           await tester.tap(
             find.descendant(

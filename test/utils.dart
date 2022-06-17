@@ -157,6 +157,8 @@ Future<void> initFakeCore() async {
       },
     },
   );
+
+  await GetIt.I<CacheRepository>().openBox('Dev');
 }
 
 Future<MyMockUser> signInMockUser(
