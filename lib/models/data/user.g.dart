@@ -28,6 +28,8 @@ abstract class _$UserCWProxy {
 
   User ref(DocumentReference<Map<String, dynamic>> ref);
 
+  User supabaseToken(String? supabaseToken);
+
   User uid(String uid);
 
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `User(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
@@ -47,6 +49,7 @@ abstract class _$UserCWProxy {
     String? password,
     MHPermissionsSet? permissions,
     DocumentReference<Map<String, dynamic>>? ref,
+    String? supabaseToken,
     String? uid,
   });
 }
@@ -94,6 +97,10 @@ class _$UserCWProxyImpl implements _$UserCWProxy {
   User ref(DocumentReference<Map<String, dynamic>> ref) => this(ref: ref);
 
   @override
+  User supabaseToken(String? supabaseToken) =>
+      this(supabaseToken: supabaseToken);
+
+  @override
   User uid(String uid) => this(uid: uid);
 
   @override
@@ -115,6 +122,7 @@ class _$UserCWProxyImpl implements _$UserCWProxy {
     Object? password = const $CopyWithPlaceholder(),
     Object? permissions = const $CopyWithPlaceholder(),
     Object? ref = const $CopyWithPlaceholder(),
+    Object? supabaseToken = const $CopyWithPlaceholder(),
     Object? uid = const $CopyWithPlaceholder(),
   }) {
     return User(
@@ -161,6 +169,10 @@ class _$UserCWProxyImpl implements _$UserCWProxy {
           ? _value.ref
           // ignore: cast_nullable_to_non_nullable
           : ref as DocumentReference<Map<String, dynamic>>,
+      supabaseToken: supabaseToken == const $CopyWithPlaceholder()
+          ? _value.supabaseToken
+          // ignore: cast_nullable_to_non_nullable
+          : supabaseToken as String?,
       uid: uid == const $CopyWithPlaceholder() || uid == null
           ? _value.uid
           // ignore: cast_nullable_to_non_nullable
@@ -170,7 +182,7 @@ class _$UserCWProxyImpl implements _$UserCWProxy {
 }
 
 extension $UserCopyWith on User {
-  /// Returns a callable class that can be used as follows: `instanceOfclass User extends UserBase implements DataObjectWithPhoto.name.copyWith(...)` or like so:`instanceOfclass User extends UserBase implements DataObjectWithPhoto.name.copyWith.fieldName(...)`.
+  /// Returns a callable class that can be used as follows: `instanceOfUser.copyWith(...)` or like so:`instanceOfUser.copyWith.fieldName(...)`.
   _$UserCWProxy get copyWith => _$UserCWProxyImpl(this);
 
   /// Copies the object with the specific fields set to `null`. If you pass `false` as a parameter, nothing will be done and it will be ignored. Don't do it. Prefer `copyWith(field: null)` or `User(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
@@ -185,6 +197,7 @@ extension $UserCopyWith on User {
     bool lastConfession = false,
     bool lastTanawol = false,
     bool password = false,
+    bool supabaseToken = false,
   }) {
     return User(
       adminServices: adminServices,
@@ -197,6 +210,7 @@ extension $UserCopyWith on User {
       password: password == true ? null : this.password,
       permissions: permissions,
       ref: ref,
+      supabaseToken: supabaseToken == true ? null : this.supabaseToken,
       uid: uid,
     );
   }

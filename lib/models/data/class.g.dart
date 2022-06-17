@@ -129,7 +129,7 @@ class _$ClassCWProxyImpl implements _$ClassCWProxy {
 }
 
 extension $ClassCopyWith on Class {
-  /// Returns a callable class that can be used as follows: `instanceOfclass Class extends DataObject implements PhotoObjectBase.name.copyWith(...)` or like so:`instanceOfclass Class extends DataObject implements PhotoObjectBase.name.copyWith.fieldName(...)`.
+  /// Returns a callable class that can be used as follows: `instanceOfClass.copyWith(...)` or like so:`instanceOfClass.copyWith.fieldName(...)`.
   _$ClassCWProxy get copyWith => _$ClassCWProxyImpl(this);
 
   /// Copies the object with the specific fields set to `null`. If you pass `false` as a parameter, nothing will be done and it will be ignored. Don't do it. Prefer `copyWith(field: null)` or `Class(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.

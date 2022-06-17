@@ -154,7 +154,7 @@ class _$HistoryRecordCWProxyImpl implements _$HistoryRecordCWProxy {
 }
 
 extension $HistoryRecordCopyWith on HistoryRecord {
-  /// Returns a callable class that can be used as follows: `instanceOfclass HistoryRecord.name.copyWith(...)` or like so:`instanceOfclass HistoryRecord.name.copyWith.fieldName(...)`.
+  /// Returns a callable class that can be used as follows: `instanceOfHistoryRecord.copyWith(...)` or like so:`instanceOfHistoryRecord.copyWith.fieldName(...)`.
   _$HistoryRecordCWProxy get copyWith => _$HistoryRecordCWProxyImpl(this);
 
   /// Copies the object with the specific fields set to `null`. If you pass `false` as a parameter, nothing will be done and it will be ignored. Don't do it. Prefer `copyWith(field: null)` or `HistoryRecord(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.

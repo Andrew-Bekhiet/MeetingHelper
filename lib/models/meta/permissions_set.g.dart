@@ -239,6 +239,6 @@ class _$MHPermissionsSetCWProxyImpl implements _$MHPermissionsSetCWProxy {
 }
 
 extension $MHPermissionsSetCopyWith on MHPermissionsSet {
-  /// Returns a callable class that can be used as follows: `instanceOfclass MHPermissionsSet extends PermissionsSet implements Serializable.name.copyWith(...)` or like so:`instanceOfclass MHPermissionsSet extends PermissionsSet implements Serializable.name.copyWith.fieldName(...)`.
+  /// Returns a callable class that can be used as follows: `instanceOfMHPermissionsSet.copyWith(...)` or like so:`instanceOfMHPermissionsSet.copyWith.fieldName(...)`.
   _$MHPermissionsSetCWProxy get copyWith => _$MHPermissionsSetCWProxyImpl(this);
 }

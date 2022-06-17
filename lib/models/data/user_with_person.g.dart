@@ -460,7 +460,7 @@ class _$UserWithPersonCWProxyImpl implements _$UserWithPersonCWProxy {
 }
 
 extension $UserWithPersonCopyWith on UserWithPerson {
-  /// Returns a callable class that can be used as follows: `instanceOfclass UserWithPerson extends Person implements User.name.copyWith(...)` or like so:`instanceOfclass UserWithPerson extends Person implements User.name.copyWith.fieldName(...)`.
+  /// Returns a callable class that can be used as follows: `instanceOfUserWithPerson.copyWith(...)` or like so:`instanceOfUserWithPerson.copyWith.fieldName(...)`.
   _$UserWithPersonCWProxy get copyWith => _$UserWithPersonCWProxyImpl(this);
 
   /// Copies the object with the specific fields set to `null`. If you pass `false` as a parameter, nothing will be done and it will be ignored. Don't do it. Prefer `copyWith(field: null)` or `UserWithPerson(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.

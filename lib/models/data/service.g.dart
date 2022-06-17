@@ -130,7 +130,7 @@ class _$ServiceCWProxyImpl implements _$ServiceCWProxy {
 }
 
 extension $ServiceCopyWith on Service {
-  /// Returns a callable class that can be used as follows: `instanceOfclass Service extends DataObject implements PhotoObjectBase.name.copyWith(...)` or like so:`instanceOfclass Service extends DataObject implements PhotoObjectBase.name.copyWith.fieldName(...)`.
+  /// Returns a callable class that can be used as follows: `instanceOfService.copyWith(...)` or like so:`instanceOfService.copyWith.fieldName(...)`.
   _$ServiceCWProxy get copyWith => _$ServiceCWProxyImpl(this);
 
   /// Copies the object with the specific fields set to `null`. If you pass `false` as a parameter, nothing will be done and it will be ignored. Don't do it. Prefer `copyWith(field: null)` or `Service(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.

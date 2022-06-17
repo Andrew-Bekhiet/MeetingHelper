@@ -63,7 +63,7 @@ class _$StudyYearRangeCWProxyImpl implements _$StudyYearRangeCWProxy {
 }
 
 extension $StudyYearRangeCopyWith on StudyYearRange {
-  /// Returns a callable class that can be used as follows: `instanceOfclass StudyYearRange.name.copyWith(...)` or like so:`instanceOfclass StudyYearRange.name.copyWith.fieldName(...)`.
+  /// Returns a callable class that can be used as follows: `instanceOfStudyYearRange.copyWith(...)` or like so:`instanceOfStudyYearRange.copyWith.fieldName(...)`.
   _$StudyYearRangeCWProxy get copyWith => _$StudyYearRangeCWProxyImpl(this);
 
   /// Copies the object with the specific fields set to `null`. If you pass `false` as a parameter, nothing will be done and it will be ignored. Don't do it. Prefer `copyWith(field: null)` or `StudyYearRange(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.

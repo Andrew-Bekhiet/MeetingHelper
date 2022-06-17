@@ -131,7 +131,7 @@ class _$InvitationCWProxyImpl implements _$InvitationCWProxy {
 }
 
 extension $InvitationCopyWith on Invitation {
-  /// Returns a callable class that can be used as follows: `instanceOfclass Invitation extends DataObject.name.copyWith(...)` or like so:`instanceOfclass Invitation extends DataObject.name.copyWith.fieldName(...)`.
+  /// Returns a callable class that can be used as follows: `instanceOfInvitation.copyWith(...)` or like so:`instanceOfInvitation.copyWith.fieldName(...)`.
   _$InvitationCWProxy get copyWith => _$InvitationCWProxyImpl(this);
 
   /// Copies the object with the specific fields set to `null`. If you pass `false` as a parameter, nothing will be done and it will be ignored. Don't do it. Prefer `copyWith(field: null)` or `Invitation(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
