@@ -1,8 +1,8 @@
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/exceptions/update_user_data_exception.dart';
-import 'package:meetinghelper/updates.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -58,7 +58,7 @@ class Loading extends StatelessWidget {
                         if (exception is UpdateUserDataException) {
                           showErrorUpdateDataDialog(context: context);
                         } else if (exception is UnsupportedVersionException) {
-                          Updates.showUpdateDialog(context, canCancel: false);
+                          GetIt.I<UpdatesService>().showUpdateDialog(context);
                         } else {
                           showErrorDialog(context, exception.toString());
                         }

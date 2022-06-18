@@ -1,8 +1,8 @@
 import 'package:churchdata_core_mocks/churchdata_core.dart';
 import 'package:churchdata_core_mocks/churchdata_core.mocks.dart';
 import 'package:churchdata_core_mocks/fakes/fake_firestore.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -119,14 +119,18 @@ void main() {
       testWidgets(
         'Unsupported version',
         (tester) async {
-          when(
-            (GetIt.I<FirebaseRemoteConfig>() as MockFirebaseRemoteConfig)
-                .getString('LoadApp'),
-          ).thenReturn('false');
-          when(
-            (GetIt.I<FirebaseRemoteConfig>() as MockFirebaseRemoteConfig)
-                .getString('LatestVersion'),
-          ).thenReturn('9.0.0');
+          await GetIt.I<FirebaseDatabase>()
+              .ref()
+              .child('config')
+              .child('updates')
+              .child('latest_version')
+              .set('10.0.0');
+          await GetIt.I<FirebaseDatabase>()
+              .ref()
+              .child('config')
+              .child('updates')
+              .child('deprecated_from')
+              .set('9.0.0');
 
           await tester.pumpWidget(const MeetingHelperApp());
           await tester.pumpAndSettle();
@@ -138,7 +142,7 @@ void main() {
           expect(find.byType(Dialog), findsOneWidget);
 
           expect(
-            find.textContaining('يرجى تحديث البرنامج'),
+            find.widgetWithText(OutlinedButton, 'تحديث'),
             findsOneWidget,
           );
         },

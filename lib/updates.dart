@@ -1,14 +1,8 @@
-import 'dart:async';
-
-import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:version/version.dart';
-
-import 'utils/globals.dart';
 
 class Update extends StatefulWidget {
   const Update({super.key});
@@ -17,65 +11,17 @@ class Update extends StatefulWidget {
   _UpdateState createState() => _UpdateState();
 }
 
-class Updates {
-  static Future showUpdateDialog(BuildContext context,
-      {bool canCancel = true}) async {
-    final Version latest = Version.parse(
-        GetIt.I<FirebaseRemoteConfig>().getString('LatestVersion'));
-    if (latest > Version.parse((await PackageInfo.fromPlatform()).version)) {
-      await showDialog(
-        barrierDismissible: canCancel,
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text(''),
-            content: Text(canCancel
-                ? 'هل تريد التحديث إلى إصدار $latest؟'
-                : 'للأسف فإصدار البرنامج الحالي غير مدعوم\nيرجى تحديث البرنامج'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () async {
-                  navigator.currentState!.pop();
-                  if (await canLaunchUrl(Uri.parse(
-                      GetIt.I<FirebaseRemoteConfig>()
-                          .getString('DownloadLink')))) {
-                    await launchUrl(Uri.parse(GetIt.I<FirebaseRemoteConfig>()
-                        .getString('DownloadLink')));
-                  } else {
-                    navigator.currentState!.pop();
-                    await Clipboard.setData(ClipboardData(
-                        text: GetIt.I<FirebaseRemoteConfig>()
-                            .getString('DownloadLink')));
-                    scaffoldMessenger.currentState!.showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                            'حدث خطأ أثناء فتح رابط التحديث وتم نقله الى الحافظة'),
-                      ),
-                    );
-                  }
-                },
-                child: Text(canCancel ? 'نعم' : 'تحديث'),
-              ),
-              if (canCancel)
-                TextButton(
-                  onPressed: () {
-                    navigator.currentState!.pop();
-                  },
-                  child: const Text('لا'),
-                ),
-            ],
-          );
-        },
-      );
-    }
-  }
-}
-
 class _UpdateState extends State<Update> {
   @override
   void initState() {
     super.initState();
-    Updates.showUpdateDialog(context);
+    _checkForUpdates();
+  }
+
+  Future<void> _checkForUpdates() async {
+    if (!await GetIt.I<UpdatesService>().isUpToDate()) {
+      await GetIt.I<UpdatesService>().showUpdateDialog(context);
+    }
   }
 
   @override
@@ -103,9 +49,17 @@ class _UpdateState extends State<Update> {
                 ),
               ),
               ListTile(
-                  title: const Text('آخر إصدار:'),
-                  subtitle: Text(GetIt.I<FirebaseRemoteConfig>()
-                      .getString('LatestVersion'))),
+                title: const Text('أخر اصدار:'),
+                subtitle: FutureBuilder<Version>(
+                  future: GetIt.I<UpdatesService>().getLatestVersion(),
+                  builder: (cont, data) {
+                    if (data.hasData) {
+                      return Text(data.data!.toString());
+                    }
+                    return const LinearProgressIndicator();
+                  },
+                ),
+              ),
             ],
           ),
         ),

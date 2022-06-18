@@ -10,7 +10,6 @@ import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth show FirebaseAuth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -107,6 +106,7 @@ Future<void> initMeetingHelper() async {
 
         return instance;
       },
+      UpdatesService: UpdatesService.new,
     },
   );
 
@@ -193,31 +193,11 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
 
   Future<void> checkLatestVersion(BuildContext context) async {
     final appVersion = (await PackageInfo.fromPlatform()).version;
-    try {
-      await GetIt.I<FirebaseRemoteConfig>().setDefaults(<String, dynamic>{
-        'LatestVersion': appVersion,
-        'LoadApp': 'false',
-        'DownloadLink':
-            'https://github.com/Andrew-Bekhiet/MeetingHelper/releases/download/v' +
-                appVersion +
-                '/MeetingHelper.apk',
-      });
-      await GetIt.I<FirebaseRemoteConfig>().setConfigSettings(
-        RemoteConfigSettings(
-          fetchTimeout: const Duration(seconds: 30),
-          minimumFetchInterval: const Duration(minutes: 2),
-        ),
-      );
-
-      await GetIt.I<FirebaseRemoteConfig>().fetchAndActivate();
-      // ignore: empty_catches
-    } catch (err) {}
 
     if (!kIsWeb &&
         (kReleaseMode ||
-            GetIt.I<FirebaseRemoteConfig>().runtimeType !=
-                FirebaseRemoteConfig) &&
-        GetIt.I<FirebaseRemoteConfig>().getString('LoadApp') == 'false') {
+            GetIt.I<UpdatesService>().runtimeType != UpdatesService) &&
+        await GetIt.I<UpdatesService>().currentIsDeprecated()) {
       throw UnsupportedVersionException(version: appVersion);
     }
   }
@@ -254,7 +234,7 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
                 errorDialogShown = true;
               } else if (versionCheck.error is UnsupportedVersionException) {
                 WidgetsBinding.instance.addPostFrameCallback((_) async {
-                  await Updates.showUpdateDialog(context, canCancel: false);
+                  await GetIt.I<UpdatesService>().showUpdateDialog(context);
                   errorDialogShown = false;
                 });
                 errorDialogShown = true;

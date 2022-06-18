@@ -1,23 +1,22 @@
 import 'package:churchdata_core_mocks/churchdata_core.dart';
-import 'package:churchdata_core_mocks/churchdata_core.mocks.dart';
-import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/exceptions.dart';
 import 'package:meetinghelper/widgets/loading_widget.dart';
-import 'package:mockito/mockito.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../utils.dart';
 
 void main() {
   group(
-    'Loading Widget tests ->',
+    'Loading Widget tests: ',
     () {
       setUp(() async {
         registerFirebaseMocks();
         setUpMHPlatformChannels();
+        await initFakeCore();
       });
 
       tearDown(() async {
@@ -37,10 +36,12 @@ void main() {
       testWidgets(
         'With UnsupportedVersion exception',
         (tester) async {
-          when(
-            (GetIt.I<FirebaseRemoteConfig>() as MockFirebaseRemoteConfig)
-                .getString('LatestVersion'),
-          ).thenReturn('9.0.0');
+          await GetIt.I<FirebaseDatabase>()
+              .ref()
+              .child('config')
+              .child('updates')
+              .child('latest_version')
+              .set('9.0.0');
 
           final version = (await PackageInfo.fromPlatform()).version;
 
@@ -64,14 +65,12 @@ void main() {
           await tester.tap(find.text('اضغط لمزيد من المعلومات'));
           await tester.pumpAndSettle();
 
-          expect(find.textContaining('يرجى تحديث البرنامج'), findsOneWidget);
+          expect(find.widgetWithText(OutlinedButton, 'تحديث'), findsOneWidget);
         },
       );
       testWidgets(
         'With UpdateUserData exception',
         (tester) async {
-          await initFakeCore();
-
           await tester.pumpWidget(
             wrapWithMaterialApp(
               Loading(

@@ -10,7 +10,6 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -44,23 +43,6 @@ void setUpMHPlatformChannels() {
     buildNumber: '1',
     buildSignature: 'buildSignature',
   );
-
-  when(
-    (GetIt.I<FirebaseRemoteConfig>() as MockFirebaseRemoteConfig)
-        .setDefaults(any),
-  ).thenAnswer((_) async {});
-  when(
-    (GetIt.I<FirebaseRemoteConfig>() as MockFirebaseRemoteConfig)
-        .setConfigSettings(any),
-  ).thenAnswer((_) async {});
-  when(
-    (GetIt.I<FirebaseRemoteConfig>() as MockFirebaseRemoteConfig)
-        .fetchAndActivate(),
-  ).thenAnswer((_) async => true);
-  when(
-    (GetIt.I<FirebaseRemoteConfig>() as MockFirebaseRemoteConfig)
-        .getString('LoadApp'),
-  ).thenReturn('true');
 
   when((GetIt.I<FirebaseDynamicLinks>() as MockFirebaseDynamicLinks).onLink)
       .thenAnswer(
@@ -112,6 +94,7 @@ Future<void> initFakeCore() async {
       },
       // StorageRepository:FakeCacheRepo.new,
       // LauncherService: Object.new,
+      UpdatesService: FakeUpdatesService.new,
       AuthRepository: () {
         final instance = MHAuthRepository();
 
@@ -258,3 +241,5 @@ class FakeLoggingService implements LoggingService {
   Future<void> reportFlutterError(FlutterErrorDetails flutterError,
       {Map<String, dynamic>? data, Map<String, dynamic>? extras}) async {}
 }
+
+class FakeUpdatesService extends UpdatesService {}
