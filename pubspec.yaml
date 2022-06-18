@@ -78,7 +78,7 @@ dependencies:
   tuple: ^2.0.0
   tutorial_coach_mark: ^1.2.1
   url_launcher: ^6.0.18
-  version: ^2.0.0
+  version: ^3.0.2
 
 dev_dependencies:
   flutter_test:
