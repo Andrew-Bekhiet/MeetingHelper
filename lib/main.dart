@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:async/async.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore
     show Settings;
@@ -234,7 +235,13 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
                 errorDialogShown = true;
               } else if (versionCheck.error is UnsupportedVersionException) {
                 WidgetsBinding.instance.addPostFrameCallback((_) async {
-                  await GetIt.I<UpdatesService>().showUpdateDialog(context);
+                  await GetIt.I<UpdatesService>().showUpdateDialog(
+                    context,
+                    image: const CachedNetworkImageProvider(
+                      'https://github.com/Andrew-Bekhiet/MeetingHelper'
+                      '/blob/master/android/app/src/main/ic_launcher-playstore.png?raw=true',
+                    ),
+                  );
                   errorDialogShown = false;
                 });
                 errorDialogShown = true;

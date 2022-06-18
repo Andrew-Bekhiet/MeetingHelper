@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -20,7 +21,13 @@ class _UpdateState extends State<Update> {
 
   Future<void> _checkForUpdates() async {
     if (!await GetIt.I<UpdatesService>().isUpToDate()) {
-      await GetIt.I<UpdatesService>().showUpdateDialog(context);
+      await GetIt.I<UpdatesService>().showUpdateDialog(
+        context,
+        image: const CachedNetworkImageProvider(
+          'https://github.com/Andrew-Bekhiet/MeetingHelper'
+          '/blob/master/android/app/src/main/ic_launcher-playstore.png?raw=true',
+        ),
+      );
     }
   }
 

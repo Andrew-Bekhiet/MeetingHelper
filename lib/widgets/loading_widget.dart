@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -58,7 +59,13 @@ class Loading extends StatelessWidget {
                         if (exception is UpdateUserDataException) {
                           showErrorUpdateDataDialog(context: context);
                         } else if (exception is UnsupportedVersionException) {
-                          GetIt.I<UpdatesService>().showUpdateDialog(context);
+                          GetIt.I<UpdatesService>().showUpdateDialog(
+                            context,
+                            image: const CachedNetworkImageProvider(
+                              'https://github.com/Andrew-Bekhiet/MeetingHelper'
+                              '/blob/master/android/app/src/main/ic_launcher-playstore.png?raw=true',
+                            ),
+                          );
                         } else {
                           showErrorDialog(context, exception.toString());
                         }
