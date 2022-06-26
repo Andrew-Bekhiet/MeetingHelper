@@ -174,7 +174,9 @@ class _LoginScreenState extends State<LoginScreen> {
         await signInFuture;
         await User.loggedInStream.next;
         await setupSettings();
-        setState(() => _loading = false);
+        if (mounted) {
+          setState(() => _loading = false);
+        }
       }
     } catch (err, stack) {
       setState(() => _loading = false);
