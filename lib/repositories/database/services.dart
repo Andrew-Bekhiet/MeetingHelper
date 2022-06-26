@@ -127,9 +127,9 @@ class Services extends TableBase<Service> {
             .grade
             .compareTo(studyYears[c2.studyYear]!.grade);
       } else if (c is Service && c2 is Service) {
-        return ((studyYears[c.studyYearRange?.from]?.grade ?? 0) -
+        return ((studyYears[c.studyYearRange?.from]?.grade ?? 0) +
                 (studyYears[c.studyYearRange?.to]?.grade ?? 0))
-            .compareTo((studyYears[c2.studyYearRange?.from]?.grade ?? 0) -
+            .compareTo((studyYears[c2.studyYearRange?.from]?.grade ?? 0) +
                 (studyYears[c2.studyYearRange?.to]?.grade ?? 0));
       } else if (c is Class &&
           c2 is Service &&
@@ -177,8 +177,8 @@ class Services extends TableBase<Service> {
           return studyYears[c.studyYearRange?.to] != null
               ? PreferredStudyYear.fromStudyYear(
                   studyYears[c.studyYearRange?.to]!,
-                  _getPreferredGrade(studyYears[c.studyYearRange?.from]!.grade,
-                      studyYears[c.studyYearRange?.to]!.grade),
+                  _getPreferredGrade(studyYears[c.studyYearRange?.from]?.grade,
+                      studyYears[c.studyYearRange?.to]?.grade),
                 )
               : null;
         }
