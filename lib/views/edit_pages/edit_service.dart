@@ -172,7 +172,7 @@ class _EditServiceState extends State<EditService> {
                                     ),
                                   onChanged: (value) {
                                     if (service.studyYearRange == null) {
-                                      service.copyWith.studyYearRange(
+                                      service = service.copyWith.studyYearRange(
                                         StudyYearRange(from: value, to: null),
                                       );
                                     } else {
@@ -584,8 +584,16 @@ class _EditServiceState extends State<EditService> {
                       .collection('UsersData')
                       .where('AdminServices', arrayContains: service.ref)
                       .get()
-                      .then((value) =>
-                          value.docs.map(UserWithPerson.fromDoc).toList()),
+                      .then(
+                        (value) => value.docs
+                            .map(UserWithPerson.fromDoc)
+                            .map(
+                              (u) => u.copyWith(
+                                ref: u.ref.parent.doc(u.uid),
+                              ),
+                            )
+                            .toList(),
+                      ),
               builder: (context, users) {
                 if (!users.hasData) {
                   return const Center(child: CircularProgressIndicator());
@@ -623,8 +631,7 @@ class _EditServiceState extends State<EditService> {
                             navigator.currentState!.pop(context
                                 .read<ListController<Class?, User>>()
                                 .currentSelection
-                                ?.map((u) => u.uid)
-                                .toList());
+                                ?.toList());
                           },
                           icon: const Icon(Icons.done),
                           tooltip: 'تم',
