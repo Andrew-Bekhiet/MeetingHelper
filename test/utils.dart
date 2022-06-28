@@ -240,6 +240,10 @@ class FakeLoggingService implements LoggingService {
   @override
   Future<void> reportFlutterError(FlutterErrorDetails flutterError,
       {Map<String, dynamic>? data, Map<String, dynamic>? extras}) async {}
+
+  @override
+  // TODO: implement navigatorObserver
+  NavigatorObserver get navigatorObserver => throw UnimplementedError();
 }
 
 class FakeUpdatesService extends UpdatesService {}
