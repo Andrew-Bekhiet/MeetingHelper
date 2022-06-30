@@ -30,6 +30,12 @@
       "request": "launch",
       "type": "dart",
       "args": ["--web-port", "5000"]
+    },
+    {
+      "name": "Debug Firebase Functions",
+      "type": "node",
+      "request": "attach",
+      "port": 9229
     }
   ]
 }
