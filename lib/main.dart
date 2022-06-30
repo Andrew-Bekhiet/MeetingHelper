@@ -212,7 +212,11 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
         }
 
         return StreamBuilder<User?>(
-          initialData: GetIt.I<MHAuthRepository>().currentUser,
+          initialData:
+              GetIt.I<MHAuthRepository>().currentUser?.userDataUpToDate() ??
+                      false
+                  ? GetIt.I<MHAuthRepository>().currentUser
+                  : null,
           stream: GetIt.I<MHAuthRepository>().userStream.map(
                 (event) => GetIt.I<MHAuthRepository>().isSignedIn &&
                         User.instance.password != null &&
@@ -225,6 +229,9 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
               ),
           builder: (context, userSnapshot) {
             final user = userSnapshot.data;
+
+            if (userSnapshot.connectionState == ConnectionState.waiting &&
+                user == null) return const Loading();
 
             if (!errorDialogShown) {
               if (userSnapshot.error is UpdateUserDataException) {
