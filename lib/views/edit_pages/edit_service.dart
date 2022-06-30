@@ -36,7 +36,7 @@ class _EditServiceState extends State<EditService> {
   String? changedImage;
   bool deletePhoto = false;
   GlobalKey<FormState> form = GlobalKey<FormState>();
-  List<User>? allowedUsers;
+  List<UserWithPerson>? allowedUsers;
 
   late Service service;
 
@@ -445,7 +445,17 @@ class _EditServiceState extends State<EditService> {
   void initState() {
     super.initState();
     service = (widget.service ?? Service.empty()).copyWith();
-    if (service.id == 'null') allowedUsers = [User.instance];
+    if (service.id == 'null') {
+      allowedUsers = [
+        UserWithPerson(
+          uid: User.instance.uid,
+          adminServices: User.instance.adminServices,
+          allowedUsers: User.instance.allowedUsers,
+          permissions: User.instance.permissions,
+          ref: MHAuthRepository.I.currentUserData!.ref,
+        ),
+      ];
+    }
   }
 
   void nameChanged(String value) {
@@ -577,7 +587,7 @@ class _EditServiceState extends State<EditService> {
   Future<void> _selectAllowedUsers() async {
     allowedUsers = await navigator.currentState!.push(
           MaterialPageRoute(
-            builder: (context) => FutureBuilder<List<User?>>(
+            builder: (context) => FutureBuilder<List<UserWithPerson?>>(
               future: allowedUsers != null
                   ? Future.value(allowedUsers)
                   : GetIt.I<DatabaseRepository>()
@@ -585,33 +595,33 @@ class _EditServiceState extends State<EditService> {
                       .where('AdminServices', arrayContains: service.ref)
                       .get()
                       .then(
-                        (value) => value.docs
-                            .map(UserWithPerson.fromDoc)
-                            .map(
-                              (u) => u.copyWith(
-                                ref: u.ref.parent.doc(u.uid),
-                              ),
-                            )
-                            .toList(),
+                        (value) =>
+                            value.docs.map(UserWithPerson.fromDoc).toList(),
                       ),
               builder: (context, users) {
                 if (!users.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                return Provider<ListController<Class?, User>>(
-                  create: (_) => ListController<Class?, User>(
+                return Provider<ListController<Class?, UserWithPerson>>(
+                  create: (_) => ListController<Class?, UserWithPerson>(
                     objectsPaginatableStream: PaginatableStream.loadAll(
                       stream:
-                          MHDatabaseRepo.instance.users.getAllUsersNames().map(
+                          MHDatabaseRepo.instance.users.getAllUsersData().map(
                                 (users) => users
                                     .where((u) => u.uid != User.emptyUID)
                                     .toList(),
                               ),
                     ),
-                    groupByStream: MHDatabaseRepo.I.users.groupUsersByClass,
+                    groupByStream: (u) =>
+                        MHDatabaseRepo.I.users.groupUsersByClass(u).map(
+                              (event) => event.map(
+                                (key, value) => MapEntry(key, value.cast()),
+                              ),
+                            ),
                     groupingStream: Stream.value(true),
-                  )..selectAll(users.data!.whereType<User>().toList()),
+                  )..selectAll(
+                      users.data!.whereType<UserWithPerson>().toList()),
                   dispose: (context, c) => c.dispose(),
                   builder: (context, _) => Scaffold(
                     appBar: AppBar(
@@ -621,7 +631,7 @@ class _EditServiceState extends State<EditService> {
                       title: SearchField(
                         showSuffix: false,
                         searchStream: context
-                            .read<ListController<Class?, User>>()
+                            .read<ListController<Class?, UserWithPerson>>()
                             .searchSubject,
                         textStyle: Theme.of(context).primaryTextTheme.headline6,
                       ),
@@ -629,7 +639,7 @@ class _EditServiceState extends State<EditService> {
                         IconButton(
                           onPressed: () {
                             navigator.currentState!.pop(context
-                                .read<ListController<Class?, User>>()
+                                .read<ListController<Class?, UserWithPerson>>()
                                 .currentSelection
                                 ?.toList());
                           },
@@ -638,7 +648,7 @@ class _EditServiceState extends State<EditService> {
                         ),
                       ],
                     ),
-                    body: DataObjectListView<Class?, User>(
+                    body: DataObjectListView<Class?, UserWithPerson>(
                       itemBuilder: (
                         current, {
                         onLongPress,
@@ -652,7 +662,8 @@ class _EditServiceState extends State<EditService> {
                         trailing: trailing,
                         showSubtitle: false,
                       ),
-                      controller: context.read<ListController<Class?, User>>(),
+                      controller: context
+                          .read<ListController<Class?, UserWithPerson>>(),
                       autoDisposeController: false,
                     ),
                   ),
