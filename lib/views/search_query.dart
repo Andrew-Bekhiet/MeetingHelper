@@ -59,7 +59,537 @@ class _SearchQueryState extends State<SearchQuery> {
       ..remove('Phones'),
   };
 
-  late final Map<Type, PropertyQuery> valueWidget;
+  late final Map<Type, PropertyQuery> valueWidget = {
+    DateTime: PropertyQuery<DateTime>(
+      builder: (context) => Column(
+        key: const ValueKey('SelectDateTime'),
+        children: <Widget>[
+          InkWell(
+            onTap: _selectDate,
+            child: InputDecorator(
+              decoration: const InputDecoration(
+                labelText: 'اختيار تاريخ',
+              ),
+              child: queryValue != null
+                  ? Text(
+                      DateFormat('yyyy/M/d').format(
+                          queryValue is DateTime ? queryValue : DateTime.now()),
+                    )
+                  : const Text('(فارغ)'),
+            ),
+          ),
+          OutlinedButton(
+            onPressed: () => setState(() {
+              query = query.copyWith.queryValue(null);
+            }),
+            child: const Text('بحث عن تاريخ فارغ'),
+          ),
+        ],
+      ),
+      queryCompleter: (q, value) {
+        if (value == null) {
+          return q.where(
+            fieldPath,
+            isNull: operator == '=',
+          );
+        } else {
+          final effectiveValue = fieldPath == 'BirthDay'
+              ? Timestamp.fromDate(DateTime(1970, value.month, value.day))
+              : Timestamp.fromDate(value);
+
+          if (operator == '>') {
+            return q.where(fieldPath, isGreaterThanOrEqualTo: effectiveValue);
+          } else if (operator == '<') {
+            return q.where(fieldPath, isLessThanOrEqualTo: effectiveValue);
+          }
+
+          return q
+              .where(
+                fieldPath,
+                isGreaterThanOrEqualTo: effectiveValue,
+              )
+              .where(
+                fieldPath,
+                isLessThan: Timestamp.fromDate(
+                  DateTime(
+                      effectiveValue.toDate().year,
+                      effectiveValue.toDate().month,
+                      effectiveValue.toDate().day + 1),
+                ),
+              );
+        }
+      },
+    ),
+    String: PropertyQuery<String>(
+      builder: (context) {
+        if (fieldPath == 'ShammasLevel') {
+          return DropdownButtonFormField<String>(
+            key: const ValueKey('SelectShammasLevel'),
+            value: [
+              'ابصالتس',
+              'اغأناغنوستيس',
+              'أيبودياكون',
+              'دياكون',
+              'أرشيدياكون'
+            ].contains(queryValue)
+                ? queryValue
+                : null,
+            isExpanded: true,
+            items: [
+              'ابصالتس',
+              'اغأناغنوستيس',
+              'أيبودياكون',
+              'دياكون',
+              'أرشيدياكون'
+            ]
+                .map(
+                  (item) => DropdownMenuItem(
+                    value: item,
+                    child: Text(item),
+                  ),
+                )
+                .toList()
+              ..insert(
+                0,
+                const DropdownMenuItem(
+                  child: Text(''),
+                ),
+              ),
+            onChanged: (value) {
+              setState(() {
+                query = query.copyWith.queryValue(value);
+              });
+            },
+            decoration: const InputDecoration(
+              labelText: 'رتبة الشموسية',
+            ),
+          );
+        }
+
+        return Container(
+          key: const ValueKey('EnterString'),
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child: TextFormField(
+            decoration: InputDecoration(
+              labelText:
+                  properties[collection]?[fieldPath]?.label ?? 'قيمة البحث',
+            ),
+            textInputAction: TextInputAction.done,
+            initialValue: queryValue is String ? queryValue : '',
+            onChanged: (v) => query = query.copyWith.queryValue(v),
+            onFieldSubmitted: (_) => execute(),
+            validator: (value) {
+              return null;
+            },
+          ),
+        );
+      },
+      queryCompleter: (q, value) {
+        if (value == null) {
+          return q.where(
+            fieldPath.contains('.')
+                ? FieldPath.fromString(fieldPath)
+                : fieldPath,
+            isNull: operator == '=',
+          );
+        } else if (operator == '>') {
+          return q.where(
+              fieldPath.contains('.')
+                  ? FieldPath.fromString(fieldPath)
+                  : fieldPath,
+              isGreaterThanOrEqualTo: value);
+        } else if (operator == '<') {
+          return q.where(
+              fieldPath.contains('.')
+                  ? FieldPath.fromString(fieldPath)
+                  : fieldPath,
+              isLessThanOrEqualTo: value);
+        } else if (operator == '!=') {
+          return q.where(
+              fieldPath.contains('.')
+                  ? FieldPath.fromString(fieldPath)
+                  : fieldPath,
+              isNotEqualTo: value);
+        }
+
+        return q.where(
+            fieldPath.contains('.')
+                ? FieldPath.fromString(fieldPath)
+                : fieldPath,
+            isEqualTo: value);
+      },
+    ),
+    bool: PropertyQuery<bool>(
+      builder: (context) => fieldPath == 'Gender'
+          ? Container(
+              key: const ValueKey('SelectGender'),
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              child: DropdownButtonFormField<bool?>(
+                decoration: const InputDecoration(labelText: 'اختيار النوع'),
+                value: queryValue,
+                items: [null, true, false]
+                    .map(
+                      (item) => DropdownMenuItem(
+                        value: item,
+                        child: Text(item == null
+                            ? 'غير محدد'
+                            : item
+                                ? 'بنين'
+                                : 'بنات'),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (v) {
+                  setState(() {
+                    query = query.copyWith.queryValue(v);
+                  });
+                },
+              ),
+            )
+          : CheckboxListTile(
+              key: const ValueKey('SelectBool'),
+              title: const Text('قيمة البحث'),
+              subtitle: Text(queryValue == true ? 'نعم' : 'لا'),
+              value: queryValue,
+              onChanged: (v) {
+                setState(() {
+                  query = query.copyWith.queryValue(v);
+                });
+              },
+            ),
+      queryCompleter: (q, value) {
+        if (value == null) {
+          return q.where(
+            fieldPath,
+            isNull: operator == '=',
+          );
+        } else if (operator == '>') {
+          return q.where(fieldPath, isGreaterThanOrEqualTo: value);
+        } else if (operator == '<') {
+          return q.where(fieldPath, isLessThanOrEqualTo: value);
+        } else if (operator == '!=') {
+          return q.where(fieldPath, isNotEqualTo: value);
+        }
+
+        return q.where(fieldPath, isEqualTo: value);
+      },
+    ),
+    Color: PropertyQuery<int>(
+      builder: (context) => ColoredBox(
+        color: queryValue is int ? Color(queryValue) : Colors.transparent,
+        child: InkWell(
+          key: const ValueKey('SelectColor'),
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      navigator.currentState!.pop();
+                      setState(() {
+                        query =
+                            query.copyWith.queryValue(Colors.transparent.value);
+                      });
+                    },
+                    child: const Text('بلا لون'),
+                  ),
+                ],
+                content: ColorsList(
+                  selectedColor: Color(queryValue is int
+                      ? queryValue
+                      : Colors.transparent.value),
+                  onSelect: (color) {
+                    navigator.currentState!.pop();
+                    setState(() {
+                      query = query.copyWith.queryValue(color.value);
+                    });
+                  },
+                ),
+              ),
+            );
+          },
+          child: const InputDecorator(
+            decoration: InputDecoration(),
+            child: Center(
+              child: Text('اختيار لون'),
+            ),
+          ),
+        ),
+      ),
+      queryCompleter: (q, value) {
+        if (value == null) {
+          return q.where(
+            fieldPath,
+            isNull: operator == '=',
+          );
+        } else if (operator == '>') {
+          return q.where(fieldPath, isGreaterThanOrEqualTo: value);
+        } else if (operator == '<') {
+          return q.where(fieldPath, isLessThanOrEqualTo: value);
+        } else if (operator == '!=') {
+          return q.where(fieldPath, isNotEqualTo: value);
+        }
+
+        return q.where(fieldPath, isEqualTo: value);
+      },
+    ),
+    JsonRef: PropertyQuery<dynamic>(
+      builder: (context) {
+        if (fieldPath == 'ClassId') {
+          return InkWell(
+            key: const ValueKey('SelectClass'),
+            onTap: _selectClass,
+            child: InputDecorator(
+              decoration: const InputDecoration(
+                labelText: 'اختيار فصل',
+              ),
+              child: queryValue != null && queryValue is JsonRef
+                  ? FutureBuilder<Class>(
+                      future: Future(() async =>
+                          Class.fromDoc(await (queryValue as JsonRef).get())),
+                      builder: (context, classData) {
+                        if (!classData.hasData) {
+                          return const LinearProgressIndicator();
+                        }
+
+                        return IgnorePointer(
+                          ignoringSemantics: false,
+                          child: ViewableObjectWidget<Class>(
+                            classData.data!,
+                            isDense: true,
+                          ),
+                        );
+                      },
+                    )
+                  : const Text('(فارغ)'),
+            ),
+          );
+        } else if (fieldPath == 'LastEdit') {
+          return InkWell(
+            key: const ValueKey('SelectUserUID'),
+            onTap: () => _selectUser(true),
+            child: InputDecorator(
+              decoration: const InputDecoration(
+                labelText: 'اختيار خادم',
+              ),
+              child: queryValue != null && queryValue is String
+                  ? FutureBuilder<User?>(
+                      future:
+                          MHDatabaseRepo.instance.users.getUserName(queryValue),
+                      builder: (context, userData) {
+                        if (!userData.hasData) {
+                          return const LinearProgressIndicator();
+                        }
+
+                        return IgnorePointer(
+                          ignoringSemantics: false,
+                          child: ViewableObjectWidget<User>(userData.data!,
+                              isDense: true),
+                        );
+                      },
+                    )
+                  : const Text('(فارغ)'),
+            ),
+          );
+        }
+
+        return FutureBuilder<JsonQuery>(
+          key: ValueKey('Select' + fieldPath),
+          future: properties[collection]![fieldPath]!.query!.get(),
+          builder: (context, data) {
+            if (data.hasData) {
+              return DropdownButtonFormField<JsonRef?>(
+                value: queryValue != null &&
+                        queryValue is JsonRef &&
+                        (queryValue as JsonRef).parent.id.startsWith(
+                            properties[collection]![fieldPath]!.collectionName!)
+                    ? queryValue
+                    : null,
+                items: data.data!.docs
+                    .map(
+                      (item) => DropdownMenuItem(
+                        value: item.reference,
+                        child: Text(item.data()['Name']),
+                      ),
+                    )
+                    .toList()
+                  ..insert(
+                    0,
+                    const DropdownMenuItem(
+                      child: Text('(فارغ)'),
+                    ),
+                  ),
+                onChanged: (value) async {
+                  query = query.copyWith.queryValue(value);
+                },
+                decoration: InputDecoration(
+                    labelText: properties[collection]![fieldPath]!.label),
+              );
+            }
+            return const LinearProgressIndicator();
+          },
+        );
+      },
+      queryCompleter: (q, value) {
+        if (value == null) {
+          return q.where(
+            fieldPath,
+            isNull: operator == '=',
+          );
+        } else if (operator == '>') {
+          return q.where(fieldPath, isGreaterThanOrEqualTo: value);
+        } else if (operator == '<') {
+          return q.where(fieldPath, isLessThanOrEqualTo: value);
+        } else if (operator == '!=') {
+          return q.where(fieldPath, isNotEqualTo: value);
+        }
+
+        return q.where(fieldPath, isEqualTo: value);
+      },
+    ),
+    List: PropertyQuery<JsonRef>(
+      builder: (context) {
+        if (fieldPath == 'Services') {
+          return InkWell(
+            key: const ValueKey('SelectServices'),
+            onTap: _selectService,
+            child: InputDecorator(
+              decoration: const InputDecoration(
+                labelText: 'اختيار خدمة',
+              ),
+              child: queryValue != null && queryValue is JsonRef
+                  ? FutureBuilder<Service>(
+                      future: Future(() async => Service.fromDoc(
+                          await (queryValue as JsonRef).get())!),
+                      builder: (context, serviceData) {
+                        if (!serviceData.hasData) {
+                          return const LinearProgressIndicator();
+                        }
+
+                        return IgnorePointer(
+                          ignoringSemantics: false,
+                          child: ViewableObjectWidget<Service>(
+                              serviceData.data!,
+                              isDense: true),
+                        );
+                      },
+                    )
+                  : const Text('(فارغ)'),
+            ),
+          );
+        } else if (fieldPath == 'Allowed') {
+          return InkWell(
+            key: const ValueKey('SelectAllowed'),
+            onTap: () => _selectUser(true),
+            child: InputDecorator(
+              decoration: const InputDecoration(
+                labelText: 'اختيار خادم',
+              ),
+              child: queryValue != null && queryValue is String
+                  ? FutureBuilder<User?>(
+                      future:
+                          MHDatabaseRepo.instance.users.getUserName(queryValue),
+                      builder: (context, userData) {
+                        if (!userData.hasData) {
+                          return const LinearProgressIndicator();
+                        }
+
+                        return IgnorePointer(
+                          ignoringSemantics: false,
+                          child: ViewableObjectWidget<User>(userData.data!,
+                              isDense: true),
+                        );
+                      },
+                    )
+                  : const Text('(فارغ)'),
+            ),
+          );
+        }
+
+        return Container();
+      },
+      queryCompleter: (q, value) {
+        if (value == null) {
+          return q.where(
+            fieldPath,
+            isNull: operator == '=',
+          );
+        } else if (operator == '>') {
+          return q.where(fieldPath, isGreaterThanOrEqualTo: value);
+        } else if (operator == '<') {
+          return q.where(fieldPath, isLessThanOrEqualTo: value);
+        } else if (operator == '!=') {
+          return q.where(fieldPath, isNotEqualTo: value);
+        }
+
+        return q.where(fieldPath, arrayContains: value);
+      },
+    ),
+    Json: PropertyQuery<DateTime>(
+      builder: (context) {
+        if (fieldPath.split('.')[0] == 'Last') {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              InkWell(
+                key: const ValueKey('SelectServices2'),
+                onTap: () => _selectService(true),
+                child: InputDecorator(
+                  decoration: const InputDecoration(
+                    labelText: 'اختيار الخدمة',
+                  ),
+                  child: queryValue != null && fieldPath.split('.').length == 2
+                      ? FutureBuilder<Service>(
+                          key: ValueKey(fieldPath),
+                          future: Future(() async => Service.fromDoc(
+                              await GetIt.I<DatabaseRepository>()
+                                  .collection('Services')
+                                  .doc(fieldPath.split('.')[1])
+                                  .get())!),
+                          builder: (context, serviceData) {
+                            if (!serviceData.hasData) {
+                              return const LinearProgressIndicator();
+                            }
+
+                            return IgnorePointer(
+                              ignoringSemantics: false,
+                              child: ViewableObjectWidget<Service>(
+                                  serviceData.data!,
+                                  isDense: true),
+                            );
+                          },
+                        )
+                      : const Text('(فارغ)'),
+                ),
+              ),
+              const SizedBox(height: 40),
+              Builder(
+                builder: valueWidget[DateTime]!.builder,
+              ),
+            ],
+          );
+        }
+        return const SizedBox();
+      },
+      queryCompleter: (q, value) {
+        if (value == null) {
+          return q.where(
+            fieldPath,
+            isNull: operator == '=',
+          );
+        } else if (operator == '>') {
+          return q.where(fieldPath, isGreaterThanOrEqualTo: value);
+        } else if (operator == '<') {
+          return q.where(fieldPath, isLessThanOrEqualTo: value);
+        } else if (operator == '!=') {
+          return q.where(fieldPath, isNotEqualTo: value);
+        }
+
+        return q.where(fieldPath, isEqualTo: value);
+      },
+    ),
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +673,7 @@ class _SearchQueryState extends State<SearchQuery> {
                             );
                       },
                     ),
-                    value: fieldPath,
+                    value: fieldPath.split('.')[0],
                   ),
                 ),
                 const SizedBox(width: 5),
@@ -161,8 +691,7 @@ class _SearchQueryState extends State<SearchQuery> {
               ],
             ),
             Builder(
-              key: ValueKey(
-                  valueWidget[properties[collection]![fieldPath]!.type]!),
+              key: ValueKey(query),
               builder: valueWidget[properties[collection]![fieldPath]!.type]!
                   .builder,
             ),
@@ -369,541 +898,6 @@ class _SearchQueryState extends State<SearchQuery> {
   @override
   void initState() {
     super.initState();
-
-    valueWidget = {
-      DateTime: PropertyQuery<DateTime>(
-        builder: (context) => Column(
-          key: const ValueKey('SelectDateTime'),
-          children: <Widget>[
-            InkWell(
-              onTap: _selectDate,
-              child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'اختيار تاريخ',
-                ),
-                child: queryValue != null
-                    ? Text(
-                        DateFormat('yyyy/M/d').format(queryValue is DateTime
-                            ? queryValue
-                            : DateTime.now()),
-                      )
-                    : const Text('(فارغ)'),
-              ),
-            ),
-            OutlinedButton(
-              onPressed: () => setState(() {
-                query = query.copyWith.queryValue(null);
-              }),
-              child: const Text('بحث عن تاريخ فارغ'),
-            ),
-          ],
-        ),
-        queryCompleter: (q, value) {
-          if (value == null) {
-            return q.where(
-              fieldPath,
-              isNull: operator == '=',
-            );
-          } else {
-            final effectiveValue = fieldPath == 'BirthDay'
-                ? Timestamp.fromDate(DateTime(1970, value.month, value.day))
-                : Timestamp.fromDate(value);
-
-            if (operator == '>') {
-              return q.where(fieldPath, isGreaterThanOrEqualTo: effectiveValue);
-            } else if (operator == '<') {
-              return q.where(fieldPath, isLessThanOrEqualTo: effectiveValue);
-            }
-
-            return q
-                .where(
-                  fieldPath,
-                  isGreaterThanOrEqualTo: effectiveValue,
-                )
-                .where(
-                  fieldPath,
-                  isLessThan: Timestamp.fromDate(
-                    DateTime(
-                        effectiveValue.toDate().year,
-                        effectiveValue.toDate().month,
-                        effectiveValue.toDate().day + 1),
-                  ),
-                );
-          }
-        },
-      ),
-      String: PropertyQuery<String>(
-        builder: (context) {
-          if (fieldPath == 'ShammasLevel') {
-            return DropdownButtonFormField<String>(
-              key: const ValueKey('SelectShammasLevel'),
-              value: [
-                'ابصالتس',
-                'اغأناغنوستيس',
-                'أيبودياكون',
-                'دياكون',
-                'أرشيدياكون'
-              ].contains(queryValue)
-                  ? queryValue
-                  : null,
-              isExpanded: true,
-              items: [
-                'ابصالتس',
-                'اغأناغنوستيس',
-                'أيبودياكون',
-                'دياكون',
-                'أرشيدياكون'
-              ]
-                  .map(
-                    (item) => DropdownMenuItem(
-                      value: item,
-                      child: Text(item),
-                    ),
-                  )
-                  .toList()
-                ..insert(
-                  0,
-                  const DropdownMenuItem(
-                    child: Text(''),
-                  ),
-                ),
-              onChanged: (value) {
-                setState(() {
-                  query = query.copyWith.queryValue(value);
-                });
-              },
-              decoration: const InputDecoration(
-                labelText: 'رتبة الشموسية',
-              ),
-            );
-          }
-
-          return Container(
-            key: const ValueKey('EnterString'),
-            padding: const EdgeInsets.symmetric(vertical: 4.0),
-            child: TextFormField(
-              decoration: InputDecoration(
-                labelText:
-                    properties[collection]?[fieldPath]?.label ?? 'قيمة البحث',
-              ),
-              textInputAction: TextInputAction.done,
-              initialValue: queryValue is String ? queryValue : '',
-              onChanged: (v) => query = query.copyWith.queryValue(v),
-              onFieldSubmitted: (_) => execute(),
-              validator: (value) {
-                return null;
-              },
-            ),
-          );
-        },
-        queryCompleter: (q, value) {
-          if (value == null) {
-            return q.where(
-              fieldPath.contains('.')
-                  ? FieldPath.fromString(fieldPath)
-                  : fieldPath,
-              isNull: operator == '=',
-            );
-          } else if (operator == '>') {
-            return q.where(
-                fieldPath.contains('.')
-                    ? FieldPath.fromString(fieldPath)
-                    : fieldPath,
-                isGreaterThanOrEqualTo: value);
-          } else if (operator == '<') {
-            return q.where(
-                fieldPath.contains('.')
-                    ? FieldPath.fromString(fieldPath)
-                    : fieldPath,
-                isLessThanOrEqualTo: value);
-          } else if (operator == '!=') {
-            return q.where(
-                fieldPath.contains('.')
-                    ? FieldPath.fromString(fieldPath)
-                    : fieldPath,
-                isNotEqualTo: value);
-          }
-
-          return q.where(
-              fieldPath.contains('.')
-                  ? FieldPath.fromString(fieldPath)
-                  : fieldPath,
-              isEqualTo: value);
-        },
-      ),
-      bool: PropertyQuery<bool>(
-        builder: (context) => fieldPath == 'Gender'
-            ? Container(
-                key: const ValueKey('SelectGender'),
-                margin: const EdgeInsets.symmetric(vertical: 8),
-                child: DropdownButtonFormField<bool?>(
-                  decoration: const InputDecoration(labelText: 'اختيار النوع'),
-                  value: queryValue,
-                  items: [null, true, false]
-                      .map(
-                        (item) => DropdownMenuItem(
-                          value: item,
-                          child: Text(item == null
-                              ? 'غير محدد'
-                              : item
-                                  ? 'بنين'
-                                  : 'بنات'),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (v) {
-                    setState(() {
-                      query = query.copyWith.queryValue(v);
-                    });
-                  },
-                ),
-              )
-            : CheckboxListTile(
-                key: const ValueKey('SelectBool'),
-                title: const Text('قيمة البحث'),
-                subtitle: Text(queryValue == true ? 'نعم' : 'لا'),
-                value: queryValue,
-                onChanged: (v) {
-                  setState(() {
-                    query = query.copyWith.queryValue(v);
-                  });
-                },
-              ),
-        queryCompleter: (q, value) {
-          if (value == null) {
-            return q.where(
-              fieldPath,
-              isNull: operator == '=',
-            );
-          } else if (operator == '>') {
-            return q.where(fieldPath, isGreaterThanOrEqualTo: value);
-          } else if (operator == '<') {
-            return q.where(fieldPath, isLessThanOrEqualTo: value);
-          } else if (operator == '!=') {
-            return q.where(fieldPath, isNotEqualTo: value);
-          }
-
-          return q.where(fieldPath, isEqualTo: value);
-        },
-      ),
-      Color: PropertyQuery<int>(
-        builder: (context) => ColoredBox(
-          color: queryValue is int ? Color(queryValue) : Colors.transparent,
-          child: InkWell(
-            key: const ValueKey('SelectColor'),
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        navigator.currentState!.pop();
-                        setState(() {
-                          query = query.copyWith
-                              .queryValue(Colors.transparent.value);
-                        });
-                      },
-                      child: const Text('بلا لون'),
-                    ),
-                  ],
-                  content: ColorsList(
-                    selectedColor: Color(queryValue is int
-                        ? queryValue
-                        : Colors.transparent.value),
-                    onSelect: (color) {
-                      navigator.currentState!.pop();
-                      setState(() {
-                        query = query.copyWith.queryValue(color.value);
-                      });
-                    },
-                  ),
-                ),
-              );
-            },
-            child: const InputDecorator(
-              decoration: InputDecoration(),
-              child: Center(
-                child: Text('اختيار لون'),
-              ),
-            ),
-          ),
-        ),
-        queryCompleter: (q, value) {
-          if (value == null) {
-            return q.where(
-              fieldPath,
-              isNull: operator == '=',
-            );
-          } else if (operator == '>') {
-            return q.where(fieldPath, isGreaterThanOrEqualTo: value);
-          } else if (operator == '<') {
-            return q.where(fieldPath, isLessThanOrEqualTo: value);
-          } else if (operator == '!=') {
-            return q.where(fieldPath, isNotEqualTo: value);
-          }
-
-          return q.where(fieldPath, isEqualTo: value);
-        },
-      ),
-      JsonRef: PropertyQuery<dynamic>(
-        builder: (context) {
-          if (fieldPath == 'ClassId') {
-            return InkWell(
-              key: const ValueKey('SelectClass'),
-              onTap: _selectClass,
-              child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'اختيار فصل',
-                ),
-                child: queryValue != null && queryValue is JsonRef
-                    ? FutureBuilder<Class>(
-                        future: Future(() async =>
-                            Class.fromDoc(await (queryValue as JsonRef).get())),
-                        builder: (context, classData) {
-                          if (!classData.hasData) {
-                            return const LinearProgressIndicator();
-                          }
-
-                          return IgnorePointer(
-                            ignoringSemantics: false,
-                            child: ViewableObjectWidget<Class>(
-                              classData.data!,
-                              isDense: true,
-                            ),
-                          );
-                        },
-                      )
-                    : const Text('(فارغ)'),
-              ),
-            );
-          } else if (fieldPath == 'LastEdit') {
-            return InkWell(
-              key: const ValueKey('SelectUserUID'),
-              onTap: () => _selectUser(true),
-              child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'اختيار خادم',
-                ),
-                child: queryValue != null && queryValue is String
-                    ? FutureBuilder<User?>(
-                        future: MHDatabaseRepo.instance.users
-                            .getUserName(queryValue),
-                        builder: (context, userData) {
-                          if (!userData.hasData) {
-                            return const LinearProgressIndicator();
-                          }
-
-                          return IgnorePointer(
-                            ignoringSemantics: false,
-                            child: ViewableObjectWidget<User>(userData.data!,
-                                isDense: true),
-                          );
-                        },
-                      )
-                    : const Text('(فارغ)'),
-              ),
-            );
-          }
-
-          return FutureBuilder<JsonQuery>(
-            key: ValueKey('Select' + fieldPath),
-            future: properties[collection]![fieldPath]!.query!.get(),
-            builder: (context, data) {
-              if (data.hasData) {
-                return DropdownButtonFormField<JsonRef?>(
-                  value: queryValue != null &&
-                          queryValue is JsonRef &&
-                          (queryValue as JsonRef).parent.id.startsWith(
-                              properties[collection]![fieldPath]!
-                                  .collectionName!)
-                      ? queryValue
-                      : null,
-                  items: data.data!.docs
-                      .map(
-                        (item) => DropdownMenuItem(
-                          value: item.reference,
-                          child: Text(item.data()['Name']),
-                        ),
-                      )
-                      .toList()
-                    ..insert(
-                      0,
-                      const DropdownMenuItem(
-                        child: Text('(فارغ)'),
-                      ),
-                    ),
-                  onChanged: (value) async {
-                    query = query.copyWith.queryValue(value);
-                  },
-                  decoration: InputDecoration(
-                      labelText: properties[collection]![fieldPath]!.label),
-                );
-              }
-              return const LinearProgressIndicator();
-            },
-          );
-        },
-        queryCompleter: (q, value) {
-          if (value == null) {
-            return q.where(
-              fieldPath,
-              isNull: operator == '=',
-            );
-          } else if (operator == '>') {
-            return q.where(fieldPath, isGreaterThanOrEqualTo: value);
-          } else if (operator == '<') {
-            return q.where(fieldPath, isLessThanOrEqualTo: value);
-          } else if (operator == '!=') {
-            return q.where(fieldPath, isNotEqualTo: value);
-          }
-
-          return q.where(fieldPath, isEqualTo: value);
-        },
-      ),
-      List: PropertyQuery<JsonRef>(
-        builder: (context) {
-          if (fieldPath == 'Services') {
-            return InkWell(
-              key: const ValueKey('SelectServices'),
-              onTap: _selectService,
-              child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'اختيار خدمة',
-                ),
-                child: queryValue != null && queryValue is JsonRef
-                    ? FutureBuilder<Service>(
-                        future: Future(() async => Service.fromDoc(
-                            await (queryValue as JsonRef).get())!),
-                        builder: (context, serviceData) {
-                          if (!serviceData.hasData) {
-                            return const LinearProgressIndicator();
-                          }
-
-                          return IgnorePointer(
-                            ignoringSemantics: false,
-                            child: ViewableObjectWidget<Service>(
-                                serviceData.data!,
-                                isDense: true),
-                          );
-                        },
-                      )
-                    : const Text('(فارغ)'),
-              ),
-            );
-          } else if (fieldPath == 'Allowed') {
-            return InkWell(
-              key: const ValueKey('SelectAllowed'),
-              onTap: () => _selectUser(true),
-              child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'اختيار خادم',
-                ),
-                child: queryValue != null && queryValue is String
-                    ? FutureBuilder<User?>(
-                        future: MHDatabaseRepo.instance.users
-                            .getUserName(queryValue),
-                        builder: (context, userData) {
-                          if (!userData.hasData) {
-                            return const LinearProgressIndicator();
-                          }
-
-                          return IgnorePointer(
-                            ignoringSemantics: false,
-                            child: ViewableObjectWidget<User>(userData.data!,
-                                isDense: true),
-                          );
-                        },
-                      )
-                    : const Text('(فارغ)'),
-              ),
-            );
-          }
-
-          return Container();
-        },
-        queryCompleter: (q, value) {
-          if (value == null) {
-            return q.where(
-              fieldPath,
-              isNull: operator == '=',
-            );
-          } else if (operator == '>') {
-            return q.where(fieldPath, isGreaterThanOrEqualTo: value);
-          } else if (operator == '<') {
-            return q.where(fieldPath, isLessThanOrEqualTo: value);
-          } else if (operator == '!=') {
-            return q.where(fieldPath, isNotEqualTo: value);
-          }
-
-          return q.where(fieldPath, arrayContains: value);
-        },
-      ),
-      Json: PropertyQuery<DateTime>(
-        builder: (context) {
-          if (fieldPath == 'Last') {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                InkWell(
-                  key: const ValueKey('SelectServices2'),
-                  onTap: () => _selectService(true),
-                  child: InputDecorator(
-                    decoration: const InputDecoration(
-                      labelText: 'اختيار الخدمة',
-                    ),
-                    child:
-                        queryValue != null && fieldPath.split('.').length == 2
-                            ? FutureBuilder<Service>(
-                                key: ValueKey(fieldPath),
-                                future: Future(() async => Service.fromDoc(
-                                    await GetIt.I<DatabaseRepository>()
-                                        .collection('Services')
-                                        .doc(fieldPath.split('.')[1])
-                                        .get())!),
-                                builder: (context, serviceData) {
-                                  if (!serviceData.hasData) {
-                                    return const LinearProgressIndicator();
-                                  }
-
-                                  return IgnorePointer(
-                                    ignoringSemantics: false,
-                                    child: ViewableObjectWidget<Service>(
-                                        serviceData.data!,
-                                        isDense: true),
-                                  );
-                                },
-                              )
-                            : const Text('(فارغ)'),
-                  ),
-                ),
-                const SizedBox(height: 40),
-                Builder(
-                  builder: valueWidget[DateTime]!.builder,
-                ),
-              ],
-            );
-          }
-          return const SizedBox();
-        },
-        queryCompleter: (q, value) {
-          if (value == null) {
-            return q.where(
-              fieldPath,
-              isNull: operator == '=',
-            );
-          } else if (operator == '>') {
-            return q.where(fieldPath, isGreaterThanOrEqualTo: value);
-          } else if (operator == '<') {
-            return q.where(fieldPath, isLessThanOrEqualTo: value);
-          } else if (operator == '!=') {
-            return q.where(fieldPath, isNotEqualTo: value);
-          }
-
-          return q.where(fieldPath, isEqualTo: value);
-        },
-      ),
-    };
 
     if (widget.query != null) {
       query = widget.query!;
