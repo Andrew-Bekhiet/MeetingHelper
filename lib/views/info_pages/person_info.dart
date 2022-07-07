@@ -444,10 +444,18 @@ class _PersonInfoState extends State<PersonInfo> {
                     label: const Text('احصائيات الحضور'),
                     onPressed: () => _showAnalytics(context, person),
                   ),
-                DayHistoryProperty('تاريخ أخر حضور اجتماع:', person.lastMeeting,
-                    person.id, 'Meeting'),
-                DayHistoryProperty('تاريخ أخر حضور قداس:', person.lastKodas,
-                    person.id, 'Kodas'),
+                DayHistoryProperty(
+                  'تاريخ أخر حضور اجتماع:',
+                  person.lastMeeting,
+                  person.id,
+                  'Meeting',
+                ),
+                DayHistoryProperty(
+                  'تاريخ أخر حضور قداس:',
+                  person.lastKodas,
+                  person.id,
+                  'Kodas',
+                ),
                 TimeHistoryProperty(
                   'تاريخ أخر تناول:',
                   person.lastTanawol,
@@ -459,6 +467,31 @@ class _PersonInfoState extends State<PersonInfo> {
                   person.ref.collection('ConfessionHistory'),
                 ),
                 const Divider(thickness: 1),
+                StreamBuilder<List<Service>>(
+                  stream: MHDatabaseRepo.I.services.getAll(),
+                  builder: (context, snapshot) {
+                    if (snapshot.data?.isEmpty ?? true) return const SizedBox();
+
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ...snapshot.data!
+                            .where((s) => person.last.containsKey(s.id))
+                            .map(
+                              (e) => DayHistoryProperty(
+                                e.name,
+                                person.last[e.id],
+                                person.id,
+                                e.id,
+                              ),
+                            ),
+                        const Divider(
+                          thickness: 1,
+                        )
+                      ],
+                    );
+                  },
+                ),
                 HistoryProperty(
                   'تاريخ أخر افتقاد:',
                   person.lastVisit,
