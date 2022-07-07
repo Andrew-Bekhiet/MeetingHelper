@@ -73,9 +73,12 @@ class Person extends PersonBase {
         fatherPhone = json['FatherPhone'],
         motherPhone = json['MotherPhone'],
         lastMeeting = (json['LastMeeting'] as Timestamp?)?.toDate(),
-        last = UnmodifiableMapView((json['Last'] as Map?)?.map(
-                (key, value) => MapEntry(key, (value as Timestamp).toDate())) ??
-            {}),
+        last = UnmodifiableMapView(
+          {
+            for (final o in (json['Last'] as Map? ?? {}).entries)
+              if (o.value != null) o.key: (o.value as Timestamp).toDate()
+          },
+        ),
         services = UnmodifiableListView(
             (json['Services'] as List?)?.cast<JsonRef>() ?? []),
         super(
@@ -246,195 +249,199 @@ class Person extends PersonBase {
     return formattedProps()[key];
   }
 
-  static Map<String, PropertyMetadata> propsMetadata() => {
-        ...PersonBase.propsMetadata
-          ..remove('MainPhone')
-          ..remove('OtherPhones'),
-        'Name': const PropertyMetadata<String>(
-          name: 'Name',
-          label: 'الاسم',
-          defaultValue: '',
-        ),
-        'Phone': const PropertyMetadata<String>(
-          name: 'Phone',
-          label: 'موبايل (شخصي)',
-          defaultValue: '',
-        ),
-        'FatherPhone': const PropertyMetadata<String>(
-          name: 'FatherPhone',
-          label: 'موبايل الأب',
-          defaultValue: '',
-        ),
-        'MotherPhone': const PropertyMetadata<String>(
-          name: 'MotherPhone',
-          label: 'موبايل الأم',
-          defaultValue: '',
-        ),
-        'Phones': const PropertyMetadata<Json>(
-          name: 'Phones',
-          label: 'الأرقام الأخرى',
-          defaultValue: {},
-        ),
-        'BirthDate': const PropertyMetadata<DateTime>(
-          name: 'BirthDate',
-          label: 'تاريخ الميلاد',
-          defaultValue: null,
-        ),
-        'BirthDay': PropertyMetadata<DateTime>(
-          name: 'BirthDay',
-          label: 'يوم الميلاد',
-          defaultValue: DateTime.now(),
-        ),
-        'StudyYear': PropertyMetadata<JsonRef>(
-          name: 'StudyYear',
-          label: 'سنة الدراسة',
-          defaultValue: null,
-          query: GetIt.I<DatabaseRepository>()
-              .collection('StudyYears')
-              .orderBy('Grade'),
-          collectionName: 'StudyYears',
-        ),
-        'ClassId': PropertyMetadata<JsonRef>(
-          name: 'ClassId',
-          label: 'داخل فصل',
-          defaultValue: null,
-          query: GetIt.I<DatabaseRepository>()
-              .collection('Classes')
-              .orderBy('Grade'),
-          collectionName: 'Classes',
-        ),
-        'Services': PropertyMetadata<JsonRef>(
-          name: 'Services',
-          label: 'الخدمات المشارك بها',
-          defaultValue: null,
-          query: GetIt.I<DatabaseRepository>()
-              .collection('Services')
-              .orderBy(FieldPath.fromString('StudyYearRange.From')),
-          collectionName: 'Services',
-        ),
-        'Gender': const PropertyMetadata<bool>(
-          name: 'Gender',
-          label: 'النوع',
-          defaultValue: true,
-        ),
-        'IsShammas': const PropertyMetadata<bool>(
-          name: 'IsShammas',
-          label: 'شماس؟',
-          defaultValue: false,
-        ),
-        'ShammasLevel': const PropertyMetadata<String>(
-          name: 'ShammasLevel',
-          label: 'رتبة الشموسية',
-          defaultValue: '',
-        ),
-        'Address': const PropertyMetadata<String>(
-          name: 'Address',
-          label: 'العنوان',
-          defaultValue: '',
-        ),
-        'Location': const PropertyMetadata<GeoPoint>(
-          name: 'Location',
-          label: 'الموقع الجغرافي',
-          defaultValue: null,
-        ),
-        'School': PropertyMetadata<JsonRef>(
-          name: 'School',
-          label: 'المدرسة',
-          defaultValue: null,
-          query: GetIt.I<DatabaseRepository>()
-              .collection('Schools')
-              .orderBy('Name'),
-          collectionName: 'Schools',
-        ),
-        'College': PropertyMetadata<JsonRef>(
-          name: 'College',
-          label: 'الكلية',
-          defaultValue: null,
-          query: GetIt.I<DatabaseRepository>()
-              .collection('Colleges')
-              .orderBy('Name'),
-          collectionName: 'Colleges',
-        ),
-        'Church': PropertyMetadata<JsonRef>(
-          name: 'Church',
-          label: 'الكنيسة',
-          defaultValue: null,
-          query: GetIt.I<DatabaseRepository>()
-              .collection('Churches')
-              .orderBy('Name'),
-          collectionName: 'Churches',
-        ),
-        'CFather': PropertyMetadata<JsonRef>(
-          name: 'CFather',
-          label: 'أب الاعتراف',
-          defaultValue: null,
-          query: GetIt.I<DatabaseRepository>()
-              .collection('Fathers')
-              .orderBy('Name'),
-          collectionName: 'Fathers',
-        ),
-        'Notes': const PropertyMetadata<String>(
-          name: 'Notes',
-          label: 'ملاحظات',
-          defaultValue: '',
-        ),
-        'LastMeeting': const PropertyMetadata<DateTime>(
-          name: 'LastMeeting',
-          label: 'تاريخ أخر حضور اجتماع',
-          defaultValue: null,
-        ),
-        'LastKodas': const PropertyMetadata<DateTime>(
-          name: 'LastKodas',
-          label: 'تاريخ أخر حضور قداس',
-          defaultValue: null,
-        ),
-        'LastTanawol': const PropertyMetadata<DateTime>(
-          name: 'LastTanawol',
-          label: 'تاريخ أخر تناول',
-          defaultValue: null,
-        ),
-        'LastConfession': const PropertyMetadata<DateTime>(
-          name: 'LastConfession',
-          label: 'تاريخ أخر اعتراف',
-          defaultValue: null,
-        ),
-        'LastVisit': const PropertyMetadata<DateTime>(
-          name: 'LastVisit',
-          label: 'تاريخ أخر افتقاد',
-          defaultValue: null,
-        ),
-        'LastCall': const PropertyMetadata<DateTime>(
-          name: 'LastCall',
-          label: 'تاريخ أخر مكالمة',
-          defaultValue: null,
-        ),
-        'Last': const PropertyMetadata<Json>(
-          name: 'Last',
-          label: 'تاريخ أخر حضور خدمة',
-          defaultValue: {},
-        ),
-        'LastEdit': PropertyMetadata<JsonRef>(
-          name: 'LastEdit',
-          label: 'أخر تعديل',
-          defaultValue: null,
-          query:
-              GetIt.I<DatabaseRepository>().collection('Users').orderBy('Name'),
-          collectionName: 'Users',
-        ),
-        'LastEditTime': const PropertyMetadata<DateTime>(
-          name: 'LastEditTime',
-          label: 'وقت أخر تعديل',
-          defaultValue: null,
-        ),
-        'HasPhoto': const PropertyMetadata<bool>(
-          name: 'HasPhoto',
-          label: 'لديه صورة',
-          defaultValue: false,
-        ),
-        'Color': const PropertyMetadata<Color>(
-          name: 'Color',
-          label: 'اللون',
-          defaultValue: Colors.transparent,
-        ),
-      };
+  static Map<String, PropertyMetadata> propsMetadata() => EqualityMap.from(
+        EqualityBy((o) => o.split('.')[0]),
+        {
+          ...PersonBase.propsMetadata
+            ..remove('MainPhone')
+            ..remove('OtherPhones'),
+          'Name': const PropertyMetadata<String>(
+            name: 'Name',
+            label: 'الاسم',
+            defaultValue: '',
+          ),
+          'Phone': const PropertyMetadata<String>(
+            name: 'Phone',
+            label: 'موبايل (شخصي)',
+            defaultValue: '',
+          ),
+          'FatherPhone': const PropertyMetadata<String>(
+            name: 'FatherPhone',
+            label: 'موبايل الأب',
+            defaultValue: '',
+          ),
+          'MotherPhone': const PropertyMetadata<String>(
+            name: 'MotherPhone',
+            label: 'موبايل الأم',
+            defaultValue: '',
+          ),
+          'Phones': const PropertyMetadata<Json>(
+            name: 'Phones',
+            label: 'الأرقام الأخرى',
+            defaultValue: {},
+          ),
+          'BirthDate': const PropertyMetadata<DateTime>(
+            name: 'BirthDate',
+            label: 'تاريخ الميلاد',
+            defaultValue: null,
+          ),
+          'BirthDay': PropertyMetadata<DateTime>(
+            name: 'BirthDay',
+            label: 'يوم الميلاد',
+            defaultValue: DateTime.now(),
+          ),
+          'StudyYear': PropertyMetadata<JsonRef>(
+            name: 'StudyYear',
+            label: 'سنة الدراسة',
+            defaultValue: null,
+            query: GetIt.I<DatabaseRepository>()
+                .collection('StudyYears')
+                .orderBy('Grade'),
+            collectionName: 'StudyYears',
+          ),
+          'ClassId': PropertyMetadata<JsonRef>(
+            name: 'ClassId',
+            label: 'داخل فصل',
+            defaultValue: null,
+            query: GetIt.I<DatabaseRepository>()
+                .collection('Classes')
+                .orderBy('Grade'),
+            collectionName: 'Classes',
+          ),
+          'Services': PropertyMetadata<JsonRef>(
+            name: 'Services',
+            label: 'الخدمات المشارك بها',
+            defaultValue: null,
+            query: GetIt.I<DatabaseRepository>()
+                .collection('Services')
+                .orderBy(FieldPath.fromString('StudyYearRange.From')),
+            collectionName: 'Services',
+          ),
+          'Gender': const PropertyMetadata<bool>(
+            name: 'Gender',
+            label: 'النوع',
+            defaultValue: true,
+          ),
+          'IsShammas': const PropertyMetadata<bool>(
+            name: 'IsShammas',
+            label: 'شماس؟',
+            defaultValue: false,
+          ),
+          'ShammasLevel': const PropertyMetadata<String>(
+            name: 'ShammasLevel',
+            label: 'رتبة الشموسية',
+            defaultValue: '',
+          ),
+          'Address': const PropertyMetadata<String>(
+            name: 'Address',
+            label: 'العنوان',
+            defaultValue: '',
+          ),
+          'Location': const PropertyMetadata<GeoPoint>(
+            name: 'Location',
+            label: 'الموقع الجغرافي',
+            defaultValue: null,
+          ),
+          'School': PropertyMetadata<JsonRef>(
+            name: 'School',
+            label: 'المدرسة',
+            defaultValue: null,
+            query: GetIt.I<DatabaseRepository>()
+                .collection('Schools')
+                .orderBy('Name'),
+            collectionName: 'Schools',
+          ),
+          'College': PropertyMetadata<JsonRef>(
+            name: 'College',
+            label: 'الكلية',
+            defaultValue: null,
+            query: GetIt.I<DatabaseRepository>()
+                .collection('Colleges')
+                .orderBy('Name'),
+            collectionName: 'Colleges',
+          ),
+          'Church': PropertyMetadata<JsonRef>(
+            name: 'Church',
+            label: 'الكنيسة',
+            defaultValue: null,
+            query: GetIt.I<DatabaseRepository>()
+                .collection('Churches')
+                .orderBy('Name'),
+            collectionName: 'Churches',
+          ),
+          'CFather': PropertyMetadata<JsonRef>(
+            name: 'CFather',
+            label: 'أب الاعتراف',
+            defaultValue: null,
+            query: GetIt.I<DatabaseRepository>()
+                .collection('Fathers')
+                .orderBy('Name'),
+            collectionName: 'Fathers',
+          ),
+          'Notes': const PropertyMetadata<String>(
+            name: 'Notes',
+            label: 'ملاحظات',
+            defaultValue: '',
+          ),
+          'LastMeeting': const PropertyMetadata<DateTime>(
+            name: 'LastMeeting',
+            label: 'تاريخ أخر حضور اجتماع',
+            defaultValue: null,
+          ),
+          'LastKodas': const PropertyMetadata<DateTime>(
+            name: 'LastKodas',
+            label: 'تاريخ أخر حضور قداس',
+            defaultValue: null,
+          ),
+          'LastTanawol': const PropertyMetadata<DateTime>(
+            name: 'LastTanawol',
+            label: 'تاريخ أخر تناول',
+            defaultValue: null,
+          ),
+          'LastConfession': const PropertyMetadata<DateTime>(
+            name: 'LastConfession',
+            label: 'تاريخ أخر اعتراف',
+            defaultValue: null,
+          ),
+          'LastVisit': const PropertyMetadata<DateTime>(
+            name: 'LastVisit',
+            label: 'تاريخ أخر افتقاد',
+            defaultValue: null,
+          ),
+          'LastCall': const PropertyMetadata<DateTime>(
+            name: 'LastCall',
+            label: 'تاريخ أخر مكالمة',
+            defaultValue: null,
+          ),
+          'Last': const PropertyMetadata<Json>(
+            name: 'Last',
+            label: 'تاريخ أخر حضور خدمة',
+            defaultValue: null,
+          ),
+          'LastEdit': PropertyMetadata<JsonRef>(
+            name: 'LastEdit',
+            label: 'أخر تعديل',
+            defaultValue: null,
+            query: GetIt.I<DatabaseRepository>()
+                .collection('Users')
+                .orderBy('Name'),
+            collectionName: 'Users',
+          ),
+          'LastEditTime': const PropertyMetadata<DateTime>(
+            name: 'LastEditTime',
+            label: 'وقت أخر تعديل',
+            defaultValue: null,
+          ),
+          'HasPhoto': const PropertyMetadata<bool>(
+            name: 'HasPhoto',
+            label: 'لديه صورة',
+            defaultValue: false,
+          ),
+          'Color': const PropertyMetadata<Color>(
+            name: 'Color',
+            label: 'اللون',
+            defaultValue: Colors.transparent,
+          ),
+        },
+      );
 }
