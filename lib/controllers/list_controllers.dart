@@ -27,7 +27,7 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
 
     _attended
         .map(
-          (v) => ListController.setWrapper<T>({
+          (v) => ListControllerBase.setWrapper<T>({
             for (final i in v.keys) _objectsById.value[i]!,
           }),
         )
@@ -42,6 +42,10 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
 
   final BehaviorSubject<Map<String, T>> _objectsById;
   late final StreamSubscription<Map<String, T>> _objectsByIdSubscription;
+
+  @override
+  PaginatableStream<T> get objectsPaginatableStream =>
+      super.objectsPaginatableStream as PaginatableStream<T>;
 
   DayCheckListController({
     required this.day,
@@ -322,7 +326,7 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
 
   @override
   DayCheckListController<NewG, T> copyWithNewG<NewG>({
-    PaginatableStream<T>? objectsPaginatableStream,
+    covariant PaginatableStream<T>? objectsPaginatableStream,
     Stream<String>? searchStream,
     SearchFunction<T>? filter,
     GroupingFunction<NewG, T>? groupBy,
