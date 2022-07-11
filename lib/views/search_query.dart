@@ -770,51 +770,52 @@ class _SearchQueryState extends State<SearchQuery> {
         valueWidget[properties[collection]![fieldPath]!.type]!
             .completeQuery(q, queryValue);
 
-    final DataObjectListView body = DataObjectListView(
-      autoDisposeController: false,
-      controller: ListController(
-        objectsPaginatableStream: PaginatableStream.loadAll(
-          stream: (collection.id == 'Services'
-                  ? MHDatabaseRepo.I.services.getAll(
-                      queryCompleter: _mainQueryCompleter,
-                    )
-                  : collection.id == 'Classes'
-                      ? MHDatabaseRepo.I.classes.getAll(
-                          queryCompleter: _mainQueryCompleter,
-                        )
-                      : MHDatabaseRepo.I.persons.getAll(
-                          queryCompleter: _mainQueryCompleter,
-                        ))
-              .map(
-            (rslt) {
-              if (!order) return rslt;
+    final listController = ListController(
+      objectsPaginatableStream: PaginatableStream.loadAll(
+        stream: (collection.id == 'Services'
+                ? MHDatabaseRepo.I.services.getAll(
+                    queryCompleter: _mainQueryCompleter,
+                  )
+                : collection.id == 'Classes'
+                    ? MHDatabaseRepo.I.classes.getAll(
+                        queryCompleter: _mainQueryCompleter,
+                      )
+                    : MHDatabaseRepo.I.persons.getAll(
+                        queryCompleter: _mainQueryCompleter,
+                      ))
+            .map(
+          (rslt) {
+            if (!order) return rslt;
 
-              final sorted = rslt.cast<DataObject>().sublist(0);
-              mergeSort(sorted, compare: (previous, next) {
-                if (previous == null || next == null) {
-                  if (previous == null) return -1;
-                  if (next == null) return 1;
-                  return 0;
-                }
-
-                final p = previous as DataObject;
-                final n = next as DataObject;
-
-                if (p.toJson()[orderBy] is Comparable &&
-                    n.toJson()[orderBy] is Comparable) {
-                  return descending!
-                      ? -(p.toJson()[orderBy] ?? '')
-                          .compareTo(n.toJson()[orderBy] ?? '')
-                      : (p.toJson()[orderBy] ?? '')
-                          .compareTo(n.toJson()[orderBy] ?? '');
-                }
+            final sorted = rslt.cast<DataObject>().sublist(0);
+            mergeSort(sorted, compare: (previous, next) {
+              if (previous == null || next == null) {
+                if (previous == null) return -1;
+                if (next == null) return 1;
                 return 0;
-              });
-              return sorted;
-            },
-          ),
+              }
+
+              final p = previous as DataObject;
+              final n = next as DataObject;
+
+              if (p.toJson()[orderBy] is Comparable &&
+                  n.toJson()[orderBy] is Comparable) {
+                return descending!
+                    ? -(p.toJson()[orderBy] ?? '')
+                        .compareTo(n.toJson()[orderBy] ?? '')
+                    : (p.toJson()[orderBy] ?? '')
+                        .compareTo(n.toJson()[orderBy] ?? '');
+              }
+              return 0;
+            });
+            return sorted;
+          },
         ),
       ),
+    );
+    final DataObjectListView body = DataObjectListView(
+      autoDisposeController: false,
+      controller: listController,
     );
 
     await navigator.currentState!.push(
@@ -865,7 +866,7 @@ class _SearchQueryState extends State<SearchQuery> {
                     : collection.id == 'Classes'
                         ? Class
                         : Person,
-                options: body.controller,
+                options: listController,
                 textStyle: Theme.of(context).textTheme.headline6!.copyWith(
                     color: Theme.of(context).primaryTextTheme.headline6!.color),
                 disableOrdering: true,
