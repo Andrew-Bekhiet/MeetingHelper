@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:churchdata_core_mocks/churchdata_core.mocks.dart';
 import 'package:churchdata_core_mocks/fakes/fake_cache_repo.dart';
@@ -23,6 +25,7 @@ import 'package:mock_data/mock_data.dart';
 import 'package:mockito/mockito.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:sentry/src/scope.dart';
 
 import 'fakes/fake_secure_storage.dart';
 import 'views/root_test.mocks.dart';
@@ -242,8 +245,11 @@ class FakeLoggingService implements LoggingService {
       {Map<String, dynamic>? data, Map<String, dynamic>? extras}) async {}
 
   @override
-  // TODO: implement navigatorObserver
-  NavigatorObserver get navigatorObserver => throw UnimplementedError();
+  NavigatorObserver get navigatorObserver => NavigatorObserver();
+
+  @override
+  FutureOr<void> Function(FutureOr<void> Function(Scope p1) p1)
+      get configureScope => (_) {};
 }
 
 class FakeUpdatesService extends UpdatesService {}
