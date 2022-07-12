@@ -572,7 +572,13 @@ class MHNotificationsService extends NotificationsService {
   static Future<void> showBirthDayNotification() async {
     if (!GetIt.I.isRegistered<MHAuthRepository>()) await initMeetingHelper();
 
-    if (MHAuthRepository.I.currentUser == null) return;
+    await GetIt.I<LoggingService>().log('showBirthdayNotification: Started');
+
+    if (MHAuthRepository.I.currentUser == null) {
+      await GetIt.I<LoggingService>()
+          .log('showBirthdayNotification: User not logged in, returning');
+      return;
+    }
 
     final persons = await MHDatabaseRepo.instance.persons
         .getAll(
@@ -593,6 +599,10 @@ class MHNotificationsService extends NotificationsService {
                 .limit(20))
         .first;
 
+    await GetIt.I<LoggingService>().log(
+        'showBirthdayNotification: Got persons with count: ' +
+            persons.length.toString());
+
     if (persons.isNotEmpty || !kReleaseMode) {
       final notification = Notification(
         body: persons.map((p) => p.name).join(', '),
@@ -612,6 +622,16 @@ class MHNotificationsService extends NotificationsService {
         },
       );
 
+      await GetIt.I<LoggingService>()
+          .log('showBirthdayNotification: Prepared notification');
+
+      final i = await GetIt.I<CacheRepository>()
+          .box<Notification>('Notifications')
+          .add(notification);
+
+      await GetIt.I<LoggingService>()
+          .log('showBirthdayNotification: Appended notification in cache');
+
       await FlutterLocalNotificationsPlugin().show(
         2,
         notification.title,
@@ -630,11 +650,10 @@ class MHNotificationsService extends NotificationsService {
             ),
           ),
         ),
-        payload: (await GetIt.I<CacheRepository>()
-                .box<Notification>('Notifications')
-                .add(notification))
-            .toString(),
+        payload: i.toString(),
       );
+
+      await GetIt.I<LoggingService>().log('showBirthdayNotification: Finished');
     }
   }
 }
