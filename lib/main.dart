@@ -289,6 +289,9 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
           debugShowCheckedModeBanner: false,
           scaffoldMessengerKey: scaffoldMessenger,
           navigatorKey: navigator,
+          navigatorObservers: [
+            GetIt.I<LoggingService>().navigatorObserver,
+          ],
           title: 'خدمة مدارس الأحد',
           initialRoute: '/',
           routes: {
