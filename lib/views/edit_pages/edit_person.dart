@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:churchdata_core/churchdata_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -1221,18 +1222,50 @@ class _EditPersonState extends State<EditPerson> {
         if (update &&
             await Connectivity().checkConnectivity() !=
                 ConnectivityResult.none) {
-          await person.update(old: widget.person?.toJson() ?? {});
+          if (person.ref.parent.id == 'UsersData') {
+            await person.ref.update(
+              {
+                ...person.toJson(),
+                'AllowedUsers': FieldValue.arrayUnion([User.instance.uid]),
+              },
+            );
+          } else {
+            await person.update(old: widget.person?.toJson() ?? {});
+          }
         } else if (update) {
-          //Intentionally unawaited because of no internet connection
-          // ignore: unawaited_futures
-          person.update(old: widget.person?.toJson() ?? {});
+          if (person.ref.parent.id == 'UsersData') {
+            unawaited(person.ref.update(
+              {
+                ...person.toJson(),
+                'AllowedUsers': FieldValue.arrayUnion([User.instance.uid]),
+              },
+            ));
+          } else {
+            unawaited(person.update(old: widget.person?.toJson() ?? {}));
+          }
         } else if (await Connectivity().checkConnectivity() !=
             ConnectivityResult.none) {
-          await person.set();
+          if (person.ref.parent.id == 'UsersData') {
+            await person.ref.set(
+              {
+                ...person.toJson(),
+                'AllowedUsers': [User.instance.uid],
+              },
+            );
+          } else {
+            await person.set();
+          }
         } else {
-          //Intentionally unawaited because of no internet connection
-          // ignore: unawaited_futures
-          person.set();
+          if (person.ref.parent.id == 'UsersData') {
+            unawaited(person.ref.set(
+              {
+                ...person.toJson(),
+                'AllowedUsers': [User.instance.uid],
+              },
+            ));
+          } else {
+            unawaited(person.set());
+          }
         }
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
         navigator.currentState!.pop(person.ref);
