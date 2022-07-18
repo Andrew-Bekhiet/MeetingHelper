@@ -1,9 +1,11 @@
 import 'dart:math';
 
-import 'package:churchdata_core/churchdata_core.dart';
+import 'package:churchdata_core/churchdata_core.dart' hide Reference;
 import 'package:churchdata_core_mocks/churchdata_core.dart';
 import 'package:collection/collection.dart';
 import 'package:device_info_plus_platform_interface/device_info_plus_platform_interface.dart';
+import 'package:firebase_storage/firebase_storage.dart'
+    show FirebaseStorage, Reference;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
@@ -15,10 +17,13 @@ import 'package:meetinghelper/views/root.dart';
 import 'package:meetinghelper/widgets.dart';
 import 'package:mock_data/mock_data.dart';
 import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 import '../utils.dart';
+import 'root_test.mocks.dart';
 
-@GenerateMocks([MHAuthRepository])
+@GenerateMocks([MHAuthRepository, FirebaseStorage, Reference])
 void main() {
   final StructureTestVariants structureTestVariants = StructureTestVariants();
 
@@ -29,6 +34,21 @@ void main() {
         registerFirebaseMocks();
         setUpMHPlatformChannels();
         await initFakeCore();
+
+        GetIt.I.allowReassignment = true;
+
+        final storage = MockFirebaseStorage();
+
+        final mockReference = MockReference();
+        when(mockReference.getDownloadURL()).thenAnswer((_) async => '');
+        when(mockReference.fullPath).thenReturn('asdasdasd/wrgvd');
+        when(mockReference.child(any)).thenReturn(mockReference);
+
+        when(storage.ref(any)).thenReturn(mockReference);
+
+        GetIt.I.registerSingleton<FirebaseStorage>(storage);
+
+        GetIt.I.allowReassignment = false;
 
         DeviceInfoPlatform.instance = FakeDeviceInfo();
 
@@ -390,12 +410,18 @@ void main() {
                   findsOneWidget,
                 );
               }
+
+              await tester.pumpWidget(wrapWithMaterialApp(const Scaffold()));
+              await tester.pumpAndSettle();
             },
           );
 
           testWidgets(
             'Search',
             (tester) async {
+              VisibilityDetectorController.instance.updateInterval =
+                  Duration.zero;
+
               final mockData = await setUpMockData();
 
               await tester.binding
@@ -407,7 +433,14 @@ void main() {
                   navigatorKey: navigator,
                 ),
               );
+
+              VisibilityDetectorController.instance.updateInterval =
+                  Duration.zero;
+
               await tester.pumpAndSettle();
+
+              VisibilityDetectorController.instance.updateInterval =
+                  Duration.zero;
 
               await tester.tap(find.text('المخدومين'));
               await tester.pumpAndSettle();
@@ -469,6 +502,12 @@ void main() {
                       : findsNothing,
                 );
               }
+
+              await tester.pumpWidget(wrapWithMaterialApp(
+                const Scaffold(),
+                navigatorKey: navigator,
+              ));
+              await tester.pumpAndSettle();
             },
           );
         },
