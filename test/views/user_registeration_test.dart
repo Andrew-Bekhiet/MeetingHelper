@@ -31,7 +31,7 @@ void main() {
 
         when((GetIt.I<FirebaseMessaging>() as MockFirebaseMessaging)
                 .isSupported())
-            .thenReturn(false);
+            .thenAnswer((_) async => false);
       });
 
       tearDown(() async {

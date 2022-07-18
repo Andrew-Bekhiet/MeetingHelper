@@ -57,7 +57,7 @@ void setUpMHPlatformChannels() {
   when(GetIt.I<FirebaseMessaging>().getInitialMessage())
       .thenAnswer((_) async => null);
   when((GetIt.I<FirebaseMessaging>() as MockFirebaseMessaging).isSupported())
-      .thenReturn(false);
+      .thenAnswer((_) async => false);
 
   final fakeHttpsCallable = FakeHttpsCallable();
   final fakeHttpsCallableResult = FakeHttpsCallableResult();

@@ -4,10 +4,17 @@ description: null
 # The following line prevents the package from being accidentally published to
 # pub.dev using `pub publish`. This is preferred for private packages.
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
-version: 8.2.0+25
+version: 8.2.3+26
 
 environment:
   sdk: ">=2.17.0 <3.0.0"
+
+dependency_overrides:
+  churchdata_core:
+    path: ../churchdata_core
+  churchdata_core_mocks:
+    path: ../churchdata_core_mocks
+  firebase_storage_mocks: ^0.5.1
 
 dependencies:
   android_alarm_manager_plus: ^2.0.5
@@ -37,7 +44,7 @@ dependencies:
   firebase_database: ^9.0.6
   firebase_dynamic_links: ^4.0.5
   firebase_in_app_messaging: ^0.6.0+7
-  firebase_messaging: ^11.2.6
+  firebase_messaging: ^12.0.0
   firebase_storage: ^10.2.7
   flutter:
     sdk: flutter
@@ -50,7 +57,6 @@ dependencies:
   get_it: ^7.2.0
   google_maps_flutter: ^2.1.1
   google_sign_in: ^5.2.3
-  group_list_view: ^1.1.1
   hive_flutter: ^1.1.0
   image_cropper: ^2.0.2
   image_picker: ^0.8.4+8
@@ -94,6 +100,7 @@ dev_dependencies:
   local_auth_platform_interface: ^1.0.3
   flutter_secure_storage_platform_interface: ^1.0.0
   mock_data: ^2.0.0
+  visibility_detector: ^0.3.3
 
 flutter_icons:
   image_path: "Logo.png"

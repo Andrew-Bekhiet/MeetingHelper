@@ -28,7 +28,7 @@ void main() {
 
         when((GetIt.I<FirebaseMessaging>() as MockFirebaseMessaging)
                 .isSupported())
-            .thenReturn(false);
+            .thenAnswer((_) async => false);
 
         TestDefaultBinaryMessengerBinding.instance!.defaultBinaryMessenger
             .setMockMessageHandler('plugins.flutter.io/local_auth', (c) async {
