@@ -171,6 +171,7 @@ Future<void> initFirebase() async {
     await Firebase.initializeApp();
   }
   await FirebaseAppCheck.instance.activate();
+  FirebaseDatabase.instance.setPersistenceEnabled(true);
 
   registerFirebaseDependencies();
 }
