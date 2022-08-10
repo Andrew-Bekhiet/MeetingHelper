@@ -39,7 +39,7 @@ android {
         debugKey.load(new FileInputStream(dKeystorePropertiesFile))
     }
 
-    compileSdkVersion 31
+    compileSdkVersion 33
     buildToolsVersion '32.0.0'
 
     sourceSets {
