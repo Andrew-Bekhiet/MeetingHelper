@@ -564,7 +564,6 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
             ..removeWhere(HivePersistenceProvider.instance.hasCompletedStep))
           .isNotEmpty) {
         TutorialCoachMark(
-          context,
           focusAnimationDuration: const Duration(milliseconds: 200),
           targets: [
             TargetFocus(
@@ -627,7 +626,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
           onClickTarget: (t) async {
             await HivePersistenceProvider.instance.completeStep(t.identify);
           },
-        ).show();
+        ).show(context: context);
       }
     });
   }

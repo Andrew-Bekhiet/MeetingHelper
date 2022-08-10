@@ -1405,7 +1405,6 @@ class _RootState extends State<Root>
       }
 
       TutorialCoachMark(
-        context,
         focusAnimationDuration: const Duration(milliseconds: 200),
         targets:
             featuresInOrder.map((k) => _getTarget(k, _features[k]!)).toList(),
@@ -1415,7 +1414,7 @@ class _RootState extends State<Root>
         onClickTarget: _next,
         onFinish: _completer.complete,
         onSkip: _completer.complete,
-      ).show();
+      ).show(context: context);
     } else {
       _completer.complete();
     }

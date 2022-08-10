@@ -63,7 +63,6 @@ class _ClassInfoState extends State<ClassInfo> {
       ]..removeWhere(HivePersistenceProvider.instance.hasCompletedStep))
           .isNotEmpty) {
         TutorialCoachMark(
-          context,
           focusAnimationDuration: const Duration(milliseconds: 200),
           targets: [
             if (User.instance.permissions.write)
@@ -173,7 +172,7 @@ class _ClassInfoState extends State<ClassInfo> {
           onClickTarget: (t) async {
             await HivePersistenceProvider.instance.completeStep(t.identify);
           },
-        ).show();
+        ).show(context: context);
       }
     });
   }

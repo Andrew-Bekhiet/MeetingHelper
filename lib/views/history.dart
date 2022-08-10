@@ -192,7 +192,6 @@ class _HistoryState extends State<History> {
             ..removeWhere(HivePersistenceProvider.instance.hasCompletedStep))
           .isNotEmpty) {
         TutorialCoachMark(
-          context,
           focusAnimationDuration: const Duration(milliseconds: 200),
           targets: [
             TargetFocus(
@@ -219,7 +218,7 @@ class _HistoryState extends State<History> {
           onClickTarget: (t) async {
             await HivePersistenceProvider.instance.completeStep(t.identify);
           },
-        ).show();
+        ).show(context: context);
       }
     });
   }

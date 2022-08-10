@@ -230,7 +230,6 @@ class _MHMapViewState extends State<MHMapView> {
       if (!HivePersistenceProvider.instance
           .hasCompletedStep('ShowHideClasses')) {
         TutorialCoachMark(
-          context,
           focusAnimationDuration: const Duration(milliseconds: 200),
           targets: [
             TargetFocus(
@@ -256,7 +255,7 @@ class _MHMapViewState extends State<MHMapView> {
           onClickTarget: (t) async {
             await HivePersistenceProvider.instance.completeStep(t.identify);
           },
-        ).show();
+        ).show(context: context);
       }
     });
   }
