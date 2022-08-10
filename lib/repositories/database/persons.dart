@@ -1,12 +1,13 @@
 import 'package:churchdata_core/churchdata_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' show FirebaseFirestore;
 import 'package:collection/collection.dart';
+import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories/database/table_base.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tuple/tuple.dart';
 
-class Persons extends TableBase<Person>{
-
+class Persons extends TableBase<Person> {
   const Persons(super.repository);
 
   @override
@@ -162,6 +163,8 @@ class Persons extends TableBase<Person>{
             .where((c) => personsByClassRef[c.ref] != null)
             .toList();
 
+        final classesIds = classes.map((c) => c.ref).toSet();
+
         mergeSort<Class>(classes, compare: (c, c2) {
           if (c.studyYear == c2.studyYear) return c.gender.compareTo(c2.gender);
           return studyYears[c.studyYear]!
@@ -169,7 +172,19 @@ class Persons extends TableBase<Person>{
               .compareTo(studyYears[c2.studyYear]!.grade);
         });
 
-        return {for (final c in classes) c: personsByClassRef[c.ref]!};
+        return {
+          for (final c in classes) c: personsByClassRef[c.ref]!,
+          Class(
+              name: 'غير معروف',
+              ref: GetIt.I<FirebaseFirestore>()
+                  .collection('Classes')
+                  .doc('unknown')): personsByClassRef.entries
+              .where((kv) => !classesIds.contains(kv.key))
+              .map((e) => e.value)
+              .expand((e) => e)
+              .sortedBy((c) => c.name)
+              .toList()
+        };
       },
     );
   }
