@@ -1,28 +1,34 @@
-import { https } from "firebase-functions";
-import { SHA3 } from "sha3";
-import * as nf from "node-fetch";
-import { auth, firestore, database, storage, messaging } from "firebase-admin";
 import {
-  Timestamp,
-  FieldValue,
   DocumentReference,
+  FieldValue,
+  Timestamp,
 } from "@google-cloud/firestore";
-import { HttpsError } from "firebase-functions/lib/providers/https";
 import * as download from "download";
-
+import { auth, database, firestore, messaging, storage } from "firebase-admin";
+import { https as _https /* , region */ } from "firebase-functions";
+import * as nf from "node-fetch";
+import {
+  adminPassword,
+  firebase_dynamic_links_prefix,
+  packageName,
+  projectId,
+} from "./adminPassword";
 import { assertNotEmpty, getFCMTokensForUser } from "./common";
-import { adminPassword, projectId } from "./adminPassword";
+
+// const https = region("europe-west1").https;
+const https = _https;
+const HttpsError = _https.HttpsError;
 
 export const registerWithLink = https.onCall(async (data, context) => {
   if (context.auth === undefined) {
-    throw new https.HttpsError("unauthenticated", "");
+    throw new HttpsError("unauthenticated", "");
   }
   const currentUser = await auth().getUser(context.auth.uid);
   if (currentUser.customClaims?.approved) {
-    throw new https.HttpsError("aborted", "User already approved");
+    throw new HttpsError("aborted", "User already approved");
   }
   assertNotEmpty("link", data.link, typeof "");
-  if ((data.link as string).startsWith("https://meetinghelper.page.link")) {
+  if ((data.link as string).startsWith(firebase_dynamic_links_prefix)) {
     const deeplink = (
       await nf.default(data.link, { redirect: "manual" })
     ).headers.get("location")!;
@@ -80,7 +86,7 @@ export const registerWithLink = https.onCall(async (data, context) => {
     newPermissions.approved = true;
     await auth().setCustomUserClaims(
       currentUser.uid,
-      Object.assign(currentUser.customClaims, newPermissions)
+      Object.assign(currentUser.customClaims ?? {}, newPermissions)
     );
     await database()
       .ref()
@@ -111,6 +117,9 @@ export const registerWithLink = https.onCall(async (data, context) => {
             ? newPermissions.superAccess
             : false,
           Write: newPermissions.write ? newPermissions.write : false,
+          RecordHistory: newPermissions.recordHistory
+            ? newPermissions.recordHistory
+            : false,
           Secretary: newPermissions.secretary
             ? newPermissions.secretary
             : false,
@@ -143,16 +152,16 @@ export const registerWithLink = https.onCall(async (data, context) => {
     return "OK";
   }
 
-  throw new https.HttpsError("invalid-argument", "Invalid registeration link");
+  throw new HttpsError("invalid-argument", "Invalid registeration link");
 });
 
 export const registerAccount = https.onCall(async (data, context) => {
   console.log(data);
   console.log(context);
   if (context.auth === undefined) {
-    throw new https.HttpsError("unauthenticated", "");
+    throw new HttpsError("unauthenticated", "");
   } else if (!(await auth().getUser(context.auth.uid)).customClaims!.approved) {
-    throw new https.HttpsError("unauthenticated", "Must be approved user");
+    throw new HttpsError("unauthenticated", "Must be approved user");
   }
   assertNotEmpty("name", data.name, typeof "");
   assertNotEmpty("password", data.password, typeof "");
@@ -177,7 +186,7 @@ export const registerAccount = https.onCall(async (data, context) => {
       await messaging().subscribeToTopic(data.fcmToken, "ManagingUsers");
     }
   } catch (e) {
-    throw new https.HttpsError("not-found", "FCM Token not found");
+    throw new HttpsError("not-found", "FCM Token not found");
   }
 
   await auth().updateUser(currentUser.uid, { displayName: data.name });
@@ -205,7 +214,7 @@ export const registerAccount = https.onCall(async (data, context) => {
 
 export const registerFCMToken = https.onCall(async (data, context) => {
   if (context.auth === undefined) {
-    throw new https.HttpsError("unauthenticated", "");
+    throw new HttpsError("unauthenticated", "");
   }
   assertNotEmpty("token", data.token, typeof "");
   await database()
@@ -227,13 +236,13 @@ export const registerFCMToken = https.onCall(async (data, context) => {
 });
 
 export const updateUserSpiritData = https.onCall(async (data, context) => {
-  if (!context.auth) throw new https.HttpsError("unauthenticated", "");
+  if (!context.auth) throw new HttpsError("unauthenticated", "");
   assertNotEmpty("lastTanawol", data.lastTanawol, typeof 0);
   assertNotEmpty("lastConfession", data.lastConfession, typeof 0);
   const user = await auth().getUser(context.auth.uid);
   await auth().setCustomUserClaims(
     context.auth.uid,
-    Object.assign(user.customClaims, {
+    Object.assign(user.customClaims ?? {}, {
       lastConfession: data.lastConfession,
       lastTanawol: data.lastTanawol,
     })
@@ -257,19 +266,19 @@ export const sendMessageToUsers = https.onCall(async (data, context) => {
     if (data.AdminPassword === adminPassword) {
       from = "";
     } else {
-      throw new https.HttpsError("unauthenticated", "");
+      throw new HttpsError("unauthenticated", "");
     }
   } else if ((await auth().getUser(context.auth.uid)).customClaims!.approved) {
     from = context.auth.uid;
   } else {
-    throw new https.HttpsError("unauthenticated", "");
+    throw new HttpsError("unauthenticated", "");
   }
   if (
     data.users === null ||
     data.users === undefined ||
     (typeof data.users !== typeof [] && data.users !== "all")
   ) {
-    throw new https.HttpsError(
+    throw new HttpsError(
       "invalid-argument",
       "users cannot be null or undefined and must be " + typeof []
     );
@@ -296,7 +305,7 @@ export const sendMessageToUsers = https.onCall(async (data, context) => {
       .reduce<string[]>((accumulator, value) => accumulator.concat(value), [])
       .filter((v) => v !== null && v !== undefined);
   } else {
-    throw new https.HttpsError("invalid-argument", "users");
+    throw new HttpsError("invalid-argument", "users");
   }
   console.log("usersToSend[0]:" + usersToSend[0]);
   console.log("usersToSend" + usersToSend);
@@ -320,7 +329,7 @@ export const sendMessageToUsers = https.onCall(async (data, context) => {
     {
       priority: "high",
       timeToLive: 7 * 24 * 60 * 60,
-      restrictedPackageName: "com.AndroidQuartz.meetinghelper",
+      restrictedPackageName: packageName,
     }
   );
   return "OK";
@@ -372,7 +381,7 @@ export const changeUserName = https.onCall(async (data, context) => {
       .update({ Name: data.newName });
     return "OK";
   }
-  throw new https.HttpsError(
+  throw new HttpsError(
     "permission-denied",
     "Must be an approved user with 'manageUsers' permission"
   );
@@ -383,12 +392,12 @@ export const changePassword = https.onCall(async (data, context) => {
   try {
     if (context.auth === undefined) {
       if (data.AdminPassword !== adminPassword) {
-        throw new https.HttpsError("unauthenticated", "unauthenticated");
+        throw new HttpsError("unauthenticated", "unauthenticated");
       }
     } else if (
       !(await auth().getUser(context.auth.uid)).customClaims?.approved
     ) {
-      throw new https.HttpsError("unauthenticated", "Must be approved user");
+      throw new HttpsError("unauthenticated", "Must be approved user");
     }
     const currentUser = await auth().getUser(context.auth!.uid);
     const newCustomClaims: Record<string, any> = currentUser.customClaims
@@ -406,13 +415,10 @@ export const changePassword = https.onCall(async (data, context) => {
         currentUser.customClaims?.password &&
         encryptedPassword !== actualPassword
       ) {
-        throw new https.HttpsError(
-          "permission-denied",
-          "Old Password is incorrect"
-        );
+        throw new HttpsError("permission-denied", "Old Password is incorrect");
       }
     } else {
-      throw new https.HttpsError("permission-denied", "Old Password is empty");
+      throw new HttpsError("permission-denied", "Old Password is empty");
     }
     newCustomClaims["password"] = data.newPassword;
     await auth().setCustomUserClaims(context.auth!.uid, newCustomClaims);
@@ -423,7 +429,7 @@ export const changePassword = https.onCall(async (data, context) => {
     return "OK";
   } catch (err) {
     console.log(err);
-    throw new https.HttpsError("internal", "");
+    throw new HttpsError("internal", "");
   }
 });
 
@@ -441,13 +447,12 @@ export const deleteImage = https.onCall(async (context) => {
 });
 
 export const recoverDoc = https.onCall(async (data, context) => {
-  if (!context.auth)
-    throw new https.HttpsError("unauthenticated", "unauthenticated");
+  if (!context.auth) throw new HttpsError("unauthenticated", "unauthenticated");
 
   const currentUser = await auth().getUser(context.auth.uid);
 
   if (!currentUser.customClaims?.manageDeleted)
-    throw new https.HttpsError(
+    throw new HttpsError(
       "permission-denied",
       "Must be approved user with 'manageDeleted' permission"
     );
@@ -462,12 +467,12 @@ export const recoverDoc = https.onCall(async (data, context) => {
         )
       )
     )
-      throw new https.HttpsError("invalid-argument", "Invalid 'deletedPath'");
+      throw new HttpsError("invalid-argument", "Invalid 'deletedPath'");
 
     const documentToRecover = await firestore().doc(data.deletedPath).get();
 
     if (!documentToRecover.exists)
-      throw new https.HttpsError("invalid-argument", "Invalid 'deletedPath'");
+      throw new HttpsError("invalid-argument", "Invalid 'deletedPath'");
 
     if (!currentUser.customClaims?.superAccess) {
       if (
@@ -476,7 +481,7 @@ export const recoverDoc = https.onCall(async (data, context) => {
           currentUser.uid
         )
       )
-        throw new https.HttpsError(
+        throw new HttpsError(
           "permission-denied",
           "User doesn't have permission to restore the specified document"
         );
@@ -487,7 +492,7 @@ export const recoverDoc = https.onCall(async (data, context) => {
           ).data()!.Allowed as Array<string>
         ).includes(currentUser.uid)
       ) {
-        throw new https.HttpsError(
+        throw new HttpsError(
           "permission-denied",
           "User doesn't have permission to restore the specified document"
         );

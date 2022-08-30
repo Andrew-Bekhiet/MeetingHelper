@@ -1,8 +1,12 @@
 import { FieldValue, Timestamp } from "@google-cloud/firestore";
 import { auth, database, firestore, messaging } from "firebase-admin";
-import { https, runWith } from "firebase-functions";
+import { https as _https, /* region,  */ runWith } from "firebase-functions";
 import { adminPassword } from "./adminPassword";
 import { assertNotEmpty, getFCMTokensForUser } from "./common";
+
+// const https = region("europe-west1").https;
+const https = _https;
+const HttpsError = _https.HttpsError;
 
 export const getUsers = https.onCall(async (data, context) => {
   if (context.auth === undefined) {
@@ -18,7 +22,7 @@ export const getUsers = https.onCall(async (data, context) => {
         });
       });
     } else {
-      throw new https.HttpsError("unauthenticated", "unauthenticated");
+      throw new HttpsError("unauthenticated", "unauthenticated");
     }
   }
   const currentUser = await auth().getUser(context.auth.uid);
@@ -65,15 +69,14 @@ export const getUsers = https.onCall(async (data, context) => {
         });
       });
   }
-  throw new https.HttpsError(
+  throw new HttpsError(
     "unauthenticated",
     "Must be an approved user with 'manageUsers' or 'manageAllowedUsers' permissions"
   );
 });
 
 export const approveUser = https.onCall(async (data, context) => {
-  if (!context.auth)
-    throw new https.HttpsError("unauthenticated", "unauthenticated");
+  if (!context.auth) throw new HttpsError("unauthenticated", "unauthenticated");
 
   const currentUser = await auth().getUser(context.auth.uid);
   if (
@@ -85,7 +88,7 @@ export const approveUser = https.onCall(async (data, context) => {
     if (!user.customClaims?.personId) {
       console.error("User " + data.affectedUser + " doesn't have personId");
       console.log(user);
-      throw new https.HttpsError("internal", "Internal error");
+      throw new HttpsError("internal", "Internal error");
     }
     const newClaims = user.customClaims ? user.customClaims : {};
     newClaims.approved = true;
@@ -108,15 +111,14 @@ export const approveUser = https.onCall(async (data, context) => {
       .update({ "Permissions.Approved": true });
     return "OK";
   }
-  throw new https.HttpsError(
+  throw new HttpsError(
     "permission-denied",
     "Must be an approved user with 'manageUsers' permission"
   );
 });
 
 export const unApproveUser = https.onCall(async (data, context) => {
-  if (!context.auth)
-    throw new https.HttpsError("unauthenticated", "unauthenticated");
+  if (!context.auth) throw new HttpsError("unauthenticated", "unauthenticated");
 
   const currentUser = await auth().getUser(context.auth.uid);
   if (
@@ -145,6 +147,7 @@ export const unApproveUser = https.onCall(async (data, context) => {
       manageDeleted: false,
       superAccess: false, //Can read everything
       write: true, //Can write avalibale data
+      recordHistory: false, //Can record history
       secretary: false, //Can write servants history
       export: true, //Can Export individual Classes to Excel sheet
       birthdayNotify: true, //Can receive Birthday notifications
@@ -167,15 +170,14 @@ export const unApproveUser = https.onCall(async (data, context) => {
       .update({ "Permissions.Approved": false });
     return "OK";
   }
-  throw new https.HttpsError(
+  throw new HttpsError(
     "permission-denied",
     "Must be an approved user with 'manageUsers' permission"
   );
 });
 
 export const deleteUser = https.onCall(async (data, context) => {
-  if (!context.auth)
-    throw new https.HttpsError("unauthenticated", "unauthenticated");
+  if (!context.auth) throw new HttpsError("unauthenticated", "unauthenticated");
   const currentUser = await auth().getUser(context.auth.uid);
   if (
     currentUser.customClaims?.approved &&
@@ -199,15 +201,14 @@ export const deleteUser = https.onCall(async (data, context) => {
     await auth().deleteUser(data.affectedUser);
     return "OK";
   }
-  throw new https.HttpsError(
+  throw new HttpsError(
     "permission-denied",
     "Must be an approved user with 'manageUsers' permission"
   );
 });
 
 export const resetPassword = https.onCall(async (data, context) => {
-  if (!context.auth)
-    throw new https.HttpsError("unauthenticated", "unauthenticated");
+  if (!context.auth) throw new HttpsError("unauthenticated", "unauthenticated");
   const currentUser = await auth().getUser(context.auth.uid);
   if (
     currentUser.customClaims?.approved &&
@@ -237,15 +238,14 @@ export const resetPassword = https.onCall(async (data, context) => {
       .set(true);
     return "OK";
   }
-  throw new https.HttpsError(
+  throw new HttpsError(
     "permission-denied",
     "Must be an approved user with 'manageUsers' permission"
   );
 });
 
 export const updatePermissions = https.onCall(async (data, context) => {
-  if (!context.auth)
-    throw new https.HttpsError("unauthenticated", "unauthenticated");
+  if (!context.auth) throw new HttpsError("unauthenticated", "unauthenticated");
   const currentUser = await auth().getUser(context.auth.uid);
   if (
     currentUser.customClaims?.approved &&
@@ -296,6 +296,12 @@ export const updatePermissions = https.onCall(async (data, context) => {
       );
     if (data.permissions.write !== undefined)
       assertNotEmpty("permissions.write", data.permissions.write, typeof true);
+    if (data.permissions.recordHistory !== undefined)
+      assertNotEmpty(
+        "permissions.recordHistory",
+        data.permissions.recordHistory,
+        typeof true
+      );
     if (data.permissions.secretary !== undefined)
       assertNotEmpty(
         "permissions.secretary",
@@ -331,7 +337,7 @@ export const updatePermissions = https.onCall(async (data, context) => {
     if (!user.customClaims?.personId) {
       console.error("User " + data.affectedUser + " doesn't have personId");
       console.log(user);
-      throw new https.HttpsError("internal", "Internal error");
+      throw new HttpsError("internal", "Internal error");
     }
 
     const newPermissions: Record<string, any> = {};
@@ -395,6 +401,11 @@ export const updatePermissions = https.onCall(async (data, context) => {
       data.permissions.visitNotify !== undefined
         ? data.permissions.visitNotify
         : oldPermissions.visitNotify;
+    newPermissions["recordHistory"] =
+      data.permissions.recordHistory !== null &&
+      data.permissions.recordHistory !== undefined
+        ? data.permissions.recordHistory
+        : oldPermissions.recordHistory;
     newPermissions["secretary"] =
       data.permissions.secretary !== null &&
       data.permissions.secretary !== undefined
@@ -511,7 +522,7 @@ export const updatePermissions = https.onCall(async (data, context) => {
       .set(true);
     return "OK";
   }
-  throw new https.HttpsError(
+  throw new HttpsError(
     "permission-denied",
     "Must be an approved user with 'manageUsers' permission"
   );
@@ -598,6 +609,10 @@ export const tempUpdateUserData = https.onCall(async (data) => {
       false;
     newPermissions["visitNotify"] =
       data.permissions.visitNotify ?? user.customClaims?.visitNotify ?? false;
+    newPermissions["recordHistory"] =
+      data.permissions.recordHistory ??
+      user.customClaims?.recordHistory ??
+      false;
     newPermissions["secretary"] =
       data.permissions.secretary ?? user.customClaims?.secretary ?? false;
     newPermissions["superAccess"] =
@@ -675,7 +690,7 @@ export const tempUpdateUserData = https.onCall(async (data) => {
       .set(true);
     return "OK";
   }
-  throw new https.HttpsError("unauthenticated", "");
+  throw new HttpsError("unauthenticated", "");
 });
 
 export const deleteEmptyDocs = runWith({
@@ -851,13 +866,12 @@ function toCamel(o: any): any {
 }
 
 export const updateUser = https.onCall(async (data, context) => {
-  if (!context.auth)
-    throw new https.HttpsError("unauthenticated", "unauthenticated");
+  if (!context.auth) throw new HttpsError("unauthenticated", "unauthenticated");
 
   if (typeof data.UID !== typeof "")
-    throw new https.HttpsError("invalid-argument", "UID must be string");
+    throw new HttpsError("invalid-argument", "UID must be string");
   if (!data.Changes)
-    throw new https.HttpsError("invalid-argument", "Changes must be non empty");
+    throw new HttpsError("invalid-argument", "Changes must be non empty");
 
   const currentUser = await auth().getUser(context.auth.uid);
   if (
@@ -874,12 +888,9 @@ export const updateUser = https.onCall(async (data, context) => {
         ).includes(currentUser.uid)))
   ) {
     if (data.Changes.Name && typeof data.Changes.Name != typeof "")
-      throw new https.HttpsError(
-        "invalid-argument",
-        "Changes.Name must be string"
-      );
+      throw new HttpsError("invalid-argument", "Changes.Name must be string");
     if (data.Changes.LastTanawol && typeof data.Changes.LastTanawol != typeof 0)
-      throw new https.HttpsError(
+      throw new HttpsError(
         "invalid-argument",
         "Changes.LastTanawol must be number"
       );
@@ -887,7 +898,7 @@ export const updateUser = https.onCall(async (data, context) => {
       data.Changes.LastConfessoin &&
       typeof data.Changes.LastConfessoin != typeof 0
     )
-      throw new https.HttpsError(
+      throw new HttpsError(
         "invalid-argument",
         "Changes.LastConfessoin must be number"
       );
@@ -895,7 +906,7 @@ export const updateUser = https.onCall(async (data, context) => {
       data.Changes.Permissions &&
       typeof data.Changes.Permissions != typeof Array<string>()
     )
-      throw new https.HttpsError(
+      throw new HttpsError(
         "invalid-argument",
         "Changes.Permissions must be Array<string>"
       );
@@ -903,7 +914,7 @@ export const updateUser = https.onCall(async (data, context) => {
       data.Changes.ChildrenUsers &&
       typeof data.Changes.ChildrenUsers != typeof Array<string>()
     )
-      throw new https.HttpsError(
+      throw new HttpsError(
         "invalid-argument",
         "Changes.ChildrenUsers must be Array<string>"
       );
@@ -911,7 +922,7 @@ export const updateUser = https.onCall(async (data, context) => {
       data.Changes.AdminServices &&
       typeof data.Changes.AdminServices != typeof Array<string>()
     )
-      throw new https.HttpsError(
+      throw new HttpsError(
         "invalid-argument",
         "Changes.AdminServices must be Array<string>"
       );
@@ -936,7 +947,7 @@ export const updateUser = https.onCall(async (data, context) => {
       if (!affectedUser.customClaims?.personId) {
         console.error("User " + data.UID + " doesn't have personId");
         console.log(affectedUser);
-        throw new https.HttpsError("internal", "Internal error");
+        throw new HttpsError("internal", "Internal error");
       }
 
       let childrenUsers: firestore.QueryDocumentSnapshot<firestore.DocumentData>[];
@@ -1050,6 +1061,9 @@ export const updateUser = https.onCall(async (data, context) => {
           oldPermissions.meetingNotify;
         newPermissions["visitNotify"] =
           changes.Permissions?.has("visitNotify") ?? oldPermissions.visitNotify;
+        newPermissions["recordHistory"] =
+          changes.Permissions?.has("recordHistory") ??
+          oldPermissions.recordHistory;
         newPermissions["secretary"] =
           changes.Permissions?.has("secretary") ?? oldPermissions.secretary;
         newPermissions["changeHistory"] =
@@ -1172,7 +1186,7 @@ export const updateUser = https.onCall(async (data, context) => {
     return "OK";
   }
 
-  throw new https.HttpsError(
+  throw new HttpsError(
     "permission-denied",
     "Must be an approved user with 'manageUsers' permission"
   );

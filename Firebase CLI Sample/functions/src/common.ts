@@ -1,5 +1,5 @@
-import { https, Change } from "firebase-functions";
 import { database } from "firebase-admin";
+import { Change, https } from "firebase-functions";
 
 export async function getFCMTokensForUser(
   uid: string
@@ -10,8 +10,6 @@ export async function getFCMTokensForUser(
       .once("value")
   ).val();
   if (token === null || token === undefined) return [];
-  console.log(token);
-  console.log(Object.getOwnPropertyNames(token));
   return Object.getOwnPropertyNames(token);
 }
 

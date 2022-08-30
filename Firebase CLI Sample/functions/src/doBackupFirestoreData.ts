@@ -1,7 +1,6 @@
-import { pubsub, runWith } from "firebase-functions";
-import { storage, firestore } from "firebase-admin";
 import { FieldValue, v1 } from "@google-cloud/firestore";
-
+import { firestore, storage } from "firebase-admin";
+import { pubsub, runWith } from "firebase-functions";
 export const doBackupFirestoreData = runWith({
   timeoutSeconds: 540,
   memory: "1GB",

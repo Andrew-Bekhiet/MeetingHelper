@@ -1,15 +1,21 @@
-import { firestore as firestore_1 } from "firebase-functions";
-
-import { firestore, storage } from "firebase-admin";
 import {
-  Timestamp,
-  FieldValue,
   DocumentReference,
+  FieldValue,
+  Timestamp,
 } from "@google-cloud/firestore";
+import { firestore, storage } from "firebase-admin";
 import { FirebaseDynamicLinks } from "firebase-dynamic-links";
-
+// import { region } from "firebase-functions";
+import { firestore as firestore_1 } from "firebase-functions";
+import {
+  firebase_dynamic_links_key,
+  firebase_dynamic_links_prefix,
+  packageName,
+  projectId,
+} from "./adminPassword";
 import { getChangeType } from "./common";
-import { firebase_dynamic_links_key, projectId } from "./adminPassword";
+
+// const firestore_1 = region("europe-west1").firestore;
 
 export const onClassUpdated = firestore_1
   .document("Classes/{class}")
@@ -302,6 +308,7 @@ export const onPersonUpdated = firestore_1
 
       if (
         getChangeType(change) === "update" &&
+        change.after.data()?.ClassId &&
         (!(change.after.data()?.ClassId as DocumentReference).isEqual(
           change.before.data()?.ClassId
         ) ||
@@ -476,6 +483,7 @@ export const onUserUpdated = firestore_1
 
       if (
         getChangeType(change) === "update" &&
+        change.after.data()?.ClassId &&
         (!(change.after.data()?.ClassId as DocumentReference).isEqual(
           change.before.data()?.ClassId
         ) ||
@@ -735,11 +743,11 @@ export const onInvitationCreated = firestore_1
       Link: (
         await new FirebaseDynamicLinks(firebase_dynamic_links_key).createLink({
           dynamicLinkInfo: {
-            domainUriPrefix: "https://meetinghelper.page.link",
+            domainUriPrefix: firebase_dynamic_links_prefix,
             link:
               "https://meetinghelper.com/register?InvitationId=" + change.id,
             androidInfo: {
-              androidPackageName: "com.AndroidQuartz.meetinghelper",
+              androidPackageName: packageName,
               androidFallbackLink:
                 "https://github.com/Andrew-Bekhiet/MeetingHelper/releases/",
               androidMinPackageVersionCode: "3",

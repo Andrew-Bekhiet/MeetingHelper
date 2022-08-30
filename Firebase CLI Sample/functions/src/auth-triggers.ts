@@ -1,9 +1,15 @@
-import { auth as auth_1 } from "firebase-functions";
-
-import { firestore, database, storage, messaging, auth } from "firebase-admin";
 import { FieldValue } from "@google-cloud/firestore";
 import * as download from "download";
-import { projectId } from "./adminPassword";
+import { auth, database, firestore, messaging, storage } from "firebase-admin";
+// import { region } from "firebase-functions";
+import { auth as auth_1 } from "firebase-functions";
+import {
+  firebase_dynamic_links_prefix,
+  packageName,
+  projectId,
+} from "./adminPassword";
+
+// const auth_1 = region("europe-west1").auth;
 
 export const onUserSignUp = auth_1.user().onCreate(async (user) => {
   let customClaims: Record<string, any>;
@@ -17,6 +23,7 @@ export const onUserSignUp = auth_1.user().onCreate(async (user) => {
       manageDeleted: true, //Can read deleted items and restore them
       superAccess: true, //Can read everything
       write: true, //Can write avalibale data
+      recordHistory: true, //Can record persons history
       secretary: true, //Can write servants history
       changeHistory: true, //Can edit old history
       export: true, //Can Export individual Classes to Excel sheet
@@ -41,6 +48,7 @@ export const onUserSignUp = auth_1.user().onCreate(async (user) => {
       manageDeleted: false, //Can read deleted items and restore them
       superAccess: false, //Can read everything
       write: true, //Can write avalibale data
+      recordHistory: false,
       secretary: false, //Can write servants history
       changeHistory: false,
       export: true, //Can Export individual Classes to Excel sheet
@@ -73,14 +81,15 @@ export const onUserSignUp = auth_1.user().onCreate(async (user) => {
         type: "ManagingUsers",
         title: "قام " + user.displayName + " بتسجيل حساب بالبرنامج",
         content: "",
-        attachement: "https://meetinghelper.page.link/viewUser?UID=" + user.uid,
+        attachement:
+          firebase_dynamic_links_prefix + "/viewUser?UID=" + user.uid,
         time: String(Date.now()),
       },
     },
     {
       priority: "high",
       timeToLive: 24 * 60 * 60,
-      restrictedPackageName: "com.AndroidQuartz.meetinghelper",
+      restrictedPackageName: packageName,
     }
   );
   await doc.set({
@@ -97,6 +106,7 @@ export const onUserSignUp = auth_1.user().onCreate(async (user) => {
       ManageDeleted: customClaims.manageDeleted,
       SuperAccess: customClaims.superAccess,
       Write: customClaims.write,
+      RecordHistory: customClaims.recordHistory,
       Secretary: customClaims.secretary,
       ChangeHistory: customClaims.changeHistory,
       Export: customClaims.export,
@@ -114,6 +124,7 @@ export const onUserSignUp = auth_1.user().onCreate(async (user) => {
     .ref()
     .child("Users/" + user.uid + "/forceRefresh")
     .set(true);
+
   await download(user.photoURL!, "/tmp/", { filename: user.uid + ".jpg" });
   await storage()
     .bucket("gs://" + projectId + ".appspot.com")
