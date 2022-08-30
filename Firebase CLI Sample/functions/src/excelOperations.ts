@@ -1,14 +1,14 @@
 import { runWith } from "firebase-functions";
 import { HttpsError } from "firebase-functions/lib/providers/https";
 
-import { auth, firestore, storage } from "firebase-admin";
 import { Timestamp } from "@google-cloud/firestore";
+import { auth, firestore, storage } from "firebase-admin";
 
-import { utils, writeFile, readFile } from "xlsx";
 import * as download from "download";
+import { readFile, utils, writeFile } from "xlsx";
 
-import { assertNotEmpty } from "./common";
 import { projectId } from "./adminPassword";
+import { assertNotEmpty } from "./common";
 
 export const exportToExcel = runWith({
   memory: "512MB",
@@ -131,20 +131,22 @@ export const exportToExcel = runWith({
     rslt["Study Years: From"] =
       studyYears[
         (
-          _serviceData["StudyYearRange"]["From"] as firestore.DocumentReference
+          _serviceData["StudyYearRange"]?.[
+            "From"
+          ] as firestore.DocumentReference
         )?.id
       ];
     rslt["Study Years: To"] =
       studyYears[
         (
-          _serviceData["StudyYearRange"]["To"] as firestore.DocumentReference
+          _serviceData["StudyYearRange"]?.["To"] as firestore.DocumentReference
         )?.id
       ];
     rslt["Validity: From"] = (
-      _serviceData["Validity"]["From"] as firestore.Timestamp
+      _serviceData["Validity"]?.["From"] as firestore.Timestamp
     )?.toDate();
     rslt["Validity: To"] = (
-      _serviceData["Validity"]["To"] as firestore.Timestamp
+      _serviceData["Validity"]?.["To"] as firestore.Timestamp
     )?.toDate();
 
     rslt["Last Edit"] = users[_serviceData["LastEdit"]]
@@ -555,9 +557,9 @@ export const importFromExcel = runWith({
           .doc(person["ClassId"] as string);
 
         rslt["Name"] = person["Name"] ?? "{بلا اسم}";
-        rslt["Phone"] = person["Phone Number"] ?? null;
-        rslt["FatherPhone"] = person["Father Phone Number"] ?? null;
-        rslt["MotherPhone"] = person["Mother Phone Number"] ?? null;
+        rslt["Phone"] = person["Phone Number"]?.toString() ?? null;
+        rslt["FatherPhone"] = person["Father Phone Number"]?.toString() ?? null;
+        rslt["MotherPhone"] = person["Mother Phone Number"]?.toString() ?? null;
         rslt["Phones"] = {};
         rslt["Services"] =
           person["Services"] !== null &&
@@ -571,7 +573,9 @@ export const importFromExcel = runWith({
         rslt["Address"] = person["Address"] ?? "";
         rslt["Color"] = person["Color"] ?? 0;
         if (person["Birth Date"] !== "" && person["Birth Date"]) {
-          const _birthDay = dateFromExcelSerial(person["Birth Date"] as number);
+          const _birthDay = dateFromExcelSerial(
+            person["Birth Date"] as number | string
+          );
           rslt["BirthDate"] = Timestamp.fromDate(_birthDay);
           _birthDay.setFullYear(1970);
           rslt["BirthDay"] = Timestamp.fromDate(_birthDay);
@@ -597,15 +601,27 @@ export const importFromExcel = runWith({
               Number.parseFloat((person["Location"] as string).split(",")[0])
             )
           : null;
-        rslt["School"] = firestore()
-          .collection("Schools")
-          .doc(schools[person["School"] as string] ?? "null");
-        rslt["Church"] = firestore()
-          .collection("Churches")
-          .doc(churches[person["Church"] as string] ?? "null");
-        rslt["CFather"] = firestore()
-          .collection("Fathers")
-          .doc(cfathers[person["Confession Father"] as string] ?? "null");
+        rslt["School"] =
+          schools[person["School"] as string] != null &&
+          schools[person["School"] as string] != ""
+            ? firestore()
+                .collection("Schools")
+                .doc(schools[person["School"] as string])
+            : null;
+        rslt["Church"] =
+          schools[person["Church"] as string] != null &&
+          schools[person["Church"] as string] != ""
+            ? firestore()
+                .collection("Churches")
+                .doc(churches[person["Church"] as string])
+            : null;
+        rslt["CFather"] =
+          schools[person["Confession Father"] as string] != null &&
+          schools[person["Confession Father"] as string] != ""
+            ? firestore()
+                .collection("Fathers")
+                .doc(cfathers[person["Confession Father"] as string])
+            : null;
 
         setTimestampProp("LastTanawol", "Last Tanawol");
         setTimestampProp("LastConfession", "Last Confession");
@@ -704,19 +720,30 @@ export const importFromExcel = runWith({
   return "OK";
 });
 
-function dateFromExcelSerial(param: number): Date {
-  let date = param;
-  if (date > 59) --date;
-  return new Date(
-    1970,
-    1,
-    date - 25568,
-    0,
-    0,
-    Math.round(
-      Math.ceil(date < 1.0 ? date : date % Math.floor(date)) * 24 * 60 * 60
-    )
-  );
+function dateFromExcelSerial(param: number | string): Date {
+  if (typeof param === "number") {
+    let date = param;
+    if (date > 59) --date;
+    return new Date(
+      1970,
+      1,
+      date - 25568,
+      0,
+      0,
+      Math.round(
+        Math.ceil(date < 1.0 ? date : date % Math.floor(date)) * 24 * 60 * 60
+      )
+    );
+  } else
+    return new Date(param).toString() == "Invalid Date"
+      ? new Date(
+          param.split("/")[2] +
+            "-" +
+            param.split("/")[1] +
+            "-" +
+            param.split("/")[0]
+        )
+      : new Date(param);
 }
 
 function split<T>(arry: Array<T>, length: number): Array<Array<T>> {
