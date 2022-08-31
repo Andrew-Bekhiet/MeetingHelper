@@ -191,9 +191,9 @@ class _MHMapViewState extends State<MHMapView> {
                                               : p.color,
                                       action: SnackBarAction(
                                         label: 'فتح',
-                                        onPressed: () => GetIt.I<
-                                                MHViewableObjectTapHandler>()
-                                            .personTap(p),
+                                        onPressed: () =>
+                                            GetIt.I<MHViewableObjectService>()
+                                                .personTap(p),
                                       ),
                                     ),
                                   );

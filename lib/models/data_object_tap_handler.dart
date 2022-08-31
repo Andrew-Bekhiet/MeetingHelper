@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/models.dart';
 
-class MHViewableObjectTapHandler extends DefaultViewableObjectTapHandler {
-  MHViewableObjectTapHandler(super.navigatorKey);
+class MHViewableObjectService extends DefaultViewableObjectService {
+  MHViewableObjectService(super.navigatorKey);
 
   ScaffoldMessengerState get scaffoldMessenger =>
       ScaffoldMessenger.of(navigatorKey.currentContext!);

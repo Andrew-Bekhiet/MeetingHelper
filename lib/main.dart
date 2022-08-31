@@ -111,10 +111,10 @@ Future<void> initMeetingHelper() async {
     },
   );
 
-  final mhDataObjectTapHandler = MHViewableObjectTapHandler(navigator);
-  GetIt.I.registerSingleton<DefaultViewableObjectTapHandler>(
-      mhDataObjectTapHandler);
-  GetIt.I.registerSingleton<MHViewableObjectTapHandler>(mhDataObjectTapHandler);
+  final mhDataObjectTapHandler = MHViewableObjectService(navigator);
+  GetIt.I
+      .registerSingleton<DefaultViewableObjectService>(mhDataObjectTapHandler);
+  GetIt.I.registerSingleton<MHViewableObjectService>(mhDataObjectTapHandler);
 
   if (kDebugMode) {
     final devBox = await Hive.openBox('Dev');

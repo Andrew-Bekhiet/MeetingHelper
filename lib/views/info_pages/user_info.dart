@@ -70,7 +70,7 @@ class _UserInfoState extends State<UserInfo> {
                   IconButton(
                     icon: const Icon(Icons.info),
                     onPressed: () {
-                      GetIt.I<MHViewableObjectTapHandler>().personTap(user);
+                      GetIt.I<MHViewableObjectService>().personTap(user);
                     },
                     tooltip: 'بيانات المستخدم',
                   ),

@@ -68,7 +68,7 @@ class _UsersPageState extends State<UsersPage> {
       body: DataObjectListView<Class?, UserWithPerson>(
         autoDisposeController: true,
         controller: _listOptions,
-        onTap: GetIt.I<MHViewableObjectTapHandler>().userTap,
+        onTap: GetIt.I<MHViewableObjectService>().userTap,
       ),
     );
   }

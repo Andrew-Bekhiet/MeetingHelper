@@ -54,8 +54,8 @@ void main() {
 
         navigator = GlobalKey();
 
-        GetIt.I.registerSingleton<MHViewableObjectTapHandler>(
-            MHViewableObjectTapHandler(navigator));
+        GetIt.I.registerSingleton<MHViewableObjectService>(
+            MHViewableObjectService(navigator));
 
         HivePersistenceProvider.instance =
             AllCompletedHivePersistenceProvider();

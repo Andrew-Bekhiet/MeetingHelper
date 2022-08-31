@@ -231,7 +231,7 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
         onTap: (current) async {
           if (!_listController.dayOptions.enabled.value) {
             widget.onTap == null
-                ? GetIt.I<MHViewableObjectTapHandler>().onTap(current)
+                ? GetIt.I<MHViewableObjectService>().onTap(current)
                 : widget.onTap!(current);
           } else {
             if (!_listController.dayOptions.lockUnchecks.value) {
@@ -424,7 +424,7 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
               TextButton(
                 onPressed: () {
                   navigator.currentState!.pop();
-                  GetIt.I<MHViewableObjectTapHandler>().onTap(current);
+                  GetIt.I<MHViewableObjectService>().onTap(current);
                 },
                 child: Text('عرض بيانات ' + current.name),
               ),

@@ -73,7 +73,7 @@ class MHNotificationsService extends NotificationsService {
   }) async {
     if (notification.type == NotificationType.LocalNotification &&
         notification.additionalData?['Query'] != null) {
-      return GetIt.I<MHViewableObjectTapHandler>().onTap(
+      return GetIt.I<MHViewableObjectService>().onTap(
         QueryInfo.fromJson(
           (notification.additionalData!['Query'] as Map).cast(),
         ),

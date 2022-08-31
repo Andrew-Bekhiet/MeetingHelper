@@ -141,7 +141,7 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
                         onTap: () {
                           if (widget.options.currentSelection == null) {
                             widget.onTap == null
-                                ? GetIt.I<MHViewableObjectTapHandler>().onTap(c)
+                                ? GetIt.I<MHViewableObjectService>().onTap(c)
                                 : widget.onTap!(c);
                           } else {
                             widget.options.toggleSelected(c);
@@ -242,7 +242,7 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
                             onTap: () {
                               if (widget.options.currentSelection == null) {
                                 widget.onTap == null
-                                    ? GetIt.I<MHViewableObjectTapHandler>()
+                                    ? GetIt.I<MHViewableObjectService>()
                                         .onTap(c)
                                     : widget.onTap!(c);
                               } else {
@@ -308,7 +308,7 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
                   onTap: () {
                     if (widget.options.currentSelection == null) {
                       widget.onTap == null
-                          ? GetIt.I<MHViewableObjectTapHandler>()
+                          ? GetIt.I<MHViewableObjectService>()
                               .onTap(services.data![studyYear]![0])
                           : widget.onTap!(services.data![studyYear]![0]);
                     } else {

@@ -364,7 +364,7 @@ class _RootState extends State<Root>
               key: const PageStorageKey('mainUsersList'),
               autoDisposeController: false,
               controller: _usersOptions,
-              onTap: GetIt.I<MHViewableObjectTapHandler>().personTap,
+              onTap: GetIt.I<MHViewableObjectService>().personTap,
             ),
           ServicesList(
             key: const PageStorageKey('mainClassesList'),
@@ -1091,7 +1091,7 @@ class _RootState extends State<Root>
         final object =
             await MHDatabaseRepo.I.getObjectFromLink(dynamicLink.link);
 
-        if (object != null) GetIt.I<MHViewableObjectTapHandler>().onTap(object);
+        if (object != null) GetIt.I<MHViewableObjectService>().onTap(object);
       },
       onError: (e) async {
         debugPrint('DynamicLinks onError $e');
@@ -1100,7 +1100,7 @@ class _RootState extends State<Root>
     if (data == null) return;
 
     final object = await MHDatabaseRepo.I.getObjectFromLink(data.link);
-    if (object != null) GetIt.I<MHViewableObjectTapHandler>().onTap(object);
+    if (object != null) GetIt.I<MHViewableObjectService>().onTap(object);
   }
 
   TargetFocus _getTarget(String key, GlobalKey v) {
