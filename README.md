@@ -1,8 +1,8 @@
 ## Clone the repo or download the code
 
-## Create new Firebase project:
+## Create new Firebase project
 
-- Go to https://console.firebase.google.com/
+- Go to <https://console.firebase.google.com/>
 - Click "Add Project"
 - Choose a project name
 - Click continue
@@ -11,7 +11,7 @@
 - Click "Create Project"
 - Click continue
 
-## Add Android Application:
+## Add Android Application
 
 - Go to Project settings
 - Click on Android icon
@@ -22,9 +22,9 @@
 - Click Next
 - Click Continue to console
 
-## Enable Firebase services:
+## Enable Firebase services
 
-### 1. Firebase Auth:
+### 1. Firebase Auth
 
 - Go to Authentication
 - Click Get Started
@@ -34,7 +34,7 @@
 - Choose support email for the project
 - Click Save
 
-### 2. Firestore Database:
+### 2. Firestore Database
 
 - Go to Firestore Database
 - Click Create database
@@ -42,7 +42,7 @@
 - Choose the project Firestore location: (europe-west6) or any other region that is close to your location
 - Click Enable
 
-### 3. Realtime Database:
+### 3. Realtime Database
 
 - Go to Realtime Database
 - Click Create database
@@ -50,39 +50,11 @@
 - Click Next
 - Click Enable
 
-### 4. Storage:
+### 4. Storage
 
 - At this point Firebase Storage should be automatically enabled
 
-### 5. Remote Config:
-
-- Go to Remote Config
-- Click Create configuration
-- Add a key and name it "LoadApp" and give it a default value of false
-- Click Add new -> Conditional Value -> Create new condition
-- Name it "Android version check"
-- Choose from "Applies if..." -> App
-- Select the android app
-- Click "and"
-- Select "Version"
-- Select operator: >=
-- Select versions
-- Enter "6.0.0" in search additional options
-- Click "Create value 6.0.0
-- Click "Create condition"
-- In the value field under the "Android version check" condition, type true
-- Click Save
-- Click add parameter
-- Name the parameter "DownloadLink" and leave it empty for now
-  > This would be used if a new version is available
-- Click save
-- Click add parameter
-- Name the parameter "LatestVersion" and give it a value of "6.0.0"
-- Click save
-- Click Publish Changes
-- Click Publish Changes
-
-### 6. Dynamic Links:
+### 5. Dynamic Links
 
 - Go to Dynamic Links
 - Click Get Started
@@ -96,7 +68,7 @@
   - ^https://meetinghelper\.com/viewUser\?UID\=.+$
   - ^https://meetinghelper\.com/register\?InvitationId\=.+$
 - Click Done
-- Go to https://console.cloud.google.com/apis/credentials
+- Go to <https://console.cloud.google.com/apis/credentials>
 - Click on Create Credentails and choose API Key
 - Copy the key and click Restirct Key
 - Rename the key to Firebase Dynamic Links API Key
@@ -104,15 +76,15 @@
 - Search for and choose Firebase Dynamic Links API
 - Click Save
 
-### 7. Firebase Functions:
+### 6. Firebase Functions
 
 #### To use Firebase Functions (which is an essential part in the project) you would have to enable billing in the project
 
-### 8. Google Maps API:
+### 8. Google Maps API
 
-- Go to https://console.cloud.google.com/google/maps-apis/new
+- Go to <https://console.cloud.google.com/google/maps-apis/new>
 - Choose and Enable Maps SDK for Android
-- Go to https://console.cloud.google.com/apis/credentials
+- Go to <https://console.cloud.google.com/apis/credentials>
 - Click on Create Credentails and choose API Key
 - Copy the key and click Restirct Key
 - Rename the key to GMaps Android API Key
@@ -122,32 +94,42 @@
 - Create file in `android\app\src\main\res\values\` and name it `strings.xml`
 - Paste in the following snippet replacing Your-Key with the API key:
 
-```
+```xml
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="gmaps_api_key">Your-Key</string>
 </resources>
 ```
 
-### 9. Sentry:
+### 10. Sentry
 
 - Go to sentry.io and create an account
 - Create new project, choose flutter and give it a name (for example "meetinghelper-keraza")
 - Copy the dsn and save it for later use
 
-### 10. Deploying the project:
+### 11. Deploying the project
 
-#### Environment variables:
+#### Environment variables
 
-- Edit `Firebase CLI Sample\functions\src\adminPassword.ts` and change adminPassword
-- Edit firebase_dynamick_links_key to the key you created and copied from the project credentails
-
-#### Setting CORS policy:
-
-- Install gsutil from the link https://cloud.google.com/storage/docs/gsutil_install
-- Create a new file with name: `cors.json` with the following code replacing `projectId` with your actual projectId:
+- Create file `Firebase CLI Sample\functions\.env` and add environment variables
 
 ```
+FB_DYNAMIC_LINKS_KEY=<the key you created and copied from the project credentails>
+FB_DYNAMIC_LINKS_PREFIX=<https://meetinghelper.page.link>
+ADMIN_PASSWORD=p^s$word
+PACKAGE_NAME=com.AndroidQuartz.meetinghelper
+```
+
+- Fill the values that are surrounded by <> without <>
+- Edit the ADMIN_PASSWORD to a strong one
+- Edit PACKAGE_NAME if package name is different
+
+#### Setting CORS policy
+
+- Install gsutil from the link <https://cloud.google.com/storage/docs/gsutil_install>
+- Create a new file with name: `cors.json` with the following code replacing `projectId` with your actual projectId:
+
+```json
 [
   {
     "origin": [
@@ -163,7 +145,7 @@
 
 - Run the command `gsutil cors set cors.json gs://projectId.appspot.com` replacing projectId with your actual projectId
 
-#### Deploying rtdb, firestore, fuctions, and storage:
+#### Deploying rtdb, firestore, fuctions, and storage
 
 - Install Firebase tools using `npm install -g firebase-tools`
 - Using the terminal go to the `Firebase CLI Sample` directory
@@ -177,14 +159,14 @@
 - Choose no: Do you want to use ESLint to catch probable bugs and enforce style?
 - After the command finishes run `firebase deploy`
 
-### 11. Flutter part:
+### 12. Flutter part
 
 - Create file in `lib\utils` and name it `encryption_keys.dart`
 - Paste the following snippet and implement some passowrd encryption Algorithm:
 
-```
+```dart
 class Encryption {
-  static String encPswd(String q) {
+  static String encryptPassword(String rawPassword) {
     //TODO: Encrypt and return encrypted password
   }
 }
@@ -194,7 +176,7 @@ class Encryption {
 - Create file in the root directory and name it `secrets.dart`
 - Paste the following snippet replacing Your-Sentry-DSN with actual DSN:
 
-```
+```dart
 const sentryDSN = 'Your-Sentry-DSN';
 ```
 
@@ -205,11 +187,11 @@ const sentryDSN = 'Your-Sentry-DSN';
 kUseFirebaseEmulators=false
 ```
 
-### 10. Android part:
+### 13. Android part
 
-#### Signatures:
+#### Signatures
 
-##### Creating keys:
+##### Creating keys
 
 - Using Terminal go to `android\app`
 - Run the following command `keytool -genkey -v -keystore dKey.jks -storetype JKS -keyalg RSA -keysize 2048 -validity 10000 -alias debug`
@@ -222,12 +204,12 @@ kUseFirebaseEmulators=false
 - Run the command `keytool -importkeystore -srckeystore rKey.jks -destkeystore rKey.jks -deststoretype pkcs12` then enter the password
 - Rename `dKey.jks` to `dKey.keystore` and `rKey.jks` to `rKey.keystore`
 
-##### Creating keys configurations:
+##### Creating keys configurations
 
 - Go to `android\` and create two files `debugKey.properties` and `releaseKey.properties`
 - Paste the following in debugKey.properties replacing Debug-Password with your password:
 
-```
+```properties
 storePassword=Debug-Password
 keyPassword=Debug-Password
 keyAlias=debug
@@ -236,21 +218,21 @@ storeFile=dKey.keystore
 
 - Paste the following in releaseKey.properties replacing Release-Password with your password:
 
-```
+```properties
 storePassword=Release-Password
 keyPassword=Release-Password
 keyAlias=release
 storeFile=rKey.keystore
 ```
 
-##### Restirecting API using signatures:
+##### Restirecting API using signatures
 
 - Using the Terminal go to `android\app`
 - Run the following command `keytool -list -v -keystore dKey.keystore -alias debug`
 - Copy the SHA1 and SHA256 hashes
 - Run the following command `keytool -list -v -keystore rKey.keystore -alias release`
 - Copy the SHA1 and SHA256 hashes
-- Go to https://console.cloud.google.com/apis/credentials
+- Go to <https://console.cloud.google.com/apis/credentials>
 - Open the GMaps API Key and under applications restirections choose android apps
 - Click on add an item
 - Enter the package name and SHA1 hash for the debug key
@@ -261,9 +243,19 @@ storeFile=rKey.keystore
 - Click Save
 - Repeat these steps on the Android Key (auto created by Firebase)
 
-#### Google services:
+#### Firebase App Check (optional)
 
-- Go to https://console.firebase.google.com/
+> **Note: Firebase App Check is still in Beta support in Flutter**:
+
+- Go to Firebase App Check -> Apps
+- You should find the Android app, click on it
+- Expand Play Integrity, check the app signatures and accept the TOS then click save
+- Expand Safety Net, check the app signatures and accept the TOS then click save
+- Now you can go to APIs tab and enforce the APIs you want
+
+#### Google services
+
+- Go to <https://console.firebase.google.com/>
 - Choose the project
 - Go to project settings
 - Under Android apps and under SHA certificate fingerprints click Add fingerprint
