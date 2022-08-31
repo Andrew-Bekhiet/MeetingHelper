@@ -70,6 +70,14 @@
 
 - At this point Firebase Storage should be automatically enabled
 
+#### Firestore backup bucket
+
+- Go to <https://console.cloud.google.com/storage/browser>
+- Create a new bucket with name "{projectId}-firestore-backup" (example: meetinghelper-cf3db-firestore-backup)
+- Give 'Cloud Datastore Import Export Admin' permission to app engine defualt account
+- Give 'Owner' or 'Storage Admin' permission for the same service account for the created bucket
+   > For more info see [this](https://firebase.google.com/docs/firestore/solutions/schedule-export#configure_access_permissions)
+
 ### 5. Dynamic Links
 
 - Go to Dynamic Links
