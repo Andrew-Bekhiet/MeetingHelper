@@ -1,7 +1,7 @@
 import * as download from "download";
 import { firestore, storage } from "firebase-admin";
 import { runWith } from "firebase-functions";
-import { adminPassword, projectId } from "./adminPassword";
+import { adminPassword, projectId } from "./environment";
 
 export const dumpImages = runWith({
   memory: "512MB",

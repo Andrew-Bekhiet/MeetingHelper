@@ -4,8 +4,8 @@ import { auth, firestore, storage } from "firebase-admin";
 import { runWith } from "firebase-functions";
 import { HttpsError } from "firebase-functions/lib/providers/https";
 import { readFile, utils, writeFile } from "xlsx";
-import { projectId } from "./adminPassword";
 import { assertNotEmpty } from "./common";
+import { projectId } from "./environment";
 
 export const exportToExcel = runWith({
   memory: "512MB",

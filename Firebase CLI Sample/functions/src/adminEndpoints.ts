@@ -1,8 +1,8 @@
 import { FieldValue, Timestamp } from "@google-cloud/firestore";
 import { auth, database, firestore, messaging } from "firebase-admin";
 import { https as _https, /* region,  */ runWith } from "firebase-functions";
-import { adminPassword } from "./adminPassword";
 import { assertNotEmpty, getFCMTokensForUser } from "./common";
+import { adminPassword } from "./environment";
 
 // const https = region("europe-west1").https;
 const https = _https;

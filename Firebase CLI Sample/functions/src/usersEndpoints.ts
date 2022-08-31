@@ -7,13 +7,13 @@ import * as download from "download";
 import { auth, database, firestore, messaging, storage } from "firebase-admin";
 import { https as _https /* , region */ } from "firebase-functions";
 import * as nf from "node-fetch";
+import { assertNotEmpty, getFCMTokensForUser } from "./common";
 import {
   adminPassword,
   firebase_dynamic_links_prefix,
   packageName,
   projectId,
-} from "./adminPassword";
-import { assertNotEmpty, getFCMTokensForUser } from "./common";
+} from "./environment";
 
 // const https = region("europe-west1").https;
 const https = _https;

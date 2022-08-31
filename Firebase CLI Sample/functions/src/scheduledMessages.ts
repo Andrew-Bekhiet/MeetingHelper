@@ -1,8 +1,8 @@
 import { auth, messaging } from "firebase-admin";
 // import { region } from "firebase-functions";
 import { pubsub } from "firebase-functions";
-import { firebase_dynamic_links_prefix, packageName } from "./adminPassword";
 import { getFCMTokensForUser } from "./common";
+import { firebase_dynamic_links_prefix, packageName } from "./environment";
 
 // const pubsub = region("europe-west1").pubsub;
 

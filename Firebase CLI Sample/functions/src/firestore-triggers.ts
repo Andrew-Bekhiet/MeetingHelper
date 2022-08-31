@@ -7,13 +7,13 @@ import { firestore, storage } from "firebase-admin";
 import { FirebaseDynamicLinks } from "firebase-dynamic-links";
 // import { region } from "firebase-functions";
 import { firestore as firestore_1 } from "firebase-functions";
+import { getChangeType } from "./common";
 import {
   firebase_dynamic_links_key,
   firebase_dynamic_links_prefix,
   packageName,
   projectId,
-} from "./adminPassword";
-import { getChangeType } from "./common";
+} from "./environment";
 
 // const firestore_1 = region("europe-west1").firestore;
 

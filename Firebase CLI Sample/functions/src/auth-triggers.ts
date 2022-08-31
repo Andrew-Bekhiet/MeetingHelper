@@ -7,7 +7,7 @@ import {
   firebase_dynamic_links_prefix,
   packageName,
   projectId,
-} from "./adminPassword";
+} from "./environment";
 
 // const auth_1 = region("europe-west1").auth;
 

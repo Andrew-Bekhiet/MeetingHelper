@@ -1,6 +1,6 @@
 import { auth, firestore } from "firebase-admin";
 import { https as _https /* , region */ } from "firebase-functions";
-import { adminPassword } from "./adminPassword";
+import { adminPassword } from "./environment";
 
 // const https = region("europe-west1").https;
 const https = _https;
