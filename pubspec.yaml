@@ -10,10 +10,10 @@ environment:
   sdk: ">=2.17.0 <3.0.0"
 
 dependency_overrides:
-  churchdata_core:
-    path: ../churchdata_core
-  churchdata_core_mocks:
-    path: ../churchdata_core_mocks
+  # churchdata_core:
+  #   path: ../churchdata_core
+  # churchdata_core_mocks:
+  #   path: ../churchdata_core_mocks
   firebase_storage_mocks: ^0.5.1
 
 dependencies:
