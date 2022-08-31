@@ -51,6 +51,20 @@
 - Choose the database location: Belgium (europe-west1) or any other region that is close to your location
 - Click Next
 - Click Enable
+- Add the following data to the database:
+
+```jsonc
+{
+  "config": {
+    "updates": {
+      "latest_version": "8.2.5", //Fill in app latest version
+      "deprecated_from": "7.1.9",
+      "download_link": "", //Fill in download link
+      "release_notes": "" //Fill in release notes link
+    }
+  }
+}
+```
 
 ### 4. Storage
 
@@ -111,6 +125,18 @@
 
 ### 11. Deploying the project
 
+#### Password Encryption
+
+- Create file `Firebase CLI Sample\functions\src\passwordEncryption.ts`
+- Paste the following snippet and implement some passowrd encryption Algorithm:
+
+```ts
+export function encryptPassword(rawPassword: string): string {
+  //TODO: implement password encryption algorithm, same as front-end
+  return rawPassword.split("").reverse().join("");
+}
+```
+
 #### Environment variables
 
 - Create file `Firebase CLI Sample\functions\.env` and add environment variables
@@ -169,7 +195,8 @@ PACKAGE_NAME=com.AndroidQuartz.meetinghelper
 ```dart
 class Encryption {
   static String encryptPassword(String rawPassword) {
-    //TODO: Encrypt and return encrypted password
+    //TODO: implement password encryption algorithm, same as back-end
+    return rawPassword.split('').reversed.join();
   }
 }
 
