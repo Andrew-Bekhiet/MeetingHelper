@@ -1,8 +1,8 @@
-export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-export const FIREBASE_DYNAMIC_LINKS_KEY =
+export const adminPassword = process.env.ADMIN_PASSWORD;
+export const firebase_dynamic_links_key =
   process.env.FIREBASE_DYNAMIC_LINKS_KEY!;
-export const PROJECT_ID = process.env.GCP_PROJECT || process.env.GCLOUD_PROJECT;
-export const PACKAGE_NAME =
+export const projectId = process.env.GCP_PROJECT || process.env.GCLOUD_PROJECT;
+export const packageName =
   process.env.PACKAGE_NAME ?? "com.AndroidQuartz.meetinghelper";
-export const FIREBASE_DYNAMIC_LINKS_PREFIX =
+export const firebase_dynamic_links_prefix =
   process.env.FIREBASE_DYNAMIC_LINKS_PREFIX!;
