@@ -14,6 +14,7 @@ import {
   packageName,
   projectId,
 } from "./environment";
+import { encryptPassword } from "./passwordEncryption";
 
 // const https = region("europe-west1").https;
 const https = _https;
@@ -410,10 +411,9 @@ export const changePassword = https.onCall(async (data, context) => {
       data.oldPassword ||
       (currentUser.customClaims?.password === null && data.oldPassword === null)
     ) {
-      //TODO: implement Encryption algorithm
       if (
         currentUser.customClaims?.password &&
-        encryptedPassword !== actualPassword
+        encryptPassword(data.oldPassword) !== currentUser.customClaims?.password
       ) {
         throw new HttpsError("permission-denied", "Old Password is incorrect");
       }
