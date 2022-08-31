@@ -1,3 +1,5 @@
+# Meeting Helper: Installing
+
 ## Clone the repo or download the code
 
 ## Create new Firebase project
@@ -113,7 +115,7 @@
 
 - Create file `Firebase CLI Sample\functions\.env` and add environment variables
 
-```
+```env
 FB_DYNAMIC_LINKS_KEY=<the key you created and copied from the project credentails>
 FB_DYNAMIC_LINKS_PREFIX=<https://meetinghelper.page.link>
 ADMIN_PASSWORD=p^s$word
@@ -183,7 +185,7 @@ const sentryDSN = 'Your-Sentry-DSN';
 - Create file in the root directory and name it `.env`
 - Paste in the following code:
 
-```
+```env
 kUseFirebaseEmulators=false
 ```
 
