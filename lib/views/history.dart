@@ -9,9 +9,9 @@ import 'package:rxdart/rxdart.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 class History extends StatefulWidget {
-  final bool iServantsHistory;
+  final bool isServantsHistory;
   const History({
-    required this.iServantsHistory,
+    required this.isServantsHistory,
     super.key,
   });
 
@@ -28,7 +28,7 @@ class _HistoryState extends State<History> {
   late final BehaviorSubject<QueryOfJson> query =
       BehaviorSubject.seeded(getOriginalQuery());
   late final ListController<void, HistoryDayBase> _listController =
-      widget.iServantsHistory
+      widget.isServantsHistory
           ? ListController<void, ServantsHistoryDay>(
               objectsPaginatableStream: PaginatableStream(
                 query: query,
@@ -129,7 +129,7 @@ class _HistoryState extends State<History> {
                   query.add(
                     GetIt.I<DatabaseRepository>()
                         .collection(
-                            (widget.iServantsHistory ? 'Servants' : '') +
+                            (widget.isServantsHistory ? 'Servants' : '') +
                                 'History')
                         .orderBy('Day', descending: true)
                         .where('Day',
@@ -151,7 +151,8 @@ class _HistoryState extends State<History> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => navigator.currentState!.pushNamed('Day'),
+        onPressed: () => navigator.currentState!
+            .pushNamed((widget.isServantsHistory ? 'Servants' : '') + 'Day'),
         child: const Icon(Icons.add),
       ),
       bottomNavigationBar: BottomAppBar(
@@ -171,7 +172,7 @@ class _HistoryState extends State<History> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
       extendBody: true,
-      body: widget.iServantsHistory
+      body: widget.isServantsHistory
           ? DataObjectListView<void, ServantsHistoryDay>(
               autoDisposeController: true,
               controller:
@@ -224,7 +225,7 @@ class _HistoryState extends State<History> {
   }
 
   QueryOfJson getOriginalQuery() {
-    return widget.iServantsHistory
+    return widget.isServantsHistory
         ? GetIt.I<DatabaseRepository>()
             .collection('ServantsHistory')
             .orderBy('Day', descending: true)

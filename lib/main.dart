@@ -357,10 +357,10 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
               }
             },
             'Trash': (context) => const Trash(),
-            'History': (context) => const History(iServantsHistory: false),
+            'History': (context) => const History(isServantsHistory: false),
             'ExportOps': (context) => const Exports(),
             'ServantsHistory': (context) =>
-                const History(iServantsHistory: true),
+                const History(isServantsHistory: true),
             'MyAccount': (context) => const MyAccount(),
             'Notifications': (context) => const NotificationsPage(),
             'ClassInfo': (context) => ClassInfo(
