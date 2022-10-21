@@ -337,7 +337,11 @@ class _EditClassState extends State<EditClass> {
   @override
   void initState() {
     super.initState();
-    class$ = (widget.class$ ?? Class.empty()).copyWith();
+    class$ = (widget.class$ ??
+            Class.empty().copyWith(
+              allowedUsers: [User.instance.uid],
+            ))
+        .copyWith();
   }
 
   void nameChanged(String value) {
