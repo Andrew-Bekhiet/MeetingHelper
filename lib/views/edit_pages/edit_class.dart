@@ -194,7 +194,7 @@ class _EditClassState extends State<EditClass> {
                   ElevatedButton.icon(
                     style: class$.color != Colors.transparent
                         ? ElevatedButton.styleFrom(
-                            primary:
+                            backgroundColor:
                                 Theme.of(context).brightness == Brightness.light
                                     ? class$.color?.lighten()
                                     : class$.color?.darken(),
@@ -209,7 +209,7 @@ class _EditClassState extends State<EditClass> {
                     ElevatedButton.icon(
                       style: class$.color != Colors.transparent
                           ? ElevatedButton.styleFrom(
-                              primary: Theme.of(context).brightness ==
+                              backgroundColor: Theme.of(context).brightness ==
                                       Brightness.light
                                   ? class$.color?.lighten()
                                   : class$.color?.darken(),

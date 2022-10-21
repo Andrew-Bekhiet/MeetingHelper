@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:churchdata_core/churchdata_core.dart';
-import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
@@ -421,7 +420,7 @@ class HistoryDayOptions {
         showOnly = BehaviorSubject<bool?>.seeded(showOnly);
 
   @override
-  int get hashCode => hashValues(showOnly.value, grouped.value, enabled.value);
+  int get hashCode => Object.hash(showOnly.value, grouped.value, enabled.value);
 
   @override
   bool operator ==(dynamic other) =>

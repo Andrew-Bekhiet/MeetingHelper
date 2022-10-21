@@ -178,12 +178,12 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
                 child: ExpandablePanel(
                   collapsed: Container(),
                   controller:
-                      _controllers[hashValues(index.index, index.section)] ??=
+                      _controllers[Object.hash(index.index, index.section)] ??=
                           ExpandableController(),
                   header: Card(
                     child: ListTile(
                       onTap: () =>
-                          _controllers[hashValues(index.index, index.section)]!
+                          _controllers[Object.hash(index.index, index.section)]!
                               .toggle(),
                       leading: const Icon(Icons.miscellaneous_services),
                       title: Text(studyYear.name),

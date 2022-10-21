@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
@@ -9,6 +8,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:get_it/get_it.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
@@ -837,15 +837,18 @@ Future<void> takeScreenshot(GlobalKey key) async {
       final ByteData byteData =
           (await image.toByteData(format: ui.ImageByteFormat.png))!;
       final Uint8List pngBytes = byteData.buffer.asUint8List();
-      await Share.shareFiles(
-        [
-          (await (await File((await getApplicationDocumentsDirectory()).path +
-                          DateTime.now().millisecondsSinceEpoch.toString() +
-                          '.png')
-                      .create())
-                  .writeAsBytes(pngBytes.toList()))
-              .path
-        ],
+
+      final directory = await getApplicationDocumentsDirectory();
+
+      final path = directory.path +
+          DateTime.now().millisecondsSinceEpoch.toString() +
+          '.png';
+      await XFile.fromData(
+        Uint8List.fromList(pngBytes.toList()),
+      ).saveTo(path);
+
+      await Share.shareXFiles(
+        [XFile(path)],
       );
     },
   );

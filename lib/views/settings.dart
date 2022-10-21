@@ -1,6 +1,5 @@
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:churchdata_core/churchdata_core.dart';
-import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -324,13 +323,9 @@ class SettingsState extends State<Settings> {
             children: <Widget>[
               const Text('التذكير بأعياد الميلاد كل يوم الساعة: '),
               Expanded(
-                child: DateTimeField(
-                  format: DateFormat(
-                      'h:m' +
-                          (MediaQuery.of(context).alwaysUse24HourFormat
-                              ? ''
-                              : ' a'),
-                      'ar-EG'),
+                child: TappableFormField<DateTime?>(
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  decoration: (context, state) => const InputDecoration(),
                   initialValue: DateTime(
                     2021,
                     1,
@@ -348,18 +343,34 @@ class SettingsState extends State<Settings> {
                         )!
                         .minutes,
                   ),
-                  resetIcon: null,
-                  onShowPicker: (context, initialValue) async {
+                  onTap: (state) async {
                     final selected = await showTimePicker(
-                      initialTime: TimeOfDay.fromDateTime(initialValue!),
+                      initialTime: TimeOfDay.fromDateTime(state.value!),
                       context: context,
                     );
-                    return DateTime(
+                    state.didChange(
+                      DateTime(
                         2020,
                         1,
                         1,
-                        selected?.hour ?? initialValue.hour,
-                        selected?.minute ?? initialValue.minute);
+                        selected?.hour ?? state.value!.hour,
+                        selected?.minute ?? state.value!.minute,
+                      ),
+                    );
+                  },
+                  builder: (context, state) {
+                    return state.value != null
+                        ? Text(
+                            DateFormat(
+                                    'h:m' +
+                                        (MediaQuery.of(context)
+                                                .alwaysUse24HourFormat
+                                            ? ''
+                                            : ' a'),
+                                    'ar-EG')
+                                .format(state.value!),
+                          )
+                        : null;
                   },
                   onSaved: (value) async {
                     final current = notificationsSettings.get(

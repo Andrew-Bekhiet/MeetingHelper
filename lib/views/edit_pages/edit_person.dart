@@ -1036,7 +1036,7 @@ class _EditPersonState extends State<EditPerson> {
                   ElevatedButton.icon(
                     style: person.color != Colors.transparent
                         ? ElevatedButton.styleFrom(
-                            primary:
+                            backgroundColor:
                                 Theme.of(context).brightness == Brightness.light
                                     ? person.color?.lighten()
                                     : person.color?.darken(),
@@ -1368,9 +1368,11 @@ class _EditPersonState extends State<EditPerson> {
                 ? FloatingActionButton(
                     onPressed: () async {
                       navigator.currentState!.pop();
-                      person = person.copyWith.classId(navigator.currentState!
-                              .pushNamed('Data/EditClass') as JsonRef? ??
-                          person.classId);
+                      person = person.copyWith.classId(
+                        await navigator.currentState!
+                                .pushNamed('Data/EditClass') as JsonRef? ??
+                            person.classId,
+                      );
                       state.didChange(person.classId);
                     },
                     child: const Icon(Icons.group_add),

@@ -8,7 +8,6 @@ import 'package:meetinghelper/utils/helpers.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../exceptions/unsupported_version_exception.dart';
-import '../utils/helpers.dart';
 
 class Loading extends StatelessWidget {
   final Object? exception;

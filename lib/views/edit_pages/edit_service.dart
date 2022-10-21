@@ -300,7 +300,7 @@ class _EditServiceState extends State<EditService> {
                   ElevatedButton.icon(
                     style: service.color != Colors.transparent
                         ? ElevatedButton.styleFrom(
-                            primary:
+                            backgroundColor:
                                 Theme.of(context).brightness == Brightness.light
                                     ? service.color?.lighten()
                                     : service.color?.darken(),
@@ -315,7 +315,7 @@ class _EditServiceState extends State<EditService> {
                     ElevatedButton.icon(
                       style: service.color != Colors.transparent
                           ? ElevatedButton.styleFrom(
-                              primary: Theme.of(context).brightness ==
+                              backgroundColor: Theme.of(context).brightness ==
                                       Brightness.light
                                   ? service.color?.lighten()
                                   : service.color?.darken(),

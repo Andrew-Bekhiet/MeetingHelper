@@ -104,20 +104,12 @@ class MHDatabaseRepo extends DatabaseRepository {
     );
   }
 
-  Future<List<Polygon>> getAllAreas() => GetIt.I<SupabaseClient>()
-          .from('areas')
-          .select('id, color, bounds')
-          .execute()
-          .then(
+  Future<List<Polygon>> getAllAreas() =>
+      GetIt.I<SupabaseClient>().from('areas').select('id, color, bounds').then(
         (value) async {
-          if (value.error?.message == 'JWT expired') {
-            await MHAuthRepository.I.refreshSupabaseToken();
-            return getAllAreas();
-          }
-
           final parser = BinaryParser();
 
-          return (value.data as List)
+          return (value as List)
               .map(
                 (e) {
                   if (e?['bounds'] == null) {
@@ -144,6 +136,13 @@ class MHDatabaseRepo extends DatabaseRepository {
               )
               .whereType<Polygon>()
               .toList();
+        },
+      ).catchError(
+        (error, stackTrace) async {
+          if (error.toString().contains('JWT expired')) {
+            await MHAuthRepository.I.refreshSupabaseToken();
+            return getAllAreas();
+          }
         },
       );
 }

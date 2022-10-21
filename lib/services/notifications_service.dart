@@ -51,6 +51,7 @@ class MHNotificationsService extends NotificationsService {
     });
   }
 
+  @pragma('vm:entry-point')
   Future<void> onForegroundMessage(RemoteMessage message) async {
     await NotificationsService.storeNotification(message);
 
@@ -239,6 +240,7 @@ class MHNotificationsService extends NotificationsService {
   //Static callbacks
   //
 
+  @pragma('vm:entry-point')
   static Future<void> onNotificationClicked(String? payload) async {
     if (WidgetsBinding.instance.renderViewElement != null &&
         GetIt.I.isRegistered<MHNotificationsService>() &&
@@ -257,6 +259,7 @@ class MHNotificationsService extends NotificationsService {
     }
   }
 
+  @pragma('vm:entry-point')
   static Future<void> showKodasNotification() async {
     if (!GetIt.I.isRegistered<MHAuthRepository>()) await initMeetingHelper();
 
@@ -319,6 +322,7 @@ class MHNotificationsService extends NotificationsService {
     }
   }
 
+  @pragma('vm:entry-point')
   static Future<void> showMeetingNotification() async {
     if (!GetIt.I.isRegistered<MHAuthRepository>()) {
       await initMeetingHelper();
@@ -383,6 +387,7 @@ class MHNotificationsService extends NotificationsService {
     }
   }
 
+  @pragma('vm:entry-point')
   static Future<void> showTanawolNotification() async {
     if (!GetIt.I.isRegistered<MHAuthRepository>()) await initMeetingHelper();
 
@@ -445,6 +450,7 @@ class MHNotificationsService extends NotificationsService {
     }
   }
 
+  @pragma('vm:entry-point')
   static Future<void> showVisitNotification() async {
     if (!GetIt.I.isRegistered<MHAuthRepository>()) await initMeetingHelper();
 
@@ -507,6 +513,7 @@ class MHNotificationsService extends NotificationsService {
     }
   }
 
+  @pragma('vm:entry-point')
   static Future<void> showConfessionNotification() async {
     if (!GetIt.I.isRegistered<MHAuthRepository>()) await initMeetingHelper();
 
@@ -569,6 +576,7 @@ class MHNotificationsService extends NotificationsService {
     }
   }
 
+  @pragma('vm:entry-point')
   static Future<void> showBirthDayNotification() async {
     if (!GetIt.I.isRegistered<MHAuthRepository>()) await initMeetingHelper();
 

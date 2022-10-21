@@ -11,6 +11,7 @@ import 'package:meetinghelper/services.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:supabase/supabase.dart' hide User;
+import 'package:supabase/supabase.dart' as supabase show User;
 
 class MHAuthRepository extends AuthRepository<User, Person> {
   static MHAuthRepository get instance => GetIt.I<MHAuthRepository>();
@@ -147,12 +148,41 @@ class MHAuthRepository extends AuthRepository<User, Person> {
                           '='),
                     ),
                   ),
-                )['exp'] ~/
+                )['exp'] *
                 1000)
-            .isAfter(DateTime.now())) {
+            .isBefore(DateTime.now())) {
       await GetIt.I<MHFunctionsService>().refreshSupabaseToken();
     } else {
-      GetIt.I<SupabaseClient>().auth.setAuth(supabaseToken);
+      await GetIt.I<SupabaseClient>().auth.recoverSession(
+            json.encode(
+              {
+                'currentSession': Session(
+                  accessToken: supabaseToken,
+                  tokenType: 'bearer',
+                  user: const supabase.User(
+                    id: '',
+                    appMetadata: {},
+                    userMetadata: {},
+                    aud: '',
+                    role: '',
+                    updatedAt: '',
+                    createdAt: '',
+                  ),
+                ).toJson(),
+                'expiresAt': json.decode(
+                  utf8.decode(
+                    base64.decode(
+                      supabaseToken.split('.')[1].padRight(
+                          supabaseToken.split('.')[1].length +
+                              4 -
+                              (supabaseToken.split('.')[1].length % 4),
+                          '='),
+                    ),
+                  ),
+                )['exp'],
+              },
+            ),
+          );
     }
   }
 }

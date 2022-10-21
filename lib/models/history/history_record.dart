@@ -33,7 +33,7 @@ abstract class HistoryDayBase extends DataObjectWithPhoto {
       DateFormat('EEEE\t\tyyyy/M/d', 'ar-EG').format(day.toDate());
 
   @override
-  int get hashCode => hashValues(id, day, notes);
+  int get hashCode => Object.hash(id, day, notes);
 
   @override
   bool get hasPhoto => false;
@@ -209,7 +209,7 @@ class HistoryRecord {
   }
 
   @override
-  int get hashCode => hashValues(id, time, recordedBy, notes);
+  int get hashCode => Object.hash(id, time, recordedBy, notes);
 
   @override
   bool operator ==(Object other) =>
@@ -421,7 +421,7 @@ class MinimalHistoryRecord {
   }
 
   @override
-  int get hashCode => hashValues(id, time, by, classId, personId, services);
+  int get hashCode => Object.hash(id, time, by, classId, personId, services);
 
   @override
   bool operator ==(Object other) =>

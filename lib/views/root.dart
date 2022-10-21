@@ -1048,7 +1048,7 @@ class _RootState extends State<Root>
 
   Future<void> showBatteryOptimizationDialog() async {
     if (!kIsWeb &&
-        (await DeviceInfoPlugin().androidInfo).version.sdkInt! >= 23 &&
+        (await DeviceInfoPlugin().androidInfo).version.sdkInt >= 23 &&
         !(await Permission.ignoreBatteryOptimizations.status).isGranted &&
         GetIt.I<CacheRepository>()
             .box('Settings')

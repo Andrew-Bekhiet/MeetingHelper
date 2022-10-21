@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:churchdata_core/churchdata_core.dart';
-import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:group_list_view/group_list_view.dart';
@@ -361,39 +360,60 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
                                 : null,
                           ),
                           Expanded(
-                            child: DateTimeField(
-                              decoration: const InputDecoration(
+                            child: TappableFormField<TimeOfDay?>(
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
+                              decoration: (context, state) => InputDecoration(
+                                enabled:
+                                    record != null && (enabled.data ?? false),
                                 labelText: 'وقت الحضور',
                               ),
-                              format:
-                                  DateFormat('الساعة h : m د : s ث a', 'ar-EG'),
-                              initialValue:
-                                  record?.time.toDate() ?? DateTime.now(),
-                              resetIcon: null,
-                              enabled:
-                                  record != null && (enabled.data ?? false),
-                              onShowPicker: (context, initialValue) async {
+                              initialValue: record?.time != null
+                                  ? TimeOfDay.fromDateTime(
+                                      record!.time.toDate(),
+                                    )
+                                  : TimeOfDay.now(),
+                              onTap: (state) async {
+                                if (record == null ||
+                                    !(enabled.data ?? false)) {
+                                  return;
+                                }
+
                                 final selected = await showTimePicker(
-                                  initialTime:
-                                      TimeOfDay.fromDateTime(initialValue!),
+                                  initialTime: state.value!,
                                   context: context,
                                 );
-                                return DateTime(
-                                    _listController.day.day.toDate().year,
-                                    _listController.day.day.toDate().month,
-                                    _listController.day.day.toDate().day,
-                                    selected?.hour ?? initialValue.hour,
-                                    selected?.minute ?? initialValue.minute);
-                              },
-                              onChanged: (t) async {
-                                record = record!.copyWith.time(
-                                  _listController.day.day
-                                      .toDate()
-                                      .replaceTime(t!)
-                                      .toTimestamp(),
-                                );
 
-                                setState(() {});
+                                if (selected != null &&
+                                    selected != state.value!) {
+                                  record = record!.copyWith.time(
+                                    _listController.day.day
+                                        .toDate()
+                                        .replaceTimeOfDay(selected)
+                                        .toTimestamp(),
+                                  );
+
+                                  state.didChange(selected);
+                                  setState(() {});
+                                }
+                              },
+                              builder: (context, state) {
+                                return state.value != null
+                                    ? Text(
+                                        DateFormat(
+                                          'الساعة h : m د : s ث a',
+                                          'ar-EG',
+                                        ).format(
+                                          DateTime(
+                                            2023,
+                                            1,
+                                            1,
+                                            state.value!.hour,
+                                            state.value!.minute,
+                                          ),
+                                        ),
+                                      )
+                                    : null;
                               },
                             ),
                           ),
@@ -437,14 +457,15 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
           ),
         ) ==
         true) {
-      if ((_listController.currentSelection?.contains(current) ?? false) &&
+      if ((_listController.currentAttended?.containsKey(current.id) ?? false) &&
           record != null) {
         await _listController.modifySelected(current,
             notes: record!.notes, time: record!.time);
       } else if (record != null) {
         await _listController.select(current,
             notes: record?.notes, time: record?.time);
-      } else if (_listController.currentSelection?.contains(current) ?? false) {
+      } else if (_listController.currentAttended?.containsKey(current.id) ??
+          false) {
         await _listController.deselect(current);
       }
     }
