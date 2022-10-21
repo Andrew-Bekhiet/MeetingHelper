@@ -666,6 +666,22 @@ class FakeDeviceInfo extends DeviceInfoPlatform {
   @override
   Future<AndroidDeviceInfo> androidInfo() async {
     return AndroidDeviceInfo(
+      displayMetrics: FakeAndroidDisplayMetrics(),
+      board: '',
+      bootloader: '',
+      brand: '',
+      device: '',
+      display: '',
+      fingerprint: '',
+      hardware: '',
+      host: '',
+      id: '',
+      isPhysicalDevice: true,
+      manufacturer: '',
+      model: '',
+      product: '',
+      tags: '',
+      type: '',
       version: FakeAndroidBuildVersion(),
       supported32BitAbis: [],
       supported64BitAbis: [],
@@ -677,22 +693,22 @@ class FakeDeviceInfo extends DeviceInfoPlatform {
 
 class FakeAndroidBuildVersion implements AndroidBuildVersion {
   @override
-  String? get baseOS => null;
+  String get baseOS => 'null';
 
   @override
-  String? get codename => null;
+  String get codename => 'null';
 
   @override
-  String? get incremental => null;
+  String get incremental => 'null';
 
   @override
   int? get previewSdkInt => null;
 
   @override
-  String? get release => null;
+  String get release => 'null';
 
   @override
-  int? get sdkInt => 22;
+  int get sdkInt => 22;
 
   @override
   String? get securityPatch => null;
@@ -771,4 +787,30 @@ class StructureTestVariants extends TestVariant<MHPermissionsSet> {
     yield basePermissions.copyWith(manageDeleted: false);
     yield basePermissions.copyWith(export: false);
   }
+}
+
+class FakeAndroidDisplayMetrics implements AndroidDisplayMetrics {
+  @override
+  double get heightInches => 0;
+
+  @override
+  double get heightPx => 0;
+
+  @override
+  double get sizeInches => 0;
+
+  @override
+  Map<String, dynamic> toMap() => {};
+
+  @override
+  double get widthInches => 0;
+
+  @override
+  double get widthPx => 0;
+
+  @override
+  double get xDpi => 0;
+
+  @override
+  double get yDpi => 0;
 }

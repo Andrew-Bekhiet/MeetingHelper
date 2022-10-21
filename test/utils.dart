@@ -25,7 +25,7 @@ import 'package:mock_data/mock_data.dart';
 import 'package:mockito/mockito.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:sentry/src/scope.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'fakes/fake_secure_storage.dart';
 import 'views/root_test.mocks.dart';
@@ -40,6 +40,7 @@ void setUpMHPlatformChannels() {
   );
 
   PackageInfo.setMockInitialValues(
+    installerStore: '',
     appName: 'meetinghelper',
     packageName: 'meetinghelper',
     version: '8.0.0',
