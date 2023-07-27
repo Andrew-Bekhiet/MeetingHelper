@@ -1324,7 +1324,7 @@ class _EditPersonState extends State<EditPerson> {
                   options: controller,
                   orderOptions: BehaviorSubject<OrderOptions>.seeded(
                       const OrderOptions()),
-                  textStyle: Theme.of(context).textTheme.bodyText2,
+                  textStyle: Theme.of(context).textTheme.bodyMedium,
                 ),
                 Expanded(
                   child: ServicesList<Class>(
@@ -1360,7 +1360,7 @@ class _EditPersonState extends State<EditPerson> {
                       textAlign: TextAlign.center,
                       strutStyle:
                           StrutStyle(height: IconTheme.of(context).size! / 7.5),
-                      style: Theme.of(context).primaryTextTheme.bodyText1);
+                      style: Theme.of(context).primaryTextTheme.bodyLarge);
                 },
               ),
             ),

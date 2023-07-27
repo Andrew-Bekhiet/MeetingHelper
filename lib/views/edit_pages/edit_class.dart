@@ -472,7 +472,7 @@ class _EditClassState extends State<EditClass> {
                     searchStream: context
                         .read<ListController<Class?, User>>()
                         .searchSubject,
-                    textStyle: Theme.of(context).primaryTextTheme.headline6,
+                    textStyle: Theme.of(context).primaryTextTheme.titleLarge,
                   ),
                   actions: [
                     IconButton(

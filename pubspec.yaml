@@ -7,19 +7,10 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 8.2.7+30
 
 environment:
-  sdk: ">=2.17.0 <3.0.0"
-
-dependency_overrides:
-  firebase_storage_mocks: ^0.6.0
-
-  cloud_firestore: ^4.0.2
-  firebase_auth: ^4.0.2
-  firebase_core: ^2.1.0
-  firebase_database: ^10.0.2
-  firebase_storage: ^11.0.2
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
-  android_alarm_manager_plus: ^2.0.8
+  android_alarm_manager_plus: ^3.0.1
   async: ^2.8.2
   cached_network_image: ^3.2.0
   churchdata_core:
@@ -29,13 +20,13 @@ dependencies:
   cloud_firestore: ^4.0.2
   cloud_functions: ^4.0.1
   collection: ^1.15.0
-  connectivity_plus: ^3.0.0
+  connectivity_plus: ^4.0.1
   convert: ^3.0.2
-  copy_with_extension: ^4.0.0
+  copy_with_extension: ^5.0.2
   cupertino_icons: ^1.0.4
   dart_jts: ^0.2.1+1
   dart_postgis: ^0.3.0+2
-  device_info_plus: ^7.0.0
+  device_info_plus: ^9.0.2
   expandable: ^5.0.1
   file_picker: ^5.2.1
   firebase_app_check: ^0.1.1
@@ -51,28 +42,28 @@ dependencies:
     sdk: flutter
   flutter_colorpicker: ^1.0.3
   flutter_contacts: ^1.1.5
-  flutter_local_notifications: ^9.2.0
+  flutter_local_notifications: ^15.1.0+1
   flutter_localizations:
     sdk: flutter
-  flutter_secure_storage: ^6.0.0
+  flutter_secure_storage: ^8.0.0
   get_it: ^7.2.0
   group_list_view:
     git:
       url: https://github.com/Andrew-Bekhiet/flutter_group_list_view
       ref: 0ebdffaebc8ccdd8d92072edfe2f1db567a7db9e
   google_maps_flutter: ^2.1.1
-  google_sign_in: ^5.2.3
+  google_sign_in: ^6.1.4
   hive_flutter: ^1.1.0
-  image_cropper: ^3.0.0
-  image_picker: ^0.8.4+8
-  intl: ^0.17.0
+  image_cropper: ^5.0.0
+  image_picker: ^1.0.1
+  intl: ^0.18.0
   local_auth: ^2.0.0
-  location: ^4.4.0
+  location: ^5.0.1
   open_file:
     git:
       url: https://github.com/Andrew-Bekhiet/open_file
       ref: 4e00e919e2187bfbbddc0b6c4d32daa01969f58e
-  package_info_plus: ^3.0.0
+  package_info_plus: ^4.0.2
   path_provider: ^2.0.8
   percent_indicator: ^4.0.0
   permission_handler: ^10.0.0
@@ -81,11 +72,11 @@ dependencies:
   provider: ^6.0.2
   random_color: ^1.0.6-nullsafety
   rxdart: ^0.27.3
-  sentry_flutter: ^6.3.0
-  share_plus: ^6.0.0
+  sentry_flutter: ^7.9.0
+  share_plus: ^7.0.2
   spreadsheet_decoder: ^2.0.2
   supabase: ^1.0.0
-  syncfusion_flutter_charts: ^20.1.52
+  syncfusion_flutter_charts: ^22.1.39
   timeago: ^3.2.2
   tinycolor2: ^3.0.1
   tuple: ^2.0.0
@@ -103,12 +94,12 @@ dev_dependencies:
       ref: master
   mockito: ^5.1.0
   build_runner: ^2.1.8
-  copy_with_extension_gen: ^4.0.1
-  device_info_plus_platform_interface: ^6.0.0
+  copy_with_extension_gen: ^5.0.0
+  device_info_plus_platform_interface: ^7.0.0
   local_auth_platform_interface: ^1.0.3
   flutter_secure_storage_platform_interface: ^1.0.0
   mock_data: ^2.0.0
-  visibility_detector: ^0.3.3
+  visibility_detector: ^0.4.0+2
 
 flutter_icons:
   image_path: "Logo.png"

@@ -197,15 +197,15 @@ class _TrashDayScreenState extends State<TrashDayScreen>
           builder: (context, data) => data.data!
               ? TextField(
                   focusNode: _searchFocus,
-                  style: Theme.of(context).textTheme.headline6!.copyWith(
+                  style: Theme.of(context).textTheme.titleLarge!.copyWith(
                       color:
-                          Theme.of(context).primaryTextTheme.headline6!.color),
+                          Theme.of(context).primaryTextTheme.titleLarge!.color),
                   decoration: InputDecoration(
                       suffixIcon: IconButton(
                         icon: Icon(Icons.close,
                             color: Theme.of(context)
                                 .primaryTextTheme
-                                .headline6!
+                                .titleLarge!
                                 .color),
                         onPressed: () {
                           _searchQuery.add('');
@@ -214,16 +214,16 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                       ),
                       hintStyle: Theme.of(context)
                           .textTheme
-                          .headline6!
+                          .titleLarge!
                           .copyWith(
                               color: Theme.of(context)
                                   .primaryTextTheme
-                                  .headline6!
+                                  .titleLarge!
                                   .color),
                       icon: Icon(Icons.search,
                           color: Theme.of(context)
                               .primaryTextTheme
-                              .headline6!
+                              .titleLarge!
                               .color),
                       hintText: 'بحث ...'),
                   onChanged: _searchQuery.add,
@@ -250,7 +250,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                 textAlign: TextAlign.center,
                 strutStyle:
                     StrutStyle(height: IconTheme.of(context).size! / 7.5),
-                style: Theme.of(context).primaryTextTheme.bodyText1,
+                style: Theme.of(context).primaryTextTheme.bodyLarge,
               );
             },
           ),

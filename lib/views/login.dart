@@ -46,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
             Center(
               child: Text(
                 'قم بتسجيل الدخول أو انشاء حساب',
-                style: Theme.of(context).textTheme.headline6,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
             const SizedBox(height: 20),
@@ -100,11 +100,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                 children: [
                   TextSpan(
-                    style: Theme.of(context).textTheme.bodyText2,
+                    style: Theme.of(context).textTheme.bodyMedium,
                     text: 'بتسجيل دخولك فإنك توافق على ',
                   ),
                   TextSpan(
-                    style: Theme.of(context).textTheme.bodyText2?.copyWith(
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Colors.blue,
                         ),
                     text: 'شروط الاستخدام',
@@ -118,11 +118,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                   ),
                   TextSpan(
-                    style: Theme.of(context).textTheme.bodyText2,
+                    style: Theme.of(context).textTheme.bodyMedium,
                     text: ' و',
                   ),
                   TextSpan(
-                    style: Theme.of(context).textTheme.bodyText2?.copyWith(
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Colors.blue,
                         ),
                     text: 'سياسة الخصوصية',
@@ -171,7 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
       if (signInFuture != null) {
         await signInFuture;
-        await User.loggedInStream.next;
+        await User.loggedInStream.next();
         await setupSettings();
         if (mounted) {
           setState(() => _loading = false);
@@ -305,7 +305,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-class _LoginTitle extends StatelessWidget with PreferredSizeWidget {
+class _LoginTitle extends StatelessWidget implements PreferredSizeWidget {
   const _LoginTitle();
 
   @override
@@ -316,10 +316,10 @@ class _LoginTitle extends StatelessWidget with PreferredSizeWidget {
         child: Center(
           child: Text(
             'خدمة مدارس الأحد',
-            style: Theme.of(context).textTheme.headline4?.copyWith(
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   color: Theme.of(context)
                       .textTheme
-                      .headline6
+                      .titleLarge
                       ?.color
                       ?.withOpacity(1),
                   fontWeight: FontWeight.bold,

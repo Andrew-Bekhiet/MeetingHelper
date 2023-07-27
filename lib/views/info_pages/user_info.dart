@@ -110,7 +110,7 @@ class _UserInfoState extends State<UserInfo> {
             ],
             body: ListView(
               children: <Widget>[
-                Text(user.name, style: Theme.of(context).textTheme.headline6),
+                Text(user.name, style: Theme.of(context).textTheme.titleLarge),
                 ListTile(
                   title: const Text('البريد الاكتروني:'),
                   subtitle: Text(user.email ?? ''),
@@ -149,7 +149,7 @@ class _UserInfoState extends State<UserInfo> {
                         user.lastTanawol != null
                             ? DateFormat('yyyy/M/d').format(user.lastTanawol!)
                             : '',
-                        style: Theme.of(context).textTheme.overline,
+                        style: Theme.of(context).textTheme.labelSmall,
                       ),
                     ],
                   ),
@@ -168,7 +168,7 @@ class _UserInfoState extends State<UserInfo> {
                             ? DateFormat('yyyy/M/d')
                                 .format(user.lastConfession!)
                             : '',
-                        style: Theme.of(context).textTheme.overline,
+                        style: Theme.of(context).textTheme.labelSmall,
                       ),
                     ],
                   ),
@@ -279,7 +279,7 @@ class _UserInfoState extends State<UserInfo> {
                             'يستطيع ' +
                                 user.name +
                                 ' رؤية ${user.permissions.write ? 'وتعديل ' : ''}الخدمات التالية:',
-                            style: Theme.of(context).textTheme.headline6,
+                            style: Theme.of(context).textTheme.titleLarge,
                           ),
                           Expanded(
                             child: ServicesList<DataObject>(
@@ -335,7 +335,7 @@ class _UserInfoState extends State<UserInfo> {
                               showSuffix: false,
                               searchStream: listOptions.searchSubject,
                               textStyle:
-                                  Theme.of(context).primaryTextTheme.headline6,
+                                  Theme.of(context).primaryTextTheme.titleLarge,
                             ),
                           ),
                           body: DataObjectListView(
@@ -357,7 +357,7 @@ class _UserInfoState extends State<UserInfo> {
                                           IconTheme.of(context).size! / 7.5),
                                   style: Theme.of(context)
                                       .primaryTextTheme
-                                      .bodyText1,
+                                      .bodyLarge,
                                 );
                               },
                             ),

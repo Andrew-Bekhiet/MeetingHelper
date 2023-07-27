@@ -72,7 +72,7 @@ class _ClassInfoState extends State<ClassInfo> {
                   TargetContent(
                     child: Text(
                       'تعديل بيانات الفصل',
-                      style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSecondary),
                     ),
                   ),
@@ -87,7 +87,7 @@ class _ClassInfoState extends State<ClassInfo> {
                 TargetContent(
                   child: Text(
                     'يمكنك مشاركة البيانات بلينك يفتح البيانات مباشرة داخل البرنامج',
-                    style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSecondary),
                   ),
                 ),
@@ -102,7 +102,7 @@ class _ClassInfoState extends State<ClassInfo> {
                 TargetContent(
                   child: Text(
                     'يمكنك ايجاد المزيد من الخيارات من هنا مثل: اشعار المستخدمين عن الفصل',
-                    style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSecondary),
                   ),
                 ),
@@ -119,7 +119,7 @@ class _ClassInfoState extends State<ClassInfo> {
                   align: ContentAlign.top,
                   child: Text(
                     'الاطلاع على سجل التعديلات في بيانات الفصل',
-                    style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSecondary),
                   ),
                 ),
@@ -136,7 +136,7 @@ class _ClassInfoState extends State<ClassInfo> {
                   align: ContentAlign.top,
                   child: Text(
                     'الأن يمكنك عرض تحليل لبيانات حضور مخدومين الفصل خلال فترة معينة من هنا',
-                    style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSecondary),
                   ),
                 ),
@@ -153,7 +153,7 @@ class _ClassInfoState extends State<ClassInfo> {
                     align: ContentAlign.top,
                     child: Text(
                       'يمكنك اضافة مخدوم داخل الفصل بسرعة وسهولة من هنا',
-                      style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSecondary),
                     ),
                   ),
@@ -338,7 +338,7 @@ class _ClassInfoState extends State<ClassInfo> {
                           class$.name,
                           style: Theme.of(context)
                               .textTheme
-                              .headline5
+                              .headlineSmall
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -391,13 +391,13 @@ class _ClassInfoState extends State<ClassInfo> {
                       _ClassServants(class$: class$),
                       Text(
                         'المخدومين بالفصل:',
-                        style: Theme.of(context).textTheme.headline6,
+                        style: Theme.of(context).textTheme.titleLarge,
                       ),
                       SearchFilters(
                         Person,
                         options: _listOptions,
                         orderOptions: _orderOptions,
-                        textStyle: Theme.of(context).textTheme.bodyText2,
+                        textStyle: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ],
                   ),
@@ -424,7 +424,7 @@ class _ClassInfoState extends State<ClassInfo> {
                   textAlign: TextAlign.center,
                   strutStyle:
                       StrutStyle(height: IconTheme.of(context).size! / 7.5),
-                  style: Theme.of(context).primaryTextTheme.bodyText1,
+                  style: Theme.of(context).primaryTextTheme.bodyLarge,
                 );
               },
             ),
@@ -467,7 +467,7 @@ class _ClassServants extends StatelessWidget {
     return ListTile(
       title: Text(
         'خدام الفصل',
-        style: Theme.of(context).textTheme.headline6,
+        style: Theme.of(context).textTheme.titleLarge,
       ),
       subtitle: class$.allowedUsers.isNotEmpty
           ? GridView.builder(

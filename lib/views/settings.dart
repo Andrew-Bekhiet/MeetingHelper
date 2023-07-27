@@ -1,6 +1,7 @@
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:expandable/expandable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
@@ -100,8 +101,8 @@ class SettingsState extends State<Settings> {
 
                           GetIt.I<MHThemingService>().switchTheme(
                             darkTheme ??
-                                WidgetsBinding
-                                        .instance.window.platformBrightness ==
+                                PlatformDispatcher
+                                        .instance.platformBrightness ==
                                     Brightness.dark,
                           );
                         },

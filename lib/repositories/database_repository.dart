@@ -143,6 +143,7 @@ class MHDatabaseRepo extends DatabaseRepository {
             await MHAuthRepository.I.refreshSupabaseToken();
             return getAllAreas();
           }
+          throw error;
         },
       );
 }

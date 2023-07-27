@@ -30,7 +30,7 @@ void main() {
                 .isSupported())
             .thenAnswer((_) async => false);
 
-        TestDefaultBinaryMessengerBinding.instance!.defaultBinaryMessenger
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMessageHandler('plugins.flutter.io/local_auth', (c) async {
           if (const StandardMethodCodec().decodeMethodCall(c).method ==
               'getAvailableBiometrics') {

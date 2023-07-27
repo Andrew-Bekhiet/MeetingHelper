@@ -121,8 +121,10 @@ class _MyAccountState extends State<MyAccount> {
                       AndroidUiSettings(
                         toolbarTitle: 'قص الصورة',
                         toolbarColor: Theme.of(context).colorScheme.primary,
-                        toolbarWidgetColor:
-                            Theme.of(context).primaryTextTheme.headline6!.color,
+                        toolbarWidgetColor: Theme.of(context)
+                            .primaryTextTheme
+                            .titleLarge!
+                            .color,
                         initAspectRatio: CropAspectRatioPreset.square,
                         lockAspectRatio: false,
                       ),
@@ -184,7 +186,7 @@ class _MyAccountState extends State<MyAccount> {
         ],
         body: ListView(
           children: <Widget>[
-            Text(user.name, style: Theme.of(context).textTheme.headline6),
+            Text(user.name, style: Theme.of(context).textTheme.titleLarge),
             ListTile(
               title: const Text('البريد الاكتروني:'),
               subtitle: Text(user.email ?? ''),
@@ -200,7 +202,7 @@ class _MyAccountState extends State<MyAccount> {
                     user.lastTanawol != null
                         ? DateFormat('yyyy/M/d').format(user.lastTanawol!)
                         : '',
-                    style: Theme.of(context).textTheme.overline,
+                    style: Theme.of(context).textTheme.labelSmall,
                   ),
                 ],
               ),
@@ -216,7 +218,7 @@ class _MyAccountState extends State<MyAccount> {
                     user.lastConfession != null
                         ? DateFormat('yyyy/M/d').format(user.lastConfession!)
                         : '',
-                    style: Theme.of(context).textTheme.overline,
+                    style: Theme.of(context).textTheme.labelSmall,
                   ),
                 ],
               ),

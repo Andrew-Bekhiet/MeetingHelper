@@ -251,10 +251,10 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                       'الحضور: ' +
                           (snapshot.data?.item2.toString() ?? '0') +
                           ' مخدوم',
-                      style: theme.bodyText2,
+                      style: theme.bodyMedium,
                     ),
                     trailing:
-                        Icon(Icons.expand_more, color: theme.bodyText2?.color),
+                        Icon(Icons.expand_more, color: theme.bodyMedium?.color),
                     leading: StreamBuilder<bool>(
                       initialData: dayOptions.lockUnchecks.value,
                       stream: dayOptions.lockUnchecks,
@@ -265,7 +265,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                               !data.data!
                                   ? Icons.lock_open
                                   : Icons.lock_outlined,
-                              color: theme.bodyText2?.color),
+                              color: theme.bodyMedium?.color),
                           tooltip: 'تثبيت الحضور',
                           onPressed: () =>
                               dayOptions.lockUnchecks.add(!data.data!),
@@ -297,12 +297,12 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
     if (data.requireData) {
       return TextField(
         focusNode: _searchFocus,
-        style: Theme.of(context).textTheme.headline6!.copyWith(
-            color: Theme.of(context).primaryTextTheme.headline6!.color),
+        style: Theme.of(context).textTheme.titleLarge!.copyWith(
+            color: Theme.of(context).primaryTextTheme.titleLarge!.color),
         decoration: InputDecoration(
             suffixIcon: IconButton(
               icon: Icon(Icons.close,
-                  color: Theme.of(context).primaryTextTheme.headline6!.color),
+                  color: Theme.of(context).primaryTextTheme.titleLarge!.color),
               onPressed: () => setState(
                 () {
                   _searchSubject.add('');
@@ -310,10 +310,10 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                 },
               ),
             ),
-            hintStyle: Theme.of(context).textTheme.headline6!.copyWith(
-                color: Theme.of(context).primaryTextTheme.headline6!.color),
+            hintStyle: Theme.of(context).textTheme.titleLarge!.copyWith(
+                color: Theme.of(context).primaryTextTheme.titleLarge!.color),
             icon: Icon(Icons.search,
-                color: Theme.of(context).primaryTextTheme.headline6!.color),
+                color: Theme.of(context).primaryTextTheme.titleLarge!.color),
             hintText: 'بحث ...'),
         onChanged: _searchSubject.add,
       );
@@ -575,7 +575,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                     ' السنوات الدراسية أو '
                     ' اظهار المخدومين الحاضرين فقط أو '
                     'الغائبين والترتيب حسب وقت الحضور فقط من هنا',
-                    style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSecondary),
                   ),
                 ),
@@ -590,7 +590,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                 TargetContent(
                   child: Text(
                     'عرض تحليل واحصاء لعدد الحضور اليوم من هنا',
-                    style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSecondary),
                   ),
                 ),
@@ -608,7 +608,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                   child: Text(
                     'يقوم البرنامج تلقائيًا بطلب تأكيد لإزالة حضور مخدوم'
                     '\nاذا اردت الغاء هذه الخاصية يمكنك الضغط هنا',
-                    style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSecondary),
                   ),
                 ),

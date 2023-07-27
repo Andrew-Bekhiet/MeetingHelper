@@ -178,7 +178,7 @@ class MiniModelList<T extends MetaObject> extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 0.0),
                   child: DefaultTextStyle(
                     style: Theme.of(context).dialogTheme.titleTextStyle ??
-                        Theme.of(context).textTheme.headline6!,
+                        Theme.of(context).textTheme.titleLarge!,
                     child: Text(item.name),
                   ),
                 ),
@@ -200,7 +200,7 @@ Future<void> churchTap(
   final title = TextStyle(
     fontSize: 22,
     fontWeight: FontWeight.bold,
-    color: Theme.of(context).textTheme.headline6!.color,
+    color: Theme.of(context).textTheme.titleLarge!.color,
     locale: const Locale('ar', 'EG'),
   );
 
@@ -324,7 +324,7 @@ Future<void> fatherTap(
   final title = TextStyle(
     fontSize: 22,
     fontWeight: FontWeight.bold,
-    color: Theme.of(context).textTheme.headline6!.color,
+    color: Theme.of(context).textTheme.titleLarge!.color,
     locale: const Locale('ar', 'EG'),
   );
 
@@ -464,7 +464,7 @@ Future<void> studyYearTap(
   final title = TextStyle(
     fontSize: 22,
     fontWeight: FontWeight.bold,
-    color: Theme.of(context).textTheme.headline6!.color,
+    color: Theme.of(context).textTheme.titleLarge!.color,
     locale: const Locale('ar', 'EG'),
   );
 

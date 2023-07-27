@@ -867,8 +867,9 @@ class _SearchQueryState extends State<SearchQuery> {
                         ? Class
                         : Person,
                 options: listController,
-                textStyle: Theme.of(context).textTheme.headline6!.copyWith(
-                    color: Theme.of(context).primaryTextTheme.headline6!.color),
+                textStyle: Theme.of(context).textTheme.titleLarge!.copyWith(
+                    color:
+                        Theme.of(context).primaryTextTheme.titleLarge!.color),
                 disableOrdering: true,
               ),
             ),
@@ -884,7 +885,7 @@ class _SearchQueryState extends State<SearchQuery> {
                     textAlign: TextAlign.center,
                     strutStyle:
                         StrutStyle(height: IconTheme.of(context).size! / 7.5),
-                    style: Theme.of(context).primaryTextTheme.bodyText1,
+                    style: Theme.of(context).primaryTextTheme.bodyLarge,
                   );
                 },
               ),
@@ -943,7 +944,7 @@ class _SearchQueryState extends State<SearchQuery> {
                 SearchFilters(Class,
                     options: _listOptions,
                     orderOptions: _orderOptions,
-                    textStyle: Theme.of(context).textTheme.bodyText2),
+                    textStyle: Theme.of(context).textTheme.bodyMedium),
                 Expanded(
                   child: ServicesList<Class>(
                     onTap: (value) {
@@ -989,7 +990,7 @@ class _SearchQueryState extends State<SearchQuery> {
                 SearchFilters(Service,
                     options: _listOptions,
                     orderOptions: _orderOptions,
-                    textStyle: Theme.of(context).textTheme.bodyText2),
+                    textStyle: Theme.of(context).textTheme.bodyMedium),
                 Expanded(
                   child: ServicesList<Service>(
                     onTap: (value) {
@@ -1043,7 +1044,7 @@ class _SearchQueryState extends State<SearchQuery> {
                 SearchFilters(Person,
                     options: _listOptions,
                     orderOptions: _orderOptions,
-                    textStyle: Theme.of(context).textTheme.bodyText2),
+                    textStyle: Theme.of(context).textTheme.bodyMedium),
                 Expanded(
                   child: DataObjectListView<void, User>(
                     onTap: (value) {

@@ -8,7 +8,6 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:get_it/get_it.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
@@ -169,7 +168,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                                       .format(range.start) +
                                   ' الى ' +
                                   DateFormat.yMMMEd('ar_EG').format(range.end),
-                              style: Theme.of(context).textTheme.bodyText1),
+                              style: Theme.of(context).textTheme.bodyLarge),
                           trailing: IconButton(
                             icon: const Icon(Icons.date_range),
                             tooltip: 'اختيار نطاق السجل',
@@ -179,7 +178,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                                   data: Theme.of(context).copyWith(
                                     textTheme:
                                         Theme.of(context).textTheme.copyWith(
-                                              overline: const TextStyle(
+                                              labelSmall: const TextStyle(
                                                 fontSize: 0,
                                               ),
                                             ),
@@ -357,7 +356,7 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
                                 DateFormat.yMMMEd('ar_EG').format(range.start) +
                                 ' الى ' +
                                 DateFormat.yMMMEd('ar_EG').format(range.end),
-                            style: Theme.of(context).textTheme.bodyText1),
+                            style: Theme.of(context).textTheme.bodyLarge),
                         trailing: IconButton(
                           icon: const Icon(Icons.date_range),
                           tooltip: 'اختيار نطاق السجل',
@@ -367,7 +366,7 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
                                 data: Theme.of(context).copyWith(
                                   textTheme:
                                       Theme.of(context).textTheme.copyWith(
-                                            overline: const TextStyle(
+                                            labelSmall: const TextStyle(
                                               fontSize: 0,
                                             ),
                                           ),
@@ -493,7 +492,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
       builder: (context, dialog) => Theme(
         data: Theme.of(context).copyWith(
           textTheme: Theme.of(context).textTheme.copyWith(
-                overline: const TextStyle(
+                labelSmall: const TextStyle(
                   fontSize: 0,
                 ),
               ),
@@ -522,7 +521,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
       builder: (context, dialog) => Theme(
         data: Theme.of(context).copyWith(
           textTheme: Theme.of(context).textTheme.copyWith(
-                overline: const TextStyle(
+                labelSmall: const TextStyle(
                   fontSize: 0,
                 ),
               ),
@@ -641,7 +640,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                           ' الى ' +
                                           DateFormat.yMMMEd('ar_EG')
                                               .format(range.end),
-                                  style: Theme.of(context).textTheme.bodyText1),
+                                  style: Theme.of(context).textTheme.bodyLarge),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -691,7 +690,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                   .isNotEmpty) ...[
                                 Text('حضور الاجتماع',
                                     style:
-                                        Theme.of(context).textTheme.headline6),
+                                        Theme.of(context).textTheme.titleLarge),
                                 ClassesAttendanceIndicator(
                                   classes:
                                       parents?.whereType<Class>().toList() ??
@@ -704,7 +703,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                 const Divider(),
                                 Text('حضور القداس',
                                     style:
-                                        Theme.of(context).textTheme.headline6),
+                                        Theme.of(context).textTheme.titleLarge),
                                 ClassesAttendanceIndicator(
                                   classes:
                                       parents?.whereType<Class>().toList() ??
@@ -717,7 +716,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                 const Divider(),
                                 Text('الاعتراف',
                                     style:
-                                        Theme.of(context).textTheme.headline6),
+                                        Theme.of(context).textTheme.titleLarge),
                                 ClassesAttendanceIndicator(
                                   classes:
                                       parents?.whereType<Class>().toList() ??
@@ -736,7 +735,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                           Text('حضور ' + s.name,
                                               style: Theme.of(context)
                                                   .textTheme
-                                                  .headline6),
+                                                  .titleLarge),
                                           ClassesAttendanceIndicator(
                                             collection: days.single
                                                 .subcollection(s.id)!,

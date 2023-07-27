@@ -34,7 +34,7 @@ class HistoryProperty extends StatelessWidget {
                       value!,
                     )
                   : '',
-              style: Theme.of(context).textTheme.overline),
+              style: Theme.of(context).textTheme.labelSmall),
         ],
       ),
       trailing: IconButton(
@@ -236,7 +236,7 @@ class TimeHistoryProperty extends StatelessWidget {
                       value!,
                     )
                   : '',
-              style: Theme.of(context).textTheme.overline),
+              style: Theme.of(context).textTheme.labelSmall),
         ],
       ),
       trailing: IconButton(
@@ -300,7 +300,7 @@ class DayHistoryProperty extends StatelessWidget {
                       value!,
                     )
                   : '',
-              style: Theme.of(context).textTheme.overline),
+              style: Theme.of(context).textTheme.labelSmall),
         ],
       ),
       trailing: IconButton(

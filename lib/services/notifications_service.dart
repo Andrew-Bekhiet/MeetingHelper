@@ -30,7 +30,8 @@ class MHNotificationsService extends NotificationsService {
       const InitializationSettings(
         android: AndroidInitializationSettings('warning'),
       ),
-      onSelectNotification: onNotificationClicked,
+      onDidReceiveBackgroundNotificationResponse: onNotificationClicked,
+      onDidReceiveNotificationResponse: onNotificationClicked,
     );
 
     GetIt.I.signalReady(this);
@@ -128,7 +129,7 @@ class MHNotificationsService extends NotificationsService {
               SearchField(
                 showSuffix: false,
                 searchStream: controller.searchSubject,
-                textStyle: Theme.of(context).textTheme.bodyText2,
+                textStyle: Theme.of(context).textTheme.bodyMedium,
               ),
               Expanded(
                 child: DataObjectListView<Class?, User>(
@@ -241,8 +242,11 @@ class MHNotificationsService extends NotificationsService {
   //
 
   @pragma('vm:entry-point')
-  static Future<void> onNotificationClicked(String? payload) async {
-    if (WidgetsBinding.instance.renderViewElement != null &&
+  static Future<void> onNotificationClicked(
+      NotificationResponse response) async {
+    final payload = response.payload;
+
+    if (WidgetsBinding.instance.rootElement != null &&
         GetIt.I.isRegistered<MHNotificationsService>() &&
         payload != null &&
         int.tryParse(payload) != null &&

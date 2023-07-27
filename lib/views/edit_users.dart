@@ -44,7 +44,7 @@ class _UsersPageState extends State<UsersPage> {
                         },
                       ),
                     ),
-                    hintStyle: Theme.of(context).primaryTextTheme.headline6,
+                    hintStyle: Theme.of(context).primaryTextTheme.titleLarge,
                     hintText: 'بحث ...'),
                 onChanged: _listOptions.searchSubject.add,
               )
@@ -60,7 +60,7 @@ class _UsersPageState extends State<UsersPage> {
               (snapshot.data?.length ?? 0).toString() + ' مستخدم',
               textAlign: TextAlign.center,
               strutStyle: StrutStyle(height: IconTheme.of(context).size! / 7.5),
-              style: Theme.of(context).primaryTextTheme.bodyText1,
+              style: Theme.of(context).primaryTextTheme.bodyLarge,
             );
           },
         ),

@@ -58,7 +58,7 @@ class _HistoryState extends State<History> {
                           icon: Icon(Icons.close,
                               color: Theme.of(context)
                                   .primaryTextTheme
-                                  .headline6!
+                                  .titleLarge!
                                   .color),
                           onPressed: () => setState(
                             () {
@@ -105,7 +105,7 @@ class _HistoryState extends State<History> {
                     builder: (context, dialog) => Theme(
                       data: Theme.of(context).copyWith(
                         textTheme: Theme.of(context).textTheme.copyWith(
-                              overline: const TextStyle(
+                              labelSmall: const TextStyle(
                                 fontSize: 0,
                               ),
                             ),
@@ -165,7 +165,7 @@ class _HistoryState extends State<History> {
               (snapshot.data?.length ?? 0).toString() + ' سجل',
               textAlign: TextAlign.center,
               strutStyle: StrutStyle(height: IconTheme.of(context).size! / 7.5),
-              style: Theme.of(context).primaryTextTheme.bodyText1,
+              style: Theme.of(context).primaryTextTheme.bodyLarge,
             );
           },
         ),
@@ -201,7 +201,7 @@ class _HistoryState extends State<History> {
                 TargetContent(
                   child: Text(
                     'يمكنك البحث عن كشف عدة أيام معينة عن طريق الضغط هنا ثم تحديد تاريخ البداية وتاريخ النهاية',
-                    style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSecondary),
                   ),
                 ),

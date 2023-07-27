@@ -10,6 +10,7 @@ import 'package:churchdata_core_mocks/fakes/mock_user.dart';
 import 'package:churchdata_core_mocks/models/basic_data_object.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth_platform_interface/firebase_auth_platform_interface.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +34,7 @@ import 'views/root_test.mocks.dart';
 void setUpMHPlatformChannels() {
   FlutterSecureStoragePlatform.instance = FakeFlutterSecureStoragePlatform();
 
-  TestDefaultBinaryMessengerBinding.instance!.defaultBinaryMessenger
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .setMockMessageHandler(
     'dev.fluttercommunity.plus/android_alarm_manager',
     (_) async => const JSONMessageCodec().encodeMessage([true]),
@@ -171,12 +172,12 @@ Future<MyMockUser> signInMockUser(
 
   when(mockUser.getIdTokenResult()).thenAnswer(
     (_) async => IdTokenResult(
-      {
-        'claims': claims ??
+      PigeonIdTokenResult(
+        claims: claims ??
             {
               'approved': false,
             },
-      },
+      ),
     ),
   );
   await (GetIt.I<FirebaseAuth>() as MockFirebaseAuth).signInUser(mockUser);

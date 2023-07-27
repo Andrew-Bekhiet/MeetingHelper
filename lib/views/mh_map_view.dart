@@ -238,7 +238,7 @@ class _MHMapViewState extends State<MHMapView> {
                 TargetContent(
                   child: Text(
                     'اخفاء/اظهار فصول: يمكنك اختيار فصول محددة لاظهار مخدوميها',
-                    style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSecondary),
                   ),
                 ),

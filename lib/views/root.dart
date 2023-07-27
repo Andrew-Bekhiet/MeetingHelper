@@ -245,15 +245,15 @@ class _RootState extends State<Root>
           builder: (context, data) => data.data!
               ? TextField(
                   focusNode: _searchFocus,
-                  style: Theme.of(context).textTheme.headline6!.copyWith(
+                  style: Theme.of(context).textTheme.titleLarge!.copyWith(
                       color:
-                          Theme.of(context).primaryTextTheme.headline6!.color),
+                          Theme.of(context).primaryTextTheme.titleLarge!.color),
                   decoration: InputDecoration(
                       suffixIcon: IconButton(
                         icon: Icon(Icons.close,
                             color: Theme.of(context)
                                 .primaryTextTheme
-                                .headline6!
+                                .titleLarge!
                                 .color),
                         onPressed: () {
                           _searchQuery.add('');
@@ -262,16 +262,16 @@ class _RootState extends State<Root>
                       ),
                       hintStyle: Theme.of(context)
                           .textTheme
-                          .headline6!
+                          .titleLarge!
                           .copyWith(
                               color: Theme.of(context)
                                   .primaryTextTheme
-                                  .headline6!
+                                  .titleLarge!
                                   .color),
                       icon: Icon(Icons.search,
                           color: Theme.of(context)
                               .primaryTextTheme
-                              .headline6!
+                              .titleLarge!
                               .color),
                       hintText: 'بحث ...'),
                   onChanged: _searchQuery.add,
@@ -315,7 +315,7 @@ class _RootState extends State<Root>
                     textAlign: TextAlign.center,
                     strutStyle:
                         StrutStyle(height: IconTheme.of(context).size! / 7.5),
-                    style: Theme.of(context).primaryTextTheme.bodyText1,
+                    style: Theme.of(context).primaryTextTheme.bodyLarge,
                   );
                 },
               );
@@ -334,7 +334,7 @@ class _RootState extends State<Root>
                     textAlign: TextAlign.center,
                     strutStyle:
                         StrutStyle(height: IconTheme.of(context).size! / 7.5),
-                    style: Theme.of(context).primaryTextTheme.bodyText1,
+                    style: Theme.of(context).primaryTextTheme.bodyLarge,
                   );
                 },
               );
@@ -348,7 +348,7 @@ class _RootState extends State<Root>
                   textAlign: TextAlign.center,
                   strutStyle:
                       StrutStyle(height: IconTheme.of(context).size! / 7.5),
-                  style: Theme.of(context).primaryTextTheme.bodyText1,
+                  style: Theme.of(context).primaryTextTheme.bodyLarge,
                 );
               },
             );
@@ -633,7 +633,7 @@ class _RootState extends State<Root>
                                   Text('برجاء اختيار الفصل او الخدمة للتصدير:',
                                       style: Theme.of(context)
                                           .textTheme
-                                          .headline5),
+                                          .headlineSmall),
                                   Expanded(
                                     child: ServicesList(
                                       autoDisposeController: true,
@@ -740,17 +740,17 @@ class _RootState extends State<Root>
                         onTap: () async {
                           mainScfld.currentState!.openEndDrawer();
                           scaffoldMessenger.currentState!.showSnackBar(
-                            SnackBar(
+                            const SnackBar(
                               content: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                children: const [
+                                children: [
                                   Text(
                                       'جار تصدير جميع البيانات...\nيرجى الانتظار...'),
                                   LinearProgressIndicator(),
                                 ],
                               ),
-                              duration: const Duration(minutes: 9),
+                              duration: Duration(minutes: 9),
                             ),
                           );
                           try {
@@ -842,10 +842,12 @@ class _RootState extends State<Root>
                       text: TextSpan(
                         children: [
                           TextSpan(
-                            style:
-                                Theme.of(context).textTheme.bodyText2!.copyWith(
-                                      color: Colors.blue,
-                                    ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium!
+                                .copyWith(
+                                  color: Colors.blue,
+                                ),
                             text: 'شروط الاستخدام',
                             recognizer: TapGestureRecognizer()
                               ..onTap = () async {
@@ -857,14 +859,16 @@ class _RootState extends State<Root>
                               },
                           ),
                           TextSpan(
-                            style: Theme.of(context).textTheme.bodyText2,
+                            style: Theme.of(context).textTheme.bodyMedium,
                             text: ' • ',
                           ),
                           TextSpan(
-                            style:
-                                Theme.of(context).textTheme.bodyText2!.copyWith(
-                                      color: Colors.blue,
-                                    ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium!
+                                .copyWith(
+                                  color: Colors.blue,
+                                ),
                             text: 'سياسة الخصوصية',
                             recognizer: TapGestureRecognizer()
                               ..onTap = () async {
@@ -968,7 +972,7 @@ class _RootState extends State<Root>
   @override
   void didChangePlatformBrightness() {
     GetIt.I<MHThemingService>().switchTheme(
-        WidgetsBinding.instance.window.platformBrightness == Brightness.dark);
+        PlatformDispatcher.instance.platformBrightness == Brightness.dark);
   }
 
   @override
@@ -1117,7 +1121,7 @@ class _RootState extends State<Root>
               ' البرنامج مقسمة الى الخدمات وسنوات الدراسة',
               style: Theme.of(context)
                   .textTheme
-                  .subtitle2
+                  .titleSmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
             ),
           ),
@@ -1130,7 +1134,7 @@ class _RootState extends State<Root>
               'الخدام: قائمة الخدام الموجودين في التطبيق',
               style: Theme.of(context)
                   .textTheme
-                  .subtitle2
+                  .titleSmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
             ),
           ),
@@ -1143,7 +1147,7 @@ class _RootState extends State<Root>
               'المخدومين: قائمة المخدومين الموجودين في التطبيق',
               style: Theme.of(context)
                   .textTheme
-                  .subtitle2
+                  .titleSmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
             ),
           ),
@@ -1156,7 +1160,7 @@ class _RootState extends State<Root>
               'البحث: يمكنك استخدام البحث السريع لإيجاد المخدومين او الفصول',
               style: Theme.of(context)
                   .textTheme
-                  .subtitle2
+                  .titleSmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
             ),
           ),
@@ -1169,7 +1173,7 @@ class _RootState extends State<Root>
               'حسابي:من خلاله يمكنك رؤية صلاحياتك او تغيير تاريخ أخر تناول واخر اعتراف',
               style: Theme.of(context)
                   .textTheme
-                  .subtitle2
+                  .titleSmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
             ),
           )
@@ -1183,7 +1187,7 @@ class _RootState extends State<Root>
               'ادارة المستخدمين: يمكنك من خلالها تغيير وادارة صلاحيات الخدام في التطبيق',
               style: Theme.of(context)
                   .textTheme
-                  .subtitle2
+                  .titleSmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
             ),
           )
@@ -1197,7 +1201,7 @@ class _RootState extends State<Root>
               'كشف حضور المخدومين: تسجيل كشف حضور جديد في كشوفات المخدومين',
               style: Theme.of(context)
                   .textTheme
-                  .subtitle2
+                  .titleSmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
             ),
           )
@@ -1211,7 +1215,7 @@ class _RootState extends State<Root>
               'كشف حضور الخدام: تسجيل كشف حضور جديد في كشوفات الخدام',
               style: Theme.of(context)
                   .textTheme
-                  .subtitle2
+                  .titleSmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
             ),
           )
@@ -1225,7 +1229,7 @@ class _RootState extends State<Root>
               'سجل المخدومين: سجل كشوفات المخدومين لأي يوم تم تسجيله',
               style: Theme.of(context)
                   .textTheme
-                  .subtitle2
+                  .titleSmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
             ),
           )
@@ -1239,7 +1243,7 @@ class _RootState extends State<Root>
               'سجل الخدام: سجل كشوفات الخدام لأي يوم تم تسجيله',
               style: Theme.of(context)
                   .textTheme
-                  .subtitle2
+                  .titleSmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
             ),
           )
@@ -1255,7 +1259,7 @@ class _RootState extends State<Root>
               'أعداد المخدومين الحاضرين خلال مدة معينة ',
               style: Theme.of(context)
                   .textTheme
-                  .subtitle2
+                  .titleSmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
             ),
           )
@@ -1271,7 +1275,7 @@ class _RootState extends State<Root>
               'أعداد الخدام الحاضرين خلال مدة معينة ',
               style: Theme.of(context)
                   .textTheme
-                  .subtitle2
+                  .titleSmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
             ),
           ),
@@ -1285,7 +1289,7 @@ class _RootState extends State<Root>
               'بحث متقدم: بحث عن البيانات بصورة دقيقة ومفصلة',
               style: Theme.of(context)
                   .textTheme
-                  .subtitle2
+                  .titleSmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
             ),
           ),
@@ -1300,7 +1304,7 @@ class _RootState extends State<Root>
               'من خلالها استرجاع المحذوفات التي تم حذفها خلال الشهر الحالي ',
               style: Theme.of(context)
                   .textTheme
-                  .subtitle2
+                  .titleSmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
             ),
           ),
@@ -1317,7 +1321,7 @@ class _RootState extends State<Root>
               ' من خلال خرائط جوجل',
               style: Theme.of(context)
                   .textTheme
-                  .subtitle2
+                  .titleSmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
             ),
           ),
@@ -1331,7 +1335,7 @@ class _RootState extends State<Root>
               'الاعدادات: ضبط بعض الاعدادات والتفضيلات وضبط مواعيد الاشعارت اليومية',
               style: Theme.of(context)
                   .textTheme
-                  .subtitle2
+                  .titleSmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
             ),
           ),

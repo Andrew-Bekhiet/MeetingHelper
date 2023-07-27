@@ -260,7 +260,7 @@ class _EditServiceState extends State<EditService> {
                             builder: (context, dialog) => Theme(
                               data: Theme.of(context).copyWith(
                                 textTheme: Theme.of(context).textTheme.copyWith(
-                                      overline: const TextStyle(
+                                      labelSmall: const TextStyle(
                                         fontSize: 0,
                                       ),
                                     ),
@@ -633,7 +633,8 @@ class _EditServiceState extends State<EditService> {
                         searchStream: context
                             .read<ListController<Class?, UserWithPerson>>()
                             .searchSubject,
-                        textStyle: Theme.of(context).primaryTextTheme.headline6,
+                        textStyle:
+                            Theme.of(context).primaryTextTheme.titleLarge,
                       ),
                       actions: [
                         IconButton(

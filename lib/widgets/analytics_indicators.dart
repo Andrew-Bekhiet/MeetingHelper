@@ -105,7 +105,7 @@ class AttendanceChart extends StatelessWidget {
               Center(
                 child: Text(
                   title,
-                  style: Theme.of(context).textTheme.headline6,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
               const Center(child: Text('لا يوجد سجل')),
@@ -220,7 +220,7 @@ class AttendancePercent extends StatelessWidget {
           header: label != null
               ? Center(
                   child: Text(label!,
-                      style: Theme.of(context).textTheme.headline6),
+                      style: Theme.of(context).textTheme.titleLarge),
                 )
               : null,
           radius: 80.0,
@@ -244,7 +244,7 @@ class AttendancePercent extends StatelessWidget {
             attends.toString(),
             style: Theme.of(context)
                 .textTheme
-                .bodyText2!
+                .bodyMedium!
                 .copyWith(color: Colors.amber[300]),
           ),
         ),
@@ -254,7 +254,7 @@ class AttendancePercent extends StatelessWidget {
             (total - attends).toString(),
             style: Theme.of(context)
                 .textTheme
-                .bodyText2!
+                .bodyMedium!
                 .copyWith(color: Colors.amber[700]),
           ),
         ),
@@ -264,7 +264,7 @@ class AttendancePercent extends StatelessWidget {
             total.toString(),
             style: Theme.of(context)
                 .textTheme
-                .bodyText2!
+                .bodyMedium!
                 .copyWith(color: Colors.amberAccent),
           ),
         ),
@@ -581,7 +581,7 @@ class HistoryAnalysisWidget extends StatelessWidget {
               Center(
                 child: Text(
                   title,
-                  style: Theme.of(context).textTheme.headline6,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
               const Center(child: Text('لا يوجد سجل')),
@@ -746,7 +746,7 @@ class CartesianChart<T> extends StatelessWidget {
                 Center(
                   child: Text(
                     title,
-                    style: Theme.of(context).textTheme.headline6,
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
                 const Center(child: Text('لا يوجد سجل')),
@@ -765,7 +765,7 @@ class CartesianChart<T> extends StatelessWidget {
               Center(
                 child: Text(
                   title,
-                  style: Theme.of(context).textTheme.headline6,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
               Directionality(
@@ -871,7 +871,7 @@ class PieChart<T> extends StatelessWidget {
       textDirection: TextDirection.ltr,
       child: SfCircularChart(
         tooltipBehavior: TooltipBehavior(enable: true),
-        legend: Legend(
+        legend: const Legend(
           isVisible: true,
           position: LegendPosition.bottom,
           overflowMode: LegendItemOverflowMode.scroll,

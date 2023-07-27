@@ -112,8 +112,9 @@ class SearchFilters extends StatelessWidget {
           child: SearchField(
             searchStream: options.searchSubject,
             textStyle: textStyle ??
-                Theme.of(context).textTheme.headline6!.copyWith(
-                    color: Theme.of(context).primaryTextTheme.headline6!.color),
+                Theme.of(context).textTheme.titleLarge!.copyWith(
+                    color:
+                        Theme.of(context).primaryTextTheme.titleLarge!.color),
           ),
         ),
         FilterButton(

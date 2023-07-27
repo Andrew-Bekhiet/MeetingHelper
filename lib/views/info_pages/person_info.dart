@@ -57,7 +57,7 @@ class _PersonInfoState extends State<PersonInfo> {
                   TargetContent(
                     child: Text(
                       'تحديث بيانات المخدوم',
-                      style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSecondary),
                     ),
                   ),
@@ -72,7 +72,7 @@ class _PersonInfoState extends State<PersonInfo> {
                 TargetContent(
                   child: Text(
                     'يمكنك مشاركة البيانات بلينك يفتح البيانات مباشرة داخل البرنامج',
-                    style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSecondary),
                   ),
                 ),
@@ -90,7 +90,7 @@ class _PersonInfoState extends State<PersonInfo> {
                     align: ContentAlign.top,
                     child: Text(
                       'يمكنك تسجيل أخر افتقاد للمخدوم بسرعة من هنا',
-                      style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSecondary),
                     ),
                   ),
@@ -277,7 +277,7 @@ class _PersonInfoState extends State<PersonInfo> {
               children: <Widget>[
                 ListTile(
                   title: Text(person.name,
-                      style: Theme.of(context).textTheme.headline6),
+                      style: Theme.of(context).textTheme.titleLarge),
                 ),
                 PhoneNumberProperty(
                   'موبايل:',
@@ -324,7 +324,7 @@ class _PersonInfoState extends State<PersonInfo> {
                               DateFormat('yyyy/M/d').format(
                                 person.birthDate!,
                               ),
-                              style: Theme.of(context).textTheme.overline,
+                              style: Theme.of(context).textTheme.labelSmall,
                             ),
                           ],
                         )

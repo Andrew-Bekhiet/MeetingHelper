@@ -157,9 +157,9 @@ class _EditUserState extends State<EditUser> {
                         future: className.runOnce(
                           () => user.classId == null
                               ? Future<String?>(() => null)
-                              : (user.classId
+                              : user.classId
                                       ?.get()
-                                      .then((d) => d.data()?['Name'])) ??
+                                      .then((d) => d.data()?['Name']) ??
                                   Future<String?>(() => null),
                         ),
                         builder: (con, data) {
@@ -530,7 +530,7 @@ class _EditUserState extends State<EditUser> {
                             searchStream: context
                                 .read<ListController<Class?, User>>()
                                 .searchSubject,
-                            textStyle: Theme.of(context).textTheme.bodyText2),
+                            textStyle: Theme.of(context).textTheme.bodyMedium),
                       ),
                       body: DataObjectListView(
                         controller:
@@ -814,7 +814,7 @@ class _EditUserState extends State<EditUser> {
                     options: controller,
                     orderOptions: BehaviorSubject<OrderOptions>.seeded(
                         const OrderOptions()),
-                    textStyle: Theme.of(context).textTheme.bodyText2),
+                    textStyle: Theme.of(context).textTheme.bodyMedium),
                 Expanded(
                   child: ServicesList<Class>(
                     options: controller,
@@ -840,7 +840,7 @@ class _EditUserState extends State<EditUser> {
                       textAlign: TextAlign.center,
                       strutStyle:
                           StrutStyle(height: IconTheme.of(context).size! / 7.5),
-                      style: Theme.of(context).primaryTextTheme.bodyText1);
+                      style: Theme.of(context).primaryTextTheme.bodyLarge);
                 },
               ),
             ),
