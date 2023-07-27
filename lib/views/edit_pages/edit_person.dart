@@ -67,8 +67,10 @@ class _EditPersonState extends State<EditPerson> {
                           child:
                               Icon(Icons.photo_camera, color: Colors.black54),
                         ),
-                        Icon(Icons.photo_camera,
-                            color: IconTheme.of(context).color),
+                        Icon(
+                          Icons.photo_camera,
+                          color: IconTheme.of(context).color,
+                        ),
                       ],
                     ),
                   ),
@@ -226,7 +228,8 @@ class _EditPersonState extends State<EditPerson> {
                                     content: TextField(
                                       controller: name,
                                       decoration: const InputDecoration(
-                                          hintText: 'مثال: رقم المنزل'),
+                                        hintText: 'مثال: رقم المنزل',
+                                      ),
                                     ),
                                   ),
                                 );
@@ -238,7 +241,8 @@ class _EditPersonState extends State<EditPerson> {
                                   person = person.copyWith
                                       .phones(person.phones..remove(e.key));
                                   person = person.copyWith.phones(
-                                      {...person.phones, name.text: e.value});
+                                    {...person.phones, name.text: e.value},
+                                  );
                                   setState(() {});
                                 }
                               },
@@ -277,13 +281,16 @@ class _EditPersonState extends State<EditPerson> {
                               content: TextField(
                                 controller: name,
                                 decoration: const InputDecoration(
-                                    hintText: 'مثال: رقم المنزل'),
+                                  hintText: 'مثال: رقم المنزل',
+                                ),
                               ),
                             ),
                           ) !=
                           null) {
-                        setState(() => person = person.copyWith
-                            .phones({...person.phones, name.text: ''}));
+                        setState(
+                          () => person = person.copyWith
+                              .phones({...person.phones, name.text: ''}),
+                        );
                       }
                     },
                   ),
@@ -291,11 +298,13 @@ class _EditPersonState extends State<EditPerson> {
                     labelText: 'تاريخ الميلاد',
                     initialValue: person.birthDate,
                     onTap: (state) async {
-                      person = person.copyWith.birthDate(await _selectDate(
-                            'تاريخ الميلاد',
-                            state.value ?? DateTime.now(),
-                          ) ??
-                          state.value);
+                      person = person.copyWith.birthDate(
+                        await _selectDate(
+                              'تاريخ الميلاد',
+                              state.value ?? DateTime.now(),
+                            ) ??
+                            state.value,
+                      );
                       state.didChange(person.birthDate);
                     },
                     decoration: (context, state) => InputDecoration(
@@ -380,7 +389,8 @@ class _EditPersonState extends State<EditPerson> {
                           tooltip: 'ازالة الفصل المحدد',
                           onPressed: () {
                             setState(
-                                () => person = person.copyWith.classId(null));
+                              () => person = person.copyWith.classId(null),
+                            );
                           },
                         ),
                       ),
@@ -442,7 +452,8 @@ class _EditPersonState extends State<EditPerson> {
                                 }
 
                                 return Text(
-                                    servicesSnapshot.requireData.join(' و'));
+                                  servicesSnapshot.requireData.join(' و'),
+                                );
                               },
                             )
                           : const Text('لا يوجد خدمات');
@@ -463,33 +474,34 @@ class _EditPersonState extends State<EditPerson> {
                             initialValue: person.gender,
                             builder: (state) => InputDecorator(
                               decoration: InputDecoration(
-                                  labelText: 'النوع',
-                                  errorText: state.errorText),
+                                labelText: 'النوع',
+                                errorText: state.errorText,
+                              ),
                               child: Row(
                                 children: [
-                                  ...[true, false]
-                                      .map(
-                                        (i) => Expanded(
-                                          child: Row(
-                                            children: [
-                                              Radio<bool>(
-                                                value: i,
-                                                groupValue: person.gender,
-                                                onChanged: (v) => setState(() =>
-                                                    person = person.copyWith
-                                                        .gender(v!)),
-                                              ),
-                                              GestureDetector(
-                                                onTap: () => setState(() =>
-                                                    person = person.copyWith
-                                                        .gender(i)),
-                                                child: Text(i ? 'ذكر' : 'أنثى'),
-                                              )
-                                            ],
+                                  ...[true, false].map(
+                                    (i) => Expanded(
+                                      child: Row(
+                                        children: [
+                                          Radio<bool>(
+                                            value: i,
+                                            groupValue: person.gender,
+                                            onChanged: (v) => setState(
+                                              () => person =
+                                                  person.copyWith.gender(v!),
+                                            ),
                                           ),
-                                        ),
-                                      )
-                                      .toList(),
+                                          GestureDetector(
+                                            onTap: () => setState(
+                                              () => person =
+                                                  person.copyWith.gender(i),
+                                            ),
+                                            child: Text(i ? 'ذكر' : 'أنثى'),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -512,31 +524,34 @@ class _EditPersonState extends State<EditPerson> {
                         initialValue: person.isShammas,
                         builder: (state) => InputDecorator(
                           decoration: InputDecoration(
-                              labelText: 'شماس', errorText: state.errorText),
+                            labelText: 'شماس',
+                            errorText: state.errorText,
+                          ),
                           child: Row(
                             children: [
-                              ...[true, false]
-                                  .map(
-                                    (i) => Expanded(
-                                      child: Row(
-                                        children: [
-                                          Radio<bool>(
-                                            value: i,
-                                            groupValue: person.isShammas,
-                                            onChanged: (v) => setState(() =>
-                                                person = person.copyWith
-                                                    .isShammas(v!)),
-                                          ),
-                                          GestureDetector(
-                                            onTap: () => setState(() => person =
-                                                person.copyWith.isShammas(i)),
-                                            child: Text(i ? 'نعم' : 'لا'),
-                                          )
-                                        ],
+                              ...[true, false].map(
+                                (i) => Expanded(
+                                  child: Row(
+                                    children: [
+                                      Radio<bool>(
+                                        value: i,
+                                        groupValue: person.isShammas,
+                                        onChanged: (v) => setState(
+                                          () => person =
+                                              person.copyWith.isShammas(v!),
+                                        ),
                                       ),
-                                    ),
-                                  )
-                                  .toList(),
+                                      GestureDetector(
+                                        onTap: () => setState(
+                                          () => person =
+                                              person.copyWith.isShammas(i),
+                                        ),
+                                        child: Text(i ? 'نعم' : 'لا'),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -633,7 +648,8 @@ class _EditPersonState extends State<EditPerson> {
                                       if (data.hasData) {
                                         return Container(
                                           margin: const EdgeInsets.symmetric(
-                                              vertical: 8),
+                                            vertical: 8,
+                                          ),
                                           child:
                                               DropdownButtonFormField<JsonRef?>(
                                             isExpanded: true,
@@ -665,7 +681,9 @@ class _EditPersonState extends State<EditPerson> {
                                         );
                                       } else {
                                         return const SizedBox(
-                                            width: 1, height: 1);
+                                          width: 1,
+                                          height: 1,
+                                        );
                                       }
                                     },
                                   ),
@@ -728,7 +746,9 @@ class _EditPersonState extends State<EditPerson> {
                                         );
                                       } else {
                                         return const SizedBox(
-                                            width: 1, height: 1);
+                                          width: 1,
+                                          height: 1,
+                                        );
                                       }
                                     },
                                   ),
@@ -1199,11 +1219,12 @@ class _EditPersonState extends State<EditPerson> {
               .studyYear(class$.studyYear)
               .copyWith
               .isShammas(
-                  (class$.gender ?? person.gender) ? person.isShammas : false)
+                (class$.gender ?? person.gender) ? person.isShammas : false,
+              )
               .copyWith
-              .shammasLevel((class$.gender ?? person.gender)
-                  ? person.shammasLevel
-                  : null);
+              .shammasLevel(
+                (class$.gender ?? person.gender) ? person.shammasLevel : null,
+              );
         }
 
         if (widget.person is! User &&
@@ -1234,12 +1255,14 @@ class _EditPersonState extends State<EditPerson> {
           }
         } else if (update) {
           if (person.ref.parent.id == 'UsersData') {
-            unawaited(person.ref.update(
-              {
-                ...person.toJson(),
-                'AllowedUsers': FieldValue.arrayUnion([User.instance.uid]),
-              },
-            ));
+            unawaited(
+              person.ref.update(
+                {
+                  ...person.toJson(),
+                  'AllowedUsers': FieldValue.arrayUnion([User.instance.uid]),
+                },
+              ),
+            );
           } else {
             unawaited(person.update(old: widget.person?.toJson() ?? {}));
           }
@@ -1257,12 +1280,14 @@ class _EditPersonState extends State<EditPerson> {
           }
         } else {
           if (person.ref.parent.id == 'UsersData') {
-            unawaited(person.ref.set(
-              {
-                ...person.toJson(),
-                'AllowedUsers': [User.instance.uid],
-              },
-            ));
+            unawaited(
+              person.ref.set(
+                {
+                  ...person.toJson(),
+                  'AllowedUsers': [User.instance.uid],
+                },
+              ),
+            );
           } else {
             unawaited(person.set());
           }
@@ -1282,22 +1307,27 @@ class _EditPersonState extends State<EditPerson> {
           builder: (context) => const AlertDialog(
             title: Text('بيانات غير كاملة'),
             content: Text(
-                'يجب تحديد الفصل او اختيار خدمة واحدة مع تحديد السنة الدراسية على الأقل'),
+              'يجب تحديد الفصل او اختيار خدمة واحدة مع تحديد السنة الدراسية على الأقل',
+            ),
           ),
         );
       }
     } catch (err, stack) {
-      await Sentry.captureException(err,
-          stackTrace: stack,
-          withScope: (scope) =>
-              scope.setTag('LasErrorIn', '_EditPersonState._save'));
+      await Sentry.captureException(
+        err,
+        stackTrace: stack,
+        withScope: (scope) =>
+            scope.setTag('LasErrorIn', '_EditPersonState._save'),
+      );
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
-      scaffoldMessenger.currentState!.showSnackBar(SnackBar(
-        content: Text(
-          err.toString(),
+      scaffoldMessenger.currentState!.showSnackBar(
+        SnackBar(
+          content: Text(
+            err.toString(),
+          ),
+          duration: const Duration(seconds: 7),
         ),
-        duration: const Duration(seconds: 7),
-      ));
+      );
     }
   }
 
@@ -1323,7 +1353,8 @@ class _EditPersonState extends State<EditPerson> {
                   Class,
                   options: controller,
                   orderOptions: BehaviorSubject<OrderOptions>.seeded(
-                      const OrderOptions()),
+                    const OrderOptions(),
+                  ),
                   textStyle: Theme.of(context).textTheme.bodyMedium,
                 ),
                 Expanded(
@@ -1339,9 +1370,11 @@ class _EditPersonState extends State<EditPerson> {
                             .copyWith
                             .gender(class$.gender ?? person.gender)
                             .copyWith
-                            .isShammas((class$.gender ?? person.gender)
-                                ? person.isShammas
-                                : false);
+                            .isShammas(
+                              (class$.gender ?? person.gender)
+                                  ? person.isShammas
+                                  : false,
+                            );
                       });
                       FocusScope.of(context).nextFocus();
                     },
@@ -1356,11 +1389,13 @@ class _EditPersonState extends State<EditPerson> {
               child: StreamBuilder<List?>(
                 stream: controller.objectsStream,
                 builder: (context, snapshot) {
-                  return Text((snapshot.data?.length ?? 0).toString() + ' خدمة',
-                      textAlign: TextAlign.center,
-                      strutStyle:
-                          StrutStyle(height: IconTheme.of(context).size! / 7.5),
-                      style: Theme.of(context).primaryTextTheme.bodyLarge);
+                  return Text(
+                    (snapshot.data?.length ?? 0).toString() + ' خدمة',
+                    textAlign: TextAlign.center,
+                    strutStyle:
+                        StrutStyle(height: IconTheme.of(context).size! / 7.5),
+                    style: Theme.of(context).primaryTextTheme.bodyLarge,
+                  );
                 },
               ),
             ),
@@ -1388,12 +1423,13 @@ class _EditPersonState extends State<EditPerson> {
 
   Future<DateTime?> _selectDate(String helpText, DateTime initialDate) async {
     final picked = await showDatePicker(
-        helpText: helpText,
-        locale: const Locale('ar', 'EG'),
-        context: context,
-        initialDate: initialDate,
-        firstDate: DateTime(1500),
-        lastDate: DateTime.now());
+      helpText: helpText,
+      locale: const Locale('ar', 'EG'),
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(1500),
+      lastDate: DateTime.now(),
+    );
     if (picked != null && picked != initialDate) {
       _nextFocus();
       return picked;

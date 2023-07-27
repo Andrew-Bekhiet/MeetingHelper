@@ -43,8 +43,10 @@ class FilterButton extends StatelessWidget {
                 },
               ),
               if (!disableOrdering)
-                const Text('ترتيب حسب:',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  'ترتيب حسب:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               if (!disableOrdering) ...getOrderingOptions(orderOptions!, type)
             ],
           ),
@@ -72,18 +74,19 @@ class SearchField extends StatelessWidget {
       style: textStyle,
       controller: _textController,
       decoration: InputDecoration(
-          suffixIcon: showSuffix
-              ? IconButton(
-                  icon: Icon(Icons.close, color: textStyle!.color),
-                  onPressed: () {
-                    _textController.text = '';
-                    searchStream.add('');
-                  },
-                )
-              : null,
-          hintStyle: textStyle,
-          icon: Icon(Icons.search, color: textStyle!.color),
-          hintText: 'بحث ...'),
+        suffixIcon: showSuffix
+            ? IconButton(
+                icon: Icon(Icons.close, color: textStyle!.color),
+                onPressed: () {
+                  _textController.text = '';
+                  searchStream.add('');
+                },
+              )
+            : null,
+        hintStyle: textStyle,
+        icon: Icon(Icons.search, color: textStyle!.color),
+        hintText: 'بحث ...',
+      ),
       onChanged: searchStream.add,
     );
   }
@@ -113,8 +116,9 @@ class SearchFilters extends StatelessWidget {
             searchStream: options.searchSubject,
             textStyle: textStyle ??
                 Theme.of(context).textTheme.titleLarge!.copyWith(
-                    color:
-                        Theme.of(context).primaryTextTheme.titleLarge!.color),
+                      color:
+                          Theme.of(context).primaryTextTheme.titleLarge!.color,
+                    ),
           ),
         ),
         FilterButton(

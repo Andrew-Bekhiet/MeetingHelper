@@ -40,7 +40,8 @@ class MHNotificationsService extends NotificationsService {
   @override
   void listenToFirebaseMessaging() {
     FirebaseMessaging.onBackgroundMessage(
-        NotificationsService.onBackgroundMessageReceived);
+      NotificationsService.onBackgroundMessageReceived,
+    );
     onForegroundMessageSubscription =
         FirebaseMessaging.onMessage.listen(onForegroundMessage);
     onMessageOpenedAppSubscription =
@@ -89,14 +90,19 @@ class MHNotificationsService extends NotificationsService {
   }
 
   Future<void> sendNotification(
-      BuildContext context, dynamic attachment) async {
+    BuildContext context,
+    dynamic attachment,
+  ) async {
     final controller = ListController<Class?, User>(
       objectsPaginatableStream: PaginatableStream.loadAll(
         stream: GetIt.I<MHDatabaseRepo>().collection('Users').snapshots().map(
               (s) => s.docs
                   .map(
                     (d) => User(
-                        ref: d.reference, uid: d.id, name: d.data()['Name']),
+                      ref: d.reference,
+                      uid: d.id,
+                      name: d.data()['Name'],
+                    ),
                   )
                   .toList(),
             ),
@@ -243,7 +249,8 @@ class MHNotificationsService extends NotificationsService {
 
   @pragma('vm:entry-point')
   static Future<void> onNotificationClicked(
-      NotificationResponse response) async {
+    NotificationResponse response,
+  ) async {
     final payload = response.payload;
 
     if (WidgetsBinding.instance.rootElement != null &&
@@ -275,7 +282,8 @@ class MHNotificationsService extends NotificationsService {
               .where(
                 'LastKodas',
                 isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(const Duration(days: 7))),
+                  DateTime.now().subtract(const Duration(days: 7)),
+                ),
               )
               .limit(20),
         )
@@ -340,7 +348,8 @@ class MHNotificationsService extends NotificationsService {
               .where(
                 'LastMeeting',
                 isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(const Duration(days: 7))),
+                  DateTime.now().subtract(const Duration(days: 7)),
+                ),
               )
               .limit(20),
         )
@@ -403,7 +412,8 @@ class MHNotificationsService extends NotificationsService {
               .where(
                 'LastTanawol',
                 isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(const Duration(days: 7))),
+                  DateTime.now().subtract(const Duration(days: 7)),
+                ),
               )
               .limit(20),
         )
@@ -466,7 +476,8 @@ class MHNotificationsService extends NotificationsService {
               .where(
                 'LastVisit',
                 isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(const Duration(days: 20))),
+                  DateTime.now().subtract(const Duration(days: 20)),
+                ),
               )
               .limit(20),
         )
@@ -529,7 +540,8 @@ class MHNotificationsService extends NotificationsService {
               .where(
                 'LastConfession',
                 isLessThan: Timestamp.fromDate(
-                    DateTime.now().subtract(const Duration(days: 7))),
+                  DateTime.now().subtract(const Duration(days: 7)),
+                ),
               )
               .limit(20),
         )
@@ -594,26 +606,31 @@ class MHNotificationsService extends NotificationsService {
 
     final persons = await MHDatabaseRepo.instance.persons
         .getAll(
-            queryCompleter: (q, _, __) => q
-                .where(
-                  'BirthDay',
-                  isGreaterThanOrEqualTo: Timestamp.fromDate(
-                    DateTime(1970, DateTime.now().month, DateTime.now().day),
+          queryCompleter: (q, _, __) => q
+              .where(
+                'BirthDay',
+                isGreaterThanOrEqualTo: Timestamp.fromDate(
+                  DateTime(1970, DateTime.now().month, DateTime.now().day),
+                ),
+              )
+              .where(
+                'BirthDay',
+                isLessThan: Timestamp.fromDate(
+                  DateTime(
+                    1970,
+                    DateTime.now().month,
+                    DateTime.now().day + 1,
                   ),
-                )
-                .where(
-                  'BirthDay',
-                  isLessThan: Timestamp.fromDate(
-                    DateTime(
-                        1970, DateTime.now().month, DateTime.now().day + 1),
-                  ),
-                )
-                .limit(20))
+                ),
+              )
+              .limit(20),
+        )
         .first;
 
     await GetIt.I<LoggingService>().log(
-        'showBirthdayNotification: Got persons with count: ' +
-            persons.length.toString());
+      'showBirthdayNotification: Got persons with count: ' +
+          persons.length.toString(),
+    );
 
     if (persons.isNotEmpty || !kReleaseMode) {
       final notification = Notification(

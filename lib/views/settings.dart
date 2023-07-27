@@ -52,9 +52,10 @@ class SettingsState extends State<Settings> {
               children: <Widget>[
                 ExpandablePanel(
                   theme: ExpandableThemeData(
-                      useInkWell: true,
-                      iconColor: Theme.of(context).iconTheme.color,
-                      bodyAlignment: ExpandablePanelBodyAlignment.right),
+                    useInkWell: true,
+                    iconColor: Theme.of(context).iconTheme.color,
+                    bodyAlignment: ExpandablePanelBodyAlignment.right,
+                  ),
                   header: const Text(
                     'المظهر',
                     style: TextStyle(fontSize: 24),
@@ -88,7 +89,8 @@ class SettingsState extends State<Settings> {
                         value: greatFeastTheme,
                         onChanged: (v) => setState(() => greatFeastTheme = v),
                         title: const Text(
-                            'تغيير لون البرنامج حسب أسبوع الآلام وفترة الخمسين'),
+                          'تغيير لون البرنامج حسب أسبوع الآلام وفترة الخمسين',
+                        ),
                       ),
                       ElevatedButton.icon(
                         onPressed: () async {
@@ -114,11 +116,14 @@ class SettingsState extends State<Settings> {
                 ),
                 ExpandablePanel(
                   theme: ExpandableThemeData(
-                      useInkWell: true,
-                      iconColor: Theme.of(context).iconTheme.color,
-                      bodyAlignment: ExpandablePanelBodyAlignment.right),
-                  header: const Text('بيانات إضافية',
-                      style: TextStyle(fontSize: 24)),
+                    useInkWell: true,
+                    iconColor: Theme.of(context).iconTheme.color,
+                    bodyAlignment: ExpandablePanelBodyAlignment.right,
+                  ),
+                  header: const Text(
+                    'بيانات إضافية',
+                    style: TextStyle(fontSize: 24),
+                  ),
                   collapsed: const Text(
                     'الكنائس، الأباء الكهنة، الوظائف، السنوات الدراسية، المدارس والكليات',
                     overflow: TextOverflow.ellipsis,
@@ -156,14 +161,18 @@ class SettingsState extends State<Settings> {
                 ),
                 ExpandablePanel(
                   theme: ExpandableThemeData(
-                      useInkWell: true,
-                      iconColor: Theme.of(context).iconTheme.color,
-                      bodyAlignment: ExpandablePanelBodyAlignment.right),
-                  header: const Text('مظهر البيانات',
-                      style: TextStyle(fontSize: 24)),
+                    useInkWell: true,
+                    iconColor: Theme.of(context).iconTheme.color,
+                    bodyAlignment: ExpandablePanelBodyAlignment.right,
+                  ),
+                  header: const Text(
+                    'مظهر البيانات',
+                    style: TextStyle(fontSize: 24),
+                  ),
                   collapsed: const Text(
-                      'السطر الثاني للفصل، السطر الثاني للمخدوم',
-                      overflow: TextOverflow.ellipsis),
+                    'السطر الثاني للفصل، السطر الثاني للمخدوم',
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   expanded: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
@@ -181,15 +190,18 @@ class SettingsState extends State<Settings> {
                               )
                               .toList()
                             ..removeWhere((element) => element.value == 'Color')
-                            ..add(const DropdownMenuItem(
-                              value: 'Members',
-                              child: Text('المخدومين بالفصل'),
-                            ))
+                            ..add(
+                              const DropdownMenuItem(
+                                value: 'Members',
+                                child: Text('المخدومين بالفصل'),
+                              ),
+                            )
                             ..insert(
-                                0,
-                                const DropdownMenuItem(
-                                  child: Text(''),
-                                )),
+                              0,
+                              const DropdownMenuItem(
+                                child: Text(''),
+                              ),
+                            ),
                           onChanged: (value) {},
                           onSaved: (value) async {
                             await settings.put('ClassSecondLine', value);
@@ -205,17 +217,20 @@ class SettingsState extends State<Settings> {
                           value: settings.get('PersonSecondLine'),
                           items: Person.propsMetadata()
                               .entries
-                              .map((e) => DropdownMenuItem(
-                                    value: e.key,
-                                    child: Text(e.value.label),
-                                  ))
+                              .map(
+                                (e) => DropdownMenuItem(
+                                  value: e.key,
+                                  child: Text(e.value.label),
+                                ),
+                              )
                               .toList()
                             ..removeWhere((element) => element.value == 'Color')
                             ..insert(
-                                0,
-                                const DropdownMenuItem(
-                                  child: Text(''),
-                                )),
+                              0,
+                              const DropdownMenuItem(
+                                child: Text(''),
+                              ),
+                            ),
                           onChanged: (value) {},
                           onSaved: (value) async {
                             await settings.put('PersonSecondLine', value);
@@ -235,9 +250,10 @@ class SettingsState extends State<Settings> {
                     if (permission.data?.containsValue(true) ?? false) {
                       return ExpandablePanel(
                         theme: ExpandableThemeData(
-                            useInkWell: true,
-                            iconColor: Theme.of(context).iconTheme.color,
-                            bodyAlignment: ExpandablePanelBodyAlignment.right),
+                          useInkWell: true,
+                          iconColor: Theme.of(context).iconTheme.color,
+                          bodyAlignment: ExpandablePanelBodyAlignment.right,
+                        ),
                         header: const Text(
                           'الاشعارات',
                           style: TextStyle(fontSize: 24),
@@ -252,9 +268,10 @@ class SettingsState extends State<Settings> {
                 ),
                 ExpandablePanel(
                   theme: ExpandableThemeData(
-                      useInkWell: true,
-                      iconColor: Theme.of(context).iconTheme.color,
-                      bodyAlignment: ExpandablePanelBodyAlignment.right),
+                    useInkWell: true,
+                    iconColor: Theme.of(context).iconTheme.color,
+                    bodyAlignment: ExpandablePanelBodyAlignment.right,
+                  ),
                   header: const Text('أخرى', style: TextStyle(fontSize: 24)),
                   collapsed: const Text('إعدادات أخرى'),
                   expanded: Container(
@@ -265,15 +282,19 @@ class SettingsState extends State<Settings> {
                       ),
                       keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.done,
-                      initialValue: ((settings.get('cacheSize',
-                                      defaultValue: 300 * 1024 * 1024) /
+                      initialValue: ((settings.get(
+                                    'cacheSize',
+                                    defaultValue: 300 * 1024 * 1024,
+                                  ) /
                                   1024) /
                               1024)
                           .truncate()
                           .toString(),
                       onSaved: (c) async {
                         await settings.put(
-                            'cacheSize', int.parse(c!) * 1024 * 1024);
+                          'cacheSize',
+                          int.parse(c!) * 1024 * 1024,
+                        );
                       },
                       validator: (value) {
                         if (value!.isEmpty) {
@@ -292,9 +313,11 @@ class SettingsState extends State<Settings> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _form.currentState!.save();
-          scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
-            content: Text('تم الحفظ'),
-          ));
+          scaffoldMessenger.currentState!.showSnackBar(
+            const SnackBar(
+              content: Text('تم الحفظ'),
+            ),
+          );
         },
         tooltip: 'حفظ',
         child: const Icon(Icons.save),
@@ -363,13 +386,12 @@ class SettingsState extends State<Settings> {
                     return state.value != null
                         ? Text(
                             DateFormat(
-                                    'h:m' +
-                                        (MediaQuery.of(context)
-                                                .alwaysUse24HourFormat
-                                            ? ''
-                                            : ' a'),
-                                    'ar-EG')
-                                .format(state.value!),
+                              'h:m' +
+                                  (MediaQuery.of(context).alwaysUse24HourFormat
+                                      ? ''
+                                      : ' a'),
+                              'ar-EG',
+                            ).format(state.value!),
                           )
                         : null;
                   },

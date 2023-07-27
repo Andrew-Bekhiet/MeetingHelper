@@ -79,6 +79,7 @@ class Invitation extends DataObject {
         permissions = {},
         expiryDate = DateTime.now().add(const Duration(days: 1, minutes: 10)),
         super(
-            GetIt.I<DatabaseRepository>().collection('Invitations').doc('null'),
-            '');
+          GetIt.I<DatabaseRepository>().collection('Invitations').doc('null'),
+          '',
+        );
 }

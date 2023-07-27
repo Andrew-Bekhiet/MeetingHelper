@@ -23,11 +23,13 @@ class AttendanceChart extends StatelessWidget {
     this.studyYears,
     this.days,
     this.isServant = false,
-  }) : assert(classes != null ||
-            (collectionGroup != 'Meeting' &&
-                collectionGroup != 'Kodas' &&
-                collectionGroup != 'Confession' &&
-                studyYears != null));
+  }) : assert(
+          classes != null ||
+              (collectionGroup != 'Meeting' &&
+                  collectionGroup != 'Kodas' &&
+                  collectionGroup != 'Confession' &&
+                  studyYears != null),
+        );
 
   final List<Class>? classes;
   final List<StudyYear>? studyYears;
@@ -50,8 +52,10 @@ class AttendanceChart extends StatelessWidget {
               );
 
       query = query
-          .where('Time',
-              isGreaterThanOrEqualTo: Timestamp.fromDate(range.start))
+          .where(
+            'Time',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(range.start),
+          )
           .where(
             'Time',
             isLessThan:
@@ -66,27 +70,31 @@ class AttendanceChart extends StatelessWidget {
           .map((s) => s.docs.map(HistoryRecord.fromQueryDoc).toList());
     }
 
-    return Rx.combineLatestList<JsonQuery>(classes!.split(10).map((c) {
-      var query =
-          GetIt.I<DatabaseRepository>().collectionGroup(collectionGroup);
-      if (notService(collectionGroup)) {
-        query = query.where('ClassId', whereIn: c.map((e) => e.ref).toList());
-      }
-      query = query
-          .where('Time',
-              isGreaterThanOrEqualTo: Timestamp.fromDate(range.start))
-          .where(
-            'Time',
-            isLessThan:
-                Timestamp.fromDate(range.end.add(const Duration(days: 1))),
-          );
-      if (isServant) {
-        query = query.where('IsServant', isEqualTo: isServant);
-      }
-      return query.orderBy('Time', descending: true).snapshots();
-    }).toList())
-        .map((s) =>
-            s.expand((n) => n.docs).map(HistoryRecord.fromQueryDoc).toList());
+    return Rx.combineLatestList<JsonQuery>(
+      classes!.split(10).map((c) {
+        var query =
+            GetIt.I<DatabaseRepository>().collectionGroup(collectionGroup);
+        if (notService(collectionGroup)) {
+          query = query.where('ClassId', whereIn: c.map((e) => e.ref).toList());
+        }
+        query = query
+            .where(
+              'Time',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(range.start),
+            )
+            .where(
+              'Time',
+              isLessThan:
+                  Timestamp.fromDate(range.end.add(const Duration(days: 1))),
+            );
+        if (isServant) {
+          query = query.where('IsServant', isEqualTo: isServant);
+        }
+        return query.orderBy('Time', descending: true).snapshots();
+      }).toList(),
+    ).map(
+      (s) => s.expand((n) => n.docs).map(HistoryRecord.fromQueryDoc).toList(),
+    );
   }
 
   @override
@@ -113,9 +121,11 @@ class AttendanceChart extends StatelessWidget {
           );
         }
 
-        mergeSort(history.data!,
-            compare: (dynamic o, dynamic n) => o.time.millisecondsSinceEpoch
-                .compareTo(n.time.millisecondsSinceEpoch));
+        mergeSort(
+          history.data!,
+          compare: (dynamic o, dynamic n) => o.time.millisecondsSinceEpoch
+              .compareTo(n.time.millisecondsSinceEpoch),
+        );
         final Map<Timestamp, List<HistoryRecord>> historyMap =
             groupBy<HistoryRecord, Timestamp>(
           history.data!,
@@ -156,18 +166,21 @@ class AttendanceChart extends StatelessWidget {
                                             : ColorBrightness.light,
                                   )
                                 : parent.item2.color!,
-                    pieData: groupBy<HistoryRecord, JsonRef?>(history.data!,
-                            (r) => classes != null ? r.classId : r.studyYear)
+                    pieData: groupBy<HistoryRecord, JsonRef?>(
+                      history.data!,
+                      (r) => classes != null ? r.classId : r.studyYear,
+                    )
                         .entries
                         .map(
                           (e) => Tuple2<int, DataObject>(
                             e.value.length,
                             groupedClasses[e.key] ??
                                 Class(
-                                    ref: GetIt.I<DatabaseRepository>()
-                                        .collection('Classes')
-                                        .doc('null'),
-                                    name: 'غير معروف'),
+                                  ref: GetIt.I<DatabaseRepository>()
+                                      .collection('Classes')
+                                      .doc('null'),
+                                  name: 'غير معروف',
+                                ),
                           ),
                         )
                         .toList(),
@@ -219,8 +232,10 @@ class AttendancePercent extends StatelessWidget {
         CircularPercentIndicator(
           header: label != null
               ? Center(
-                  child: Text(label!,
-                      style: Theme.of(context).textTheme.titleLarge),
+                  child: Text(
+                    label!,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                 )
               : null,
           radius: 80.0,
@@ -228,8 +243,9 @@ class AttendancePercent extends StatelessWidget {
           percent: attends / total,
           animation: true,
           center: Text(
-              (attends / total * 100).toStringAsFixed(1).replaceAll('.0', '') +
-                  '%'),
+            (attends / total * 100).toStringAsFixed(1).replaceAll('.0', '') +
+                '%',
+          ),
           linearGradient: LinearGradient(
             colors: [
               Colors.amber[300]!,
@@ -280,11 +296,13 @@ class ClassesAttendanceIndicator extends StatelessWidget {
     this.classes,
     this.isServant = false,
     this.studyYears,
-  }) : assert(classes != null ||
-            (collection.id != 'Meeting' &&
-                collection.id != 'Kodas' &&
-                collection.id != 'Confession' &&
-                studyYears != null));
+  }) : assert(
+          classes != null ||
+              (collection.id != 'Meeting' &&
+                  collection.id != 'Kodas' &&
+                  collection.id != 'Confession' &&
+                  studyYears != null),
+        );
 
   final List<Class>? classes;
   final List<StudyYear>? studyYears;
@@ -297,16 +315,21 @@ class ClassesAttendanceIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     return StreamBuilder<List<HistoryRecord>>(
       stream: classes != null
-          ? Rx.combineLatestList<JsonQuery>(classes!
+          ? Rx.combineLatestList<JsonQuery>(
+              classes!
                   .split(10)
-                  .map((o) => collection
-                      .where('ClassId', whereIn: o.map((e) => e.ref).toList())
-                      .snapshots())
-                  .toList())
-              .map((s) => s
+                  .map(
+                    (o) => collection
+                        .where('ClassId', whereIn: o.map((e) => e.ref).toList())
+                        .snapshots(),
+                  )
+                  .toList(),
+            ).map(
+              (s) => s
                   .expand((e) => e.docs)
                   .map(HistoryRecord.fromQueryDoc)
-                  .toList())
+                  .toList(),
+            )
           : collection
               .snapshots()
               .map((s) => s.docs.map(HistoryRecord.fromQueryDoc).toList()),
@@ -325,13 +348,17 @@ class ClassesAttendanceIndicator extends StatelessWidget {
                         (o) => isServant
                             ? GetIt.I<DatabaseRepository>()
                                 .collection('UsersData')
-                                .where('ClassId',
-                                    whereIn: o.map((e) => e.ref).toList())
+                                .where(
+                                  'ClassId',
+                                  whereIn: o.map((e) => e.ref).toList(),
+                                )
                                 .snapshots()
                             : GetIt.I<DatabaseRepository>()
                                 .collection('Persons')
-                                .where('ClassId',
-                                    whereIn: o.map((e) => e.ref).toList())
+                                .where(
+                                  'ClassId',
+                                  whereIn: o.map((e) => e.ref).toList(),
+                                )
                                 .snapshots(),
                       )
                       .toList(),
@@ -339,18 +366,22 @@ class ClassesAttendanceIndicator extends StatelessWidget {
               : isServant
                   ? GetIt.I<DatabaseRepository>()
                       .collection('UsersData')
-                      .where('Services',
-                          arrayContains: GetIt.I<DatabaseRepository>()
-                              .collection('Services')
-                              .doc(collection.id))
+                      .where(
+                        'Services',
+                        arrayContains: GetIt.I<DatabaseRepository>()
+                            .collection('Services')
+                            .doc(collection.id),
+                      )
                       .snapshots()
                       .map((s) => s.size)
                   : GetIt.I<DatabaseRepository>()
                       .collection('Persons')
-                      .where('Services',
-                          arrayContains: GetIt.I<DatabaseRepository>()
-                              .collection('Services')
-                              .doc(collection.id))
+                      .where(
+                        'Services',
+                        arrayContains: GetIt.I<DatabaseRepository>()
+                            .collection('Services')
+                            .doc(collection.id),
+                      )
                       .snapshots()
                       .map((s) => s.size),
           builder: (context, persons) {
@@ -360,7 +391,8 @@ class ClassesAttendanceIndicator extends StatelessWidget {
             }
             if (persons.data == 0) {
               return const Center(
-                  child: Text('لا يوجد مخدومين في الفصول المحددة'));
+                child: Text('لا يوجد مخدومين في الفصول المحددة'),
+              );
             }
 
             final Map<JsonRef, DataObject> groupedClasses = {
@@ -396,19 +428,20 @@ class ClassesAttendanceIndicator extends StatelessWidget {
                                       )
                                     : parent.item2.color!,
                         pieData: groupBy<HistoryRecord, JsonRef?>(
-                                snapshot.data!,
-                                (p) =>
-                                    classes != null ? p.classId! : p.studyYear)
+                          snapshot.data!,
+                          (p) => classes != null ? p.classId! : p.studyYear,
+                        )
                             .entries
                             .map(
                               (e) => Tuple2<int, DataObject>(
                                 e.value.length,
                                 groupedClasses[e.key] ??
                                     Class(
-                                        ref: GetIt.I<DatabaseRepository>()
-                                            .collection('Classes')
-                                            .doc('null'),
-                                        name: 'غير معروف'),
+                                      ref: GetIt.I<DatabaseRepository>()
+                                          .collection('Classes')
+                                          .doc('null'),
+                                      name: 'غير معروف',
+                                    ),
                               ),
                             )
                             .toList(),
@@ -452,20 +485,22 @@ class PersonAttendanceIndicator extends StatelessWidget {
 
   Stream<List<JsonQueryDoc>> _getHistoryForUser() {
     return Rx.combineLatest3<User?, List<Class>, List<Service>,
-                Tuple3<User?, List<Class>, List<Service>>>(
-            User.loggedInStream,
-            MHDatabaseRepo.I.classes.getAll(),
-            MHDatabaseRepo.I.services.getAll(),
-            Tuple3.new)
-        .switchMap((u) {
+        Tuple3<User?, List<Class>, List<Service>>>(
+      User.loggedInStream,
+      MHDatabaseRepo.I.classes.getAll(),
+      MHDatabaseRepo.I.services.getAll(),
+      Tuple3.new,
+    ).switchMap((u) {
       if (u.item1 == null) return Stream.value([]);
 
       if (u.item1!.permissions.superAccess) {
         return GetIt.I<DatabaseRepository>()
             .collectionGroup(collectionGroup)
             .where('ID', isEqualTo: id)
-            .where('Time',
-                isGreaterThanOrEqualTo: Timestamp.fromDate(range.start))
+            .where(
+              'Time',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(range.start),
+            )
             .where(
               'Time',
               isLessThan:
@@ -480,40 +515,41 @@ class PersonAttendanceIndicator extends StatelessWidget {
         return Stream.value([]);
       } else {
         return Rx.combineLatestList<JsonQuery>(
-                (notService(collectionGroup) ? u.item2 : u.item3)
-                    .split(10)
-                    .map((o) {
-          return GetIt.I<DatabaseRepository>()
-              .collectionGroup(collectionGroup)
-              .where(
-                collectionGroup == 'Meeting' ||
-                        collectionGroup == 'Kodas' ||
-                        collectionGroup == 'Confession'
-                    ? 'ClassId'
-                    : 'Services',
-                whereIn: collectionGroup == 'Meeting' ||
-                        collectionGroup == 'Kodas' ||
-                        collectionGroup == 'Confession'
-                    ? o.map((e) => e.ref).toList()
-                    : null,
-                arrayContainsAny: collectionGroup == 'Meeting' ||
-                        collectionGroup == 'Kodas' ||
-                        collectionGroup == 'Confession'
-                    ? null
-                    : o.map((e) => e.ref).toList(),
-              )
-              .where('ID', isEqualTo: id)
-              .where(
-                'Time',
-                isLessThan:
-                    Timestamp.fromDate(range.end.add(const Duration(days: 1))),
-              )
-              .where('Time',
-                  isGreaterThanOrEqualTo: Timestamp.fromDate(range.start))
-              .orderBy('Time', descending: true)
-              .snapshots();
-        }).toList())
-            .map((s) => s.expand((n) => n.docs).toList());
+          (notService(collectionGroup) ? u.item2 : u.item3).split(10).map((o) {
+            return GetIt.I<DatabaseRepository>()
+                .collectionGroup(collectionGroup)
+                .where(
+                  collectionGroup == 'Meeting' ||
+                          collectionGroup == 'Kodas' ||
+                          collectionGroup == 'Confession'
+                      ? 'ClassId'
+                      : 'Services',
+                  whereIn: collectionGroup == 'Meeting' ||
+                          collectionGroup == 'Kodas' ||
+                          collectionGroup == 'Confession'
+                      ? o.map((e) => e.ref).toList()
+                      : null,
+                  arrayContainsAny: collectionGroup == 'Meeting' ||
+                          collectionGroup == 'Kodas' ||
+                          collectionGroup == 'Confession'
+                      ? null
+                      : o.map((e) => e.ref).toList(),
+                )
+                .where('ID', isEqualTo: id)
+                .where(
+                  'Time',
+                  isLessThan: Timestamp.fromDate(
+                    range.end.add(const Duration(days: 1)),
+                  ),
+                )
+                .where(
+                  'Time',
+                  isGreaterThanOrEqualTo: Timestamp.fromDate(range.start),
+                )
+                .orderBy('Time', descending: true)
+                .snapshots();
+          }).toList(),
+        ).map((s) => s.expand((n) => n.docs).toList());
       }
     });
   }
@@ -558,17 +594,17 @@ class HistoryAnalysisWidget extends StatelessWidget {
   final rnd = RandomColor();
   final bool showUsers;
   final String title;
-  final Map<Tuple2<int, String?>, Color> usedColorsMap =
-      <Tuple2<int, String?>, Color>{};
+  final Map<String, Color> usedColorsMap = <String, Color>{};
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<JsonQueryDoc>>(
       stream: MinimalHistoryRecord.getAllForUser(
-          collectionGroup: collectionGroup,
-          range: range,
-          classes: parents.whereType<Class>().toList(),
-          services: parents.whereType<Service>().toList()),
+        collectionGroup: collectionGroup,
+        range: range,
+        classes: parents.whereType<Class>().toList(),
+        services: parents.whereType<Service>().toList(),
+      ),
       builder: (context, daysData) {
         if (daysData.hasError) return ErrorWidget(daysData.error!);
         if (!daysData.hasData) {
@@ -592,9 +628,11 @@ class HistoryAnalysisWidget extends StatelessWidget {
         final List<MinimalHistoryRecord> data =
             daysData.data!.map(MinimalHistoryRecord.fromQueryDoc).toList();
 
-        mergeSort(data,
-            compare: (dynamic o, dynamic n) => o.time.millisecondsSinceEpoch
-                .compareTo(n.time.millisecondsSinceEpoch));
+        mergeSort(
+          data,
+          compare: (dynamic o, dynamic n) => o.time.millisecondsSinceEpoch
+              .compareTo(n.time.millisecondsSinceEpoch),
+        );
 
         final Map<Timestamp, List<MinimalHistoryRecord>> groupedData =
             groupBy<MinimalHistoryRecord, Timestamp>(
@@ -630,14 +668,21 @@ class HistoryAnalysisWidget extends StatelessWidget {
             ListTile(
               title: Center(child: Text('تحليل ' + title + ' لكل فصل')),
             ),
-            PieChart<String?>(
+            PieChart<JsonRef>(
               total: data.length,
               pieData: list
-                  .map((e) => Tuple2<int, String?>(
-                      e.value.length, classesByRef[e.key]?.name))
+                  .map(
+                    (e) => Tuple2<int, JsonRef>(
+                      e.value.length,
+                      e.key,
+                    ),
+                  )
                   .toList(),
-              pointColorMapper: (entry, __) => usedColorsMap[entry] ??=
-                  (classesByRef[entry.item2]?.color == null ||
+              nameGetter: (c) => classesByRef[c]?.name,
+              pointColorMapper: (entry, __) =>
+                  usedColorsMap[entry.item2.path] ??= (classesByRef[entry.item2]
+                                  ?.color ==
+                              null ||
                           classesByRef[entry.item2]?.color == Colors.transparent
                       ? rnd.randomColor(
                           colorBrightness:
@@ -645,7 +690,7 @@ class HistoryAnalysisWidget extends StatelessWidget {
                                   ? ColorBrightness.dark
                                   : ColorBrightness.light,
                         )
-                      : classesByRef[entry.item2!]?.color)!,
+                      : classesByRef[entry.item2]?.color)!,
             ),
             if (showUsers)
               ListTile(
@@ -665,8 +710,10 @@ class HistoryAnalysisWidget extends StatelessWidget {
                           .entries
                           .toList();
                   return PieChart<String?>(
+                    nameGetter: (c) => usersByID[c]?.name,
                     pointColorMapper: (entry, __) =>
-                        usedColorsMap[entry] ??= rnd.randomColor(
+                        usedColorsMap[entry.item2 ?? 'unknown'] ??=
+                            rnd.randomColor(
                       colorBrightness:
                           Theme.of(context).brightness == Brightness.dark
                               ? ColorBrightness.dark
@@ -674,8 +721,12 @@ class HistoryAnalysisWidget extends StatelessWidget {
                     ),
                     total: data.length,
                     pieData: pieData
-                        .map((e) => Tuple2<int, String?>(
-                            e.value.length, usersByID[e.key]?.name))
+                        .map(
+                          (e) => Tuple2<int, String?>(
+                            e.value.length,
+                            e.key,
+                          ),
+                        )
                         .toList(),
                   );
                 },
@@ -773,8 +824,9 @@ class CartesianChart<T> extends StatelessWidget {
                 child: SfCartesianChart(
                   enableAxisAnimation: true,
                   primaryYAxis: NumericAxis(
-                      decimalPlaces: 0,
-                      maximum: persons.data?.length.toDouble()),
+                    decimalPlaces: 0,
+                    maximum: persons.data?.length.toDouble(),
+                  ),
                   primaryXAxis: DateTimeAxis(
                     minimum: range.start.subtract(const Duration(hours: 4)),
                     maximum: range.end.add(const Duration(hours: 4)),
@@ -802,8 +854,10 @@ class CartesianChart<T> extends StatelessWidget {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(intl.DateFormat('yyy/M/d', 'ar-EG')
-                                .format(data.key.toDate())),
+                            Text(
+                              intl.DateFormat('yyy/M/d', 'ar-EG')
+                                  .format(data.key.toDate()),
+                            ),
                             Text(
                               data.value.length.toString(),
                             ),

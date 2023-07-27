@@ -51,7 +51,8 @@ class InnerListState extends State<_InnerSchoolsList> {
                                 onChanged: (x) {
                                   !x!
                                       ? widget.result!.removeWhere(
-                                          (x) => x.id == current.id)
+                                          (x) => x.id == current.id,
+                                        )
                                       : widget.result!.add(current);
                                   setState(() {});
                                 },
@@ -182,25 +183,31 @@ class _SchoolsListState extends State<SchoolsList> {
   @override
   Widget build(BuildContext c) {
     return FutureBuilder<Stream<JsonQuery>>(
-        future: widget.list,
-        builder: (c, o) {
-          if (o.hasData) {
-            return StreamBuilder<School>(
-                stream: widget.original,
-                builder: (con, data) {
-                  if (result == null && data.hasData) {
-                    result = [data.data!];
-                  } else if (data.hasData) {
-                    result!.add(data.data!);
-                  } else {
-                    result = [];
-                  }
-                  return _InnerSchoolsList(
-                      o.data, result ?? [], widget.list, widget.finished);
-                });
-          } else {
-            return Container();
-          }
-        });
+      future: widget.list,
+      builder: (c, o) {
+        if (o.hasData) {
+          return StreamBuilder<School>(
+            stream: widget.original,
+            builder: (con, data) {
+              if (result == null && data.hasData) {
+                result = [data.data!];
+              } else if (data.hasData) {
+                result!.add(data.data!);
+              } else {
+                result = [];
+              }
+              return _InnerSchoolsList(
+                o.data,
+                result ?? [],
+                widget.list,
+                widget.finished,
+              );
+            },
+          );
+        } else {
+          return Container();
+        }
+      },
+    );
   }
 }

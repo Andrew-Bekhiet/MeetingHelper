@@ -60,25 +60,32 @@ class Users {
             !u.permissions.secretary) {
           return queryCompleter(repository.collection('Users'), 'Name', false)
               .snapshots()
-              .map((p) => p.docs
-                  .map((d) =>
-                      User(ref: d.reference, uid: d.id, name: d.data()['Name']))
-                  .toList());
+              .map(
+                (p) => p.docs
+                    .map(
+                      (d) => User(
+                        ref: d.reference,
+                        uid: d.id,
+                        name: d.data()['Name'],
+                      ),
+                    )
+                    .toList(),
+              );
         }
         if (u.permissions.manageUsers || u.permissions.secretary) {
           return queryCompleter(
-                  repository.collection('UsersData'), 'Name', false)
-              .snapshots()
-              .map((p) => p.docs.map(UserWithPerson.fromDoc).toList());
+            repository.collection('UsersData'),
+            'Name',
+            false,
+          ).snapshots().map((p) => p.docs.map(UserWithPerson.fromDoc).toList());
         } else {
           return queryCompleter(
-                  repository
-                      .collection('UsersData')
-                      .where('AllowedUsers', arrayContains: u.uid),
-                  'Name',
-                  false)
-              .snapshots()
-              .map((p) => p.docs.map(UserWithPerson.fromDoc).toList());
+            repository
+                .collection('UsersData')
+                .where('AllowedUsers', arrayContains: u.uid),
+            'Name',
+            false,
+          ).snapshots().map((p) => p.docs.map(UserWithPerson.fromDoc).toList());
         }
       },
     );
@@ -97,9 +104,10 @@ class Users {
 
         if (u.permissions.manageUsers || u.permissions.secretary) {
           return queryCompleter(
-                  repository.collection('UsersData'), 'Name', false)
-              .snapshots()
-              .map(
+            repository.collection('UsersData'),
+            'Name',
+            false,
+          ).snapshots().map(
                 (p) => p.docs.map(UserWithPerson.fromDoc).toList(),
               );
         } else {
@@ -118,12 +126,14 @@ class Users {
   }
 
   Stream<List<User>> getAllUsersNames() {
-    return repository.collection('Users').orderBy('Name').snapshots().map((p) =>
-        p
-            .docs
-            .map((d) =>
-                User(ref: d.reference, uid: d.id, name: d.data()['Name']))
-            .toList());
+    return repository.collection('Users').orderBy('Name').snapshots().map(
+          (p) => p.docs
+              .map(
+                (d) =>
+                    User(ref: d.reference, uid: d.id, name: d.data()['Name']),
+              )
+              .toList(),
+        );
   }
 
   Stream<List<User>> getAllSemiManagers([
@@ -132,23 +142,21 @@ class Users {
     return User.loggedInStream.switchMap((u) {
       if (u.permissions.manageUsers || u.permissions.secretary) {
         return queryCompleter(
-                repository
-                    .collection('UsersData')
-                    .where('Permissions.ManageAllowedUsers', isEqualTo: true),
-                'Name',
-                false)
-            .snapshots()
-            .map((p) => p.docs.map(UserWithPerson.fromDoc).toList());
+          repository
+              .collection('UsersData')
+              .where('Permissions.ManageAllowedUsers', isEqualTo: true),
+          'Name',
+          false,
+        ).snapshots().map((p) => p.docs.map(UserWithPerson.fromDoc).toList());
       } else {
         return queryCompleter(
-                repository
-                    .collection('UsersData')
-                    .where('AllowedUsers', arrayContains: u.uid)
-                    .where('Permissions.ManageAllowedUsers', isEqualTo: true),
-                'Name',
-                false)
-            .snapshots()
-            .map((p) => p.docs.map(UserWithPerson.fromDoc).toList());
+          repository
+              .collection('UsersData')
+              .where('AllowedUsers', arrayContains: u.uid)
+              .where('Permissions.ManageAllowedUsers', isEqualTo: true),
+          'Name',
+          false,
+        ).snapshots().map((p) => p.docs.map(UserWithPerson.fromDoc).toList());
       }
     });
   }
@@ -203,23 +211,27 @@ class Users {
                   ),
         ).entries.toList();
 
-        mergeSort<MapEntry<Class?, List<User>>>(rslt, compare: (c, c2) {
-          if (c.key == null || c.key!.name == '{لا يمكن قراءة اسم الفصل}') {
-            return 1;
-          }
+        mergeSort<MapEntry<Class?, List<User>>>(
+          rslt,
+          compare: (c, c2) {
+            if (c.key == null || c.key!.name == '{لا يمكن قراءة اسم الفصل}') {
+              return 1;
+            }
 
-          if (c2.key == null || c2.key!.name == '{لا يمكن قراءة اسم الفصل}') {
-            return -1;
-          }
+            if (c2.key == null || c2.key!.name == '{لا يمكن قراءة اسم الفصل}') {
+              return -1;
+            }
 
-          if (studyYears[c.key!.studyYear!] == studyYears[c2.key!.studyYear!]) {
-            return c.key!.gender.compareTo(c2.key!.gender);
-          }
+            if (studyYears[c.key!.studyYear!] ==
+                studyYears[c2.key!.studyYear!]) {
+              return c.key!.gender.compareTo(c2.key!.gender);
+            }
 
-          return studyYears[c.key!.studyYear]!
-              .grade
-              .compareTo(studyYears[c2.key!.studyYear]!.grade);
-        });
+            return studyYears[c.key!.studyYear]!
+                .grade
+                .compareTo(studyYears[c2.key!.studyYear]!.grade);
+          },
+        );
 
         return {for (final e in rslt) e.key: e.value};
       },

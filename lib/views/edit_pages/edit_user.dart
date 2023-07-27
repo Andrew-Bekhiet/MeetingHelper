@@ -116,9 +116,11 @@ class _EditUserState extends State<EditUser> {
                         labelText: 'تاريخ أخر تناول',
                       ),
                       child: user.lastTanawol != null
-                          ? Text(DateFormat('yyyy/M/d').format(
-                              user.lastTanawol!,
-                            ))
+                          ? Text(
+                              DateFormat('yyyy/M/d').format(
+                                user.lastTanawol!,
+                              ),
+                            )
                           : const Text('لا يمكن التحديد'),
                     ),
                   ),
@@ -137,9 +139,11 @@ class _EditUserState extends State<EditUser> {
                         labelText: 'تاريخ أخر اعتراف',
                       ),
                       child: user.lastConfession != null
-                          ? Text(DateFormat('yyyy/M/d').format(
-                              user.lastConfession!,
-                            ))
+                          ? Text(
+                              DateFormat('yyyy/M/d').format(
+                                user.lastConfession!,
+                              ),
+                            )
                           : const Text('لا يمكن التحديد'),
                     ),
                   ),
@@ -187,7 +191,8 @@ class _EditUserState extends State<EditUser> {
                       ),
                     ),
                     leading: const Icon(
-                        IconData(0xef3d, fontFamily: 'MaterialIconsR')),
+                      IconData(0xef3d, fontFamily: 'MaterialIconsR'),
+                    ),
                     title: const Text('إدارة المستخدمين'),
                     onTap: () => setState(
                       () => user = user.copyWith.permissions(
@@ -206,12 +211,14 @@ class _EditUserState extends State<EditUser> {
                     ),
                   ),
                   leading: const Icon(
-                      IconData(0xef3d, fontFamily: 'MaterialIconsR')),
+                    IconData(0xef3d, fontFamily: 'MaterialIconsR'),
+                  ),
                   title: const Text('إدارة مستخدمين محددين'),
                   onTap: () => setState(
                     () => user = user.copyWith.permissions(
                       user.permissions.copyWith.manageAllowedUsers(
-                          !user.permissions.manageAllowedUsers),
+                        !user.permissions.manageAllowedUsers,
+                      ),
                     ),
                   ),
                 ),
@@ -225,7 +232,8 @@ class _EditUserState extends State<EditUser> {
                     ),
                   ),
                   leading: const Icon(
-                      IconData(0xef56, fontFamily: 'MaterialIconsR')),
+                    IconData(0xef56, fontFamily: 'MaterialIconsR'),
+                  ),
                   title: const Text('رؤية جميع البيانات'),
                   onTap: () => setState(
                     () => user = user.copyWith.permissions(
@@ -356,7 +364,8 @@ class _EditUserState extends State<EditUser> {
                     ),
                   ),
                   leading: const Icon(
-                      IconData(0xe7e9, fontFamily: 'MaterialIconsR')),
+                    IconData(0xe7e9, fontFamily: 'MaterialIconsR'),
+                  ),
                   title: const Text('إشعار أعياد الميلاد'),
                   onTap: () => setState(
                     () => user = user.copyWith.permissions(
@@ -375,12 +384,14 @@ class _EditUserState extends State<EditUser> {
                     ),
                   ),
                   leading: const Icon(
-                      IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
+                    IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
+                  ),
                   title: const Text('إشعار  الاعتراف'),
                   onTap: () => setState(
                     () => user = user.copyWith.permissions(
                       user.permissions.copyWith.confessionsNotify(
-                          !user.permissions.confessionsNotify),
+                        !user.permissions.confessionsNotify,
+                      ),
                     ),
                   ),
                 ),
@@ -394,7 +405,8 @@ class _EditUserState extends State<EditUser> {
                     ),
                   ),
                   leading: const Icon(
-                      IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
+                    IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
+                  ),
                   title: const Text('إشعار التناول'),
                   onTap: () => setState(
                     () => user = user.copyWith.permissions(
@@ -413,7 +425,8 @@ class _EditUserState extends State<EditUser> {
                     ),
                   ),
                   leading: const Icon(
-                      IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
+                    IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
+                  ),
                   title: const Text('إشعار القداس'),
                   onTap: () => setState(
                     () => user = user.copyWith.permissions(
@@ -432,7 +445,8 @@ class _EditUserState extends State<EditUser> {
                     ),
                   ),
                   leading: const Icon(
-                      IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
+                    IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
+                  ),
                   title: const Text('إشعار حضور الاجتماع'),
                   onTap: () => setState(
                     () => user = user.copyWith.permissions(
@@ -516,21 +530,24 @@ class _EditUserState extends State<EditUser> {
                       persistentFooterButtons: [
                         TextButton(
                           onPressed: () {
-                            navigator.currentState!.pop(context
-                                .read<ListController<Class?, User>>()
-                                .currentSelection
-                                ?.toList());
+                            navigator.currentState!.pop(
+                              context
+                                  .read<ListController<Class?, User>>()
+                                  .currentSelection
+                                  ?.toList(),
+                            );
                           },
                           child: const Text('تم'),
                         )
                       ],
                       appBar: AppBar(
                         title: SearchField(
-                            showSuffix: false,
-                            searchStream: context
-                                .read<ListController<Class?, User>>()
-                                .searchSubject,
-                            textStyle: Theme.of(context).textTheme.bodyMedium),
+                          showSuffix: false,
+                          searchStream: context
+                              .read<ListController<Class?, User>>()
+                              .searchSubject,
+                          textStyle: Theme.of(context).textTheme.bodyMedium,
+                        ),
                       ),
                       body: DataObjectListView(
                         controller:
@@ -574,8 +591,9 @@ class _EditUserState extends State<EditUser> {
         actions: <Widget>[
           TextButton(
             style: Theme.of(context).textButtonTheme.style!.copyWith(
-                foregroundColor:
-                    MaterialStateProperty.resolveWith((state) => Colors.red)),
+                  foregroundColor:
+                      MaterialStateProperty.resolveWith((state) => Colors.red),
+                ),
             onPressed: () async {
               try {
                 scaffoldMessenger.currentState!.showSnackBar(
@@ -597,10 +615,14 @@ class _EditUserState extends State<EditUser> {
                   ),
                 );
               } catch (err, stack) {
-                await Sentry.captureException(err,
-                    stackTrace: stack,
-                    withScope: (scope) => scope.setTag(
-                        'LasErrorIn', '_EditUserState.deleteUser'));
+                await Sentry.captureException(
+                  err,
+                  stackTrace: stack,
+                  withScope: (scope) => scope.setTag(
+                    'LasErrorIn',
+                    '_EditUserState.deleteUser',
+                  ),
+                );
                 scaffoldMessenger.currentState!.hideCurrentSnackBar();
                 scaffoldMessenger.currentState!.showSnackBar(
                   SnackBar(
@@ -635,30 +657,40 @@ class _EditUserState extends State<EditUser> {
           TextButton(
             onPressed: () async {
               try {
-                scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
-                  content: LinearProgressIndicator(),
-                  duration: Duration(seconds: 15),
-                ));
+                scaffoldMessenger.currentState!.showSnackBar(
+                  const SnackBar(
+                    content: LinearProgressIndicator(),
+                    duration: Duration(seconds: 15),
+                  ),
+                );
                 navigator.currentState!.pop();
                 await GetIt.I<FunctionsService>()
                     .httpsCallable('unApproveUser')
                     .call({'affectedUser': user.uid});
                 navigator.currentState!.pop('deleted');
                 scaffoldMessenger.currentState!.hideCurrentSnackBar();
-                scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
-                  content: Text('تم بنجاح'),
-                  duration: Duration(seconds: 15),
-                ));
+                scaffoldMessenger.currentState!.showSnackBar(
+                  const SnackBar(
+                    content: Text('تم بنجاح'),
+                    duration: Duration(seconds: 15),
+                  ),
+                );
               } catch (err, stack) {
-                await Sentry.captureException(err,
-                    stackTrace: stack,
-                    withScope: (scope) => scope.setTag(
-                        'LasErrorIn', '_EditUserState.unApproveUser'));
+                await Sentry.captureException(
+                  err,
+                  stackTrace: stack,
+                  withScope: (scope) => scope.setTag(
+                    'LasErrorIn',
+                    '_EditUserState.unApproveUser',
+                  ),
+                );
                 scaffoldMessenger.currentState!.hideCurrentSnackBar();
-                scaffoldMessenger.currentState!.showSnackBar(SnackBar(
-                  content: Text(err.toString()),
-                  duration: const Duration(seconds: 7),
-                ));
+                scaffoldMessenger.currentState!.showSnackBar(
+                  SnackBar(
+                    content: Text(err.toString()),
+                    duration: const Duration(seconds: 7),
+                  ),
+                );
               }
             },
             child: const Text('متابعة'),
@@ -689,7 +721,8 @@ class _EditUserState extends State<EditUser> {
           context: context,
           builder: (context) => AlertDialog(
             title: Text(
-                'هل أنت متأكد من إعادة تعيين كلمة السر ل' + user.name + '؟'),
+              'هل أنت متأكد من إعادة تعيين كلمة السر ل' + user.name + '؟',
+            ),
             actions: [
               TextButton(
                 onPressed: () => navigator.currentState!.pop(true),
@@ -720,10 +753,12 @@ class _EditUserState extends State<EditUser> {
         ),
       );
     } catch (err, stack) {
-      await Sentry.captureException(err,
-          stackTrace: stack,
-          withScope: (scope) =>
-              scope.setTag('LasErrorIn', '_EditUserState.resetPassword'));
+      await Sentry.captureException(
+        err,
+        stackTrace: stack,
+        withScope: (scope) =>
+            scope.setTag('LasErrorIn', '_EditUserState.resetPassword'),
+      );
       scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
           content: Text(err.toString()),
@@ -735,17 +770,20 @@ class _EditUserState extends State<EditUser> {
   Future save() async {
     if (await Connectivity().checkConnectivity() == ConnectivityResult.none) {
       await showDialog(
-          context: context,
-          builder: (context) =>
-              const AlertDialog(content: Text('لا يوجد اتصال انترنت')));
+        context: context,
+        builder: (context) =>
+            const AlertDialog(content: Text('لا يوجد اتصال انترنت')),
+      );
       return;
     }
     try {
       if (form.currentState!.validate()) {
-        scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
-          content: Text('جار الحفظ...'),
-          duration: Duration(seconds: 15),
-        ));
+        scaffoldMessenger.currentState!.showSnackBar(
+          const SnackBar(
+            content: Text('جار الحفظ...'),
+            duration: Duration(seconds: 15),
+          ),
+        );
 
         await GetIt.I<MHFunctionsService>().updateUser(
           old: widget.user,
@@ -763,15 +801,18 @@ class _EditUserState extends State<EditUser> {
         );
       }
     } catch (err, stack) {
-      await Sentry.captureException(err,
-          stackTrace: stack,
-          withScope: (scope) =>
-              scope.setTag('LasErrorIn', '_EditUserState.save'));
+      await Sentry.captureException(
+        err,
+        stackTrace: stack,
+        withScope: (scope) => scope.setTag('LasErrorIn', '_EditUserState.save'),
+      );
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
-      scaffoldMessenger.currentState!.showSnackBar(SnackBar(
-        content: Text(err.toString()),
-        duration: const Duration(seconds: 7),
-      ));
+      scaffoldMessenger.currentState!.showSnackBar(
+        SnackBar(
+          content: Text(err.toString()),
+          duration: const Duration(seconds: 7),
+        ),
+      );
     }
   }
 
@@ -810,11 +851,14 @@ class _EditUserState extends State<EditUser> {
             body: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SearchFilters(Class,
-                    options: controller,
-                    orderOptions: BehaviorSubject<OrderOptions>.seeded(
-                        const OrderOptions()),
-                    textStyle: Theme.of(context).textTheme.bodyMedium),
+                SearchFilters(
+                  Class,
+                  options: controller,
+                  orderOptions: BehaviorSubject<OrderOptions>.seeded(
+                    const OrderOptions(),
+                  ),
+                  textStyle: Theme.of(context).textTheme.bodyMedium,
+                ),
                 Expanded(
                   child: ServicesList<Class>(
                     options: controller,
@@ -836,11 +880,13 @@ class _EditUserState extends State<EditUser> {
               child: StreamBuilder<List>(
                 stream: controller.objectsStream,
                 builder: (context, snapshot) {
-                  return Text((snapshot.data?.length ?? 0).toString() + ' خدمة',
-                      textAlign: TextAlign.center,
-                      strutStyle:
-                          StrutStyle(height: IconTheme.of(context).size! / 7.5),
-                      style: Theme.of(context).primaryTextTheme.bodyLarge);
+                  return Text(
+                    (snapshot.data?.length ?? 0).toString() + ' خدمة',
+                    textAlign: TextAlign.center,
+                    strutStyle:
+                        StrutStyle(height: IconTheme.of(context).size! / 7.5),
+                    style: Theme.of(context).primaryTextTheme.bodyLarge,
+                  );
                 },
               ),
             ),

@@ -58,8 +58,10 @@ class _EditClassState extends State<EditClass> {
                           child:
                               Icon(Icons.photo_camera, color: Colors.black54),
                         ),
-                        Icon(Icons.photo_camera,
-                            color: IconTheme.of(context).color),
+                        Icon(
+                          Icons.photo_camera,
+                          color: IconTheme.of(context).color,
+                        ),
                       ],
                     ),
                   ),
@@ -81,15 +83,18 @@ class _EditClassState extends State<EditClass> {
                     opacity: constraints.biggest.height > kToolbarHeight * 1.7
                         ? 0
                         : 1,
-                    child: Text(class$.name,
-                        style: const TextStyle(
-                          fontSize: 16.0,
-                        )),
+                    child: Text(
+                      class$.name,
+                      style: const TextStyle(
+                        fontSize: 16.0,
+                      ),
+                    ),
                   ),
                   background: changedImage == null || deletePhoto
                       ? PhotoObjectWidget(class$, circleCrop: false)
                       : PhotoView(
-                          imageProvider: FileImage(File(changedImage!))),
+                          imageProvider: FileImage(File(changedImage!)),
+                        ),
                 ),
               ),
             ),
@@ -174,11 +179,13 @@ class _EditClassState extends State<EditClass> {
                           .map(
                             (item) => DropdownMenuItem(
                               value: item,
-                              child: Text(item == null
-                                  ? 'بنين وبنات'
-                                  : item
-                                      ? 'بنين'
-                                      : 'بنات'),
+                              child: Text(
+                                item == null
+                                    ? 'بنين وبنات'
+                                    : item
+                                        ? 'بنين'
+                                        : 'بنات',
+                              ),
                             ),
                           )
                           .toList(),
@@ -218,10 +225,11 @@ class _EditClassState extends State<EditClass> {
                       icon: const Icon(Icons.visibility),
                       onPressed: _selectAllowedUsers,
                       label: const Text(
-                          'المستخدمين المسموح لهم برؤية الفصل والمخدومين داخله',
-                          softWrap: false,
-                          textScaleFactor: 0.95,
-                          overflow: TextOverflow.fade),
+                        'المستخدمين المسموح لهم برؤية الفصل والمخدومين داخله',
+                        softWrap: false,
+                        textScaleFactor: 0.95,
+                        overflow: TextOverflow.fade,
+                      ),
                     ),
                 ].map((w) => Focus(child: w)).toList(),
               ),
@@ -398,15 +406,19 @@ class _EditClassState extends State<EditClass> {
         navigator.currentState!.pop(class$.ref);
       }
     } catch (err, stack) {
-      await Sentry.captureException(err,
-          stackTrace: stack,
-          withScope: (scope) =>
-              scope.setTag('LasErrorIn', '_EditClassState.save'));
+      await Sentry.captureException(
+        err,
+        stackTrace: stack,
+        withScope: (scope) =>
+            scope.setTag('LasErrorIn', '_EditClassState.save'),
+      );
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
-      scaffoldMessenger.currentState!.showSnackBar(SnackBar(
-        content: Text(err.toString()),
-        duration: const Duration(seconds: 7),
-      ));
+      scaffoldMessenger.currentState!.showSnackBar(
+        SnackBar(
+          content: Text(err.toString()),
+          duration: const Duration(seconds: 7),
+        ),
+      );
     }
   }
 
@@ -465,8 +477,9 @@ class _EditClassState extends State<EditClass> {
               builder: (context, _) => Scaffold(
                 appBar: AppBar(
                   leading: IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: navigator.currentState!.pop),
+                    icon: const Icon(Icons.close),
+                    onPressed: navigator.currentState!.pop,
+                  ),
                   title: SearchField(
                     showSuffix: false,
                     searchStream: context
@@ -477,11 +490,13 @@ class _EditClassState extends State<EditClass> {
                   actions: [
                     IconButton(
                       onPressed: () {
-                        navigator.currentState!.pop(context
-                            .read<ListController<Class?, User>>()
-                            .currentSelection
-                            ?.map((u) => u.uid)
-                            .toList());
+                        navigator.currentState!.pop(
+                          context
+                              .read<ListController<Class?, User>>()
+                              .currentSelection
+                              ?.map((u) => u.uid)
+                              .toList(),
+                        );
                       },
                       icon: const Icon(Icons.done),
                       tooltip: 'تم',

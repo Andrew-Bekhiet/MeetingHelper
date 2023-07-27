@@ -105,7 +105,10 @@ class MiniModelList<T extends MetaObject> extends StatelessWidget {
   }
 
   Future<void> _defaultModify(
-      BuildContext context, T item, bool editMode) async {
+    BuildContext context,
+    T item,
+    bool editMode,
+  ) async {
     final name = TextEditingController(text: item.name);
     await showDialog(
       context: context,

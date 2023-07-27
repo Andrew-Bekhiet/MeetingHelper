@@ -53,9 +53,10 @@ void setUpMHPlatformChannels() {
       .thenAnswer(
     (_) async* {},
   );
-  when((GetIt.I<FirebaseDynamicLinks>() as MockFirebaseDynamicLinks)
-          .getInitialLink())
-      .thenAnswer((_) async => null);
+  when(
+    (GetIt.I<FirebaseDynamicLinks>() as MockFirebaseDynamicLinks)
+        .getInitialLink(),
+  ).thenAnswer((_) async => null);
   when(GetIt.I<FirebaseMessaging>().getInitialMessage())
       .thenAnswer((_) async => null);
   when((GetIt.I<FirebaseMessaging>() as MockFirebaseMessaging).isSupported())
@@ -63,9 +64,10 @@ void setUpMHPlatformChannels() {
 
   final fakeHttpsCallable = FakeHttpsCallable();
   final fakeHttpsCallableResult = FakeHttpsCallableResult();
-  when((GetIt.I<FirebaseFunctions>() as MockFirebaseFunctions)
-          .httpsCallable('refreshSupabaseToken'))
-      .thenReturn(fakeHttpsCallable);
+  when(
+    (GetIt.I<FirebaseFunctions>() as MockFirebaseFunctions)
+        .httpsCallable('refreshSupabaseToken'),
+  ).thenReturn(fakeHttpsCallable);
   when(fakeHttpsCallable.call(captureAny))
       .thenAnswer((_) async => fakeHttpsCallableResult);
   when(fakeHttpsCallableResult.data).thenReturn('supabaseToken');
@@ -160,8 +162,10 @@ Future<void> initFakeCore() async {
   await GetIt.I<CacheRepository>().openBox('Dev');
 }
 
-Future<MyMockUser> signInMockUser(
-    {MyMockUser? user, Map<String, dynamic>? claims}) async {
+Future<MyMockUser> signInMockUser({
+  MyMockUser? user,
+  Map<String, dynamic>? claims,
+}) async {
   final mockUser = user ??
       MyMockUser(
         uid: 'uid',
@@ -212,8 +216,10 @@ MaterialApp wrapWithMaterialApp(
   );
 }
 
-Future<List<BasicDataObject>> populateWithRandomPersons(JsonCollectionRef ref,
-    [int count = 100]) async {
+Future<List<BasicDataObject>> populateWithRandomPersons(
+  JsonCollectionRef ref, [
+  int count = 100,
+]) async {
   final list = List.generate(
     count,
     (_) => BasicDataObject(
@@ -237,14 +243,19 @@ class FakeLoggingService implements LoggingService {
   Future<void> log(String msg) async {}
 
   @override
-  Future<void> reportError(Exception error,
-      {Map<String, dynamic>? data,
-      Map<String, dynamic>? extras,
-      StackTrace? stackTrace}) async {}
+  Future<void> reportError(
+    Exception error, {
+    Map<String, dynamic>? data,
+    Map<String, dynamic>? extras,
+    StackTrace? stackTrace,
+  }) async {}
 
   @override
-  Future<void> reportFlutterError(FlutterErrorDetails flutterError,
-      {Map<String, dynamic>? data, Map<String, dynamic>? extras}) async {}
+  Future<void> reportFlutterError(
+    FlutterErrorDetails flutterError, {
+    Map<String, dynamic>? data,
+    Map<String, dynamic>? extras,
+  }) async {}
 
   @override
   NavigatorObserver get navigatorObserver => NavigatorObserver();

@@ -33,27 +33,29 @@ class _StudyYearsEditListState extends State<StudyYearsEditList> {
       ),
       builder: (con, data) {
         if (data.hasData) {
-          return Column(children: <Widget>[
-            TextField(
-              decoration: const InputDecoration(hintText: 'بحث...'),
-              onChanged: filter.add,
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: data.data!.length,
-                itemBuilder: (context, i) {
-                  final StudyYear current = data.data![i];
-
-                  return Card(
-                    child: ListTile(
-                      onTap: () => widget.tap!(current),
-                      title: Text(current.name),
-                    ),
-                  );
-                },
+          return Column(
+            children: <Widget>[
+              TextField(
+                decoration: const InputDecoration(hintText: 'بحث...'),
+                onChanged: filter.add,
               ),
-            ),
-          ]);
+              Expanded(
+                child: ListView.builder(
+                  itemCount: data.data!.length,
+                  itemBuilder: (context, i) {
+                    final StudyYear current = data.data![i];
+
+                    return Card(
+                      child: ListTile(
+                        onTap: () => widget.tap!(current),
+                        title: Text(current.name),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          );
         } else {
           return const Center(child: CircularProgressIndicator());
         }

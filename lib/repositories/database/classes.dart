@@ -26,26 +26,27 @@ class Classes extends TableBase<Class> {
   }) {
     if (useRootCollection) {
       return queryCompleter(
-              repository.collection('Classes'), orderBy, descending)
-          .snapshots()
-          .map((c) => c.docs.map(Class.fromDoc).toList());
+        repository.collection('Classes'),
+        orderBy,
+        descending,
+      ).snapshots().map((c) => c.docs.map(Class.fromDoc).toList());
     }
 
     return User.loggedInStream.switchMap((u) {
       if (u.permissions.superAccess) {
         return queryCompleter(
-                repository.collection('Classes'), orderBy, descending)
-            .snapshots()
-            .map((c) => c.docs.map(Class.fromDoc).toList());
+          repository.collection('Classes'),
+          orderBy,
+          descending,
+        ).snapshots().map((c) => c.docs.map(Class.fromDoc).toList());
       } else {
         return queryCompleter(
-                repository
-                    .collection('Classes')
-                    .where('Allowed', arrayContains: u.uid),
-                orderBy,
-                descending)
-            .snapshots()
-            .map((c) => c.docs.map(Class.fromDoc).toList());
+          repository
+              .collection('Classes')
+              .where('Allowed', arrayContains: u.uid),
+          orderBy,
+          descending,
+        ).snapshots().map((c) => c.docs.map(Class.fromDoc).toList());
       }
     });
   }

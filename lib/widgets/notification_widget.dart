@@ -39,7 +39,8 @@ class NotificationWidget extends StatelessWidget {
                 }
               } else if (notification.additionalData?['Query'] != null) {
                 final query = QueryInfo.fromJson(
-                    (notification.additionalData!['Query'] as Map).cast());
+                  (notification.additionalData!['Query'] as Map).cast(),
+                );
 
                 if (query.fieldPath == 'BirthDay') {
                   return Container(

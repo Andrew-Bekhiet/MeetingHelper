@@ -28,9 +28,9 @@ void main() {
         setUpMHPlatformChannels();
         await initFakeCore();
 
-        when((GetIt.I<FirebaseMessaging>() as MockFirebaseMessaging)
-                .isSupported())
-            .thenAnswer((_) async => false);
+        when(
+          (GetIt.I<FirebaseMessaging>() as MockFirebaseMessaging).isSupported(),
+        ).thenAnswer((_) async => false);
       });
 
       tearDown(() async {
@@ -86,9 +86,10 @@ void main() {
             (tester) async {
               final fakeHttpsCallable = FakeHttpsCallable();
               final fakeHttpsCallableResult = FakeHttpsCallableResult();
-              when((GetIt.I<FirebaseFunctions>() as MockFirebaseFunctions)
-                      .httpsCallable('registerWithLink'))
-                  .thenReturn(fakeHttpsCallable);
+              when(
+                (GetIt.I<FirebaseFunctions>() as MockFirebaseFunctions)
+                    .httpsCallable('registerWithLink'),
+              ).thenReturn(fakeHttpsCallable);
               when(fakeHttpsCallable.call(captureAny))
                   .thenAnswer((_) async => fakeHttpsCallableResult);
               when(fakeHttpsCallableResult.data).thenReturn(true);
@@ -100,8 +101,10 @@ void main() {
                 ),
               );
 
-              await tester.enterText(find.byType(TextFormField),
-                  'https://meetinghelper.page.link/XpPh3EjCxn8C8EC67');
+              await tester.enterText(
+                find.byType(TextFormField),
+                'https://meetinghelper.page.link/XpPh3EjCxn8C8EC67',
+              );
               await tester.tap(find.text('تفعيل الحساب باللينك'));
               await tester.pump();
 
@@ -114,9 +117,11 @@ void main() {
               verify(
                 fakeHttpsCallable.call(
                   argThat(
-                    predicate<Map>((a) =>
-                        a['link'] ==
-                        'https://meetinghelper.page.link/XpPh3EjCxn8C8EC67'),
+                    predicate<Map>(
+                      (a) =>
+                          a['link'] ==
+                          'https://meetinghelper.page.link/XpPh3EjCxn8C8EC67',
+                    ),
                   ),
                 ),
               );
@@ -178,16 +183,26 @@ void main() {
                 findsOneWidget,
               );
               expect(find.byTooltip('تسجيل الخروج'), findsOneWidget);
-              expect(find.widgetWithText(TextFormField, 'اسم المستخدم'),
-                  findsOneWidget);
-              expect(find.widgetWithText(TextFormField, 'كلمة السر'),
-                  findsOneWidget);
-              expect(find.widgetWithText(TextFormField, 'تأكيد كلمة السر'),
-                  findsOneWidget);
-              expect(find.widgetWithText(GestureDetector, 'تاريخ أخر تناول'),
-                  findsOneWidget);
-              expect(find.widgetWithText(GestureDetector, 'تاريخ أخر اعتراف'),
-                  findsOneWidget);
+              expect(
+                find.widgetWithText(TextFormField, 'اسم المستخدم'),
+                findsOneWidget,
+              );
+              expect(
+                find.widgetWithText(TextFormField, 'كلمة السر'),
+                findsOneWidget,
+              );
+              expect(
+                find.widgetWithText(TextFormField, 'تأكيد كلمة السر'),
+                findsOneWidget,
+              );
+              expect(
+                find.widgetWithText(GestureDetector, 'تاريخ أخر تناول'),
+                findsOneWidget,
+              );
+              expect(
+                find.widgetWithText(GestureDetector, 'تاريخ أخر اعتراف'),
+                findsOneWidget,
+              );
               expect(
                 find.widgetWithText(ElevatedButton, 'انشاء حساب جديد'),
                 findsOneWidget,
@@ -252,9 +267,10 @@ void main() {
 
               final fakeHttpsCallable = FakeHttpsCallable();
               final fakeHttpsCallableResult = FakeHttpsCallableResult();
-              when((GetIt.I<FirebaseFunctions>() as MockFirebaseFunctions)
-                      .httpsCallable('registerAccount'))
-                  .thenReturn(fakeHttpsCallable);
+              when(
+                (GetIt.I<FirebaseFunctions>() as MockFirebaseFunctions)
+                    .httpsCallable('registerAccount'),
+              ).thenReturn(fakeHttpsCallable);
               when(fakeHttpsCallable.call(captureAny))
                   .thenAnswer((_) async => fakeHttpsCallableResult);
               when(fakeHttpsCallableResult.data).thenReturn(true);
@@ -331,8 +347,8 @@ class TestAssetBundle extends CachingAssetBundle {
   Future<ByteData> load(String key) async {
     if (key == 'AssetManifest.json') {
       return ByteData.view(
-          Uint8List.fromList(const Utf8Encoder().convert(json.encode({})))
-              .buffer);
+        Uint8List.fromList(const Utf8Encoder().convert(json.encode({}))).buffer,
+      );
     }
 
     return ByteData.view(

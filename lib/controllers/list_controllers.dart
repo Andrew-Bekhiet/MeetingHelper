@@ -55,9 +55,11 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
     SearchFunction<T>? filter,
     super.groupBy,
     super.groupByStream,
-  })  : assert(dayOptions.grouped.value == false ||
-            groupBy != null ||
-            groupByStream != null),
+  })  : assert(
+          dayOptions.grouped.value == false ||
+              groupBy != null ||
+              groupByStream != null,
+        ),
         _attended = BehaviorSubject<Map<String, HistoryRecord>>(),
         _objectsById = BehaviorSubject<Map<String, T>>(),
         super(
@@ -88,8 +90,9 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
   ///Listens to [dayOptions.showTrueonly] then the [_searchQuery]
   ///to filter the [_objectsData] by the [attended] Persons
   @override
-  StreamSubscription<List<T>> getObjectsSubscription(
-      [Stream<String>? searchStream]) {
+  StreamSubscription<List<T>> getObjectsSubscription([
+    Stream<String>? searchStream,
+  ]) {
     _objectsByIdSubscription = objectsPaginatableStream.stream
         .map(
           (e) => {
@@ -147,7 +150,8 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
   }
 
   Stream<Map<String, HistoryRecord>> _attendedMapping(
-      Tuple3<User, List<G>, bool?> v) {
+    Tuple3<User, List<G>, bool?> v,
+  ) {
     //
     //<empty comment for readability>
 
@@ -213,20 +217,32 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
     }
 
     if (v.item3 != null) {
-      return Rx.combineLatestList<JsonQuery>(v.item2.split(10).map((c) => ref!
-          .where(
-            'ClassId',
-            whereIn: c.whereType<DocumentObject>().map((e) => e.ref).toList(),
-          )
-          .orderBy('Time', descending: !v.item3!)
-          .snapshots())).map((s) => s.expand((n) => n.docs)).map(_docsMapper);
+      return Rx.combineLatestList<JsonQuery>(
+        v.item2.split(10).map(
+              (c) => ref!
+                  .where(
+                    'ClassId',
+                    whereIn: c
+                        .whereType<DocumentObject>()
+                        .map((e) => e.ref)
+                        .toList(),
+                  )
+                  .orderBy('Time', descending: !v.item3!)
+                  .snapshots(),
+            ),
+      ).map((s) => s.expand((n) => n.docs)).map(_docsMapper);
     }
-    return Rx.combineLatestList<JsonQuery>(v.item2.split(10).map((c) => ref!
-        .where(
-          'ClassId',
-          whereIn: c.whereType<DocumentObject>().map((e) => e.ref).toList(),
-        )
-        .snapshots())).map((s) => s.expand((n) => n.docs)).map(_docsMapper);
+    return Rx.combineLatestList<JsonQuery>(
+      v.item2.split(10).map(
+            (c) => ref!
+                .where(
+                  'ClassId',
+                  whereIn:
+                      c.whereType<DocumentObject>().map((e) => e.ref).toList(),
+                )
+                .snapshots(),
+          ),
+    ).map((s) => s.expand((n) => n.docs)).map(_docsMapper);
   }
 
   @override
@@ -404,14 +420,14 @@ class HistoryDayOptions {
   final BehaviorSubject<bool> showSubtitlesInGroups;
   final BehaviorSubject<bool> lockUnchecks;
 
-  HistoryDayOptions(
-      {bool grouped = false,
-      bool? showOnly,
-      bool? sortByTimeASC,
-      bool enabled = false,
-      bool lockUnchecks = true,
-      bool showSubtitlesInGroups = false})
-      : enabled = BehaviorSubject<bool>.seeded(enabled),
+  HistoryDayOptions({
+    bool grouped = false,
+    bool? showOnly,
+    bool? sortByTimeASC,
+    bool enabled = false,
+    bool lockUnchecks = true,
+    bool showSubtitlesInGroups = false,
+  })  : enabled = BehaviorSubject<bool>.seeded(enabled),
         grouped = BehaviorSubject<bool>.seeded(grouped),
         showSubtitlesInGroups =
             BehaviorSubject<bool>.seeded(showSubtitlesInGroups),
@@ -431,7 +447,9 @@ class HistoryDayOptions {
 class ServicesListController<T extends DataObject>
     extends ListController<PreferredStudyYear?, T> {
   Map<PreferredStudyYear?, List<T>> _filterWithGroups(
-      Map<PreferredStudyYear?, List<T>> o, String filter) {
+    Map<PreferredStudyYear?, List<T>> o,
+    String filter,
+  ) {
     return Map.fromEntries(
       o.entries.where(
         (e) =>
@@ -450,17 +468,18 @@ class ServicesListController<T extends DataObject>
     super.groupBy,
     super.groupByStream,
     BehaviorSubject<String>? searchQuery,
-  })  : assert(isSubtype<T, Class>() ||
-            isSubtype<T, Service>() ||
-            T == DataObject),
+  })  : assert(
+          isSubtype<T, Class>() || isSubtype<T, Service>() || T == DataObject,
+        ),
         super(
           searchStream: searchQuery,
           groupingStream: Stream.value(true),
         );
 
   @override
-  StreamSubscription<List<T>> getObjectsSubscription(
-      [Stream<String>? searchStream]) {
+  StreamSubscription<List<T>> getObjectsSubscription([
+    Stream<String>? searchStream,
+  ]) {
     return Rx.combineLatest2<String, List<T>, List<T>>(
       searchSubject,
       objectsPaginatableStream.stream,
@@ -489,8 +508,10 @@ class ServicesListController<T extends DataObject>
                   )
                 : Stream.value(<PreferredStudyYear?, List<T>>{}),
           )
-          .listen(groupedObjectsSubject.add,
-              onError: groupedObjectsSubject.addError);
+          .listen(
+            groupedObjectsSubject.add,
+            onError: groupedObjectsSubject.addError,
+          );
     }
 
     return Rx.combineLatest3<bool, String, List<T>,
@@ -499,16 +520,19 @@ class ServicesListController<T extends DataObject>
       searchSubject,
       objectsPaginatableStream.stream,
       (grouping, search, objects) => grouping ? groupBy!(objects) : {},
-    ).listen(groupedObjectsSubject.add,
-        onError: groupedObjectsSubject.addError);
+    ).listen(
+      groupedObjectsSubject.add,
+      onError: groupedObjectsSubject.addError,
+    );
   }
 }
 
 String filterString(String s) => s
     .toLowerCase()
     .replaceAll(
-        RegExp(
-          r'[أإآ]',
-        ),
-        'ا')
+      RegExp(
+        r'[أإآ]',
+      ),
+      'ا',
+    )
     .replaceAll('ى', 'ي');

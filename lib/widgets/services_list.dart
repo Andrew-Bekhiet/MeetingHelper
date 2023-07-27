@@ -199,12 +199,15 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
                                   tristate: true,
                                   value: services.data![studyYear]!
                                           .map(
-                                              (c) => snapshot.data!.contains(c))
+                                            (c) => snapshot.data!.contains(c),
+                                          )
                                           .every((e) => e)
                                       ? true
                                       : services.data![studyYear]!
-                                              .map((c) =>
-                                                  snapshot.data!.contains(c))
+                                              .map(
+                                                (c) =>
+                                                    snapshot.data!.contains(c),
+                                              )
                                               .every((e) => !e)
                                           ? false
                                           : null,
@@ -273,9 +276,10 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
                     ),
                   ),
                   theme: const ExpandableThemeData(
-                      tapHeaderToExpand: false,
-                      useInkWell: true,
-                      hasIcon: false),
+                    tapHeaderToExpand: false,
+                    useInkWell: true,
+                    hasIcon: false,
+                  ),
                 ),
               );
             } else {

@@ -132,9 +132,10 @@ class Class extends DataObject implements PhotoObjectBase {
   }
 
   Future<String> getMembersString() async {
-    return (await getClassMembers(ref,
-            queryCompleter: (q, o, d) =>
-                q.orderBy(o, descending: d).limit(6)).first)
+    return (await getClassMembers(
+      ref,
+      queryCompleter: (q, o, d) => q.orderBy(o, descending: d).limit(6),
+    ).first)
         .map((f) => f.name)
         .toList()
         .join(',');

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'
-    show SetOptions, DocumentReference;
+    show DocumentReference, SetOptions;
 import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -133,7 +133,8 @@ class User extends UserBase implements DataObjectWithPhoto {
   static Widget photoFromUID(String uid, {bool removeHero = false}) =>
       PhotoObjectWidget(
         SimplePhotoObject(
-            GetIt.I<StorageRepository>().ref().child('UsersPhotos/$uid')),
+          GetIt.I<StorageRepository>().ref().child('UsersPhotos/$uid'),
+        ),
         heroTag: removeHero ? Object() : null,
       );
 

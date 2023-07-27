@@ -85,18 +85,21 @@ class _RootState extends State<Root>
     } else if (_tabController!.index == _tabController!.length - 1) {
       unawaited(navigator.currentState!.pushNamed('Data/EditPerson'));
     } else {
-      unawaited(navigator.currentState!.push(
-        MaterialPageRoute(
-          builder: (context) {
-            return EditPerson(
-              person: Person(
-                ref:
-                    GetIt.I<DatabaseRepository>().collection('UsersData').doc(),
-              ),
-            );
-          },
+      unawaited(
+        navigator.currentState!.push(
+          MaterialPageRoute(
+            builder: (context) {
+              return EditPerson(
+                person: Person(
+                  ref: GetIt.I<DatabaseRepository>()
+                      .collection('UsersData')
+                      .doc(),
+                ),
+              );
+            },
+          ),
         ),
-      ));
+      );
     }
   }
 
@@ -146,12 +149,11 @@ class _RootState extends State<Root>
                                   navigator.currentState!.pop();
                                 },
                               ),
-                              const Text('ترتيب حسب:',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold)),
-                              ...Person.propsMetadata()
-                                  .entries
-                                  .map(
+                              const Text(
+                                'ترتيب حسب:',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              ...Person.propsMetadata().entries.map(
                                     (e) => RadioListTile<String>(
                                       value: e.key,
                                       groupValue: _personsOrder.value.orderBy,
@@ -166,8 +168,7 @@ class _RootState extends State<Root>
                                         navigator.currentState!.pop();
                                       },
                                     ),
-                                  )
-                                  .toList(),
+                                  ),
                               RadioListTile(
                                 value: true,
                                 groupValue: _personsOrder.value.asc,
@@ -175,8 +176,9 @@ class _RootState extends State<Root>
                                 onChanged: (dynamic value) {
                                   _personsOrder.add(
                                     OrderOptions(
-                                        orderBy: _personsOrder.value.orderBy,
-                                        asc: value),
+                                      orderBy: _personsOrder.value.orderBy,
+                                      asc: value,
+                                    ),
                                   );
                                   navigator.currentState!.pop();
                                 },
@@ -188,8 +190,9 @@ class _RootState extends State<Root>
                                 onChanged: (dynamic value) {
                                   _personsOrder.add(
                                     OrderOptions(
-                                        orderBy: _personsOrder.value.orderBy,
-                                        asc: value),
+                                      orderBy: _personsOrder.value.orderBy,
+                                      asc: value,
+                                    ),
                                   );
                                   navigator.currentState!.pop();
                                 },
@@ -246,34 +249,38 @@ class _RootState extends State<Root>
               ? TextField(
                   focusNode: _searchFocus,
                   style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                      color:
-                          Theme.of(context).primaryTextTheme.titleLarge!.color),
-                  decoration: InputDecoration(
-                      suffixIcon: IconButton(
-                        icon: Icon(Icons.close,
-                            color: Theme.of(context)
-                                .primaryTextTheme
-                                .titleLarge!
-                                .color),
-                        onPressed: () {
-                          _searchQuery.add('');
-                          _showSearch.add(false);
-                        },
+                        color: Theme.of(context)
+                            .primaryTextTheme
+                            .titleLarge!
+                            .color,
                       ),
-                      hintStyle: Theme.of(context)
-                          .textTheme
-                          .titleLarge!
-                          .copyWith(
-                              color: Theme.of(context)
-                                  .primaryTextTheme
-                                  .titleLarge!
-                                  .color),
-                      icon: Icon(Icons.search,
+                  decoration: InputDecoration(
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        Icons.close,
+                        color: Theme.of(context)
+                            .primaryTextTheme
+                            .titleLarge!
+                            .color,
+                      ),
+                      onPressed: () {
+                        _searchQuery.add('');
+                        _showSearch.add(false);
+                      },
+                    ),
+                    hintStyle: Theme.of(context).textTheme.titleLarge!.copyWith(
                           color: Theme.of(context)
                               .primaryTextTheme
                               .titleLarge!
-                              .color),
-                      hintText: 'بحث ...'),
+                              .color,
+                        ),
+                    icon: Icon(
+                      Icons.search,
+                      color:
+                          Theme.of(context).primaryTextTheme.titleLarge!.color,
+                    ),
+                    hintText: 'بحث ...',
+                  ),
                   onChanged: _searchQuery.add,
                 )
               : const Text('البيانات'),
@@ -290,9 +297,10 @@ class _RootState extends State<Root>
               child: AnimatedBuilder(
                 animation: _tabController!,
                 builder: (context, _) => Icon(
-                    _tabController!.index == _tabController!.length - 2
-                        ? Icons.group_add
-                        : Icons.person_add),
+                  _tabController!.index == _tabController!.length - 2
+                      ? Icons.group_add
+                      : Icons.person_add,
+                ),
               ),
             );
           }
@@ -412,9 +420,11 @@ class _RootState extends State<Root>
               key: _createOrGetFeatureKey('ManageUsers'),
               initialData: false,
               stream: User.loggedInStream
-                  .map((u) =>
-                      u.permissions.manageUsers ||
-                      u.permissions.manageAllowedUsers)
+                  .map(
+                    (u) =>
+                        u.permissions.manageUsers ||
+                        u.permissions.manageAllowedUsers,
+                  )
                   .distinct(),
               builder: (context, data) {
                 if (!data.data!) {
@@ -441,9 +451,11 @@ class _RootState extends State<Root>
                       );
                     } else {
                       await showDialog(
-                          context: context,
-                          builder: (context) => const AlertDialog(
-                              content: Text('لا يوجد اتصال انترنت')));
+                        context: context,
+                        builder: (context) => const AlertDialog(
+                          content: Text('لا يوجد اتصال انترنت'),
+                        ),
+                      );
                     }
                   },
                   title: const Text('إدارة المستخدمين'),
@@ -518,8 +530,10 @@ class _RootState extends State<Root>
               title: const Text('تحليل سجل المخدومين'),
               onTap: () {
                 mainScfld.currentState!.openEndDrawer();
-                navigator.currentState!.pushNamed('Analytics',
-                    arguments: {'HistoryCollection': 'History'});
+                navigator.currentState!.pushNamed(
+                  'Analytics',
+                  arguments: {'HistoryCollection': 'History'},
+                );
               },
             ),
             if (User.instance.permissions.secretary)
@@ -528,16 +542,20 @@ class _RootState extends State<Root>
                 title: const Text('تحليل بيانات سجل الخدام'),
                 onTap: () {
                   mainScfld.currentState!.openEndDrawer();
-                  navigator.currentState!.pushNamed('Analytics',
-                      arguments: {'HistoryCollection': 'ServantsHistory'});
+                  navigator.currentState!.pushNamed(
+                    'Analytics',
+                    arguments: {'HistoryCollection': 'ServantsHistory'},
+                  );
                 },
               ),
             StreamBuilder<bool>(
               initialData: false,
               stream: User.loggedInStream
-                  .map((u) =>
-                      u.permissions.manageUsers ||
-                      u.permissions.manageAllowedUsers)
+                  .map(
+                    (u) =>
+                        u.permissions.manageUsers ||
+                        u.permissions.manageAllowedUsers,
+                  )
                   .distinct(),
               key: _createOrGetFeatureKey('ActivityAnalysis'),
               builder: (context, user) => user.data!
@@ -630,10 +648,12 @@ class _RootState extends State<Root>
                             builder: (context) => Dialog(
                               child: Column(
                                 children: [
-                                  Text('برجاء اختيار الفصل او الخدمة للتصدير:',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .headlineSmall),
+                                  Text(
+                                    'برجاء اختيار الفصل او الخدمة للتصدير:',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineSmall,
+                                  ),
                                   Expanded(
                                     child: ServicesList(
                                       autoDisposeController: true,
@@ -675,23 +695,24 @@ class _RootState extends State<Root>
                             );
                             try {
                               final String filename = Uri.decodeComponent(
-                                  (await GetIt.I<FunctionsService>()
-                                          .httpsCallable('exportToExcel')
-                                          .call(
-                                {
-                                  if (rslt is Class)
-                                    'onlyClass': rslt.id
-                                  else if (rslt is Service)
-                                    'onlyService': rslt.id
-                                },
-                              ))
-                                      .data);
+                                (await GetIt.I<FunctionsService>()
+                                        .httpsCallable('exportToExcel')
+                                        .call(
+                                  {
+                                    if (rslt is Class)
+                                      'onlyClass': rslt.id
+                                    else if (rslt is Service)
+                                      'onlyService': rslt.id
+                                  },
+                                ))
+                                    .data,
+                              );
                               final file = await File(
-                                      (await getApplicationDocumentsDirectory())
-                                              .path +
-                                          '/' +
-                                          filename.replaceAll(':', ''))
-                                  .create(recursive: true);
+                                (await getApplicationDocumentsDirectory())
+                                        .path +
+                                    '/' +
+                                    filename.replaceAll(':', ''),
+                              ).create(recursive: true);
                               await GetIt.I<StorageRepository>()
                                   .ref(filename)
                                   .writeToFile(file);
@@ -714,12 +735,17 @@ class _RootState extends State<Root>
                                   .hideCurrentSnackBar();
                               scaffoldMessenger.currentState!.showSnackBar(
                                 const SnackBar(
-                                    content: Text('فشل تصدير البيانات')),
+                                  content: Text('فشل تصدير البيانات'),
+                                ),
                               );
-                              await Sentry.captureException(err,
-                                  stackTrace: stack,
-                                  withScope: (scope) => scope.setTag(
-                                      'LasErrorIn', '_RootState.dataExport'));
+                              await Sentry.captureException(
+                                err,
+                                stackTrace: stack,
+                                withScope: (scope) => scope.setTag(
+                                  'LasErrorIn',
+                                  '_RootState.dataExport',
+                                ),
+                              );
                             }
                           }
                         },
@@ -746,7 +772,8 @@ class _RootState extends State<Root>
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                      'جار تصدير جميع البيانات...\nيرجى الانتظار...'),
+                                    'جار تصدير جميع البيانات...\nيرجى الانتظار...',
+                                  ),
                                   LinearProgressIndicator(),
                                 ],
                               ),
@@ -755,16 +782,16 @@ class _RootState extends State<Root>
                           );
                           try {
                             final String filename = Uri.decodeComponent(
-                                (await GetIt.I<FunctionsService>()
-                                        .httpsCallable('exportToExcel')
-                                        .call())
-                                    .data);
+                              (await GetIt.I<FunctionsService>()
+                                      .httpsCallable('exportToExcel')
+                                      .call())
+                                  .data,
+                            );
                             final file = await File(
-                                    (await getApplicationDocumentsDirectory())
-                                            .path +
-                                        '/' +
-                                        filename.replaceAll(':', ''))
-                                .create(recursive: true);
+                              (await getApplicationDocumentsDirectory()).path +
+                                  '/' +
+                                  filename.replaceAll(':', ''),
+                            ).create(recursive: true);
                             await GetIt.I<StorageRepository>()
                                 .ref(filename)
                                 .writeToFile(file);
@@ -786,12 +813,17 @@ class _RootState extends State<Root>
                                 .hideCurrentSnackBar();
                             scaffoldMessenger.currentState!.showSnackBar(
                               const SnackBar(
-                                  content: Text('فشل تصدير البيانات')),
+                                content: Text('فشل تصدير البيانات'),
+                              ),
                             );
-                            await Sentry.captureException(err,
-                                stackTrace: stack,
-                                withScope: (scope) => scope.setTag(
-                                    'LasErrorIn', '_RootState.dataExport'));
+                            await Sentry.captureException(
+                              err,
+                              stackTrace: stack,
+                              withScope: (scope) => scope.setTag(
+                                'LasErrorIn',
+                                '_RootState.dataExport',
+                              ),
+                            );
                           }
                         },
                       )
@@ -956,7 +988,6 @@ class _RootState extends State<Root>
         }
         _keepAlive(true);
         _recordActive();
-        break;
       case AppLifecycleState.inactive:
       case AppLifecycleState.detached:
       case AppLifecycleState.paused:
@@ -965,14 +996,14 @@ class _RootState extends State<Root>
         if (!_dynamicLinksSubscription.isPaused) {
           _dynamicLinksSubscription.pause();
         }
-        break;
     }
   }
 
   @override
   void didChangePlatformBrightness() {
     GetIt.I<MHThemingService>().switchTheme(
-        PlatformDispatcher.instance.platformBrightness == Brightness.dark);
+      PlatformDispatcher.instance.platformBrightness == Brightness.dark,
+    );
   }
 
   @override
@@ -1034,15 +1065,16 @@ class _RootState extends State<Root>
     );
 
     _tabController = TabController(
-        vsync: this,
-        initialIndex: User.instance.permissions.manageUsers ||
-                User.instance.permissions.manageAllowedUsers
-            ? 1
-            : 0,
-        length: User.instance.permissions.manageUsers ||
-                User.instance.permissions.manageAllowedUsers
-            ? 3
-            : 2);
+      vsync: this,
+      initialIndex: User.instance.permissions.manageUsers ||
+              User.instance.permissions.manageAllowedUsers
+          ? 1
+          : 0,
+      length: User.instance.permissions.manageUsers ||
+              User.instance.permissions.manageAllowedUsers
+          ? 3
+          : 2,
+    );
     WidgetsBinding.instance.addObserver(this);
     _keepAlive(true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1061,7 +1093,8 @@ class _RootState extends State<Root>
         context: context,
         builder: (context) => AlertDialog(
           content: const Text(
-              'برجاء الغاء تفعيل حفظ الطاقة للبرنامج لإظهار الاشعارات في الخلفية'),
+            'برجاء الغاء تفعيل حفظ الطاقة للبرنامج لإظهار الاشعارات في الخلفية',
+          ),
           actions: [
             TextButton(
               onPressed: () async {
@@ -1126,7 +1159,6 @@ class _RootState extends State<Root>
             ),
           ),
         ];
-        break;
       case 'Servants':
         contents = [
           TargetContent(
@@ -1139,7 +1171,6 @@ class _RootState extends State<Root>
             ),
           ),
         ];
-        break;
       case 'Persons':
         contents = [
           TargetContent(
@@ -1152,7 +1183,6 @@ class _RootState extends State<Root>
             ),
           ),
         ];
-        break;
       case 'Search':
         contents = [
           TargetContent(
@@ -1165,7 +1195,6 @@ class _RootState extends State<Root>
             ),
           ),
         ];
-        break;
       case 'MyAccount':
         contents = [
           TargetContent(
@@ -1179,7 +1208,6 @@ class _RootState extends State<Root>
           )
         ];
         shape = ShapeLightFocus.RRect;
-        break;
       case 'ManageUsers':
         contents = [
           TargetContent(
@@ -1193,7 +1221,6 @@ class _RootState extends State<Root>
           )
         ];
         shape = ShapeLightFocus.RRect;
-        break;
       case 'AddHistory':
         contents = [
           TargetContent(
@@ -1207,7 +1234,6 @@ class _RootState extends State<Root>
           )
         ];
         shape = ShapeLightFocus.RRect;
-        break;
       case 'AddServantsHistory':
         contents = [
           TargetContent(
@@ -1221,7 +1247,6 @@ class _RootState extends State<Root>
           )
         ];
         shape = ShapeLightFocus.RRect;
-        break;
       case 'History':
         contents = [
           TargetContent(
@@ -1235,7 +1260,6 @@ class _RootState extends State<Root>
           )
         ];
         shape = ShapeLightFocus.RRect;
-        break;
       case 'ServantsHistory':
         contents = [
           TargetContent(
@@ -1249,7 +1273,6 @@ class _RootState extends State<Root>
           )
         ];
         shape = ShapeLightFocus.RRect;
-        break;
       case 'Analytics':
         contents = [
           TargetContent(
@@ -1265,7 +1288,6 @@ class _RootState extends State<Root>
           )
         ];
         shape = ShapeLightFocus.RRect;
-        break;
       case 'ActivityAnalysis':
         contents = [
           TargetContent(
@@ -1281,7 +1303,6 @@ class _RootState extends State<Root>
           ),
         ];
         shape = ShapeLightFocus.RRect;
-        break;
       case 'AdvancedSearch':
         contents = [
           TargetContent(
@@ -1295,7 +1316,6 @@ class _RootState extends State<Root>
           ),
         ];
         shape = ShapeLightFocus.RRect;
-        break;
       case 'ManageDeleted':
         contents = [
           TargetContent(
@@ -1310,7 +1330,6 @@ class _RootState extends State<Root>
           ),
         ];
         shape = ShapeLightFocus.RRect;
-        break;
       case 'DataMap':
         contents = [
           TargetContent(
@@ -1327,7 +1346,6 @@ class _RootState extends State<Root>
           ),
         ];
         shape = ShapeLightFocus.RRect;
-        break;
       case 'Settings':
         contents = [
           TargetContent(
@@ -1341,7 +1359,6 @@ class _RootState extends State<Root>
           ),
         ];
         shape = ShapeLightFocus.RRect;
-        break;
 
       default:
         contents = [];
@@ -1405,7 +1422,8 @@ class _RootState extends State<Root>
           await Future.delayed(const Duration(seconds: 1));
         }
         await Scrollable.ensureVisible(
-            _features[featuresInOrder[0]]!.currentContext!);
+          _features[featuresInOrder[0]]!.currentContext!,
+        );
       }
 
       TutorialCoachMark(

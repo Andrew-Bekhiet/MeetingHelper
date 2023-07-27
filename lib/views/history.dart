@@ -54,20 +54,23 @@ class _HistoryState extends State<History> {
                 ? TextField(
                     focusNode: _searchFocus,
                     decoration: InputDecoration(
-                        suffixIcon: IconButton(
-                          icon: Icon(Icons.close,
-                              color: Theme.of(context)
-                                  .primaryTextTheme
-                                  .titleLarge!
-                                  .color),
-                          onPressed: () => setState(
-                            () {
-                              _listController.searchSubject.add('');
-                              _showSearch.add(false);
-                            },
-                          ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          Icons.close,
+                          color: Theme.of(context)
+                              .primaryTextTheme
+                              .titleLarge!
+                              .color,
                         ),
-                        hintText: 'بحث ...'),
+                        onPressed: () => setState(
+                          () {
+                            _listController.searchSubject.add('');
+                            _showSearch.add(false);
+                          },
+                        ),
+                      ),
+                      hintText: 'بحث ...',
+                    ),
                     onChanged: _listController.searchSubject.add,
                   )
                 : const Text('السجلات');
@@ -118,8 +121,11 @@ class _HistoryState extends State<History> {
                     firstDate: DateTime(2020),
                     lastDate: DateTime.now(),
                     initialDateRange: DateTimeRange(
-                      start: DateTime(DateTime.now().year, DateTime.now().month,
-                          DateTime.now().day - 7),
+                      start: DateTime(
+                        DateTime.now().year,
+                        DateTime.now().month,
+                        DateTime.now().day - 7,
+                      ),
                       end: DateTime.now(),
                     ),
                   );
@@ -129,16 +135,21 @@ class _HistoryState extends State<History> {
                   query.add(
                     GetIt.I<DatabaseRepository>()
                         .collection(
-                            (widget.isServantsHistory ? 'Servants' : '') +
-                                'History')
+                          (widget.isServantsHistory ? 'Servants' : '') +
+                              'History',
+                        )
                         .orderBy('Day', descending: true)
-                        .where('Day',
-                            isGreaterThanOrEqualTo: Timestamp.fromDate(
-                                result.start.subtract(const Duration(days: 1))))
+                        .where(
+                          'Day',
+                          isGreaterThanOrEqualTo: Timestamp.fromDate(
+                            result.start.subtract(const Duration(days: 1)),
+                          ),
+                        )
                         .where(
                           'Day',
                           isLessThanOrEqualTo: Timestamp.fromDate(
-                              result.end.add(const Duration(days: 1))),
+                            result.end.add(const Duration(days: 1)),
+                          ),
                         ),
                   );
                 } else {
@@ -202,7 +213,8 @@ class _HistoryState extends State<History> {
                   child: Text(
                     'يمكنك البحث عن كشف عدة أيام معينة عن طريق الضغط هنا ثم تحديد تاريخ البداية وتاريخ النهاية',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSecondary),
+                          color: Theme.of(context).colorScheme.onSecondary,
+                        ),
                   ),
                 ),
               ],

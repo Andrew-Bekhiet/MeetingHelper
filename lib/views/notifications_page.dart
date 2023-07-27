@@ -25,11 +25,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
         itemBuilder: (context, i) {
           return NotificationWidget(
             GetIt.I<CacheRepository>().box<Notification>('Notifications').getAt(
-                GetIt.I<CacheRepository>()
-                        .box<Notification>('Notifications')
-                        .length -
-                    i -
-                    1)!,
+                  GetIt.I<CacheRepository>()
+                          .box<Notification>('Notifications')
+                          .length -
+                      i -
+                      1,
+                )!,
             longPress: () async {
               if (await showDialog(
                     context: context,
@@ -46,11 +47,13 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   true) {
                 await GetIt.I<CacheRepository>()
                     .box<Notification>('Notifications')
-                    .deleteAt(GetIt.I<CacheRepository>()
-                            .box<Notification>('Notifications')
-                            .length -
-                        i -
-                        1);
+                    .deleteAt(
+                      GetIt.I<CacheRepository>()
+                              .box<Notification>('Notifications')
+                              .length -
+                          i -
+                          1,
+                    );
                 setState(() {});
               }
             },

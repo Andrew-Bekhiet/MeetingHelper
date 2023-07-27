@@ -30,9 +30,10 @@ class Persons extends TableBase<Person> {
   }) {
     if (useRootCollection) {
       return queryCompleter(
-              repository.collection('Persons'), orderBy, descending)
-          .snapshots()
-          .map((p) => p.docs.map(Person.fromDoc).toSet().toList());
+        repository.collection('Persons'),
+        orderBy,
+        descending,
+      ).snapshots().map((p) => p.docs.map(Person.fromDoc).toSet().toList());
     }
 
     return Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
@@ -43,9 +44,10 @@ class Persons extends TableBase<Person> {
       (u) {
         if (u.item1.permissions.superAccess) {
           return queryCompleter(
-                  repository.collection('Persons'), orderBy, descending)
-              .snapshots()
-              .map((p) => p.docs.map(Person.fromDoc).toList());
+            repository.collection('Persons'),
+            orderBy,
+            descending,
+          ).snapshots().map((p) => p.docs.map(Person.fromDoc).toList());
         }
 
         return Rx.combineLatest2<List<Person>, List<Person>, List<Person>>(
@@ -53,21 +55,25 @@ class Persons extends TableBase<Person> {
           u.item2.isNotEmpty
               ? u.item2.length <= 10
                   ? queryCompleter(
-                          repository.collection('Persons').where('ClassId',
-                              whereIn: u.item2.map((e) => e.ref).toList()),
-                          orderBy,
-                          descending)
+                      repository.collection('Persons').where(
+                            'ClassId',
+                            whereIn: u.item2.map((e) => e.ref).toList(),
+                          ),
+                      orderBy,
+                      descending,
+                    )
                       .snapshots()
                       .map((p) => p.docs.map(Person.fromDoc).toList())
                   : Rx.combineLatestList<JsonQuery>(
                       u.item2.split(10).map(
                             (c) => queryCompleter(
-                                    repository.collection('Persons').where(
-                                        'ClassId',
-                                        whereIn: c.map((e) => e.ref).toList()),
-                                    orderBy,
-                                    descending)
-                                .snapshots(),
+                              repository.collection('Persons').where(
+                                    'ClassId',
+                                    whereIn: c.map((e) => e.ref).toList(),
+                                  ),
+                              orderBy,
+                              descending,
+                            ).snapshots(),
                           ),
                     ).map(
                       (s) =>
@@ -78,12 +84,13 @@ class Persons extends TableBase<Person> {
           u.item1.adminServices.isNotEmpty
               ? u.item1.adminServices.length <= 10
                   ? queryCompleter(
-                          repository.collection('Persons').where(
-                                'Services',
-                                arrayContainsAny: u.item1.adminServices,
-                              ),
-                          orderBy,
-                          descending)
+                      repository.collection('Persons').where(
+                            'Services',
+                            arrayContainsAny: u.item1.adminServices,
+                          ),
+                      orderBy,
+                      descending,
+                    )
                       .snapshots()
                       .map((p) => p.docs.map(Person.fromDoc).toList())
                   : Rx.combineLatestList<JsonQuery>(
@@ -130,8 +137,9 @@ class Persons extends TableBase<Person> {
     );
   }
 
-  Stream<Map<Class?, List<Person>>> groupPersonsByClassRef(
-      [List<Person>? persons]) {
+  Stream<Map<Class?, List<Person>>> groupPersonsByClassRef([
+    List<Person>? persons,
+  ]) {
     return Rx.combineLatest3<Map<JsonRef, StudyYear>, List<Person>, JsonQuery,
         Map<Class, List<Person>>>(
       repository.collection('StudyYears').orderBy('Grade').snapshots().map(
@@ -165,20 +173,26 @@ class Persons extends TableBase<Person> {
 
         final classesIds = classes.map((c) => c.ref).toSet();
 
-        mergeSort<Class>(classes, compare: (c, c2) {
-          if (c.studyYear == c2.studyYear) return c.gender.compareTo(c2.gender);
-          return studyYears[c.studyYear]!
-              .grade
-              .compareTo(studyYears[c2.studyYear]!.grade);
-        });
+        mergeSort<Class>(
+          classes,
+          compare: (c, c2) {
+            if (c.studyYear == c2.studyYear) {
+              return c.gender.compareTo(c2.gender);
+            }
+            return studyYears[c.studyYear]!
+                .grade
+                .compareTo(studyYears[c2.studyYear]!.grade);
+          },
+        );
 
         return {
           for (final c in classes) c: personsByClassRef[c.ref]!,
           Class(
-              name: 'غير معروف',
-              ref: GetIt.I<FirebaseFirestore>()
-                  .collection('Classes')
-                  .doc('unknown')): personsByClassRef.entries
+            name: 'غير معروف',
+            ref: GetIt.I<FirebaseFirestore>()
+                .collection('Classes')
+                .doc('unknown'),
+          ): personsByClassRef.entries
               .where((kv) => !classesIds.contains(kv.key))
               .map((e) => e.value)
               .expand((e) => e)
@@ -189,8 +203,10 @@ class Persons extends TableBase<Person> {
     );
   }
 
-  Stream<Map<StudyYear?, List<T>>> groupPersonsByStudyYearRef<T extends Person>(
-      [List<T>? persons]) {
+  Stream<Map<StudyYear?, List<T>>>
+      groupPersonsByStudyYearRef<T extends Person>([
+    List<T>? persons,
+  ]) {
     return Rx.combineLatest2<Map<JsonRef, StudyYear>, List<T>,
         Map<StudyYear?, List<T>>>(
       repository.collection('StudyYears').orderBy('Grade').snapshots().map(

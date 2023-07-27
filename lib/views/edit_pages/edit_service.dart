@@ -64,8 +64,10 @@ class _EditServiceState extends State<EditService> {
                           child:
                               Icon(Icons.photo_camera, color: Colors.black54),
                         ),
-                        Icon(Icons.photo_camera,
-                            color: IconTheme.of(context).color),
+                        Icon(
+                          Icons.photo_camera,
+                          color: IconTheme.of(context).color,
+                        ),
                       ],
                     ),
                   ),
@@ -87,10 +89,12 @@ class _EditServiceState extends State<EditService> {
                     opacity: constraints.biggest.height > kToolbarHeight * 1.7
                         ? 0
                         : 1,
-                    child: Text(service.name,
-                        style: const TextStyle(
-                          fontSize: 16.0,
-                        )),
+                    child: Text(
+                      service.name,
+                      style: const TextStyle(
+                        fontSize: 16.0,
+                      ),
+                    ),
                   ),
                   background: changedImage == null || deletePhoto
                       ? PhotoObjectWidget(service, circleCrop: false)
@@ -145,8 +149,10 @@ class _EditServiceState extends State<EditService> {
                               icon: const Icon(Icons.delete),
                               tooltip: 'ازالة',
                               onPressed: () {
-                                setState(() => service =
-                                    service.copyWith.studyYearRange(null));
+                                setState(
+                                  () => service =
+                                      service.copyWith.studyYearRange(null),
+                                );
                               },
                             ),
                           ),
@@ -248,33 +254,37 @@ class _EditServiceState extends State<EditService> {
                         onPressed: () {
                           state.didChange(null);
                           setState(
-                              () => service = service.copyWith.validity(null));
+                            () => service = service.copyWith.validity(null),
+                          );
                         },
                       ),
                     ),
                     validator: (_) => null,
                     initialValue: service.validity,
                     onTap: (state) async {
-                      state.didChange(await showDateRangePicker(
-                            context: context,
-                            builder: (context, dialog) => Theme(
-                              data: Theme.of(context).copyWith(
-                                textTheme: Theme.of(context).textTheme.copyWith(
-                                      labelSmall: const TextStyle(
-                                        fontSize: 0,
-                                      ),
-                                    ),
+                      state.didChange(
+                        await showDateRangePicker(
+                              context: context,
+                              builder: (context, dialog) => Theme(
+                                data: Theme.of(context).copyWith(
+                                  textTheme:
+                                      Theme.of(context).textTheme.copyWith(
+                                            labelSmall: const TextStyle(
+                                              fontSize: 0,
+                                            ),
+                                          ),
+                                ),
+                                child: dialog!,
                               ),
-                              child: dialog!,
-                            ),
-                            confirmText: 'تم',
-                            saveText: 'تم',
-                            firstDate: DateTime(2020),
-                            lastDate:
-                                DateTime.now().add(const Duration(days: 2191)),
-                            initialDateRange: service.validity,
-                          ) ??
-                          state.value);
+                              confirmText: 'تم',
+                              saveText: 'تم',
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime.now()
+                                  .add(const Duration(days: 2191)),
+                              initialDateRange: service.validity,
+                            ) ??
+                            state.value,
+                      );
                     },
                     builder: (context, state) {
                       if (state.value == null) return null;
@@ -294,7 +304,8 @@ class _EditServiceState extends State<EditService> {
                       title: const Text('اظهار كبند في السجل'),
                       value: service.showInHistory,
                       onChanged: (v) => setState(
-                          () => service = service.copyWith.showInHistory(v!)),
+                        () => service = service.copyWith.showInHistory(v!),
+                      ),
                     ),
                   ),
                   ElevatedButton.icon(
@@ -544,15 +555,19 @@ class _EditServiceState extends State<EditService> {
         navigator.currentState!.pop(service.ref);
       }
     } catch (err, stack) {
-      await Sentry.captureException(err,
-          stackTrace: stack,
-          withScope: (scope) =>
-              scope.setTag('LasErrorIn', '_EditServiceState.save'));
+      await Sentry.captureException(
+        err,
+        stackTrace: stack,
+        withScope: (scope) =>
+            scope.setTag('LasErrorIn', '_EditServiceState.save'),
+      );
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
-      scaffoldMessenger.currentState!.showSnackBar(SnackBar(
-        content: Text(err.toString()),
-        duration: const Duration(seconds: 7),
-      ));
+      scaffoldMessenger.currentState!.showSnackBar(
+        SnackBar(
+          content: Text(err.toString()),
+          duration: const Duration(seconds: 7),
+        ),
+      );
     }
   }
 
@@ -621,13 +636,15 @@ class _EditServiceState extends State<EditService> {
                             ),
                     groupingStream: Stream.value(true),
                   )..selectAll(
-                      users.data!.whereType<UserWithPerson>().toList()),
+                      users.data!.whereType<UserWithPerson>().toList(),
+                    ),
                   dispose: (context, c) => c.dispose(),
                   builder: (context, _) => Scaffold(
                     appBar: AppBar(
                       leading: IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: navigator.currentState!.pop),
+                        icon: const Icon(Icons.close),
+                        onPressed: navigator.currentState!.pop,
+                      ),
                       title: SearchField(
                         showSuffix: false,
                         searchStream: context
@@ -639,10 +656,13 @@ class _EditServiceState extends State<EditService> {
                       actions: [
                         IconButton(
                           onPressed: () {
-                            navigator.currentState!.pop(context
-                                .read<ListController<Class?, UserWithPerson>>()
-                                .currentSelection
-                                ?.toList());
+                            navigator.currentState!.pop(
+                              context
+                                  .read<
+                                      ListController<Class?, UserWithPerson>>()
+                                  .currentSelection
+                                  ?.toList(),
+                            );
                           },
                           icon: const Icon(Icons.done),
                           tooltip: 'تم',

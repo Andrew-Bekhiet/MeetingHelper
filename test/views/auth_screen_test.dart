@@ -22,9 +22,9 @@ void main() {
         setUpMHPlatformChannels();
         await initFakeCore();
 
-        when((GetIt.I<FirebaseMessaging>() as MockFirebaseMessaging)
-                .isSupported())
-            .thenAnswer((_) async => false);
+        when(
+          (GetIt.I<FirebaseMessaging>() as MockFirebaseMessaging).isSupported(),
+        ).thenAnswer((_) async => false);
       });
 
       tearDown(() async {
@@ -81,8 +81,10 @@ void main() {
               scrollable: find.byType(Scrollable).first,
             );
 
-            expect(find.widgetWithText(TextFormField, 'كلمة السر'),
-                findsOneWidget);
+            expect(
+              find.widgetWithText(TextFormField, 'كلمة السر'),
+              findsOneWidget,
+            );
 
             await tester.scrollUntilVisible(
               find.text(
@@ -176,8 +178,10 @@ void main() {
                 scrollable: find.byType(Scrollable).first,
               );
 
-              expect(find.widgetWithText(TextFormField, 'كلمة السر'),
-                  findsOneWidget);
+              expect(
+                find.widgetWithText(TextFormField, 'كلمة السر'),
+                findsOneWidget,
+              );
 
               await tester.scrollUntilVisible(
                 find.text('تسجيل الدخول'),
@@ -187,8 +191,10 @@ void main() {
 
               expect(find.text('تسجيل الدخول'), findsOneWidget);
 
-              expect(find.text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'),
-                  findsNothing);
+              expect(
+                find.text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'),
+                findsNothing,
+              );
             },
           );
 
@@ -201,9 +207,11 @@ void main() {
                 GetIt.I.pushNewScope();
                 await initFakeCore();
 
-                await signInMockUser(claims: {
-                  'password': Encryption.encryptPassword(_passwordString),
-                });
+                await signInMockUser(
+                  claims: {
+                    'password': Encryption.encryptPassword(_passwordString),
+                  },
+                );
                 await MHAuthRepository.I.userStream.nextNonNull;
               });
 

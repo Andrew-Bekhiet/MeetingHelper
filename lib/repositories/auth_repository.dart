@@ -57,7 +57,8 @@ class MHAuthRepository extends AuthRepository<User, Person> {
     String? phone,
   }) async {
     assert(
-        firebaseUser != null || (name != null && uid != null && email != null));
+      firebaseUser != null || (name != null && uid != null && email != null),
+    );
 
     await refreshSupabaseToken(idTokenClaims['supabaseToken']);
 
@@ -68,44 +69,49 @@ class MHAuthRepository extends AuthRepository<User, Person> {
           .doc(idTokenClaims['personId'])
           .snapshots()
           .map((doc) {
-            userSubject.add(User(
-              lastTanawol: (doc.data()?['LastTanawol'] as Timestamp?)?.toDate(),
-              lastConfession:
-                  (doc.data()?['LastConfession'] as Timestamp?)?.toDate(),
-              ref: doc.reference,
-              uid: firebaseUser?.uid ?? uid!,
-              name: firebaseUser?.displayName ?? name ?? '',
-              email: firebaseUser?.email ?? email!,
-              password: idTokenClaims['password'],
-              supabaseToken: idTokenClaims['supabaseToken'],
-              permissions: permissionsFromIdToken(idTokenClaims),
-              classId: doc.data()?['ClassId'],
-              allowedUsers: doc.data()?['AllowedUsers']?.cast<String>() ?? [],
-              adminServices:
-                  doc.data()?['AdminServices']?.cast<JsonRef>() ?? [],
-            ));
+            userSubject.add(
+              User(
+                lastTanawol:
+                    (doc.data()?['LastTanawol'] as Timestamp?)?.toDate(),
+                lastConfession:
+                    (doc.data()?['LastConfession'] as Timestamp?)?.toDate(),
+                ref: doc.reference,
+                uid: firebaseUser?.uid ?? uid!,
+                name: firebaseUser?.displayName ?? name ?? '',
+                email: firebaseUser?.email ?? email!,
+                password: idTokenClaims['password'],
+                supabaseToken: idTokenClaims['supabaseToken'],
+                permissions: permissionsFromIdToken(idTokenClaims),
+                classId: doc.data()?['ClassId'],
+                allowedUsers: doc.data()?['AllowedUsers']?.cast<String>() ?? [],
+                adminServices:
+                    doc.data()?['AdminServices']?.cast<JsonRef>() ?? [],
+              ),
+            );
             return doc.exists ? Person.fromDoc(doc) : null;
           })
           .whereType<Person>()
           .listen(refreshFromDoc);
     } else {
-      userSubject.add(User(
-        ref: currentUser?.ref ??
-            GetIt.I<DatabaseRepository>()
-                .collection('UsersData')
-                .doc(idTokenClaims['personId'] ?? 'null'),
-        uid: firebaseUser?.uid ?? uid!,
-        name: firebaseUser?.displayName ?? name ?? '',
-        email: firebaseUser?.email ?? email!,
-        password: idTokenClaims['password'],
-        supabaseToken: idTokenClaims['supabaseToken'],
-        permissions: permissionsFromIdToken(idTokenClaims),
-        lastTanawol: currentUser?.lastTanawol,
-        lastConfession: currentUser?.lastConfession,
-        classId: currentUser?.classId,
-        allowedUsers: currentUser?.allowedUsers ?? [],
-        adminServices: currentUser?.adminServices ?? [],
-      ));
+      userSubject.add(
+        User(
+          ref: currentUser?.ref ??
+              GetIt.I<DatabaseRepository>()
+                  .collection('UsersData')
+                  .doc(idTokenClaims['personId'] ?? 'null'),
+          uid: firebaseUser?.uid ?? uid!,
+          name: firebaseUser?.displayName ?? name ?? '',
+          email: firebaseUser?.email ?? email!,
+          password: idTokenClaims['password'],
+          supabaseToken: idTokenClaims['supabaseToken'],
+          permissions: permissionsFromIdToken(idTokenClaims),
+          lastTanawol: currentUser?.lastTanawol,
+          lastConfession: currentUser?.lastConfession,
+          classId: currentUser?.classId,
+          allowedUsers: currentUser?.allowedUsers ?? [],
+          adminServices: currentUser?.adminServices ?? [],
+        ),
+      );
     }
 
     connectionListener ??= GetIt.I<FirebaseDatabase>()
@@ -138,19 +144,21 @@ class MHAuthRepository extends AuthRepository<User, Person> {
     if (!GetIt.I.isRegistered(instance: this) || !userSubject.hasValue) return;
 
     if (supabaseToken == null ||
-        DateTime.fromMillisecondsSinceEpoch(json.decode(
-                  utf8.decode(
-                    base64.decode(
-                      supabaseToken.split('.')[1].padRight(
+        DateTime.fromMillisecondsSinceEpoch(
+          json.decode(
+                utf8.decode(
+                  base64.decode(
+                    supabaseToken.split('.')[1].padRight(
                           supabaseToken.split('.')[1].length +
                               4 -
                               (supabaseToken.split('.')[1].length % 4),
-                          '='),
-                    ),
+                          '=',
+                        ),
                   ),
-                )['exp'] *
-                1000)
-            .isBefore(DateTime.now())) {
+                ),
+              )['exp'] *
+              1000,
+        ).isBefore(DateTime.now())) {
       await GetIt.I<MHFunctionsService>().refreshSupabaseToken();
     } else {
       await GetIt.I<SupabaseClient>().auth.recoverSession(
@@ -173,10 +181,11 @@ class MHAuthRepository extends AuthRepository<User, Person> {
                   utf8.decode(
                     base64.decode(
                       supabaseToken.split('.')[1].padRight(
-                          supabaseToken.split('.')[1].length +
-                              4 -
-                              (supabaseToken.split('.')[1].length % 4),
-                          '='),
+                            supabaseToken.split('.')[1].length +
+                                4 -
+                                (supabaseToken.split('.')[1].length % 4),
+                            '=',
+                          ),
                     ),
                   ),
                 )['exp'],

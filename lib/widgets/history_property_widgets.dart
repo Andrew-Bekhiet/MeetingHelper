@@ -9,8 +9,13 @@ import 'package:meetinghelper/utils/helpers.dart';
 import 'package:rxdart/rxdart.dart';
 
 class HistoryProperty extends StatelessWidget {
-  const HistoryProperty(this.name, this.value, this.historyRef,
-      {super.key, this.showTime = true});
+  const HistoryProperty(
+    this.name,
+    this.value,
+    this.historyRef, {
+    super.key,
+    this.showTime = true,
+  });
 
   final String name;
   final DateTime? value;
@@ -27,14 +32,16 @@ class HistoryProperty extends StatelessWidget {
             child: Text(value != null ? value!.toDurationString() : ''),
           ),
           Text(
-              value != null
-                  ? DateFormat(
-                          showTime ? 'yyyy/M/d   h:m a' : 'yyyy/M/d', 'ar-EG')
-                      .format(
-                      value!,
-                    )
-                  : '',
-              style: Theme.of(context).textTheme.labelSmall),
+            value != null
+                ? DateFormat(
+                    showTime ? 'yyyy/M/d   h:m a' : 'yyyy/M/d',
+                    'ar-EG',
+                  ).format(
+                    value!,
+                  )
+                : '',
+            style: Theme.of(context).textTheme.labelSmall,
+          ),
         ],
       ),
       trailing: IconButton(
@@ -76,9 +83,10 @@ class HistoryProperty extends StatelessWidget {
                                   : const LinearProgressIndicator()
                               : const Text('غير معروف'),
                           subtitle: Text(
-                            DateFormat(showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d',
-                                    'ar-EG')
-                                .format(history.data![i].time),
+                            DateFormat(
+                              showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d',
+                              'ar-EG',
+                            ).format(history.data![i].time),
                           ),
                         );
                       },
@@ -95,8 +103,13 @@ class HistoryProperty extends StatelessWidget {
 }
 
 class EditHistoryProperty extends StatelessWidget {
-  const EditHistoryProperty(this.name, this.lastEdit, this.historyRef,
-      {super.key, this.showTime = true});
+  const EditHistoryProperty(
+    this.name,
+    this.lastEdit,
+    this.historyRef, {
+    super.key,
+    this.showTime = true,
+  });
 
   final String name;
   final LastEdit? lastEdit;
@@ -129,20 +142,19 @@ class EditHistoryProperty extends StatelessWidget {
                       : future.data!.docs.isNotEmpty
                           ? Text(
                               DateFormat(
-                                      showTime
-                                          ? 'yyyy/M/d   h:m a'
-                                          : 'yyyy/M/d',
-                                      'ar-EG')
-                                  .format(
+                                showTime ? 'yyyy/M/d   h:m a' : 'yyyy/M/d',
+                                'ar-EG',
+                              ).format(
                                 future.data!.docs[0].data()['Time'].toDate(),
                               ),
                             )
                           : const Text(''),
                   subtitle: future.data!.docs.isNotEmpty && lastEdit != null
                       ? Text(
-                          DateFormat(showTime ? 'yyyy/M/d   h:m a' : 'yyyy/M/d',
-                                  'ar-EG')
-                              .format(
+                          DateFormat(
+                            showTime ? 'yyyy/M/d   h:m a' : 'yyyy/M/d',
+                            'ar-EG',
+                          ).format(
                             future.data!.docs[0].data()['Time'].toDate(),
                           ),
                         )
@@ -180,7 +192,8 @@ class EditHistoryProperty extends StatelessWidget {
                               leading: user.hasData
                                   ? IgnorePointer(
                                       child: User.photoFromUID(
-                                          history.data![i].by!),
+                                        history.data![i].by!,
+                                      ),
                                     )
                                   : const CircularProgressIndicator(),
                               title: user.hasData
@@ -188,11 +201,9 @@ class EditHistoryProperty extends StatelessWidget {
                                   : const Text(''),
                               subtitle: Text(
                                 DateFormat(
-                                        showTime
-                                            ? 'yyyy/M/d h:m a'
-                                            : 'yyyy/M/d',
-                                        'ar-EG')
-                                    .format(history.data![i].time),
+                                  showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d',
+                                  'ar-EG',
+                                ).format(history.data![i].time),
                               ),
                             );
                           },
@@ -211,8 +222,13 @@ class EditHistoryProperty extends StatelessWidget {
 }
 
 class TimeHistoryProperty extends StatelessWidget {
-  const TimeHistoryProperty(this.name, this.value, this.historyRef,
-      {super.key, this.showTime = true});
+  const TimeHistoryProperty(
+    this.name,
+    this.value,
+    this.historyRef, {
+    super.key,
+    this.showTime = true,
+  });
 
   final String name;
   final DateTime? value;
@@ -229,14 +245,16 @@ class TimeHistoryProperty extends StatelessWidget {
             child: Text(value != null ? value!.toDurationString() : ''),
           ),
           Text(
-              value != null
-                  ? DateFormat(
-                          showTime ? 'yyyy/M/d   h:m a' : 'yyyy/M/d', 'ar-EG')
-                      .format(
-                      value!,
-                    )
-                  : '',
-              style: Theme.of(context).textTheme.labelSmall),
+            value != null
+                ? DateFormat(
+                    showTime ? 'yyyy/M/d   h:m a' : 'yyyy/M/d',
+                    'ar-EG',
+                  ).format(
+                    value!,
+                  )
+                : '',
+            style: Theme.of(context).textTheme.labelSmall,
+          ),
         ],
       ),
       trailing: IconButton(
@@ -260,9 +278,10 @@ class TimeHistoryProperty extends StatelessWidget {
                     itemCount: history.data!.length,
                     itemBuilder: (context, i) => ListTile(
                       title: Text(
-                        DateFormat(showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d',
-                                'ar-EG')
-                            .format(history.data![i].time),
+                        DateFormat(
+                          showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d',
+                          'ar-EG',
+                        ).format(history.data![i].time),
                       ),
                     ),
                   );
@@ -277,8 +296,13 @@ class TimeHistoryProperty extends StatelessWidget {
 }
 
 class DayHistoryProperty extends StatelessWidget {
-  const DayHistoryProperty(this.name, this.value, this.id, this.collection,
-      {super.key});
+  const DayHistoryProperty(
+    this.name,
+    this.value,
+    this.id,
+    this.collection, {
+    super.key,
+  });
 
   final String name;
   final DateTime? value;
@@ -295,12 +319,13 @@ class DayHistoryProperty extends StatelessWidget {
             child: Text(value?.toDurationString() ?? ''),
           ),
           Text(
-              value != null
-                  ? DateFormat('yyyy/M/d   h:m a', 'ar-EG').format(
-                      value!,
-                    )
-                  : '',
-              style: Theme.of(context).textTheme.labelSmall),
+            value != null
+                ? DateFormat('yyyy/M/d   h:m a', 'ar-EG').format(
+                    value!,
+                  )
+                : '',
+            style: Theme.of(context).textTheme.labelSmall,
+          ),
         ],
       ),
       trailing: IconButton(
@@ -315,22 +340,34 @@ class DayHistoryProperty extends StatelessWidget {
                 stream: User.loggedInStream.switchMap(
                   (user) {
                     Stream<List<HistoryRecord>> _completeQuery(
-                        QueryOfJson query) {
+                      QueryOfJson query,
+                    ) {
                       return query
                           .orderBy('Time', descending: true)
                           .snapshots()
-                          .asyncMap((s) => Future.wait(s.docs
-                              .map((d) async => HistoryRecord.fromDoc(
-                                  d.reference.parent.parent!.parent.id ==
-                                          'ServantsHistory'
-                                      ? await ServantsHistoryDay.fromId(
-                                          d.reference.parent.parent!.id)
-                                      : await HistoryDay.fromId(
-                                          d.reference.parent.parent!.id),
-                                  d))
-                              .toList()))
-                          .map((event) =>
-                              event.whereType<HistoryRecord>().toList());
+                          .asyncMap(
+                            (s) => Future.wait(
+                              s.docs
+                                  .map(
+                                    (d) async => HistoryRecord.fromDoc(
+                                      d.reference.parent.parent!.parent.id ==
+                                              'ServantsHistory'
+                                          ? await ServantsHistoryDay.fromId(
+                                              d.reference.parent.parent!.id,
+                                            )
+                                          : await HistoryDay.fromId(
+                                              d.reference.parent.parent!.id,
+                                            ),
+                                      d,
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
+                          )
+                          .map(
+                            (event) =>
+                                event.whereType<HistoryRecord>().toList(),
+                          );
                     }
 
                     final query = GetIt.I<DatabaseRepository>()
@@ -365,7 +402,9 @@ class DayHistoryProperty extends StatelessWidget {
                               (values) => values
                                   .expand((e) => e)
                                   .sortedByCompare<Timestamp>(
-                                      (r) => r.time, (o, n) => -o.compareTo(n))
+                                    (r) => r.time,
+                                    (o, n) => -o.compareTo(n),
+                                  )
                                   .toList(),
                             );
                           },
@@ -398,7 +437,9 @@ class DayHistoryProperty extends StatelessWidget {
                             (values) => values
                                 .expand((e) => e)
                                 .sortedByCompare<Timestamp>(
-                                    (r) => r.time, (o, n) => -o.compareTo(n))
+                                  (r) => r.time,
+                                  (o, n) => -o.compareTo(n),
+                                )
                                 .toList(),
                           );
                         },
@@ -422,8 +463,10 @@ class DayHistoryProperty extends StatelessWidget {
                       child: ListTile(
                         onTap: () => GetIt.I<MHViewableObjectService>()
                             .historyTap(history.data![i].parent),
-                        title: Text(DateFormat('yyyy/M/d h:m a', 'ar-EG')
-                            .format(history.data![i].time.toDate())),
+                        title: Text(
+                          DateFormat('yyyy/M/d h:m a', 'ar-EG')
+                              .format(history.data![i].time.toDate()),
+                        ),
                         subtitle: FutureBuilder<JsonDoc>(
                           future: history.data![i].recordedBy != null
                               ? GetIt.I<DatabaseRepository>()
@@ -432,10 +475,12 @@ class DayHistoryProperty extends StatelessWidget {
                               : null,
                           builder: (context, user) {
                             return user.hasData
-                                ? Text(user.data!.data()!['Name'] +
-                                    (history.data![i].notes != null
-                                        ? '\n${history.data![i].notes}'
-                                        : ''))
+                                ? Text(
+                                    user.data!.data()!['Name'] +
+                                        (history.data![i].notes != null
+                                            ? '\n${history.data![i].notes}'
+                                            : ''),
+                                  )
                                 : Text(history.data![i].notes ?? '');
                           },
                         ),

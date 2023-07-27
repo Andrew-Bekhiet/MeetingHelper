@@ -57,7 +57,8 @@ class _UserRegistrationState extends State<UserRegistration> {
               actions: <Widget>[
                 IconButton(
                   icon: const Icon(
-                      IconData(0xe9ba, fontFamily: 'MaterialIconsR')),
+                    IconData(0xe9ba, fontFamily: 'MaterialIconsR'),
+                  ),
                   tooltip: 'تسجيل الخروج',
                   onPressed: () async {
                     await GetIt.I<CacheRepository>()
@@ -100,14 +101,17 @@ class _UserRegistrationState extends State<UserRegistration> {
                     decoration: InputDecoration(
                       hintMaxLines: 3,
                       suffix: IconButton(
-                        icon: Icon(obscurePassword1
-                            ? Icons.visibility
-                            : Icons.visibility_off),
+                        icon: Icon(
+                          obscurePassword1
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
                         tooltip: obscurePassword1
                             ? 'اظهار كلمة السر'
                             : 'اخفاء كلمة السر',
                         onPressed: () => setState(
-                            () => obscurePassword1 = !obscurePassword1),
+                          () => obscurePassword1 = !obscurePassword1,
+                        ),
                       ),
                       helperText:
                           'يرجى إدخال كلمة سر لحسابك الجديد في البرنامج',
@@ -132,14 +136,17 @@ class _UserRegistrationState extends State<UserRegistration> {
                     decoration: InputDecoration(
                       hintMaxLines: 3,
                       suffix: IconButton(
-                        icon: Icon(obscurePassword2
-                            ? Icons.visibility
-                            : Icons.visibility_off),
+                        icon: Icon(
+                          obscurePassword2
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
                         tooltip: obscurePassword2
                             ? 'اظهار كلمة السر'
                             : 'اخفاء كلمة السر',
                         onPressed: () => setState(
-                            () => obscurePassword2 = !obscurePassword2),
+                          () => obscurePassword2 = !obscurePassword2,
+                        ),
                       ),
                       labelText: 'تأكيد كلمة السر',
                     ),
@@ -185,9 +192,14 @@ class _UserRegistrationState extends State<UserRegistration> {
                                       labelText: 'تاريخ أخر تناول',
                                     ),
                                     child: lastTanawol != null
-                                        ? Text(DateFormat('yyyy/M/d').format(
-                                            DateTime.fromMillisecondsSinceEpoch(
-                                                lastTanawol!)))
+                                        ? Text(
+                                            DateFormat('yyyy/M/d').format(
+                                              DateTime
+                                                  .fromMillisecondsSinceEpoch(
+                                                lastTanawol!,
+                                              ),
+                                            ),
+                                          )
                                         : const Text('(فارغ)'),
                                   ),
                                 ),
@@ -228,9 +240,14 @@ class _UserRegistrationState extends State<UserRegistration> {
                                       labelText: 'تاريخ أخر اعتراف',
                                     ),
                                     child: lastConfession != null
-                                        ? Text(DateFormat('yyyy/M/d').format(
-                                            DateTime.fromMillisecondsSinceEpoch(
-                                                lastConfession!)))
+                                        ? Text(
+                                            DateFormat('yyyy/M/d').format(
+                                              DateTime
+                                                  .fromMillisecondsSinceEpoch(
+                                                lastConfession!,
+                                              ),
+                                            ),
+                                          )
                                         : const Text('(فارغ)'),
                                   ),
                                 ),
@@ -329,7 +346,8 @@ class _UserRegistrationState extends State<UserRegistration> {
           builder: (context, snapshot) {
             if (snapshot.hasError) {
               return Text(
-                  (snapshot.error! as FirebaseFunctionsException).message!);
+                (snapshot.error! as FirebaseFunctionsException).message!,
+              );
             } else if (snapshot.connectionState == ConnectionState.done) {
               WidgetsBinding.instance
                   .addPostFrameCallback((_) => navigator.currentState!.pop());
@@ -347,15 +365,19 @@ class _UserRegistrationState extends State<UserRegistration> {
     );
   }
 
-  Future<int> _selectDate(String helpText, int initialDate,
-      void Function(void Function()) setState) async {
+  Future<int> _selectDate(
+    String helpText,
+    int initialDate,
+    void Function(void Function()) setState,
+  ) async {
     final picked = await showDatePicker(
-        helpText: helpText,
-        locale: const Locale('ar', 'EG'),
-        context: context,
-        initialDate: DateTime.fromMillisecondsSinceEpoch(initialDate),
-        firstDate: DateTime(1500),
-        lastDate: DateTime.now());
+      helpText: helpText,
+      locale: const Locale('ar', 'EG'),
+      context: context,
+      initialDate: DateTime.fromMillisecondsSinceEpoch(initialDate),
+      firstDate: DateTime(1500),
+      lastDate: DateTime.now(),
+    );
     if (picked != null && picked.millisecondsSinceEpoch != initialDate) {
       setState(() {});
       return picked.millisecondsSinceEpoch;
@@ -390,10 +412,12 @@ class _UserRegistrationState extends State<UserRegistration> {
           .put('FCM_Token_Registered', true);
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
     } catch (err, stack) {
-      await Sentry.captureException(err,
-          stackTrace: stack,
-          withScope: (scope) =>
-              scope.setTag('LasErrorIn', '_UserRegisterationState._submit'));
+      await Sentry.captureException(
+        err,
+        stackTrace: stack,
+        withScope: (scope) =>
+            scope.setTag('LasErrorIn', '_UserRegisterationState._submit'),
+      );
       await showErrorDialog(context, 'حدث خطأ أثناء تسجيل الحساب!');
       setState(() {});
     }

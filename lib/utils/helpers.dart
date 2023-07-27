@@ -18,7 +18,9 @@ import 'package:spreadsheet_decoder/spreadsheet_decoder.dart';
 import '../main.dart';
 
 List<RadioListTile> getOrderingOptions(
-    BehaviorSubject<OrderOptions> orderOptions, Type type) {
+  BehaviorSubject<OrderOptions> orderOptions,
+  Type type,
+) {
   return (type == Class
           ? Class.propsMetadata()
           : type == Service
@@ -32,7 +34,8 @@ List<RadioListTile> getOrderingOptions(
           title: Text(e.value.label),
           onChanged: (value) {
             orderOptions.add(
-                OrderOptions(orderBy: value!, asc: orderOptions.value.asc));
+              OrderOptions(orderBy: value!, asc: orderOptions.value.asc),
+            );
             navigator.currentState!.pop();
           },
         ),
@@ -45,8 +48,12 @@ List<RadioListTile> getOrderingOptions(
           groupValue: orderOptions.value.asc.toString(),
           title: const Text('تصاعدي'),
           onChanged: (value) {
-            orderOptions.add(OrderOptions(
-                orderBy: orderOptions.value.orderBy, asc: value == 'true'));
+            orderOptions.add(
+              OrderOptions(
+                orderBy: orderOptions.value.orderBy,
+                asc: value == 'true',
+              ),
+            );
             navigator.currentState!.pop();
           },
         ),
@@ -55,8 +62,12 @@ List<RadioListTile> getOrderingOptions(
           groupValue: orderOptions.value.asc.toString(),
           title: const Text('تنازلي'),
           onChanged: (value) {
-            orderOptions.add(OrderOptions(
-                orderBy: orderOptions.value.orderBy, asc: value == 'true'));
+            orderOptions.add(
+              OrderOptions(
+                orderBy: orderOptions.value.orderBy,
+                asc: value == 'true',
+              ),
+            );
             navigator.currentState!.pop();
           },
         ),
@@ -72,7 +83,10 @@ bool notService(String subcollection) =>
 Future<void> import(BuildContext context) async {
   try {
     final picked = await FilePicker.platform.pickFiles(
-        allowedExtensions: ['xlsx'], withData: true, type: FileType.custom);
+      allowedExtensions: ['xlsx'],
+      withData: true,
+      type: FileType.custom,
+    );
     if (picked == null) return;
     final fileData = picked.files[0].bytes!;
     final decoder = SpreadsheetDecoder.decodeBytes(fileData);
@@ -168,8 +182,11 @@ Future<List<T>?> selectServices<T extends DataObject>(List<T>? selected) async {
   return null;
 }
 
-Future<void> showErrorDialog(BuildContext context, String? message,
-    {String? title}) async {
+Future<void> showErrorDialog(
+  BuildContext context,
+  String? message, {
+  String? title,
+}) async {
   return showDialog(
     context: context,
     barrierDismissible: false, // user must tap button!
@@ -188,8 +205,10 @@ Future<void> showErrorDialog(BuildContext context, String? message,
   );
 }
 
-Future<void> showErrorUpdateDataDialog(
-    {BuildContext? context, bool pushApp = true}) async {
+Future<void> showErrorUpdateDataDialog({
+  BuildContext? context,
+  bool pushApp = true,
+}) async {
   if (pushApp ||
       GetIt.I<CacheRepository>().box('Settings').get('DialogLastShown') !=
           DateTime.now().truncateToDay().millisecondsSinceEpoch) {
@@ -219,11 +238,13 @@ Future<void> showErrorUpdateDataDialog(
                           DateTime.now().millisecondsSinceEpoch)) {
                 navigator.currentState!.pop();
                 if (pushApp) {
-                  unawaited(navigator.currentState!.pushReplacement(
-                    MaterialPageRoute(
-                      builder: (context) => const MeetingHelperApp(),
+                  unawaited(
+                    navigator.currentState!.pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const MeetingHelperApp(),
+                      ),
                     ),
-                  ));
+                  );
                 }
               }
             },
@@ -238,8 +259,10 @@ Future<void> showErrorUpdateDataDialog(
         ],
       ),
     );
-    await GetIt.I<CacheRepository>().box('Settings').put('DialogLastShown',
-        DateTime.now().truncateToDay().millisecondsSinceEpoch);
+    await GetIt.I<CacheRepository>().box('Settings').put(
+          'DialogLastShown',
+          DateTime.now().truncateToDay().millisecondsSinceEpoch,
+        );
   }
 }
 

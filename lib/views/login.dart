@@ -87,8 +87,9 @@ class _LoginScreenState extends State<LoginScreen> {
               ElevatedButton(
                 onPressed: () async {
                   await GetIt.I<auth.FirebaseAuth>().signInWithEmailAndPassword(
-                      email: 'admin@meetinghelper.org',
-                      password: 'admin@meetinghelper.org');
+                    email: 'admin@meetinghelper.org',
+                    password: 'admin@meetinghelper.org',
+                  );
                 },
                 child: const Text('{debug only} Email and password'),
               ),
@@ -162,8 +163,9 @@ class _LoginScreenState extends State<LoginScreen> {
           final googleAuth = await googleUser.authentication;
           if (googleAuth.accessToken != null) {
             final credential = GoogleAuthProvider.credential(
-                idToken: googleAuth.idToken,
-                accessToken: googleAuth.accessToken);
+              idToken: googleAuth.idToken,
+              accessToken: googleAuth.accessToken,
+            );
             signInFuture =
                 GetIt.I<auth.FirebaseAuth>().signInWithCredential(credential);
           }
@@ -179,10 +181,14 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (err, stack) {
       setState(() => _loading = false);
-      await Sentry.captureException(err,
-          stackTrace: stack,
-          withScope: (scope) => scope.setTag(
-              'LasErrorIn', '_LoginScreenState.build.Login.onPressed'));
+      await Sentry.captureException(
+        err,
+        stackTrace: stack,
+        withScope: (scope) => scope.setTag(
+          'LasErrorIn',
+          '_LoginScreenState.build.Login.onPressed',
+        ),
+      );
       await showErrorDialog(context, err.toString());
     }
   }
@@ -296,10 +302,12 @@ class _LoginScreenState extends State<LoginScreen> {
       });
       return true;
     } catch (err, stack) {
-      await Sentry.captureException(err,
-          stackTrace: stack,
-          withScope: (scope) =>
-              scope.setTag('LasErrorIn', '_LoginScreenState.setupSettings'));
+      await Sentry.captureException(
+        err,
+        stackTrace: stack,
+        withScope: (scope) =>
+            scope.setTag('LasErrorIn', '_LoginScreenState.setupSettings'),
+      );
       return false;
     }
   }

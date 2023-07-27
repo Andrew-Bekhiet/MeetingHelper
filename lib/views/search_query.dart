@@ -73,7 +73,8 @@ class _SearchQueryState extends State<SearchQuery> {
               child: queryValue != null
                   ? Text(
                       DateFormat('yyyy/M/d').format(
-                          queryValue is DateTime ? queryValue : DateTime.now()),
+                        queryValue is DateTime ? queryValue : DateTime.now(),
+                      ),
                     )
                   : const Text('(فارغ)'),
             ),
@@ -112,9 +113,10 @@ class _SearchQueryState extends State<SearchQuery> {
                 fieldPath,
                 isLessThan: Timestamp.fromDate(
                   DateTime(
-                      effectiveValue.toDate().year,
-                      effectiveValue.toDate().month,
-                      effectiveValue.toDate().day + 1),
+                    effectiveValue.toDate().year,
+                    effectiveValue.toDate().month,
+                    effectiveValue.toDate().day + 1,
+                  ),
                 ),
               );
         }
@@ -194,29 +196,31 @@ class _SearchQueryState extends State<SearchQuery> {
           );
         } else if (operator == '>') {
           return q.where(
-              fieldPath.contains('.')
-                  ? FieldPath.fromString(fieldPath)
-                  : fieldPath,
-              isGreaterThanOrEqualTo: value);
-        } else if (operator == '<') {
-          return q.where(
-              fieldPath.contains('.')
-                  ? FieldPath.fromString(fieldPath)
-                  : fieldPath,
-              isLessThanOrEqualTo: value);
-        } else if (operator == '!=') {
-          return q.where(
-              fieldPath.contains('.')
-                  ? FieldPath.fromString(fieldPath)
-                  : fieldPath,
-              isNotEqualTo: value);
-        }
-
-        return q.where(
             fieldPath.contains('.')
                 ? FieldPath.fromString(fieldPath)
                 : fieldPath,
-            isEqualTo: value);
+            isGreaterThanOrEqualTo: value,
+          );
+        } else if (operator == '<') {
+          return q.where(
+            fieldPath.contains('.')
+                ? FieldPath.fromString(fieldPath)
+                : fieldPath,
+            isLessThanOrEqualTo: value,
+          );
+        } else if (operator == '!=') {
+          return q.where(
+            fieldPath.contains('.')
+                ? FieldPath.fromString(fieldPath)
+                : fieldPath,
+            isNotEqualTo: value,
+          );
+        }
+
+        return q.where(
+          fieldPath.contains('.') ? FieldPath.fromString(fieldPath) : fieldPath,
+          isEqualTo: value,
+        );
       },
     ),
     bool: PropertyQuery<bool>(
@@ -231,11 +235,13 @@ class _SearchQueryState extends State<SearchQuery> {
                     .map(
                       (item) => DropdownMenuItem(
                         value: item,
-                        child: Text(item == null
-                            ? 'غير محدد'
-                            : item
-                                ? 'بنين'
-                                : 'بنات'),
+                        child: Text(
+                          item == null
+                              ? 'غير محدد'
+                              : item
+                                  ? 'بنين'
+                                  : 'بنات',
+                        ),
                       ),
                     )
                     .toList(),
@@ -296,9 +302,9 @@ class _SearchQueryState extends State<SearchQuery> {
                   ),
                 ],
                 content: ColorsList(
-                  selectedColor: Color(queryValue is int
-                      ? queryValue
-                      : Colors.transparent.value),
+                  selectedColor: Color(
+                    queryValue is int ? queryValue : Colors.transparent.value,
+                  ),
                   onSelect: (color) {
                     navigator.currentState!.pop();
                     setState(() {
@@ -346,8 +352,10 @@ class _SearchQueryState extends State<SearchQuery> {
               ),
               child: queryValue != null && queryValue is JsonRef
                   ? FutureBuilder<Class>(
-                      future: Future(() async =>
-                          Class.fromDoc(await (queryValue as JsonRef).get())),
+                      future: Future(
+                        () async =>
+                            Class.fromDoc(await (queryValue as JsonRef).get()),
+                      ),
                       builder: (context, classData) {
                         if (!classData.hasData) {
                           return const LinearProgressIndicator();
@@ -384,8 +392,10 @@ class _SearchQueryState extends State<SearchQuery> {
 
                         return IgnorePointer(
                           ignoringSemantics: false,
-                          child: ViewableObjectWidget<User>(userData.data!,
-                              isDense: true),
+                          child: ViewableObjectWidget<User>(
+                            userData.data!,
+                            isDense: true,
+                          ),
                         );
                       },
                     )
@@ -403,7 +413,9 @@ class _SearchQueryState extends State<SearchQuery> {
                 value: queryValue != null &&
                         queryValue is JsonRef &&
                         (queryValue as JsonRef).parent.id.startsWith(
-                            properties[collection]![fieldPath]!.collectionName!)
+                              properties[collection]![fieldPath]!
+                                  .collectionName!,
+                            )
                     ? queryValue
                     : null,
                 items: data.data!.docs
@@ -424,7 +436,8 @@ class _SearchQueryState extends State<SearchQuery> {
                   query = query.copyWith.queryValue(value);
                 },
                 decoration: InputDecoration(
-                    labelText: properties[collection]![fieldPath]!.label),
+                  labelText: properties[collection]![fieldPath]!.label,
+                ),
               );
             }
             return const LinearProgressIndicator();
@@ -460,8 +473,11 @@ class _SearchQueryState extends State<SearchQuery> {
               ),
               child: queryValue != null && queryValue is JsonRef
                   ? FutureBuilder<Service>(
-                      future: Future(() async => Service.fromDoc(
-                          await (queryValue as JsonRef).get())!),
+                      future: Future(
+                        () async => Service.fromDoc(
+                          await (queryValue as JsonRef).get(),
+                        )!,
+                      ),
                       builder: (context, serviceData) {
                         if (!serviceData.hasData) {
                           return const LinearProgressIndicator();
@@ -470,8 +486,9 @@ class _SearchQueryState extends State<SearchQuery> {
                         return IgnorePointer(
                           ignoringSemantics: false,
                           child: ViewableObjectWidget<Service>(
-                              serviceData.data!,
-                              isDense: true),
+                            serviceData.data!,
+                            isDense: true,
+                          ),
                         );
                       },
                     )
@@ -497,8 +514,10 @@ class _SearchQueryState extends State<SearchQuery> {
 
                         return IgnorePointer(
                           ignoringSemantics: false,
-                          child: ViewableObjectWidget<User>(userData.data!,
-                              isDense: true),
+                          child: ViewableObjectWidget<User>(
+                            userData.data!,
+                            isDense: true,
+                          ),
                         );
                       },
                     )
@@ -542,11 +561,14 @@ class _SearchQueryState extends State<SearchQuery> {
                   child: queryValue != null && fieldPath.split('.').length == 2
                       ? FutureBuilder<Service>(
                           key: ValueKey(fieldPath),
-                          future: Future(() async => Service.fromDoc(
+                          future: Future(
+                            () async => Service.fromDoc(
                               await GetIt.I<DatabaseRepository>()
                                   .collection('Services')
                                   .doc(fieldPath.split('.')[1])
-                                  .get())!),
+                                  .get(),
+                            )!,
+                          ),
                           builder: (context, serviceData) {
                             if (!serviceData.hasData) {
                               return const LinearProgressIndicator();
@@ -555,8 +577,9 @@ class _SearchQueryState extends State<SearchQuery> {
                             return IgnorePointer(
                               ignoringSemantics: false,
                               child: ViewableObjectWidget<Service>(
-                                  serviceData.data!,
-                                  isDense: true),
+                                serviceData.data!,
+                                isDense: true,
+                              ),
                             );
                           },
                         )
@@ -700,7 +723,8 @@ class _SearchQueryState extends State<SearchQuery> {
               onChanged: (v) =>
                   setState(() => query = query.copyWith.order(v!)),
               title: const Text(
-                  'ترتيب النتائج (قد يستغرق وقت مع النتائج الكبيرة)'),
+                'ترتيب النتائج (قد يستغرق وقت مع النتائج الكبيرة)',
+              ),
             ),
             if (order)
               Row(
@@ -709,8 +733,9 @@ class _SearchQueryState extends State<SearchQuery> {
                   const Text('ترتيب حسب:'),
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      key: ValueKey(valueWidget[
-                          properties[collection]![fieldPath]!.type]!),
+                      key: ValueKey(
+                        valueWidget[properties[collection]![fieldPath]!.type]!,
+                      ),
                       isExpanded: true,
                       value: orderBy,
                       items: properties[collection]!
@@ -731,8 +756,9 @@ class _SearchQueryState extends State<SearchQuery> {
                   ),
                   Expanded(
                     child: DropdownButtonFormField<bool>(
-                      key: ValueKey(valueWidget[
-                          properties[collection]![fieldPath]!.type]!),
+                      key: ValueKey(
+                        valueWidget[properties[collection]![fieldPath]!.type]!,
+                      ),
                       isExpanded: true,
                       value: descending,
                       items: const [
@@ -788,26 +814,23 @@ class _SearchQueryState extends State<SearchQuery> {
             if (!order) return rslt;
 
             final sorted = rslt.cast<DataObject>().sublist(0);
-            mergeSort(sorted, compare: (previous, next) {
-              if (previous == null || next == null) {
-                if (previous == null) return -1;
-                if (next == null) return 1;
+            mergeSort(
+              sorted,
+              compare: (previous, next) {
+                final p = previous;
+                final n = next;
+
+                if (p.toJson()[orderBy] is Comparable &&
+                    n.toJson()[orderBy] is Comparable) {
+                  return descending!
+                      ? -(p.toJson()[orderBy] ?? '')
+                          .compareTo(n.toJson()[orderBy] ?? '')
+                      : (p.toJson()[orderBy] ?? '')
+                          .compareTo(n.toJson()[orderBy] ?? '');
+                }
                 return 0;
-              }
-
-              final p = previous as DataObject;
-              final n = next as DataObject;
-
-              if (p.toJson()[orderBy] is Comparable &&
-                  n.toJson()[orderBy] is Comparable) {
-                return descending!
-                    ? -(p.toJson()[orderBy] ?? '')
-                        .compareTo(n.toJson()[orderBy] ?? '')
-                    : (p.toJson()[orderBy] ?? '')
-                        .compareTo(n.toJson()[orderBy] ?? '');
-              }
-              return 0;
-            });
+              },
+            );
             return sorted;
           },
         ),
@@ -868,8 +891,9 @@ class _SearchQueryState extends State<SearchQuery> {
                         : Person,
                 options: listController,
                 textStyle: Theme.of(context).textTheme.titleLarge!.copyWith(
-                    color:
-                        Theme.of(context).primaryTextTheme.titleLarge!.color),
+                      color:
+                          Theme.of(context).primaryTextTheme.titleLarge!.color,
+                    ),
                 disableOrdering: true,
               ),
             ),
@@ -941,10 +965,12 @@ class _SearchQueryState extends State<SearchQuery> {
             width: 280,
             child: Column(
               children: [
-                SearchFilters(Class,
-                    options: _listOptions,
-                    orderOptions: _orderOptions,
-                    textStyle: Theme.of(context).textTheme.bodyMedium),
+                SearchFilters(
+                  Class,
+                  options: _listOptions,
+                  orderOptions: _orderOptions,
+                  textStyle: Theme.of(context).textTheme.bodyMedium,
+                ),
                 Expanded(
                   child: ServicesList<Class>(
                     onTap: (value) {
@@ -987,10 +1013,12 @@ class _SearchQueryState extends State<SearchQuery> {
             width: 280,
             child: Column(
               children: [
-                SearchFilters(Service,
-                    options: _listOptions,
-                    orderOptions: _orderOptions,
-                    textStyle: Theme.of(context).textTheme.bodyMedium),
+                SearchFilters(
+                  Service,
+                  options: _listOptions,
+                  orderOptions: _orderOptions,
+                  textStyle: Theme.of(context).textTheme.bodyMedium,
+                ),
                 Expanded(
                   child: ServicesList<Service>(
                     onTap: (value) {
@@ -998,10 +1026,13 @@ class _SearchQueryState extends State<SearchQuery> {
                       setState(() {
                         if (forFieldPath) {
                           query = query.copyWith.fieldPath(
-                              fieldPath.contains('.')
-                                  ? fieldPath.replaceAll(
-                                      RegExp(r'\.[^.]+$'), '.' + value.id)
-                                  : fieldPath + '.' + value.id);
+                            fieldPath.contains('.')
+                                ? fieldPath.replaceAll(
+                                    RegExp(r'\.[^.]+$'),
+                                    '.' + value.id,
+                                  )
+                                : fieldPath + '.' + value.id,
+                          );
                         } else {
                           query = query.copyWith.queryValue(value.ref);
                         }
@@ -1041,10 +1072,12 @@ class _SearchQueryState extends State<SearchQuery> {
             width: 280,
             child: Column(
               children: [
-                SearchFilters(Person,
-                    options: _listOptions,
-                    orderOptions: _orderOptions,
-                    textStyle: Theme.of(context).textTheme.bodyMedium),
+                SearchFilters(
+                  Person,
+                  options: _listOptions,
+                  orderOptions: _orderOptions,
+                  textStyle: Theme.of(context).textTheme.bodyMedium,
+                ),
                 Expanded(
                   child: DataObjectListView<void, User>(
                     onTap: (value) {

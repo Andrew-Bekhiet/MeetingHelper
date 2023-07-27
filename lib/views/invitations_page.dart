@@ -39,11 +39,12 @@ class _InvitationsPageState extends State<InvitationsPage> {
         child: StreamBuilder<List<Invitation?>>(
           stream: controller.objectsStream,
           builder: (context, snapshot) {
-            return Text((snapshot.data?.length ?? 0).toString() + ' دعوة',
-                textAlign: TextAlign.center,
-                strutStyle:
-                    StrutStyle(height: IconTheme.of(context).size! / 7.5),
-                style: Theme.of(context).primaryTextTheme.bodyLarge);
+            return Text(
+              (snapshot.data?.length ?? 0).toString() + ' دعوة',
+              textAlign: TextAlign.center,
+              strutStyle: StrutStyle(height: IconTheme.of(context).size! / 7.5),
+              style: Theme.of(context).primaryTextTheme.bodyLarge,
+            );
           },
         ),
       ),

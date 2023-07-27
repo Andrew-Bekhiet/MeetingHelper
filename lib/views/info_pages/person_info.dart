@@ -58,7 +58,8 @@ class _PersonInfoState extends State<PersonInfo> {
                     child: Text(
                       'تحديث بيانات المخدوم',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSecondary),
+                            color: Theme.of(context).colorScheme.onSecondary,
+                          ),
                     ),
                   ),
                 ],
@@ -73,7 +74,8 @@ class _PersonInfoState extends State<PersonInfo> {
                   child: Text(
                     'يمكنك مشاركة البيانات بلينك يفتح البيانات مباشرة داخل البرنامج',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSecondary),
+                          color: Theme.of(context).colorScheme.onSecondary,
+                        ),
                   ),
                 ),
               ],
@@ -91,7 +93,8 @@ class _PersonInfoState extends State<PersonInfo> {
                     child: Text(
                       'يمكنك تسجيل أخر افتقاد للمخدوم بسرعة من هنا',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSecondary),
+                            color: Theme.of(context).colorScheme.onSecondary,
+                          ),
                     ),
                   ),
                 ],
@@ -151,8 +154,10 @@ class _PersonInfoState extends State<PersonInfo> {
                               tooltip: 'استعادة',
                               onPressed: () {
                                 MHDatabaseRepo.I.recoverDocument(
-                                    context, person.ref,
-                                    nested: false);
+                                  context,
+                                  person.ref,
+                                  nested: false,
+                                );
                               },
                             )
                         ]
@@ -166,19 +171,24 @@ class _PersonInfoState extends State<PersonInfo> {
                                     const Positioned(
                                       left: 1.0,
                                       top: 2.0,
-                                      child: Icon(Icons.edit,
-                                          color: Colors.black54),
+                                      child: Icon(
+                                        Icons.edit,
+                                        color: Colors.black54,
+                                      ),
                                     ),
-                                    Icon(Icons.edit,
-                                        color: IconTheme.of(context).color),
+                                    Icon(
+                                      Icons.edit,
+                                      color: IconTheme.of(context).color,
+                                    ),
                                   ],
                                 ),
                               ),
                               onPressed: () async {
-                                final dynamic result = await navigator
-                                    .currentState!
-                                    .pushNamed('Data/EditPerson',
-                                        arguments: person);
+                                final dynamic result =
+                                    await navigator.currentState!.pushNamed(
+                                  'Data/EditPerson',
+                                  arguments: person,
+                                );
                                 if (result is JsonRef) {
                                   scaffoldMessenger.currentState!.showSnackBar(
                                     const SnackBar(
@@ -207,11 +217,15 @@ class _PersonInfoState extends State<PersonInfo> {
                                   const Positioned(
                                     left: 1.0,
                                     top: 2.0,
-                                    child: Icon(Icons.share,
-                                        color: Colors.black54),
+                                    child: Icon(
+                                      Icons.share,
+                                      color: Colors.black54,
+                                    ),
                                   ),
-                                  Icon(Icons.share,
-                                      color: IconTheme.of(context).color),
+                                  Icon(
+                                    Icons.share,
+                                    color: IconTheme.of(context).color,
+                                  ),
                                 ],
                               ),
                             ),
@@ -276,8 +290,10 @@ class _PersonInfoState extends State<PersonInfo> {
               padding: const EdgeInsets.symmetric(horizontal: 8),
               children: <Widget>[
                 ListTile(
-                  title: Text(person.name,
-                      style: Theme.of(context).textTheme.titleLarge),
+                  title: Text(
+                    person.name,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                 ),
                 PhoneNumberProperty(
                   'موبايل:',
@@ -299,16 +315,14 @@ class _PersonInfoState extends State<PersonInfo> {
                     (n) => _phoneCall(context, n),
                     (n) => _contactAdd(context, n, person),
                   ),
-                ...person.phones.entries
-                    .map(
-                      (e) => PhoneNumberProperty(
-                        e.key,
-                        e.value,
-                        (n) => _phoneCall(context, n),
-                        (n) => _contactAdd(context, n, person),
-                      ),
-                    )
-                    .toList(),
+                ...person.phones.entries.map(
+                  (e) => PhoneNumberProperty(
+                    e.key,
+                    e.value,
+                    (n) => _phoneCall(context, n),
+                    (n) => _contactAdd(context, n, person),
+                  ),
+                ),
                 ListTile(
                   title: const Text('السن:'),
                   subtitle: person.birthDate != null
@@ -347,15 +361,17 @@ class _PersonInfoState extends State<PersonInfo> {
                       ? FutureBuilder<Class?>(
                           future: MHDatabaseRepo.I.classes
                               .getById(person.classId!.id),
-                          builder: (context, _class) =>
-                              _class.connectionState == ConnectionState.done &&
-                                      _class.hasData
-                                  ? ViewableObjectWidget<Class>(_class.data!,
-                                      isDense: true)
-                                  : _class.connectionState ==
-                                          ConnectionState.done
-                                      ? const Text('لا يمكن ايجاد الفصل')
-                                      : const LinearProgressIndicator(),
+                          builder: (context, _class) => _class
+                                          .connectionState ==
+                                      ConnectionState.done &&
+                                  _class.hasData
+                              ? ViewableObjectWidget<Class>(
+                                  _class.data!,
+                                  isDense: true,
+                                )
+                              : _class.connectionState == ConnectionState.done
+                                  ? const Text('لا يمكن ايجاد الفصل')
+                                  : const LinearProgressIndicator(),
                         )
                       : const Text('غير موجود'),
                 ),
@@ -397,10 +413,11 @@ class _PersonInfoState extends State<PersonInfo> {
                             'true';
 
                     return Tuple2(
-                        isCollegeYear ? 'الكلية' : ':المدرسة:',
-                        isCollegeYear
-                            ? await person.getCollegeName()
-                            : await person.getSchoolName());
+                      isCollegeYear ? 'الكلية' : ':المدرسة:',
+                      isCollegeYear
+                          ? await person.getCollegeName()
+                          : await person.getSchoolName(),
+                    );
                   }(),
                   builder: (context, data) {
                     if (data.hasError) {
@@ -546,14 +563,18 @@ class _PersonInfoState extends State<PersonInfo> {
         'LastVisit': Timestamp.now(),
         'LastEdit': User.instance.uid,
       });
-      scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
-        content: Text('تم بنجاح'),
-      ));
+      scaffoldMessenger.currentState!.showSnackBar(
+        const SnackBar(
+          content: Text('تم بنجاح'),
+        ),
+      );
     } catch (err, stack) {
-      await Sentry.captureException(err,
-          stackTrace: stack,
-          withScope: (scope) =>
-              scope.setTag('LasErrorIn', '_PersonInfoState.recordLastVisit'));
+      await Sentry.captureException(
+        err,
+        stackTrace: stack,
+        withScope: (scope) =>
+            scope.setTag('LasErrorIn', '_PersonInfoState.recordLastVisit'),
+      );
       await showErrorDialog(context, 'حدث خطأ أثناء تحديث تاريخ أخر افتقاد!');
     }
   }
@@ -581,7 +602,8 @@ class _PersonInfoState extends State<PersonInfo> {
     if (result) {
       await Permission.phone.request();
       await launchUrl(
-          Uri(scheme: 'tel', path: formatPhone(number ?? '', false)));
+        Uri(scheme: 'tel', path: formatPhone(number ?? '', false)),
+      );
       final recordLastCall = await showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -613,7 +635,8 @@ class _PersonInfoState extends State<PersonInfo> {
       }
     } else {
       await launchUrl(
-          Uri(scheme: 'tel', path: formatPhone(number ?? '', false)));
+        Uri(scheme: 'tel', path: formatPhone(number ?? '', false)),
+      );
     }
   }
 
@@ -622,7 +645,10 @@ class _PersonInfoState extends State<PersonInfo> {
   }
 
   Future<void> _contactAdd(
-      BuildContext context, String? phone, Person person) async {
+    BuildContext context,
+    String? phone,
+    Person person,
+  ) async {
     if ((await Permission.contacts.request()).isGranted) {
       final TextEditingController _name =
           TextEditingController(text: person.name);
@@ -641,8 +667,9 @@ class _PersonInfoState extends State<PersonInfo> {
               ),
               actions: [
                 TextButton(
-                    onPressed: () => navigator.currentState!.pop(true),
-                    child: const Text('حفظ جهة الاتصال'))
+                  onPressed: () => navigator.currentState!.pop(true),
+                  child: const Text('حفظ جهة الاتصال'),
+                )
               ],
             ),
           ) ==

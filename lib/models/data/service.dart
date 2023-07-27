@@ -58,7 +58,8 @@ class Service extends DataObject implements PhotoObjectBase {
           studyYearRange: json['StudyYearRange'] != null
               ? StudyYearRange(
                   from: json['StudyYearRange']['From'],
-                  to: json['StudyYearRange']['To'])
+                  to: json['StudyYearRange']['To'],
+                )
               : null,
           validity: json['Validity'] != null
               ? DateTimeRange(

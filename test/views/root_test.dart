@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:math';
 
 import 'package:churchdata_core/churchdata_core.dart' hide Reference;
@@ -58,7 +57,8 @@ void main() {
         navigator = GlobalKey();
 
         GetIt.I.registerSingleton<MHViewableObjectService>(
-            MHViewableObjectService(navigator));
+          MHViewableObjectService(navigator),
+        );
 
         HivePersistenceProvider.instance =
             AllCompletedHivePersistenceProvider();
@@ -92,20 +92,28 @@ void main() {
 
           expect(
             find.descendant(
-                of: find.byType(TabBar), matching: find.text('الخدام')),
-            findsNWidgets(currentPermissions.manageUsers ||
-                    currentPermissions.manageAllowedUsers
-                ? 1
-                : 0),
+              of: find.byType(TabBar),
+              matching: find.text('الخدام'),
+            ),
+            findsNWidgets(
+              currentPermissions.manageUsers ||
+                      currentPermissions.manageAllowedUsers
+                  ? 1
+                  : 0,
+            ),
           );
           expect(
             find.descendant(
-                of: find.byType(TabBar), matching: find.text('الخدمات')),
+              of: find.byType(TabBar),
+              matching: find.text('الخدمات'),
+            ),
             findsOneWidget,
           );
           expect(
             find.descendant(
-                of: find.byType(TabBar), matching: find.text('المخدومين')),
+              of: find.byType(TabBar),
+              matching: find.text('المخدومين'),
+            ),
             findsOneWidget,
           );
 
@@ -113,7 +121,9 @@ void main() {
               currentPermissions.manageAllowedUsers) {
             await tester.tap(
               find.descendant(
-                  of: find.byType(TabBar), matching: find.text('الخدام')),
+                of: find.byType(TabBar),
+                matching: find.text('الخدام'),
+              ),
             );
             await tester.pumpAndSettle();
             expect(
@@ -127,7 +137,9 @@ void main() {
 
           await tester.tap(
             find.descendant(
-                of: find.byType(TabBar), matching: find.text('الخدمات')),
+              of: find.byType(TabBar),
+              matching: find.text('الخدمات'),
+            ),
           );
           await tester.pumpAndSettle();
           expect(find.byType(ServicesList), findsOneWidget);
@@ -135,7 +147,9 @@ void main() {
 
           await tester.tap(
             find.descendant(
-                of: find.byType(TabBar), matching: find.text('المخدومين')),
+              of: find.byType(TabBar),
+              matching: find.text('المخدومين'),
+            ),
           );
           await tester.pumpAndSettle();
           expect(
@@ -156,10 +170,12 @@ void main() {
           expect(find.widgetWithText(ListTile, 'حسابي'), findsOneWidget);
           expect(
             find.widgetWithText(ListTile, 'إدارة المستخدمين'),
-            findsNWidgets(currentPermissions.manageUsers ||
-                    currentPermissions.manageAllowedUsers
-                ? 1
-                : 0),
+            findsNWidgets(
+              currentPermissions.manageUsers ||
+                      currentPermissions.manageAllowedUsers
+                  ? 1
+                  : 0,
+            ),
           );
           expect(
             find.widgetWithText(ListTile, 'كشف حضور المخدومين'),
@@ -174,29 +190,37 @@ void main() {
             find.widgetWithText(ListTile, 'سجل الخدام'),
             findsNWidgets(currentPermissions.secretary ? 1 : 0),
           );
-          expect(find.widgetWithText(ListTile, 'تحليل سجل المخدومين'),
-              findsOneWidget);
+          expect(
+            find.widgetWithText(ListTile, 'تحليل سجل المخدومين'),
+            findsOneWidget,
+          );
           expect(
             find.widgetWithText(ListTile, 'تحليل بيانات سجل الخدام'),
             findsNWidgets(currentPermissions.secretary ? 1 : 0),
           );
           expect(
             find.widgetWithText(ListTile, 'تحليل بيانات الخدمة'),
-            findsNWidgets(currentPermissions.manageUsers ||
-                    currentPermissions.manageAllowedUsers
-                ? 1
-                : 0),
+            findsNWidgets(
+              currentPermissions.manageUsers ||
+                      currentPermissions.manageAllowedUsers
+                  ? 1
+                  : 0,
+            ),
           );
           expect(find.widgetWithText(ListTile, 'بحث مفصل'), findsOneWidget);
           expect(
             find.widgetWithText(ListTile, 'سلة المحذوفات'),
             findsNWidgets(currentPermissions.manageDeleted ? 1 : 0),
           );
-          expect(find.widgetWithText(ListTile, 'عرض خريطة الافتقاد'),
-              findsOneWidget);
+          expect(
+            find.widgetWithText(ListTile, 'عرض خريطة الافتقاد'),
+            findsOneWidget,
+          );
           expect(find.widgetWithText(ListTile, 'الإعدادات'), findsOneWidget);
-          expect(find.widgetWithText(ListTile, 'استيراد من ملف اكسل'),
-              findsOneWidget);
+          expect(
+            find.widgetWithText(ListTile, 'استيراد من ملف اكسل'),
+            findsOneWidget,
+          );
           expect(
             find.widgetWithText(ListTile, 'تصدير فصل إلى ملف اكسل'),
             findsNWidgets(currentPermissions.export ? 1 : 0),
@@ -210,7 +234,9 @@ void main() {
             findsNWidgets(currentPermissions.export ? 1 : 0),
           );
           expect(
-              find.widgetWithText(ListTile, 'تحديث البرنامج'), findsOneWidget);
+            find.widgetWithText(ListTile, 'تحديث البرنامج'),
+            findsOneWidget,
+          );
           expect(find.widgetWithText(ListTile, 'حول البرنامج'), findsOneWidget);
           expect(find.widgetWithText(ListTile, 'تسجيل الخروج'), findsOneWidget);
         },
@@ -274,10 +300,12 @@ void main() {
               );
               await tester.pumpAndSettle();
 
-              await tester.tap(find.widgetWithIcon(
-                FloatingActionButton,
-                Icons.group_add,
-              ));
+              await tester.tap(
+                find.widgetWithIcon(
+                  FloatingActionButton,
+                  Icons.group_add,
+                ),
+              );
               await tester.pumpAndSettle();
 
               expect(find.byType(Dialog), findsOneWidget);
@@ -292,10 +320,12 @@ void main() {
               navigator.currentState!.pop();
               await tester.pumpAndSettle();
 
-              await tester.tap(find.widgetWithIcon(
-                FloatingActionButton,
-                Icons.group_add,
-              ));
+              await tester.tap(
+                find.widgetWithIcon(
+                  FloatingActionButton,
+                  Icons.group_add,
+                ),
+              );
               await tester.pumpAndSettle();
 
               await tester.tap(find.text('اضافة خدمة'));
@@ -308,44 +338,52 @@ void main() {
 
               await tester.tap(
                 find.descendant(
-                    of: find.byType(TabBar), matching: find.text('الخدام')),
+                  of: find.byType(TabBar),
+                  matching: find.text('الخدام'),
+                ),
               );
               await tester.pumpAndSettle();
 
-              await tester.tap(find.widgetWithIcon(
-                FloatingActionButton,
-                Icons.person_add,
-              ));
+              await tester.tap(
+                find.widgetWithIcon(
+                  FloatingActionButton,
+                  Icons.person_add,
+                ),
+              );
               await tester.pumpAndSettle();
 
               expect(find.byType(EditPerson), findsOneWidget);
               expect(
-                  tester
-                      .firstWidget<EditPerson>(find.byType(EditPerson))
-                      .person,
-                  isNotNull);
+                tester.firstWidget<EditPerson>(find.byType(EditPerson)).person,
+                isNotNull,
+              );
               expect(
-                  tester
-                      .firstWidget<EditPerson>(find.byType(EditPerson))
-                      .person!
-                      .ref
-                      .parent
-                      .id,
-                  'UsersData');
+                tester
+                    .firstWidget<EditPerson>(find.byType(EditPerson))
+                    .person!
+                    .ref
+                    .parent
+                    .id,
+                'UsersData',
+              );
 
               navigator.currentState!.pop();
               await tester.pumpAndSettle();
 
               await tester.tap(
                 find.descendant(
-                    of: find.byType(TabBar), matching: find.text('المخدومين')),
+                  of: find.byType(TabBar),
+                  matching: find.text('المخدومين'),
+                ),
               );
               await tester.pumpAndSettle();
 
-              await tester.tap(find.widgetWithIcon(
-                FloatingActionButton,
-                Icons.person_add,
-              ));
+              await tester.tap(
+                find.widgetWithIcon(
+                  FloatingActionButton,
+                  Icons.person_add,
+                ),
+              );
               await tester.pumpAndSettle();
 
               expect(find.text('EditPerson'), findsOneWidget);
@@ -506,10 +544,12 @@ void main() {
                 );
               }
 
-              await tester.pumpWidget(wrapWithMaterialApp(
-                const Scaffold(),
-                navigatorKey: navigator,
-              ));
+              await tester.pumpWidget(
+                wrapWithMaterialApp(
+                  const Scaffold(),
+                  navigatorKey: navigator,
+                ),
+              );
               await tester.pumpAndSettle();
             },
           );
@@ -611,21 +651,22 @@ Future<Tuple2<List<Person>, List<UserWithPerson>>> setUpMockData() async {
                 lastEdit: null,
               ); */
 
-  await Future.wait(persons
-          .map(
-            (p) => p.set(),
-          )
-          .followedBy(
-            users.map(
-              (u) => u.ref.set(
-                {
-                  ...u.userJson(),
-                  'Permissions': u.permissions.toJson(),
-                },
-              ),
+  await Future.wait(
+    persons
+        .map(
+          (p) => p.set(),
+        )
+        .followedBy(
+          users.map(
+            (u) => u.ref.set(
+              {
+                ...u.userJson(),
+                'Permissions': u.permissions.toJson(),
+              },
             ),
-          )
-      /* .followedBy(
+          ),
+        ),
+    /* .followedBy(
                       studyYears.values.map(
                         (s) => s.set(),
                       ),
@@ -640,7 +681,7 @@ Future<Tuple2<List<Person>, List<UserWithPerson>>> setUpMockData() async {
                     service.set(),
                   ],
                 ), */
-      );
+  );
   return Tuple2(persons, users);
 }
 
@@ -686,47 +727,105 @@ class FakeDeviceInfoPlatform extends DeviceInfoPlatform {
         hardwareConcurrency: 8,
       );
     }
-
-    if (Platform.isWindows) {
-      return WindowsDeviceInfo(
-        numberOfCores: 8,
-        systemMemoryInMegabytes: 8 * 1024,
-        userName: 'userName',
-        computerName: 'computerName',
-        majorVersion: 10,
-        minorVersion: 0,
-        buildNumber: 1,
-        platformId: 1,
-        csdVersion: 'csdVersion',
-        servicePackMajor: 1,
-        servicePackMinor: 1,
-        suitMask: 1,
-        productType: 1,
-        reserved: 0,
-        buildLab: 'buildLab',
-        buildLabEx: 'buildLabEx',
-        digitalProductId: Uint8List(0),
-        displayVersion: 'displayVersion',
-        editionId: 'editionId',
-        installDate: DateTime.now(),
-        productId: 'productId',
-        productName: 'productName',
-        registeredOwner: 'registeredOwner',
-        releaseId: 'releaseId',
-        deviceId: 'deviceId',
-      );
-    }
-    if (Platform.isLinux) {
-      return LinuxDeviceInfo(
-        id: 'id',
-        prettyName: 'prettyName',
-        name: 'name',
-        machineId: 'machineId',
-      );
-    }
-
-    throw UnimplementedError();
+    return FakeAndroidDeviceInfo();
   }
+}
+
+class FakeAndroidDeviceInfo implements AndroidDeviceInfo {
+  @override
+  String get board => 'board';
+
+  @override
+  String get bootloader => 'bootloader';
+
+  @override
+  String get brand => 'brand';
+
+  @override
+  Map<String, dynamic> get data => {
+        'board': board,
+        'bootloader': bootloader,
+        'brand': brand,
+        'device': device,
+        'display': display,
+        'displayMetrics': displayMetrics.toMap(),
+        'fingerprint': fingerprint,
+        'hardware': hardware,
+        'host': host,
+        'id': id,
+        'isPhysicalDevice': isPhysicalDevice,
+        'manufacturer': manufacturer,
+        'model': model,
+        'product': product,
+        'serialNumber': serialNumber,
+        'supported32BitAbis': supported32BitAbis,
+        'supported64BitAbis': supported64BitAbis,
+        'supportedAbis': supportedAbis,
+        'systemFeatures': systemFeatures,
+        'tags': tags,
+        'type': type,
+        'version': version.toMap(),
+      };
+
+  @override
+  String get device => 'device';
+
+  @override
+  String get display => 'display';
+
+  @override
+  AndroidDisplayMetrics get displayMetrics => FakeAndroidDisplayMetrics();
+
+  @override
+  String get fingerprint => 'fingerprint';
+
+  @override
+  String get hardware => 'hardware';
+
+  @override
+  String get host => 'host';
+
+  @override
+  String get id => 'id';
+
+  @override
+  bool get isPhysicalDevice => true;
+
+  @override
+  String get manufacturer => 'manufacturer';
+
+  @override
+  String get model => 'model';
+
+  @override
+  String get product => 'product';
+
+  @override
+  String get serialNumber => 'serialNumber';
+
+  @override
+  List<String> get supported32BitAbis => [];
+
+  @override
+  List<String> get supported64BitAbis => [];
+
+  @override
+  List<String> get supportedAbis => [];
+
+  @override
+  List<String> get systemFeatures => [];
+
+  @override
+  String get tags => 'tags';
+
+  @override
+  Map<String, dynamic> toMap() => {};
+
+  @override
+  String get type => 'type';
+
+  @override
+  AndroidBuildVersion get version => FakeAndroidBuildVersion();
 }
 
 class FakeAndroidBuildVersion implements AndroidBuildVersion {
@@ -753,7 +852,15 @@ class FakeAndroidBuildVersion implements AndroidBuildVersion {
 
   @override
   Map<String, dynamic> toMap() {
-    return {};
+    return {
+      'baseOS': baseOS,
+      'codename': codename,
+      'incremental': incremental,
+      'previewSdkInt': previewSdkInt,
+      'release': release,
+      'sdkInt': sdkInt,
+      'securityPatch': securityPatch,
+    };
   }
 }
 
@@ -768,7 +875,15 @@ class FakeAndroidDisplayMetrics implements AndroidDisplayMetrics {
   double get sizeInches => 1;
 
   @override
-  Map<String, dynamic> toMap() => {};
+  Map<String, dynamic> toMap() => {
+        'heightInches': heightInches,
+        'heightPx': heightPx,
+        'sizeInches': sizeInches,
+        'widthInches': widthInches,
+        'widthPx': widthPx,
+        'xDpi': xDpi,
+        'yDpi': yDpi,
+      };
 
   @override
   double get widthInches => 1;
@@ -833,7 +948,9 @@ class StructureTestVariants extends TestVariant<MHPermissionsSet> {
 
   @override
   Future<void> tearDown(
-      MHPermissionsSet value, covariant Object? memento) async {
+    MHPermissionsSet value,
+    covariant Object? memento,
+  ) async {
     await GetIt.I.popScope();
   }
 

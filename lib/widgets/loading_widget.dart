@@ -47,9 +47,11 @@ class Loading extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(exception != null
-                      ? 'لا يمكن تحميل البرنامج في الوقت الحالي'
-                      : 'جار التحميل...'),
+                  Text(
+                    exception != null
+                        ? 'لا يمكن تحميل البرنامج في الوقت الحالي'
+                        : 'جار التحميل...',
+                  ),
                   if (exception != null)
                     OutlinedButton.icon(
                       label: const Text('اضغط لمزيد من المعلومات'),
@@ -81,8 +83,10 @@ class Loading extends StatelessWidget {
                 child: FutureBuilder<PackageInfo>(
                   future: PackageInfo.fromPlatform(),
                   builder: (context, data) => data.hasData
-                      ? Text('اصدار: ' + data.data!.version,
-                          style: Theme.of(context).textTheme.bodySmall)
+                      ? Text(
+                          'اصدار: ' + data.data!.version,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        )
                       : const Text(''),
                 ),
               ),

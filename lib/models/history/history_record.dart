@@ -59,7 +59,10 @@ abstract class HistoryDayBase extends DataObjectWithPhoto {
     return SynchronousFuture(
       DateTime(day.toDate().year, day.toDate().month, day.toDate().day) !=
               DateTime(
-                  DateTime.now().year, DateTime.now().month, DateTime.now().day)
+                DateTime.now().year,
+                DateTime.now().month,
+                DateTime.now().day,
+              )
           ? day.toDate().toDurationString()
           : 'اليوم',
     );
@@ -86,10 +89,13 @@ class HistoryDay extends HistoryDayBase {
       HistoryDay._createFromData(data.data(), data.reference);
 
   static Future<HistoryDay?> fromId(String id) async => HistoryDay.fromDoc(
-      await GetIt.I<DatabaseRepository>().doc('History/$id').get());
+        await GetIt.I<DatabaseRepository>().doc('History/$id').get(),
+      );
 
-  static Future<Stream<JsonQuery>> getAllForUser(
-      {String orderBy = 'Day', bool descending = false}) async {
+  static Future<Stream<JsonQuery>> getAllForUser({
+    String orderBy = 'Day',
+    bool descending = false,
+  }) async {
     return GetIt.I<DatabaseRepository>()
         .collection('History')
         .orderBy(orderBy, descending: descending)
@@ -105,9 +111,10 @@ class HistoryDay extends HistoryDayBase {
 class ServantsHistoryDay extends HistoryDayBase {
   ServantsHistoryDay()
       : super(
-            ref: GetIt.I<DatabaseRepository>()
-                .collection('ServantsHistory')
-                .doc(DateTime.now().toIso8601String().split('T')[0]));
+          ref: GetIt.I<DatabaseRepository>()
+              .collection('ServantsHistory')
+              .doc(DateTime.now().toIso8601String().split('T')[0]),
+        );
 
   static ServantsHistoryDay? fromDoc(JsonDoc data) => data.exists
       ? ServantsHistoryDay._createFromData(data.data()!, data.reference)
@@ -121,10 +128,13 @@ class ServantsHistoryDay extends HistoryDayBase {
 
   static Future<ServantsHistoryDay?> fromId(String id) async =>
       ServantsHistoryDay.fromDoc(
-          await GetIt.I<DatabaseRepository>().doc('ServantsHistory/$id').get());
+        await GetIt.I<DatabaseRepository>().doc('ServantsHistory/$id').get(),
+      );
 
-  static Future<Stream<JsonQuery>> getAllForUser(
-      {String orderBy = 'Day', bool descending = false}) async {
+  static Future<Stream<JsonQuery>> getAllForUser({
+    String orderBy = 'Day',
+    bool descending = false,
+  }) async {
     return GetIt.I<DatabaseRepository>()
         .collection('ServantsHistory')
         .orderBy(orderBy, descending: descending)
@@ -179,8 +189,10 @@ class HistoryRecord {
         recordedBy = doc.data()!['RecordedBy'],
         notes = doc.data()!['Notes'];
 
-  static HistoryRecord fromQueryDoc(JsonQueryDoc doc,
-      [HistoryDayBase? parent]) {
+  static HistoryRecord fromQueryDoc(
+    JsonQueryDoc doc, [
+    HistoryDayBase? parent,
+  ]) {
     return HistoryRecord.fromDoc(parent, doc)!;
   }
 
@@ -267,7 +279,8 @@ class MinimalHistoryRecord {
           .where(
             'Time',
             isGreaterThanOrEqualTo: Timestamp.fromDate(
-                range.start.subtract(const Duration(days: 1))),
+              range.start.subtract(const Duration(days: 1)),
+            ),
           );
     }
 
@@ -282,8 +295,10 @@ class MinimalHistoryRecord {
 
     QueryOfJson _servicesFilter(QueryOfJson q, List<Service> services) {
       assert(services.length <= 10);
-      return q.where('Services',
-          arrayContainsAny: services.map((c) => c.ref).toList());
+      return q.where(
+        'Services',
+        arrayContainsAny: services.map((c) => c.ref).toList(),
+      );
     }
 
     return Rx.combineLatest3<User?, List<Class>, List<Service>,
@@ -295,107 +310,138 @@ class MinimalHistoryRecord {
     ).switchMap((value) {
       if (range != null && classes != null && services != null) {
         return Rx.combineLatestList<JsonQuery>([
-          ...classes
-              .split(10)
-              .map((a) => _timeOrder(_timeRangeFilter(
-                      _classesFilter(
-                          GetIt.I<DatabaseRepository>()
-                              .collectionGroup(collectionGroup),
-                          a),
-                      range))
-                  .snapshots())
-              .toList(),
-          ...services.split(10).map((a) => _timeOrder(_timeRangeFilter(
-                  _servicesFilter(
+          ...classes.split(10).map(
+                (a) => _timeOrder(
+                  _timeRangeFilter(
+                    _classesFilter(
                       GetIt.I<DatabaseRepository>()
                           .collectionGroup(collectionGroup),
-                      a),
-                  range))
-              .snapshots())
+                      a,
+                    ),
+                    range,
+                  ),
+                ).snapshots(),
+              ),
+          ...services.split(10).map(
+                (a) => _timeOrder(
+                  _timeRangeFilter(
+                    _servicesFilter(
+                      GetIt.I<DatabaseRepository>()
+                          .collectionGroup(collectionGroup),
+                      a,
+                    ),
+                    range,
+                  ),
+                ).snapshots(),
+              )
         ]).map((s) => s.expand((n) => n.docs).toList());
       } else if (range != null && classes != null) {
-        return Rx.combineLatestList<JsonQuery>(classes
-                .split(10)
-                .map((a) => _timeOrder(_timeRangeFilter(
-                        _classesFilter(
-                            GetIt.I<DatabaseRepository>()
-                                .collectionGroup(collectionGroup),
-                            a),
-                        range))
-                    .snapshots())
-                .toList())
-            .map((s) => s.expand((n) => n.docs).toList());
+        return Rx.combineLatestList<JsonQuery>(
+          classes
+              .split(10)
+              .map(
+                (a) => _timeOrder(
+                  _timeRangeFilter(
+                    _classesFilter(
+                      GetIt.I<DatabaseRepository>()
+                          .collectionGroup(collectionGroup),
+                      a,
+                    ),
+                    range,
+                  ),
+                ).snapshots(),
+              )
+              .toList(),
+        ).map((s) => s.expand((n) => n.docs).toList());
       } else if (range != null && services != null) {
-        return Rx.combineLatestList<JsonQuery>(services
-                .split(10)
-                .map((a) => _timeOrder(_timeRangeFilter(
-                        _servicesFilter(
-                            GetIt.I<DatabaseRepository>()
-                                .collectionGroup(collectionGroup),
-                            a),
-                        range))
-                    .snapshots())
-                .toList())
-            .map((s) => s.expand((n) => n.docs).toList());
+        return Rx.combineLatestList<JsonQuery>(
+          services
+              .split(10)
+              .map(
+                (a) => _timeOrder(
+                  _timeRangeFilter(
+                    _servicesFilter(
+                      GetIt.I<DatabaseRepository>()
+                          .collectionGroup(collectionGroup),
+                      a,
+                    ),
+                    range,
+                  ),
+                ).snapshots(),
+              )
+              .toList(),
+        ).map((s) => s.expand((n) => n.docs).toList());
       } else if (range != null) {
         if (value.item1 == null) return Stream.value([]);
         if (value.item1!.permissions.superAccess) {
-          return _timeOrder(_timeRangeFilter(
-                  GetIt.I<DatabaseRepository>()
-                      .collectionGroup(collectionGroup),
-                  range))
-              .snapshots()
-              .map((s) => s.docs);
+          return _timeOrder(
+            _timeRangeFilter(
+              GetIt.I<DatabaseRepository>().collectionGroup(collectionGroup),
+              range,
+            ),
+          ).snapshots().map((s) => s.docs);
         } else {
           return Rx.combineLatestList<JsonQuery>([
-            ...value.item2
-                .split(10)
-                .map((a) => _timeOrder(
-                      _timeRangeFilter(
-                          _classesFilter(
-                              GetIt.I<DatabaseRepository>()
-                                  .collectionGroup(collectionGroup),
-                              a),
-                          range),
-                    ).snapshots())
-                .toList(),
-            ...value.item3
-                .split(10)
-                .map((a) => _timeOrder(_timeRangeFilter(
-                        _servicesFilter(
-                            GetIt.I<DatabaseRepository>()
-                                .collectionGroup(collectionGroup),
-                            a),
-                        range))
-                    .snapshots())
-                .toList()
+            ...value.item2.split(10).map(
+                  (a) => _timeOrder(
+                    _timeRangeFilter(
+                      _classesFilter(
+                        GetIt.I<DatabaseRepository>()
+                            .collectionGroup(collectionGroup),
+                        a,
+                      ),
+                      range,
+                    ),
+                  ).snapshots(),
+                ),
+            ...value.item3.split(10).map(
+                  (a) => _timeOrder(
+                    _timeRangeFilter(
+                      _servicesFilter(
+                        GetIt.I<DatabaseRepository>()
+                            .collectionGroup(collectionGroup),
+                        a,
+                      ),
+                      range,
+                    ),
+                  ).snapshots(),
+                )
           ]).map((s) => s.expand((n) => n.docs).toList());
         }
       } else if (classes != null) {
-        return Rx.combineLatestList<JsonQuery>(classes
-                .split(10)
-                .map((a) => _timeOrder(_classesFilter(
-                        GetIt.I<DatabaseRepository>()
-                            .collectionGroup(collectionGroup),
-                        a))
-                    .snapshots())
-                .toList())
-            .map((s) => s.expand((n) => n.docs).toList());
+        return Rx.combineLatestList<JsonQuery>(
+          classes
+              .split(10)
+              .map(
+                (a) => _timeOrder(
+                  _classesFilter(
+                    GetIt.I<DatabaseRepository>()
+                        .collectionGroup(collectionGroup),
+                    a,
+                  ),
+                ).snapshots(),
+              )
+              .toList(),
+        ).map((s) => s.expand((n) => n.docs).toList());
       } else if (services != null) {
-        return Rx.combineLatestList<JsonQuery>(services
-                .split(10)
-                .map((a) => _timeOrder(_servicesFilter(
-                        GetIt.I<DatabaseRepository>()
-                            .collectionGroup(collectionGroup),
-                        a))
-                    .snapshots())
-                .toList())
-            .map((s) => s.expand((n) => n.docs).toList());
+        return Rx.combineLatestList<JsonQuery>(
+          services
+              .split(10)
+              .map(
+                (a) => _timeOrder(
+                  _servicesFilter(
+                    GetIt.I<DatabaseRepository>()
+                        .collectionGroup(collectionGroup),
+                    a,
+                  ),
+                ).snapshots(),
+              )
+              .toList(),
+        ).map((s) => s.expand((n) => n.docs).toList());
       }
       return _timeOrder(
-              GetIt.I<DatabaseRepository>().collectionGroup(collectionGroup))
-          .snapshots()
-          .map((s) => s.docs.toList());
+        GetIt.I<DatabaseRepository>().collectionGroup(collectionGroup),
+      ).snapshots().map((s) => s.docs.toList());
     });
   }
 

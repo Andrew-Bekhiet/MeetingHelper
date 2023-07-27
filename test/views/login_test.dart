@@ -24,13 +24,15 @@ void main() {
         await initFakeCore();
 
         GetIt.I.unregister(
-            instance: MHAuthRepository.I, disposingFunction: (_) {});
+          instance: MHAuthRepository.I,
+          disposingFunction: (_) {},
+        );
 
         await mockMHUser();
 
-        when((GetIt.I<FirebaseMessaging>() as MockFirebaseMessaging)
-                .isSupported())
-            .thenAnswer((_) async => false);
+        when(
+          (GetIt.I<FirebaseMessaging>() as MockFirebaseMessaging).isSupported(),
+        ).thenAnswer((_) async => false);
       });
 
       tearDown(() async {

@@ -30,8 +30,10 @@ class HivePersistenceProvider {
     return _box
         .toMap()
         .entries
-        .where((element) =>
-            element.value == true && featuresIds!.contains(element.key))
+        .where(
+          (element) =>
+              element.value == true && featuresIds!.contains(element.key),
+        )
         .map((e) => e.key)
         .toSet()
         .cast<String>();

@@ -48,15 +48,18 @@ class Services extends TableBase<Service> {
       (u) {
         if (u.permissions.superAccess) {
           return queryCompleter(
-                  repository.collection('Services'), orderBy, descending)
-              .snapshots()
-              .map((c) => c.docs.map(Service.fromQueryDoc).toList());
+            repository.collection('Services'),
+            orderBy,
+            descending,
+          ).snapshots().map((c) => c.docs.map(Service.fromQueryDoc).toList());
         } else {
           return u.adminServices.isEmpty
               ? Stream.value([])
-              : Rx.combineLatestList(u.adminServices.map(
-                  (r) => r.snapshots().map(Service.fromDoc),
-                )).map((s) => s.whereType<Service>().toList());
+              : Rx.combineLatestList(
+                  u.adminServices.map(
+                    (r) => r.snapshots().map(Service.fromDoc),
+                  ),
+                ).map((s) => s.whereType<Service>().toList());
         }
       },
     );
@@ -66,9 +69,11 @@ class Services extends TableBase<Service> {
       groupServicesByStudyYearRef<T extends DataObject>([
     List<T>? services,
   ]) {
-    assert(isSubtype<T, Class>() ||
-        isSubtype<T, Service>() ||
-        (T == DataObject && services == null));
+    assert(
+      isSubtype<T, Class>() ||
+          isSubtype<T, Service>() ||
+          (T == DataObject && services == null),
+    );
 
     return Rx.combineLatest3<Map<JsonRef, StudyYear>, List<Class>,
         List<Service>, Map<PreferredStudyYear?, List<T>>>(
@@ -120,28 +125,33 @@ class Services extends TableBase<Service> {
   ) {
     final combined = [...classes, ...services].cast<T>();
 
-    mergeSort<T>(combined, compare: (c, c2) {
-      if (c is Class && c2 is Class) {
-        if (c.studyYear == c2.studyYear) return c.gender.compareTo(c2.gender);
-        return studyYears[c.studyYear]!
-            .grade
-            .compareTo(studyYears[c2.studyYear]!.grade);
-      } else if (c is Service && c2 is Service) {
-        return ((studyYears[c.studyYearRange?.from]?.grade ?? 0) +
-                (studyYears[c.studyYearRange?.to]?.grade ?? 0))
-            .compareTo((studyYears[c2.studyYearRange?.from]?.grade ?? 0) +
-                (studyYears[c2.studyYearRange?.to]?.grade ?? 0));
-      } else if (c is Class &&
-          c2 is Service &&
-          c2.studyYearRange?.from != c2.studyYearRange?.to) {
-        return -1;
-      } else if (c2 is Class &&
-          c is Service &&
-          c.studyYearRange?.from != c.studyYearRange?.to) {
-        return 1;
-      }
-      return 0;
-    });
+    mergeSort<T>(
+      combined,
+      compare: (c, c2) {
+        if (c is Class && c2 is Class) {
+          if (c.studyYear == c2.studyYear) return c.gender.compareTo(c2.gender);
+          return studyYears[c.studyYear]!
+              .grade
+              .compareTo(studyYears[c2.studyYear]!.grade);
+        } else if (c is Service && c2 is Service) {
+          return ((studyYears[c.studyYearRange?.from]?.grade ?? 0) +
+                  (studyYears[c.studyYearRange?.to]?.grade ?? 0))
+              .compareTo(
+            (studyYears[c2.studyYearRange?.from]?.grade ?? 0) +
+                (studyYears[c2.studyYearRange?.to]?.grade ?? 0),
+          );
+        } else if (c is Class &&
+            c2 is Service &&
+            c2.studyYearRange?.from != c2.studyYearRange?.to) {
+          return -1;
+        } else if (c2 is Class &&
+            c is Service &&
+            c.studyYearRange?.from != c.studyYearRange?.to) {
+          return 1;
+        }
+        return 0;
+      },
+    );
 
     double? _getPreferredGrade(int? from, int? to) {
       if (from == null || to == null) return null;
@@ -171,14 +181,17 @@ class Services extends TableBase<Service> {
             c.studyYearRange?.from == c.studyYearRange?.to) {
           return studyYears[c.studyYearRange?.from] != null
               ? PreferredStudyYear.fromStudyYear(
-                  studyYears[c.studyYearRange?.from]!)
+                  studyYears[c.studyYearRange?.from]!,
+                )
               : null;
         } else if (c is Service) {
           return studyYears[c.studyYearRange?.to] != null
               ? PreferredStudyYear.fromStudyYear(
                   studyYears[c.studyYearRange?.to]!,
-                  _getPreferredGrade(studyYears[c.studyYearRange?.from]?.grade,
-                      studyYears[c.studyYearRange?.to]?.grade),
+                  _getPreferredGrade(
+                    studyYears[c.studyYearRange?.from]?.grade,
+                    studyYears[c.studyYearRange?.to]?.grade,
+                  ),
                 )
               : null;
         }
@@ -218,8 +231,9 @@ class Services extends TableBase<Service> {
       adminServices.isEmpty || isSubtype<Class, T>()
           ? Stream.value([])
           : Rx.combineLatestList(
-              adminServices.map((r) =>
-                  r.snapshots().map(Service.fromDoc).whereType<Service>()),
+              adminServices.map(
+                (r) => r.snapshots().map(Service.fromDoc).whereType<Service>(),
+              ),
             ),
       _groupServices<T>,
     );

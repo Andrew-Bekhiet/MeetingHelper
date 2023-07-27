@@ -20,7 +20,8 @@ class Trash extends StatelessWidget {
         onLongPress: (_) {},
         onTap: (day) {
           navigator.currentState!.push(
-              MaterialPageRoute(builder: (context) => TrashDayScreen(day)));
+            MaterialPageRoute(builder: (context) => TrashDayScreen(day)),
+          );
         },
         controller: ListController(
           objectsPaginatableStream: PaginatableStream.query(
@@ -112,12 +113,11 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                   navigator.currentState!.pop();
                                 },
                               ),
-                              const Text('ترتيب حسب:',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold)),
-                              ...Person.propsMetadata()
-                                  .entries
-                                  .map(
+                              const Text(
+                                'ترتيب حسب:',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              ...Person.propsMetadata().entries.map(
                                     (e) => RadioListTile(
                                       value: e.key,
                                       groupValue: _personsOrder.value.orderBy,
@@ -125,14 +125,14 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                       onChanged: (dynamic value) {
                                         _personsOrder.add(
                                           OrderOptions(
-                                              orderBy: value,
-                                              asc: _personsOrder.value.asc),
+                                            orderBy: value,
+                                            asc: _personsOrder.value.asc,
+                                          ),
                                         );
                                         navigator.currentState!.pop();
                                       },
                                     ),
-                                  )
-                                  .toList(),
+                                  ),
                               RadioListTile(
                                 value: true,
                                 groupValue: _personsOrder.value.asc,
@@ -140,8 +140,9 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                 onChanged: (dynamic value) {
                                   _personsOrder.add(
                                     OrderOptions(
-                                        orderBy: _personsOrder.value.orderBy,
-                                        asc: value),
+                                      orderBy: _personsOrder.value.orderBy,
+                                      asc: value,
+                                    ),
                                   );
                                   navigator.currentState!.pop();
                                 },
@@ -153,8 +154,9 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                 onChanged: (dynamic value) {
                                   _personsOrder.add(
                                     OrderOptions(
-                                        orderBy: _personsOrder.value.orderBy,
-                                        asc: value),
+                                      orderBy: _personsOrder.value.orderBy,
+                                      asc: value,
+                                    ),
                                   );
                                   navigator.currentState!.pop();
                                 },
@@ -198,34 +200,38 @@ class _TrashDayScreenState extends State<TrashDayScreen>
               ? TextField(
                   focusNode: _searchFocus,
                   style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                      color:
-                          Theme.of(context).primaryTextTheme.titleLarge!.color),
-                  decoration: InputDecoration(
-                      suffixIcon: IconButton(
-                        icon: Icon(Icons.close,
-                            color: Theme.of(context)
-                                .primaryTextTheme
-                                .titleLarge!
-                                .color),
-                        onPressed: () {
-                          _searchQuery.add('');
-                          _showSearch.add(false);
-                        },
+                        color: Theme.of(context)
+                            .primaryTextTheme
+                            .titleLarge!
+                            .color,
                       ),
-                      hintStyle: Theme.of(context)
-                          .textTheme
-                          .titleLarge!
-                          .copyWith(
-                              color: Theme.of(context)
-                                  .primaryTextTheme
-                                  .titleLarge!
-                                  .color),
-                      icon: Icon(Icons.search,
+                  decoration: InputDecoration(
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        Icons.close,
+                        color: Theme.of(context)
+                            .primaryTextTheme
+                            .titleLarge!
+                            .color,
+                      ),
+                      onPressed: () {
+                        _searchQuery.add('');
+                        _showSearch.add(false);
+                      },
+                    ),
+                    hintStyle: Theme.of(context).textTheme.titleLarge!.copyWith(
                           color: Theme.of(context)
                               .primaryTextTheme
                               .titleLarge!
-                              .color),
-                      hintText: 'بحث ...'),
+                              .color,
+                        ),
+                    icon: Icon(
+                      Icons.search,
+                      color:
+                          Theme.of(context).primaryTextTheme.titleLarge!.color,
+                    ),
+                    hintText: 'بحث ...',
+                  ),
                   onChanged: _searchQuery.add,
                 )
               : const Text('البيانات'),
@@ -290,8 +296,9 @@ class _TrashDayScreenState extends State<TrashDayScreen>
     _servicesOptions = ListController<void, Service>(
       searchStream: _searchQuery,
       objectsPaginatableStream: PaginatableStream.query(
-          query: widget.day.ref.collection('Services'),
-          mapper: Service.fromQueryDoc),
+        query: widget.day.ref.collection('Services'),
+        mapper: Service.fromQueryDoc,
+      ),
     );
 
     _classesOptions = ListController<void, Class>(
@@ -328,11 +335,14 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                   .snapshots()
                   .map((p) => p.docs.map(Person.fromDoc).toList());
             }
-            return Rx.combineLatestList<JsonQuery>(u.item2.split(10).map((c) =>
-                widget.day.ref
-                    .collection('Persons')
-                    .where('ClassId', whereIn: c.map((e) => e.ref).toList())
-                    .snapshots())).map(
+            return Rx.combineLatestList<JsonQuery>(
+              u.item2.split(10).map(
+                    (c) => widget.day.ref
+                        .collection('Persons')
+                        .where('ClassId', whereIn: c.map((e) => e.ref).toList())
+                        .snapshots(),
+                  ),
+            ).map(
               (s) => s.expand((n) => n.docs).map(Person.fromDoc).toList(),
             );
           },

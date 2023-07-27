@@ -58,8 +58,10 @@ void main() {
           expect(find.byType(Image), findsOneWidget);
           expect(find.byType(CircularProgressIndicator), findsNothing);
           expect(find.text('جار التحميل...'), findsNothing);
-          expect(find.text('لا يمكن تحميل البرنامج في الوقت الحالي'),
-              findsOneWidget);
+          expect(
+            find.text('لا يمكن تحميل البرنامج في الوقت الحالي'),
+            findsOneWidget,
+          );
           expect(find.text('اضغط لمزيد من المعلومات'), findsOneWidget);
 
           await tester.tap(find.text('اضغط لمزيد من المعلومات'));
@@ -85,8 +87,10 @@ void main() {
           expect(find.byType(Image), findsOneWidget);
           expect(find.byType(CircularProgressIndicator), findsNothing);
           expect(find.text('جار التحميل...'), findsNothing);
-          expect(find.text('لا يمكن تحميل البرنامج في الوقت الحالي'),
-              findsOneWidget);
+          expect(
+            find.text('لا يمكن تحميل البرنامج في الوقت الحالي'),
+            findsOneWidget,
+          );
           expect(find.text('اضغط لمزيد من المعلومات'), findsOneWidget);
 
           await tester.tap(find.text('اضغط لمزيد من المعلومات'));
@@ -98,15 +102,21 @@ void main() {
       testWidgets(
         'With unknown exception',
         (tester) async {
-          await tester.pumpWidget(wrapWithMaterialApp(Loading(
-            exception: Exception('Some exception'),
-          )));
+          await tester.pumpWidget(
+            wrapWithMaterialApp(
+              Loading(
+                exception: Exception('Some exception'),
+              ),
+            ),
+          );
 
           expect(find.byType(Image), findsOneWidget);
           expect(find.byType(CircularProgressIndicator), findsNothing);
           expect(find.text('جار التحميل...'), findsNothing);
-          expect(find.text('لا يمكن تحميل البرنامج في الوقت الحالي'),
-              findsOneWidget);
+          expect(
+            find.text('لا يمكن تحميل البرنامج في الوقت الحالي'),
+            findsOneWidget,
+          );
           expect(find.text('اضغط لمزيد من المعلومات'), findsOneWidget);
 
           await tester.tap(find.text('اضغط لمزيد من المعلومات'));

@@ -89,21 +89,23 @@ class _MyAccountState extends State<MyAccount> {
                           ),
                         ) ??
                         false) {
-                      scaffoldMessenger.currentState!
-                          .showSnackBar(const SnackBar(
-                        content: Text('جار التحميل'),
-                        duration: Duration(minutes: 2),
-                      ));
+                      scaffoldMessenger.currentState!.showSnackBar(
+                        const SnackBar(
+                          content: Text('جار التحميل'),
+                          duration: Duration(minutes: 2),
+                        ),
+                      );
                       await GetIt.I<FunctionsService>()
                           .httpsCallable('deleteImage')
                           .call();
                       user.reloadImage();
                       setState(() {});
                       scaffoldMessenger.currentState!.hideCurrentSnackBar();
-                      scaffoldMessenger.currentState!
-                          .showSnackBar(const SnackBar(
-                        content: Text('تم بنجاح'),
-                      ));
+                      scaffoldMessenger.currentState!.showSnackBar(
+                        const SnackBar(
+                          content: Text('تم بنجاح'),
+                        ),
+                      );
                     }
                     return;
                   }
@@ -111,8 +113,8 @@ class _MyAccountState extends State<MyAccount> {
                       !(await Permission.camera.request()).isGranted) return;
 
                   final selectedImage = await ImagePicker().pickImage(
-                      source:
-                          source ? ImageSource.camera : ImageSource.gallery);
+                    source: source ? ImageSource.camera : ImageSource.gallery,
+                  );
                   if (selectedImage == null) return;
                   final finalImage = await ImageCropper().cropImage(
                     sourcePath: selectedImage.path,
@@ -149,17 +151,21 @@ class _MyAccountState extends State<MyAccount> {
                         ),
                       ) ??
                       false) {
-                    scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
-                      content: Text('جار التحميل'),
-                      duration: Duration(minutes: 2),
-                    ));
+                    scaffoldMessenger.currentState!.showSnackBar(
+                      const SnackBar(
+                        content: Text('جار التحميل'),
+                        duration: Duration(minutes: 2),
+                      ),
+                    );
                     await user.photoRef.putFile(File(finalImage!.path));
                     user.reloadImage();
                     setState(() {});
                     scaffoldMessenger.currentState!.hideCurrentSnackBar();
-                    scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
-                      content: Text('تم بنجاح'),
-                    ));
+                    scaffoldMessenger.currentState!.showSnackBar(
+                      const SnackBar(
+                        content: Text('تم بنجاح'),
+                      ),
+                    );
                   }
                 },
                 icon: const Icon(Icons.photo_camera),
@@ -295,18 +301,21 @@ class _MyAccountState extends State<MyAccount> {
                 title: Text('إشعار حضور الاجتماع'),
               ),
             ElevatedButton.icon(
-                onPressed: () async => navigator.currentState!
-                    .pushNamed('UpdateUserDataError', arguments: user),
-                icon: const Icon(Icons.update),
-                label: const Text('تحديث بيانات الاعتراف والتناول')),
+              onPressed: () async => navigator.currentState!
+                  .pushNamed('UpdateUserDataError', arguments: user),
+              icon: const Icon(Icons.update),
+              label: const Text('تحديث بيانات الاعتراف والتناول'),
+            ),
             ElevatedButton.icon(
-                onPressed: () => changeName(user.name, user.uid),
-                icon: const Icon(Icons.edit),
-                label: const Text('تغيير الاسم')),
+              onPressed: () => changeName(user.name, user.uid),
+              icon: const Icon(Icons.edit),
+              label: const Text('تغيير الاسم'),
+            ),
             ElevatedButton.icon(
-                onPressed: changePass,
-                icon: const Icon(Icons.lock),
-                label: const Text('تغيير كلمة السر'))
+              onPressed: changePass,
+              icon: const Icon(Icons.lock),
+              label: const Text('تغيير كلمة السر'),
+            )
           ],
         ),
       ),
@@ -409,7 +418,8 @@ class _MyAccountState extends State<MyAccount> {
                     autocorrect: false,
                     focusNode: focuses[2],
                     decoration: const InputDecoration(
-                        labelText: 'اعادة إدخال كلمة السر الجديدة'),
+                      labelText: 'اعادة إدخال كلمة السر الجديدة',
+                    ),
                   ),
                 ],
               ),
@@ -424,16 +434,20 @@ class _MyAccountState extends State<MyAccount> {
 
   Future _submitPass() async {
     if (textFields[0].text == '' || textFields[1].text == '') {
-      scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
-        content: Text('كلمة السر لا يمكن ان تكون فارغة!'),
-        duration: Duration(seconds: 26),
-      ));
+      scaffoldMessenger.currentState!.showSnackBar(
+        const SnackBar(
+          content: Text('كلمة السر لا يمكن ان تكون فارغة!'),
+          duration: Duration(seconds: 26),
+        ),
+      );
       return;
     }
-    scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
-      content: Text('جار تحديث كلمة السر...'),
-      duration: Duration(seconds: 26),
-    ));
+    scaffoldMessenger.currentState!.showSnackBar(
+      const SnackBar(
+        content: Text('جار تحديث كلمة السر...'),
+        duration: Duration(seconds: 26),
+      ),
+    );
     if (textFields[2].text == textFields[1].text &&
         textFields[0].text.isNotEmpty) {
       final User user = User.instance;
@@ -447,32 +461,40 @@ class _MyAccountState extends State<MyAccount> {
             'newPassword': Encryption.encryptPassword(textFields[1].text)
           });
         } catch (err, stack) {
-          await Sentry.captureException(err,
-              stackTrace: stack,
-              withScope: (scope) =>
-                  scope.setTag('LasErrorIn', '_MyAccountState._submitPass'));
+          await Sentry.captureException(
+            err,
+            stackTrace: stack,
+            withScope: (scope) =>
+                scope.setTag('LasErrorIn', '_MyAccountState._submitPass'),
+          );
           await showErrorDialog(context, 'حدث خطأ أثناء تحديث كلمة السر!');
           return;
         }
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
-        scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
-          content: Text('تم تحديث كلمة السر بنجاح'),
-          duration: Duration(seconds: 3),
-        ));
+        scaffoldMessenger.currentState!.showSnackBar(
+          const SnackBar(
+            content: Text('تم تحديث كلمة السر بنجاح'),
+            duration: Duration(seconds: 3),
+          ),
+        );
         setState(() {});
       } else {
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
-        scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
-          content: Text('كلمة السر القديمة خاطئة'),
-          duration: Duration(seconds: 3),
-        ));
+        scaffoldMessenger.currentState!.showSnackBar(
+          const SnackBar(
+            content: Text('كلمة السر القديمة خاطئة'),
+            duration: Duration(seconds: 3),
+          ),
+        );
       }
     } else {
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
-      scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
-        content: Text('كلمتا السر غير متطابقتين!'),
-        duration: Duration(seconds: 3),
-      ));
+      scaffoldMessenger.currentState!.showSnackBar(
+        const SnackBar(
+          content: Text('كلمتا السر غير متطابقتين!'),
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
     textFields[0].text = '';
     textFields[1].text = '';

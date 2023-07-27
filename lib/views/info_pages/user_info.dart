@@ -86,10 +86,12 @@ class _UserInfoState extends State<UserInfo> {
                             constraints.biggest.height > kToolbarHeight * 1.7
                                 ? 0
                                 : 1,
-                        child: Text(user.name,
-                            style: const TextStyle(
-                              fontSize: 16.0,
-                            )),
+                        child: Text(
+                          user.name,
+                          style: const TextStyle(
+                            fontSize: 16.0,
+                          ),
+                        ),
                       ),
                       background: Theme(
                         data: Theme.of(context).copyWith(
@@ -128,8 +130,8 @@ class _UserInfoState extends State<UserInfo> {
                       } else if (activity.data?.snapshot.value != null) {
                         return Text(
                           DateTime.fromMillisecondsSinceEpoch(
-                                  activity.data!.snapshot.value! as int)
-                              .toDurationString(),
+                            activity.data!.snapshot.value! as int,
+                          ).toDurationString(),
                         );
                       }
                       return const Text('لا يمكن التحديد');
@@ -181,8 +183,10 @@ class _UserInfoState extends State<UserInfo> {
                               future: MHDatabaseRepo.I.classes
                                   .getById(user.classId!.id),
                               builder: (context, _class) => _class.hasData
-                                  ? ViewableObjectWidget<Class>(_class.data!,
-                                      isDense: true)
+                                  ? ViewableObjectWidget<Class>(
+                                      _class.data!,
+                                      isDense: true,
+                                    )
                                   : const LinearProgressIndicator(),
                             )
                           : const Text('غير موجود'),
@@ -194,19 +198,22 @@ class _UserInfoState extends State<UserInfo> {
                       if (user.permissions.manageUsers)
                         const ListTile(
                           leading: Icon(
-                              IconData(0xef3d, fontFamily: 'MaterialIconsR')),
+                            IconData(0xef3d, fontFamily: 'MaterialIconsR'),
+                          ),
                           title: Text('إدارة المستخدمين'),
                         ),
                       if (user.permissions.manageAllowedUsers)
                         const ListTile(
                           leading: Icon(
-                              IconData(0xef3d, fontFamily: 'MaterialIconsR')),
+                            IconData(0xef3d, fontFamily: 'MaterialIconsR'),
+                          ),
                           title: Text('إدارة مستخدمين محددين'),
                         ),
                       if (user.permissions.superAccess)
                         const ListTile(
                           leading: Icon(
-                              IconData(0xef56, fontFamily: 'MaterialIconsR')),
+                            IconData(0xef56, fontFamily: 'MaterialIconsR'),
+                          ),
                           title: Text('رؤية جميع البيانات'),
                         ),
                       if (user.permissions.manageDeleted)
@@ -353,8 +360,8 @@ class _UserInfoState extends State<UserInfo> {
                                       ' مستخدم',
                                   textAlign: TextAlign.center,
                                   strutStyle: StrutStyle(
-                                      height:
-                                          IconTheme.of(context).size! / 7.5),
+                                    height: IconTheme.of(context).size! / 7.5,
+                                  ),
                                   style: Theme.of(context)
                                       .primaryTextTheme
                                       .bodyLarge,

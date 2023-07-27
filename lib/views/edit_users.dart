@@ -35,17 +35,18 @@ class _UsersPageState extends State<UsersPage> {
         title: _showSearch
             ? TextField(
                 decoration: InputDecoration(
-                    suffixIcon: IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => setState(
-                        () {
-                          _listOptions.searchSubject.add('');
-                          _showSearch = false;
-                        },
-                      ),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => setState(
+                      () {
+                        _listOptions.searchSubject.add('');
+                        _showSearch = false;
+                      },
                     ),
-                    hintStyle: Theme.of(context).primaryTextTheme.titleLarge,
-                    hintText: 'بحث ...'),
+                  ),
+                  hintStyle: Theme.of(context).primaryTextTheme.titleLarge,
+                  hintText: 'بحث ...',
+                ),
                 onChanged: _listOptions.searchSubject.add,
               )
             : const Text('المستخدمون'),

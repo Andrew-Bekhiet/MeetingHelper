@@ -299,17 +299,19 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
             '/': buildLoadAppWidget,
             'Login': (context) => const LoginScreen(),
             'Data/EditClass': (context) => EditClass(
-                class$: ModalRoute.of(context)!.settings.arguments as Class?),
+                  class$: ModalRoute.of(context)!.settings.arguments as Class?,
+                ),
             'Data/EditService': (context) => EditService(
-                service:
-                    ModalRoute.of(context)!.settings.arguments as Service?),
+                  service:
+                      ModalRoute.of(context)!.settings.arguments as Service?,
+                ),
             'Data/EditPerson': (context) {
               if (ModalRoute.of(context)?.settings.arguments == null) {
                 return EditPerson(person: Person.empty());
               } else if (ModalRoute.of(context)!.settings.arguments is Person) {
                 return EditPerson(
-                    person:
-                        ModalRoute.of(context)!.settings.arguments! as Person);
+                  person: ModalRoute.of(context)!.settings.arguments! as Person,
+                );
               } else if (ModalRoute.of(context)!.settings.arguments
                   is JsonRef) {
                 final parent =
@@ -325,9 +327,10 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
                 return EditPerson(person: person);
               }
               throw ArgumentError.value(
-                  ModalRoute.of(context)!.settings.arguments,
-                  'modal route args',
-                  'passed arg is neither Person nor JsonRef');
+                ModalRoute.of(context)!.settings.arguments,
+                'modal route args',
+                'passed arg is neither Person nor JsonRef',
+              );
             },
             'EditInvitation': (context) => EditInvitation(
                   invitation: ModalRoute.of(context)?.settings.arguments
@@ -337,8 +340,9 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
             'Day': (context) {
               if (ModalRoute.of(context)?.settings.arguments != null) {
                 return Day(
-                    record: ModalRoute.of(context)!.settings.arguments!
-                        as HistoryDay);
+                  record:
+                      ModalRoute.of(context)!.settings.arguments! as HistoryDay,
+                );
               } else {
                 return Day(
                   record: HistoryDay(),
@@ -348,8 +352,9 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
             'ServantsDay': (context) {
               if (ModalRoute.of(context)?.settings.arguments != null) {
                 return Day(
-                    record: ModalRoute.of(context)!.settings.arguments!
-                        as ServantsHistoryDay);
+                  record: ModalRoute.of(context)!.settings.arguments!
+                      as ServantsHistoryDay,
+                );
               } else {
                 return Day(
                   record: ServantsHistoryDay(),
@@ -364,10 +369,12 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
             'MyAccount': (context) => const MyAccount(),
             'Notifications': (context) => const NotificationsPage(),
             'ClassInfo': (context) => ClassInfo(
-                class$: ModalRoute.of(context)!.settings.arguments! as Class),
+                  class$: ModalRoute.of(context)!.settings.arguments! as Class,
+                ),
             'ServiceInfo': (context) => ServiceInfo(
-                service:
-                    ModalRoute.of(context)!.settings.arguments! as Service),
+                  service:
+                      ModalRoute.of(context)!.settings.arguments! as Service,
+                ),
             'PersonInfo': (context) => PersonInfo(
                   person: ModalRoute.of(context)!.settings.arguments! is Person
                       ? ModalRoute.of(context)!.settings.arguments!
@@ -382,11 +389,13 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
                       : ModalRoute.of(context)!.settings.arguments is Person,
                 ),
             'UserInfo': (context) => UserInfo(
-                user: ModalRoute.of(context)!.settings.arguments!
-                    as UserWithPerson),
+                  user: ModalRoute.of(context)!.settings.arguments!
+                      as UserWithPerson,
+                ),
             'InvitationInfo': (context) => InvitationInfo(
-                invitation:
-                    ModalRoute.of(context)!.settings.arguments! as Invitation),
+                  invitation:
+                      ModalRoute.of(context)!.settings.arguments! as Invitation,
+                ),
             'Update': (context) => const Update(),
             'Search': (context) => const SearchQuery(),
             'SearchQuery': (context) => SearchQuery(
@@ -453,18 +462,21 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
             'Analytics': (context) {
               if (ModalRoute.of(context)!.settings.arguments is Person) {
                 return PersonAnalyticsPage(
-                    person:
-                        ModalRoute.of(context)!.settings.arguments! as Person);
+                  person: ModalRoute.of(context)!.settings.arguments! as Person,
+                );
               } else if (ModalRoute.of(context)!.settings.arguments
                   is DataObject) {
-                return AnalyticsPage(parents: [
-                  ModalRoute.of(context)!.settings.arguments! as DataObject
-                ]);
+                return AnalyticsPage(
+                  parents: [
+                    ModalRoute.of(context)!.settings.arguments! as DataObject
+                  ],
+                );
               } else if (ModalRoute.of(context)!.settings.arguments
                   is HistoryDayBase) {
                 return AnalyticsPage(
-                    day: ModalRoute.of(context)!.settings.arguments!
-                        as HistoryDayBase);
+                  day: ModalRoute.of(context)!.settings.arguments!
+                      as HistoryDayBase,
+                );
               } else {
                 final Json args =
                     ModalRoute.of(context)!.settings.arguments! as Json;

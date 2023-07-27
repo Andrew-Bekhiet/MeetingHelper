@@ -147,12 +147,14 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
                     groupedData.data!.keys.elementAt(i),
                     showSubtitle: showSubtitle.data ?? false,
                     subtitle: showSubtitle.data ?? false
-                        ? Text('يتم عرض ' +
-                            groupedData.data!.values
-                                .elementAt(i)
-                                .length
-                                .toString() +
-                            ' مخدوم داخل الفصل')
+                        ? Text(
+                            'يتم عرض ' +
+                                groupedData.data!.values
+                                    .elementAt(i)
+                                    .length
+                                    .toString() +
+                                ' مخدوم داخل الفصل',
+                          )
                         : null,
                     onTap: _listController.toggleGroup,
                     trailing: IconButton(
@@ -226,7 +228,9 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
         current,
         onLongPress: widget.onLongPress ??
             ((o) => _showRecordDialog(
-                o, _listController.attended.value[current.id])),
+                  o,
+                  _listController.attended.value[current.id],
+                )),
         onTap: (current) async {
           if (!_listController.dayOptions.enabled.value) {
             widget.onTap == null
@@ -241,7 +245,8 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
                           context: context,
                           builder: (context) => AlertDialog(
                             content: Text(
-                                'هل تريد إلغاء حضور ' + current.name + '؟'),
+                              'هل تريد إلغاء حضور ' + current.name + '؟',
+                            ),
                             actions: [
                               TextButton(
                                 onPressed: () =>
@@ -262,8 +267,10 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
           }
         },
         subtitle: attended.hasData && attended.data!.containsKey(current.id)
-            ? Text(DateFormat('الساعة h : m د : s ث a', 'ar-EG')
-                .format(attended.data![current.id]!.time.toDate()))
+            ? Text(
+                DateFormat('الساعة h : m د : s ث a', 'ar-EG')
+                    .format(attended.data![current.id]!.time.toDate()),
+              )
             : null,
         trailing: attended.hasData
             ? Checkbox(
@@ -459,11 +466,17 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
         true) {
       if ((_listController.currentAttended?.containsKey(current.id) ?? false) &&
           record != null) {
-        await _listController.modifySelected(current,
-            notes: record!.notes, time: record!.time);
+        await _listController.modifySelected(
+          current,
+          notes: record!.notes,
+          time: record!.time,
+        );
       } else if (record != null) {
-        await _listController.select(current,
-            notes: record?.notes, time: record?.time);
+        await _listController.select(
+          current,
+          notes: record?.notes,
+          time: record?.time,
+        );
       } else if (_listController.currentAttended?.containsKey(current.id) ??
           false) {
         await _listController.deselect(current);

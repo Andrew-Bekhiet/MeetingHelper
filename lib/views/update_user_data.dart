@@ -42,7 +42,9 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                 onTap: (state) async {
                   state.didChange(
                     await _selectDate(
-                            'تاريخ أخر تناول', state.value ?? DateTime.now()) ??
+                          'تاريخ أخر تناول',
+                          state.value ?? DateTime.now(),
+                        ) ??
                         user.lastTanawol,
                   );
                 },
@@ -55,7 +57,8 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                 validator: (value) => value == null
                     ? 'برجاء اختيار تاريخ أخر تناول'
                     : value.isBefore(
-                            DateTime.now().subtract(const Duration(days: 60)))
+                        DateTime.now().subtract(const Duration(days: 60)),
+                      )
                         ? 'يجب أن يكون التاريخ منذ شهرين على الأكثر'
                         : null,
               ),
@@ -71,8 +74,10 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                 initialValue: user.lastConfession,
                 onTap: (state) async {
                   state.didChange(
-                    await _selectDate('تاريخ أخر اعتراف',
-                            state.value ?? DateTime.now()) ??
+                    await _selectDate(
+                          'تاريخ أخر اعتراف',
+                          state.value ?? DateTime.now(),
+                        ) ??
                         user.lastConfession,
                   );
                 },
@@ -85,7 +90,8 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                 validator: (value) => value == null
                     ? 'برجاء اختيار تاريخ أخر اعتراف'
                     : value.isBefore(
-                            DateTime.now().subtract(const Duration(days: 60)))
+                        DateTime.now().subtract(const Duration(days: 60)),
+                      )
                         ? 'يجب أن يكون التاريخ منذ شهرين على الأكثر'
                         : null,
               ),
@@ -117,22 +123,25 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
       navigator.currentState!.pop();
     } catch (err, stack) {
       await showErrorDialog(context, err.toString());
-      await Sentry.captureException(err,
-          stackTrace: stack,
-          withScope: (scope) => scope
-            ..setTag('LasErrorIn', '_UpdateUserDataErrorState.save')
-            ..setExtra('User', {'UID': user.uid, ...user.toJson()}));
+      await Sentry.captureException(
+        err,
+        stackTrace: stack,
+        withScope: (scope) => scope
+          ..setTag('LasErrorIn', '_UpdateUserDataErrorState.save')
+          ..setExtra('User', {'UID': user.uid, ...user.toJson()}),
+      );
     }
   }
 
   Future<DateTime?> _selectDate(String helpText, DateTime initialDate) async {
     final picked = await showDatePicker(
-        helpText: helpText,
-        locale: const Locale('ar', 'EG'),
-        context: context,
-        initialDate: initialDate,
-        firstDate: DateTime(1900),
-        lastDate: DateTime.now());
+      helpText: helpText,
+      locale: const Locale('ar', 'EG'),
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
     if (picked != null && picked != initialDate) {
       return picked;
     }

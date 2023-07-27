@@ -80,7 +80,8 @@ class Person extends PersonBase {
           },
         ),
         services = UnmodifiableListView(
-            (json['Services'] as List?)?.cast<JsonRef>() ?? []),
+          (json['Services'] as List?)?.cast<JsonRef>() ?? [],
+        ),
         super(
           ref: ref,
           hasPhoto: json['HasPhoto'] ?? false,
@@ -183,11 +184,11 @@ class Person extends PersonBase {
         'StudyYear': getStudyYearName(),
         'Services': services.isEmpty
             ? 'لا يوجد خدمات'
-            : Future.wait(services
+            : Future.wait(
+                services
                     .take(3)
-                    .map((r) async => (await r.get()).data()?['Name'] ?? ''))
-                .then((d) => d.join(','))
-                .catchError((_) => ''),
+                    .map((r) async => (await r.get()).data()?['Name'] ?? ''),
+              ).then((d) => d.join(',')).catchError((_) => ''),
       };
 
   @override
@@ -228,15 +229,17 @@ class Person extends PersonBase {
             (notes ?? ''))
         .toLowerCase()
         .replaceAll(
-            RegExp(
-              r'[أإآ]',
-            ),
-            'ا')
+          RegExp(
+            r'[أإآ]',
+          ),
+          'ا',
+        )
         .replaceAll(
-            RegExp(
-              r'[ى]',
-            ),
-            'ي');
+          RegExp(
+            r'[ى]',
+          ),
+          'ي',
+        );
   }
 
   @override

@@ -73,9 +73,9 @@ class _AuthScreenState extends State<AuthScreen> {
               TextFormField(
                 decoration: InputDecoration(
                   suffix: IconButton(
-                    icon: Icon(obscurePassword
-                        ? Icons.visibility
-                        : Icons.visibility_off),
+                    icon: Icon(
+                      obscurePassword ? Icons.visibility : Icons.visibility_off,
+                    ),
                     tooltip:
                         obscurePassword ? 'اظهار كلمة السر' : 'اخفاء كلمة السر',
                     onPressed: () =>
