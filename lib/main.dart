@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:async/async.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -116,6 +117,13 @@ Future<void> initMeetingHelper() async {
       .registerSingleton<DefaultViewableObjectService>(mhDataObjectTapHandler);
   GetIt.I.registerSingleton<MHViewableObjectService>(mhDataObjectTapHandler);
 
+  final cacheSizeBytes = min(
+    100 * 1024 * 1024,
+    GetIt.I<CacheRepository>()
+        .box('Settings')
+        .get('cacheSize', defaultValue: 100 * 1024 * 1024) as int,
+  );
+
   if (kDebugMode) {
     final devBox = await Hive.openBox('Dev');
 
@@ -123,17 +131,13 @@ Future<void> initMeetingHelper() async {
       persistenceEnabled: true,
       sslEnabled: devBox.get('kEmulatorsHost') == null ||
           devBox.get('kEmulatorsHost') == '',
-      cacheSizeBytes: GetIt.I<CacheRepository>()
-          .box('Settings')
-          .get('cacheSize', defaultValue: 100 * 1024 * 1024),
+      cacheSizeBytes: cacheSizeBytes,
     );
   } else {
     GetIt.I<FirebaseFirestore>().settings = firestore.Settings(
       persistenceEnabled: true,
       sslEnabled: true,
-      cacheSizeBytes: GetIt.I<CacheRepository>()
-          .box('Settings')
-          .get('cacheSize', defaultValue: 100 * 1024 * 1024),
+      cacheSizeBytes: cacheSizeBytes,
     );
   }
 

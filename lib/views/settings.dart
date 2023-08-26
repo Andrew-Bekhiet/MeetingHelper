@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:expandable/expandable.dart';
@@ -282,9 +284,14 @@ class SettingsState extends State<Settings> {
                       ),
                       keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.done,
-                      initialValue: ((settings.get(
-                                    'cacheSize',
-                                    defaultValue: 100 * 1024 * 1024,
+                      initialValue: ((min(
+                                    100 * 1024 * 1024,
+                                    GetIt.I<CacheRepository>()
+                                        .box('Settings')
+                                        .get(
+                                          'cacheSize',
+                                          defaultValue: 100 * 1024 * 1024,
+                                        ) as int,
                                   ) /
                                   1024) /
                               1024)
