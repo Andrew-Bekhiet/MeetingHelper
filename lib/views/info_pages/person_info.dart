@@ -413,7 +413,7 @@ class _PersonInfoState extends State<PersonInfo> {
                             'true';
 
                     return Tuple2(
-                      isCollegeYear ? 'الكلية' : ':المدرسة:',
+                      isCollegeYear ? 'الكلية:' : 'المدرسة:',
                       isCollegeYear
                           ? await person.getCollegeName()
                           : await person.getSchoolName(),
