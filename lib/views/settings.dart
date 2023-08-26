@@ -284,7 +284,7 @@ class SettingsState extends State<Settings> {
                       textInputAction: TextInputAction.done,
                       initialValue: ((settings.get(
                                     'cacheSize',
-                                    defaultValue: 300 * 1024 * 1024,
+                                    defaultValue: 100 * 1024 * 1024,
                                   ) /
                                   1024) /
                               1024)

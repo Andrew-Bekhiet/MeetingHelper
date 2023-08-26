@@ -125,7 +125,7 @@ Future<void> initMeetingHelper() async {
           devBox.get('kEmulatorsHost') == '',
       cacheSizeBytes: GetIt.I<CacheRepository>()
           .box('Settings')
-          .get('cacheSize', defaultValue: 300 * 1024 * 1024),
+          .get('cacheSize', defaultValue: 100 * 1024 * 1024),
     );
   } else {
     GetIt.I<FirebaseFirestore>().settings = firestore.Settings(
@@ -133,7 +133,7 @@ Future<void> initMeetingHelper() async {
       sslEnabled: true,
       cacheSizeBytes: GetIt.I<CacheRepository>()
           .box('Settings')
-          .get('cacheSize', defaultValue: 300 * 1024 * 1024),
+          .get('cacheSize', defaultValue: 100 * 1024 * 1024),
     );
   }
 
@@ -468,7 +468,7 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
                   is DataObject) {
                 return AnalyticsPage(
                   parents: [
-                    ModalRoute.of(context)!.settings.arguments! as DataObject
+                    ModalRoute.of(context)!.settings.arguments! as DataObject,
                   ],
                 );
               } else if (ModalRoute.of(context)!.settings.arguments
