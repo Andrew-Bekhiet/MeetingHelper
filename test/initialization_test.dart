@@ -40,9 +40,7 @@ void main() {
         });
       });
 
-      tearDown(() async {
-        await GetIt.I.reset();
-      });
+      tearDown(GetIt.I.reset);
 
       testWidgets(
         'Normal',

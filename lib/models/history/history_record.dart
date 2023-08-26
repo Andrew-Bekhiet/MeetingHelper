@@ -333,7 +333,7 @@ class MinimalHistoryRecord {
                     range,
                   ),
                 ).snapshots(),
-              )
+              ),
         ]).map((s) => s.expand((n) => n.docs).toList());
       } else if (range != null && classes != null) {
         return Rx.combineLatestList<JsonQuery>(
@@ -405,7 +405,7 @@ class MinimalHistoryRecord {
                       range,
                     ),
                   ).snapshots(),
-                )
+                ),
           ]).map((s) => s.expand((n) => n.docs).toList());
         }
       } else if (classes != null) {
@@ -462,7 +462,7 @@ class MinimalHistoryRecord {
       'RecordedBy': by,
       'ClassId': classId,
       'Services': services,
-      'PersonId': personId
+      'PersonId': personId,
     };
   }
 

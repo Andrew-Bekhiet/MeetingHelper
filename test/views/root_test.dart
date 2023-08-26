@@ -64,9 +64,7 @@ void main() {
             AllCompletedHivePersistenceProvider();
       });
 
-      tearDown(() async {
-        await GetIt.I.reset();
-      });
+      tearDown(GetIt.I.reset);
 
       testWidgets(
         'Structure',
@@ -896,25 +894,6 @@ class FakeAndroidDisplayMetrics implements AndroidDisplayMetrics {
 
   @override
   double get yDpi => 1;
-}
-
-class FakeIosUtsname implements IosUtsname {
-  const FakeIosUtsname();
-
-  @override
-  String get machine => 'null';
-
-  @override
-  String get nodename => 'null';
-
-  @override
-  String get release => 'null';
-
-  @override
-  String get sysname => 'null';
-
-  @override
-  String get version => 'null';
 }
 
 class StructureTestVariants extends TestVariant<MHPermissionsSet> {

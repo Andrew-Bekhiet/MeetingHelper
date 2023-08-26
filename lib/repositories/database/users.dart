@@ -184,7 +184,7 @@ class Users {
           ),
       (sys, cs) {
         final Map<JsonRef, StudyYear> studyYears = {
-          for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
+          for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy),
         };
         final unknownStudyYearRef =
             repository.collection('StudyYears').doc('Unknown');
@@ -196,7 +196,7 @@ class Users {
         );
 
         final classesByRef = {
-          for (final c in cs.docs.map(Class.fromDoc).toList()) c.ref: c
+          for (final c in cs.docs.map(Class.fromDoc).toList()) c.ref: c,
         };
 
         final rslt = groupBy<User, Class?>(

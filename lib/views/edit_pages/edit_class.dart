@@ -66,7 +66,7 @@ class _EditClassState extends State<EditClass> {
                     ),
                   ),
                   onPressed: _selectImage,
-                )
+                ),
               ],
               backgroundColor: class$.color != Colors.transparent
                   ? (Theme.of(context).brightness == Brightness.light

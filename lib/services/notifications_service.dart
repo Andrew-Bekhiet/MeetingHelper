@@ -216,7 +216,7 @@ class MHNotificationsService extends NotificationsService {
                             ),
                           ),
                         ),
-                        Text('سيتم ارفاق ${attachment.name} مع الرسالة')
+                        Text('سيتم ارفاق ${attachment.name} مع الرسالة'),
                       ],
                     ),
                   ),

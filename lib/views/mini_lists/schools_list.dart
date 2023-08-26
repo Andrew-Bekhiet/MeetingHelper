@@ -78,7 +78,7 @@ class InnerListState extends State<_InnerSchoolsList> {
               child: const Text('إلغاء الأمر'),
             ),
           ],
-        )
+        ),
       ],
     );
   }

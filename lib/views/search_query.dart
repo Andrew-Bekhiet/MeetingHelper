@@ -132,7 +132,7 @@ class _SearchQueryState extends State<SearchQuery> {
               'اغأناغنوستيس',
               'أيبودياكون',
               'دياكون',
-              'أرشيدياكون'
+              'أرشيدياكون',
             ].contains(queryValue)
                 ? queryValue
                 : null,
@@ -142,7 +142,7 @@ class _SearchQueryState extends State<SearchQuery> {
               'اغأناغنوستيس',
               'أيبودياكون',
               'دياكون',
-              'أرشيدياكون'
+              'أرشيدياكون',
             ]
                 .map(
                   (item) => DropdownMenuItem(
@@ -362,7 +362,6 @@ class _SearchQueryState extends State<SearchQuery> {
                         }
 
                         return IgnorePointer(
-                          ignoringSemantics: false,
                           child: ViewableObjectWidget<Class>(
                             classData.data!,
                             isDense: true,
@@ -391,7 +390,6 @@ class _SearchQueryState extends State<SearchQuery> {
                         }
 
                         return IgnorePointer(
-                          ignoringSemantics: false,
                           child: ViewableObjectWidget<User>(
                             userData.data!,
                             isDense: true,
@@ -484,7 +482,6 @@ class _SearchQueryState extends State<SearchQuery> {
                         }
 
                         return IgnorePointer(
-                          ignoringSemantics: false,
                           child: ViewableObjectWidget<Service>(
                             serviceData.data!,
                             isDense: true,
@@ -513,7 +510,6 @@ class _SearchQueryState extends State<SearchQuery> {
                         }
 
                         return IgnorePointer(
-                          ignoringSemantics: false,
                           child: ViewableObjectWidget<User>(
                             userData.data!,
                             isDense: true,
@@ -575,7 +571,6 @@ class _SearchQueryState extends State<SearchQuery> {
                             }
 
                             return IgnorePointer(
-                              ignoringSemantics: false,
                               child: ViewableObjectWidget<Service>(
                                 serviceData.data!,
                                 isDense: true,
@@ -784,7 +779,7 @@ class _SearchQueryState extends State<SearchQuery> {
               icon: const Icon(Icons.done),
               onPressed: execute,
               label: const Text('تنفيذ'),
-            )
+            ),
           ],
         ),
       ),

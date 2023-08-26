@@ -133,7 +133,7 @@ class AttendanceChart extends StatelessWidget {
         );
 
         final Map<JsonRef, DataObject> groupedClasses = {
-          for (final c in classes ?? studyYears!) c.ref: c
+          for (final c in classes ?? studyYears!) c.ref: c,
         };
 
         return history.data!.isNotEmpty && (classes ?? studyYears!).length > 1
@@ -396,7 +396,7 @@ class ClassesAttendanceIndicator extends StatelessWidget {
             }
 
             final Map<JsonRef, DataObject> groupedClasses = {
-              for (final c in classes ?? studyYears!) c.ref: c
+              for (final c in classes ?? studyYears!) c.ref: c,
             };
 
             return snapshot.data!.isNotEmpty &&
@@ -704,7 +704,7 @@ class HistoryAnalysisWidget extends StatelessWidget {
                   if (!usersData.hasData) {
                     return const Center(child: CircularProgressIndicator());
                   }
-                  final usersByID = {for (var u in usersData.data!) u.id: u};
+                  final usersByID = {for (final u in usersData.data!) u.id: u};
                   final pieData =
                       groupBy<MinimalHistoryRecord, String?>(data, (s) => s.by)
                           .entries
@@ -877,13 +877,13 @@ class CartesianChart<T> extends StatelessWidget {
                       borderGradient: LinearGradient(
                         colors: [
                           Colors.amber[300]!.withOpacity(0.5),
-                          Colors.amber[800]!.withOpacity(0.5)
+                          Colors.amber[800]!.withOpacity(0.5),
                         ],
                       ),
                       gradient: LinearGradient(
                         colors: [
                           Colors.amber[300]!.withOpacity(0.5),
-                          Colors.amber[800]!.withOpacity(0.5)
+                          Colors.amber[800]!.withOpacity(0.5),
                         ],
                       ),
                       borderWidth: 2,

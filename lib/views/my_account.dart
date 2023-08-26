@@ -26,12 +26,12 @@ class _MyAccountState extends State<MyAccount> {
     FocusNode(),
     FocusNode(),
     FocusNode(),
-    FocusNode()
+    FocusNode(),
   ];
   List<TextEditingController> textFields = [
     TextEditingController(),
     TextEditingController(),
-    TextEditingController()
+    TextEditingController(),
   ];
 
   @override
@@ -84,7 +84,7 @@ class _MyAccountState extends State<MyAccount> {
                                 onPressed: () =>
                                     navigator.currentState!.pop(false),
                                 child: const Text('تراجع'),
-                              )
+                              ),
                             ],
                           ),
                         ) ??
@@ -146,7 +146,7 @@ class _MyAccountState extends State<MyAccount> {
                               onPressed: () =>
                                   navigator.currentState!.pop(false),
                               child: const Text('تراجع'),
-                            )
+                            ),
                           ],
                         ),
                       ) ??
@@ -315,7 +315,7 @@ class _MyAccountState extends State<MyAccount> {
               onPressed: changePass,
               icon: const Icon(Icons.lock),
               label: const Text('تغيير كلمة السر'),
-            )
+            ),
           ],
         ),
       ),
@@ -458,7 +458,7 @@ class _MyAccountState extends State<MyAccount> {
               .httpsCallable('changePassword')
               .call({
             'oldPassword': textFields[0].text,
-            'newPassword': Encryption.encryptPassword(textFields[1].text)
+            'newPassword': Encryption.encryptPassword(textFields[1].text),
           });
         } catch (err, stack) {
           await Sentry.captureException(

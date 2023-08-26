@@ -35,7 +35,7 @@ class Services extends TableBase<Service> {
         (services) => services
             .where(
               (service) =>
-                  service.showInHistory == true &&
+                  service.showInHistory &&
                   (service.validity == null ||
                       (DateTime.now().isAfter(service.validity!.start) &&
                           DateTime.now().isBefore(service.validity!.end))),
@@ -83,7 +83,7 @@ class Services extends TableBase<Service> {
           .snapshots()
           .map<Map<JsonRef, StudyYear>>(
             (sys) => {
-              for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
+              for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy),
             },
           ),
       isSubtype<T, Class>() || T == DataObject
@@ -216,7 +216,7 @@ class Services extends TableBase<Service> {
           .snapshots()
           .map<Map<JsonRef, StudyYear>>(
             (sys) => {
-              for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
+              for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy),
             },
           ),
       isSubtype<Service, T>()

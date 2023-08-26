@@ -118,7 +118,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
           .httpsCallable('updateUserSpiritData')
           .call({
         'lastConfession': user.lastConfession!.millisecondsSinceEpoch,
-        'lastTanawol': user.lastTanawol!.millisecondsSinceEpoch
+        'lastTanawol': user.lastTanawol!.millisecondsSinceEpoch,
       });
       navigator.currentState!.pop();
     } catch (err, stack) {

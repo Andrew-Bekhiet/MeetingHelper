@@ -86,7 +86,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                     'Analytics',
                     arguments: {
                       'Day': widget.record,
-                      'HistoryCollection': widget.record.ref.parent.id
+                      'HistoryCollection': widget.record.ref.parent.id,
                     },
                   );
                 },
@@ -207,7 +207,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                     return tmp;
                   }(),
                 ),
-              )
+              ),
             ],
           ),
           bottomNavigationBar: BottomAppBar(
@@ -416,11 +416,11 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                                   child: Text(
                                     i == null
                                         ? 'الاسم'
-                                        : i == true
+                                        : i
                                             ? 'وقت الحضور'
                                             : 'وقت الحضور (المتأخر أولا)',
                                   ),
-                                )
+                                ),
                               ],
                             ),
                           )
@@ -461,11 +461,11 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                                   child: Text(
                                     i == null
                                         ? 'الكل'
-                                        : i == true
+                                        : i
                                             ? 'الحاضرين فقط'
                                             : 'الغائبين فقط',
                                   ),
-                                )
+                                ),
                               ],
                             ),
                           )
@@ -483,7 +483,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
               navigator.currentState!.pop();
             },
             child: const Text('إغلاق'),
-          )
+          ),
         ],
       ),
     );
@@ -501,7 +501,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
               TextButton(
                 onPressed: () => navigator.currentState!.pop(false),
                 child: const Text('لا'),
-              )
+              ),
             ],
             content: const Text('هل أنت متأكد من الحذف؟'),
           ),
@@ -577,7 +577,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
               TextButton(
                 onPressed: () => navigator.currentState!.pop(),
                 child: const Text('تم'),
-              )
+              ),
             ],
           ),
         );

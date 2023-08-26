@@ -56,9 +56,7 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
     super.groupBy,
     super.groupByStream,
   })  : assert(
-          dayOptions.grouped.value == false ||
-              groupBy != null ||
-              groupByStream != null,
+          !dayOptions.grouped.value || groupBy != null || groupByStream != null,
         ),
         _attended = BehaviorSubject<Map<String, HistoryRecord>>(),
         _objectsById = BehaviorSubject<Map<String, T>>(),
@@ -124,11 +122,11 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
     if (sortByTimeASC != null) {
       rslt = [
         for (final k in attended.keys)
-          if (objectsById[k] != null) objectsById[k]!
+          if (objectsById[k] != null) objectsById[k]!,
       ];
     } else if (showOnly == null) {
       rslt = rslt.toList();
-    } else if (showOnly == true) {
+    } else if (showOnly) {
       rslt = objectsById.values
           .where(
             (i) => attended.containsKey(i.id),

@@ -148,8 +148,8 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
         ),
         body: FutureBuilder<void>(
           future: _rangeStart.runOnce(_setRangeStart),
-          builder: (context, _) {
-            if (_.connectionState == ConnectionState.done) {
+          builder: (context, rangeStartSnapshot) {
+            if (rangeStartSnapshot.connectionState == ConnectionState.done) {
               return StreamBuilder<List<DataObject>>(
                 initialData: widget.parents,
                 stream: Rx.combineLatest2<List<Class>, List<Service>,
@@ -328,7 +328,7 @@ class _PersonAnalyticsPageState extends State<PersonAnalyticsPage> {
             return {
               for (final service
                   in await MHDatabaseRepo.I.services.getAll().first)
-                service.ref: service
+                service.ref: service,
             };
           }),
           builder: (context, servicesSnapshot) {
@@ -784,7 +784,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                         ],
                                       )
                                       .expand((w) => w) ??
-                                  []
+                                  [],
                             ] else if (days!.isNotEmpty) ...[
                               if ((parents?.whereType<Class>() ?? [])
                                   .isNotEmpty) ...[
@@ -838,11 +838,11 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                                     'ServantsHistory',
                                             collectionGroup: s.id,
                                             studyYears: studyYearsData.data,
-                                          )
+                                          ),
                                         ],
                                       )
                                       .expand((w) => w) ??
-                                  []
+                                  [],
                             ] else
                               const Center(
                                 child: Text('لا يوجد سجل في المدة المحددة'),

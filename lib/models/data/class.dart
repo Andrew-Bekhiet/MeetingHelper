@@ -121,7 +121,7 @@ class Class extends DataObject implements PhotoObjectBase {
         'Color': color?.value,
         'LastEdit': lastEdit?.uid,
         'LastEditTime': lastEdit?.time,
-        'Allowed': allowedUsers
+        'Allowed': allowedUsers,
       };
 
   Stream<List<Person>> getMembers({

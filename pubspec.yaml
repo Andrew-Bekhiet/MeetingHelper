@@ -9,6 +9,10 @@ version: 8.2.7+30
 environment:
   sdk: ">=3.0.0 <4.0.0"
 
+dependency_overrides:
+  collection: ^1.17.2
+  intl: ^0.18.1
+
 dependencies:
   android_alarm_manager_plus: ^3.0.1
   async: ^2.8.2
@@ -24,8 +28,8 @@ dependencies:
   convert: ^3.0.2
   copy_with_extension: ^5.0.2
   cupertino_icons: ^1.0.4
-  dart_jts: ^0.2.1+1
-  dart_postgis: ^0.3.0+2
+  dart_jts: ^0.2.3+2
+  dart_postgis: ^0.3.2+2
   device_info_plus: ^9.0.2
   expandable: ^5.0.1
   file_picker: ^5.2.1

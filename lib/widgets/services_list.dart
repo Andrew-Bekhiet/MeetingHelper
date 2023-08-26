@@ -82,7 +82,7 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
           )
               .entries
               .sortedByCompare<double>((e) => e.key, (o, n) => o.compareTo(n)))
-            entry.key: entry.value
+            entry.key: entry.value,
         };
 
         return GroupListView(

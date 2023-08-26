@@ -702,7 +702,7 @@ class _RootState extends State<Root>
                                     if (rslt is Class)
                                       'onlyClass': rslt.id
                                     else if (rslt is Service)
-                                      'onlyService': rslt.id
+                                      'onlyService': rslt.id,
                                   },
                                 ))
                                     .data,
@@ -989,6 +989,7 @@ class _RootState extends State<Root>
         _keepAlive(true);
         _recordActive();
       case AppLifecycleState.inactive:
+      case AppLifecycleState.hidden:
       case AppLifecycleState.detached:
       case AppLifecycleState.paused:
         _keepAlive(false);
@@ -1205,7 +1206,7 @@ class _RootState extends State<Root>
                   .titleSmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
             ),
-          )
+          ),
         ];
         shape = ShapeLightFocus.RRect;
       case 'ManageUsers':
@@ -1218,7 +1219,7 @@ class _RootState extends State<Root>
                   .titleSmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
             ),
-          )
+          ),
         ];
         shape = ShapeLightFocus.RRect;
       case 'AddHistory':
@@ -1231,7 +1232,7 @@ class _RootState extends State<Root>
                   .titleSmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
             ),
-          )
+          ),
         ];
         shape = ShapeLightFocus.RRect;
       case 'AddServantsHistory':
@@ -1244,7 +1245,7 @@ class _RootState extends State<Root>
                   .titleSmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
             ),
-          )
+          ),
         ];
         shape = ShapeLightFocus.RRect;
       case 'History':
@@ -1257,7 +1258,7 @@ class _RootState extends State<Root>
                   .titleSmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
             ),
-          )
+          ),
         ];
         shape = ShapeLightFocus.RRect;
       case 'ServantsHistory':
@@ -1270,7 +1271,7 @@ class _RootState extends State<Root>
                   .titleSmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
             ),
-          )
+          ),
         ];
         shape = ShapeLightFocus.RRect;
       case 'Analytics':
@@ -1285,7 +1286,7 @@ class _RootState extends State<Root>
                   .titleSmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
             ),
-          )
+          ),
         ];
         shape = ShapeLightFocus.RRect;
       case 'ActivityAnalysis':
@@ -1398,7 +1399,7 @@ class _RootState extends State<Root>
       'AdvancedSearch',
       if (User.instance.permissions.manageDeleted) 'ManageDeleted',
       'DataMap',
-      'Settings'
+      'Settings',
     ]..removeWhere(HivePersistenceProvider.instance.hasCompletedStep);
 
     bool drawerOpened = false;

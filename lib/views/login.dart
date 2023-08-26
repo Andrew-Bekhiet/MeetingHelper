@@ -77,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             'تسجيل الدخول بجوجل',
                             style: TextStyle(fontSize: 20, color: Colors.black),
                           ),
-                  )
+                  ),
                 ],
               ),
             ),

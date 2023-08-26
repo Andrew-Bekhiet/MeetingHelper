@@ -42,7 +42,7 @@ class MHFunctionsService extends FunctionsService {
               'LastConfession': new$.lastConfession?.millisecondsSinceEpoch,
             if (childrenUsers != null)
               'ChildrenUsers': childrenUsers.map((e) => e.uid).toList(),
-          }
+          },
         },
       );
     } catch (e) {

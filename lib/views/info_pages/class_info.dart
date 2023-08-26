@@ -59,7 +59,7 @@ class _ClassInfoState extends State<ClassInfo> {
         'MoreOptions',
         'EditHistory',
         'Class.Analytics',
-        if (User.instance.permissions.write) 'Add'
+        if (User.instance.permissions.write) 'Add',
       ]..removeWhere(HivePersistenceProvider.instance.hasCompletedStep))
           .isNotEmpty) {
         TutorialCoachMark(
@@ -222,7 +222,7 @@ class _ClassInfoState extends State<ClassInfo> {
                               MHDatabaseRepo.I
                                   .recoverDocument(context, class$.ref);
                             },
-                          )
+                          ),
                       ]
                     : <Widget>[
                         if (User.instance.permissions.write)

@@ -541,13 +541,13 @@ class _EditInvitationState extends State<EditInvitation> {
               ConnectivityResult.none) {
             await invitation.ref.set({
               ...invitation.toJson(),
-              'GeneratedOn': FieldValue.serverTimestamp()
+              'GeneratedOn': FieldValue.serverTimestamp(),
             });
           } else {
             // ignore: unawaited_futures
             invitation.ref.set({
               ...invitation.toJson(),
-              'GeneratedOn': FieldValue.serverTimestamp()
+              'GeneratedOn': FieldValue.serverTimestamp(),
             });
           }
         } else {

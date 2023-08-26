@@ -524,7 +524,7 @@ class _EditUserState extends State<EditUser> {
                           ),
                         )..selectAll(users.data),
                         dispose: (context, c) => c.dispose(),
-                      )
+                      ),
                     ],
                     builder: (context, child) => Scaffold(
                       persistentFooterButtons: [
@@ -538,7 +538,7 @@ class _EditUserState extends State<EditUser> {
                             );
                           },
                           child: const Text('تم'),
-                        )
+                        ),
                       ],
                       appBar: AppBar(
                         title: SearchField(

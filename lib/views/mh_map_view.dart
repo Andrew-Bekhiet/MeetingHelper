@@ -52,7 +52,7 @@ class _MHMapViewState extends State<MHMapView> {
               : Stream.value(
                   [
                     if (widget.initialClass != null) widget.initialClass!,
-                    if (widget.initialService != null) widget.initialService!
+                    if (widget.initialService != null) widget.initialService!,
                   ],
                 );
         },

@@ -39,7 +39,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                         TextButton(
                           onPressed: () => navigator.currentState!.pop(true),
                           child: const Text('نعم'),
-                        )
+                        ),
                       ],
                       title: const Text('هل تريد حذف هذا الاشعار؟'),
                     ),

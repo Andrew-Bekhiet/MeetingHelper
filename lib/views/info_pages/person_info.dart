@@ -44,7 +44,7 @@ class _PersonInfoState extends State<PersonInfo> {
       if (([
         if (User.instance.permissions.write) 'Person.Edit',
         'Person.Share',
-        if (User.instance.permissions.write) 'Person.LastVisit'
+        if (User.instance.permissions.write) 'Person.LastVisit',
       ]..removeWhere(HivePersistenceProvider.instance.hasCompletedStep))
           .isNotEmpty) {
         TutorialCoachMark(
@@ -159,7 +159,7 @@ class _PersonInfoState extends State<PersonInfo> {
                                   nested: false,
                                 );
                               },
-                            )
+                            ),
                         ]
                       : <Widget>[
                           if (write)
@@ -248,7 +248,7 @@ class _PersonInfoState extends State<PersonInfo> {
                                   value: '',
                                   child:
                                       Text('ارسال إشعار للمستخدمين عن المخدوم'),
-                                )
+                                ),
                               ];
                             },
                           ),
@@ -503,7 +503,7 @@ class _PersonInfoState extends State<PersonInfo> {
                             ),
                         const Divider(
                           thickness: 1,
-                        )
+                        ),
                       ],
                     );
                   },
@@ -669,7 +669,7 @@ class _PersonInfoState extends State<PersonInfo> {
                 TextButton(
                   onPressed: () => navigator.currentState!.pop(true),
                   child: const Text('حفظ جهة الاتصال'),
-                )
+                ),
               ],
             ),
           ) ==

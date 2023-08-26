@@ -309,7 +309,7 @@ class _UserInfoState extends State<UserInfo> {
                               ),
                               autoDisposeController: true,
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),

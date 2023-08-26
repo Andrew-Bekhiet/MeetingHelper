@@ -76,7 +76,7 @@ class _EditPersonState extends State<EditPerson> {
                   ),
                   onPressed: _selectImage,
                   tooltip: 'اختيار صورة',
-                )
+                ),
               ],
               backgroundColor: person.color != null
                   ? (Theme.of(context).brightness == Brightness.light
@@ -275,7 +275,7 @@ class _EditPersonState extends State<EditPerson> {
                                   onPressed: () =>
                                       navigator.currentState!.pop(name.text),
                                   child: const Text('حفظ'),
-                                )
+                                ),
                               ],
                               title: const Text('اسم الهاتف'),
                               content: TextField(
@@ -497,7 +497,7 @@ class _EditPersonState extends State<EditPerson> {
                                                   person.copyWith.gender(i),
                                             ),
                                             child: Text(i ? 'ذكر' : 'أنثى'),
-                                          )
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -547,7 +547,7 @@ class _EditPersonState extends State<EditPerson> {
                                               person.copyWith.isShammas(i),
                                         ),
                                         child: Text(i ? 'نعم' : 'لا'),
-                                      )
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -570,7 +570,7 @@ class _EditPersonState extends State<EditPerson> {
                           'اغأناغنوستيس',
                           'أيبودياكون',
                           'دياكون',
-                          'أرشيدياكون'
+                          'أرشيدياكون',
                         ]
                             .map(
                               (item) => DropdownMenuItem(

@@ -72,7 +72,7 @@ class _EditServiceState extends State<EditService> {
                     ),
                   ),
                   onPressed: _selectImage,
-                )
+                ),
               ],
               backgroundColor: service.color != Colors.transparent
                   ? (Theme.of(context).brightness == Brightness.light
@@ -537,14 +537,14 @@ class _EditServiceState extends State<EditService> {
           for (final item in oldAllowed) {
             if (!allowedUsers!.contains(item)) {
               batch.update(item.ref, {
-                'AdminServices': FieldValue.arrayRemove([service.ref])
+                'AdminServices': FieldValue.arrayRemove([service.ref]),
               });
             }
           }
           for (final item in allowedUsers!) {
             if (!oldAllowed.contains(item)) {
               batch.update(item.ref, {
-                'AdminServices': FieldValue.arrayUnion([service.ref])
+                'AdminServices': FieldValue.arrayUnion([service.ref]),
               });
             }
           }

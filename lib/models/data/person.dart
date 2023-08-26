@@ -76,7 +76,7 @@ class Person extends PersonBase {
         last = UnmodifiableMapView(
           {
             for (final o in (json['Last'] as Map? ?? {}).entries)
-              if (o.value != null) o.key: (o.value as Timestamp).toDate()
+              if (o.value != null) o.key: (o.value as Timestamp).toDate(),
           },
         ),
         services = UnmodifiableListView(

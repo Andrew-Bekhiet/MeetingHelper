@@ -144,7 +144,7 @@ class Persons extends TableBase<Person> {
         Map<Class, List<Person>>>(
       repository.collection('StudyYears').orderBy('Grade').snapshots().map(
             (sys) => {
-              for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
+              for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy),
             },
           ),
       persons != null ? Stream.value(persons) : getAll(),
@@ -197,7 +197,7 @@ class Persons extends TableBase<Person> {
               .map((e) => e.value)
               .expand((e) => e)
               .sortedBy((c) => c.name)
-              .toList()
+              .toList(),
         };
       },
     );
@@ -211,7 +211,7 @@ class Persons extends TableBase<Person> {
         Map<StudyYear?, List<T>>>(
       repository.collection('StudyYears').orderBy('Grade').snapshots().map(
             (sys) => {
-              for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy)
+              for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy),
             },
           ),
       (persons != null ? Stream.value(persons) : getAll())
@@ -220,7 +220,7 @@ class Persons extends TableBase<Person> {
         return {
           for (final person in persons.groupListsBy((p) => p.studyYear).entries)
             if (person.key != null && studyYears[person.key] != null)
-              studyYears[person.key]: person.value
+              studyYears[person.key]: person.value,
         };
       },
     );

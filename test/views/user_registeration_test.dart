@@ -33,9 +33,7 @@ void main() {
         ).thenAnswer((_) async => false);
       });
 
-      tearDown(() async {
-        await GetIt.I.reset();
-      });
+      tearDown(GetIt.I.reset);
 
       group(
         'User not approved: ',

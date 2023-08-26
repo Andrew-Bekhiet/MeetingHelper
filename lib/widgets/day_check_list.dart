@@ -307,7 +307,7 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
                 : [
                     GetIt.I<DatabaseRepository>()
                         .collection('Services')
-                        .doc(oRecord.type)
+                        .doc(oRecord.type),
                   ],
             isServant: T == User,
           )
@@ -348,7 +348,7 @@ class _DayCheckListState<G, T extends Person> extends State<DayCheckList<G, T>>
                                             : [
                                                 GetIt.I<DatabaseRepository>()
                                                     .collection('Services')
-                                                    .doc(_listController.type)
+                                                    .doc(_listController.type),
                                               ],
                                         studyYear: current.studyYear,
                                         time: _listController.day.day

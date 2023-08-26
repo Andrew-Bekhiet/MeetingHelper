@@ -45,7 +45,7 @@ const List<Color> accents = <Color>[
   Colors.deepOrangeAccent,
   Colors.brown,
   Colors.blueGrey,
-  Colors.black
+  Colors.black,
 ];
 
 const FlutterSecureStorage flutterSecureStorage = FlutterSecureStorage();
@@ -74,7 +74,7 @@ List<Color?> primaries = <Color?>[
   Colors.deepOrange,
   Colors.deepOrangeAccent,
   Colors.blueAccent,
-  Colors.grey.shade700
+  Colors.grey.shade700,
 ];
 
 enum PhoneCallAction { AddToContacts, Call, Message, Whatsapp }
