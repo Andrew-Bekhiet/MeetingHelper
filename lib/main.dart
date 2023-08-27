@@ -492,6 +492,18 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
                 );
               }
             },
+            'Exams': (context) {
+              return ExamsPage(
+                service: ModalRoute.of(context)!.settings.arguments! as Service,
+              );
+            },
+            'ExamInfo': (context) {
+              final map = ModalRoute.of(context)!.settings.arguments! as Json;
+              return ExamInfo(
+                exam: map['Exam'] as Exam,
+                service: map['Service'] as Service,
+              );
+            },
           },
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,

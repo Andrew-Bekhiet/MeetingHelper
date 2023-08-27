@@ -25,9 +25,9 @@ abstract class _$StudyYearRangeCWProxy {
 
 /// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfStudyYearRange.copyWith(...)`. Additionally contains functions for specific fields e.g. `instanceOfStudyYearRange.copyWith.fieldName(...)`
 class _$StudyYearRangeCWProxyImpl implements _$StudyYearRangeCWProxy {
-  final StudyYearRange _value;
-
   const _$StudyYearRangeCWProxyImpl(this._value);
+
+  final StudyYearRange _value;
 
   @override
   StudyYearRange from(DocumentReference<Map<String, dynamic>>? from) =>
@@ -64,6 +64,7 @@ class _$StudyYearRangeCWProxyImpl implements _$StudyYearRangeCWProxy {
 
 extension $StudyYearRangeCopyWith on StudyYearRange {
   /// Returns a callable class that can be used as follows: `instanceOfStudyYearRange.copyWith(...)` or like so:`instanceOfStudyYearRange.copyWith.fieldName(...)`.
+  // ignore: library_private_types_in_public_api
   _$StudyYearRangeCWProxy get copyWith => _$StudyYearRangeCWProxyImpl(this);
 
   /// Copies the object with the specific fields set to `null`. If you pass `false` as a parameter, nothing will be done and it will be ignored. Don't do it. Prefer `copyWith(field: null)` or `StudyYearRange(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.

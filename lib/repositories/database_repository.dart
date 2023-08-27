@@ -7,13 +7,14 @@ import 'package:get_it/get_it.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories/auth_repository.dart';
-import 'package:meetinghelper/repositories/database/services.dart';
-import 'package:meetinghelper/repositories/database/users.dart';
 import 'package:meetinghelper/services.dart';
 import 'package:supabase/supabase.dart' show SupabaseClient;
 
 import 'database/classes.dart';
+import 'database/exams.dart';
 import 'database/persons.dart';
+import 'database/services.dart';
+import 'database/users.dart';
 
 class MHDatabaseRepo extends DatabaseRepository {
   static MHDatabaseRepo get instance => GetIt.I<MHDatabaseRepo>();
@@ -23,6 +24,7 @@ class MHDatabaseRepo extends DatabaseRepository {
   late final persons = Persons(this);
   late final classes = Classes(this);
   late final services = Services(this);
+  late final exams = Exams(this);
 
   @override
   Future<Viewable?> getObjectFromLink(Uri deepLink) async {

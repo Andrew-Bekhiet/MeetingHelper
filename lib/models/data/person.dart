@@ -25,6 +25,7 @@ class Person extends PersonBase {
   final DateTime? lastMeeting;
 
   final UnmodifiableMapView<String, DateTime> last;
+  final UnmodifiableMapView<String, int> examScores;
 
   ///List of services this person is participant
   final UnmodifiableListView<JsonRef> services;
@@ -59,9 +60,11 @@ class Person extends PersonBase {
     super.studyYear,
     List<JsonRef>? services,
     Map<String, DateTime>? last,
+    Map<String, int>? examScores,
     super.color,
   })  : services = UnmodifiableListView(services ?? []),
         last = UnmodifiableMapView(last ?? {}),
+        examScores = UnmodifiableMapView(examScores ?? {}),
         super(
           mainPhone: phone,
           otherPhones: phones ?? {},
@@ -77,6 +80,12 @@ class Person extends PersonBase {
           {
             for (final o in (json['Last'] as Map? ?? {}).entries)
               if (o.value != null) o.key: (o.value as Timestamp).toDate(),
+          },
+        ),
+        examScores = UnmodifiableMapView(
+          {
+            for (final o in (json['ExamScores'] as Map? ?? {}).entries)
+              if (o.value != null) o.key: o.value as int,
           },
         ),
         services = UnmodifiableListView(
@@ -165,6 +174,7 @@ class Person extends PersonBase {
         'LastVisit': lastVisit?.toDurationString(),
         'Last':
             last.map((key, value) => MapEntry(key, value.toDurationString())),
+        'ExamScores': examScores.map(MapEntry.new),
         'Notes': notes ?? '',
         'IsShammas': isShammas ? 'تعم' : 'لا',
         'Gender': gender ? 'ذكر' : 'أنثى',
@@ -206,6 +216,7 @@ class Person extends PersonBase {
         'HasPhoto': hasPhoto,
         'LastMeeting': lastMeeting,
         'Last': last,
+        'ExamScores': examScores,
         'LastEdit': lastEdit?.uid,
         'LastEditTime': lastEdit?.time,
         'Services': services,

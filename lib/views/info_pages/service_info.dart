@@ -430,6 +430,12 @@ class _ServiceInfoState extends State<ServiceInfo> {
                           label: const Text('احصائيات الحضور'),
                           onPressed: () => _showAnalytics(context, service),
                         ),
+                      if (!service.ref.path.startsWith('Deleted'))
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.quiz),
+                          label: const Text('الامتحانات'),
+                          onPressed: () => _showExams(context, service),
+                        ),
                       const Divider(thickness: 1),
                       EditHistoryProperty(
                         'أخر تحديث للبيانات:',
@@ -505,8 +511,12 @@ class _ServiceInfoState extends State<ServiceInfo> {
     );
   }
 
-  void _showAnalytics(BuildContext context, Service _class) {
-    navigator.currentState!.pushNamed('Analytics', arguments: _class);
+  void _showAnalytics(BuildContext context, Service service) {
+    navigator.currentState!.pushNamed('Analytics', arguments: service);
+  }
+
+  void _showExams(BuildContext context, Service service) {
+    navigator.currentState!.pushNamed('Exams', arguments: service);
   }
 }
 

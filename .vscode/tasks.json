@@ -5,12 +5,10 @@
       "type": "flutter",
       "command": "flutter",
       "args": ["build", "apk"],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
+      "group": "build",
       "problemMatcher": [],
-      "label": "Flutter: Android Release"
+      "label": "Flutter: Android Release",
+      "detail": ""
     },
     {
       "type": "flutter",
@@ -26,7 +24,8 @@
       "args": ["pub", "run", "build_runner", "build"],
       "problemMatcher": ["$dart-build_runner"],
       "group": "build",
-      "label": "flutter: build build_runner"
+      "label": "flutter: build build_runner",
+      "detail": ""
     }
   ]
 }

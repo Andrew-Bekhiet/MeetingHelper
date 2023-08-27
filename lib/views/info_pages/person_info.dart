@@ -454,6 +454,55 @@ class _PersonInfoState extends State<PersonInfo> {
                 ),
                 CopiablePropertyWidget('ملاحظات', person.notes),
                 const Divider(thickness: 1),
+                StreamBuilder<List<Exam>>(
+                  stream: MHDatabaseRepo.I.exams.getAll(),
+                  builder: (context, snapshot) {
+                    if (snapshot.data?.isEmpty ?? true) return const SizedBox();
+
+                    final filteredExams = snapshot.data!
+                        .where((e) => person.examScores.containsKey(e.id));
+
+                    if (filteredExams.isEmpty) return const SizedBox();
+
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ...snapshot.data!
+                            .where((e) => person.examScores.containsKey(e.id))
+                            .map(
+                              (e) => ListTile(
+                                title: Text(e.name),
+                                subtitle: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        person.examScores[e.id]!.toString() +
+                                            '/' +
+                                            e.max.toString() +
+                                            '\t\t\t' +
+                                            (100 *
+                                                    person.examScores[e.id]! ~/
+                                                    e.max)
+                                                .toString() +
+                                            '%',
+                                      ),
+                                    ),
+                                    if (e.time != null)
+                                      Text(
+                                        DateFormat('yyyy/M/d').format(e.time!),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelSmall,
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        const Divider(thickness: 1),
+                      ],
+                    );
+                  },
+                ),
                 if (!person.ref.path.startsWith('Deleted'))
                   ElevatedButton.icon(
                     icon: const Icon(Icons.analytics),
@@ -488,22 +537,23 @@ class _PersonInfoState extends State<PersonInfo> {
                   builder: (context, snapshot) {
                     if (snapshot.data?.isEmpty ?? true) return const SizedBox();
 
+                    final filteredServices = snapshot.data!
+                        .where((s) => person.last.containsKey(s.id));
+
+                    if (filteredServices.isEmpty) return const SizedBox();
+
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        ...snapshot.data!
-                            .where((s) => person.last.containsKey(s.id))
-                            .map(
-                              (e) => DayHistoryProperty(
-                                e.name,
-                                person.last[e.id],
-                                person.id,
-                                e.id,
-                              ),
-                            ),
-                        const Divider(
-                          thickness: 1,
+                        ...filteredServices.map(
+                          (e) => DayHistoryProperty(
+                            e.name,
+                            person.last[e.id],
+                            person.id,
+                            e.id,
+                          ),
                         ),
+                        const Divider(thickness: 1),
                       ],
                     );
                   },
