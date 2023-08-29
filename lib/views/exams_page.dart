@@ -49,7 +49,9 @@ class ExamsPage extends StatelessWidget {
                       'Service': service,
                     },
                   ),
-                  onLongPress: () => _editExam(context, exam),
+                  onLongPress: () => User.instance.permissions.write
+                      ? _editExam(context, exam)
+                      : null,
                   title: Text(exam.name),
                   subtitle: Text(DateFormat('yyyy/M/d').format(exam.time!)),
                   trailing: Text(exam.max.toString()),
@@ -59,11 +61,15 @@ class ExamsPage extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
-        onPressed: () =>
-            _editExam(context, Exam.empty().copyWith(service: service.ref)),
-      ),
+      floatingActionButton: User.instance.permissions.write
+          ? FloatingActionButton(
+              child: const Icon(Icons.add),
+              onPressed: () => _editExam(
+                context,
+                Exam.empty().copyWith(service: service.ref),
+              ),
+            )
+          : null,
     );
   }
 

@@ -37,7 +37,9 @@ class _ExamInfoState extends State<ExamInfo> {
             person,
             subtitle: subtitle,
             onLongPress: onTap != null ? () => onTap(person) : null,
-            onTap: () => _editPersonScore(person),
+            onTap: () => User.instance.permissions.write
+                ? _editPersonScore(person)
+                : null,
             trailing: SizedBox(
               width: 40,
               child: Text(
