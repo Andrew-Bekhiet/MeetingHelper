@@ -30,26 +30,28 @@ class _ExamInfoState extends State<ExamInfo> {
         controller: _controller,
         autoDisposeController: true,
         emptyMsg: 'لا يوجد مخدومين',
-        itemBuilder: (person, {onLongPress, onTap, subtitle, trailing}) =>
-            ViewableObjectWidget(
-          person,
-          subtitle: subtitle,
-          onLongPress: onTap != null ? () => onTap(person) : null,
-          onTap: () => _editPersonScore(person),
-          trailing: SizedBox(
-            width: 40,
-            child: Text(
-              person.examScores[widget.exam.id]!.toString() +
-                  '/' +
-                  widget.exam.max.toString() +
-                  '\n' +
-                  (100 * person.examScores[widget.exam.id]! ~/ widget.exam.max)
-                      .toString() +
-                  '%',
-              textAlign: TextAlign.center,
+        itemBuilder: (person, {onLongPress, onTap, subtitle, trailing}) {
+          final personScore = person.examScores[widget.exam.id] ?? 0;
+
+          return ViewableObjectWidget(
+            person,
+            subtitle: subtitle,
+            onLongPress: onTap != null ? () => onTap(person) : null,
+            onTap: () => _editPersonScore(person),
+            trailing: SizedBox(
+              width: 40,
+              child: Text(
+                personScore.toString() +
+                    '/' +
+                    widget.exam.max.toString() +
+                    '\n' +
+                    (100 * personScore ~/ widget.exam.max).toString() +
+                    '%',
+                textAlign: TextAlign.center,
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
