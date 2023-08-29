@@ -63,10 +63,7 @@ dependencies:
   intl: ^0.18.0
   local_auth: ^2.0.0
   location: ^5.0.1
-  open_file:
-    git:
-      url: https://github.com/Andrew-Bekhiet/open_file
-      ref: 4e00e919e2187bfbbddc0b6c4d32daa01969f58e
+  open_file: ^3.3.2
   package_info_plus: ^4.0.2
   path_provider: ^2.0.8
   percent_indicator: ^4.0.0
@@ -87,6 +84,7 @@ dependencies:
   tutorial_coach_mark: ^1.2.1
   url_launcher: ^6.0.18
   version: ^3.0.2
+  path: ^1.8.3
 
 dev_dependencies:
   flutter_test:

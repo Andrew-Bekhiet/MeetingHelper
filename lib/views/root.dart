@@ -20,6 +20,7 @@ import 'package:meetinghelper/views.dart';
 import 'package:meetinghelper/widgets.dart';
 import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rxdart/rxdart.dart' hide Notification;
@@ -641,114 +642,7 @@ class _RootState extends State<Root>
                     ? ListTile(
                         leading: const Icon(Icons.cloud_download),
                         title: const Text('تصدير فصل إلى ملف اكسل'),
-                        onTap: () async {
-                          mainScfld.currentState!.openEndDrawer();
-                          final DataObject? rslt = await showDialog(
-                            context: context,
-                            builder: (context) => Dialog(
-                              child: Column(
-                                children: [
-                                  Text(
-                                    'برجاء اختيار الفصل او الخدمة للتصدير:',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .headlineSmall,
-                                  ),
-                                  Expanded(
-                                    child: ServicesList(
-                                      autoDisposeController: true,
-                                      onTap: (_class) =>
-                                          navigator.currentState!.pop(
-                                        _class,
-                                      ),
-                                      options:
-                                          ServicesListController<DataObject>(
-                                        objectsPaginatableStream:
-                                            PaginatableStream.loadAll(
-                                          stream: Stream.value(
-                                            [],
-                                          ),
-                                        ),
-                                        groupByStream: (_) => MHDatabaseRepo
-                                            .I.services
-                                            .groupServicesByStudyYearRef(),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                          if (rslt != null) {
-                            scaffoldMessenger.currentState!.showSnackBar(
-                              SnackBar(
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('جار تصدير ' + rslt.name + '...'),
-                                    const LinearProgressIndicator(),
-                                  ],
-                                ),
-                                duration: const Duration(minutes: 9),
-                              ),
-                            );
-                            try {
-                              final String filename = Uri.decodeComponent(
-                                (await GetIt.I<FunctionsService>()
-                                        .httpsCallable('exportToExcel')
-                                        .call(
-                                  {
-                                    if (rslt is Class)
-                                      'onlyClass': rslt.id
-                                    else if (rslt is Service)
-                                      'onlyService': rslt.id,
-                                  },
-                                ))
-                                    .data,
-                              );
-                              final file = await File(
-                                (await getApplicationDocumentsDirectory())
-                                        .path +
-                                    '/' +
-                                    filename.replaceAll(':', ''),
-                              ).create(recursive: true);
-                              await GetIt.I<StorageRepository>()
-                                  .ref(filename)
-                                  .writeToFile(file);
-                              scaffoldMessenger.currentState!
-                                  .hideCurrentSnackBar();
-                              scaffoldMessenger.currentState!.showSnackBar(
-                                SnackBar(
-                                  content:
-                                      const Text('تم تصدير البيانات ينجاح'),
-                                  action: SnackBarAction(
-                                    label: 'فتح',
-                                    onPressed: () {
-                                      OpenFile.open(file.path);
-                                    },
-                                  ),
-                                ),
-                              );
-                            } catch (err, stack) {
-                              scaffoldMessenger.currentState!
-                                  .hideCurrentSnackBar();
-                              scaffoldMessenger.currentState!.showSnackBar(
-                                const SnackBar(
-                                  content: Text('فشل تصدير البيانات'),
-                                ),
-                              );
-                              await Sentry.captureException(
-                                err,
-                                stackTrace: stack,
-                                withScope: (scope) => scope.setTag(
-                                  'LasErrorIn',
-                                  '_RootState.dataExport',
-                                ),
-                              );
-                            }
-                          }
-                        },
+                        onTap: _exportToExcel,
                       )
                     : Container();
               },
@@ -935,6 +829,115 @@ class _RootState extends State<Root>
         ),
       ),
     );
+  }
+
+  Future<void> _exportToExcel() async {
+    mainScfld.currentState!.openEndDrawer();
+
+    final DataObject? rslt = await showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Column(
+          children: [
+            Text(
+              'برجاء اختيار الفصل او الخدمة للتصدير:',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            Expanded(
+              child: ServicesList(
+                autoDisposeController: true,
+                onTap: (_class) => navigator.currentState!.pop(
+                  _class,
+                ),
+                options: ServicesListController<DataObject>(
+                  objectsPaginatableStream: PaginatableStream.loadAll(
+                    stream: Stream.value(
+                      [],
+                    ),
+                  ),
+                  groupByStream: (_) =>
+                      MHDatabaseRepo.I.services.groupServicesByStudyYearRef(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (rslt == null) return;
+
+    scaffoldMessenger.currentState!.showSnackBar(
+      SnackBar(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('جار تصدير ' + rslt.name + '...'),
+            const LinearProgressIndicator(),
+          ],
+        ),
+        duration: const Duration(minutes: 9),
+      ),
+    );
+
+    try {
+      final String filename = Uri.decodeComponent(
+        (await GetIt.I<FunctionsService>().httpsCallable('exportToExcel').call(
+          {
+            if (rslt is Class)
+              'onlyClass': rslt.id
+            else if (rslt is Service)
+              'onlyService': rslt.id,
+          },
+        ))
+            .data,
+      );
+
+      final documentsDirectory = Platform.isAndroid
+          ? (await getExternalStorageDirectories(
+              type: StorageDirectory.documents,
+            ))!
+              .first
+          : await getDownloadsDirectory();
+
+      final file = await File(
+        path.join(
+          documentsDirectory!.path,
+          filename.replaceAll(':', ''),
+        ),
+      ).create(recursive: true);
+
+      await GetIt.I<StorageRepository>().ref(filename).writeToFile(file);
+
+      scaffoldMessenger.currentState!.hideCurrentSnackBar();
+      scaffoldMessenger.currentState!.showSnackBar(
+        SnackBar(
+          content: const Text('تم تصدير البيانات ينجاح'),
+          action: SnackBarAction(
+            label: 'فتح',
+            onPressed: () {
+              OpenFile.open(file.path);
+            },
+          ),
+        ),
+      );
+    } catch (err, stack) {
+      scaffoldMessenger.currentState!.hideCurrentSnackBar();
+      scaffoldMessenger.currentState!.showSnackBar(
+        const SnackBar(
+          content: Text('فشل تصدير البيانات'),
+        ),
+      );
+      await Sentry.captureException(
+        err,
+        stackTrace: stack,
+        withScope: (scope) => scope.setTag(
+          'LasErrorIn',
+          '_RootState.dataExport',
+        ),
+      );
+    }
   }
 
   @override

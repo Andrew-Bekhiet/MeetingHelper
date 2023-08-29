@@ -1,8 +1,8 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
+import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
 class Exports extends StatelessWidget {
@@ -16,11 +16,21 @@ class Exports extends StatelessWidget {
       ),
       body: FutureBuilder<List<FileSystemEntity>>(
         future: () async {
-          return dirContents(
-            Directory(
-              (await getApplicationDocumentsDirectory()).path + '/Exports',
+          final documentsDirectory = Platform.isAndroid
+              ? (await getExternalStorageDirectories(
+                  type: StorageDirectory.documents,
+                ))!
+                  .first
+              : await getDownloadsDirectory();
+
+          final exportsDirectory = Directory(
+            path.join(
+              documentsDirectory!.path,
+              'Exports',
             ),
           );
+
+          return exportsDirectory.list().where((f) => f is File).toList();
         }(),
         builder: (context, snapshot) {
           if (snapshot.hasError) return ErrorWidget(snapshot.error!);
@@ -42,14 +52,5 @@ class Exports extends StatelessWidget {
         },
       ),
     );
-  }
-
-  Future<List<FileSystemEntity>> dirContents(Directory dir) {
-    final files = <FileSystemEntity>[];
-    final completer = Completer<List<FileSystemEntity>>();
-    final lister = dir.list();
-    // ignore: cascade_invocations
-    lister.listen(files.add, onDone: () => completer.complete(files));
-    return completer.future;
   }
 }

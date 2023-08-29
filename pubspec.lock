@@ -1476,12 +1476,11 @@ packages:
   open_file:
     dependency: "direct main"
     description:
-      path: "."
-      ref: "4e00e919e2187bfbbddc0b6c4d32daa01969f58e"
-      resolved-ref: "4e00e919e2187bfbbddc0b6c4d32daa01969f58e"
-      url: "https://github.com/Andrew-Bekhiet/open_file"
-    source: git
-    version: "3.2.2"
+      name: open_file
+      sha256: a5a32d44acb7c899987d0999e1e3cbb0a0f1adebbf41ac813ec6d2d8faa0af20
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.3.2"
   package_config:
     dependency: transitive
     description:
@@ -1507,7 +1506,7 @@ packages:
     source: hosted
     version: "2.0.1"
   path:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: path
       sha256: "8829d8a55c13fc0e37127c29fedf290c102f4e40ae94ada574091fe0ff96c917"
