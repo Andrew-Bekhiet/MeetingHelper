@@ -1439,7 +1439,10 @@ class _RootState extends State<Root>
         onClickOverlay: _next,
         onClickTarget: _next,
         onFinish: _completer.complete,
-        onSkip: _completer.complete,
+        onSkip: () {
+          _completer.complete();
+          return true;
+        },
       ).show(context: context);
     } else {
       _completer.complete();

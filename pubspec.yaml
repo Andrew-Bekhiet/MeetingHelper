@@ -24,7 +24,7 @@ dependencies:
   cloud_firestore: ^4.0.2
   cloud_functions: ^4.0.1
   collection: ^1.15.0
-  connectivity_plus: ^4.0.1
+  connectivity_plus: ^5.0.1
   convert: ^3.0.2
   copy_with_extension: ^5.0.2
   cupertino_icons: ^1.0.4
@@ -32,24 +32,24 @@ dependencies:
   dart_postgis: ^0.3.2+2
   device_info_plus: ^9.0.2
   expandable: ^5.0.1
-  file_picker: ^5.2.1
-  firebase_app_check: ^0.1.1
-  firebase_auth: ^4.0.2
-  firebase_auth_platform_interface: ^6.2.1
-  firebase_core: ^2.1.0
-  firebase_database: ^10.0.2
-  firebase_dynamic_links: ^5.0.1
-  firebase_in_app_messaging: ^0.7.0+1
-  firebase_messaging: ^14.0.1
-  firebase_storage: ^11.0.1
+  file_picker: ^6.1.1
+  firebase_app_check: ^0.2.1+4
+  firebase_auth: ^4.14.0
+  firebase_auth_platform_interface: ^7.0.4
+  firebase_core: ^2.22.0
+  firebase_database: ^10.3.4
+  firebase_dynamic_links: ^5.4.4
+  firebase_in_app_messaging: ^0.7.4
+  firebase_messaging: ^14.7.4
+  firebase_storage: ^11.5.1
   flutter:
     sdk: flutter
   flutter_colorpicker: ^1.0.3
   flutter_contacts: ^1.1.5
-  flutter_local_notifications: ^15.1.0+1
+  flutter_local_notifications: ^16.1.0
   flutter_localizations:
     sdk: flutter
-  flutter_secure_storage: ^8.0.0
+  flutter_secure_storage: ^9.0.0
   get_it: ^7.2.0
   group_list_view:
     git:
@@ -67,7 +67,7 @@ dependencies:
   package_info_plus: ^4.0.2
   path_provider: ^2.0.8
   percent_indicator: ^4.0.0
-  permission_handler: ^10.0.0
+  permission_handler: ^11.0.1
   photo_view: ^0.14.0
   pointycastle: ^3.5.1
   provider: ^6.0.2
@@ -77,7 +77,7 @@ dependencies:
   share_plus: ^7.0.2
   spreadsheet_decoder: ^2.0.2
   supabase: ^1.0.0
-  syncfusion_flutter_charts: ^22.1.39
+  syncfusion_flutter_charts: ^23.1.44
   timeago: ^3.2.2
   tinycolor2: ^3.0.1
   tuple: ^2.0.0
