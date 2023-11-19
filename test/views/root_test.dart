@@ -452,6 +452,8 @@ void main() {
 
               await tester.pumpWidget(wrapWithMaterialApp(const Scaffold()));
               await tester.pumpAndSettle();
+
+              await Future.delayed(const Duration(seconds: 1));
             },
           );
 

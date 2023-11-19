@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:churchdata_core_mocks/churchdata_core.dart';
 import 'package:churchdata_core_mocks/churchdata_core.mocks.dart';
@@ -20,6 +18,7 @@ import 'package:mockito/mockito.dart';
 import '../utils.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   group(
     'UserRegisteration View tests: ',
     () {
@@ -343,16 +342,12 @@ void main() {
 class TestAssetBundle extends CachingAssetBundle {
   @override
   Future<ByteData> load(String key) async {
-    if (key == 'AssetManifest.json') {
-      return ByteData.view(
-        Uint8List.fromList(const Utf8Encoder().convert(json.encode({}))).buffer,
-      );
+    if (key == 'AssetManifest.json' || key == 'AssetManifest.bin') {
+      return const StandardMessageCodec().encodeMessage(
+        <Object?, Object?>{},
+      )!;
     }
 
-    return ByteData.view(
-      Uint8List.fromList(
-        base64Decode('R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='),
-      ).buffer,
-    );
+    return rootBundle.load(key);
   }
 }
