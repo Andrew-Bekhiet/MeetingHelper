@@ -719,7 +719,7 @@ export const importFromExcel = runWith({
 });
 
 function toNearestDay(date: Date): Date {
-  date.setUTCDate(date.getDate() + (date.getHours() >= 12 ? 1 : 0));
+  date.setUTCDate(date.getUTCDate() + (date.getUTCDate() >= 12 ? 1 : 0));
   date.setUTCHours(6);
   date.setUTCMinutes(0);
   date.setUTCSeconds(0);
