@@ -265,7 +265,7 @@ export const exportToExcel = runWith({
             )
           )
         ).reduce((ary, current) => {
-          ary.push(current);
+          ary.push(...current.docs);
           return ary;
         }, new Array<firestore.DocumentData>())
       : data?.onlyClass
@@ -294,10 +294,10 @@ export const exportToExcel = runWith({
             )
           )
         ).reduce((ary, current) => {
-          ary.push(current);
+          ary.push(...current.docs);
           return ary;
         }, new Array<firestore.DocumentData>())
-  ).reduce<Record<string, Record<string, any>>>((map, p) => {
+  ).reduce<Record<string, Record<string, string | Date>>>((map, p) => {
     const rslt: Record<string, string | Date> = {};
 
     rslt["ClassId"] = (p.data()["ClassId"] as firestore.DocumentReference)?.id;
@@ -331,8 +331,9 @@ export const exportToExcel = runWith({
           (p.data()["Location"] as firestore.GeoPoint).latitude
         }`
       : "";
+
     rslt["Birth Date"] = (p.data()["BirthDate"] as Timestamp)?.toDate()
-      ? (p.data()["BirthDate"] as Timestamp)?.toDate()
+      ? toNearestDay((p.data()["BirthDate"] as Timestamp)?.toDate())
       : "";
     rslt["Study Year"] = classes[
       (p.data()["ClassId"] as firestore.DocumentReference)?.id
@@ -351,15 +352,15 @@ export const exportToExcel = runWith({
       cfathers[(p.data()["CFather"] as firestore.DocumentReference)?.id];
 
     rslt["Last Tanawol"] = (p.data()["LastTanawol"] as Timestamp)?.toDate()
-      ? (p.data()["LastTanawol"] as Timestamp)?.toDate()
+      ? toNearestDay((p.data()["LastTanawol"] as Timestamp)?.toDate())
       : "";
     rslt["Last Confession"] = (
       p.data()["LastConfession"] as Timestamp
     )?.toDate()
-      ? (p.data()["LastConfession"] as Timestamp)?.toDate()
+      ? toNearestDay((p.data()["LastConfession"] as Timestamp)?.toDate())
       : "";
     rslt["Last Kodas"] = (p.data()["LastKodas"] as Timestamp)?.toDate()
-      ? (p.data()["LastKodas"] as Timestamp)?.toDate()
+      ? toNearestDay((p.data()["LastKodas"] as Timestamp)?.toDate())
       : "";
     rslt["Last Meeting"] = (p.data()["LastMeeting"] as Timestamp)?.toDate()
       ? (p.data()["LastMeeting"] as Timestamp)?.toDate()
@@ -716,6 +717,15 @@ export const importFromExcel = runWith({
   await batch.commit();
   return "OK";
 });
+
+function toNearestDay(date: Date): Date {
+  date.setUTCDate(date.getDate() + (date.getHours() >= 12 ? 1 : 0));
+  date.setUTCHours(6);
+  date.setUTCMinutes(0);
+  date.setUTCSeconds(0);
+  date.setUTCMilliseconds(0);
+  return date;
+}
 
 function dateFromExcelSerial(param: number | string): Date {
   if (typeof param === "number") {
