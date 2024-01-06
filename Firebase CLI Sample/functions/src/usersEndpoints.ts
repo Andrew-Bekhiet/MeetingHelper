@@ -11,7 +11,6 @@ import { assertNotEmpty, getFCMTokensForUser } from "./common";
 import {
   adminPassword,
   firebase_dynamic_links_prefix,
-  packageName,
   projectId,
 } from "./environment";
 import { encryptPassword } from "./passwordEncryption";
@@ -310,29 +309,27 @@ export const sendMessageToUsers = https.onCall(async (data, context) => {
   }
   console.log("usersToSend[0]:" + usersToSend[0]);
   console.log("usersToSend" + usersToSend);
-  await messaging().sendToDevice(
-    usersToSend,
-    {
-      notification: {
-        title: data.title,
-        body: data.body,
-      },
-      data: {
-        click_action: "FLUTTER_NOTIFICATION_CLICK",
-        type: "Message",
-        title: data.title,
-        content: data.content,
-        attachement: data.attachement,
-        time: String(Date.now()),
-        sentFrom: from,
-      },
-    },
-    {
+  await messaging().sendEachForMulticast({
+    tokens: usersToSend,
+    android: {
       priority: "high",
-      timeToLive: 7 * 24 * 60 * 60,
-      restrictedPackageName: packageName,
-    }
-  );
+      ttl: 7 * 24 * 60 * 60,
+      restrictedPackageName: "com.AndroidQuartz.etraf",
+    },
+    notification: {
+      title: data.title,
+      body: data.body,
+    },
+    data: {
+      click_action: "FLUTTER_NOTIFICATION_CLICK",
+      type: "Message",
+      title: data.title,
+      content: data.content,
+      attachement: data.attachement,
+      time: String(Date.now()),
+      sentFrom: from,
+    },
+  });
   return "OK";
 });
 
