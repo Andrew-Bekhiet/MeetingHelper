@@ -211,13 +211,13 @@ export const deleteStaleData = runWith({
 
       await storage()
         .bucket("gs://" + projectId + ".appspot.com")
-        .deleteFiles({ prefix: "Exports/{export}" });
+        .deleteFiles({ prefix: "Exports/" });
       await storage()
         .bucket("gs://" + projectId + ".appspot.com")
-        .deleteFiles({ prefix: "Imports/{import}" });
+        .deleteFiles({ prefix: "Imports/" });
       await storage()
         .bucket("gs://" + projectId + ".appspot.com")
-        .deleteFiles({ prefix: "Deleted/{delete}" });
+        .deleteFiles({ prefix: "Deleted/" });
       await firestore().recursiveDelete(
         firestore().collection("Deleted"),
         writer
