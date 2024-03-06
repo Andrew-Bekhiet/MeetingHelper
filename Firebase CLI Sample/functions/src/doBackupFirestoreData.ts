@@ -30,10 +30,19 @@ export const doBackupFirestoreData = runWith({
           "Colleges",
           "Exams",
           "Fathers",
+
           "History",
+
           "Kodas",
           "Meeting",
+          "Confession",
+          "ConfessionHistory",
           "Tanawol",
+          "TanawolHistory",
+          "VisitHistory",
+          "CallHistory",
+          "FatherVisitHistory",
+
           "Invitations",
           "Persons",
           "Schools",
