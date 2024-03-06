@@ -16,11 +16,34 @@ export const doBackupFirestoreData = runWith({
       `Starting backup project ${projectId} database ${databaseName} with name ${timestamp}`
     );
 
+    const servicesIds = (
+      await firestore().collection("Services").get()
+    ).docs.map((doc) => doc.id);
+
     return client
       .exportDocuments({
         name: databaseName,
         outputUriPrefix: `gs://${projectId}-firestore-backup/${timestamp}`,
-        collectionIds: [],
+        collectionIds: [
+          "Churches",
+          "Classes",
+          "Colleges",
+          "Exams",
+          "Fathers",
+          "History",
+          "Kodas",
+          "Meeting",
+          "Tanawol",
+          "Invitations",
+          "Persons",
+          "Schools",
+          "ServantsHistory",
+          "Services",
+          "StudyYears",
+          "Users",
+          "UsersData",
+          ...servicesIds,
+        ],
       })
       .catch((err: any) => {
         console.error(err);
