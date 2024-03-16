@@ -36,8 +36,7 @@ class Root extends StatefulWidget {
 
 class _RootState extends State<Root>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
-  late final StreamSubscription<PendingDynamicLinkData>
-      _dynamicLinksSubscription;
+  StreamSubscription<PendingDynamicLinkData>? _dynamicLinksSubscription;
 
   TabController? _tabController;
   Timer? _keepAliveTimer;
@@ -961,8 +960,8 @@ class _RootState extends State<Root>
             _pushed = false;
             _timeout = false;
 
-            if (_dynamicLinksSubscription.isPaused) {
-              _dynamicLinksSubscription.resume();
+            if (_dynamicLinksSubscription?.isPaused ?? false) {
+              _dynamicLinksSubscription?.resume();
             }
             if (MHNotificationsService
                 .I.onMessageOpenedAppSubscription.isPaused) {
@@ -976,8 +975,8 @@ class _RootState extends State<Root>
             }
           });
         } else {
-          if (_dynamicLinksSubscription.isPaused) {
-            _dynamicLinksSubscription.resume();
+          if (_dynamicLinksSubscription?.isPaused ?? false) {
+            _dynamicLinksSubscription?.resume();
           }
           if (MHNotificationsService
               .I.onMessageOpenedAppSubscription.isPaused) {
@@ -997,8 +996,8 @@ class _RootState extends State<Root>
       case AppLifecycleState.paused:
         _keepAlive(false);
         _recordLastSeen();
-        if (!_dynamicLinksSubscription.isPaused) {
-          _dynamicLinksSubscription.pause();
+        if (!(_dynamicLinksSubscription?.isPaused ?? false)) {
+          _dynamicLinksSubscription?.pause();
         }
     }
   }
@@ -1015,7 +1014,7 @@ class _RootState extends State<Root>
     super.dispose();
     WidgetsBinding.instance.removeObserver(this);
 
-    await _dynamicLinksSubscription.cancel();
+    await _dynamicLinksSubscription?.cancel();
 
     await _showSearch.close();
     await _personsOrder.close();
@@ -1471,7 +1470,7 @@ class _RootState extends State<Root>
         const Duration(minutes: 1),
         () {
           _timeout = true;
-          _dynamicLinksSubscription.pause();
+          _dynamicLinksSubscription?.pause();
           MHNotificationsService.I.onMessageOpenedAppSubscription.pause();
           MHNotificationsService.I.onForegroundMessageSubscription?.pause();
         },
