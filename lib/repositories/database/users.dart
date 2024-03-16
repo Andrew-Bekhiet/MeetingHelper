@@ -1,6 +1,5 @@
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories/database_repository.dart';
 import 'package:rxdart/rxdart.dart';
@@ -183,37 +182,77 @@ class Users {
                     .snapshots(),
           ),
       (sys, cs) {
-        final Map<JsonRef, StudyYear> studyYears = {
-          for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy),
-        };
+        final adminsStudyYearRef =
+            repository.collection('StudyYears').doc('-Admins-');
+
         final unknownStudyYearRef =
             repository.collection('StudyYears').doc('Unknown');
 
-        studyYears[unknownStudyYearRef] = StudyYear(
-          ref: unknownStudyYearRef,
-          name: 'غير معروفة',
-          grade: 10000000,
-        );
-
-        final classesByRef = {
-          for (final c in cs.docs.map(Class.fromDoc).toList()) c.ref: c,
+        final Map<JsonRef, StudyYear> studyYears = {
+          for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy),
+          unknownStudyYearRef: StudyYear(
+            ref: unknownStudyYearRef,
+            name: 'غير معروفة',
+            grade: double.maxFinite.toInt(),
+          ),
+          adminsStudyYearRef: StudyYear(
+            ref: adminsStudyYearRef,
+            name: 'مسؤولون',
+            grade: -double.maxFinite.toInt(),
+          ),
         };
 
-        final rslt = groupBy<User, Class?>(
-          users,
-          (user) => user.classId == null
-              ? null
-              : classesByRef[user.classId] ??
-                  Class(
-                    name: '{لا يمكن قراءة اسم الفصل}',
-                    color: Colors.redAccent,
-                    ref: repository.collection('Classes').doc('Unknown'),
-                  ),
-        ).entries.toList();
+        final Map<String, User> usersByUID = {
+          for (final user in users) user.uid: user,
+        };
 
-        mergeSort<MapEntry<Class?, List<User>>>(
-          rslt,
-          compare: (c, c2) {
+        final Map<Class?, List<User>> unsortedResult = {
+          Class(
+            name: 'مسؤولون',
+            studyYear: adminsStudyYearRef,
+            ref: repository.collection('Classes').doc('-Admins-'),
+          ): users
+              .where(
+                (u) =>
+                    u.permissions.manageUsers ||
+                    u.permissions.manageAllowedUsers ||
+                    u.permissions.superAccess,
+              )
+              .toList(),
+          null: [],
+        };
+
+        for (final Class class$ in cs.docs.map(Class.fromDoc)) {
+          final newUsers = class$.allowedUsers
+              .map((uid) => usersByUID[uid])
+              .whereNotNull()
+              .sortedByCompare(
+                (u) => users.indexOf(u),
+                (a, b) => a.compareTo(b),
+              )
+              .toList();
+
+          unsortedResult[class$] = newUsers;
+        }
+
+        final groupedUsersSet = EqualitySet.from(
+          EqualityBy<User, String>((u) => u.uid),
+          unsortedResult.values.expand((e) => e),
+        );
+        final allUsersSet = EqualitySet.from(
+          EqualityBy<User, String>((u) => u.uid),
+          users,
+        );
+
+        final ungroupedUsers = allUsersSet.difference(groupedUsersSet).toList();
+
+        for (final user in ungroupedUsers) {
+          unsortedResult[null]!.add(user);
+        }
+
+        final List<MapEntry<Class?, List<User>>> sortedResult =
+            unsortedResult.entries.sorted(
+          (c, c2) {
             if (c.key == null || c.key!.name == '{لا يمكن قراءة اسم الفصل}') {
               return 1;
             }
@@ -233,7 +272,10 @@ class Users {
           },
         );
 
-        return {for (final e in rslt) e.key: e.value};
+        return {
+          for (final e in sortedResult)
+            if (e.value.isNotEmpty) e.key: e.value,
+        };
       },
     );
   }
