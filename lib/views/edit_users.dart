@@ -34,7 +34,9 @@ class _UsersPageState extends State<UsersPage> {
         ],
         title: _showSearch
             ? TextField(
+                autofocus: true,
                 decoration: InputDecoration(
+                  border: InputBorder.none,
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () => setState(
