@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:churchdata_core/churchdata_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -13,7 +15,6 @@ import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/widgets.dart';
 import 'package:provider/provider.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 class EditUser extends StatefulWidget {
@@ -28,9 +29,9 @@ class EditUser extends StatefulWidget {
 }
 
 class _EditUserState extends State<EditUser> {
-  AsyncMemoizerCache<String?> className = AsyncMemoizerCache();
   late UserWithPerson user;
   List<User>? childrenUsers;
+  List<Class>? adminOnClasses;
 
   GlobalKey<FormState> form = GlobalKey<FormState>();
 
@@ -145,38 +146,6 @@ class _EditUserState extends State<EditUser> {
                               ),
                             )
                           : const Text('لا يمكن التحديد'),
-                    ),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: _selectClass,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: InputDecorator(
-                      isEmpty: user.classId == null,
-                      decoration: const InputDecoration(
-                        labelText: 'داخل فصل',
-                      ),
-                      child: FutureBuilder<String?>(
-                        future: className.runOnce(
-                          () => user.classId == null
-                              ? Future<String?>(() => null)
-                              : user.classId
-                                      ?.get()
-                                      .then((d) => d.data()?['Name']) ??
-                                  Future<String?>(() => null),
-                        ),
-                        builder: (con, data) {
-                          if (data.hasData) {
-                            return Text(data.data!);
-                          } else if (data.connectionState ==
-                              ConnectionState.waiting) {
-                            return const LinearProgressIndicator();
-                          } else {
-                            return Container();
-                          }
-                        },
-                      ),
                     ),
                   ),
                 ),
@@ -466,6 +435,16 @@ class _EditUserState extends State<EditUser> {
                   ),
                 ),
                 ElevatedButton.icon(
+                  onPressed: editAdminOnClasses,
+                  icon: const Icon(Icons.groups),
+                  label: Text(
+                    'تعديل الفصول المسؤول عنهم ' + user.name,
+                    softWrap: false,
+                    textScaler: const TextScaler.linear(0.95),
+                    overflow: TextOverflow.fade,
+                  ),
+                ),
+                ElevatedButton.icon(
                   onPressed: editChildrenUsers,
                   icon: const Icon(Icons.shield),
                   label: Text(
@@ -562,6 +541,76 @@ class _EditUserState extends State<EditUser> {
           ),
         ) ??
         childrenUsers;
+  }
+
+  Future<void> editAdminOnClasses() async {
+    adminOnClasses = await navigator.currentState!.push(
+          MaterialPageRoute(
+            builder: (context) {
+              return StreamBuilder<List<Class>>(
+                stream: adminOnClasses != null
+                    ? Stream.value(adminOnClasses!)
+                    : GetIt.I<MHDatabaseRepo>().classes.getAll(
+                          queryCompleter: (q, order, desc) => q
+                              .where('Allowed', arrayContains: user.uid)
+                              .orderBy(order, descending: desc),
+                        ),
+                builder: (c, classes) {
+                  if (!classes.hasData) {
+                    return const Scaffold(
+                      body: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+
+                  return MultiProvider(
+                    providers: [
+                      Provider<ServicesListController>(
+                        create: (_) => ServicesListController<Class>(
+                          objectsPaginatableStream: PaginatableStream.loadAll(
+                            stream: Stream.value([]),
+                          ),
+                          groupByStream: (_) => MHDatabaseRepo.I.services
+                              .groupServicesByStudyYearRef<Class>(),
+                        )..selectAll(classes.data),
+                        dispose: (context, c) => c.dispose(),
+                      ),
+                    ],
+                    builder: (context, child) => Scaffold(
+                      persistentFooterButtons: [
+                        TextButton(
+                          onPressed: () {
+                            navigator.currentState!.pop(
+                              context
+                                  .read<ServicesListController>()
+                                  .currentSelection
+                                  ?.toList()
+                                  .cast<Class>(),
+                            );
+                          },
+                          child: const Text('تم'),
+                        ),
+                      ],
+                      appBar: AppBar(
+                        title: SearchField(
+                          showSuffix: false,
+                          searchStream: context
+                              .read<ServicesListController>()
+                              .searchSubject,
+                          textStyle: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ),
+                      body: ServicesList(
+                        options: context.read<ServicesListController>(),
+                        autoDisposeController: false,
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ) ??
+        adminOnClasses;
   }
 
   Future<void> editAdminServices() async {
@@ -791,6 +840,10 @@ class _EditUserState extends State<EditUser> {
           childrenUsers: childrenUsers,
         );
 
+        if (adminOnClasses != null) {
+          await _updateUserAdminOnClasses(adminOnClasses!);
+        }
+
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
         navigator.currentState!.pop(user);
         scaffoldMessenger.currentState!.showSnackBar(
@@ -832,82 +885,37 @@ class _EditUserState extends State<EditUser> {
     return null;
   }
 
-  Future<void> _selectClass() async {
-    final controller = ServicesListController<Class>(
-      objectsPaginatableStream:
-          PaginatableStream.loadAll(stream: Stream.value([])),
-      groupByStream: (_) =>
-          MHDatabaseRepo.I.services.groupServicesByStudyYearRef(),
+  Future<void> _updateUserAdminOnClasses(List<Class> newClassesList) async {
+    final EqualityBy<Class, String> equalityById =
+        EqualityBy<Class, String>((c) => c.id);
+
+    final Set<Class> newClasses = EqualitySet.from(
+      equalityById,
+      newClassesList,
     );
 
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          child: Scaffold(
-            extendBody: true,
-            floatingActionButtonLocation:
-                FloatingActionButtonLocation.endDocked,
-            body: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SearchFilters(
-                  Class,
-                  options: controller,
-                  orderOptions: BehaviorSubject<OrderOptions>.seeded(
-                    const OrderOptions(),
-                  ),
-                  textStyle: Theme.of(context).textTheme.bodyMedium,
-                ),
-                Expanded(
-                  child: ServicesList<Class>(
-                    options: controller,
-                    onTap: (class$) {
-                      navigator.currentState!.pop();
-                      user = user.copyWith.classId(class$.ref);
-                      className.invalidate();
-                      setState(() {});
-                      FocusScope.of(context).nextFocus();
-                    },
-                    autoDisposeController: false,
-                  ),
-                ),
-              ],
-            ),
-            bottomNavigationBar: BottomAppBar(
-              color: Theme.of(context).colorScheme.primary,
-              shape: const CircularNotchedRectangle(),
-              child: StreamBuilder<List>(
-                stream: controller.objectsStream,
-                builder: (context, snapshot) {
-                  return Text(
-                    (snapshot.data?.length ?? 0).toString() + ' خدمة',
-                    textAlign: TextAlign.center,
-                    strutStyle:
-                        StrutStyle(height: IconTheme.of(context).size! / 7.5),
-                    style: Theme.of(context).primaryTextTheme.bodyLarge,
-                  );
-                },
-              ),
-            ),
-            floatingActionButton: User.instance.permissions.write
-                ? FloatingActionButton(
-                    onPressed: () async {
-                      navigator.currentState!.pop();
-                      user = user.copyWith.classId(
-                        await navigator.currentState!
-                                .pushNamed('Data/EditClass') as JsonRef? ??
-                            user.classId,
-                      );
-                      setState(() {});
-                    },
-                    child: const Icon(Icons.group_add),
-                  )
-                : null,
-          ),
-        );
+    final Set<Class> oldClasses = EqualitySet.from(
+      equalityById,
+      (await MHDatabaseRepo.I.classes.getAll().first)
+          .where((c) => c.allowedUsers.contains(user.uid)),
+    );
+    final toRemove = oldClasses.difference(newClasses).toList();
+    final toAdd = newClasses.difference(oldClasses).toList();
+
+    await MHDatabaseRepo.I.runTransaction(
+      (tr) async {
+        for (final c in toRemove) {
+          tr.update(c.ref, {
+            'Allowed': FieldValue.arrayRemove([user.uid]),
+          });
+        }
+
+        for (final c in toAdd) {
+          tr.update(c.ref, {
+            'Allowed': FieldValue.arrayUnion([user.uid]),
+          });
+        }
       },
     );
-    await controller.dispose();
   }
 }

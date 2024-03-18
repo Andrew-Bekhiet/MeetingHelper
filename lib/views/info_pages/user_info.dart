@@ -176,22 +176,6 @@ class _UserInfoState extends State<UserInfo> {
                   ),
                 ),
                 ListTile(
-                  title: const Text('داخل فصل:'),
-                  subtitle:
-                      user.classId != null && user.classId!.parent.id != 'null'
-                          ? FutureBuilder<Class?>(
-                              future: MHDatabaseRepo.I.classes
-                                  .getById(user.classId!.id),
-                              builder: (context, _class) => _class.hasData
-                                  ? ViewableObjectWidget<Class>(
-                                      _class.data!,
-                                      isDense: true,
-                                    )
-                                  : const LinearProgressIndicator(),
-                            )
-                          : const Text('غير موجود'),
-                ),
-                ListTile(
                   title: const Text('الصلاحيات:'),
                   subtitle: Column(
                     children: [
