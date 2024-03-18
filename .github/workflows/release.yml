@@ -84,12 +84,12 @@ jobs:
 
       - name: Add version to APK filename
         run: |
-          mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/app-release-v${{ steps.version.outputs.version }}.apk
+          mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/MeetingHelper-v${{ steps.version.outputs.version }}.apk
 
       - name: Create release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/app/outputs/flutter-apk/app-release-v${{ steps.version.outputs.version }}.apk"
+          artifacts: "build/app/outputs/flutter-apk/MeetingHelper-v${{ steps.version.outputs.version }}.apk"
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: v${{ steps.version.outputs.version }}
           generateReleaseNotes: true
