@@ -218,7 +218,16 @@ class Persons extends TableBase<Person> {
           .map((p) => p.whereType<T>().toList()),
       (studyYears, persons) {
         return {
-          for (final person in persons.groupListsBy((p) => p.studyYear).entries)
+          for (final person
+              in persons.groupListsBy((p) => p.studyYear).entries.sorted(
+                    (a, b) => a.key != null && studyYears[a.key] != null
+                        ? (b.key != null && studyYears[b.key] != null
+                            ? studyYears[a.key]!
+                                .grade
+                                .compareTo(studyYears[b.key]!.grade)
+                            : 1)
+                        : -1,
+                  ))
             if (person.key != null && studyYears[person.key] != null)
               studyYears[person.key]: person.value,
         };
