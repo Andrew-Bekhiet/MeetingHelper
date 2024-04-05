@@ -19,32 +19,21 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           cache: true
-          cache-key: "flutter-:channel:-:version:"
+          pub-cache-key: "flutter-pub-:os:-:channel:-:version:-:arch:"
+          cache-key: "flutter-:os:-:channel:-:version:-:arch:"
           channel: "stable"
 
-      - name: Get Cached dependencies
-        uses: actions/cache@v3
-        id: flutter_cache
+      - name: Set Up Java
+        uses: actions/setup-java@v4
         with:
-          path: ${{ env.PUB_CACHE }}
-          key: flutter-dependencies-v1-${{hashFiles('pubspec.yaml', 'pubspec.lock')}}
-          restore-keys: |
-            flutter-dependencies-v1-
+          cache: "gradle"
+          distribution: "corretto"
+          java-version: "17"
 
       - name: Populate the Flutter tool's cache of binary artifacts
-        if: ${{ steps.flutter_cache.outputs.cache-hit != 'true' }}
         run: |
-          flutter config --no-analytics
+          flutter config --disable-analytics
           flutter precache
-
-      - name: Get Cached .dart_tool
-        uses: actions/cache@v3
-        id: dart_tool_cache
-        with:
-          path: .dart_tool
-          key: dart-tool-v1-${{hashFiles('pubspec.yaml', 'build.yaml')}}
-          restore-keys: |
-            dart-tool-v1-
 
       - name: Decode and save secrets to files
         env:
