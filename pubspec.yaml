@@ -76,7 +76,7 @@ dependencies:
   sentry_flutter: ^7.9.0
   share_plus: ^7.0.2
   spreadsheet_decoder: ^2.0.2
-  supabase: ^1.0.0
+  supabase: ^2.0.9
   syncfusion_flutter_charts: ^23.1.44
   timeago: ^3.2.2
   tinycolor2: ^3.0.1
