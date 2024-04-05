@@ -384,15 +384,20 @@ class _EditPersonState extends State<EditPerson> {
                         labelText: 'داخل فصل',
                         errorText: state.errorText,
                         errorMaxLines: 2,
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.delete),
-                          tooltip: 'ازالة الفصل المحدد',
-                          onPressed: () {
-                            setState(
-                              () => person = person.copyWith.classId(null),
-                            );
-                          },
-                        ),
+                        suffixIcon: state.value != null
+                            ? IconButton(
+                                icon: const Icon(Icons.delete),
+                                tooltip: 'ازالة الفصل المحدد',
+                                onPressed: () {
+                                  setState(
+                                    () {
+                                      person = person.copyWith.classId(null);
+                                      state.didChange(null);
+                                    },
+                                  );
+                                },
+                              )
+                            : null,
                       ),
                       builder: (context, state) {
                         return state.value == null
@@ -1375,6 +1380,7 @@ class _EditPersonState extends State<EditPerson> {
                                   ? person.isShammas
                                   : false,
                             );
+                        state.didChange(class$.ref);
                       });
                       FocusScope.of(context).nextFocus();
                     },
