@@ -205,6 +205,8 @@ class Users {
         final Map<String, User> usersByUID = {
           for (final user in users) user.uid: user,
         };
+        final Map<String?, List<User>> usersByClassId =
+            users.groupListsBy((u) => u.classId?.id);
 
         final Map<Class?, List<User>> unsortedResult = {
           Class(
@@ -226,10 +228,12 @@ class Users {
           final newUsers = class$.allowedUsers
               .map((uid) => usersByUID[uid])
               .whereNotNull()
+              .followedBy(usersByClassId[class$.id] ?? [])
               .sortedByCompare(
                 (u) => users.indexOf(u),
                 (a, b) => a.compareTo(b),
               )
+              .toSet()
               .toList();
 
           unsortedResult[class$] = newUsers;
