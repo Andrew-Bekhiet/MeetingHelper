@@ -437,7 +437,7 @@ class HistoryDayOptions {
   int get hashCode => Object.hash(showOnly.value, grouped.value, enabled.value);
 
   @override
-  bool operator ==(dynamic other) =>
+  bool operator ==(Object other) =>
       other is HistoryDayOptions && other.hashCode == hashCode;
 }
 

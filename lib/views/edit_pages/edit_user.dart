@@ -430,7 +430,7 @@ class _EditUserState extends State<EditUser> {
                   label: Text(
                     'تعديل الخدمات المسؤول عنها ' + user.name,
                     softWrap: false,
-                    textScaleFactor: 0.95,
+                    textScaler: const TextScaler.linear(0.95),
                     overflow: TextOverflow.fade,
                   ),
                 ),
@@ -450,7 +450,7 @@ class _EditUserState extends State<EditUser> {
                   label: Text(
                     'تعديل المستخدمين المسؤول عنهم ' + user.name,
                     softWrap: false,
-                    textScaleFactor: 0.95,
+                    textScaler: const TextScaler.linear(0.95),
                     overflow: TextOverflow.fade,
                   ),
                 ),
@@ -817,7 +817,12 @@ class _EditUserState extends State<EditUser> {
   }
 
   Future save() async {
-    if (await Connectivity().checkConnectivity() == ConnectivityResult.none) {
+    if ((await Connectivity().checkConnectivity()).any(
+      (c) =>
+          c == ConnectivityResult.mobile ||
+          c == ConnectivityResult.wifi ||
+          c == ConnectivityResult.ethernet,
+    )) {
       await showDialog(
         context: context,
         builder: (context) =>

@@ -48,7 +48,7 @@ abstract class HistoryDayBase extends DataObjectWithPhoto {
       name != null ? ref.collection(name) : null;
 
   @override
-  bool operator ==(dynamic other) =>
+  bool operator ==(Object other) =>
       other is HistoryDayBase && other.hashCode == hashCode;
 
   @override

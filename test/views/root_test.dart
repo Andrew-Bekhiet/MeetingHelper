@@ -748,7 +748,6 @@ class FakeAndroidDeviceInfo implements AndroidDeviceInfo {
         'brand': brand,
         'device': device,
         'display': display,
-        'displayMetrics': displayMetrics.toMap(),
         'fingerprint': fingerprint,
         'hardware': hardware,
         'host': host,
@@ -772,9 +771,6 @@ class FakeAndroidDeviceInfo implements AndroidDeviceInfo {
 
   @override
   String get display => 'display';
-
-  @override
-  AndroidDisplayMetrics get displayMetrics => FakeAndroidDisplayMetrics();
 
   @override
   String get fingerprint => 'fingerprint';
@@ -826,6 +822,9 @@ class FakeAndroidDeviceInfo implements AndroidDeviceInfo {
 
   @override
   AndroidBuildVersion get version => FakeAndroidBuildVersion();
+
+  @override
+  bool get isLowRamDevice => false;
 }
 
 class FakeAndroidBuildVersion implements AndroidBuildVersion {
@@ -862,40 +861,6 @@ class FakeAndroidBuildVersion implements AndroidBuildVersion {
       'securityPatch': securityPatch,
     };
   }
-}
-
-class FakeAndroidDisplayMetrics implements AndroidDisplayMetrics {
-  @override
-  double get heightInches => 1;
-
-  @override
-  double get heightPx => 1;
-
-  @override
-  double get sizeInches => 1;
-
-  @override
-  Map<String, dynamic> toMap() => {
-        'heightInches': heightInches,
-        'heightPx': heightPx,
-        'sizeInches': sizeInches,
-        'widthInches': widthInches,
-        'widthPx': widthPx,
-        'xDpi': xDpi,
-        'yDpi': yDpi,
-      };
-
-  @override
-  double get widthInches => 1;
-
-  @override
-  double get widthPx => 1;
-
-  @override
-  double get xDpi => 1;
-
-  @override
-  double get yDpi => 1;
 }
 
 class StructureTestVariants extends TestVariant<MHPermissionsSet> {

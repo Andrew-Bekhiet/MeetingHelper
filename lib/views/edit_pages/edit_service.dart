@@ -337,7 +337,7 @@ class _EditServiceState extends State<EditService> {
                       label: const Text(
                         'الخدام المسؤلين عن الخدمة والمخدومين داخلها',
                         softWrap: false,
-                        textScaleFactor: 0.95,
+                        textScaler: TextScaler.linear(0.95),
                         overflow: TextOverflow.fade,
                       ),
                     ),
@@ -442,7 +442,12 @@ class _EditServiceState extends State<EditService> {
           duration: Duration(seconds: 2),
         ),
       );
-      if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
+      if ((await Connectivity().checkConnectivity()).any(
+        (c) =>
+            c == ConnectivityResult.mobile ||
+            c == ConnectivityResult.wifi ||
+            c == ConnectivityResult.ethernet,
+      )) {
         await service.ref.delete();
       } else {
         // ignore: unawaited_futures
@@ -509,15 +514,23 @@ class _EditServiceState extends State<EditService> {
         );
 
         if (update &&
-            await Connectivity().checkConnectivity() !=
-                ConnectivityResult.none) {
+            (await Connectivity().checkConnectivity()).any(
+              (c) =>
+                  c == ConnectivityResult.mobile ||
+                  c == ConnectivityResult.wifi ||
+                  c == ConnectivityResult.ethernet,
+            )) {
           await service.update(old: widget.service?.toJson() ?? {});
         } else if (update) {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
           service.update(old: widget.service?.toJson() ?? {});
-        } else if (await Connectivity().checkConnectivity() !=
-            ConnectivityResult.none) {
+        } else if ((await Connectivity().checkConnectivity()).any(
+          (c) =>
+              c == ConnectivityResult.mobile ||
+              c == ConnectivityResult.wifi ||
+              c == ConnectivityResult.ethernet,
+        )) {
           await service.set();
         } else {
           //Intentionally unawaited because of no internet connection

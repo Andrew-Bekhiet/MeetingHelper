@@ -1160,7 +1160,12 @@ class _EditPersonState extends State<EditPerson> {
           ),
         ) ==
         true) {
-      if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
+      if ((await Connectivity().checkConnectivity()).any(
+        (c) =>
+            c == ConnectivityResult.mobile ||
+            c == ConnectivityResult.wifi ||
+            c == ConnectivityResult.ethernet,
+      )) {
         await person.ref.delete();
       } else {
         // ignore: unawaited_futures
@@ -1246,8 +1251,12 @@ class _EditPersonState extends State<EditPerson> {
         }
 
         if (update &&
-            await Connectivity().checkConnectivity() !=
-                ConnectivityResult.none) {
+            (await Connectivity().checkConnectivity()).any(
+              (c) =>
+                  c == ConnectivityResult.mobile ||
+                  c == ConnectivityResult.wifi ||
+                  c == ConnectivityResult.ethernet,
+            )) {
           if (person.ref.parent.id == 'UsersData') {
             await person.ref.update(
               {
@@ -1271,8 +1280,12 @@ class _EditPersonState extends State<EditPerson> {
           } else {
             unawaited(person.update(old: widget.person?.toJson() ?? {}));
           }
-        } else if (await Connectivity().checkConnectivity() !=
-            ConnectivityResult.none) {
+        } else if ((await Connectivity().checkConnectivity()).any(
+          (c) =>
+              c == ConnectivityResult.mobile ||
+              c == ConnectivityResult.wifi ||
+              c == ConnectivityResult.ethernet,
+        )) {
           if (person.ref.parent.id == 'UsersData') {
             await person.ref.set(
               {

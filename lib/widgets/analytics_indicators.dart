@@ -886,7 +886,6 @@ class CartesianChart<T> extends StatelessWidget {
                           Colors.amber[800]!.withOpacity(0.5),
                         ],
                       ),
-                      borderWidth: 2,
                       dataSource: data.entries.toList(),
                       xValueMapper: (item, index) => item.key.toDate().toUtc(),
                       yValueMapper: (item, index) => item.value.length,
@@ -928,18 +927,14 @@ class PieChart<T> extends StatelessWidget {
         legend: const Legend(
           isVisible: true,
           position: LegendPosition.bottom,
-          overflowMode: LegendItemOverflowMode.scroll,
           orientation: LegendItemOrientation.vertical,
           isResponsive: true,
           width: '100%',
           height: '35%',
           padding: 0,
-          alignment: ChartAlignment.center,
         ),
         series: [
           PieSeries<Tuple2<int, T>, String>(
-            enableTooltip: true,
-            dataLabelSettings: const DataLabelSettings(),
             dataLabelMapper: (entry, _) =>
                 (_getName(entry.item2) ?? 'غير معروف') +
                 ': ' +

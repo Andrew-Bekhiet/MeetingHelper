@@ -302,7 +302,7 @@ class _UserInfoState extends State<UserInfo> {
                 ElevatedButton.icon(
                   label: Text(
                     'المستخدمين المسؤول عنهم ' + user.name,
-                    textScaleFactor: 0.95,
+                    textScaler: const TextScaler.linear(0.95),
                     overflow: TextOverflow.fade,
                   ),
                   icon: const Icon(Icons.shield),

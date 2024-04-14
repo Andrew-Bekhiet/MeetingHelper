@@ -438,8 +438,14 @@ class _RootState extends State<Root>
                   leading: const Icon(Icons.admin_panel_settings),
                   onTap: () async {
                     mainScfld.currentState!.openEndDrawer();
-                    if (await Connectivity().checkConnectivity() !=
-                        ConnectivityResult.none) {
+                    final connectivity =
+                        await Connectivity().checkConnectivity();
+                    if (connectivity.any(
+                      (c) =>
+                          c == ConnectivityResult.mobile ||
+                          c == ConnectivityResult.wifi ||
+                          c == ConnectivityResult.ethernet,
+                    )) {
                       // ignore: unawaited_futures
                       navigator.currentState!.push(
                         MaterialPageRoute(

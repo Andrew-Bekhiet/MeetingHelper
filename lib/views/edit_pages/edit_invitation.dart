@@ -486,7 +486,12 @@ class _EditInvitationState extends State<EditInvitation> {
           duration: Duration(seconds: 15),
         ),
       );
-      if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
+      if ((await Connectivity().checkConnectivity()).any(
+        (c) =>
+            c == ConnectivityResult.mobile ||
+            c == ConnectivityResult.wifi ||
+            c == ConnectivityResult.ethernet,
+      )) {
         await invitation.ref.delete();
       } else {
         // ignore: unawaited_futures
@@ -514,7 +519,12 @@ class _EditInvitationState extends State<EditInvitation> {
   }
 
   Future save() async {
-    if (await Connectivity().checkConnectivity() == ConnectivityResult.none) {
+    if ((await Connectivity().checkConnectivity()).any(
+      (c) =>
+          c == ConnectivityResult.mobile ||
+          c == ConnectivityResult.wifi ||
+          c == ConnectivityResult.ethernet,
+    )) {
       await showDialog(
         context: context,
         builder: (context) =>
@@ -537,8 +547,12 @@ class _EditInvitationState extends State<EditInvitation> {
             GetIt.I<DatabaseRepository>().collection('Invitations').doc(),
           );
           invitation = invitation.copyWith.generatedBy(User.instance.uid);
-          if (await Connectivity().checkConnectivity() !=
-              ConnectivityResult.none) {
+          if ((await Connectivity().checkConnectivity()).any(
+            (c) =>
+                c == ConnectivityResult.mobile ||
+                c == ConnectivityResult.wifi ||
+                c == ConnectivityResult.ethernet,
+          )) {
             await invitation.ref.set({
               ...invitation.toJson(),
               'GeneratedOn': FieldValue.serverTimestamp(),
@@ -556,8 +570,12 @@ class _EditInvitationState extends State<EditInvitation> {
               (key, value) => widget.invitation.toJson()[key] == value,
             );
           if (update.isNotEmpty) {
-            if (await Connectivity().checkConnectivity() !=
-                ConnectivityResult.none) {
+            if ((await Connectivity().checkConnectivity()).any(
+              (c) =>
+                  c == ConnectivityResult.mobile ||
+                  c == ConnectivityResult.wifi ||
+                  c == ConnectivityResult.ethernet,
+            )) {
               await invitation.update(old: update);
             } else {
               // ignore: unawaited_futures
