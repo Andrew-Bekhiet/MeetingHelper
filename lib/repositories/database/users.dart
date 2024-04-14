@@ -221,7 +221,7 @@ class Users {
                     u.permissions.superAccess,
               )
               .toList(),
-          null: [],
+          null: usersByClassId[null] ?? [],
         };
 
         for (final Class class$ in cs.docs.map(Class.fromDoc)) {
@@ -257,11 +257,15 @@ class Users {
         final List<MapEntry<Class?, List<User>>> sortedResult =
             unsortedResult.entries.sorted(
           (c, c2) {
-            if (c.key == null || c.key!.name == '{لا يمكن قراءة اسم الفصل}') {
+            if (c.key == null ||
+                c.key!.name == '{لا يمكن قراءة اسم الفصل}' ||
+                c.key!.studyYear == null) {
               return 1;
             }
 
-            if (c2.key == null || c2.key!.name == '{لا يمكن قراءة اسم الفصل}') {
+            if (c2.key == null ||
+                c2.key!.name == '{لا يمكن قراءة اسم الفصل}' ||
+                c2.key!.studyYear == null) {
               return -1;
             }
 

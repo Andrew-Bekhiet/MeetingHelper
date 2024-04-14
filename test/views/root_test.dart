@@ -396,6 +396,9 @@ void main() {
               await tester.binding
                   .setSurfaceSize(const Size(1080 * 3, 2400 * 3));
 
+              VisibilityDetectorController.instance.updateInterval =
+                  Duration.zero;
+
               await tester.pumpWidget(
                 wrapWithMaterialApp(
                   const Root(),
@@ -404,23 +407,6 @@ void main() {
               );
               await tester.pumpAndSettle();
 
-              /* expect(find.text('ابتدائي'), findsOneWidget);
-              expect(find.text('اعدادي'), findsOneWidget);
-              expect(find.text('ثانوي'), findsOneWidget);
-
-              expect(find.text(studyYears.values.first.name), findsOneWidget);
-              await tester.tap(find.text(studyYears.values.first.name));
-              await tester.pumpAndSettle();
-
-              for (final class$ in classes) {
-                expect(
-                  find.widgetWithText(
-                    ViewableObjectWidget<Class>,
-                    class$.name,
-                  ),
-                  findsOneWidget,
-                );
-              } */
               await tester.tap(find.text('المخدومين'));
               await tester.pumpAndSettle();
 
@@ -434,8 +420,14 @@ void main() {
                 );
               }
 
+              VisibilityDetectorController.instance.updateInterval =
+                  Duration.zero;
+
               await tester.tap(find.text('الخدام'));
               await tester.pumpAndSettle();
+
+              VisibilityDetectorController.instance.updateInterval =
+                  Duration.zero;
 
               await tester.tap(find.text('غير محددة'));
               await tester.pumpAndSettle();
@@ -452,8 +444,6 @@ void main() {
 
               await tester.pumpWidget(wrapWithMaterialApp(const Scaffold()));
               await tester.pumpAndSettle();
-
-              await Future.delayed(const Duration(seconds: 1));
             },
           );
 
@@ -562,9 +552,34 @@ void main() {
 Future<Tuple2<List<Person>, List<UserWithPerson>>> setUpMockData() async {
   final personsRef = MHDatabaseRepo.I.collection('Persons');
   final usersRef = MHDatabaseRepo.I.collection('UsersData');
-  /* final classesRef = MHDatabaseRepo.I.collection('Classes');
-              final servicesRef = MHDatabaseRepo.I.collection('Services');
-              final studyYearsRef = MHDatabaseRepo.I.collection('StudyYears'); */
+  final classesRef = MHDatabaseRepo.I.collection('Classes');
+
+  final classes = [
+    Class(
+      ref: classesRef.doc(),
+      name: '1 ب ولاد',
+    ),
+    Class(
+      ref: classesRef.doc(),
+      name: '1 ب ولاد',
+      gender: false,
+    ),
+    Class(
+      ref: classesRef.doc(),
+      name: '2 ب',
+      gender: null,
+    ),
+    Class(
+      ref: classesRef.doc(),
+      name: '1 ع',
+      gender: null,
+    ),
+    Class(
+      ref: classesRef.doc(),
+      name: '1 ث',
+      gender: null,
+    ),
+  ];
 
   final persons = List.generate(
     20,
@@ -578,78 +593,19 @@ Future<Tuple2<List<Person>, List<UserWithPerson>>> setUpMockData() async {
 
   final users = List.generate(
     20,
-    (_) => UserWithPerson(
-      uid: 'uid',
-      permissions: const MHPermissionsSet.empty(),
-      adminServices: const [],
-      allowedUsers: const [],
-      ref: usersRef.doc(),
-      name: mockName() + '-' + mockString(),
-    ),
+    (_) {
+      return UserWithPerson(
+        uid: 'uid',
+        permissions: const MHPermissionsSet.empty(),
+        adminServices: const [],
+        allowedUsers: const [],
+        ref: usersRef.doc(),
+        name: mockName() + '-' + mockString(),
+      );
+    },
   ).sorted(
     (a, b) => a.name.compareTo(b.name),
   );
-
-  /* final studyYears = {
-                1: StudyYear(
-                  ref: studyYearsRef.doc(),
-                  name: 'أولى ابتدائي',
-                  grade: 1,
-                ),
-                2: StudyYear(
-                  ref: studyYearsRef.doc(),
-                  name: 'تانية ابتدائي',
-                  grade: 2,
-                ),
-                7: StudyYear(
-                  ref: studyYearsRef.doc(),
-                  name: 'أولى اعدادي',
-                  grade: 7,
-                ),
-                10: StudyYear(
-                  ref: studyYearsRef.doc(),
-                  name: 'أولى ثانوي',
-                  grade: 10,
-                ),
-              };
-
-              final classes = [
-                Class(
-                  ref: classesRef.doc(),
-                  name: '1 ب ولاد',
-                  studyYear: studyYears[1]!.ref,
-                ),
-                Class(
-                  ref: classesRef.doc(),
-                  name: '1 ب ولاد',
-                  studyYear: studyYears[1]!.ref,
-                  gender: false,
-                ),
-                Class(
-                  ref: classesRef.doc(),
-                  name: '2 ب',
-                  studyYear: studyYears[2]!.ref,
-                  gender: null,
-                ),
-                Class(
-                  ref: classesRef.doc(),
-                  name: '1 ع',
-                  studyYear: studyYears[7]!.ref,
-                  gender: null,
-                ),
-                Class(
-                  ref: classesRef.doc(),
-                  name: '1 ث',
-                  studyYear: studyYears[10]!.ref,
-                  gender: null,
-                ),
-              ];
-
-              final service = Service(
-                ref: servicesRef.doc(),
-                name: 'خدمة أخرى',
-                lastEdit: null,
-              ); */
 
   await Future.wait(
     persons
@@ -665,22 +621,12 @@ Future<Tuple2<List<Person>, List<UserWithPerson>>> setUpMockData() async {
               },
             ),
           ),
+        )
+        .followedBy(
+          classes.map(
+            (s) => s.set(),
+          ),
         ),
-    /* .followedBy(
-                      studyYears.values.map(
-                        (s) => s.set(),
-                      ),
-                    )
-                    .followedBy(
-                      classes.map(
-                        (s) => s.set(),
-                      ),
-                    )
-                    .followedBy(
-                  [
-                    service.set(),
-                  ],
-                ), */
   );
   return Tuple2(persons, users);
 }
@@ -763,6 +709,7 @@ class FakeAndroidDeviceInfo implements AndroidDeviceInfo {
         'systemFeatures': systemFeatures,
         'tags': tags,
         'type': type,
+        'isLowRamDevice': isLowRamDevice,
         'version': version.toMap(),
       };
 
