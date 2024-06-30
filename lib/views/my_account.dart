@@ -118,9 +118,9 @@ class _MyAccountState extends State<MyAccount> {
                   if (selectedImage == null) return;
                   final finalImage = await ImageCropper().cropImage(
                     sourcePath: selectedImage.path,
-                    cropStyle: CropStyle.circle,
                     uiSettings: [
                       AndroidUiSettings(
+                        cropStyle: CropStyle.circle,
                         toolbarTitle: 'قص الصورة',
                         toolbarColor: Theme.of(context).colorScheme.primary,
                         toolbarWidgetColor: Theme.of(context)
