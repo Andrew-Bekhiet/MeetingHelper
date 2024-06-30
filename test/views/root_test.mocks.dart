@@ -551,24 +551,6 @@ class MockFirebaseStorage extends _i1.Mock implements _i5.FirebaseStorage {
       );
 
   @override
-  _i8.Future<void> useEmulator({
-    required String? host,
-    required int? port,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #useEmulator,
-          [],
-          {
-            #host: host,
-            #port: port,
-          },
-        ),
-        returnValue: _i8.Future<void>.value(),
-        returnValueForMissingStub: _i8.Future<void>.value(),
-      ) as _i8.Future<void>);
-
-  @override
   _i8.Future<void> useStorageEmulator(
     String? host,
     int? port, {
