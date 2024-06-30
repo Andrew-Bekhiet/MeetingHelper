@@ -461,7 +461,7 @@ class _EditInvitationState extends State<EditInvitation> {
             actions: <Widget>[
               TextButton(
                 style: Theme.of(innerContext).textButtonTheme.style!.copyWith(
-                      foregroundColor: MaterialStateProperty.resolveWith(
+                      foregroundColor: WidgetStateProperty.resolveWith(
                         (state) => Colors.red,
                       ),
                     ),

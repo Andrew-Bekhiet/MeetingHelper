@@ -954,8 +954,8 @@ class _RootState extends State<Root>
           navigator.currentState!
               .push(
             MaterialPageRoute(
-              builder: (context) => WillPopScope(
-                onWillPop: () => Future.delayed(Duration.zero, () => false),
+              builder: (context) => PopScope(
+                canPop: false,
                 child: AuthScreen(
                   onSuccess: () => navigator.currentState!.pop(true),
                 ),
