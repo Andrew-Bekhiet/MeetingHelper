@@ -464,9 +464,15 @@ class _ServiceInfoState extends State<ServiceInfo> {
             body: SafeArea(
               child: service.ref.path.startsWith('Deleted')
                   ? const Text('يجب استعادة الخدمة لرؤية المخدومين بداخله')
-                  : DataObjectListView<void, Person>(
-                      controller: _listOptions,
-                      autoDisposeController: true,
+                  : Builder(
+                      builder: (context) {
+                        return DataObjectListView<void, Person>(
+                          scrollController:
+                              PrimaryScrollController.maybeOf(context),
+                          controller: _listOptions,
+                          autoDisposeController: true,
+                        );
+                      },
                     ),
             ),
           ),
