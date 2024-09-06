@@ -1390,7 +1390,9 @@ class _RootState extends State<Root>
     final featuresInOrder = [
       'Services',
       'Persons',
-      'Servants',
+      if (User.instance.permissions.manageUsers ||
+          User.instance.permissions.manageAllowedUsers)
+        'Servants',
       'Search',
       'MyAccount',
       if (User.instance.permissions.manageUsers ||
