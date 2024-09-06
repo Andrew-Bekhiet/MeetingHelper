@@ -817,7 +817,7 @@ class _EditUserState extends State<EditUser> {
   }
 
   Future save() async {
-    if ((await Connectivity().checkConnectivity()).any(
+    if (!(await Connectivity().checkConnectivity()).any(
       (c) =>
           c == ConnectivityResult.mobile ||
           c == ConnectivityResult.wifi ||
