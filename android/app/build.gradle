@@ -1,14 +1,19 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+    id "com.google.gms.google-services"
+}
+dependencies {
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+}
+
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
     localPropertiesFile.withReader('UTF-8') { reader ->
         localProperties.load(reader)
     }
-}
-
-def flutterRoot = localProperties.getProperty('flutter.sdk')
-if (flutterRoot == null) {
-    throw new GradleException("Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
 }
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
@@ -21,26 +26,21 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
-apply plugin: 'com.google.gms.google-services'
-
 android {
-    def releaseKey = new Properties()
-    def keystorePropertiesFile = rootProject.file('releaseKey.properties')
-    if (keystorePropertiesFile.exists()) {
-        releaseKey.load(new FileInputStream(keystorePropertiesFile))
-    }
-
-    def debugKey = new Properties()
-    def dKeystorePropertiesFile = rootProject.file('debugKey.properties')
-    if (dKeystorePropertiesFile.exists()) {
-        debugKey.load(new FileInputStream(dKeystorePropertiesFile))
-    }
+    namespace 'com.AndroidQuartz.meetinghelper'
 
     compileSdkVersion 34
     buildToolsVersion '34.0.0'
+
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
@@ -56,12 +56,24 @@ android {
 
     signingConfigs {
         release {
+            def releaseKey = new Properties()
+            def keystorePropertiesFile = rootProject.file('releaseKey.properties')
+            if (keystorePropertiesFile.exists()) {
+                releaseKey.load(new FileInputStream(keystorePropertiesFile))
+            }
+
             keyAlias releaseKey['keyAlias']
             keyPassword releaseKey['keyPassword']
             storeFile releaseKey['storeFile'] ? file(releaseKey['storeFile']) : null
             storePassword releaseKey['storePassword']
         }
         debug {
+            def debugKey = new Properties()
+            def dKeystorePropertiesFile = rootProject.file('debugKey.properties')
+            if (dKeystorePropertiesFile.exists()) {
+                debugKey.load(new FileInputStream(dKeystorePropertiesFile))
+            }
+
             keyAlias debugKey['keyAlias']
             keyPassword debugKey['keyPassword']
             storeFile debugKey['storeFile'] ? file(debugKey['storeFile']) : null
@@ -91,8 +103,4 @@ android {
 
 flutter {
     source '../..'
-}
-
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
