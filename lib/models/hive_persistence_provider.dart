@@ -39,6 +39,6 @@ class HivePersistenceProvider {
   }
 
   bool hasCompletedStep(String featureId) {
-    return _box.get(featureId) ?? false;
+    return kDebugMode || (_box.get(featureId) ?? false);
   }
 }
