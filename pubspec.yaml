@@ -76,7 +76,11 @@ dependencies:
   share_plus: ^9.0.0
   spreadsheet_decoder: ^2.0.2
   supabase: ^2.0.9
-  syncfusion_flutter_charts: ^26.1.39
+  syncfusion_flutter_charts: #^26.2.13
+    git:
+      url: https://github.com/fingineering/flutter-widgets
+      ref: 29d91f22fda45517652692b00c21fe9e99295ded
+      path: packages/syncfusion_flutter_charts
   timeago: ^3.2.2
   tinycolor2: ^3.0.1
   tuple: ^2.0.0
