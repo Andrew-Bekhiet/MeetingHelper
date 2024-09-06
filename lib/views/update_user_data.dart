@@ -128,7 +128,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
         stackTrace: stack,
         withScope: (scope) => scope
           ..setTag('LasErrorIn', '_UpdateUserDataErrorState.save')
-          ..setExtra('User', {'UID': user.uid, ...user.toJson()}),
+          ..setContexts('User', {'UID': user.uid, ...user.toJson()}),
       );
     }
   }

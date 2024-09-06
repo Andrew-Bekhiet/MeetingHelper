@@ -553,7 +553,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
           stackTrace: stack,
           withScope: (scope) => scope
             ..setTag('LasErrorIn', 'Day.initState')
-            ..setExtra('Record', widget.record.toJson()),
+            ..setContexts('Record', widget.record.toJson()),
         );
         await showErrorDialog(context, err.toString(), title: 'حدث خطأ');
       }
