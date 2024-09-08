@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_auth_platform_interface/firebase_auth_platform_interface.dart';
@@ -10,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:meetinghelper/models.dart';
-import 'package:meetinghelper/services.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -195,111 +193,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<bool> setupSettings() async {
     try {
-      final user = User.instance;
       final settings = GetIt.I<CacheRepository>().box('Settings');
       settings.get('cacheSize') ?? await settings.put('cacheSize', 314572800);
 
       settings.get('ClassSecondLine') ??
           await settings.put('ClassSecondLine', 'Gender');
 
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        if (user.getNotificationsPermissions().values.toList().any((e) => e)) {
-          final notificationsSettings = GetIt.I<CacheRepository>()
-              .box<NotificationSetting>('NotificationsSettings');
-          if (user.permissions.birthdayNotify) {
-            if (notificationsSettings.get('BirthDayTime') == null) {
-              await notificationsSettings.put(
-                'BirthDayTime',
-                const NotificationSetting(11, 0, 1),
-              );
-            }
-            await AndroidAlarmManager.periodic(
-              const Duration(days: 1),
-              'BirthDay'.hashCode,
-              MHNotificationsService.showBirthDayNotification,
-              exact: true,
-              startAt: DateTime.now().replaceTimeOfDay(
-                const TimeOfDay(hour: 11, minute: 0),
-              ),
-              wakeup: true,
-              rescheduleOnReboot: true,
-            );
-          }
-
-          if (user.permissions.kodasNotify) {
-            if (notificationsSettings.get('KodasTime') == null) {
-              await notificationsSettings.put(
-                'KodasTime',
-                const NotificationSetting(11, 0, 7),
-              );
-            }
-            await AndroidAlarmManager.periodic(
-              const Duration(days: 7),
-              'Kodas'.hashCode,
-              MHNotificationsService.showKodasNotification,
-              exact: true,
-              startAt: DateTime.now().replaceTimeOfDay(
-                const TimeOfDay(hour: 11, minute: 0),
-              ),
-              rescheduleOnReboot: true,
-            );
-          }
-          if (user.permissions.meetingNotify) {
-            if (notificationsSettings.get('MeetingTime') == null) {
-              await notificationsSettings.put(
-                'MeetingTime',
-                const NotificationSetting(11, 0, 7),
-              );
-            }
-            await AndroidAlarmManager.periodic(
-              const Duration(days: 7),
-              'Meeting'.hashCode,
-              MHNotificationsService.showMeetingNotification,
-              exact: true,
-              startAt: DateTime.now().replaceTimeOfDay(
-                const TimeOfDay(hour: 11, minute: 0),
-              ),
-              rescheduleOnReboot: true,
-            );
-          }
-          if (user.permissions.confessionsNotify) {
-            if (notificationsSettings.get('ConfessionTime') == null) {
-              await notificationsSettings.put(
-                'ConfessionTime',
-                const NotificationSetting(11, 0, 7),
-              );
-            }
-            await AndroidAlarmManager.periodic(
-              const Duration(days: 7),
-              'Confessions'.hashCode,
-              MHNotificationsService.showConfessionNotification,
-              exact: true,
-              startAt: DateTime.now().replaceTimeOfDay(
-                const TimeOfDay(hour: 11, minute: 0),
-              ),
-              rescheduleOnReboot: true,
-            );
-          }
-          if (user.permissions.tanawolNotify) {
-            if (notificationsSettings.get('TanawolTime') == null) {
-              await notificationsSettings.put(
-                'TanawolTime',
-                const NotificationSetting(11, 0, 7),
-              );
-            }
-            await AndroidAlarmManager.periodic(
-              const Duration(days: 7),
-              'Tanawol'.hashCode,
-              MHNotificationsService.showTanawolNotification,
-              exact: true,
-              startAt: DateTime.now().replaceTimeOfDay(
-                const TimeOfDay(hour: 11, minute: 0),
-              ),
-              rescheduleOnReboot: true,
-            );
-          }
-        }
-      });
       return true;
     } catch (err, stack) {
       await Sentry.captureException(

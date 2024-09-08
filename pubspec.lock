@@ -219,7 +219,7 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: "0fe6f9ef1d9764969d42e815c0240ec41723d14e"
+      resolved-ref: "15472ce9dd9ab6231cba3f77e0c752a182a75dcf"
       url: "https://github.com/Andrew-Bekhiet/churchdata_core"
     source: git
     version: "0.5.0"
@@ -228,7 +228,7 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: "31c0609e0d4aa4dbc7bd1670ee172b6ec68d3ad7"
+      resolved-ref: fde8527a79166030a7b625032db1cfb3e503f499
       url: "https://github.com/Andrew-Bekhiet/churchdata_core_mocks"
     source: git
     version: "0.5.0"

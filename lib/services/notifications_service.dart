@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:churchdata_core/churchdata_core.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide Notification;
@@ -13,6 +14,7 @@ import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/services.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/widgets.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class MHNotificationsService extends NotificationsService {
   static MHNotificationsService get instance =>
@@ -35,6 +37,168 @@ class MHNotificationsService extends NotificationsService {
     );
 
     GetIt.I.signalReady(this);
+  }
+
+  @override
+  Future<void> listenToUserStream() async {
+    await GetIt.I.isReady<MHAuthRepository>();
+
+    unawaited(
+      MHAuthRepository.I.userStream.firstWhere((user) => user != null).then(
+        (user) {
+          if (user == null) return;
+
+          maybeSetupUserNotifications(user);
+        },
+      ),
+    );
+  }
+
+  @override
+  Future<void> maybeSetupUserNotifications(UID uid) async {
+    final user = MHAuthRepository.I.currentUser!;
+
+    if (user.getNotificationsPermissions().values.any((e) => e)) {
+      final notificationsSettings = GetIt.I<CacheRepository>()
+          .box<NotificationSetting>('NotificationsSettings');
+
+      if (user.permissions.birthdayNotify &&
+          notificationsSettings.get('BirthDayTime') == null) {
+        await notificationsSettings.put(
+          'BirthDayTime',
+          const NotificationSetting(11, 0, 1),
+        );
+
+        await GetIt.I<MHNotificationsService>().schedulePeriodic(
+          const Duration(days: 1),
+          'BirthDay'.hashCode,
+          MHNotificationsService.showBirthDayNotification,
+          exact: true,
+          startAt: DateTime.now().replaceTimeOfDay(
+            const TimeOfDay(hour: 11, minute: 0),
+          ),
+          wakeup: true,
+          rescheduleOnReboot: true,
+        );
+      }
+
+      if (user.permissions.kodasNotify &&
+          notificationsSettings.get('KodasTime') == null) {
+        await notificationsSettings.put(
+          'KodasTime',
+          const NotificationSetting(11, 0, 7),
+        );
+
+        await GetIt.I<MHNotificationsService>().schedulePeriodic(
+          const Duration(days: 7),
+          'Kodas'.hashCode,
+          MHNotificationsService.showKodasNotification,
+          exact: true,
+          startAt: DateTime.now().replaceTimeOfDay(
+            const TimeOfDay(hour: 11, minute: 0),
+          ),
+          rescheduleOnReboot: true,
+        );
+      }
+      if (user.permissions.meetingNotify &&
+          notificationsSettings.get('MeetingTime') == null) {
+        await notificationsSettings.put(
+          'MeetingTime',
+          const NotificationSetting(11, 0, 7),
+        );
+
+        await GetIt.I<MHNotificationsService>().schedulePeriodic(
+          const Duration(days: 7),
+          'Meeting'.hashCode,
+          MHNotificationsService.showMeetingNotification,
+          exact: true,
+          startAt: DateTime.now().replaceTimeOfDay(
+            const TimeOfDay(hour: 11, minute: 0),
+          ),
+          rescheduleOnReboot: true,
+        );
+      }
+      if (user.permissions.confessionsNotify &&
+          notificationsSettings.get('ConfessionTime') == null) {
+        await notificationsSettings.put(
+          'ConfessionTime',
+          const NotificationSetting(11, 0, 7),
+        );
+
+        await GetIt.I<MHNotificationsService>().schedulePeriodic(
+          const Duration(days: 7),
+          'Confessions'.hashCode,
+          MHNotificationsService.showConfessionNotification,
+          exact: true,
+          startAt: DateTime.now().replaceTimeOfDay(
+            const TimeOfDay(hour: 11, minute: 0),
+          ),
+          rescheduleOnReboot: true,
+        );
+      }
+      if (user.permissions.tanawolNotify &&
+          notificationsSettings.get('TanawolTime') == null) {
+        await notificationsSettings.put(
+          'TanawolTime',
+          const NotificationSetting(11, 0, 7),
+        );
+
+        await GetIt.I<MHNotificationsService>().schedulePeriodic(
+          const Duration(days: 7),
+          'Tanawol'.hashCode,
+          MHNotificationsService.showTanawolNotification,
+          exact: true,
+          startAt: DateTime.now().replaceTimeOfDay(
+            const TimeOfDay(hour: 11, minute: 0),
+          ),
+          rescheduleOnReboot: true,
+        );
+      }
+    }
+
+    await registerFCMToken();
+  }
+
+  @override
+  Future<bool> registerFCMToken({String? cachedToken}) async {
+    if (GetIt.I<AuthRepository>().currentUser == null ||
+        !await GetIt.I<FirebaseMessaging>().isSupported()) return false;
+
+    final status = await Permission.notification.request();
+
+    if (!status.isGranted) return false;
+
+    return super.registerFCMToken(cachedToken: cachedToken);
+  }
+
+  @override
+  Future<bool> schedulePeriodic(
+    Duration duration,
+    int id,
+    Function callback, {
+    DateTime? startAt,
+    bool allowWhileIdle = false,
+    bool exact = false,
+    bool wakeup = false,
+    bool rescheduleOnReboot = false,
+  }) async {
+    if (kIsWeb) return false;
+
+    await Permission.notification.request();
+
+    return super.schedulePeriodic(
+      duration,
+      id,
+      callback,
+      startAt: startAt,
+      allowWhileIdle: allowWhileIdle,
+      exact: exact
+          ? (await DeviceInfoPlugin().androidInfo).version.sdkInt < 31 ||
+              (await Permission.scheduleExactAlarm.request()).isGranted
+          : false,
+      wakeup: wakeup,
+      rescheduleOnReboot: rescheduleOnReboot,
+    );
   }
 
   @override

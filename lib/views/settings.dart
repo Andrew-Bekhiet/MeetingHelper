@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:expandable/expandable.dart';
 import 'package:flutter/foundation.dart';
@@ -414,7 +413,7 @@ class SettingsState extends State<Settings> {
                       'BirthDayTime',
                       NotificationSetting(value.hour, value.minute, 1),
                     );
-                    await AndroidAlarmManager.periodic(
+                    await GetIt.I<MHNotificationsService>().schedulePeriodic(
                       const Duration(days: 1),
                       'BirthDay'.hashCode,
                       MHNotificationsService.showBirthDayNotification,
