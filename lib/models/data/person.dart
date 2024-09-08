@@ -238,19 +238,7 @@ class Person extends PersonBase {
             (address ?? '') +
             (birthDate?.toString() ?? '') +
             (notes ?? ''))
-        .toLowerCase()
-        .replaceAll(
-          RegExp(
-            r'[أإآ]',
-          ),
-          'ا',
-        )
-        .replaceAll(
-          RegExp(
-            r'[ى]',
-          ),
-          'ي',
-        );
+        .normalizeForSearch();
   }
 
   @override

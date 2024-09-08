@@ -52,7 +52,7 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
     required this.dayOptions,
     required PaginatableStream<T> query,
     Stream<String>? searchQuery,
-    SearchFunction<T>? filter,
+    super.filter,
     super.groupBy,
     super.groupByStream,
   })  : assert(
@@ -64,10 +64,6 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
           objectsPaginatableStream: query,
           searchStream: searchQuery,
           groupingStream: dayOptions.grouped,
-          filter: filter ??
-              (o, f) => o
-                  .where((e) => filterString(e.name).contains(filterString(f)))
-                  .toList(),
         ) {
     //
 
@@ -451,11 +447,13 @@ class ServicesListController<T extends DataObject>
     return Map.fromEntries(
       o.entries.where(
         (e) =>
-            filterString(e.key?.name ?? '').contains(filterString(filter)) ||
+            (e.key?.name ?? '')
+                .normalizeForSearch()
+                .contains(filter.normalizeForSearch()) ||
             e.value.any(
-              (c) => filterString(c.name).contains(
-                filterString(filter),
-              ),
+              (c) => c.name
+                  .normalizeForSearch()
+                  .contains(filter.normalizeForSearch()),
             ),
       ),
     );
@@ -524,13 +522,3 @@ class ServicesListController<T extends DataObject>
     );
   }
 }
-
-String filterString(String s) => s
-    .toLowerCase()
-    .replaceAll(
-      RegExp(
-        r'[أإآ]',
-      ),
-      'ا',
-    )
-    .replaceAll('ى', 'ي');
