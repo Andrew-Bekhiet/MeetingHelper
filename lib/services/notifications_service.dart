@@ -69,7 +69,7 @@ class MHNotificationsService extends NotificationsService {
           const NotificationSetting(11, 0, 1),
         );
 
-        await GetIt.I<MHNotificationsService>().schedulePeriodic(
+        await schedulePeriodic(
           const Duration(days: 1),
           'BirthDay'.hashCode,
           MHNotificationsService.showBirthDayNotification,
@@ -89,7 +89,7 @@ class MHNotificationsService extends NotificationsService {
           const NotificationSetting(11, 0, 7),
         );
 
-        await GetIt.I<MHNotificationsService>().schedulePeriodic(
+        await schedulePeriodic(
           const Duration(days: 7),
           'Kodas'.hashCode,
           MHNotificationsService.showKodasNotification,
@@ -107,7 +107,7 @@ class MHNotificationsService extends NotificationsService {
           const NotificationSetting(11, 0, 7),
         );
 
-        await GetIt.I<MHNotificationsService>().schedulePeriodic(
+        await schedulePeriodic(
           const Duration(days: 7),
           'Meeting'.hashCode,
           MHNotificationsService.showMeetingNotification,
@@ -125,7 +125,7 @@ class MHNotificationsService extends NotificationsService {
           const NotificationSetting(11, 0, 7),
         );
 
-        await GetIt.I<MHNotificationsService>().schedulePeriodic(
+        await schedulePeriodic(
           const Duration(days: 7),
           'Confessions'.hashCode,
           MHNotificationsService.showConfessionNotification,
@@ -143,7 +143,7 @@ class MHNotificationsService extends NotificationsService {
           const NotificationSetting(11, 0, 7),
         );
 
-        await GetIt.I<MHNotificationsService>().schedulePeriodic(
+        await schedulePeriodic(
           const Duration(days: 7),
           'Tanawol'.hashCode,
           MHNotificationsService.showTanawolNotification,
@@ -162,7 +162,8 @@ class MHNotificationsService extends NotificationsService {
   @override
   Future<bool> registerFCMToken({String? cachedToken}) async {
     if (GetIt.I<AuthRepository>().currentUser == null ||
-        !await GetIt.I<FirebaseMessaging>().isSupported()) return false;
+        !await GetIt.I<FirebaseMessaging>().isSupported() ||
+        WidgetsBinding.instance.rootElement == null) return false;
 
     final status = await Permission.notification.request();
 
@@ -182,7 +183,7 @@ class MHNotificationsService extends NotificationsService {
     bool wakeup = false,
     bool rescheduleOnReboot = false,
   }) async {
-    if (kIsWeb) return false;
+    if (kIsWeb || WidgetsBinding.instance.rootElement == null) return false;
 
     await Permission.notification.request();
 
