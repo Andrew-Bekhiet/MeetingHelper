@@ -174,7 +174,17 @@ Future<void> initFirebase() async {
   } catch (e) {
     await Firebase.initializeApp();
   }
-  await FirebaseAppCheck.instance.activate();
+
+  await FirebaseAppCheck.instance.activate(
+    androidProvider:
+        kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
+    appleProvider: kDebugMode ? AppleProvider.debug : AppleProvider.deviceCheck,
+    webProvider: ReCaptchaV3Provider(appCheckRecaptchaSiteKey),
+  );
+  if (kDebugMode) {
+    await auth.FirebaseAuth.instance.setSettings(forceRecaptchaFlow: true);
+  }
+
   FirebaseDatabase.instance.setPersistenceEnabled(false);
 
   registerFirebaseDependencies();
