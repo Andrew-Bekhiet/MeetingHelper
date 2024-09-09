@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' show FieldValue;
+import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -615,7 +616,7 @@ class _EditServiceState extends State<EditService> {
   Future<void> _selectAllowedUsers() async {
     allowedUsers = await navigator.currentState!.push(
           MaterialPageRoute(
-            builder: (context) => FutureBuilder<List<UserWithPerson?>>(
+            builder: (context) => FutureBuilder<List<UserWithPerson>>(
               future: allowedUsers != null
                   ? Future.value(allowedUsers)
                   : GetIt.I<DatabaseRepository>()
@@ -623,8 +624,10 @@ class _EditServiceState extends State<EditService> {
                       .where('AdminServices', arrayContains: service.ref)
                       .get()
                       .then(
-                        (value) =>
-                            value.docs.map(UserWithPerson.fromDoc).toList(),
+                        (value) => value.docs
+                            .map(UserWithPerson.fromDoc)
+                            .whereNotNull()
+                            .toList(),
                       ),
               builder: (context, users) {
                 if (!users.hasData) {
@@ -642,15 +645,9 @@ class _EditServiceState extends State<EditService> {
                               ),
                     ),
                     groupByStream: (u) =>
-                        MHDatabaseRepo.I.users.groupUsersByClass(u).map(
-                              (event) => event.map(
-                                (key, value) => MapEntry(key, value.cast()),
-                              ),
-                            ),
+                        MHDatabaseRepo.I.users.groupUsersByClass(u),
                     groupingStream: Stream.value(true),
-                  )..selectAll(
-                      users.data!.whereType<UserWithPerson>().toList(),
-                    ),
+                  )..selectAll(users.data),
                   dispose: (context, c) => c.dispose(),
                   builder: (context, _) => Scaffold(
                     appBar: AppBar(

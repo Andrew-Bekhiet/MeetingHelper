@@ -75,18 +75,17 @@ class Services extends TableBase<Service> {
           (T == DataObject && services == null),
     );
 
-    return Rx.combineLatest3<Map<JsonRef, StudyYear>, List<Class>,
-        List<Service>, Map<PreferredStudyYear?, List<T>>>(
+    final bool shouldGetClasses = isSubtype<T, Class>() || T == DataObject;
+    final bool shouldGetServices = isSubtype<T, Service>() || T == DataObject;
+
+    return Rx.combineLatest3<List<StudyYear>, List<Class>, List<Service>,
+        Map<PreferredStudyYear?, List<T>>>(
       repository
           .collection('StudyYears')
           .orderBy('Grade')
           .snapshots()
-          .map<Map<JsonRef, StudyYear>>(
-            (sys) => {
-              for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy),
-            },
-          ),
-      isSubtype<T, Class>() || T == DataObject
+          .map((s) => s.docs.map(StudyYear.fromDoc).toList()),
+      shouldGetClasses
           ? services != null
               ? Stream.value(services as List<Class>)
               : User.loggedInStream.switchMap(
@@ -107,49 +106,66 @@ class Services extends TableBase<Service> {
                   ),
                 )
           : Stream.value([]),
-      isSubtype<T, Service>() || T == DataObject
+      shouldGetServices
           ? services != null
               ? Stream.value(services as List<Service>)
               : getAll()
           : Stream.value([]),
       //
 
-      _groupServices<T>,
+      _groupServicesAndClasses<T>,
     );
   }
 
-  Map<PreferredStudyYear?, List<T>> _groupServices<T>(
-    Map<JsonRef, StudyYear> studyYears,
+  Map<PreferredStudyYear?, List<T>> _groupServicesAndClasses<T>(
+    List<StudyYear> studyYears,
     List<Class> classes,
     List<Service> services,
   ) {
-    final combined = [...classes, ...services].cast<T>();
+    final Map<JsonRef, StudyYear> studyYearsByRef = {
+      for (final sy in studyYears) sy.ref: sy,
+    };
+
+    final List<T> combined = [...classes, ...services].cast<T>();
 
     mergeSort<T>(
       combined,
-      compare: (c, c2) {
-        if (c is Class && c2 is Class) {
-          if (c.studyYear == c2.studyYear) return c.gender.compareTo(c2.gender);
-          return studyYears[c.studyYear]!
-              .grade
-              .compareTo(studyYears[c2.studyYear]!.grade);
-        } else if (c is Service && c2 is Service) {
-          return ((studyYears[c.studyYearRange?.from]?.grade ?? 0) +
-                  (studyYears[c.studyYearRange?.to]?.grade ?? 0))
-              .compareTo(
-            (studyYears[c2.studyYearRange?.from]?.grade ?? 0) +
-                (studyYears[c2.studyYearRange?.to]?.grade ?? 0),
-          );
-        } else if (c is Class &&
-            c2 is Service &&
-            c2.studyYearRange?.from != c2.studyYearRange?.to) {
-          return -1;
-        } else if (c2 is Class &&
-            c is Service &&
-            c.studyYearRange?.from != c.studyYearRange?.to) {
-          return 1;
+      compare: (c1, c2) {
+        switch ((c1, c2)) {
+          case (final Class c1, final Class c2)
+              when c1.studyYear == c2.studyYear:
+            return c1.gender.compareTo(c2.gender);
+
+          case (final Class c1, final Class c2):
+            return studyYearsByRef[c1.studyYear]!
+                .grade
+                .compareTo(studyYearsByRef[c2.studyYear]!.grade);
+
+          case (final Service s1, final Service s2):
+            final s1StudyYearFrom =
+                studyYearsByRef[s1.studyYearRange?.from]?.grade ?? 0;
+            final s2StudyYearFrom =
+                studyYearsByRef[s2.studyYearRange?.from]?.grade ?? 0;
+
+            final s1StudyYearTo =
+                studyYearsByRef[s1.studyYearRange?.to]?.grade ?? 0;
+            final s2StudyYearTo =
+                studyYearsByRef[s2.studyYearRange?.to]?.grade ?? 0;
+
+            return (s1StudyYearFrom + s1StudyYearTo)
+                .compareTo(s2StudyYearFrom + s2StudyYearTo);
+
+          case (Class(), final Service service)
+              when service.studyYearRange?.from != service.studyYearRange?.to:
+            return -1;
+
+          case (final Service service, Class())
+              when service.studyYearRange?.from != service.studyYearRange?.to:
+            return 1;
+
+          default:
+            return 0;
         }
-        return 0;
       },
     );
 
@@ -173,30 +189,25 @@ class Services extends TableBase<Service> {
     return groupBy<T, PreferredStudyYear?>(
       combined,
       (c) {
-        if (c is Class) {
-          return studyYears[c.studyYear] != null
-              ? PreferredStudyYear.fromStudyYear(studyYears[c.studyYear]!)
-              : null;
-        } else if (c is Service &&
-            c.studyYearRange?.from == c.studyYearRange?.to) {
-          return studyYears[c.studyYearRange?.from] != null
-              ? PreferredStudyYear.fromStudyYear(
-                  studyYears[c.studyYearRange?.from]!,
-                )
-              : null;
-        } else if (c is Service) {
-          return studyYears[c.studyYearRange?.to] != null
-              ? PreferredStudyYear.fromStudyYear(
-                  studyYears[c.studyYearRange?.to]!,
-                  _getPreferredGrade(
-                    studyYears[c.studyYearRange?.from]?.grade,
-                    studyYears[c.studyYearRange?.to]?.grade,
-                  ),
-                )
-              : null;
-        }
+        final StudyYear? studyYear = studyYearsByRef[switch (c) {
+          final Class c => c.studyYear,
+          final Service s when s.studyYearRange?.from == s.studyYearRange?.to =>
+            s.studyYearRange?.from,
+          final Service s => s.studyYearRange?.to,
+          _ => null,
+        }];
 
-        return null;
+        if (studyYear == null) return null;
+
+        final double? preferredGroup =
+            c is Service && c.studyYearRange?.from != c.studyYearRange?.to
+                ? _getPreferredGrade(
+                    studyYearsByRef[c.studyYearRange?.from]?.grade,
+                    studyYearsByRef[c.studyYearRange?.to]?.grade,
+                  )
+                : null;
+
+        return PreferredStudyYear.fromStudyYear(studyYear, preferredGroup);
       },
     );
   }
@@ -208,17 +219,13 @@ class Services extends TableBase<Service> {
   ) {
     assert(isSubtype<T, Class>() || isSubtype<T, Service>() || T == DataObject);
 
-    return Rx.combineLatest3<Map<JsonRef, StudyYear>, List<Class>,
-        List<Service>, Map<PreferredStudyYear?, List<T>>>(
+    return Rx.combineLatest3<List<StudyYear>, List<Class>, List<Service>,
+        Map<PreferredStudyYear?, List<T>>>(
       repository
           .collection('StudyYears')
           .orderBy('Grade')
           .snapshots()
-          .map<Map<JsonRef, StudyYear>>(
-            (sys) => {
-              for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy),
-            },
-          ),
+          .map((s) => s.docs.map(StudyYear.fromDoc).toList()),
       isSubtype<Service, T>()
           ? Stream.value([])
           : repository
@@ -235,7 +242,7 @@ class Services extends TableBase<Service> {
                 (r) => r.snapshots().map(Service.fromDoc).whereType<Service>(),
               ),
             ),
-      _groupServices<T>,
+      _groupServicesAndClasses<T>,
     );
   }
 }

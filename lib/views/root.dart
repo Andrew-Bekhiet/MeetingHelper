@@ -1043,15 +1043,7 @@ class _RootState extends State<Root>
             objectsPaginatableStream: PaginatableStream.loadAll(
               stream: MHDatabaseRepo.instance.users.getAllUsersData(),
             ),
-            groupByStream: (u) =>
-                MHDatabaseRepo.I.users.groupUsersByClass(u).map(
-                      (event) => event.map(
-                        (key, value) => MapEntry(
-                          key,
-                          value.cast<UserWithPerson>(),
-                        ),
-                      ),
-                    ),
+            groupByStream: (u) => MHDatabaseRepo.I.users.groupUsersByClass(u),
             groupingStream: Stream.value(true),
           )
         : null;

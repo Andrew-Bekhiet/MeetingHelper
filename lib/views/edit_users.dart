@@ -86,14 +86,7 @@ class _UsersPageState extends State<UsersPage> {
               (users) => users.where((u) => u.uid != User.emptyUID).toList(),
             ),
       ),
-      groupByStream: (u) => MHDatabaseRepo.I.users.groupUsersByClass(u).map(
-            (event) => event.map(
-              (key, value) => MapEntry(
-                key,
-                value.cast<UserWithPerson>(),
-              ),
-            ),
-          ),
+      groupByStream: (u) => MHDatabaseRepo.I.users.groupUsersByClass(u),
       groupingStream: Stream.value(true),
     );
   }

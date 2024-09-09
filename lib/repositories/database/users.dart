@@ -164,14 +164,16 @@ class Users {
     return (await Future.wait(users.map(getUserName))).whereNotNull().toList();
   }
 
-  Stream<Map<Class?, List<User>>> groupUsersByClass(List<User> users) {
+  Stream<Map<Class?, List<T>>> groupUsersByClass<T extends User>(
+    List<T> users,
+  ) {
     final adminsStudyYearRef =
         repository.collection('StudyYears').doc('-Admins-');
 
     final unknownStudyYearRef =
         repository.collection('StudyYears').doc('Unknown');
 
-    return Rx.combineLatest2<JsonQuery, JsonQuery, Map<Class?, List<User>>>(
+    return Rx.combineLatest2<JsonQuery, JsonQuery, Map<Class?, List<T>>>(
       repository.collection('StudyYears').orderBy('Grade').snapshots(),
       User.loggedInStream.whereType<User>().switchMap(
             (user) => user.permissions.superAccess
@@ -278,8 +280,10 @@ class Users {
         }.toList();
 
         return uidsByClass.map(
-          (key, value) =>
-              MapEntry(key, value.map((uid) => usersByUID[uid]!).toList()),
+          (key, value) => MapEntry(
+            key,
+            value.map((uid) => usersByUID[uid]!).cast<T>().toList(),
+          ),
         );
       },
     );
