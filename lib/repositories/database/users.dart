@@ -165,6 +165,12 @@ class Users {
   }
 
   Stream<Map<Class?, List<User>>> groupUsersByClass(List<User> users) {
+    final adminsStudyYearRef =
+        repository.collection('StudyYears').doc('-Admins-');
+
+    final unknownStudyYearRef =
+        repository.collection('StudyYears').doc('Unknown');
+
     return Rx.combineLatest2<JsonQuery, JsonQuery, Map<Class?, List<User>>>(
       repository.collection('StudyYears').orderBy('Grade').snapshots(),
       User.loggedInStream.whereType<User>().switchMap(
@@ -181,15 +187,9 @@ class Users {
                     .orderBy('Gender')
                     .snapshots(),
           ),
-      (sys, cs) {
-        final adminsStudyYearRef =
-            repository.collection('StudyYears').doc('-Admins-');
-
-        final unknownStudyYearRef =
-            repository.collection('StudyYears').doc('Unknown');
-
-        final Map<JsonRef, StudyYear> studyYears = {
-          for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy),
+      (studyYears, classes) {
+        final Map<JsonRef, StudyYear> studyYearByRef = {
+          for (final sy in studyYears.docs) sy.reference: StudyYear.fromDoc(sy),
           unknownStudyYearRef: StudyYear(
             ref: unknownStudyYearRef,
             name: 'غير معروفة',
@@ -202,88 +202,85 @@ class Users {
           ),
         };
 
-        final Map<String, User> usersByUID = {
-          for (final user in users) user.uid: user,
-        };
-        final Map<String?, List<User>> usersByClassId =
-            users.groupListsBy((u) => u.classId?.id);
+        final Map<String, User> usersByUID = {};
+        final Map<String?, Set<String>> uidsByClassId = {};
+        final List<String> adminsUIDs = [];
+        final List<String> allUIDs = [];
 
-        final Map<Class?, List<User>> unsortedResult = {
+        for (final user in users) {
+          usersByUID[user.uid] = user;
+
+          uidsByClassId[user.classId?.id] = {
+            ...(uidsByClassId[user.classId?.id] ?? {}),
+            user.uid,
+          };
+
+          allUIDs.add(user.uid);
+
+          if (user.permissions.manageUsers ||
+              user.permissions.manageAllowedUsers ||
+              user.permissions.superAccess) {
+            adminsUIDs.add(user.uid);
+          }
+        }
+
+        final Map<Class?, List<String>> uidsByClass = {
           Class(
             name: 'مسؤولون',
             studyYear: adminsStudyYearRef,
             ref: repository.collection('Classes').doc('-Admins-'),
-          ): users
-              .where(
-                (u) =>
-                    u.permissions.manageUsers ||
-                    u.permissions.manageAllowedUsers ||
-                    u.permissions.superAccess,
-              )
-              .toList(),
-          null: usersByClassId[null] ?? [],
+          ): adminsUIDs,
         };
 
-        for (final Class class$ in cs.docs.map(Class.fromDoc)) {
-          final newUsers = class$.allowedUsers
-              .map((uid) => usersByUID[uid])
-              .whereNotNull()
-              .followedBy(usersByClassId[class$.id] ?? [])
-              .sortedByCompare(
-                (u) => users.indexOf(u),
-                (a, b) => a.compareTo(b),
-              )
-              .toSet()
-              .toList();
+        final Set<String> groupedUsersUIDs = {};
 
-          unsortedResult[class$] = newUsers;
-        }
-
-        final groupedUsersSet = EqualitySet.from(
-          EqualityBy<User, String>((u) => u.uid),
-          unsortedResult.values.expand((e) => e),
-        );
-        final allUsersSet = EqualitySet.from(
-          EqualityBy<User, String>((u) => u.uid),
-          users,
-        );
-
-        final ungroupedUsers = allUsersSet.difference(groupedUsersSet).toList();
-
-        for (final user in ungroupedUsers) {
-          unsortedResult[null]!.add(user);
-        }
-
-        final List<MapEntry<Class?, List<User>>> sortedResult =
-            unsortedResult.entries.sorted(
+        final sortedClasses = classes.docs.map(Class.fromDoc).sorted(
           (c, c2) {
-            if (c.key == null ||
-                c.key!.name == '{لا يمكن قراءة اسم الفصل}' ||
-                c.key!.studyYear == null) {
+            if (c.name == '{لا يمكن قراءة اسم الفصل}' || c.studyYear == null) {
               return 1;
             }
 
-            if (c2.key == null ||
-                c2.key!.name == '{لا يمكن قراءة اسم الفصل}' ||
-                c2.key!.studyYear == null) {
+            if (c2.name == '{لا يمكن قراءة اسم الفصل}' ||
+                c2.studyYear == null) {
               return -1;
             }
 
-            if (studyYears[c.key!.studyYear!] ==
-                studyYears[c2.key!.studyYear!]) {
-              return c.key!.gender.compareTo(c2.key!.gender);
+            if (studyYearByRef[c.studyYear!] == studyYearByRef[c2.studyYear!]) {
+              return c.gender.compareTo(c2.gender);
             }
 
-            return studyYears[c.key!.studyYear]!
+            return studyYearByRef[c.studyYear]!
                 .grade
-                .compareTo(studyYears[c2.key!.studyYear]!.grade);
+                .compareTo(studyYearByRef[c2.studyYear]!.grade);
           },
         );
 
-        return {
-          for (final e in sortedResult)
-            if (e.value.isNotEmpty) e.key: e.value,
-        };
+        for (final Class class$ in sortedClasses) {
+          final allowedUsersSet = class$.allowedUsers.toSet();
+
+          final newUsers = allUIDs
+              .where(
+                (u) =>
+                    allowedUsersSet.contains(u) ||
+                    (uidsByClassId[class$.id]?.contains(u) ?? false),
+              )
+              .toList();
+
+          if (newUsers.isEmpty) continue;
+
+          uidsByClass[class$] = newUsers;
+          groupedUsersUIDs.addAll(newUsers);
+        }
+
+        uidsByClass[null] = {
+          ...uidsByClassId[null]?.toList() ?? [],
+          ...allUIDs.whereNot(groupedUsersUIDs.contains),
+        }.toList();
+
+        return uidsByClass.map(
+          (key, value) =>
+              MapEntry(key, value.map((uid) => usersByUID[uid]!).toList()),
+        );
       },
     );
   }
