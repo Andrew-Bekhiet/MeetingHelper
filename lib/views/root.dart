@@ -173,11 +173,11 @@ class _RootState extends State<Root>
                                 value: true,
                                 groupValue: _personsOrder.value.asc,
                                 title: const Text('تصاعدي'),
-                                onChanged: (dynamic value) {
+                                onChanged: (value) {
                                   _personsOrder.add(
                                     OrderOptions(
                                       orderBy: _personsOrder.value.orderBy,
-                                      asc: value,
+                                      asc: value!,
                                     ),
                                   );
                                   navigator.currentState!.pop();
@@ -187,11 +187,11 @@ class _RootState extends State<Root>
                                 value: false,
                                 groupValue: _personsOrder.value.asc,
                                 title: const Text('تنازلي'),
-                                onChanged: (dynamic value) {
+                                onChanged: (value) {
                                   _personsOrder.add(
                                     OrderOptions(
                                       orderBy: _personsOrder.value.orderBy,
-                                      asc: value,
+                                      asc: value!,
                                     ),
                                   );
                                   navigator.currentState!.pop();

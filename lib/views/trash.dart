@@ -122,10 +122,10 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                       value: e.key,
                                       groupValue: _personsOrder.value.orderBy,
                                       title: Text(e.value.label),
-                                      onChanged: (dynamic value) {
+                                      onChanged: (value) {
                                         _personsOrder.add(
                                           OrderOptions(
-                                            orderBy: value,
+                                            orderBy: value!,
                                             asc: _personsOrder.value.asc,
                                           ),
                                         );
@@ -137,11 +137,11 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                 value: true,
                                 groupValue: _personsOrder.value.asc,
                                 title: const Text('تصاعدي'),
-                                onChanged: (dynamic value) {
+                                onChanged: (value) {
                                   _personsOrder.add(
                                     OrderOptions(
                                       orderBy: _personsOrder.value.orderBy,
-                                      asc: value,
+                                      asc: value!,
                                     ),
                                   );
                                   navigator.currentState!.pop();
@@ -151,11 +151,11 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                 value: false,
                                 groupValue: _personsOrder.value.asc,
                                 title: const Text('تنازلي'),
-                                onChanged: (dynamic value) {
+                                onChanged: (value) {
                                   _personsOrder.add(
                                     OrderOptions(
                                       orderBy: _personsOrder.value.orderBy,
-                                      asc: value,
+                                      asc: value!,
                                     ),
                                   );
                                   navigator.currentState!.pop();

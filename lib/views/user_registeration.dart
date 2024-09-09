@@ -209,7 +209,7 @@ class _UserRegistrationState extends State<UserRegistration> {
                         ],
                       );
                     },
-                    validator: (dynamic _) => lastTanawol == null
+                    validator: (_) => lastTanawol == null
                         ? 'يجب تحديد تاريخ أخر تناول'
                         : null,
                   ),
@@ -257,7 +257,7 @@ class _UserRegistrationState extends State<UserRegistration> {
                         ],
                       );
                     },
-                    validator: (dynamic _) => lastConfession == null
+                    validator: (_) => lastConfession == null
                         ? 'يجب تحديد تاريخ أخر اعتراف'
                         : null,
                   ),

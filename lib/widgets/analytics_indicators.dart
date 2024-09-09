@@ -123,9 +123,10 @@ class AttendanceChart extends StatelessWidget {
 
         mergeSort(
           history.data!,
-          compare: (dynamic o, dynamic n) => o.time.millisecondsSinceEpoch
+          compare: (o, n) => o.time.millisecondsSinceEpoch
               .compareTo(n.time.millisecondsSinceEpoch),
         );
+
         final Map<Timestamp, List<HistoryRecord>> historyMap =
             groupBy<HistoryRecord, Timestamp>(
           history.data!,
@@ -630,7 +631,7 @@ class HistoryAnalysisWidget extends StatelessWidget {
 
         mergeSort(
           data,
-          compare: (dynamic o, dynamic n) => o.time.millisecondsSinceEpoch
+          compare: (o, n) => o.time.millisecondsSinceEpoch
               .compareTo(n.time.millisecondsSinceEpoch),
         );
 
