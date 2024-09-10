@@ -375,12 +375,40 @@ class _EditClassState extends State<EditClass> {
           class$ = class$.copyWith
               .ref(GetIt.I<DatabaseRepository>().collection('Classes').doc());
         }
+
+        class$ = class$.copyWith
+            .lastEdit(LastEdit(User.instance.uid, DateTime.now()));
+
+        final bool isConnected = (await Connectivity().checkConnectivity()).any(
+          (c) =>
+              c == ConnectivityResult.mobile ||
+              c == ConnectivityResult.wifi ||
+              c == ConnectivityResult.ethernet,
+        );
+
+        final Future<void> saveFuture = update
+            ? class$.update(old: widget.class$?.toJson() ?? {})
+            : class$.set();
+
+        if (isConnected) {
+          await saveFuture;
+        } else {
+          unawaited(saveFuture);
+        }
+
         if (changedImage != null) {
           await GetIt.I<StorageRepository>()
               .ref()
               .child('ClassesPhotos/${class$.id}')
               .putFile(File(changedImage!));
-          class$ = class$.copyWith.hasPhoto(true);
+
+          if (isConnected) {
+            await class$.copyWith.hasPhoto(true).update(old: class$.toJson());
+          } else {
+            unawaited(
+              class$.copyWith.hasPhoto(true).update(old: class$.toJson()),
+            );
+          }
         } else if (deletePhoto) {
           await GetIt.I<StorageRepository>()
               .ref()
@@ -388,33 +416,6 @@ class _EditClassState extends State<EditClass> {
               .delete();
         }
 
-        class$ = class$.copyWith
-            .lastEdit(LastEdit(User.instance.uid, DateTime.now()));
-
-        if (update &&
-            (await Connectivity().checkConnectivity()).any(
-              (c) =>
-                  c == ConnectivityResult.mobile ||
-                  c == ConnectivityResult.wifi ||
-                  c == ConnectivityResult.ethernet,
-            )) {
-          await class$.update(old: widget.class$?.toJson() ?? {});
-        } else if (update) {
-          //Intentionally unawaited because of no internet connection
-          // ignore: unawaited_futures
-          class$.update(old: widget.class$?.toJson() ?? {});
-        } else if ((await Connectivity().checkConnectivity()).any(
-          (c) =>
-              c == ConnectivityResult.mobile ||
-              c == ConnectivityResult.wifi ||
-              c == ConnectivityResult.ethernet,
-        )) {
-          await class$.set();
-        } else {
-          //Intentionally unawaited because of no internet connection
-          // ignore: unawaited_futures
-          class$.set();
-        }
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
         navigator.currentState!.pop(class$.ref);
       }

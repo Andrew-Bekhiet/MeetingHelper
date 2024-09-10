@@ -494,18 +494,6 @@ class _EditServiceState extends State<EditService> {
           service = service.copyWith
               .ref(GetIt.I<DatabaseRepository>().collection('Services').doc());
         }
-        if (changedImage != null) {
-          await GetIt.I<StorageRepository>()
-              .ref()
-              .child('ServicesPhotos/${service.id}')
-              .putFile(File(changedImage!));
-          service = service.copyWith.hasPhoto(true);
-        } else if (deletePhoto) {
-          await GetIt.I<StorageRepository>()
-              .ref()
-              .child('ServicesPhotos/${service.id}')
-              .delete();
-        }
 
         service = service.copyWith.lastEdit(
           LastEdit(
@@ -514,29 +502,41 @@ class _EditServiceState extends State<EditService> {
           ),
         );
 
-        if (update &&
-            (await Connectivity().checkConnectivity()).any(
-              (c) =>
-                  c == ConnectivityResult.mobile ||
-                  c == ConnectivityResult.wifi ||
-                  c == ConnectivityResult.ethernet,
-            )) {
-          await service.update(old: widget.service?.toJson() ?? {});
-        } else if (update) {
-          //Intentionally unawaited because of no internet connection
-          // ignore: unawaited_futures
-          service.update(old: widget.service?.toJson() ?? {});
-        } else if ((await Connectivity().checkConnectivity()).any(
+        final bool isConnected = (await Connectivity().checkConnectivity()).any(
           (c) =>
               c == ConnectivityResult.mobile ||
               c == ConnectivityResult.wifi ||
               c == ConnectivityResult.ethernet,
-        )) {
-          await service.set();
+        );
+
+        final Future<void> saveFuture = update
+            ? service.update(old: widget.service?.toJson() ?? {})
+            : service.set();
+
+        if (isConnected) {
+          await saveFuture;
         } else {
-          //Intentionally unawaited because of no internet connection
-          // ignore: unawaited_futures
-          service.set();
+          unawaited(saveFuture);
+        }
+
+        if (changedImage != null) {
+          await GetIt.I<StorageRepository>()
+              .ref()
+              .child('ServicesPhotos/${service.id}')
+              .putFile(File(changedImage!));
+
+          if (isConnected) {
+            await service.copyWith.hasPhoto(true).update(old: service.toJson());
+          } else {
+            unawaited(
+              service.copyWith.hasPhoto(true).update(old: service.toJson()),
+            );
+          }
+        } else if (deletePhoto) {
+          await GetIt.I<StorageRepository>()
+              .ref()
+              .child('ServicesPhotos/${service.id}')
+              .delete();
         }
 
         if (allowedUsers != null) {

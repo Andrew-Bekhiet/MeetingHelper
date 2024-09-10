@@ -1194,21 +1194,6 @@ class _EditPersonState extends State<EditPerson> {
               .ref(GetIt.I<DatabaseRepository>().collection('Persons').doc());
         }
 
-        if (widget.person?.ref.parent.id != 'UsersData') {
-          if (changedImage != null) {
-            await GetIt.I<StorageRepository>()
-                .ref()
-                .child('PersonsPhotos/${person.id}')
-                .putFile(File(changedImage!));
-            person = person.copyWith.hasPhoto(true);
-          } else if (deletePhoto) {
-            await GetIt.I<StorageRepository>()
-                .ref()
-                .child('PersonsPhotos/${person.id}')
-                .delete();
-          }
-        }
-
         person = person.copyWith
             .lastEdit(LastEdit(User.instance.uid, DateTime.now()));
 
@@ -1250,66 +1235,59 @@ class _EditPersonState extends State<EditPerson> {
               .college(isCollegeYear ? person.college : null);
         }
 
-        if (update &&
-            (await Connectivity().checkConnectivity()).any(
-              (c) =>
-                  c == ConnectivityResult.mobile ||
-                  c == ConnectivityResult.wifi ||
-                  c == ConnectivityResult.ethernet,
-            )) {
-          if (person.ref.parent.id == 'UsersData') {
-            await person.ref.update(
-              {
-                ...person.toJson(),
-                'AllowedUsers': FieldValue.arrayUnion([User.instance.uid]),
-              },
-            );
-          } else {
-            await person.update(old: widget.person?.toJson() ?? {});
-          }
-        } else if (update) {
-          if (person.ref.parent.id == 'UsersData') {
-            unawaited(
-              person.ref.update(
-                {
-                  ...person.toJson(),
-                  'AllowedUsers': FieldValue.arrayUnion([User.instance.uid]),
-                },
-              ),
-            );
-          } else {
-            unawaited(person.update(old: widget.person?.toJson() ?? {}));
-          }
-        } else if ((await Connectivity().checkConnectivity()).any(
+        final bool isConnected = (await Connectivity().checkConnectivity()).any(
           (c) =>
               c == ConnectivityResult.mobile ||
               c == ConnectivityResult.wifi ||
               c == ConnectivityResult.ethernet,
-        )) {
-          if (person.ref.parent.id == 'UsersData') {
-            await person.ref.set(
+        );
+
+        final Future<void> saveFuture =
+            switch ((person.ref.parent.id, update)) {
+          ('UsersData', true) => person.ref.update(
               {
                 ...person.toJson(),
-                'AllowedUsers': [User.instance.uid],
+                'AllowedUsers': FieldValue.arrayUnion([User.instance.uid]),
               },
-            );
-          } else {
-            await person.set();
-          }
+            ),
+          ('UsersData', false) => person.ref.set(
+              {
+                ...person.toJson(),
+                'AllowedUsers': FieldValue.arrayRemove([User.instance.uid]),
+              },
+            ),
+          (_, true) => person.update(old: widget.person?.toJson() ?? {}),
+          (_, false) => person.set(),
+        };
+
+        if (isConnected) {
+          await saveFuture;
         } else {
-          if (person.ref.parent.id == 'UsersData') {
-            unawaited(
-              person.ref.set(
-                {
-                  ...person.toJson(),
-                  'AllowedUsers': [User.instance.uid],
-                },
-              ),
-            );
-          } else {
-            unawaited(person.set());
+          unawaited(saveFuture);
+        }
+
+        if (widget.person?.ref.parent.id != 'UsersData') {
+          if (changedImage != null) {
+            await GetIt.I<StorageRepository>()
+                .ref()
+                .child('PersonsPhotos/${person.id}')
+                .putFile(File(changedImage!));
+
+            if (isConnected) {
+              await person.copyWith.hasPhoto(true).update(old: person.toJson());
+            } else {
+              unawaited(
+                person.copyWith.hasPhoto(true).update(old: person.toJson()),
+              );
+            }
+          } else if (deletePhoto) {
+            await GetIt.I<StorageRepository>()
+                .ref()
+                .child('PersonsPhotos/${person.id}')
+                .delete();
           }
         }
+
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
         navigator.currentState!.pop(person.ref);
       } else {
