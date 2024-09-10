@@ -8,5 +8,9 @@ typings/
 # Node.js dependency directory
 node_modules/
 
-src/.env
+dist/
+
+.env
+env.json
+
 src/passwordEncryption.ts

@@ -1,0 +1,11 @@
+[
+  {
+    "origin": [
+      "https://meetinghelper-2a869.firebaseapp.com",
+      "https://meetinghelper-2a869.web.app"
+    ],
+    "responseHeader": ["Content-Type"],
+    "method": ["GET", "HEAD"],
+    "maxAgeSeconds": 3600
+  }
+]

@@ -10,7 +10,8 @@
     "predeploy": [
       "npm --prefix \"$RESOURCE_DIR\" run lint",
       "npm --prefix \"$RESOURCE_DIR\" run build"
-    ]
+    ],
+    "source": "functions"
   },
   "hosting": {
     "public": "public",
@@ -36,17 +37,20 @@
       "host": "0.0.0.0",
       "port": 9000
     },
-    "storage": {
-      "host": "0.0.0.0",
-      "port": 9199
-    },
     "pubsub": {
       "host": "0.0.0.0",
       "port": 3845
     },
+    "storage": {
+      "host": "localhost",
+      "enabled": false
+    },
     "ui": {
       "host": "localhost",
       "enabled": true
+    },
+    "hosting": {
+      "port": 5000
     }
   }
 }

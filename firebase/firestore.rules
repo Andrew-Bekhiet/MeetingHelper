@@ -1,19 +1,18 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
     function historyRecordFields(){
       return ['ID','Time','RecordedBy','Notes','ClassId','Services','IsServant', 'StudyYear'].toSet();
     }
 
     function classFields(){
-      return ['Name','StudyYear','Gender','HasPhoto','Color','LastEdit','Allowed'].toSet();
+      return ['Name','StudyYear','Gender','HasPhoto','Color','LastEdit','LastEditTime','Allowed'].toSet();
     }
 
     function personFields(){
       return ['ClassId','Name','Phone','FatherPhone','MotherPhone','Phones','Address','HasPhoto',
-            'Color','BirthDate','BirthDay','Last','LastTanawol','LastConfession','LastKodas',
-            'LastMeeting','LastCall','LastVisit','LastEdit','Notes','School','Church','CFather',
+            'Color','BirthDate','BirthDay','Last','ExamScores','LastTanawol','LastConfession','LastKodas',
+            'LastMeeting','LastCall','LastVisit','LastEdit','LastEditTime','Notes','School','Church','CFather',
             'Location','IsShammas','Gender','ShammasLevel','StudyYear','College','Services'
           ].toSet();
     }
@@ -241,6 +240,7 @@ service cloud.firestore {
             )
           )
           && (request.auth.token.superAccess
+            || !request.resource.keys().hasAny(['ClassId'])
             || request.resource.data.ClassId == null
             || request.auth.uid in get(request.resource.data.ClassId).data.Allowed
             || resource.data.ClassId == request.resource.data.ClassId
@@ -269,9 +269,10 @@ service cloud.firestore {
 
       match /{user} {
         allow read: if request.auth.uid != null
-          && request.auth.token.approved
           && (user == request.auth.token.personId
-            || checkCanReadUser(user)
+            || (checkCanReadUser(user)
+              && request.auth.token.approved
+            )
           );
 
         allow create: if checkCanCreateUser()
@@ -366,18 +367,19 @@ service cloud.firestore {
         allow read: if checkUserRegistered();
 
         allow delete: if checkUserRegistered()
+          && request.auth.token.superAccess
           && request.auth.token.write;
         
         allow create: if checkUserRegistered()
           && debug(request.resource.data.Day.toMillis() % 86400000 == 0)
           && debug(request.resource.data.Day.date().toMillis() == request.time.date().toMillis())
           && debug(historyDay) == string(request.resource.data.Day.year()) + '-' + (request.resource.data.Day.month() > 9 ? '' : '0') + string(request.resource.data.Day.month()) + '-' + (request.resource.data.Day.day() > 9 ? '' : '0') + string(request.resource.data.Day.day())
-          && request.auth.token.write;
+          && request.auth.token.recordHistory;
         
         allow update: if checkUserRegistered()
           && resource.data.Day.date().toMillis() == request.time.date().toMillis()
           && (!request.resource.data.keys().hasAny(['Day']) || request.resource.data.Day == resource.data.Day)
-          && request.auth.token.write;
+          && request.auth.token.recordHistory;
         
         match /{section} {
 
@@ -402,15 +404,16 @@ service cloud.firestore {
               && canAccessRecord();
             
             allow delete: if checkUserRegistered()
+              && request.auth.token.recordHistory
               && ((request.auth.token.keys().hasAny(['changeHistory'])
                   && request.auth.token.changeHistory
                 )
                 || get(/databases/$(database)/documents/History/$(historyDay)).data.Day.date().toMillis() == request.time.date().toMillis()
               )
-              && request.auth.token.write
               && canAccessRecord();
             
             allow update, create: if checkUserRegistered()
+              && request.auth.token.recordHistory
               && exists(/databases/$(database)/documents/History/$(historyDay))
               && ((request.auth.token.keys().hasAny(['changeHistory'])
                   && request.auth.token.changeHistory
@@ -461,8 +464,7 @@ service cloud.firestore {
                     == request.resource.data.ClassId
                 : get(/databases/$(database)/documents/Persons/$(request.resource.data.ID)).data.Services
                     .hasAll(request.resource.data.Services)
-              )
-              && request.auth.token.write;
+              );
           }
         }
       }
@@ -477,6 +479,7 @@ service cloud.firestore {
           && request.auth.token.secretary;
 
         allow delete: if checkUserRegistered()
+          && request.auth.token.superAccess
           && request.auth.token.secretary
           && request.auth.token.write;
         
@@ -484,15 +487,13 @@ service cloud.firestore {
           && request.auth.token.secretary
           && (request.resource.data.Day.toMillis() % 86400000 == 0)
           && request.resource.data.Day.date().toMillis() == request.time.date().toMillis()
-          && historyDay == string(request.resource.data.Day.year()) + '-' + (request.resource.data.Day.month() > 9 ? '' : '0') + string(request.resource.data.Day.month()) + '-' + (request.resource.data.Day.day() > 9 ? '' : '0') + string(request.resource.data.Day.day())
-          && request.auth.token.write;
+          && historyDay == string(request.resource.data.Day.year()) + '-' + (request.resource.data.Day.month() > 9 ? '' : '0') + string(request.resource.data.Day.month()) + '-' + (request.resource.data.Day.day() > 9 ? '' : '0') + string(request.resource.data.Day.day());
         
         allow update: if checkUserRegistered()
           && request.auth.token.secretary
           && resource.data.Day.date().toMillis() == request.time.date().toMillis()
           && (!request.resource.data.keys().hasAny(['Day'])
-            || request.resource.data.Day == resource.data.Day)
-          && request.auth.token.write;
+            || request.resource.data.Day == resource.data.Day);
         
         match /{section} {
 
@@ -516,7 +517,7 @@ service cloud.firestore {
                 )
                 || get(/databases/$(database)/documents/History/$(historyDay)).data.Day.date().toMillis() == request.time.date().toMillis()
               )
-              && request.auth.token.write
+              && request.auth.token.secretary
               && canAccessRecord();
             
             allow update, create: if (checkUserRegistered() && request.auth.token.secretary)
@@ -545,8 +546,7 @@ service cloud.firestore {
                   && request.auth.token.changeHistory
                 )
                 || request.resource.data.Time.date().toMillis() == request.time.date().toMillis()
-              )
-              && request.auth.token.write;
+              );
           }
         }
       }
@@ -592,7 +592,7 @@ service cloud.firestore {
             || request.auth.token.manageAllowedUsers
           )
           && request.auth.token.write
-          && ['Name','StudyYearRange','Validity','ShowInHistory','LastEdit','HasPhoto', 'Color']
+          && ['Name','StudyYearRange','Validity','ShowInHistory','LastEdit','LastEditTime','HasPhoto', 'Color']
             .toSet().hasAll(request.resource.data.keys())
           && (!request.resource.data.keys().hasAny(['Validity'])
             || request.resource.data.Validity == null
@@ -611,7 +611,7 @@ service cloud.firestore {
 
         allow update: if checkUserRegistered()
           && request.auth.token.write
-          && ['Name','StudyYearRange','Validity','ShowInHistory','LastEdit','HasPhoto','Color']
+          && ['Name','StudyYearRange','Validity','ShowInHistory','LastEdit','LastEditTime','HasPhoto','Color']
             .toSet().hasAll(request.resource.data.diff(resource.data).affectedKeys())
           && (!request.resource.data.keys().hasAny(['Validity'])
             || request.resource.data.Validity == null
@@ -650,6 +650,18 @@ service cloud.firestore {
                 in get(/databases/$(database)/documents/UsersData/$(request.auth.token.personId)).data.AdminServices
             );
         }
+      }
+    }
+
+    match /Exams {
+      allow read: if checkUserRegistered();
+      allow write: if checkUserRegistered()
+        && request.auth.token.write;
+      
+      match /{item} {
+        allow read: if checkUserRegistered();
+        allow write: if checkUserRegistered()
+          && request.auth.token.write;
       }
     }
 
