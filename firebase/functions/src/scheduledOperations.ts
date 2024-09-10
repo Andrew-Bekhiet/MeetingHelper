@@ -225,6 +225,7 @@ export const deleteStaleData = runWith({
   });
 export const updateStudyYears = pubsub
   .schedule("0 0 11 9 *")
+  .timeZone("Africa/Cairo")
   .onRun(async () => {
     const studyYears = await firestore()
       .collection("StudyYears")
