@@ -84,23 +84,25 @@ class User extends UserBase implements DataObjectWithPhoto {
 
   String getPermissions() {
     if (permissions.approved) {
-      String rslt = '';
-      if (permissions.manageUsers) rslt += 'تعديل المستخدمين،';
-      if (permissions.manageAllowedUsers) rslt += 'تعديل مستخدمين محددين،';
-      if (permissions.superAccess) rslt += 'رؤية جميع البيانات،';
-      if (permissions.manageDeleted) rslt += 'استرجاع المحئوفات،';
-      if (permissions.recordHistory) rslt += 'تسجيل حضور المخدومين';
-      if (permissions.secretary) rslt += 'تسجيل حضور الخدام،';
-      if (permissions.changeHistory) rslt += 'تعديل كشوفات القديمة';
-      if (permissions.export) rslt += 'تصدير فصل،';
-      if (permissions.birthdayNotify) rslt += 'اشعار أعياد الميلاد،';
-      if (permissions.confessionsNotify) rslt += 'اشعار الاعتراف،';
-      if (permissions.tanawolNotify) rslt += 'اشعار التناول،';
-      if (permissions.kodasNotify) rslt += 'اشعار القداس';
-      if (permissions.meetingNotify) rslt += 'اشعار حضور الاجتماع';
-      if (permissions.write) rslt += 'تعديل البيانات،';
-      if (permissions.visitNotify) rslt += 'اشعار الافتقاد';
-      return rslt;
+      final List<String> result = [
+        if (permissions.manageUsers) 'تعديل المستخدمين',
+        if (permissions.manageAllowedUsers) 'تعديل مستخدمين محددين',
+        if (permissions.superAccess) 'رؤية جميع البيانات',
+        if (permissions.manageDeleted) 'استرجاع المحئوفات',
+        if (permissions.recordHistory) 'تسجيل حضور المخدومين',
+        if (permissions.secretary) 'تسجيل حضور الخدام',
+        if (permissions.changeHistory) 'تعديل كشوفات القديمة',
+        if (permissions.export) 'تصدير فصل',
+        if (permissions.birthdayNotify) 'اشعار أعياد الميلاد',
+        if (permissions.confessionsNotify) 'اشعار الاعتراف',
+        if (permissions.tanawolNotify) 'اشعار التناول',
+        if (permissions.kodasNotify) 'اشعار القداس',
+        if (permissions.meetingNotify) 'اشعار حضور الاجتماع',
+        if (permissions.write) 'تعديل البيانات',
+        if (permissions.visitNotify) 'اشعار الافتقاد',
+      ];
+
+      return result.join(', ');
     }
     return 'غير مُنشط';
   }
