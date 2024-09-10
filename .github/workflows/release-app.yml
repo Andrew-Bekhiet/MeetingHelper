@@ -1,9 +1,9 @@
-name: Test, Report Coverage and Release
+name: Build and Release app
 
 on: [push, workflow_dispatch]
 
 jobs:
-  release:
+  release-app:
     permissions:
       contents: write
 
