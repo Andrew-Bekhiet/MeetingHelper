@@ -3,7 +3,11 @@ import { pubsub } from "firebase-functions";
 import { getFCMTokensForUser } from "./common";
 import { firebaseDynamicLinksPrefix, packageName } from "./environment";
 
-function getRiseDay(year?: number | undefined) {
+function getRiseDay(year?: number | null): {
+  year: number;
+  month: number;
+  day: number;
+} {
   year ??= new Date().getFullYear();
 
   const a = year % 4;
@@ -11,12 +15,19 @@ function getRiseDay(year?: number | undefined) {
   const c = year % 19;
   const d = (19 * c + 15) % 30;
   const e = (2 * a + 4 * b - d + 34) % 7;
+  const f = d + e + 114;
 
-  return new Date(
-    year,
-    Math.trunc((d + e + 114) / 31),
-    Math.abs((d + e + 114) % 31) + 14
-  );
+  const month = Math.trunc(f / 31);
+  const day = Math.abs(f % 31) + 14;
+
+  // Use Date to normalize day and month numbers
+  const date = new Date(year, month - 1, day);
+
+  return {
+    year: date.getFullYear(),
+    month: date.getMonth() + 1,
+    day: date.getDate(),
+  };
 }
 
 // Gets computed only on deployment
@@ -135,7 +146,7 @@ export const sendMerryChristmasMessage = pubsub
   });
 
 export const sendHappyRiseMessage = pubsub
-  .schedule(`0 0 ${riseDay.getMonth() + 1} ${riseDay.getDate()} *`)
+  .schedule(`0 0 ${riseDay.month} ${riseDay.day} *`)
   .timeZone("Africa/Cairo")
   .onRun(async () => {
     let usersToSend: string[] = [];
