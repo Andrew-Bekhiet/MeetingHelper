@@ -218,7 +218,7 @@ export const exportToExcel = runWith({
         : await Promise.all(
             (
               userDocData?.AdminServices as Array<firestore.DocumentReference>
-            )?.map(async (r) => await r.get())
+            )?.map(async (r) => await r.get()) ?? []
           )
     )?.reduce<Record<string, Record<string, any>>>((map, s) => {
       const rslt: Record<string, string | Date> = {};
