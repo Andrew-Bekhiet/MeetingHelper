@@ -157,7 +157,9 @@ class MHAuthRepository extends AuthRepository<User, Person> {
         DateTime.fromMillisecondsSinceEpoch(
           expiration * 1000,
         ).isBefore(DateTime.now())) {
-      await GetIt.I<MHFunctionsService>().refreshSupabaseToken();
+      try {
+        await GetIt.I<MHFunctionsService>().refreshSupabaseToken();
+      } catch (e) {}
     } else {
       await GetIt.I<SupabaseClient>().auth.recoverSession(
             json.encode(
