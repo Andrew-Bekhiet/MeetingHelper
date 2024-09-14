@@ -234,7 +234,7 @@ class Users {
           ): adminsUIDs,
         };
 
-        final Set<String> groupedUsersUIDs = {};
+        final Set<String> groupedUsersUIDs = {...adminsUIDs};
 
         final sortedClasses = classes.docs.map(Class.fromDoc).sorted(
           (c, c2) {
@@ -274,10 +274,16 @@ class Users {
           groupedUsersUIDs.addAll(newUsers);
         }
 
-        uidsByClass[null] = {
+        final ungroupedUsers = {
           ...uidsByClassId[null]?.toList() ?? [],
-          ...allUIDs.whereNot(groupedUsersUIDs.contains),
-        }.toList();
+          ...allUIDs,
+        }.whereNot(groupedUsersUIDs.contains).toList();
+
+        if (ungroupedUsers.isNotEmpty) {
+          uidsByClass[null] = ungroupedUsers;
+        } else {
+          uidsByClass.remove(null);
+        }
 
         return uidsByClass.map(
           (key, value) => MapEntry(
