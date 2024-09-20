@@ -55,6 +55,14 @@ class _RootState extends State<Root>
   final BehaviorSubject<String> _searchQuery =
       BehaviorSubject<String>.seeded('');
 
+  final BehaviorSubject<bool> isGroupingUsersSubject =
+      BehaviorSubject.seeded(true);
+  bool wasGroupingBeforeSearch = true;
+
+  late final ServicesListController _servicesOptions;
+  late final ListController<void, Person> _personsOptions;
+  late final ListController<Class?, UserWithPerson>? _usersOptions;
+
   Future<void> addTap() async {
     if (_tabController!.index == _tabController!.length - 2) {
       if (User.instance.permissions.manageUsers ||
@@ -103,10 +111,6 @@ class _RootState extends State<Root>
     }
   }
 
-  late final ServicesListController _servicesOptions;
-  late final ListController<void, Person> _personsOptions;
-  late final ListController<Class?, UserWithPerson>? _usersOptions;
-
   GlobalKey _createOrGetFeatureKey(String key) {
     _features[key] ??= GlobalKey();
     return _features[key]!;
@@ -124,8 +128,9 @@ class _RootState extends State<Root>
             builder: (context, data) => data.data!
                 ? AnimatedBuilder(
                     animation: _tabController!,
-                    builder: (context, child) =>
-                        _tabController!.index == 1 ? child! : Container(),
+                    builder: (context, child) => _tabController!.index == 1
+                        ? child!
+                        : const SizedBox.shrink(),
                     child: IconButton(
                       icon: const Icon(Icons.filter_list),
                       onPressed: () async {
@@ -207,11 +212,35 @@ class _RootState extends State<Root>
                     key: _createOrGetFeatureKey('Search'),
                     icon: const Icon(Icons.search),
                     onPressed: () {
+                      wasGroupingBeforeSearch = isGroupingUsersSubject.value;
                       _searchFocus.requestFocus();
                       _showSearch.add(true);
+                      isGroupingUsersSubject.add(false);
                     },
                   ),
           ),
+          if (_usersOptions != null)
+            AnimatedBuilder(
+              animation: _tabController!,
+              builder: (context, child) =>
+                  _tabController!.index == 0 ? child! : const SizedBox.shrink(),
+              child: StreamBuilder<bool>(
+                initialData: isGroupingUsersSubject.value,
+                stream: isGroupingUsersSubject,
+                builder: (context, snapshot) {
+                  return IconButton(
+                    icon: snapshot.requireData
+                        ? const Icon(Icons.list)
+                        : const Icon(Icons.segment),
+                    tooltip: snapshot.requireData
+                        ? 'عرض المستخدمين فقط'
+                        : 'تصنيف حسب الفصل',
+                    onPressed: () =>
+                        isGroupingUsersSubject.add(!snapshot.data!),
+                  );
+                },
+              ),
+            ),
           IconButton(
             icon: const Icon(Icons.notifications),
             tooltip: 'الإشعارات',
@@ -266,6 +295,7 @@ class _RootState extends State<Root>
                       onPressed: () {
                         _searchQuery.add('');
                         _showSearch.add(false);
+                        isGroupingUsersSubject.add(wasGroupingBeforeSearch);
                       },
                     ),
                     hintStyle: Theme.of(context).textTheme.titleLarge!.copyWith(
@@ -1019,8 +1049,9 @@ class _RootState extends State<Root>
 
   @override
   Future<void> dispose() async {
-    super.dispose();
     WidgetsBinding.instance.removeObserver(this);
+
+    super.dispose();
 
     await _dynamicLinksSubscription?.cancel();
 
@@ -1030,6 +1061,7 @@ class _RootState extends State<Root>
     await _usersOptions?.dispose();
     await _servicesOptions.dispose();
     await _personsOptions.dispose();
+    await isGroupingUsersSubject.close();
   }
 
   @override
@@ -1043,8 +1075,8 @@ class _RootState extends State<Root>
             objectsPaginatableStream: PaginatableStream.loadAll(
               stream: MHDatabaseRepo.instance.users.getAllUsersData(),
             ),
-            groupByStream: (u) => MHDatabaseRepo.I.users.groupUsersByClass(u),
-            groupingStream: Stream.value(true),
+            groupByStream: MHDatabaseRepo.I.users.groupUsersByClass,
+            groupingStream: isGroupingUsersSubject,
           )
         : null;
 
