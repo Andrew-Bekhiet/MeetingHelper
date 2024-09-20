@@ -10,6 +10,7 @@ class MHPermissionsSet extends PermissionsSet implements Serializable {
   MHPermissionsSet({
     bool superAccess = false,
     bool manageDeleted = false,
+    bool dumpImages = false,
     bool write = false,
     bool secretary = false,
     bool recordHistory = false,
@@ -28,6 +29,7 @@ class MHPermissionsSet extends PermissionsSet implements Serializable {
           permissions: {
             if (superAccess) 'superAccess',
             if (manageDeleted) 'manageDeleted',
+            if (dumpImages) 'dumpImages',
             if (write) 'write',
             if (secretary) 'secretary',
             if (recordHistory) 'recordHistory',
@@ -63,6 +65,7 @@ class MHPermissionsSet extends PermissionsSet implements Serializable {
   bool get birthdayNotify => permissions.contains('birthdayNotify');
   bool get changeHistory => permissions.contains('changeHistory');
   bool get confessionsNotify => permissions.contains('confessionsNotify');
+  bool get dumpImages => permissions.contains('dumpImages');
   bool get export => permissions.contains('export');
   bool get kodasNotify => permissions.contains('kodasNotify');
   bool get manageAllowedUsers => permissions.contains('manageAllowedUsers');
@@ -84,6 +87,7 @@ class MHPermissionsSet extends PermissionsSet implements Serializable {
       'birthdayNotify': birthdayNotify,
       'changeHistory': changeHistory,
       'confessionsNotify': confessionsNotify,
+      'dumpImages': dumpImages,
       'export': export,
       'kodasNotify': kodasNotify,
       'manageAllowedUsers': manageAllowedUsers,

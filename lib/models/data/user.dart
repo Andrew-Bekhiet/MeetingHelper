@@ -88,6 +88,7 @@ class User extends UserBase implements DataObjectWithPhoto {
         if (permissions.manageUsers) 'تعديل المستخدمين',
         if (permissions.manageAllowedUsers) 'تعديل مستخدمين محددين',
         if (permissions.superAccess) 'رؤية جميع البيانات',
+        if (permissions.dumpImages) 'تنزيل ملف صور المخدومين',
         if (permissions.manageDeleted) 'استرجاع المحئوفات',
         if (permissions.recordHistory) 'تسجيل حضور المخدومين',
         if (permissions.secretary) 'تسجيل حضور الخدام',
