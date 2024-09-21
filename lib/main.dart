@@ -16,6 +16,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get_it/get_it.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:meetinghelper/exceptions/update_user_data_exception.dart';
 import 'package:meetinghelper/models.dart';
@@ -187,7 +188,9 @@ Future<void> initFirebase() async {
 
   FirebaseDatabase.instance.setPersistenceEnabled(false);
 
-  registerFirebaseDependencies();
+  registerFirebaseDependencies(
+    googleSignInOverride: GoogleSignIn(scopes: ['email', 'profile']),
+  );
 }
 
 class MeetingHelperApp extends StatefulWidget {
