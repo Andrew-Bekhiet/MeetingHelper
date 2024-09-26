@@ -156,7 +156,7 @@ export const exportToExcel = runWith({
 
     services[_service!.id] = rslt;
   } else if (data?.onlyClass) {
-    const _classData = _class!.data() ? _class!.data()! : {};
+    const _classData = _class!.data() ?? {};
 
     const rslt: Record<string, string> = {};
     rslt["Name"] = _classData["Name"];
@@ -226,7 +226,7 @@ export const exportToExcel = runWith({
       const rslt: Record<string, string | Date> = {};
 
       rslt["Name"] = s.data()?.Name;
-      rslt["ID"] = _service!.id;
+      rslt["ID"] = s.id;
       rslt["Study Years: From"] =
         studyYears[
           (s.data()?.StudyYearRange?.From as firestore.DocumentReference)?.id
