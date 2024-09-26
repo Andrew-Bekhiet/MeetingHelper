@@ -221,6 +221,8 @@ export const exportToExcel = runWith({
             )?.map(async (r) => await r.get()) ?? []
           )
     )?.reduce<Record<string, Record<string, any>>>((map, s) => {
+      if (!s.exists) return map;
+
       const rslt: Record<string, string | Date> = {};
 
       rslt["Name"] = s.data()?.Name;
