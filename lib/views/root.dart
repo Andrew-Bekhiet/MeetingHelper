@@ -718,11 +718,21 @@ class _RootState extends State<Root>
                                       .call())
                                   .data,
                             );
+
+                            final documentsDirectory = Platform.isAndroid
+                                ? (await getExternalStorageDirectories(
+                                    type: StorageDirectory.documents,
+                                  ))!
+                                    .first
+                                : await getDownloadsDirectory();
+
                             final file = await File(
-                              (await getApplicationDocumentsDirectory()).path +
-                                  '/' +
-                                  filename.replaceAll(':', ''),
+                              path.join(
+                                documentsDirectory!.path,
+                                filename.replaceAll(':', ''),
+                              ),
                             ).create(recursive: true);
+
                             await GetIt.I<StorageRepository>()
                                 .ref(filename)
                                 .writeToFile(file);
