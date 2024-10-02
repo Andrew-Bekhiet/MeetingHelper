@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/controllers.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
+import 'package:meetinghelper/services/share_service.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/widgets.dart';
@@ -97,7 +100,50 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                   if (v == 'delete' && User.instance.permissions.superAccess) {
                     await _delete();
                   } else if (v == 'sorting') {
-                    await _showSortingOptions(context);
+                    await _showShareAttendanceDialog(context);
+                  } else if (v == 'share') {
+                    final tabIndex = snapshot.requireData.item1.index;
+
+                    final initialTitle = switch (tabIndex) {
+                          0 => 'حضور الاجتماع',
+                          1 => 'حضور القداس',
+                          2 => 'الاعتراف',
+                          final int i =>
+                            'حضور ' + snapshot.requireData.item2[i].name,
+                        } +
+                        ' ليوم ' +
+                        widget.record.name.replaceAll('\t', ' ');
+
+                    final title = await _showShareAttendanceDialog(
+                      context,
+                      initialTitle: initialTitle,
+                      submitText: 'مشاركة',
+                    );
+
+                    if (title == null) {
+                      return;
+                    }
+
+                    final tabIndexToListControllerName = [
+                      'Meeting',
+                      'Kodas',
+                      'Confession',
+                      ...snapshot.requireData.item2.map(
+                        (service) => service.id,
+                      ),
+                    ];
+
+                    await _shareAttendance(
+                      controller: _listControllers[
+                          tabIndexToListControllerName[tabIndex]]!,
+                      title: title,
+                      grouped: dayOptions.grouped.value,
+                      showOnly: dayOptions.sortByTimeASC.valueOrNull == null
+                          ? dayOptions.showOnly.value
+                          : true,
+                      showSubtitlesInGroups:
+                          dayOptions.showSubtitlesInGroups.value,
+                    );
                   } else if (v == 'edit') {
                     dayOptions.enabled.add(!dayOptions.enabled.value);
                     dayOptions.sortByTimeASC.add(null);
@@ -108,6 +154,10 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                   const PopupMenuItem(
                     value: 'sorting',
                     child: Text('تنظيم الليستة'),
+                  ),
+                  const PopupMenuItem(
+                    value: 'share',
+                    child: Text('مشاركة الكشف'),
                   ),
                   if (User.instance.permissions.changeHistory &&
                       DateTime.now()
@@ -224,12 +274,14 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                                       : snapshot.requireData.item1.index == 1
                                           ? 'Kodas'
                                           : 'Confesion']
-                              ?.objectsStream
+                              ?.objectsPaginatableStream
+                              .stream
                           : _listControllers[snapshot
                                   .requireData
                                   .item2[snapshot.requireData.item1.index - 3]
                                   .id]
-                              ?.objectsStream) ??
+                              ?.objectsPaginatableStream
+                              .stream) ??
                       Stream.value([]),
                   (snapshot.requireData.item1.index <= 2
                           ? _listControllers[
@@ -336,143 +388,164 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
     }
   }
 
-  Future<void> _showSortingOptions(BuildContext context) async {
-    await showDialog(
+  Future<String?> _showShareAttendanceDialog(
+    BuildContext context, {
+    String? submitText = 'إغلاق',
+    String? initialTitle,
+  }) async {
+    final TextEditingController titleController =
+        TextEditingController(text: initialTitle);
+
+    return showDialog<String?>(
       context: context,
-      builder: (context2) => AlertDialog(
+      builder: (context) => AlertDialog(
         insetPadding: const EdgeInsets.symmetric(vertical: 24.0),
         content: StatefulBuilder(
           builder: (innerContext, setState) {
             return SizedBox(
               width: 350,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: dayOptions.grouped.value,
-                        onChanged: (value) {
-                          dayOptions.grouped.add(value!);
-                          setState(() {});
-                        },
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (submitText != null && initialTitle != null)
+                      TextFormField(
+                        controller: titleController,
+                        decoration: const InputDecoration(
+                          labelText: 'العنوان',
+                        ),
+                        textInputAction: TextInputAction.newline,
+                        autofocus: true,
+                        maxLines: null,
                       ),
-                      GestureDetector(
-                        onTap: () {
-                          dayOptions.grouped.add(!dayOptions.grouped.value);
-                          setState(() {});
-                        },
-                        child: const Text('تقسيم حسب الفصول/السنوات الدراسية'),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Container(width: 10),
-                      Checkbox(
-                        value: dayOptions.showSubtitlesInGroups.value,
-                        onChanged: dayOptions.grouped.value
-                            ? (value) {
-                                dayOptions.showSubtitlesInGroups.add(value!);
-                                setState(() {});
-                              }
-                            : null,
-                      ),
-                      GestureDetector(
-                        onTap: dayOptions.grouped.value
-                            ? () {
-                                dayOptions.showSubtitlesInGroups.add(
-                                  !dayOptions.showSubtitlesInGroups.value,
-                                );
-                                setState(() {});
-                              }
-                            : null,
-                        child: const Text('اظهار عدد المخدومين داخل كل فصل'),
-                      ),
-                    ],
-                  ),
-                  Container(height: 5),
-                  ListTile(
-                    title: const Text('ترتيب حسب:'),
-                    subtitle: Wrap(
-                      direction: Axis.vertical,
-                      children: [null, true, false]
-                          .map(
-                            (i) => Row(
-                              children: [
-                                Radio<bool?>(
-                                  value: i,
-                                  groupValue: dayOptions.sortByTimeASC.value,
-                                  onChanged: (v) {
-                                    dayOptions.sortByTimeASC.add(v);
-                                    setState(() {});
-                                  },
-                                ),
-                                GestureDetector(
-                                  onTap: () {
-                                    dayOptions.sortByTimeASC.add(i);
-                                    setState(() {});
-                                  },
-                                  child: Text(
-                                    i == null
-                                        ? 'الاسم'
-                                        : i
-                                            ? 'وقت الحضور'
-                                            : 'وقت الحضور (المتأخر أولا)',
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                          .toList(),
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: dayOptions.grouped.value,
+                          onChanged: (value) {
+                            dayOptions.grouped.add(value!);
+                            setState(() {});
+                          },
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            dayOptions.grouped.add(!dayOptions.grouped.value);
+                            setState(() {});
+                          },
+                          child:
+                              const Text('تقسيم حسب الفصول/السنوات الدراسية'),
+                        ),
+                      ],
                     ),
-                  ),
-                  Container(height: 5),
-                  ListTile(
-                    enabled: dayOptions.sortByTimeASC.value == null,
-                    title: const Text('إظهار:'),
-                    subtitle: Wrap(
-                      direction: Axis.vertical,
-                      children: [null, true, false]
-                          .map(
-                            (i) => Row(
-                              children: [
-                                Radio<bool?>(
-                                  value: i,
-                                  groupValue:
-                                      dayOptions.sortByTimeASC.value == null
-                                          ? dayOptions.showOnly.value
-                                          : true,
-                                  onChanged:
-                                      dayOptions.sortByTimeASC.value == null
-                                          ? (v) {
-                                              dayOptions.showOnly.add(v);
-                                              setState(() {});
-                                            }
-                                          : null,
-                                ),
-                                GestureDetector(
-                                  onTap: dayOptions.sortByTimeASC.value == null
-                                      ? () {
-                                          dayOptions.showOnly.add(i);
-                                          setState(() {});
-                                        }
-                                      : null,
-                                  child: Text(
-                                    i == null
-                                        ? 'الكل'
-                                        : i
-                                            ? 'الحاضرين فقط'
-                                            : 'الغائبين فقط',
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                          .toList(),
+                    Row(
+                      children: [
+                        Container(width: 10),
+                        Checkbox(
+                          value: dayOptions.showSubtitlesInGroups.value,
+                          onChanged: dayOptions.grouped.value
+                              ? (value) {
+                                  dayOptions.showSubtitlesInGroups.add(value!);
+                                  setState(() {});
+                                }
+                              : null,
+                        ),
+                        GestureDetector(
+                          onTap: dayOptions.grouped.value
+                              ? () {
+                                  dayOptions.showSubtitlesInGroups.add(
+                                    !dayOptions.showSubtitlesInGroups.value,
+                                  );
+                                  setState(() {});
+                                }
+                              : null,
+                          child: const Text('اظهار عدد المخدومين داخل كل فصل'),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                    Container(height: 5),
+                    ListTile(
+                      title: const Text('ترتيب حسب:'),
+                      subtitle: Wrap(
+                        direction: Axis.vertical,
+                        children: [null, true, false]
+                            .map(
+                              (i) => Row(
+                                children: [
+                                  Radio<bool?>(
+                                    value: i,
+                                    groupValue: dayOptions.sortByTimeASC.value,
+                                    onChanged: (v) {
+                                      dayOptions.sortByTimeASC.add(v);
+                                      setState(() {});
+                                    },
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      dayOptions.sortByTimeASC.add(i);
+                                      setState(() {});
+                                    },
+                                    child: Text(
+                                      i == null
+                                          ? 'الاسم'
+                                          : i
+                                              ? 'وقت الحضور'
+                                              : 'وقت الحضور (المتأخر أولا)',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
+                    Container(height: 5),
+                    ListTile(
+                      enabled: dayOptions.sortByTimeASC.value == null,
+                      title: const Text('إظهار:'),
+                      subtitle: Wrap(
+                        direction: Axis.vertical,
+                        children: [null, true, false]
+                            .map(
+                              (i) => Row(
+                                children: [
+                                  Radio<bool?>(
+                                    value: i,
+                                    groupValue:
+                                        dayOptions.sortByTimeASC.value == null
+                                            ? dayOptions.showOnly.value
+                                            : true,
+                                    onChanged:
+                                        dayOptions.sortByTimeASC.value == null
+                                            ? (v) {
+                                                dayOptions.showOnly.add(v);
+                                                setState(() {});
+                                              }
+                                            : null,
+                                  ),
+                                  GestureDetector(
+                                    onTap:
+                                        dayOptions.sortByTimeASC.value == null
+                                            ? () {
+                                                dayOptions.showOnly.add(i);
+                                                setState(() {});
+                                              }
+                                            : null,
+                                    child: Text(
+                                      i == null
+                                          ? 'الكل'
+                                          : i
+                                              ? 'الحاضرين فقط'
+                                              : 'الغائبين فقط',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           },
@@ -480,9 +553,9 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
         actions: [
           TextButton(
             onPressed: () {
-              navigator.currentState!.pop();
+              navigator.currentState!.pop(titleController.text);
             },
-            child: const Text('إغلاق'),
+            child: submitText != null ? Text(submitText) : const Text('إغلاق'),
           ),
         ],
       ),
@@ -656,6 +729,107 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
         ).show(context: context);
       }
     });
+  }
+  // When grouped:
+  // title (n of total attended):
+  //   group-name (n of total attended):
+  //     person 1
+  //     person 2 (absent)
+  // When not grouped:
+  // title (n of total attended):
+  //   person 1
+  //   person 2 (absent)
+
+  Future<void> _shareAttendance({
+    required DayCheckListController<DataObject?, Person> controller,
+    required String title,
+    required bool grouped,
+    required bool? showOnly,
+    required bool showSubtitlesInGroups,
+  }) async {
+    final StringBuffer buffer = StringBuffer(title)
+      ..write(' (الحضور ')
+      ..write(controller.currentAttended?.length ?? '0')
+      ..write(' من ')
+      ..write((await controller.objectsPaginatableStream.stream.first).length)
+      ..write('):\n');
+
+    void _writePersons(List<Person> persons, {bool indent = false}) {
+      for (final person in persons) {
+        if (indent) buffer.write('  ');
+
+        buffer.write(person.name);
+
+        if (!(controller.currentAttended ?? {}).containsKey(person.id)) {
+          buffer
+            ..write(' (')
+            ..write('غياب')
+            ..write(')');
+        }
+        buffer.write('\n');
+      }
+    }
+
+    if (grouped) {
+      final allGroupedObjects = controller.groupByStream != null
+          ? await controller.groupByStream!(controller.currentObjects).first
+          : controller.groupBy!(controller.currentObjects);
+
+      for (final entry in allGroupedObjects.entries) {
+        buffer.write(entry.key?.name ?? 'غير محددة');
+
+        if (showSubtitlesInGroups) {
+          if (showOnly == null) {
+            buffer
+              ..write(' (الحضور ')
+              ..write(
+                entry.value
+                    .where(
+                      (p) =>
+                          (controller.currentAttended ?? {}).containsKey(p.id),
+                    )
+                    .length,
+              )
+              ..write(' من ')
+              ..write(entry.value.length);
+          } else if (showOnly) {
+            buffer
+              ..write(' (')
+              ..write(
+                entry.value
+                    .where(
+                      (p) =>
+                          (controller.currentAttended ?? {}).containsKey(p.id),
+                    )
+                    .length,
+              );
+          } else {
+            buffer
+              ..write(' (')
+              ..write(
+                entry.value
+                    .where(
+                      (p) =>
+                          !(controller.currentAttended ?? {}).containsKey(p.id),
+                    )
+                    .length,
+              );
+          }
+
+          buffer.write(')');
+        }
+
+        buffer.write(':\n');
+
+        _writePersons(entry.value, indent: true);
+
+        buffer.write('\n');
+      }
+    } else {
+      _writePersons(controller.currentObjects);
+    }
+
+    unawaited(MHShareService.I.shareText(buffer.toString()));
   }
 
   @override

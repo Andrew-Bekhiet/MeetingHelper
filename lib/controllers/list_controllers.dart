@@ -408,8 +408,8 @@ class HistoryDayOptions {
   final BehaviorSubject<bool> grouped;
   //show Only absent (false) or present (true) Persons
   final BehaviorSubject<bool?> showOnly;
-  final BehaviorSubject<bool?> sortByTimeASC;
   //true -> ASC, false -> DESC, null -> sort by name
+  final BehaviorSubject<bool?> sortByTimeASC;
   final BehaviorSubject<bool> enabled;
   final BehaviorSubject<bool> showSubtitlesInGroups;
   final BehaviorSubject<bool> lockUnchecks;
