@@ -23,6 +23,7 @@ import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/secrets.dart';
 import 'package:meetinghelper/services.dart';
+import 'package:meetinghelper/services/location_parsing_service.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/views.dart';
@@ -117,6 +118,10 @@ Future<void> initMeetingHelper() async {
   GetIt.I
       .registerSingleton<DefaultViewableObjectService>(mhDataObjectTapHandler);
   GetIt.I.registerSingleton<MHViewableObjectService>(mhDataObjectTapHandler);
+
+  GetIt.I.registerSingleton<LocationParsingService>(
+    const LocationParsingService(),
+  );
 
   final cacheSizeBytes = min(
     100 * 1024 * 1024,

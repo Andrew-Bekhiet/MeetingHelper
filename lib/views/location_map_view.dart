@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:meetinghelper/models.dart';
+import 'package:meetinghelper/services/location_parsing_service.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 
@@ -64,7 +65,18 @@ class _LocationMapViewState extends State<LocationMapView> {
                     ),
                     PopupMenuButton(
                       onSelected: (v) async {
-                        if (v == 'FromCoordinates') {
+                        if (v == 'FromURI') {
+                          location =
+                              await _getLocationFromGMapsLinkWithProgress() ??
+                                  location;
+
+                          setState(() {});
+
+                          if (location != null) {
+                            await _mapController
+                                .moveCamera(CameraUpdate.newLatLng(location!));
+                          }
+                        } else if (v == 'FromCoordinates') {
                           final _latController = TextEditingController();
                           final _lngController = TextEditingController();
                           final rslt = await showDialog(
@@ -145,6 +157,10 @@ class _LocationMapViewState extends State<LocationMapView> {
                           value: 'FromCoordinates',
                           child: Text('اختيار الموقع من الاحداثيات'),
                         ),
+                        const PopupMenuItem(
+                          value: 'FromURI',
+                          child: Text('اختيار الموقع من لينك Goggle Maps'),
+                        ),
                       ],
                     ),
                   ]
@@ -185,5 +201,81 @@ class _LocationMapViewState extends State<LocationMapView> {
         );
       },
     );
+  }
+
+  Future<LatLng?> _getLocationFromGMapsLinkWithProgress() async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    final controller = TextEditingController();
+
+    final result = await showDialog<String?>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('تحديد الموقع من لينك Google Maps'),
+        content: TextField(
+          autofocus: true,
+          autofillHints: const [AutofillHints.url],
+          textInputAction: TextInputAction.done,
+          controller: controller,
+          onSubmitted: Navigator.of(context).pop,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(controller.text),
+            child: const Text('تم'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == null) return null;
+
+    scaffoldMessenger.showSnackBar(
+      const SnackBar(
+        content: Row(
+          children: [
+            Expanded(child: Text('جار تحميل الموقع')),
+            CircularProgressIndicator(color: Colors.white),
+          ],
+        ),
+      ),
+    );
+
+    final locationResult = Uri.tryParse(result) != null
+        ? await LocationParsingService.I
+            .maybeParseLocationUri(Uri.parse(result))
+        : null;
+
+    scaffoldMessenger.hideCurrentSnackBar();
+
+    if (locationResult == null) {
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              Expanded(
+                child: Text('لم يتم العثور على الموقع'),
+              ),
+              Icon(Icons.error, color: Colors.red),
+            ],
+          ),
+        ),
+      );
+    } else {
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              Expanded(
+                child: Text('تم العثور على الموقع'),
+              ),
+              Icon(Icons.check_circle, color: Colors.green),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return locationResult;
   }
 }
