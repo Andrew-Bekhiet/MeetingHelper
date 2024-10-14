@@ -820,7 +820,7 @@ function parseColor(c: any): number | null {
   let result;
   const color = typeof c === "string" ? c : c?.toString();
 
-  if (color.startsWith("#")) {
+  if (color?.startsWith("#")) {
     result = Number.parseInt(color.replace("#", ""), 16);
   } else {
     result = Number.parseInt(color, 10);
