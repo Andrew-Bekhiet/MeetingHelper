@@ -10,6 +10,7 @@ import 'package:meetinghelper/services/share_service.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/widgets.dart';
+import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
@@ -109,15 +110,22 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                           1 => 'حضور القداس',
                           2 => 'الاعتراف',
                           final int i =>
-                            'حضور ' + snapshot.requireData.item2[i].name,
+                            'حضور ' + snapshot.requireData.item2[i - 3].name,
                         } +
                         ' ليوم ' +
                         widget.record.name.replaceAll('\t', ' ');
 
+                    bool selectGroups = false;
+
                     final title = await _showShareAttendanceDialog(
                       context,
                       initialTitle: initialTitle,
-                      submitText: 'مشاركة',
+                      submitText: 'مشاركة الكل',
+                      secondaryText: 'مشاركة فصول محددة',
+                      secondaryAction: (context, title) {
+                        selectGroups = true;
+                        Navigator.of(context).pop(title);
+                      },
                     );
 
                     if (title == null) {
@@ -133,10 +141,19 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                       ),
                     ];
 
+                    final controller = _listControllers[
+                        tabIndexToListControllerName[tabIndex]]!;
+
+                    final selectedGroups = selectGroups
+                        ? await _showSelectGroupsDialog(context, controller)
+                        : null;
+
+                    if (selectGroups && selectedGroups == null) return;
+
                     await _shareAttendance(
-                      controller: _listControllers[
-                          tabIndexToListControllerName[tabIndex]]!,
+                      controller: controller,
                       title: title,
+                      selectedGroups: selectedGroups,
                       grouped: dayOptions.grouped.value,
                       showOnly: dayOptions.sortByTimeASC.valueOrNull == null
                           ? dayOptions.showOnly.value
@@ -352,6 +369,86 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
     );
   }
 
+  Future<dynamic> _showSelectGroupsDialog(
+    BuildContext context,
+    DayCheckListController<DataObject?, Person> fromController,
+  ) async {
+    final rslt = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => Provider(
+          create: (_) {
+            final groupsStream = fromController.objectsStream
+                .switchMap(
+                  (currentObjects) => fromController.groupByStream != null
+                      ? fromController.groupByStream!(
+                          currentObjects,
+                        )
+                      : Stream.value(
+                          fromController.groupBy!(
+                            currentObjects,
+                          ),
+                        ),
+                )
+                .map(
+                  (o) => o.keys
+                      .map(
+                        (g) => g ?? Class.empty().copyWith(name: 'غير محددة'),
+                      )
+                      .toList(),
+                );
+
+            final controller = ListController<void, DataObject>(
+              objectsPaginatableStream: PaginatableStream.loadAll(
+                stream: groupsStream,
+              ),
+            );
+
+            groupsStream.first.then(controller.selectAll);
+
+            return controller;
+          },
+          child: Builder(
+            builder: (context) {
+              final groupSelectionController =
+                  context.read<ListController<void, DataObject>>();
+
+              return Scaffold(
+                appBar: AppBar(
+                  title: const Text('اختر الفصول'),
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.select_all),
+                      onPressed: groupSelectionController.selectAll,
+                      tooltip: 'تحديد الكل',
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.check_box_outline_blank),
+                      onPressed: groupSelectionController.deselectAll,
+                      tooltip: 'تحديد لا شئ',
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.done),
+                      onPressed: () => navigator.currentState!.pop(
+                        groupSelectionController.currentSelection,
+                      ),
+                      tooltip: 'تم',
+                    ),
+                  ],
+                ),
+                body: DataObjectListView<void, DataObject>(
+                  controller: groupSelectionController,
+                  autoDisposeController: true,
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+
+    return rslt;
+  }
+
   Widget _buildSearchBar(BuildContext context, AsyncSnapshot<bool> data) {
     if (data.requireData) {
       return TextField(
@@ -390,7 +487,9 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
 
   Future<String?> _showShareAttendanceDialog(
     BuildContext context, {
-    String? submitText = 'إغلاق',
+    String submitText = 'إغلاق',
+    String? secondaryText,
+    void Function(BuildContext, String)? secondaryAction,
     String? initialTitle,
   }) async {
     final TextEditingController titleController =
@@ -408,7 +507,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (submitText != null && initialTitle != null)
+                    if (initialTitle != null)
                       TextFormField(
                         controller: titleController,
                         decoration: const InputDecoration(
@@ -551,11 +650,14 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
           },
         ),
         actions: [
+          if (secondaryText != null)
+            TextButton(
+              onPressed: () => secondaryAction!(context, titleController.text),
+              child: Text(secondaryText),
+            ),
           TextButton(
-            onPressed: () {
-              navigator.currentState!.pop(titleController.text);
-            },
-            child: submitText != null ? Text(submitText) : const Text('إغلاق'),
+            onPressed: () => Navigator.of(context).pop(titleController.text),
+            child: Text(submitText),
           ),
         ],
       ),
@@ -746,6 +848,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
     required bool grouped,
     required bool? showOnly,
     required bool showSubtitlesInGroups,
+    Set<DataObject?>? selectedGroups,
   }) async {
     final StringBuffer buffer = StringBuffer(title)
       ..write(' (الحضور ')
@@ -770,12 +873,18 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
       }
     }
 
-    if (grouped) {
-      final allGroupedObjects = controller.groupByStream != null
-          ? await controller.groupByStream!(controller.currentObjects).first
-          : controller.groupBy!(controller.currentObjects);
+    final allGroupedObjects = grouped || selectedGroups != null
+        ? controller.groupByStream != null
+            ? await controller.groupByStream!(controller.currentObjects).first
+            : controller.groupBy!(controller.currentObjects)
+        : <DataObject?, List<Person>>{};
 
+    if (grouped) {
       for (final entry in allGroupedObjects.entries) {
+        if (selectedGroups != null && !selectedGroups.contains(entry.key)) {
+          continue;
+        }
+
         buffer.write(entry.key?.name ?? 'غير محددة');
 
         if (showSubtitlesInGroups) {
@@ -825,6 +934,15 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
 
         buffer.write('\n');
       }
+    } else if (selectedGroups != null) {
+      final filteredPersons = selectedGroups
+          .map((g) => allGroupedObjects[g] ?? [])
+          .expand((e) => e)
+          .toSet();
+
+      _writePersons(
+        controller.currentObjects.where(filteredPersons.contains).toList(),
+      );
     } else {
       _writePersons(controller.currentObjects);
     }
