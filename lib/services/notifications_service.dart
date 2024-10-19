@@ -13,7 +13,7 @@ import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/services.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/widgets.dart';
+import 'package:meetinghelper/utils/helpers.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class MHNotificationsService extends NotificationsService {
@@ -258,148 +258,106 @@ class MHNotificationsService extends NotificationsService {
     BuildContext context,
     dynamic attachment,
   ) async {
-    final controller = ListController<Class?, User>(
-      objectsPaginatableStream: PaginatableStream.loadAll(
-        stream: GetIt.I<MHDatabaseRepo>().collection('Users').snapshots().map(
-              (s) => s.docs
-                  .map(
-                    (d) => User(
-                      ref: d.reference,
-                      uid: d.id,
-                      name: d.data()['Name'],
-                    ),
-                  )
-                  .toList(),
-            ),
-      ),
-      groupingStream: Stream.value(true),
-      groupByStream: MHDatabaseRepo.I.users.groupUsersByClass,
-    )..enterSelectionMode();
+    final List<User>? users = await selectUsers(
+      context,
+      createController: (_, isGroupingUsersSubject) =>
+          ListController<Class?, User>(
+        objectsPaginatableStream: PaginatableStream.loadAll(
+          stream: GetIt.I<MHDatabaseRepo>()
+              .collection('Users')
+              .orderBy('Name')
+              .snapshots()
+              .map(
+                (s) => s.docs
+                    .map(
+                      (d) => User(
+                        ref: d.reference,
+                        uid: d.id,
+                        name: d.data()['Name'],
+                      ),
+                    )
+                    .toList(),
+              ),
+        ),
+        groupingStream: isGroupingUsersSubject,
+        groupByStream: MHDatabaseRepo.I.users.groupUsersByClass,
+      )..enterSelectionMode(),
+    );
 
-    final List<User>? users = await showDialog(
+    if (users == null) return;
+
+    final title = TextEditingController();
+    final content = TextEditingController();
+
+    final confirmSend = await showDialog(
       context: context,
       builder: (context) {
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('اختيار مستخدمين'),
-            actions: [
-              IconButton(
-                onPressed: () {
-                  navigator.currentState!.pop(
-                    controller.currentSelection?.toList(),
-                  );
-                },
-                icon: const Icon(Icons.done),
-                tooltip: 'تم',
-              ),
-            ],
-          ),
-          body: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SearchField(
-                showSuffix: false,
-                searchStream: controller.searchSubject,
-                textStyle: Theme.of(context).textTheme.bodyMedium,
-              ),
-              Expanded(
-                child: DataObjectListView<Class?, User>(
-                  itemBuilder: (
-                    current, {
-                    onLongPress,
-                    onTap,
-                    trailing,
-                    subtitle,
-                  }) =>
-                      ViewableObjectWidget(
-                    current,
-                    onTap: () => onTap!(current),
-                    trailing: trailing,
-                    showSubtitle: false,
+        return AlertDialog(
+          actions: <Widget>[
+            TextButton.icon(
+              icon: const Icon(Icons.send),
+              onPressed: () => navigator.currentState!.pop(true),
+              label: const Text('ارسال'),
+            ),
+            TextButton.icon(
+              icon: const Icon(Icons.cancel),
+              onPressed: () => navigator.currentState!.pop(false),
+              label: const Text('الغاء الأمر'),
+            ),
+          ],
+          title: const Text('انشاء رسالة'),
+          content: SizedBox(
+            width: 280,
+            child: Column(
+              children: <Widget>[
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                  child: TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'عنوان الرسالة',
+                    ),
+                    controller: title,
+                    textInputAction: TextInputAction.next,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'هذا الحقل مطلوب';
+                      }
+                      return null;
+                    },
                   ),
-                  controller: controller,
-                  autoDisposeController: false,
                 ),
-              ),
-            ],
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
+                    child: TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: 'محتوى الرسالة',
+                      ),
+                      textInputAction: TextInputAction.newline,
+                      maxLines: null,
+                      controller: content,
+                      expands: true,
+                    ),
+                  ),
+                ),
+                Text('سيتم ارفاق ${attachment.name} مع الرسالة'),
+              ],
+            ),
           ),
         );
       },
     );
 
-    final title = TextEditingController();
-    final content = TextEditingController();
-    if (users != null &&
-        await showDialog(
-              context: context,
-              builder: (context) {
-                return AlertDialog(
-                  actions: <Widget>[
-                    TextButton.icon(
-                      icon: const Icon(Icons.send),
-                      onPressed: () => navigator.currentState!.pop(true),
-                      label: const Text('ارسال'),
-                    ),
-                    TextButton.icon(
-                      icon: const Icon(Icons.cancel),
-                      onPressed: () => navigator.currentState!.pop(false),
-                      label: const Text('الغاء الأمر'),
-                    ),
-                  ],
-                  title: const Text('انشاء رسالة'),
-                  content: SizedBox(
-                    width: 280,
-                    child: Column(
-                      children: <Widget>[
-                        Container(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: TextFormField(
-                            decoration: const InputDecoration(
-                              labelText: 'عنوان الرسالة',
-                            ),
-                            controller: title,
-                            textInputAction: TextInputAction.next,
-                            validator: (value) {
-                              if (value!.isEmpty) {
-                                return 'هذا الحقل مطلوب';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: TextFormField(
-                              decoration: const InputDecoration(
-                                labelText: 'محتوى الرسالة',
-                              ),
-                              textInputAction: TextInputAction.newline,
-                              maxLines: null,
-                              controller: content,
-                              expands: true,
-                            ),
-                          ),
-                        ),
-                        Text('سيتم ارفاق ${attachment.name} مع الرسالة'),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ) ==
-            true) {
-      await GetIt.I<FunctionsService>()
-          .httpsCallable('sendMessageToUsers')
-          .call({
-        'users': users.map((e) => e.uid).toList(),
-        'title': title.text,
-        'body': 'أرسل إليك ${User.instance.name} رسالة',
-        'content': content.text,
-        'attachement': (await GetIt.I<MHShareService>().shareObject(attachment))
-            .toString(),
-      });
-    }
+    if (confirmSend != true) return;
+
+    await GetIt.I<FunctionsService>().httpsCallable('sendMessageToUsers').call({
+      'users': users.map((e) => e.uid).toList(),
+      'title': title.text,
+      'body': 'أرسل إليك ${User.instance.name} رسالة',
+      'content': content.text,
+      'attachement':
+          (await GetIt.I<MHShareService>().shareObject(attachment)).toString(),
+    });
   }
 
   @override

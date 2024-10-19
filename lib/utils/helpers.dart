@@ -12,6 +12,7 @@ import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/widgets.dart';
+import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart' hide Notification;
 import 'package:spreadsheet_decoder/spreadsheet_decoder.dart';
 
@@ -134,6 +135,106 @@ Future<void> import(BuildContext context) async {
     scaffoldMessenger.currentState!.hideCurrentSnackBar();
     await showErrorDialog(context, e.toString());
   }
+}
+
+Future<List<TUser>?> selectUsers<TGroup, TUser extends User>(
+  BuildContext context, {
+  required ListController<TGroup, TUser> Function(
+    List<TUser>,
+    BehaviorSubject<bool>,
+  ) createController,
+  FutureOr<List<TUser>> Function()? initialSelection,
+}) async {
+  final initialSelectionFuture =
+      Future.value(initialSelection?.call() ?? <TUser>[]);
+
+  final navigator = Navigator.of(context);
+
+  final isGroupingUsersSubject = BehaviorSubject<bool>.seeded(false);
+
+  final rslt = await navigator.push(
+    MaterialPageRoute(
+      builder: (context) => FutureBuilder<List<TUser>>(
+        future: initialSelectionFuture,
+        builder: (context, users) {
+          if (!users.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final theme = Theme.of(context);
+
+          return Provider<ListController<TGroup, TUser>>(
+            create: (_) =>
+                createController(users.requireData, isGroupingUsersSubject),
+            dispose: (context, c) => c.dispose(),
+            builder: (context, _) {
+              final controller = context.read<ListController<TGroup, TUser>>();
+
+              return Scaffold(
+                appBar: AppBar(
+                  leading: IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: navigator.pop,
+                  ),
+                  title: SearchField(
+                    showSuffix: false,
+                    searchStream: controller.searchSubject,
+                    textStyle: theme.primaryTextTheme.titleLarge,
+                  ),
+                  actions: [
+                    StreamBuilder<bool>(
+                      initialData: isGroupingUsersSubject.value,
+                      stream: isGroupingUsersSubject,
+                      builder: (context, snapshot) {
+                        return IconButton(
+                          icon: snapshot.requireData
+                              ? const Icon(Icons.list)
+                              : const Icon(Icons.segment),
+                          tooltip: snapshot.requireData
+                              ? 'عرض المستخدمين فقط'
+                              : 'تصنيف حسب الفصل',
+                          onPressed: () =>
+                              isGroupingUsersSubject.add(!snapshot.data!),
+                        );
+                      },
+                    ),
+                    IconButton(
+                      onPressed: () => navigator.pop(
+                        controller.currentSelection?.toList() ?? [],
+                      ),
+                      icon: const Icon(Icons.done),
+                      tooltip: 'تم',
+                    ),
+                  ],
+                ),
+                body: DataObjectListView<TGroup, TUser>(
+                  itemBuilder: (
+                    current, {
+                    onLongPress,
+                    onTap,
+                    trailing,
+                    subtitle,
+                  }) =>
+                      ViewableObjectWidget(
+                    current,
+                    onTap: () => onTap!(current),
+                    trailing: trailing,
+                    showSubtitle: false,
+                  ),
+                  controller: controller,
+                  autoDisposeController: false,
+                ),
+              );
+            },
+          );
+        },
+      ),
+    ),
+  );
+
+  await isGroupingUsersSubject.close();
+
+  return rslt;
 }
 
 Future<List<T>?> selectServices<T extends DataObject>(List<T>? selected) async {

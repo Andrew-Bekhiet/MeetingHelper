@@ -4,6 +4,7 @@ import 'package:churchdata_core/churchdata_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
@@ -474,73 +475,30 @@ class _EditUserState extends State<EditUser> {
   }
 
   Future<void> editChildrenUsers() async {
-    childrenUsers = await navigator.currentState!.push(
-          MaterialPageRoute(
-            builder: (context) {
-              return StreamBuilder<List<User>>(
-                stream: childrenUsers != null
-                    ? Stream.value(childrenUsers!)
-                    : GetIt.I<DatabaseRepository>()
-                        .collection('UsersData')
-                        .where('AllowedUsers', arrayContains: user.uid)
-                        .snapshots()
-                        .map(
-                          (value) =>
-                              value.docs.map(UserWithPerson.fromDoc).toList(),
-                        ),
-                builder: (c, users) {
-                  if (!users.hasData) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  return MultiProvider(
-                    providers: [
-                      Provider<ListController<Class?, User>>(
-                        create: (_) => ListController<Class?, User>(
-                          groupByStream:
-                              MHDatabaseRepo.I.users.groupUsersByClass,
-                          objectsPaginatableStream: PaginatableStream.loadAll(
-                            stream: MHDatabaseRepo.instance.users.getAllUsers(),
-                          ),
-                        )..selectAll(users.data),
-                        dispose: (context, c) => c.dispose(),
-                      ),
-                    ],
-                    builder: (context, child) => Scaffold(
-                      persistentFooterButtons: [
-                        TextButton(
-                          onPressed: () {
-                            navigator.currentState!.pop(
-                              context
-                                  .read<ListController<Class?, User>>()
-                                  .currentSelection
-                                  ?.toList(),
-                            );
-                          },
-                          child: const Text('تم'),
-                        ),
-                      ],
-                      appBar: AppBar(
-                        title: SearchField(
-                          showSuffix: false,
-                          searchStream: context
-                              .read<ListController<Class?, User>>()
-                              .searchSubject,
-                          textStyle: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ),
-                      body: DataObjectListView(
-                        controller:
-                            context.read<ListController<Class?, User>>(),
-                        autoDisposeController: false,
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-        ) ??
-        childrenUsers;
+    final rslt = await selectUsers<Class?, User>(
+      context,
+      initialSelection: () => childrenUsers != null
+          ? SynchronousFuture(childrenUsers!)
+          : GetIt.I<DatabaseRepository>()
+              .collection('UsersData')
+              .where('AllowedUsers', arrayContains: user.uid)
+              .get()
+              .then(
+                (value) => value.docs.map(UserWithPerson.fromDoc).toList(),
+              ),
+      createController: (users, isGroupingUsersSubject) =>
+          ListController<Class?, User>(
+        objectsPaginatableStream: PaginatableStream.loadAll(
+          stream: MHDatabaseRepo.instance.users.getAllUsers(),
+        ),
+        groupingStream: isGroupingUsersSubject,
+        groupByStream: MHDatabaseRepo.I.users.groupUsersByClass,
+      )..selectAll(users),
+    );
+
+    if (rslt == null) return;
+
+    childrenUsers = rslt;
   }
 
   Future<void> editAdminOnClasses() async {

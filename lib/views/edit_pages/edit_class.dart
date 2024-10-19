@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:churchdata_core/churchdata_core.dart';
+import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -11,11 +12,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/views.dart';
-import 'package:meetinghelper/widgets.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
-import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tinycolor2/tinycolor2.dart';
 
@@ -465,81 +465,29 @@ class _EditClassState extends State<EditClass> {
   }
 
   Future<void> _selectAllowedUsers() async {
-    final rslt = await navigator.currentState!.push(
-      MaterialPageRoute(
-        builder: (context) => FutureBuilder<List<User?>>(
-          future: Future.wait(
-            class$.allowedUsers.map(MHDatabaseRepo.instance.users.getUserName),
-          ),
-          builder: (context, users) {
-            if (!users.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
+    final rslt = await selectUsers<Class?, User>(
+      context,
+      initialSelection: () async {
+        final users = await Future.wait(
+          class$.allowedUsers.map(MHDatabaseRepo.instance.users.getUserName),
+        );
 
-            return Provider<ListController<Class?, User>>(
-              create: (_) => ListController<Class?, User>(
-                objectsPaginatableStream: PaginatableStream.loadAll(
-                  stream: MHDatabaseRepo.instance.users.getAllUsersNames().map(
-                        (users) =>
-                            users.where((u) => u.uid != User.emptyUID).toList(),
-                      ),
-                ),
-                groupByStream: MHDatabaseRepo.I.users.groupUsersByClass,
-                groupingStream: Stream.value(true),
-              )..selectAll(users.data!.whereType<User>().toList()),
-              dispose: (context, c) => c.dispose(),
-              builder: (context, _) => Scaffold(
-                appBar: AppBar(
-                  leading: IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: navigator.currentState!.pop,
-                  ),
-                  title: SearchField(
-                    showSuffix: false,
-                    searchStream: context
-                        .read<ListController<Class?, User>>()
-                        .searchSubject,
-                    textStyle: Theme.of(context).primaryTextTheme.titleLarge,
-                  ),
-                  actions: [
-                    IconButton(
-                      onPressed: () {
-                        navigator.currentState!.pop(
-                          context
-                              .read<ListController<Class?, User>>()
-                              .currentSelection
-                              ?.map((u) => u.uid)
-                              .toList(),
-                        );
-                      },
-                      icon: const Icon(Icons.done),
-                      tooltip: 'تم',
-                    ),
-                  ],
-                ),
-                body: DataObjectListView<Class?, User>(
-                  itemBuilder: (
-                    current, {
-                    onLongPress,
-                    onTap,
-                    trailing,
-                    subtitle,
-                  }) =>
-                      ViewableObjectWidget(
-                    current,
-                    onTap: () => onTap!(current),
-                    trailing: trailing,
-                    showSubtitle: false,
-                  ),
-                  controller: context.read<ListController<Class?, User>>(),
-                  autoDisposeController: false,
-                ),
+        return users.whereNotNull().toList();
+      },
+      createController: (users, isGroupingUsersSubject) =>
+          ListController<Class?, User>(
+        objectsPaginatableStream: PaginatableStream.loadAll(
+          stream: MHDatabaseRepo.instance.users.getAllUsersNames().map(
+                (users) => users.where((u) => u.uid != User.emptyUID).toList(),
               ),
-            );
-          },
         ),
-      ),
+        groupingStream: isGroupingUsersSubject,
+        groupByStream: MHDatabaseRepo.I.users.groupUsersByClass,
+      )..selectAll(users.toList()),
     );
-    if (rslt != null) class$ = class$.copyWith.allowedUsers(rslt);
+
+    if (rslt == null) return;
+
+    class$ = class$.copyWith.allowedUsers(rslt.map((u) => u.uid).toList());
   }
 }

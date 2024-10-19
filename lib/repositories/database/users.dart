@@ -266,6 +266,7 @@ class Users {
                     allowedUsersSet.contains(u) ||
                     (uidsByClassId[class$.id]?.contains(u) ?? false),
               )
+              .toSet()
               .toList();
 
           if (newUsers.isEmpty) continue;

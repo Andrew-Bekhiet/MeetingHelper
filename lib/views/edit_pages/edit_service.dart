@@ -14,11 +14,10 @@ import 'package:intl/intl.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/views.dart';
-import 'package:meetinghelper/widgets.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
-import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tinycolor2/tinycolor2.dart';
 
@@ -614,95 +613,34 @@ class _EditServiceState extends State<EditService> {
   }
 
   Future<void> _selectAllowedUsers() async {
-    allowedUsers = await navigator.currentState!.push(
-          MaterialPageRoute(
-            builder: (context) => FutureBuilder<List<UserWithPerson>>(
-              future: allowedUsers != null
-                  ? Future.value(allowedUsers)
-                  : GetIt.I<DatabaseRepository>()
-                      .collection('UsersData')
-                      .where('AdminServices', arrayContains: service.ref)
-                      .get()
-                      .then(
-                        (value) => value.docs
-                            .map(UserWithPerson.fromDoc)
-                            .whereNotNull()
-                            .toList(),
-                      ),
-              builder: (context, users) {
-                if (!users.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+    final rslt = await selectUsers<Class?, UserWithPerson>(
+      context,
+      initialSelection: () => allowedUsers != null
+          ? SynchronousFuture(allowedUsers ?? [])
+          : GetIt.I<DatabaseRepository>()
+              .collection('UsersData')
+              .where('AdminServices', arrayContains: service.ref)
+              .get()
+              .then(
+                (value) => value.docs
+                    .map(UserWithPerson.fromDoc)
+                    .whereNotNull()
+                    .toList(),
+              ),
+      createController: (users, isGroupingUsersSubject) =>
+          ListController<Class?, UserWithPerson>(
+        objectsPaginatableStream: PaginatableStream.loadAll(
+          stream: MHDatabaseRepo.instance.users.getAllUsersData().map(
+                (users) => users.where((u) => u.uid != User.emptyUID).toList(),
+              ),
+        ),
+        groupingStream: isGroupingUsersSubject,
+        groupByStream: MHDatabaseRepo.I.users.groupUsersByClass,
+      )..selectAll(users.toList()),
+    );
 
-                return Provider<ListController<Class?, UserWithPerson>>(
-                  create: (_) => ListController<Class?, UserWithPerson>(
-                    objectsPaginatableStream: PaginatableStream.loadAll(
-                      stream:
-                          MHDatabaseRepo.instance.users.getAllUsersData().map(
-                                (users) => users
-                                    .where((u) => u.uid != User.emptyUID)
-                                    .toList(),
-                              ),
-                    ),
-                    groupByStream: (u) =>
-                        MHDatabaseRepo.I.users.groupUsersByClass(u),
-                    groupingStream: Stream.value(true),
-                  )..selectAll(users.data),
-                  dispose: (context, c) => c.dispose(),
-                  builder: (context, _) => Scaffold(
-                    appBar: AppBar(
-                      leading: IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: navigator.currentState!.pop,
-                      ),
-                      title: SearchField(
-                        showSuffix: false,
-                        searchStream: context
-                            .read<ListController<Class?, UserWithPerson>>()
-                            .searchSubject,
-                        textStyle:
-                            Theme.of(context).primaryTextTheme.titleLarge,
-                      ),
-                      actions: [
-                        IconButton(
-                          onPressed: () {
-                            navigator.currentState!.pop(
-                              context
-                                  .read<
-                                      ListController<Class?, UserWithPerson>>()
-                                  .currentSelection
-                                  ?.toList(),
-                            );
-                          },
-                          icon: const Icon(Icons.done),
-                          tooltip: 'تم',
-                        ),
-                      ],
-                    ),
-                    body: DataObjectListView<Class?, UserWithPerson>(
-                      itemBuilder: (
-                        current, {
-                        onLongPress,
-                        onTap,
-                        trailing,
-                        subtitle,
-                      }) =>
-                          ViewableObjectWidget(
-                        current,
-                        onTap: () => onTap!(current),
-                        trailing: trailing,
-                        showSubtitle: false,
-                      ),
-                      controller: context
-                          .read<ListController<Class?, UserWithPerson>>(),
-                      autoDisposeController: false,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ) ??
-        allowedUsers;
+    if (rslt == null) return;
+
+    allowedUsers = rslt;
   }
 }
