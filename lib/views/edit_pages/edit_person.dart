@@ -1253,7 +1253,7 @@ class _EditPersonState extends State<EditPerson> {
           ('UsersData', false) => person.ref.set(
               {
                 ...person.toJson(),
-                'AllowedUsers': FieldValue.arrayRemove([User.instance.uid]),
+                'AllowedUsers': [User.instance.uid],
               },
             ),
           (_, true) => person.update(old: widget.person?.toJson() ?? {}),
