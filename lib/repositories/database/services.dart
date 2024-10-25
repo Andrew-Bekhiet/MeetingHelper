@@ -137,9 +137,8 @@ class Services extends TableBase<Service> {
             return c1.gender.compareTo(c2.gender);
 
           case (final Class c1, final Class c2):
-            return studyYearsByRef[c1.studyYear]!
-                .grade
-                .compareTo(studyYearsByRef[c2.studyYear]!.grade);
+            return (studyYearsByRef[c1.studyYear]?.grade ?? -10)
+                .compareTo(studyYearsByRef[c2.studyYear]?.grade ?? -10);
 
           case (final Service s1, final Service s2):
             final s1StudyYearFrom =
