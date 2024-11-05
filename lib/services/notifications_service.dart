@@ -726,25 +726,14 @@ class MHNotificationsService extends NotificationsService {
           .log('showBirthdayNotification: User not logged in, returning');
       return;
     }
+    final now = DateTime.now();
 
     final persons = await MHDatabaseRepo.instance.persons
         .getAll(
           queryCompleter: (q, _, __) => q
               .where(
-                'BirthDay',
-                isGreaterThanOrEqualTo: Timestamp.fromDate(
-                  DateTime(1970, DateTime.now().month, DateTime.now().day),
-                ),
-              )
-              .where(
-                'BirthDay',
-                isLessThan: Timestamp.fromDate(
-                  DateTime(
-                    1970,
-                    DateTime.now().month,
-                    DateTime.now().day + 1,
-                  ),
-                ),
+                'BirthDateMonthDay',
+                isEqualTo: '${now.month}-${now.day}',
               )
               .limit(20),
         )
@@ -764,11 +753,11 @@ class MHNotificationsService extends NotificationsService {
         additionalData: {
           'Query': QueryInfo(
             collection: MHDatabaseRepo.I.collection('Persons'),
-            fieldPath: 'BirthDay',
+            fieldPath: 'BirthDateMonthDay',
             operator: '=',
-            queryValue: DateTime.now().truncateToDay(),
+            queryValue: '${now.month}-${now.day}',
             order: true,
-            orderBy: 'BirthDay',
+            orderBy: 'BirthDateMonthDay',
             descending: false,
           ).toJson(),
         },

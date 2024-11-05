@@ -11,7 +11,7 @@ service cloud.firestore {
 
     function personFields(){
       return ['ClassId','Name','Phone','FatherPhone','MotherPhone','Phones','Address','HasPhoto',
-            'Color','BirthDate','BirthDay','Last','ExamScores','LastTanawol','LastConfession','LastKodas',
+            'Color','BirthDate','BirthDay','BirthDateString','BirthDateMonthDay','BirthDateMonth','Last','ExamScores','LastTanawol','LastConfession','LastKodas',
             'LastMeeting','LastCall','LastVisit','LastEdit','LastEditTime','Notes','School','Church','CFather',
             'Location','IsShammas','Gender','ShammasLevel','StudyYear','College','Services'
           ].toSet();

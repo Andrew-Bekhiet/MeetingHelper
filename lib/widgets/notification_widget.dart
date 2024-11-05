@@ -42,7 +42,7 @@ class NotificationWidget extends StatelessWidget {
                   (notification.additionalData!['Query'] as Map).cast(),
                 );
 
-                if (query.fieldPath == 'BirthDay') {
+                if (query.fieldPath.startsWith('BirthDa')) {
                   return Container(
                     width:
                         Theme.of(context).listTileTheme.minLeadingWidth ?? 40,

@@ -27,25 +27,30 @@ service firebase.storage {
       );
     }
 
-    match /ServicesPhotos {
+    match /ServicesPhotos/{_service} {
+      allow create: if checkUserRegistered()
+        && (request.auth.token.manageUsers
+          || request.auth.token.manageAllowedUsers
+        )
+        && request.auth.token.write;
+
+      allow update: if checkUserRegistered()
+        && request.auth.token.write
+        && (request.auth.token.manageUsers 
+          || request.auth.token.manageAllowedUsers
+          || /databases/(default)/documents/Services/$(_service)
+            in firestore.get(/databases/(default)/documents/UsersData/$(request.auth.token.personId)).data.AdminServices
+        );
+
+      allow delete: if checkUserRegistered()
+        && request.auth.token.write
+        && (request.auth.token.manageUsers 
+          || request.auth.token.manageAllowedUsers
+          || /databases/(default)/documents/Services/$(_service)
+            in firestore.get(/databases/(default)/documents/UsersData/$(request.auth.token.personId)).data.AdminServices
+        );
+
       allow read: if checkUserRegistered();
-      
-      match /{_service} {
-        
-        allow read: if checkUserRegistered();
-
-        allow create: if checkUserRegistered()
-          && (request.auth.token.manageUsers
-            || request.auth.token.manageAllowedUsers
-          )
-          && request.auth.token.write;
-
-        allow update, delete: if checkUserRegistered()
-          && request.auth.token.write
-          && (request.auth.token.manageUsers
-            || request.auth.token.manageAllowedUsers
-          );
-      }
     }
 
     match /ClassesPhotos {
@@ -84,7 +89,7 @@ service firebase.storage {
           return request.auth.token.superAccess
             || (!docData.keys().hasAny(['ClassId'])
                 ? false
-                : request.auth.uid in firestore.get(/databases/(default)/documents/Classes/$(docData.ClassId[6])).data.Allowed 
+                : request.auth.uid in firestore.get(/databases/(default)/documents/Classes/$(docData.ClassId[4])).data.Allowed 
               )
             || (!docData.keys().hasAny(['Services'])
                 ? false
@@ -109,7 +114,7 @@ service firebase.storage {
                   .AdminServices
                   .hasAll(docData.Services)
               )
-            || request.auth.uid in firestore.get(/databases/(default)/documents/Classes/$(docData.ClassId[6])).data.Allowed
+            || request.auth.uid in firestore.get(/databases/(default)/documents/Classes/$(docData.ClassId[4])).data.Allowed
           );
         }
 
@@ -124,108 +129,82 @@ service firebase.storage {
           && request.auth.token.write
           && canUpdatePerson();
       }
+    }
 
-      match /ServicesPhotos/{_service} {
-        allow create: if checkUserRegistered()
-          && (request.auth.token.manageUsers
-            || request.auth.token.manageAllowedUsers
-          )
-          && request.auth.token.write;
-
-        allow update: if checkUserRegistered()
-          && request.auth.token.write
-          && (request.auth.token.manageUsers 
-            || request.auth.token.manageAllowedUsers
-            || /databases/(default)/documents/Services/$(_service)
-              in firestore.get(/databases/(default)/documents/UsersData/$(request.auth.token.personId)).data.AdminServices
-          );
-
-        allow delete: if checkUserRegistered()
-          && request.auth.token.write
-          && (request.auth.token.manageUsers 
-            || request.auth.token.manageAllowedUsers
-            || /databases/(default)/documents/Services/$(_service)
-              in firestore.get(/databases/(default)/documents/UsersData/$(request.auth.token.personId)).data.AdminServices
-          );
-
-        allow read: if checkUserRegistered();
-      }
-
-      match /UsersPhotos/{user} {
-        allow read: if request.auth.uid != null
-          && (user == request.auth.uid
-            || (checkUserRegistered()
-              && (
-                request.auth.token.manageUsers
-                || request.auth.token.secretary
-                || (
-                  request.auth.token.manageAllowedUsers
-                  && request.auth.uid in firestore.get(/databases/(default)/documents/UsersData/$(user)).data.AllowedUsers
-                )
+    match /UsersPhotos/{user} {
+      allow read: if request.auth.uid != null
+        && (user == request.auth.uid
+          || (checkUserRegistered()
+            && (
+              request.auth.token.manageUsers
+              || request.auth.token.secretary
+              || (
+                request.auth.token.manageAllowedUsers
+                && request.auth.uid in firestore.get(/databases/(default)/documents/UsersData/$(user)).data.AllowedUsers
               )
-              && request.auth.token.approved
             )
-          );
+            && request.auth.token.approved
+          )
+        );
 
-        allow write: if checkUserRegistered()
-          && (request.auth.token.manageUsers
-            || request.auth.token.manageAllowedUsers
-            || user == request.auth.uid
-          );
-      }
+      allow write: if checkUserRegistered()
+        && (request.auth.token.manageUsers
+          || request.auth.token.manageAllowedUsers
+          || user == request.auth.uid
+        );
+    }
 
-      match /Deleted {
-        allow list: if checkUserRegistered()
+    match /Deleted {
+      allow list: if checkUserRegistered()
+        && request.auth.token.manageDeleted == true;
+
+      match /{date} {
+        allow read: if checkUserRegistered()
           && request.auth.token.manageDeleted == true;
+        
+        match /Classes {
+          match /{class}{  
+            allow read: if checkUserRegistered()
+              && request.auth.token.manageDeleted == true
+              && (request.auth.token.superAccess
+                  || request.auth.uid in firestore.get(/databases/(default)/documents/Deleted/$(date)/Classes/$(class)).data.Allowed);
+          }
+        }
 
-        match /{date} {
-          allow read: if checkUserRegistered()
+        match /Services {
+          allow list: if checkUserRegistered()
+            && request.auth.token.superAccess
             && request.auth.token.manageDeleted == true;
           
-          match /Classes {
-            match /{class}{  
-              allow read: if checkUserRegistered()
-                && request.auth.token.manageDeleted == true
-                && (request.auth.token.superAccess
-                    || request.auth.uid in firestore.get(/databases/(default)/documents/Deleted/$(date)/Classes/$(class)).data.Allowed);
-            }
+          match /{_service}{  
+            allow read: if checkUserRegistered()
+              && request.auth.token.manageDeleted == true
+              && request.auth.token.superAccess;
           }
+        }
 
-          match /Services {
-            allow list: if checkUserRegistered()
-              && request.auth.token.superAccess
-              && request.auth.token.manageDeleted == true;
-            
-            match /{_service}{  
-              allow read: if checkUserRegistered()
-                && request.auth.token.manageDeleted == true
-                && request.auth.token.superAccess;
-            }
-          }
-
-          match /Persons {
-            allow list: if checkUserRegistered()
-              && request.auth.token.superAccess
-              && request.auth.token.manageDeleted == true;
-            
-            match /{person}{
-              allow read: if checkUserRegistered()
-                && request.auth.token.manageDeleted == true
-                && (request.auth.token.superAccess
-                  || request.auth.uid in firestore.get(/databases/(default)/documents/Classes/$(firestore.get(/databases/(default)/documents/Deleted/$(date)/Persons/$(person)).data.ClassId[6])).data.Allowed
-                );
-            }
+        match /Persons {
+          allow list: if checkUserRegistered()
+            && request.auth.token.superAccess
+            && request.auth.token.manageDeleted == true;
+          
+          match /{person}{
+            allow read: if checkUserRegistered()
+              && request.auth.token.manageDeleted == true
+              && (request.auth.token.superAccess
+                || request.auth.uid in firestore.get(/databases/(default)/documents/Classes/$(firestore.get(/databases/(default)/documents/Deleted/$(date)/Persons/$(person)).data.ClassId[4])).data.Allowed
+              );
           }
         }
       }
+    }
 
-      match /Exports/{any=**} {
-        allow read: if checkUserRegistered() && resource.metadata.createdBy == request.auth.uid;
-      }
+    match /Exports/{any=**} {
+      allow read: if checkUserRegistered() && resource.metadata.createdBy == request.auth.uid;
+    }
 
-      match /Imports/{any=**} {
-        allow create: if checkUserRegistered() && resource.metadata.createdBy == request.auth.uid;
-      }
+    match /Imports/{any=**} {
+      allow create: if checkUserRegistered() && resource.metadata.createdBy == request.auth.uid;
     }
   }
 }

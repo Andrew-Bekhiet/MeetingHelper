@@ -7,7 +7,6 @@ import 'package:collection/collection.dart';
 import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:intl/intl.dart';
 import 'package:meetinghelper/repositories/database_repository.dart';
 
 part 'person.g.dart';
@@ -102,7 +101,9 @@ class Person extends PersonBase {
           location: json['Location'],
           mainPhone: json['Phone'],
           otherPhones: (json['Phones'] as Map?)?.cast() ?? {},
-          birthDate: (json['BirthDate'] as Timestamp?)?.toDate(),
+          birthDate: json['BirthDateString'] != null
+              ? DateTime.parse(json['BirthDateString'])
+              : (json['BirthDate'] as Timestamp?)?.toDate(),
           school: json['School'],
           college: json['College'],
           church: json['Church'],
@@ -128,10 +129,6 @@ class Person extends PersonBase {
   factory Person.empty() => Person(
         ref: GetIt.I<DatabaseRepository>().collection('Persons').doc('null'),
       );
-
-  DateTime? get birthDay => birthDate != null
-      ? DateTime(1970, birthDate!.month, birthDate!.day)
-      : null;
 
   Future<String> getCFatherName() async {
     return (await cFather?.get())?.data()?['Name'] ?? '';
@@ -164,8 +161,13 @@ class Person extends PersonBase {
         'MotherPhone': motherPhone ?? '',
         'Phones': null,
         'Address': address,
-        'BirthDate': birthDate?.toDurationString(appendSince: false),
-        'BirthDay': birthDay != null ? DateFormat('d/M').format(birthDay!) : '',
+        'BirthDateString':
+            (birthDate?.toDurationString(appendSince: false) ?? '') +
+                '       ' +
+                (birthDate?.toIso8601String().split('T')[0] ?? ''),
+        'BirthDateMonthDay':
+            birthDate != null ? '${birthDate?.month}-${birthDate?.day}' : null,
+        'BirthDateMonth': birthDate?.month.toString(),
         'LastTanawol': lastTanawol?.toDurationString(),
         'LastCall': lastCall?.toDurationString(),
         'LastConfession': lastConfession?.toDurationString(),
@@ -220,6 +222,10 @@ class Person extends PersonBase {
         'LastEdit': lastEdit?.uid,
         'LastEditTime': lastEdit?.time,
         'Services': services,
+        'BirthDateString': birthDate?.toIso8601String().split('T')[0],
+        'BirthDateMonthDay':
+            birthDate != null ? '${birthDate?.month}-${birthDate?.day}' : null,
+        'BirthDateMonth': birthDate?.month,
       };
 
   Future<String> getSchoolName() async {
@@ -254,9 +260,6 @@ class Person extends PersonBase {
   static Map<String, PropertyMetadata> propsMetadata() => EqualityMap.from(
         EqualityBy((o) => o.split('.')[0]),
         {
-          ...PersonBase.propsMetadata
-            ..remove('MainPhone')
-            ..remove('OtherPhones'),
           'Name': const PropertyMetadata<String>(
             name: 'Name',
             label: 'الاسم',
@@ -282,15 +285,22 @@ class Person extends PersonBase {
             label: 'الأرقام الأخرى',
             defaultValue: {},
           ),
-          'BirthDate': const PropertyMetadata<DateTime>(
-            name: 'BirthDate',
+          'BirthDateString': PropertyMetadata<String>(
+            name: 'BirthDateString',
             label: 'تاريخ الميلاد',
-            defaultValue: null,
+            defaultValue: DateTime.now().toIso8601String().split('T')[0],
           ),
-          'BirthDay': PropertyMetadata<DateTime>(
-            name: 'BirthDay',
-            label: 'يوم الميلاد',
-            defaultValue: DateTime.now(),
+          'BirthDateMonthDay': PropertyMetadata<String>(
+            name: 'BirthDateMonthDay',
+            label: 'شهر ويوم الميلاد',
+            defaultValue: DateTime.now().month.toString() +
+                '-' +
+                DateTime.now().day.toString(),
+          ),
+          'BirthDateMonth': PropertyMetadata<int>(
+            name: 'BirthDateMonth',
+            label: 'شهر الميلاد',
+            defaultValue: DateTime.now().month,
           ),
           'StudyYear': PropertyMetadata<JsonRef>(
             name: 'StudyYear',

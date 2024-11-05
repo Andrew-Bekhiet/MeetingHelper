@@ -2,6 +2,7 @@ import 'package:churchdata_core/churchdata_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' show FieldPath;
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/controllers.dart';
@@ -179,6 +180,65 @@ class _SearchQueryState extends State<SearchQuery> {
             textInputAction: TextInputAction.done,
             initialValue: queryValue is String ? queryValue : '',
             onChanged: (v) => query = query.copyWith.queryValue(v),
+            onFieldSubmitted: (_) => execute(),
+            validator: (value) {
+              return null;
+            },
+          ),
+        );
+      },
+      queryCompleter: (q, value) {
+        if (value == null) {
+          return q.where(
+            fieldPath.contains('.')
+                ? FieldPath.fromString(fieldPath)
+                : fieldPath,
+            isNull: operator == '=',
+          );
+        } else if (operator == '>') {
+          return q.where(
+            fieldPath.contains('.')
+                ? FieldPath.fromString(fieldPath)
+                : fieldPath,
+            isGreaterThanOrEqualTo: value,
+          );
+        } else if (operator == '<') {
+          return q.where(
+            fieldPath.contains('.')
+                ? FieldPath.fromString(fieldPath)
+                : fieldPath,
+            isLessThanOrEqualTo: value,
+          );
+        } else if (operator == '!=') {
+          return q.where(
+            fieldPath.contains('.')
+                ? FieldPath.fromString(fieldPath)
+                : fieldPath,
+            isNotEqualTo: value,
+          );
+        }
+
+        return q.where(
+          fieldPath.contains('.') ? FieldPath.fromString(fieldPath) : fieldPath,
+          isEqualTo: value,
+        );
+      },
+    ),
+    int: PropertyQuery<int>(
+      builder: (context) {
+        return Container(
+          key: const ValueKey('EnterInteger'),
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child: TextFormField(
+            decoration: InputDecoration(
+              labelText:
+                  properties[collection]?[fieldPath]?.label ?? 'قيمة البحث',
+            ),
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            textInputAction: TextInputAction.done,
+            initialValue: queryValue is int ? queryValue.toString() : '',
+            onChanged: (v) => query = query.copyWith.queryValue(int.parse(v)),
             onFieldSubmitted: (_) => execute(),
             validator: (value) {
               return null;
