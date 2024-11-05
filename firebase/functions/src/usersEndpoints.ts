@@ -516,9 +516,9 @@ export const recoverDoc = https.onCall(async (data, context) => {
           .move(
             (data.deletedPath as string)
               .replace(RegExp("Deleted/\\d{4}-\\d{2}-\\d{2}/"), "")
-              .replace("/Classes/", "/ClassesPhotos/")
-              .replace("/Services/", "/ServicesPhotos/")
-              .replace("/Persons/", "/PersonsPhotos/")
+              .replace("Classes/", "ClassesPhotos/")
+              .replace("Services/", "ServicesPhotos/")
+              .replace("Persons/", "PersonsPhotos/")
           );
       if (!data.keepBackup) await firestore().doc(data.deletedPath).delete();
     } else {
@@ -594,10 +594,11 @@ export const recoverDoc = https.onCall(async (data, context) => {
           .bucket("gs://" + projectId + ".appspot.com")
           .file(data.deletedPath)
           .move(
-            (data.deletedPath as string).replace(
-              RegExp("Deleted/\\d{4}-\\d{2}-\\d{2}/"),
-              ""
-            )
+            (data.deletedPath as string)
+              .replace(RegExp("Deleted/\\d{4}-\\d{2}-\\d{2}/"), "")
+              .replace("Classes/", "ClassesPhotos/")
+              .replace("Services/", "ServicesPhotos/")
+              .replace("Persons/", "PersonsPhotos/")
           );
     }
     return "OK";
