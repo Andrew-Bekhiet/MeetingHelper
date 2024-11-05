@@ -162,7 +162,7 @@ service firebase.storage {
         allow read: if checkUserRegistered()
           && request.auth.token.manageDeleted == true;
         
-        match /Classes {
+        match /ClassesPhotos {
           match /{class}{  
             allow read: if checkUserRegistered()
               && request.auth.token.manageDeleted == true
@@ -171,7 +171,7 @@ service firebase.storage {
           }
         }
 
-        match /Services {
+        match /ServicesPhotos {
           allow list: if checkUserRegistered()
             && request.auth.token.superAccess
             && request.auth.token.manageDeleted == true;
@@ -183,7 +183,7 @@ service firebase.storage {
           }
         }
 
-        match /Persons {
+        match /PersonsPhotos {
           allow list: if checkUserRegistered()
             && request.auth.token.superAccess
             && request.auth.token.manageDeleted == true;
