@@ -1,6 +1,7 @@
 import 'package:async/async.dart';
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:meetinghelper/models.dart';
@@ -66,91 +67,34 @@ class _LocationMapViewState extends State<LocationMapView> {
                     PopupMenuButton(
                       onSelected: (v) async {
                         if (v == 'FromURI') {
-                          location =
-                              await _getLocationFromGMapsLinkWithProgress() ??
-                                  location;
+                          final newLocation =
+                              await _getLocationFromGMapsLinkWithProgress();
 
-                          setState(() {});
-
-                          if (location != null) {
-                            await _mapController
-                                .moveCamera(CameraUpdate.newLatLng(location!));
-                          }
+                          _maybeSetLocationAndMoveCamera(newLocation);
                         } else if (v == 'FromCoordinates') {
-                          final _latController = TextEditingController();
-                          final _lngController = TextEditingController();
-                          final rslt = await showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              content: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  TextFormField(
-                                    decoration: const InputDecoration(
-                                      labelText: 'Latitude',
-                                    ),
-                                    controller: _latController,
-                                  ),
-                                  const SizedBox(
-                                    height: 10,
-                                  ),
-                                  TextFormField(
-                                    decoration: const InputDecoration(
-                                      labelText: 'Longitude',
-                                    ),
-                                    controller: _lngController,
-                                  ),
-                                ],
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.of(context).pop(true),
-                                  child: const Text('تم'),
-                                ),
-                              ],
-                            ),
-                          );
-                          if (rslt != true ||
-                              double.tryParse(_latController.text) == null ||
-                              double.tryParse(_lngController.text) == null) {
-                            return;
-                          }
+                          final newLocation =
+                              await _getLocationFromCoordinates();
 
-                          location = LatLng(
-                            double.parse(_latController.text),
-                            double.parse(_lngController.text),
-                          );
+                          _maybeSetLocationAndMoveCamera(newLocation);
+                        } else if (v == 'FromCurrentLocation') {
+                          final newLocation = await Location.instance
+                              .requestPermission()
+                              .then((perm) async {
+                            if (perm == PermissionStatus.granted ||
+                                perm == PermissionStatus.grantedLimited) {
+                              return (await Location.instance.getLocation())
+                                  .toLatLng();
+                            }
+                            return locationData.data?.toLatLng();
+                          });
 
-                          setState(() {});
-
-                          await _mapController
-                              .moveCamera(CameraUpdate.newLatLng(location!));
-                        } else if (v == 'FromLocation') {
-                          location = await Location.instance
-                                  .requestPermission()
-                                  .then((perm) async {
-                                if (perm == PermissionStatus.granted ||
-                                    perm == PermissionStatus.grantedLimited) {
-                                  return (await Location.instance.getLocation())
-                                      .toLatLng();
-                                }
-                                return locationData.data?.toLatLng();
-                              }) ??
-                              location;
-
-                          setState(() {});
-
-                          if (location != null) {
-                            await _mapController
-                                .moveCamera(CameraUpdate.newLatLng(location!));
-                          }
+                          _maybeSetLocationAndMoveCamera(newLocation);
                         }
                       },
                       itemBuilder: (context) => [
                         if (locationData.hasData)
                           const PopupMenuItem(
-                            value: 'FromLocation',
+                            value: 'FromCurrentLocation',
                             child: Text('اختيار الموقع الحالي'),
                           ),
                         const PopupMenuItem(
@@ -159,7 +103,7 @@ class _LocationMapViewState extends State<LocationMapView> {
                         ),
                         const PopupMenuItem(
                           value: 'FromURI',
-                          child: Text('اختيار الموقع من لينك Goggle Maps'),
+                          child: Text('اختيار الموقع من لينك Google Maps'),
                         ),
                       ],
                     ),
@@ -167,9 +111,7 @@ class _LocationMapViewState extends State<LocationMapView> {
                 : null,
           ),
           body: locationData.connectionState == ConnectionState.waiting
-              ? const Center(
-                  child: CircularProgressIndicator(),
-                )
+              ? const Center(child: CircularProgressIndicator())
               : GoogleMap(
                   onMapCreated: (c) => _mapController = c,
                   myLocationEnabled: true,
@@ -201,6 +143,79 @@ class _LocationMapViewState extends State<LocationMapView> {
         );
       },
     );
+  }
+
+  Future<LatLng?> _getLocationFromCoordinates() async {
+    final _latController = TextEditingController();
+    final _lngController = TextEditingController();
+
+    final rslt = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              decoration: const InputDecoration(
+                labelText: 'Latitude',
+              ),
+              controller: _latController,
+              inputFormatters: [
+                TextInputFormatter.withFunction(
+                  (old, new$) {
+                    if (new$.text.contains(',') &&
+                        new$.text.split(',').length == 2) {
+                      final [lat, lng] = new$.text.split(',');
+
+                      _lngController.text = lng;
+
+                      return TextEditingValue(
+                        text: lat,
+                        selection: TextSelection.collapsed(
+                          offset: lat.length,
+                        ),
+                        composing: TextRange(
+                          start: 0,
+                          end: lat.length,
+                        ),
+                      );
+                    }
+
+                    return new$;
+                  },
+                ),
+              ],
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 10),
+            TextFormField(
+              decoration: const InputDecoration(
+                labelText: 'Longitude',
+              ),
+              controller: _lngController,
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('تم'),
+          ),
+        ],
+      ),
+    );
+
+    if (rslt != true) return null;
+
+    try {
+      return LatLng(
+        double.parse(_latController.text.trim()),
+        double.parse(_lngController.text.trim()),
+      );
+    } catch (e) {
+      return null;
+    }
   }
 
   Future<LatLng?> _getLocationFromGMapsLinkWithProgress() async {
@@ -238,13 +253,12 @@ class _LocationMapViewState extends State<LocationMapView> {
             CircularProgressIndicator(color: Colors.white),
           ],
         ),
+        duration: Duration(minutes: 1),
       ),
     );
 
-    final locationResult = Uri.tryParse(result) != null
-        ? await LocationParsingService.I
-            .maybeParseLocationUri(Uri.parse(result))
-        : null;
+    final locationResult =
+        await LocationParsingService.I.maybeParseLocation(result);
 
     scaffoldMessenger.hideCurrentSnackBar();
 
@@ -277,5 +291,15 @@ class _LocationMapViewState extends State<LocationMapView> {
     }
 
     return locationResult;
+  }
+
+  void _maybeSetLocationAndMoveCamera(LatLng? newLocation) {
+    if (newLocation == null) return;
+
+    location = newLocation;
+
+    setState(() {});
+
+    _mapController.moveCamera(CameraUpdate.newLatLng(newLocation));
   }
 }
