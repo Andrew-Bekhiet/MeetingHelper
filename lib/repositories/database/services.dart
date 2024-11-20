@@ -3,6 +3,7 @@ import 'package:collection/collection.dart';
 import 'package:meetinghelper/models/data.dart';
 import 'package:meetinghelper/repositories/database/table_base.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 class Services extends TableBase<Service> {
   const Services(super.repository);
@@ -75,6 +76,16 @@ class Services extends TableBase<Service> {
           (T == DataObject && services == null),
     );
 
+    Sentry.addBreadcrumb(
+      Breadcrumb.console(
+        message: 'getting services grouped by study year',
+        data: {
+          'T': T.toString(),
+          'services': services?.map((e) => e.id).toList(),
+        },
+      ),
+    );
+
     final bool shouldGetClasses = isSubtype<T, Class>() || T == DataObject;
     final bool shouldGetServices = isSubtype<T, Service>() || T == DataObject;
 
@@ -89,21 +100,33 @@ class Services extends TableBase<Service> {
           ? services != null
               ? Stream.value(services as List<Class>)
               : User.loggedInStream.switchMap(
-                  (user) => (user.permissions.superAccess
-                          ? repository
-                              .collection('Classes')
-                              .orderBy('StudyYear')
-                              .orderBy('Gender')
-                              .snapshots()
-                          : repository
-                              .collection('Classes')
-                              .where('Allowed', arrayContains: user.uid)
-                              .orderBy('StudyYear')
-                              .orderBy('Gender')
-                              .snapshots())
-                      .map(
-                    (cs) => cs.docs.map(Class.fromDoc).toList(),
-                  ),
+                  (user) {
+                    Sentry.addBreadcrumb(
+                      Breadcrumb.console(
+                        message: 'getting classes for user ${user.uid}',
+                        data: {
+                          'T': T.toString(),
+                          'user': user.toJson(),
+                        },
+                      ),
+                    );
+
+                    return (user.permissions.superAccess
+                            ? repository
+                                .collection('Classes')
+                                .orderBy('StudyYear')
+                                .orderBy('Gender')
+                                .snapshots()
+                            : repository
+                                .collection('Classes')
+                                .where('Allowed', arrayContains: user.uid)
+                                .orderBy('StudyYear')
+                                .orderBy('Gender')
+                                .snapshots())
+                        .map(
+                      (cs) => cs.docs.map(Class.fromDoc).toList(),
+                    );
+                  },
                 )
           : Stream.value([]),
       shouldGetServices
@@ -122,6 +145,18 @@ class Services extends TableBase<Service> {
     List<Class> classes,
     List<Service> services,
   ) {
+    Sentry.addBreadcrumb(
+      Breadcrumb.console(
+        message: 'grouping services and classes by study year',
+        data: {
+          'T': T.toString(),
+          'studyYears': studyYears.map((e) => e.id).toList(),
+          'classes': classes.map((e) => e.id).toList(),
+          'services': services.map((e) => e.id).toList(),
+        },
+      ),
+    );
+
     final Map<JsonRef, StudyYear> studyYearsByRef = {
       for (final sy in studyYears) sy.ref: sy,
     };
