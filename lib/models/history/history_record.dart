@@ -289,12 +289,12 @@ class MinimalHistoryRecord {
     }
 
     QueryOfJson _classesFilter(QueryOfJson q, List<Class> classes) {
-      assert(classes.length <= 10);
+      assert(classes.length <= 30);
       return q.where('ClassId', whereIn: classes.map((c) => c.ref).toList());
     }
 
     QueryOfJson _servicesFilter(QueryOfJson q, List<Service> services) {
-      assert(services.length <= 10);
+      assert(services.length <= 30);
       return q.where(
         'Services',
         arrayContainsAny: services.map((c) => c.ref).toList(),
@@ -310,7 +310,7 @@ class MinimalHistoryRecord {
     ).switchMap((value) {
       if (range != null && classes != null && services != null) {
         return Rx.combineLatestList<JsonQuery>([
-          ...classes.split(10).map(
+          ...classes.split(30).map(
                 (a) => _timeOrder(
                   _timeRangeFilter(
                     _classesFilter(
@@ -322,7 +322,7 @@ class MinimalHistoryRecord {
                   ),
                 ).snapshots(),
               ),
-          ...services.split(10).map(
+          ...services.split(30).map(
                 (a) => _timeOrder(
                   _timeRangeFilter(
                     _servicesFilter(
@@ -338,7 +338,7 @@ class MinimalHistoryRecord {
       } else if (range != null && classes != null) {
         return Rx.combineLatestList<JsonQuery>(
           classes
-              .split(10)
+              .split(30)
               .map(
                 (a) => _timeOrder(
                   _timeRangeFilter(
@@ -356,7 +356,7 @@ class MinimalHistoryRecord {
       } else if (range != null && services != null) {
         return Rx.combineLatestList<JsonQuery>(
           services
-              .split(10)
+              .split(30)
               .map(
                 (a) => _timeOrder(
                   _timeRangeFilter(
@@ -382,7 +382,7 @@ class MinimalHistoryRecord {
           ).snapshots().map((s) => s.docs);
         } else {
           return Rx.combineLatestList<JsonQuery>([
-            ...value.item2.split(10).map(
+            ...value.item2.split(30).map(
                   (a) => _timeOrder(
                     _timeRangeFilter(
                       _classesFilter(
@@ -394,7 +394,7 @@ class MinimalHistoryRecord {
                     ),
                   ).snapshots(),
                 ),
-            ...value.item3.split(10).map(
+            ...value.item3.split(30).map(
                   (a) => _timeOrder(
                     _timeRangeFilter(
                       _servicesFilter(
@@ -411,7 +411,7 @@ class MinimalHistoryRecord {
       } else if (classes != null) {
         return Rx.combineLatestList<JsonQuery>(
           classes
-              .split(10)
+              .split(30)
               .map(
                 (a) => _timeOrder(
                   _classesFilter(
@@ -426,7 +426,7 @@ class MinimalHistoryRecord {
       } else if (services != null) {
         return Rx.combineLatestList<JsonQuery>(
           services
-              .split(10)
+              .split(30)
               .map(
                 (a) => _timeOrder(
                   _servicesFilter(

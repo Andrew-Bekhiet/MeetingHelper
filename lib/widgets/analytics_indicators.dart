@@ -71,7 +71,7 @@ class AttendanceChart extends StatelessWidget {
     }
 
     return Rx.combineLatestList<JsonQuery>(
-      classes!.split(10).map((c) {
+      classes!.split(30).map((c) {
         var query =
             GetIt.I<DatabaseRepository>().collectionGroup(collectionGroup);
         if (notService(collectionGroup)) {
@@ -318,7 +318,7 @@ class ClassesAttendanceIndicator extends StatelessWidget {
       stream: classes != null
           ? Rx.combineLatestList<JsonQuery>(
               classes!
-                  .split(10)
+                  .split(30)
                   .map(
                     (o) => collection
                         .where('ClassId', whereIn: o.map((e) => e.ref).toList())
@@ -344,7 +344,7 @@ class ClassesAttendanceIndicator extends StatelessWidget {
           stream: classes != null
               ? Rx.combineLatestList<JsonQuery>(
                   classes!
-                      .split(10)
+                      .split(30)
                       .map(
                         (o) => isServant
                             ? GetIt.I<DatabaseRepository>()
@@ -516,7 +516,7 @@ class PersonAttendanceIndicator extends StatelessWidget {
         return Stream.value([]);
       } else {
         return Rx.combineLatestList<JsonQuery>(
-          (notService(collectionGroup) ? u.item2 : u.item3).split(10).map((o) {
+          (notService(collectionGroup) ? u.item2 : u.item3).split(30).map((o) {
             return GetIt.I<DatabaseRepository>()
                 .collectionGroup(collectionGroup)
                 .where(
@@ -765,7 +765,7 @@ class CartesianChart<T> extends StatelessWidget {
                 ...parents!
                     .where((r) => r.parent.id == 'Classes')
                     .toList()
-                    .split(10)
+                    .split(30)
                     .map(
                       (c) => GetIt.I<DatabaseRepository>()
                           .collection('Persons')
@@ -778,7 +778,7 @@ class CartesianChart<T> extends StatelessWidget {
                 ...parents!
                     .where((r) => r.parent.id == 'Services')
                     .toList()
-                    .split(10)
+                    .split(30)
                     .map(
                       (c) => GetIt.I<DatabaseRepository>()
                           .collection('Persons')

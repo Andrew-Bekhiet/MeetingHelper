@@ -379,7 +379,7 @@ class DayHistoryProperty extends StatelessWidget {
                         return MHDatabaseRepo.I.classes.getAll().switchMap(
                           (classes) {
                             if (classes.isEmpty) return Stream.value([]);
-                            if (classes.length <= 10) {
+                            if (classes.length <= 30) {
                               return _completeQuery(
                                 query.where(
                                   'ClassId',
@@ -390,7 +390,7 @@ class DayHistoryProperty extends StatelessWidget {
 
                             return Rx.combineLatest<List<HistoryRecord>,
                                 List<HistoryRecord>>(
-                              classes.split(10).map(
+                              classes.split(30).map(
                                     (chunk) => _completeQuery(
                                       query.where(
                                         'ClassId',
@@ -413,7 +413,7 @@ class DayHistoryProperty extends StatelessWidget {
                       return MHDatabaseRepo.I.services.getAll().switchMap(
                         (services) {
                           if (services.isEmpty) return Stream.value([]);
-                          if (services.length <= 10) {
+                          if (services.length <= 30) {
                             return _completeQuery(
                               query.where(
                                 'Services',
@@ -425,7 +425,7 @@ class DayHistoryProperty extends StatelessWidget {
 
                           return Rx.combineLatest<List<HistoryRecord>,
                               List<HistoryRecord>>(
-                            services.split(10).map(
+                            services.split(30).map(
                                   (chunk) => _completeQuery(
                                     query.where(
                                       'Services',

@@ -89,7 +89,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
       final allowed = await MHDatabaseRepo.I.classes.getAll().first;
       if (allowed.isEmpty) return;
 
-      if (allowed.length <= 10) {
+      if (allowed.length <= 30) {
         minAvaliable = ((await GetIt.I<DatabaseRepository>()
                         .collectionGroup('EditHistory')
                         .where(

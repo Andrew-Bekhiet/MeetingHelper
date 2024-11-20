@@ -328,7 +328,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                   .collection('Persons')
                   .snapshots()
                   .map((p) => p.docs.map(Person.fromDoc).toList());
-            } else if (u.item2.length <= 10) {
+            } else if (u.item2.length <= 30) {
               return widget.day.ref
                   .collection('Persons')
                   .where('ClassId', whereIn: u.item2.map((e) => e.ref).toList())
@@ -336,7 +336,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                   .map((p) => p.docs.map(Person.fromDoc).toList());
             }
             return Rx.combineLatestList<JsonQuery>(
-              u.item2.split(10).map(
+              u.item2.split(30).map(
                     (c) => widget.day.ref
                         .collection('Persons')
                         .where('ClassId', whereIn: c.map((e) => e.ref).toList())

@@ -176,7 +176,7 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
             .map((s) => _docsMapper(s.docs));
       }
       return ref!.snapshots().map((s) => _docsMapper(s.docs));
-    } else if (v.item2.length <= 10) {
+    } else if (v.item2.length <= 30) {
       if (v.item3 != null && v.item2.isEmpty) {
         return ref!
             .orderBy('Time', descending: !v.item3!)
@@ -212,7 +212,7 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
 
     if (v.item3 != null) {
       return Rx.combineLatestList<JsonQuery>(
-        v.item2.split(10).map(
+        v.item2.split(30).map(
               (c) => ref!
                   .where(
                     'ClassId',
@@ -227,7 +227,7 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
       ).map((s) => s.expand((n) => n.docs)).map(_docsMapper);
     }
     return Rx.combineLatestList<JsonQuery>(
-      v.item2.split(10).map(
+      v.item2.split(30).map(
             (c) => ref!
                 .where(
                   'ClassId',

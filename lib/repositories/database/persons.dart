@@ -53,7 +53,7 @@ class Persons extends TableBase<Person> {
         return Rx.combineLatest2<List<Person>, List<Person>, List<Person>>(
           //Persons from Classes
           u.item2.isNotEmpty
-              ? u.item2.length <= 10
+              ? u.item2.length <= 30
                   ? queryCompleter(
                       repository.collection('Persons').where(
                             'ClassId',
@@ -65,7 +65,7 @@ class Persons extends TableBase<Person> {
                       .snapshots()
                       .map((p) => p.docs.map(Person.fromDoc).toList())
                   : Rx.combineLatestList<JsonQuery>(
-                      u.item2.split(10).map(
+                      u.item2.split(30).map(
                             (c) => queryCompleter(
                               repository.collection('Persons').where(
                                     'ClassId',
@@ -82,7 +82,7 @@ class Persons extends TableBase<Person> {
               : Stream.value([]),
           //Persons from Services
           u.item1.adminServices.isNotEmpty
-              ? u.item1.adminServices.length <= 10
+              ? u.item1.adminServices.length <= 30
                   ? queryCompleter(
                       repository.collection('Persons').where(
                             'Services',
@@ -94,7 +94,7 @@ class Persons extends TableBase<Person> {
                       .snapshots()
                       .map((p) => p.docs.map(Person.fromDoc).toList())
                   : Rx.combineLatestList<JsonQuery>(
-                      u.item1.adminServices.split(10).map(
+                      u.item1.adminServices.split(30).map(
                             (c) => queryCompleter(
                               repository
                                   .collection('Persons')
