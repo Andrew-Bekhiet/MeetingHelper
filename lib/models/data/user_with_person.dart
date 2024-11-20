@@ -90,7 +90,7 @@ class UserWithPerson extends Person implements User {
   IconData get defaultIcon => Icons.account_circle;
 
   @override
-  bool get hasPhoto => true;
+  bool get hasPhoto => uid != User.emptyUID;
 
   @override
   Reference get photoRef =>
