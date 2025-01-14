@@ -15,18 +15,6 @@ service firebase.storage {
         );
     }
 
-    function checkCanReadUser(user){
-      return checkUserRegistered()
-        && (
-      request.auth.token.manageUsers
-        || request.auth.token.secretary
-        || (
-      request.auth.token.manageAllowedUsers
-        && request.auth.uid in firestore.get(/databases/(default)/documents/UsersData/$(user)).data.AllowedUsers
-      )
-      );
-    }
-
     match /ServicesPhotos/{_service} {
       allow create: if checkUserRegistered()
         && (request.auth.token.manageUsers
@@ -133,19 +121,7 @@ service firebase.storage {
 
     match /UsersPhotos/{user} {
       allow read: if request.auth.uid != null
-        && (user == request.auth.uid
-          || (checkUserRegistered()
-            && (
-              request.auth.token.manageUsers
-              || request.auth.token.secretary
-              || (
-                request.auth.token.manageAllowedUsers
-                && request.auth.uid in firestore.get(/databases/(default)/documents/UsersData/$(user)).data.AllowedUsers
-              )
-            )
-            && request.auth.token.approved
-          )
-        );
+        && checkUserRegistered();
 
       allow write: if checkUserRegistered()
         && (request.auth.token.manageUsers
