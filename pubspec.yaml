@@ -10,7 +10,6 @@ environment:
   sdk: ">=3.0.0 <4.0.0"
 
 dependency_overrides:
-  firebase_database: ^11.0.0
 
 dependencies:
   android_alarm_manager_plus: ^4.0.2
@@ -29,7 +28,7 @@ dependencies:
   cupertino_icons: ^1.0.4
   dart_jts: ^0.2.3+2
   dart_postgis: ^0.3.2+2
-  device_info_plus: ^10.1.0
+  device_info_plus: ^11.2.1
   expandable: ^5.0.1
   file_picker: ^8.0.0+1
   firebase_app_check: ^0.3.0+2
@@ -45,11 +44,11 @@ dependencies:
     sdk: flutter
   flutter_colorpicker: ^1.0.3
   flutter_contacts: ^1.1.5
-  flutter_local_notifications: ^17.0.1
+  flutter_local_notifications: ^18.0.1
   flutter_localizations:
     sdk: flutter
   flutter_secure_storage: ^9.0.0
-  get_it: ^7.2.0
+  get_it: ^8.0.3
   group_list_view:
     git:
       url: https://github.com/Andrew-Bekhiet/flutter_group_list_view
@@ -57,7 +56,7 @@ dependencies:
   google_maps_flutter: ^2.1.1
   google_sign_in: ^6.1.4
   hive_flutter: ^1.1.0
-  image_cropper: ^7.1.0
+  image_cropper: ^8.1.0
   image_picker: ^1.0.1
   intl: ^0.19.0
   local_auth: ^2.0.0
@@ -71,9 +70,9 @@ dependencies:
   pointycastle: ^3.5.1
   provider: ^6.0.2
   random_color: ^1.0.6-nullsafety
-  rxdart: ^0.27.3
+  rxdart: ^0.28.0
   sentry_flutter: ^8.3.0
-  share_plus: ^9.0.0
+  share_plus: ^10.1.4
   spreadsheet_decoder: ^2.0.2
   supabase: ^2.0.9
   syncfusion_flutter_charts: #^26.2.13
