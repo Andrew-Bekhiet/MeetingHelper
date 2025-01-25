@@ -161,7 +161,7 @@ class Users {
   }
 
   Future<List<User>> getUsersNames(List<String> users) async {
-    return (await Future.wait(users.map(getUserName))).whereNotNull().toList();
+    return (await Future.wait(users.map(getUserName))).nonNulls.toList();
   }
 
   Stream<Map<Class?, List<T>>> groupUsersByClass<T extends User>(

@@ -163,7 +163,9 @@ class MHNotificationsService extends NotificationsService {
   Future<bool> registerFCMToken({String? cachedToken}) async {
     if (GetIt.I<AuthRepository>().currentUser == null ||
         !await GetIt.I<FirebaseMessaging>().isSupported() ||
-        WidgetsBinding.instance.rootElement == null) return false;
+        WidgetsBinding.instance.rootElement == null) {
+      return false;
+    }
 
     final status = await Permission.notification.request();
 

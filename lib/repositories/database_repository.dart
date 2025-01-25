@@ -123,7 +123,7 @@ class MHDatabaseRepo extends DatabaseRepository {
                       : GetIt.I<MHThemingService>().theme.colorScheme.primary;
                   return Polygon(
                     polygonId: PolygonId(e['id']),
-                    fillColor: color.withOpacity(0.2),
+                    fillColor: color.withValues(alpha: 0.2),
                     strokeWidth: 1,
                     strokeColor: color,
                     points: (parser.parse(hex.decode(e['bounds'])) as p.Polygon)

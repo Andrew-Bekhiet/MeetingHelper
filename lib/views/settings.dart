@@ -408,7 +408,9 @@ class SettingsState extends State<Settings> {
                     )!;
 
                     if (current.hours == value!.hour &&
-                        current.minutes == value.minute) return;
+                        current.minutes == value.minute) {
+                      return;
+                    }
                     await notificationsSettings.put(
                       'BirthDayTime',
                       NotificationSetting(value.hour, value.minute, 1),

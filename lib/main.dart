@@ -254,7 +254,9 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
             final user = userSnapshot.data;
 
             if (userSnapshot.connectionState == ConnectionState.waiting &&
-                user == null) return const Loading();
+                user == null) {
+              return const Loading();
+            }
 
             if (!errorDialogShown) {
               if (userSnapshot.error is UpdateUserDataException) {

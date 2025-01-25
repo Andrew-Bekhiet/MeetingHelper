@@ -354,8 +354,8 @@ class _SearchQueryState extends State<SearchQuery> {
                     onPressed: () {
                       navigator.currentState!.pop();
                       setState(() {
-                        query =
-                            query.copyWith.queryValue(Colors.transparent.value);
+                        query = query.copyWith
+                            .queryValue(Colors.transparent.argbValue);
                       });
                     },
                     child: const Text('بلا لون'),
@@ -363,12 +363,14 @@ class _SearchQueryState extends State<SearchQuery> {
                 ],
                 content: ColorsList(
                   selectedColor: Color(
-                    queryValue is int ? queryValue : Colors.transparent.value,
+                    queryValue is int
+                        ? queryValue
+                        : Colors.transparent.argbValue,
                   ),
                   onSelect: (color) {
                     navigator.currentState!.pop();
                     setState(() {
-                      query = query.copyWith.queryValue(color.value);
+                      query = query.copyWith.queryValue(color.argbValue);
                     });
                   },
                 ),

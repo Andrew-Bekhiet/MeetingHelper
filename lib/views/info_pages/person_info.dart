@@ -608,7 +608,9 @@ class _PersonInfoState extends State<PersonInfo> {
               ],
             ),
           ) !=
-          true) return;
+          true) {
+        return;
+      }
       await person.ref.update({
         'LastVisit': Timestamp.now(),
         'LastEdit': User.instance.uid,

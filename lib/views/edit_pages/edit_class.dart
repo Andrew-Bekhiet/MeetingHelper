@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:churchdata_core/churchdata_core.dart';
-import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -472,7 +471,7 @@ class _EditClassState extends State<EditClass> {
           class$.allowedUsers.map(MHDatabaseRepo.instance.users.getUserName),
         );
 
-        return users.whereNotNull().toList();
+        return users.nonNulls.toList();
       },
       createController: (users, isGroupingUsersSubject) =>
           ListController<Class?, User>(

@@ -110,7 +110,9 @@ class _MyAccountState extends State<MyAccount> {
                     return;
                   }
                   if (source as bool &&
-                      !(await Permission.camera.request()).isGranted) return;
+                      !(await Permission.camera.request()).isGranted) {
+                    return;
+                  }
 
                   final selectedImage = await ImagePicker().pickImage(
                     source: source ? ImageSource.camera : ImageSource.gallery,

@@ -877,14 +877,14 @@ class CartesianChart<T> extends StatelessWidget {
                       markerSettings: const MarkerSettings(isVisible: true),
                       borderGradient: LinearGradient(
                         colors: [
-                          Colors.amber[300]!.withOpacity(0.5),
-                          Colors.amber[800]!.withOpacity(0.5),
+                          Colors.amber[300]!.withValues(alpha: 0.5),
+                          Colors.amber[800]!.withValues(alpha: 0.5),
                         ],
                       ),
                       gradient: LinearGradient(
                         colors: [
-                          Colors.amber[300]!.withOpacity(0.5),
-                          Colors.amber[800]!.withOpacity(0.5),
+                          Colors.amber[300]!.withValues(alpha: 0.5),
+                          Colors.amber[800]!.withValues(alpha: 0.5),
                         ],
                       ),
                       dataSource: data.entries.toList(),

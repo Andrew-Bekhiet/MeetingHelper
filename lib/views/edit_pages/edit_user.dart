@@ -742,7 +742,9 @@ class _EditUserState extends State<EditUser> {
             ],
           ),
         ) !=
-        true) return;
+        true) {
+      return;
+    }
     scaffoldMessenger.currentState!.showSnackBar(
       const SnackBar(
         content: LinearProgressIndicator(),

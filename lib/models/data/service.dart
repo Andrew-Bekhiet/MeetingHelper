@@ -130,7 +130,8 @@ class Service extends DataObject implements PhotoObjectBase {
             ? MHDatabaseRepo.instance.users.getUserName(lastEdit!.uid)
             : null,
         'HasPhoto': hasPhoto ? 'نعم' : 'لا',
-        'Color': color != null ? '0x' + color!.value.toRadixString(16) : null,
+        'Color':
+            color != null ? '0x' + color!.argbValue.toRadixString(16) : null,
       };
 
   @override
@@ -153,7 +154,7 @@ class Service extends DataObject implements PhotoObjectBase {
       'LastEdit': lastEdit?.uid,
       'LastEditTime': lastEdit?.time,
       'HasPhoto': hasPhoto,
-      'Color': color?.value,
+      'Color': color?.argbValue,
     };
   }
 

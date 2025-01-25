@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' show FieldValue;
-import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -622,10 +621,8 @@ class _EditServiceState extends State<EditService> {
               .where('AdminServices', arrayContains: service.ref)
               .get()
               .then(
-                (value) => value.docs
-                    .map(UserWithPerson.fromDoc)
-                    .whereNotNull()
-                    .toList(),
+                (value) =>
+                    value.docs.map(UserWithPerson.fromDoc).nonNulls.toList(),
               ),
       createController: (users, isGroupingUsersSubject) =>
           ListController<Class?, UserWithPerson>(

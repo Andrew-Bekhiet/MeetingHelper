@@ -228,7 +228,7 @@ class _LoginTitle extends StatelessWidget implements PreferredSizeWidget {
                       .textTheme
                       .titleLarge
                       ?.color
-                      ?.withOpacity(1),
+                      ?.withValues(alpha: 1),
                   fontWeight: FontWeight.bold,
                 ),
           ),
