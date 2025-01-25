@@ -210,28 +210,31 @@ class Users {
         final List<String> allUIDs = [];
 
         for (final user in users) {
-          usersByUID[user.uid] = user;
+          final uid = user.uid != User.emptyUID ? user.uid : user.id;
+
+          usersByUID[uid] = user;
 
           uidsByClassId[user.classId?.id] = {
             ...(uidsByClassId[user.classId?.id] ?? {}),
-            user.uid,
+            uid,
           };
 
-          allUIDs.add(user.uid);
+          allUIDs.add(uid);
 
           if (user.permissions.manageUsers ||
               user.permissions.manageAllowedUsers ||
               user.permissions.superAccess) {
-            adminsUIDs.add(user.uid);
+            adminsUIDs.add(uid);
           }
         }
 
         final Map<Class?, List<String>> uidsByClass = {
-          Class(
-            name: 'مسؤولون',
-            studyYear: adminsStudyYearRef,
-            ref: repository.collection('Classes').doc('-Admins-'),
-          ): adminsUIDs,
+          if (adminsUIDs.isNotEmpty)
+            Class(
+              name: 'مسؤولون',
+              studyYear: adminsStudyYearRef,
+              ref: repository.collection('Classes').doc('-Admins-'),
+            ): adminsUIDs,
         };
 
         final Set<String> groupedUsersUIDs = {...adminsUIDs};
