@@ -406,10 +406,15 @@ class _RootState extends State<Root>
               controller: _usersOptions!,
               onTap: GetIt.I<MHViewableObjectService>().personTap,
             ),
-          ServicesList(
-            key: const PageStorageKey('mainClassesList'),
-            autoDisposeController: false,
-            options: _servicesOptions,
+          NestedScrollView(
+            headerSliverBuilder: (context, innerBoxIsScrolled) => [
+              const SliverToBoxAdapter(child: BirthdaysBanner()),
+            ],
+            body: ServicesList(
+              key: const PageStorageKey('mainClassesList'),
+              autoDisposeController: false,
+              options: _servicesOptions,
+            ),
           ),
           DataObjectListView<void, Person>(
             key: const PageStorageKey('mainPersonsList'),

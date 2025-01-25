@@ -730,16 +730,7 @@ class MHNotificationsService extends NotificationsService {
     }
     final now = DateTime.now();
 
-    final persons = await MHDatabaseRepo.instance.persons
-        .getAll(
-          queryCompleter: (q, _, __) => q
-              .where(
-                'BirthDateMonthDay',
-                isEqualTo: '${now.month}-${now.day}',
-              )
-              .limit(20),
-        )
-        .first;
+    final persons = await MHDatabaseRepo.instance.persons.todaysBirthdays(20);
 
     await GetIt.I<LoggingService>().log(
       'showBirthdayNotification: Got persons with count: ' +

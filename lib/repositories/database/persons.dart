@@ -233,4 +233,23 @@ class Persons extends TableBase<Person> {
       },
     );
   }
+
+  Future<List<Person>> todaysBirthdays([int? limit]) {
+    final now = DateTime.now();
+
+    return getAll(
+      queryCompleter: (q, _, __) {
+        final query = q.where(
+          'BirthDateMonthDay',
+          isEqualTo: '${now.month}-${now.day}',
+        );
+
+        if (limit != null) {
+          return query.limit(limit);
+        }
+
+        return query;
+      },
+    ).first;
+  }
 }

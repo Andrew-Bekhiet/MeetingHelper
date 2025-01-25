@@ -130,6 +130,8 @@ Future<void> initMeetingHelper() async {
         .get('cacheSize', defaultValue: 100 * 1024 * 1024) as int,
   );
 
+  await Hive.openBox('BirthdaysShownDates');
+
   if (kDebugMode) {
     final devBox = await Hive.openBox('Dev');
 
