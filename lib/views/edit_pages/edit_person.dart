@@ -34,7 +34,7 @@ class EditPerson extends StatefulWidget {
 class _EditPersonState extends State<EditPerson> {
   String? changedImage;
   bool deletePhoto = false;
-
+  bool _servicesHaveRange = true;
   final GlobalKey<FormState> _form = GlobalKey<FormState>();
 
   late Person person;
@@ -328,7 +328,7 @@ class _EditPersonState extends State<EditPerson> {
                   ),
                   if (person.classId == null)
                     FutureBuilder<List<StudyYear>>(
-                      key: ValueKey(person.studyYear),
+                      key: ValueKey((person.studyYear, person.services)),
                       future: StudyYear.getAll().first,
                       builder: (conext, data) {
                         if (data.hasData) {
@@ -336,7 +336,9 @@ class _EditPersonState extends State<EditPerson> {
                             margin: const EdgeInsets.symmetric(vertical: 8),
                             child: DropdownButtonFormField<JsonRef?>(
                               validator: (v) {
-                                if (person.classId == null && v == null) {
+                                if (person.classId == null &&
+                                    v == null &&
+                                    _servicesHaveRange) {
                                   return 'هذا الحقل مطلوب';
                                 } else {
                                   return null;
@@ -1106,6 +1108,24 @@ class _EditPersonState extends State<EditPerson> {
   void initState() {
     super.initState();
     person = (widget.person ?? Person.empty()).copyWith();
+
+    _setServicesHaveRange();
+  }
+
+  Future<void> _setServicesHaveRange() async {
+    for (final s in person.services) {
+      final service = await s.get();
+      final service$ = Service.fromDoc(service);
+
+      if (service$ == null) continue;
+
+      if (service$.studyYearRange != null) {
+        _servicesHaveRange = true;
+        return;
+      }
+    }
+
+    _servicesHaveRange = false;
   }
 
   Future<void> _selectColor() async {
@@ -1444,11 +1464,16 @@ class _EditPersonState extends State<EditPerson> {
       ),
     );
 
+    final newSelectedServices =
+        await selectServices<Service>(selected.whereType<Service>().toList());
+
+    _servicesHaveRange = newSelectedServices
+            ?.whereType<Service>()
+            .any((s) => s.studyYearRange != null) ??
+        _servicesHaveRange;
+
     person = person.copyWith.services(
-      (await selectServices<Service>(selected.whereType<Service>().toList()))
-              ?.map((s) => s.ref)
-              .toList() ??
-          person.services,
+      newSelectedServices?.map((s) => s.ref).toList() ?? person.services,
     );
     state.didChange(person.services);
     _nextFocus();
