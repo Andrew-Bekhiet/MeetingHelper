@@ -72,13 +72,30 @@ jobs:
           echo "version=$version" >> $GITHUB_OUTPUT
 
       - name: Add version to APK filename
+        id: apk_filename
         run: |
           mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/MeetingHelper-v${{ steps.version.outputs.version }}.apk
+          echo "value=MeetingHelper-v${{ steps.version.outputs.version }}.apk" >> $GITHUB_OUTPUT
+
+      - name: Get previous version
+        id: previous_version
+        if: ${{ github.event_name != 'workflow_dispatch' }}
+        run: |
+          previous_tag=$(git describe --tags --abbrev=0 --match "v[0-9]*.[0-9]*.[0-9]*" $(git rev-list --tags --skip=1 --max-count=1))
+          echo "version=${previous_tag#v}" >> $GITHUB_OUTPUT
+
+      - name: Render Release Template
+        env:
+          NEW_VERSION: ${{ steps.version.outputs.version }}
+          NEW_TAG: v${{ steps.version.outputs.version }}
+          OLD_TAG: v${{ steps.previous_version.outputs.version }}
+          DOWNLOAD_LINK: ${{github.server_url}}/${{github.repository}}/releases/download/v${{ steps.version.outputs.version }}/${{ steps.apk_filename.outputs.value }}.apk
+        run: envsubst < ./.github/workflows/release-template.md > release-body.md
 
       - name: Create release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/app/outputs/flutter-apk/MeetingHelper-v${{ steps.version.outputs.version }}.apk"
+          artifacts: "build/app/outputs/flutter-apk/${{ steps.apk_filename.outputs.value }}"
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: v${{ steps.version.outputs.version }}
-          generateReleaseNotes: true
+          bodyFile: release-body.md
