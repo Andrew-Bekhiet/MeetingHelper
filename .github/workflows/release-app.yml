@@ -89,7 +89,7 @@ jobs:
           NEW_VERSION: ${{ steps.version.outputs.version }}
           NEW_TAG: v${{ steps.version.outputs.version }}
           OLD_TAG: v${{ steps.previous_version.outputs.version }}
-          DOWNLOAD_LINK: ${{github.server_url}}/${{github.repository}}/releases/download/v${{ steps.version.outputs.version }}/${{ steps.apk_filename.outputs.value }}.apk
+          DOWNLOAD_LINK: ${{github.server_url}}/${{github.repository}}/releases/download/v${{ steps.version.outputs.version }}/${{ steps.apk_filename.outputs.value }}
         run: envsubst < ./.github/workflows/release-template.md > release-body.md
 
       - name: Create release
