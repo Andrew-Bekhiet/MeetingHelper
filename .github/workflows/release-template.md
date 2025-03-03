@@ -4,10 +4,9 @@
 
 **جميع التغييرات**: <https://github.com/Andrew-Bekhiet/MeetingHelper/compare/$OLD_TAG...$NEW_TAG>
 
-<div align="center">
-<a href="$DOWNLOAD_LINK">
-<img src="https://img.icons8.com/fluency/96/undefined/download.png"/>
-<p>تنزيل</p>
-</a>
+<div style="text-align: center;">
+
+[![Get it on Google Play](https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Google_Play_Store_badge_EN.svg/640px-Google_Play_Store_badge_EN.svg.png)]($DOWNLOAD_LINK)
+
 </div>
 </div>

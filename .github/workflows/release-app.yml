@@ -65,11 +65,20 @@ jobs:
       - name: Build apk
         run: flutter build apk
 
+      - name: Build app bundle
+        run: flutter build appbundle
+
       - name: Get version from pubspec.yaml
         id: version
         run: |
           version=$(grep -m 1 'version:' pubspec.yaml | awk '{print $2}' | awk -F "+" '{print $1}')
           echo "version=$version" >> $GITHUB_OUTPUT
+
+      - name: Get build number from pubspec.yaml
+        id: build_number
+        run: |
+          build_number=$(grep 'version:' pubspec.yaml | awk '{print $2}' | awk -F "+" '{print $2}')
+          echo "build_number=$build_number" >> $GITHUB_OUTPUT
 
       - name: Add version to APK filename
         id: apk_filename
@@ -89,13 +98,50 @@ jobs:
           NEW_VERSION: ${{ steps.version.outputs.version }}
           NEW_TAG: v${{ steps.version.outputs.version }}
           OLD_TAG: v${{ steps.previous_version.outputs.version }}
-          DOWNLOAD_LINK: ${{github.server_url}}/${{github.repository}}/releases/download/v${{ steps.version.outputs.version }}/${{ steps.apk_filename.outputs.value }}
+          DOWNLOAD_LINK: https://play.google.com/store/apps/details?id=${{vars.PACKAGE_NAME}}
         run: envsubst < ./.github/workflows/release-template.md > release-body.md
 
-      - name: Create release
+      - name: Get release changelog
+        id: changelog
+        run: |
+          echo 'changelog<<EOF' >> $GITHUB_OUTPUT
+          git log $(git describe --tags --abbrev=0)...HEAD --format="%H %B" >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
+
+      - name: Output changelog to whats_new
+        run: |
+          mkdir -p whats_new
+          touch whats_new/whatsnew-ar
+          git log $(git describe --tags --abbrev=0)...HEAD --format="%B" >> whats_new/whatsnew-ar
+
+      - name: Create GitHub release
         uses: ncipollo/release-action@v1
         with:
           artifacts: "build/app/outputs/flutter-apk/${{ steps.apk_filename.outputs.value }}"
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: v${{ steps.version.outputs.version }}
           bodyFile: release-body.md
+
+      - name: Create Sentry release
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        with:
+          environment: release
+          finalize: true
+          version: "${{vars.PACKAGE_NAME}}@${{ steps.version.outputs.version }}+${{ steps.build_number.outputs.build_number }}"
+
+      - name: Upload to Google Play
+        if: contains(github.event.head_commit.message, '[ci release google play]')
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{vars.PACKAGE_NAME}}
+          track: production
+          releaseName: v${{ steps.version.outputs.version }}
+          whatsNewDirectory: whats_new
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          status: draft
+          mappingFile: build/app/outputs/mapping/release/mapping.txt
