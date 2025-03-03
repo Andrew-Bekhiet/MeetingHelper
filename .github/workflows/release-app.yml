@@ -129,7 +129,7 @@ jobs:
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         with:
-          environment: release
+          environment: Production
           finalize: true
           version: "${{vars.PACKAGE_NAME}}@${{ steps.version.outputs.version }}+${{ steps.build_number.outputs.build_number }}"
 
