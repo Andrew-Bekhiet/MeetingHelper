@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+  <body>
+    <head>
+      <meta
+        name="google-signin-client_id"
+        content="368672361986-s8qoakrc74b1s0pt334coqqbvhee86hk.apps.googleusercontent.com" />
+    </head>
+    <link
+      type="text/css"
+      rel="stylesheet"
+      href="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth.css" />
+    <script src="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth__ar.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-auth.js"></script>
+
+    <script>
+      firebase.initializeApp({
+        apiKey: "AIzaSyBkdHcY1BYd4maS6QQiNmN6W5FWWg7FzMQ",
+        authDomain: "meetinghelper-2a869.firebaseapp.com",
+        databaseURL: "",
+        projectId: "meetinghelper-2a869",
+        storageBucket: "",
+        messagingSenderId: "",
+        appId: "1:368672361986:web:0c7399ce0f6332e00b611b",
+        measurementId: "G-LPTMXJKE60",
+      });
+
+      const app = firebase.app();
+      const auth = firebase.auth();
+
+      var ui = new firebaseui.auth.AuthUI(firebase.auth());
+
+      var uiConfig = {
+        callbacks: {
+          signInSuccessWithAuthResult: function (authResult, redirectUrl) {
+            // Show an alert to confirm account deletion
+            var confirmation = window.confirm(
+              "Are you sure you want to delete your account?\n" +
+                authResult.user.email
+            );
+
+            if (confirmation) {
+              authResult.user
+                .delete()
+                .then(() => {
+                  console.log("Account deleted successfully");
+                  window.alert("Your account has been successfully deleted.");
+                })
+                .catch((error) => {
+                  window.alert("Something went wrong. Please try again later");
+                  console.log(error);
+                });
+            }
+
+            return false;
+          },
+          uiShown: function () {
+            document.getElementById("loader").style.display = "none";
+          },
+        },
+        signInFlow: "popup",
+        signInSuccessUrl: window.location.href,
+        signInOptions: [firebase.auth.GoogleAuthProvider.PROVIDER_ID],
+      };
+
+      ui.start("#firebaseui-auth-container", uiConfig);
+    </script>
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      ">
+      <h1>حذف حسابك في خدمة مدارس الأحد</h1>
+      <p>قم بتسجيل الدخول وسيتم حذف حسابك من خدمة المدارس الأحد</p>
+      <div
+        id="g_id_onload"
+        data-client_id="368672361986-s8qoakrc74b1s0pt334coqqbvhee86hk.apps.googleusercontent.com"
+        data-callback="deleteAccount"
+        data-auto_prompt="false"></div>
+      <div id="firebaseui-auth-container"></div>
+      <div id="loader">جار التحميل...</div>
+    </div>
+  </body>
+</html>
