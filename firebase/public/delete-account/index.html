@@ -11,60 +11,56 @@
       rel="stylesheet"
       href="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth.css" />
     <script src="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth__ar.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-auth.js"></script>
+
+    <script src="/__/firebase/8.10.1/firebase-app.js"></script>
+    <script src="/__/firebase/8.10.1/firebase-auth.js"></script>
 
     <script>
-      firebase.initializeApp({
-        apiKey: "AIzaSyBkdHcY1BYd4maS6QQiNmN6W5FWWg7FzMQ",
-        authDomain: "meetinghelper-2a869.firebaseapp.com",
-        databaseURL: "",
-        projectId: "meetinghelper-2a869",
-        storageBucket: "",
-        messagingSenderId: "",
-        appId: "1:368672361986:web:0c7399ce0f6332e00b611b",
-        measurementId: "G-LPTMXJKE60",
+      fetch("/__/firebase/init.json").then(async (response) => {
+        firebase.initializeApp(await response.json());
+
+        const app = firebase.app();
+        const auth = firebase.auth();
+
+        var ui = new firebaseui.auth.AuthUI(firebase.auth());
+
+        var uiConfig = {
+          callbacks: {
+            signInSuccessWithAuthResult: function (authResult, redirectUrl) {
+              // Show an alert to confirm account deletion
+              var confirmation = window.confirm(
+                "Are you sure you want to delete your account?\n" +
+                  authResult.user.email
+              );
+
+              if (confirmation) {
+                authResult.user
+                  .delete()
+                  .then(() => {
+                    console.log("Account deleted successfully");
+                    window.alert("Your account has been successfully deleted.");
+                  })
+                  .catch((error) => {
+                    window.alert(
+                      "Something went wrong. Please try again later"
+                    );
+                    console.log(error);
+                  });
+              }
+
+              return false;
+            },
+            uiShown: function () {
+              document.getElementById("loader").style.display = "none";
+            },
+          },
+          signInFlow: "popup",
+          signInSuccessUrl: window.location.href,
+          signInOptions: [firebase.auth.GoogleAuthProvider.PROVIDER_ID],
+        };
+
+        ui.start("#firebaseui-auth-container", uiConfig);
       });
-
-      const app = firebase.app();
-      const auth = firebase.auth();
-
-      var ui = new firebaseui.auth.AuthUI(firebase.auth());
-
-      var uiConfig = {
-        callbacks: {
-          signInSuccessWithAuthResult: function (authResult, redirectUrl) {
-            // Show an alert to confirm account deletion
-            var confirmation = window.confirm(
-              "Are you sure you want to delete your account?\n" +
-                authResult.user.email
-            );
-
-            if (confirmation) {
-              authResult.user
-                .delete()
-                .then(() => {
-                  console.log("Account deleted successfully");
-                  window.alert("Your account has been successfully deleted.");
-                })
-                .catch((error) => {
-                  window.alert("Something went wrong. Please try again later");
-                  console.log(error);
-                });
-            }
-
-            return false;
-          },
-          uiShown: function () {
-            document.getElementById("loader").style.display = "none";
-          },
-        },
-        signInFlow: "popup",
-        signInSuccessUrl: window.location.href,
-        signInOptions: [firebase.auth.GoogleAuthProvider.PROVIDER_ID],
-      };
-
-      ui.start("#firebaseui-auth-container", uiConfig);
     </script>
     <div
       style="
