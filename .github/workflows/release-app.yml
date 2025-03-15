@@ -123,7 +123,7 @@ jobs:
           bodyFile: release-body.md
 
       - name: Create Sentry release
-        uses: getsentry/action-release@v1
+        uses: getsentry/action-release@v3
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
@@ -131,7 +131,7 @@ jobs:
         with:
           environment: Production
           finalize: true
-          version: "${{vars.PACKAGE_NAME}}@${{ steps.version.outputs.version }}+${{ steps.build_number.outputs.build_number }}"
+          release: "${{vars.PACKAGE_NAME}}@${{ steps.version.outputs.version }}+${{ steps.build_number.outputs.build_number }}"
 
       - name: Upload to Google Play
         if: contains(github.event.head_commit.message, '[ci release google play]')
