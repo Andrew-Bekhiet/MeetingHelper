@@ -11,7 +11,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../models/data/user.dart';
 
@@ -108,13 +107,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                     text: 'شروط الاستخدام',
                     recognizer: TapGestureRecognizer()
-                      ..onTap = () async {
-                        const url =
-                            'https://church-data.flycricket.io/terms.html';
-                        if (await canLaunchUrl(Uri.parse(url))) {
-                          await launchUrl(Uri.parse(url));
-                        }
-                      },
+                      ..onTap = () => LauncherService.I.launch(
+                            'https://meetinghelper-2a869.web.app/terms-of-service/',
+                          ),
                   ),
                   TextSpan(
                     style: Theme.of(context).textTheme.bodyMedium,
@@ -126,13 +121,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                     text: 'سياسة الخصوصية',
                     recognizer: TapGestureRecognizer()
-                      ..onTap = () async {
-                        const url =
-                            'https://church-data.flycricket.io/privacy.html';
-                        if (await canLaunchUrl(Uri.parse(url))) {
-                          await launchUrl(Uri.parse(url));
-                        }
-                      },
+                      ..onTap = () => LauncherService.I.launch(
+                            'https://meetinghelper-2a869.web.app/privacy-policy/',
+                          ),
                   ),
                 ],
               ),

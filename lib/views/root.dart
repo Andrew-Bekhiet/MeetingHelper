@@ -828,13 +828,9 @@ class _RootState extends State<Root>
                                 ),
                             text: 'شروط الاستخدام',
                             recognizer: TapGestureRecognizer()
-                              ..onTap = () async {
-                                //   final url =
-                                //       'https://church-data.flycricket.io/terms.html';
-                                //   if (await canLaunch(url)) {
-                                //     await launch(url);
-                                //   }
-                              },
+                              ..onTap = () => LauncherService.I.launch(
+                                    'https://meetinghelper-2a869.web.app/terms-of-service/',
+                                  ),
                           ),
                           TextSpan(
                             style: Theme.of(context).textTheme.bodyMedium,
@@ -849,13 +845,9 @@ class _RootState extends State<Root>
                                 ),
                             text: 'سياسة الخصوصية',
                             recognizer: TapGestureRecognizer()
-                              ..onTap = () async {
-                                // final url =
-                                //     'https://church-data.flycricket.io/privacy.html';
-                                // if (await canLaunch(url)) {
-                                //   await launch(url);
-                                // }
-                              },
+                              ..onTap = () => LauncherService.I.launch(
+                                    'https://meetinghelper-2a869.web.app/privacy-policy/',
+                                  ),
                           ),
                         ],
                       ),
