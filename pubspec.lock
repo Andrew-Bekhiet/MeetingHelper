@@ -42,10 +42,10 @@ packages:
     dependency: "direct main"
     description:
       name: android_alarm_manager_plus
-      sha256: f6334b4a04d3a50e22ab65c501284a62c0f244c27ef073ee4fb251977e2e3d18
+      sha256: "3aaf2bd35177e60a7e90accd9d615d35408b556339becec22cc1284babbba8b7"
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.6"
+    version: "4.0.7"
   antlr4:
     dependency: transitive
     description:
