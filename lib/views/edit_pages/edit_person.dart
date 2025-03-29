@@ -340,7 +340,7 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                         if (data.hasData) {
                           return Container(
                             margin: const EdgeInsets.symmetric(vertical: 8),
-                            child: DropdownButtonFormField<JsonRef?>(
+                            child: TappableFormField<JsonRef?>(
                               validator: (v) {
                                 if (person.classId == null &&
                                     v == null &&
@@ -350,27 +350,55 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                                   return null;
                                 }
                               },
-                              value: person.studyYear,
-                              items: data.data!
-                                  .map(
-                                    (item) => DropdownMenuItem(
-                                      value: item.ref,
-                                      child: Text(item.name),
+                              initialValue: person.studyYear,
+                              builder: (context, state) => state.value != null
+                                  ? FutureBuilder<String>(
+                                      future: state.value?.get().then(
+                                            (doc) =>
+                                                StudyYear.fromDoc(doc).name,
+                                          ),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.hasData) {
+                                          return Text(snapshot.data!);
+                                        } else {
+                                          return const Text('');
+                                        }
+                                      },
+                                    )
+                                  : null,
+                              onTap: (value) async {
+                                final selected =
+                                    await showModalBottomSheet<StudyYear?>(
+                                  context: context,
+                                  builder: (context) =>
+                                      MiniModelList<StudyYear>(
+                                    title: 'السنة الدراسية',
+                                    transformer: StudyYear.fromDoc,
+                                    showSearch: true,
+                                    add: (context) => studyYearTap(
+                                      context,
+                                      StudyYear.createNew(),
+                                      true,
+                                      canDelete: false,
                                     ),
-                                  )
-                                  .toList()
-                                ..insert(
-                                  0,
-                                  const DropdownMenuItem(
-                                    child: Text(''),
+                                    modify: (context, v, _) =>
+                                        Navigator.of(context).pop(v),
+                                    collection: GetIt.I<DatabaseRepository>()
+                                        .collection('StudyYears'),
+                                    completer: (q) => q.orderBy('Grade'),
                                   ),
-                                ),
-                              onChanged: (value) {
+                                );
+
+                                if (selected == null) return;
+
+                                person =
+                                    person.copyWith.studyYear(selected.ref);
+
                                 setState(() {});
-                                person = person.copyWith.studyYear(value);
                                 FocusScope.of(context).nextFocus();
                               },
-                              decoration: const InputDecoration(
+                              decoration: (context, state) =>
+                                  const InputDecoration(
                                 labelText: 'السنة الدراسية',
                               ),
                             ),
@@ -687,131 +715,94 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                         if (data.requireData) {
                           return Container(
                             margin: const EdgeInsets.symmetric(vertical: 8),
-                            child: Row(
-                              children: <Widget>[
-                                Expanded(
-                                  child: FutureBuilder<List<College>>(
-                                    key: ValueKey(person.college),
-                                    future: College.getAll().first,
-                                    builder: (context, data) {
-                                      if (data.hasData) {
-                                        return Container(
-                                          margin: const EdgeInsets.symmetric(
-                                            vertical: 8,
+                            child: TappableFormField<JsonRef?>(
+                              initialValue: person.college,
+                              builder: (context, state) => state.value != null
+                                  ? FutureBuilder<String>(
+                                      future: state.value?.get().then(
+                                            (doc) => College.fromDoc(doc).name,
                                           ),
-                                          child:
-                                              DropdownButtonFormField<JsonRef?>(
-                                            isExpanded: true,
-                                            value: person.college,
-                                            items: data.data!
-                                                .map(
-                                                  (item) => DropdownMenuItem(
-                                                    value: item.ref,
-                                                    child: Text(item.name),
-                                                  ),
-                                                )
-                                                .toList()
-                                              ..insert(
-                                                0,
-                                                const DropdownMenuItem(
-                                                  child: Text(''),
-                                                ),
-                                              ),
-                                            onChanged: (value) {
-                                              person = person.copyWith
-                                                  .college(value);
-                                              FocusScope.of(context)
-                                                  .nextFocus();
-                                            },
-                                            decoration: const InputDecoration(
-                                              labelText: 'الكلية',
-                                            ),
-                                          ),
-                                        );
-                                      } else {
-                                        return const SizedBox(
-                                          width: 1,
-                                          height: 1,
-                                        );
-                                      }
-                                    },
+                                      builder: (context, snapshot) {
+                                        if (snapshot.hasData) {
+                                          return Text(snapshot.data!);
+                                        } else {
+                                          return const Text('');
+                                        }
+                                      },
+                                    )
+                                  : null,
+                              onTap: (state) async {
+                                final selected =
+                                    await showModalBottomSheet<College?>(
+                                  context: context,
+                                  builder: (context) => MiniModelList<College>(
+                                    title: 'الكلية',
+                                    transformer: College.fromDoc,
+                                    showSearch: true,
+                                    modify: (context, v, _) =>
+                                        Navigator.of(context).pop(v),
+                                    collection: GetIt.I<DatabaseRepository>()
+                                        .collection('Colleges'),
                                   ),
-                                ),
-                                TextButton.icon(
-                                  icon: const Icon(Icons.add),
-                                  label: const Text('اضافة'),
-                                  onPressed: () async {
-                                    await navigator.currentState!
-                                        .pushNamed('Settings/Colleges');
-                                    setState(() {});
-                                  },
-                                ),
-                              ],
+                                );
+
+                                if (selected != null) {
+                                  person =
+                                      person.copyWith.college(selected.ref);
+                                  state.didChange(selected.ref);
+                                  FocusScope.of(context).nextFocus();
+                                }
+                              },
+                              decoration: (context, state) =>
+                                  const InputDecoration(
+                                labelText: 'الكلية',
+                              ),
                             ),
                           );
                         } else {
                           return Container(
                             margin: const EdgeInsets.symmetric(vertical: 8),
-                            child: Row(
-                              children: <Widget>[
-                                Expanded(
-                                  child: FutureBuilder<List<School>>(
-                                    key: ValueKey(person.school),
-                                    future: School.getAll().first,
-                                    builder: (context, data) {
-                                      if (data.hasData) {
-                                        return Container(
-                                          margin: const EdgeInsets.symmetric(
-                                            vertical: 8,
+                            child: TappableFormField<JsonRef?>(
+                              initialValue: person.school,
+                              builder: (context, state) => state.value != null
+                                  ? FutureBuilder<String>(
+                                      future: state.value?.get().then(
+                                            (doc) => School.fromDoc(doc).name,
                                           ),
-                                          child:
-                                              DropdownButtonFormField<JsonRef?>(
-                                            isExpanded: true,
-                                            value: person.school,
-                                            items: data.data!
-                                                .map(
-                                                  (item) => DropdownMenuItem(
-                                                    value: item.ref,
-                                                    child: Text(item.name),
-                                                  ),
-                                                )
-                                                .toList()
-                                              ..insert(
-                                                0,
-                                                const DropdownMenuItem(
-                                                  child: Text(''),
-                                                ),
-                                              ),
-                                            onChanged: (value) {
-                                              person =
-                                                  person.copyWith.school(value);
-                                              FocusScope.of(context)
-                                                  .nextFocus();
-                                            },
-                                            decoration: const InputDecoration(
-                                              labelText: 'المدرسة',
-                                            ),
-                                          ),
-                                        );
-                                      } else {
-                                        return const SizedBox(
-                                          width: 1,
-                                          height: 1,
-                                        );
-                                      }
-                                    },
+                                      builder: (context, snapshot) {
+                                        if (snapshot.hasData) {
+                                          return Text(snapshot.data!);
+                                        } else {
+                                          return const Text('');
+                                        }
+                                      },
+                                    )
+                                  : null,
+                              onTap: (state) async {
+                                final selected =
+                                    await showModalBottomSheet<School?>(
+                                  context: context,
+                                  builder: (context) => MiniModelList<School>(
+                                    title: 'المدرسة',
+                                    transformer: School.fromDoc,
+                                    showSearch: true,
+                                    modify: (context, v, _) =>
+                                        Navigator.of(context).pop(v),
+                                    collection: GetIt.I<DatabaseRepository>()
+                                        .collection('Schools'),
                                   ),
-                                ),
-                                TextButton.icon(
-                                  icon: const Icon(Icons.add),
-                                  label: const Text('اضافة'),
-                                  onPressed: () async {
-                                    await navigator.currentState!
-                                        .pushNamed('Settings/Schools');
-                                    setState(() {});
-                                  },
-                                ),
-                              ],
+                                );
+
+                                if (selected != null) {
+                                  person = person.copyWith.school(selected.ref);
+                                  state.didChange(selected.ref);
+                                  FocusScope.of(context).nextFocus();
+                                }
+                              },
+                              decoration: (context, state) =>
+                                  const InputDecoration(
+                                labelText: 'المدرسة',
+                              ),
                             ),
                           );
                         }
@@ -821,112 +812,100 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                   ),
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: FutureBuilder<List<Church>>(
-                            key: ValueKey(person.church),
-                            future: Church.getAll().first,
-                            builder: (context, data) {
-                              if (data.hasData) {
-                                return Container(
-                                  margin:
-                                      const EdgeInsets.symmetric(vertical: 8),
-                                  child: DropdownButtonFormField<JsonRef?>(
-                                    value: person.church,
-                                    isExpanded: true,
-                                    items: data.data!
-                                        .map(
-                                          (item) => DropdownMenuItem(
-                                            value: item.ref,
-                                            child: Text(item.name),
-                                          ),
-                                        )
-                                        .toList()
-                                      ..insert(
-                                        0,
-                                        const DropdownMenuItem(
-                                          child: Text(''),
-                                        ),
-                                      ),
-                                    onChanged: (value) {
-                                      person = person.copyWith.church(value);
-                                      FocusScope.of(context).nextFocus();
-                                    },
-                                    decoration: const InputDecoration(
-                                      labelText: 'الكنيسة',
-                                    ),
+                    child: TappableFormField<JsonRef?>(
+                      initialValue: person.church,
+                      builder: (context, state) => state.value != null
+                          ? FutureBuilder<String>(
+                              future: state.value?.get().then(
+                                    (doc) => Church.fromDoc(doc).name,
                                   ),
-                                );
-                              } else {
-                                return const SizedBox(width: 1, height: 1);
-                              }
-                            },
+                              builder: (context, snapshot) {
+                                if (snapshot.hasData) {
+                                  return Text(snapshot.data!);
+                                } else {
+                                  return const Text('');
+                                }
+                              },
+                            )
+                          : null,
+                      onTap: (state) async {
+                        final selected = await showModalBottomSheet<Church?>(
+                          context: context,
+                          builder: (context) => MiniModelList<Church>(
+                            title: 'الكنيسة',
+                            transformer: Church.fromDoc,
+                            showSearch: true,
+                            modify: (context, v, _) =>
+                                Navigator.of(context).pop(v),
+                            add: (context) => churchTap(
+                              context,
+                              Church.createNew(),
+                              true,
+                              canDelete: false,
+                            ),
+                            collection: GetIt.I<DatabaseRepository>()
+                                .collection('Churches'),
                           ),
-                        ),
-                        TextButton.icon(
-                          icon: const Icon(Icons.add),
-                          label: const Text('اضافة'),
-                          onPressed: () async {
-                            await navigator.currentState!
-                                .pushNamed('Settings/Churches');
-                            setState(() {});
-                          },
-                        ),
-                      ],
+                        );
+
+                        if (selected != null) {
+                          person = person.copyWith.church(selected.ref);
+                          state.didChange(selected.ref);
+                          FocusScope.of(context).nextFocus();
+                        }
+                      },
+                      decoration: (context, state) => const InputDecoration(
+                        labelText: 'الكنيسة',
+                      ),
                     ),
                   ),
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: FutureBuilder<List<Father>>(
-                            key: ValueKey(person.cFather),
-                            future: Father.getAll().first,
-                            builder: (context, data) {
-                              if (data.hasData) {
-                                return DropdownButtonFormField<JsonRef?>(
-                                  value: person.cFather,
-                                  isExpanded: true,
-                                  items: data.data!
-                                      .map(
-                                        (item) => DropdownMenuItem(
-                                          value: item.ref,
-                                          child: Text(item.name),
-                                        ),
-                                      )
-                                      .toList()
-                                    ..insert(
-                                      0,
-                                      const DropdownMenuItem(
-                                        child: Text(''),
-                                      ),
-                                    ),
-                                  onChanged: (value) {
-                                    person = person.copyWith.cFather(value);
-                                    FocusScope.of(context).nextFocus();
-                                  },
-                                  decoration: const InputDecoration(
-                                    labelText: 'أب الاعتراف',
+                    child: TappableFormField<JsonRef?>(
+                      initialValue: person.cFather,
+                      builder: (context, state) => state.value != null
+                          ? FutureBuilder<String>(
+                              future: state.value?.get().then(
+                                    (doc) => Father.fromDoc(doc).name,
                                   ),
-                                );
-                              } else {
-                                return const SizedBox(width: 1, height: 1);
-                              }
-                            },
+                              builder: (context, snapshot) {
+                                if (snapshot.hasData) {
+                                  return Text(snapshot.data!);
+                                } else {
+                                  return const Text('');
+                                }
+                              },
+                            )
+                          : null,
+                      onTap: (state) async {
+                        final selected = await showModalBottomSheet<Father?>(
+                          context: context,
+                          builder: (context) => MiniModelList<Father>(
+                            title: 'أب الاعتراف',
+                            transformer: Father.fromDoc,
+                            showSearch: true,
+                            modify: (context, v, _) =>
+                                Navigator.of(context).pop(v),
+                            add: (context) => fatherTap(
+                              context,
+                              Father.createNew(),
+                              true,
+                              canDelete: false,
+                            ),
+                            collection: GetIt.I<DatabaseRepository>()
+                                .collection('Fathers'),
                           ),
-                        ),
-                        TextButton.icon(
-                          icon: const Icon(Icons.add),
-                          label: const Text('اضافة'),
-                          onPressed: () async {
-                            await navigator.currentState!
-                                .pushNamed('Settings/Fathers');
-                            setState(() {});
-                          },
-                        ),
-                      ],
+                        );
+
+                        if (selected != null) {
+                          person = person.copyWith.cFather(selected.ref);
+                          state.didChange(selected.ref);
+                          FocusScope.of(context).nextFocus();
+                        }
+                      },
+                      decoration: (context, state) => const InputDecoration(
+                        labelText: 'أب الاعتراف',
+                      ),
                     ),
                   ),
                   TappableFormField<DateTime?>(

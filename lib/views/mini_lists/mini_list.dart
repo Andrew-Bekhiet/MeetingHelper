@@ -3,31 +3,91 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:rxdart/rxdart.dart';
 
-class MiniModelList<T extends MetaObject> extends StatelessWidget {
+class MiniModelList<T extends MetaObject> extends StatefulWidget {
   final String title;
   final JsonCollectionRef collection;
-  late final QueryOfJson Function(QueryOfJson) completer;
   final void Function(BuildContext)? add;
   final void Function(BuildContext, T, bool)? modify;
   final T Function(JsonQueryDoc) transformer;
+  final bool showSearch;
+
+  late final QueryOfJson Function(QueryOfJson) completer;
 
   MiniModelList({
     required this.title,
     required this.collection,
     required this.transformer,
-    super.key,
+    this.showSearch = false,
     this.add,
     this.modify,
     QueryOfJson Function(QueryOfJson)? completer,
+    super.key,
   }) {
     this.completer = completer ?? (q) => q.orderBy('Name');
   }
 
   @override
+  State<MiniModelList<T>> createState() => _MiniModelListState<T>();
+}
+
+class _MiniModelListState<T extends MetaObject>
+    extends State<MiniModelList<T>> {
+  late final BehaviorSubject<String?> _searchQuery =
+      BehaviorSubject<String?>.seeded(widget.showSearch ? '' : null);
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () => _searchQuery.add(''),
+          ),
+        ],
+        title: StreamBuilder<bool>(
+          initialData: _searchQuery.valueOrNull != null,
+          stream: _searchQuery.map((v) => v != null),
+          builder: (context, data) => data.data!
+              ? TextField(
+                  autofocus: true,
+                  style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                        color: Theme.of(context)
+                            .primaryTextTheme
+                            .titleLarge!
+                            .color,
+                      ),
+                  decoration: InputDecoration(
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        Icons.close,
+                        color: Theme.of(context)
+                            .primaryTextTheme
+                            .titleLarge!
+                            .color,
+                      ),
+                      onPressed: () => _searchQuery.add(null),
+                    ),
+                    hintStyle: Theme.of(context).textTheme.titleLarge!.copyWith(
+                          color: Theme.of(context)
+                              .primaryTextTheme
+                              .titleLarge!
+                              .color,
+                        ),
+                    icon: Icon(
+                      Icons.search,
+                      color:
+                          Theme.of(context).primaryTextTheme.titleLarge!.color,
+                    ),
+                    hintText: 'بحث ...',
+                  ),
+                  onChanged: _searchQuery.add,
+                )
+              : Text(widget.title),
+        ),
+      ),
       body: DataObjectListView<void, T>(
         itemBuilder: (
           current, {
@@ -41,16 +101,17 @@ class MiniModelList<T extends MetaObject> extends StatelessWidget {
           onTap: () => onTap?.call(current),
         ),
         onTap: (item) {
-          if (modify != null) {
-            modify!(context, item, false);
+          if (widget.modify != null) {
+            widget.modify!(context, item, false);
           } else {
             _defaultModify(context, item, false);
           }
         },
         controller: ListController(
+          searchStream: _searchQuery.map((v) => v ?? ''),
           objectsPaginatableStream: PaginatableStream.query(
-            query: completer(collection),
-            mapper: transformer,
+            query: widget.completer(widget.collection),
+            mapper: widget.transformer,
           ),
         ),
         autoDisposeController: true,
@@ -58,8 +119,8 @@ class MiniModelList<T extends MetaObject> extends StatelessWidget {
       floatingActionButton: User.instance.permissions.write
           ? FloatingActionButton(
               onPressed: () async {
-                if (add != null) {
-                  add!(context);
+                if (widget.add != null) {
+                  widget.add!(context);
                   return;
                 }
                 final name = TextEditingController();
@@ -82,12 +143,8 @@ class MiniModelList<T extends MetaObject> extends StatelessWidget {
                         actions: <Widget>[
                           TextButton.icon(
                             icon: const Icon(Icons.save),
-                            onPressed: () async {
-                              await collection.add(
-                                {
-                                  'Name': name.text,
-                                },
-                              );
+                            onPressed: () {
+                              widget.collection.add({'Name': name.text});
                               navigator.currentState!.pop();
                             },
                             label: const Text('حفظ'),
@@ -117,13 +174,13 @@ class MiniModelList<T extends MetaObject> extends StatelessWidget {
           if (User.instance.permissions.write)
             TextButton.icon(
               icon: editMode ? const Icon(Icons.save) : const Icon(Icons.edit),
-              onPressed: () async {
+              onPressed: () {
                 if (editMode) {
-                  await item.ref.update({'Name': name.text});
+                  item.ref.update({'Name': name.text});
                 }
                 navigator.currentState!.pop();
-                if (modify == null) {
-                  await _defaultModify(
+                if (widget.modify == null) {
+                  _defaultModify(
                     context,
                     item.copyWithName(name: name.text) as T,
                     !editMode,
@@ -173,9 +230,7 @@ class MiniModelList<T extends MetaObject> extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               if (editMode)
-                TextField(
-                  controller: name,
-                )
+                TextField(controller: name)
               else
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 0.0),
@@ -212,15 +267,15 @@ Future<void> churchTap(
     builder: (context) => AlertDialog(
       actions: <Widget>[
         TextButton(
-          onPressed: () async {
+          onPressed: () {
             if (editMode) {
-              await GetIt.I<DatabaseRepository>()
+              GetIt.I<DatabaseRepository>()
                   .collection('Churches')
                   .doc(church.id)
                   .set(church.toJson());
             }
             navigator.currentState!.pop();
-            await churchTap(context, church, !editMode);
+            churchTap(context, church, !editMode);
           },
           child: Text(editMode ? 'حفظ' : 'تعديل'),
         ),
@@ -285,7 +340,7 @@ Future<void> churchTap(
                 onChanged: (v) => church = church.copyWith.address(v),
               )
             else
-              Text(church.address!),
+              Text(church.address ?? ''),
             if (!editMode) Text('الأباء بالكنيسة:', style: title),
             if (!editMode)
               StreamBuilder<List<Father>>(
@@ -336,15 +391,15 @@ Future<void> fatherTap(
     builder: (context) => AlertDialog(
       actions: <Widget>[
         TextButton(
-          onPressed: () async {
+          onPressed: () {
             if (editMode) {
-              await GetIt.I<DatabaseRepository>()
+              GetIt.I<DatabaseRepository>()
                   .collection('Fathers')
                   .doc(father.id)
                   .set(father.toJson());
             }
             navigator.currentState!.pop();
-            await fatherTap(context, father, !editMode);
+            fatherTap(context, father, !editMode);
           },
           child: Text(editMode ? 'حفظ' : 'تعديل'),
         ),
@@ -476,15 +531,15 @@ Future<void> studyYearTap(
     builder: (context) => AlertDialog(
       actions: <Widget>[
         TextButton(
-          onPressed: () async {
+          onPressed: () {
             if (editMode) {
-              await GetIt.I<DatabaseRepository>()
+              GetIt.I<DatabaseRepository>()
                   .collection('StudyYears')
                   .doc(year.id)
                   .set(year.toJson());
             }
             navigator.currentState!.pop();
-            await studyYearTap(context, year, !editMode);
+            studyYearTap(context, year, !editMode);
           },
           child: Text(editMode ? 'حفظ' : 'تعديل'),
         ),
