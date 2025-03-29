@@ -31,11 +31,17 @@ class EditPerson extends StatefulWidget {
   _EditPersonState createState() => _EditPersonState();
 }
 
-class _EditPersonState extends State<EditPerson> {
+class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
   String? changedImage;
   bool deletePhoto = false;
   bool _servicesHaveRange = true;
   final GlobalKey<FormState> _form = GlobalKey<FormState>();
+
+  late final AnimationController _addressAnimationController =
+      AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 300),
+  );
 
   late Person person;
 
@@ -612,16 +618,52 @@ class _EditPersonState extends State<EditPerson> {
                       initialValue: person.address,
                       textInputAction: TextInputAction.newline,
                       maxLines: null,
-                      onChanged: (v) => person = person.copyWith.address(v),
+                      onChanged: (v) {
+                        person = person.copyWith.address(v);
+
+                        if (person.address != widget.person?.address) {
+                          _addressAnimationController.forward();
+                        } else if (person.address == widget.person?.address) {
+                          _addressAnimationController.reverse();
+                        }
+                      },
                       onFieldSubmitted: _nextFocus,
                       validator: (value) {
                         return null;
                       },
                     ),
                   ),
+                  SizeTransition(
+                    sizeFactor: _addressAnimationController,
+                    child: const Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(15)),
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.all(12),
+                        child: Row(
+                          spacing: 10,
+                          children: [
+                            Icon(
+                              Icons.warning,
+                              color: Colors.orange,
+                              size: 30,
+                            ),
+                            Expanded(
+                              child: Text(
+                                'برجاء تحديث الموقع على الخريطة إذا قمت بتغيير العنوان',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                   ElevatedButton.icon(
                     icon: const Icon(Icons.map),
-                    label: const Text('تعديل مكان المنزل على الخريطة'),
+                    label: const Text('تعديل موقع المنزل على الخريطة'),
                     onPressed: _editLocation,
                   ),
                   FutureBuilder<bool>(
@@ -1101,6 +1143,7 @@ class _EditPersonState extends State<EditPerson> {
     } else if (rslt != null) {
       person = person.copyWith.location((rslt as LatLng?)?.toGeoPoint());
     }
+    unawaited(_addressAnimationController.reverse());
     _nextFocus();
   }
 
