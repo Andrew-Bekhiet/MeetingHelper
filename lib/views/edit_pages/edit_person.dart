@@ -397,9 +397,9 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                                 setState(() {});
                                 FocusScope.of(context).nextFocus();
                               },
-                              decoration: (context, state) =>
-                                  const InputDecoration(
+                              decoration: (context, state) => InputDecoration(
                                 labelText: 'السنة الدراسية',
+                                errorText: state.errorText,
                               ),
                             ),
                           );
@@ -753,9 +753,10 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                                   FocusScope.of(context).nextFocus();
                                 }
                               },
-                              decoration: (context, state) =>
-                                  const InputDecoration(
+                              validator: (_) => null,
+                              decoration: (context, state) => InputDecoration(
                                 labelText: 'الكلية',
+                                errorText: state.errorText,
                               ),
                             ),
                           );
@@ -799,9 +800,10 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                                   FocusScope.of(context).nextFocus();
                                 }
                               },
-                              decoration: (context, state) =>
-                                  const InputDecoration(
+                              validator: (_) => null,
+                              decoration: (context, state) => InputDecoration(
                                 labelText: 'المدرسة',
+                                errorText: state.errorText,
                               ),
                             ),
                           );
@@ -854,8 +856,10 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                           FocusScope.of(context).nextFocus();
                         }
                       },
-                      decoration: (context, state) => const InputDecoration(
+                      validator: (_) => null,
+                      decoration: (context, state) => InputDecoration(
                         labelText: 'الكنيسة',
+                        errorText: state.errorText,
                       ),
                     ),
                   ),
@@ -903,8 +907,10 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                           FocusScope.of(context).nextFocus();
                         }
                       },
-                      decoration: (context, state) => const InputDecoration(
+                      validator: (_) => null,
+                      decoration: (context, state) => InputDecoration(
                         labelText: 'أب الاعتراف',
+                        errorText: state.errorText,
                       ),
                     ),
                   ),
