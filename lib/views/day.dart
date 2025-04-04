@@ -10,6 +10,7 @@ import 'package:meetinghelper/services/share_service.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/widgets.dart';
+import 'package:meetinghelper/widgets/lazy_tab_page.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -25,7 +26,7 @@ class Day extends StatefulWidget {
 }
 
 class _DayState extends State<Day> with TickerProviderStateMixin {
-  TabController? _previous;
+  late TabController _previous = TabController(length: 3, vsync: this);
   final BehaviorSubject<bool> _showSearch = BehaviorSubject<bool>.seeded(false);
   final BehaviorSubject<String> _searchSubject =
       BehaviorSubject<String>.seeded('');
@@ -44,21 +45,23 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<Tuple2<TabController, List<Service>>>(
-      initialData: Tuple2(_previous!, []),
+      initialData: Tuple2(_previous, []),
       stream: MHDatabaseRepo.I.services
           .getAll(onlyShownInHistory: true)
-          .map((snapshot) {
-        if (snapshot.length + 3 != _previous?.length) {
+          .map((services) {
+        if (services.length + 3 != _previous.length) {
           _previous = TabController(
-            length: snapshot.length + 3,
+            length: services.length + 3,
             vsync: this,
-            initialIndex: _previous?.index ?? 0,
+            initialIndex: _previous.index,
           );
         }
 
-        return Tuple2(_previous!, snapshot);
+        return Tuple2(_previous, services);
       }),
-      builder: (context, snapshot) {
+      builder: (context, servicesSnapshot) {
+        final tabController = servicesSnapshot.requireData.item1;
+
         return Scaffold(
           appBar: AppBar(
             title: StreamBuilder<bool>(
@@ -103,14 +106,14 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                   } else if (v == 'sorting') {
                     await _showShareAttendanceDialog(context);
                   } else if (v == 'share') {
-                    final tabIndex = snapshot.requireData.item1.index;
+                    final tabIndex = tabController.index;
 
                     final initialTitle = switch (tabIndex) {
                           0 => 'حضور الاجتماع',
                           1 => 'حضور القداس',
                           2 => 'الاعتراف',
-                          final int i =>
-                            'حضور ' + snapshot.requireData.item2[i - 3].name,
+                          final int i => 'حضور ' +
+                              servicesSnapshot.requireData.item2[i - 3].name,
                         } +
                         ' ليوم ' +
                         widget.record.name.replaceAll('\t', ' ');
@@ -136,7 +139,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                       'Meeting',
                       'Kodas',
                       'Confession',
-                      ...snapshot.requireData.item2.map(
+                      ...servicesSnapshot.requireData.item2.map(
                         (service) => service.id,
                       ),
                     ];
@@ -197,82 +200,99 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
             ],
             bottom: TabBar(
               isScrollable: true,
-              controller: snapshot.requireData.item1,
+              controller: tabController,
               tabs: [
                 const Tab(text: 'حضور الاجتماع'),
                 const Tab(text: 'حضور القداس'),
                 const Tab(text: 'الاعتراف'),
-                ...snapshot.requireData.item2.map(
+                ...servicesSnapshot.requireData.item2.map(
                   (service) => Tab(text: service.name),
                 ),
               ],
             ),
           ),
           body: TabBarView(
-            controller: snapshot.requireData.item1,
+            controller: tabController,
             children: [
-              DayCheckList<Class?, Person>(
-                autoDisposeController: false,
-                key: PageStorageKey(
-                  (widget.record is ServantsHistoryDay ? 'Users' : 'Persons') +
-                      'Meeting' +
-                      widget.record.id,
-                ),
-                controller: () {
-                  final tmp = baseController.copyWith(type: 'Meeting');
-                  _listControllers['Meeting'] = tmp;
-                  return tmp;
-                }(),
-              ),
-              DayCheckList<Class?, Person>(
-                autoDisposeController: false,
-                key: PageStorageKey(
-                  (widget.record is ServantsHistoryDay ? 'Users' : 'Persons') +
-                      'Kodas' +
-                      widget.record.id,
-                ),
-                controller: () {
-                  final tmp = baseController.copyWith(type: 'Kodas');
-                  _listControllers['Kodas'] = tmp;
-                  return tmp;
-                }(),
-              ),
-              DayCheckList<Class?, Person>(
-                autoDisposeController: false,
-                key: PageStorageKey(
-                  (widget.record is ServantsHistoryDay ? 'Users' : 'Persons') +
-                      'Confession' +
-                      widget.record.id,
-                ),
-                controller: () {
-                  final tmp = baseController.copyWith(type: 'Confession');
-                  _listControllers['Confession'] = tmp;
-                  return tmp;
-                }(),
-              ),
-              ...snapshot.requireData.item2.map(
-                (service) => DayCheckList<StudyYear?, Person>(
+              LazyTabPage(
+                tabController: tabController,
+                index: 0,
+                builder: (context) => DayCheckList<Class?, Person>(
                   autoDisposeController: false,
                   key: PageStorageKey(
                     (widget.record is ServantsHistoryDay
                             ? 'Users'
                             : 'Persons') +
-                        service.id +
+                        'Meeting' +
                         widget.record.id,
                   ),
-                  controller: () {
-                    final tmp = baseController.copyWithNewG<StudyYear?>(
-                      type: service.id,
-                      groupByStream:
-                          MHDatabaseRepo.I.persons.groupPersonsByStudyYearRef,
-                      objectsPaginatableStream: PaginatableStream.loadAll(
-                        stream: service.getPersonsMembers(),
+                  controller: _listControllers.putIfAbsent(
+                    'Meeting',
+                    () => baseController.forType('Meeting'),
+                  ) as DayCheckListController<Class?, Person>,
+                ),
+              ),
+              LazyTabPage(
+                tabController: tabController,
+                index: 1,
+                builder: (context) => DayCheckList<Class?, Person>(
+                  autoDisposeController: false,
+                  key: PageStorageKey(
+                    (widget.record is ServantsHistoryDay
+                            ? 'Users'
+                            : 'Persons') +
+                        'Kodas' +
+                        widget.record.id,
+                  ),
+                  controller: _listControllers.putIfAbsent(
+                    'Kodas',
+                    () => baseController.forType('Kodas'),
+                  ) as DayCheckListController<Class?, Person>,
+                ),
+              ),
+              LazyTabPage(
+                tabController: tabController,
+                index: 1,
+                builder: (context) => DayCheckList<Class?, Person>(
+                  autoDisposeController: false,
+                  key: PageStorageKey(
+                    (widget.record is ServantsHistoryDay
+                            ? 'Users'
+                            : 'Persons') +
+                        'Confession' +
+                        widget.record.id,
+                  ),
+                  controller: _listControllers.putIfAbsent(
+                    'Confession',
+                    () => baseController.forType('Confession'),
+                  ) as DayCheckListController<Class?, Person>,
+                ),
+              ),
+              ...servicesSnapshot.requireData.item2.map(
+                (service) => LazyTabPage(
+                  tabController: tabController,
+                  index: 1,
+                  builder: (context) => DayCheckList<StudyYear?, Person>(
+                    autoDisposeController: false,
+                    key: PageStorageKey(
+                      (widget.record is ServantsHistoryDay
+                              ? 'Users'
+                              : 'Persons') +
+                          service.id +
+                          widget.record.id,
+                    ),
+                    controller: _listControllers.putIfAbsent(
+                      service.id,
+                      () => baseController.copyWithNewG<StudyYear?>(
+                        type: service.id,
+                        groupByStream:
+                            MHDatabaseRepo.I.persons.groupPersonsByStudyYearRef,
+                        objectsPaginatableStream: PaginatableStream.loadAll(
+                          stream: service.getPersonsMembers(),
+                        ),
                       ),
-                    );
-
-                    _listControllers[service.id] = tmp;
-                    return tmp;
-                  }(),
+                    ) as DayCheckListController<StudyYear?, Person>,
+                  ),
                 ),
               ),
             ],
@@ -281,49 +301,49 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
             color: Theme.of(context).colorScheme.primary,
             shape: const CircularNotchedRectangle(),
             child: AnimatedBuilder(
-              animation: snapshot.requireData.item1,
-              builder: (context, _) => StreamBuilder<Tuple2<int, int>>(
-                stream: Rx.combineLatest2<List, Map, Tuple2<int, int>>(
-                  (snapshot.requireData.item1.index <= 2
-                          ? _listControllers[
-                                  snapshot.requireData.item1.index == 0
-                                      ? 'Meeting'
-                                      : snapshot.requireData.item1.index == 1
-                                          ? 'Kodas'
-                                          : 'Confesion']
+              animation: tabController,
+              builder: (context, _) =>
+                  StreamBuilder<({int attended, int total})>(
+                stream:
+                    Rx.combineLatest2<List, Map, ({int attended, int total})>(
+                  (tabController.index <= 2
+                          ? _listControllers[tabController.index == 0
+                                  ? 'Meeting'
+                                  : servicesSnapshot.requireData.item1.index ==
+                                          1
+                                      ? 'Kodas'
+                                      : 'Confesion']
                               ?.objectsPaginatableStream
                               .stream
-                          : _listControllers[snapshot
-                                  .requireData
-                                  .item2[snapshot.requireData.item1.index - 3]
-                                  .id]
+                          : _listControllers[servicesSnapshot.requireData
+                                  .item2[tabController.index - 3].id]
                               ?.objectsPaginatableStream
                               .stream) ??
                       Stream.value([]),
-                  (snapshot.requireData.item1.index <= 2
-                          ? _listControllers[
-                                  snapshot.requireData.item1.index == 0
-                                      ? 'Meeting'
-                                      : snapshot.requireData.item1.index == 1
-                                          ? 'Kodas'
-                                          : 'Confession']
+                  (tabController.index <= 2
+                          ? _listControllers[tabController.index == 0
+                                  ? 'Meeting'
+                                  : servicesSnapshot.requireData.item1.index ==
+                                          1
+                                      ? 'Kodas'
+                                      : 'Confession']
                               ?.attended
-                          : _listControllers[snapshot
-                                  .requireData
-                                  .item2[snapshot.requireData.item1.index - 3]
-                                  .id]
+                          : _listControllers[servicesSnapshot.requireData
+                                  .item2[tabController.index - 3].id]
                               ?.attended) ??
                       Stream.value({}),
-                  (a, b) => Tuple2<int, int>(a.length, b.length),
+                  (a, b) => (total: a.length, attended: b.length),
                 ),
-                builder: (context, snapshot) {
+                builder: (context, summarySnapshot) {
                   final TextTheme theme = Theme.of(context).primaryTextTheme;
+
+                  final (:attended, :total) =
+                      summarySnapshot.data ?? (attended: 0, total: 0);
+
                   return ExpansionTile(
                     expandedAlignment: Alignment.centerRight,
                     title: Text(
-                      'الحضور: ' +
-                          (snapshot.data?.item2.toString() ?? '0') +
-                          ' مخدوم',
+                      'الحضور: $attended مخدوم',
                       style: theme.bodyMedium,
                     ),
                     trailing:
@@ -346,16 +366,10 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                     ),
                     children: [
                       Text(
-                        'الغياب: ' +
-                            ((snapshot.data?.item1 ?? 0) -
-                                    (snapshot.data?.item2 ?? 0))
-                                .toString() +
-                            ' مخدوم',
+                        'الغياب: ${total - attended} مخدوم',
                       ),
                       Text(
-                        'اجمالي: ' +
-                            (snapshot.data?.item1 ?? 0).toString() +
-                            ' مخدوم',
+                        'اجمالي: $total مخدوم',
                       ),
                     ],
                   );
@@ -690,7 +704,6 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _previous = TabController(length: 3, vsync: this);
 
     final bool isSameDay =
         DateTime.now().difference(widget.record.day.toDate()).inDays == 0;

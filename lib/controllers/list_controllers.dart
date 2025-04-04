@@ -1,12 +1,12 @@
 import 'dart:async';
 
 import 'package:churchdata_core/churchdata_core.dart';
+import 'package:collection/collection.dart' show DeepCollectionEquality;
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:tuple/tuple.dart';
 
 class DayCheckListController<G, T extends Person> extends ListController<G, T> {
   bool _isDisposing = false;
@@ -68,14 +68,24 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
     //
 
     _attendedListener = (ref != null
-            ? Rx.combineLatest3<User, List<G>, bool?,
-                Tuple3<User, List<G>, bool?>>(
-                User.loggedInStream,
+            ? Rx.combineLatest3<
+                MHPermissionsSet,
+                List<JsonRef>,
+                bool?,
+                ({
+                  MHPermissionsSet permissions,
+                  List<JsonRef> classes,
+                  bool? sortByTimeASC
+                })>(
+                User.loggedInStream.map((u) => u.permissions).distinct(),
                 notService(type)
-                    ? MHDatabaseRepo.I.classes.getAll().map((c) => c.cast<G>())
+                    ? MHDatabaseRepo.I.classes
+                        .getAll()
+                        .map((c) => c.map((c) => c.ref).toList())
+                        .distinct(const DeepCollectionEquality().equals)
                     : Stream.value([]),
                 dayOptions.sortByTimeASC,
-                Tuple3.new,
+                (a, b, c) => (permissions: a, classes: b, sortByTimeASC: c),
               ).switchMap(_attendedMapping)
             : Stream.value(<String, HistoryRecord>{}))
         .listen(_attended.add, onError: _attended.addError);
@@ -143,98 +153,75 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
     return rslt;
   }
 
-  Stream<Map<String, HistoryRecord>> _attendedMapping(
-    Tuple3<User, List<G>, bool?> v,
-  ) {
-    //
-    //<empty comment for readability>
+  Map<String, HistoryRecord> _docsMapper(Iterable<JsonQueryDoc> docs) {
+    final Map<String, T> tempSelected = {};
+    final Map<String, HistoryRecord> tempResult = {};
 
-    Map<String, HistoryRecord> _docsMapper(Iterable<JsonQueryDoc> docs) {
-      final Map<String, T> tempSelected = {};
-      final Map<String, HistoryRecord> tempResult = {};
-
-      for (final d in docs) {
-        if (_objectsById.valueOrNull != null &&
-            _objectsById.value[d.id] != null) {
-          tempSelected[d.id] = _objectsById.value[d.id]!;
-        }
-        tempResult[d.id] = HistoryRecord.fromQueryDoc(d, day);
+    for (final d in docs) {
+      if (_objectsById.valueOrNull != null &&
+          _objectsById.value[d.id] != null) {
+        tempSelected[d.id] = _objectsById.value[d.id]!;
       }
-
-      return tempResult;
+      tempResult[d.id] = HistoryRecord.fromQueryDoc(d, day);
     }
 
-    final permissions = v.item1.permissions;
+    return tempResult;
+  }
+
+  Stream<Map<String, HistoryRecord>> _attendedMapping(
+    ({
+      MHPermissionsSet permissions,
+      List<JsonRef> classes,
+      bool? sortByTimeASC
+    }) v,
+  ) {
+    final (:permissions, :classes, :sortByTimeASC) = v;
 
     if (permissions.superAccess ||
         (day is ServantsHistoryDay && permissions.secretary) ||
         !notService(type)) {
-      if (v.item3 != null) {
+      if (sortByTimeASC != null) {
         return ref!
-            .orderBy('Time', descending: !v.item3!)
+            .orderBy('Time', descending: !sortByTimeASC)
             .snapshots()
             .map((s) => _docsMapper(s.docs));
       }
       return ref!.snapshots().map((s) => _docsMapper(s.docs));
-    } else if (v.item2.length <= 30) {
-      if (v.item3 != null && v.item2.isEmpty) {
+    } else if (classes.length <= 30) {
+      if (sortByTimeASC != null && classes.isEmpty) {
         return ref!
-            .orderBy('Time', descending: !v.item3!)
+            .orderBy('Time', descending: !sortByTimeASC)
             .snapshots()
             .map((s) => _docsMapper(s.docs));
-      } else if (v.item3 != null) {
+      } else if (sortByTimeASC != null) {
         return ref!
-            .where(
-              'ClassId',
-              whereIn: v.item2
-                  .whereType<DocumentObject>()
-                  .map((e) => e.ref)
-                  .toList(),
-            )
-            .orderBy('Time', descending: !v.item3!)
+            .where('ClassId', whereIn: classes)
+            .orderBy('Time', descending: !sortByTimeASC)
             .snapshots()
             .map((s) => _docsMapper(s.docs));
-      } else if (v.item2.isEmpty) {
+      } else if (classes.isEmpty) {
         return ref!.snapshots().map((s) => _docsMapper(s.docs));
       } else {
         return ref!
-            .where(
-              'ClassId',
-              whereIn: v.item2
-                  .whereType<DocumentObject>()
-                  .map((e) => e.ref)
-                  .toList(),
-            )
+            .where('ClassId', whereIn: classes)
             .snapshots()
             .map((s) => _docsMapper(s.docs));
       }
     }
 
-    if (v.item3 != null) {
+    if (sortByTimeASC != null) {
       return Rx.combineLatestList<JsonQuery>(
-        v.item2.split(30).map(
+        classes.split(30).map(
               (c) => ref!
-                  .where(
-                    'ClassId',
-                    whereIn: c
-                        .whereType<DocumentObject>()
-                        .map((e) => e.ref)
-                        .toList(),
-                  )
-                  .orderBy('Time', descending: !v.item3!)
+                  .where('ClassId', whereIn: c)
+                  .orderBy('Time', descending: !sortByTimeASC)
                   .snapshots(),
             ),
       ).map((s) => s.expand((n) => n.docs)).map(_docsMapper);
     }
     return Rx.combineLatestList<JsonQuery>(
-      v.item2.split(30).map(
-            (c) => ref!
-                .where(
-                  'ClassId',
-                  whereIn:
-                      c.whereType<DocumentObject>().map((e) => e.ref).toList(),
-                )
-                .snapshots(),
+      classes.split(30).map(
+            (c) => ref!.where('ClassId', whereIn: c).snapshots(),
           ),
     ).map((s) => s.expand((n) => n.docs)).map(_docsMapper);
   }
@@ -310,26 +297,18 @@ class DayCheckListController<G, T extends Person> extends ListController<G, T> {
     throw UnsupportedError('Cannot enter selection mode');
   }
 
-  DayCheckListController<G, T> copyWith({
-    PaginatableStream<T>? objectsPaginatableStream,
-    Stream<String>? searchStream,
-    SearchFunction<T>? filter,
-    GroupingFunction<G, T>? groupBy,
-    HistoryDayBase? day,
-    String? type,
-    HistoryDayOptions? dayOptions,
-    Stream<String>? searchQuery,
-    GroupingStreamFunction<G, T>? groupByStream,
-  }) {
+  DayCheckListController<G, T> forType(String type) {
+    if (type == this.type) return this;
+
     return DayCheckListController<G, T>(
-      day: day ?? this.day,
-      dayOptions: dayOptions ?? this.dayOptions,
-      query: objectsPaginatableStream ?? this.objectsPaginatableStream,
-      type: type ?? this.type,
-      filter: filter ?? this.filter,
-      groupBy: groupBy ?? this.groupBy,
-      groupByStream: groupByStream ?? this.groupByStream,
-      searchQuery: searchQuery ?? searchSubject,
+      day: day,
+      dayOptions: dayOptions,
+      query: objectsPaginatableStream,
+      type: type,
+      filter: filter,
+      groupBy: groupBy,
+      groupByStream: groupByStream,
+      searchQuery: searchSubject,
     );
   }
 
