@@ -2,12 +2,25 @@ import { FieldValue } from "@google-cloud/firestore";
 import download from "download";
 import { auth, database, firestore, messaging, storage } from "firebase-admin";
 import { auth as auth_1 } from "firebase-functions";
+import { HttpsError } from "firebase-functions/v1/auth";
 import { getFCMTokensForUser } from "./common";
 import {
   firebaseDynamicLinksPrefix,
   packageName,
   projectId,
 } from "./environment";
+
+export const beforeUserSignUp = auth_1.user().beforeCreate(async (user) => {
+  if (
+    user.providerData.length === 0 ||
+    user.providerData.find((p) => p.providerId === "password")
+  ) {
+    throw new HttpsError(
+      "permission-denied",
+      "Sign up failed. Please try again later."
+    );
+  }
+});
 
 export const onUserSignUp = auth_1.user().onCreate(async (user) => {
   let customClaims: Record<string, any>;
@@ -70,19 +83,21 @@ export const onUserSignUp = auth_1.user().onCreate(async (user) => {
     .filter((a) => a.status === "fulfilled")
     .flatMap((a) => a.value);
 
+  const username = user.displayName ?? user.email;
+
   await messaging().sendEachForMulticast({
     tokens: fcmTokens,
     notification: {
-      title: "قام " + user.displayName + " بتسجيل حساب بالبرنامج",
+      title: "قام " + username + " بتسجيل حساب بالبرنامج",
       body:
         "ان كنت تعرف " +
-        user.displayName +
+        username +
         "فقم بتنشيط حسابه ليتمكن من الدخول للبرنامج",
     },
     data: {
       click_action: "FLUTTER_NOTIFICATION_CLICK",
       type: "ManagingUsers",
-      title: "قام " + user.displayName + " بتسجيل حساب بالبرنامج",
+      title: "قام " + username + " بتسجيل حساب بالبرنامج",
       content: "",
       attachement: firebaseDynamicLinksPrefix + "/viewUser?UID=" + user.uid,
       time: String(Date.now()),
@@ -97,7 +112,7 @@ export const onUserSignUp = auth_1.user().onCreate(async (user) => {
 
   await doc.set({
     UID: user.uid,
-    Name: user.displayName ?? null,
+    Name: username ?? null,
     Email: user.email ?? null,
     ClassId: null,
     AllowedUsers: [],

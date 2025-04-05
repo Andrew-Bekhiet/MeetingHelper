@@ -24,6 +24,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   bool _loading = false;
 
+  int _logoTapped = 0;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,10 +34,21 @@ class _LoginScreenState extends State<LoginScreen> {
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 15),
           children: <Widget>[
-            SizedBox(
-              height: 200,
-              width: 200,
-              child: Image.asset('assets/Logo.png'),
+            GestureDetector(
+              onTap: () {
+                if (_logoTapped++ >= 6) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const _EmailPasswordLoginScreen(),
+                    ),
+                  );
+                }
+              },
+              child: SizedBox(
+                height: 200,
+                width: 200,
+                child: Image.asset('assets/Logo.png'),
+              ),
             ),
             const SizedBox(
               height: 10,
@@ -78,18 +91,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
             ),
-            if (kDebugMode &&
-                GetIt.I<CacheRepository>().box('Dev').get('kEmulatorsHost') !=
-                    null)
-              ElevatedButton(
-                onPressed: () async {
-                  await GetIt.I<auth.FirebaseAuth>().signInWithEmailAndPassword(
-                    email: 'admin@meetinghelper.org',
-                    password: 'admin@meetinghelper.org',
-                  );
-                },
-                child: const Text('{debug only} Email and password'),
-              ),
             Container(height: MediaQuery.of(context).size.height / 38),
             RichText(
               textAlign: TextAlign.center,
@@ -182,7 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<bool> setupSettings() async {
+  static Future<bool> setupSettings() async {
     try {
       final settings = GetIt.I<CacheRepository>().box('Settings');
       settings.get('cacheSize') ?? await settings.put('cacheSize', 314572800);
@@ -230,4 +231,143 @@ class _LoginTitle extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight + 30);
+}
+
+class _EmailPasswordLoginScreen extends StatefulWidget {
+  const _EmailPasswordLoginScreen();
+
+  @override
+  State<_EmailPasswordLoginScreen> createState() =>
+      _EmailPasswordLoginScreenState();
+}
+
+class _EmailPasswordLoginScreenState extends State<_EmailPasswordLoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  bool _loading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loginWithEmailAndPassword() async {
+    setState(() => _loading = true);
+    try {
+      await GetIt.I<auth.FirebaseAuth>().signInWithEmailAndPassword(
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
+      await User.loggedInStream.next();
+      await _LoginScreenState.setupSettings();
+      Navigator.of(context).pop();
+    } catch (err, stack) {
+      setState(() => _loading = false);
+      await Sentry.captureException(
+        err,
+        stackTrace: stack,
+        withScope: (scope) => scope.setTag(
+          'LasErrorIn',
+          '_EmailPasswordLoginScreenState.build.Login.onPressed',
+        ),
+      );
+      await showErrorDialog(context, err.toString());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Email password login')),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            SizedBox(
+              height: 200,
+              width: 200,
+              child: Image.asset('assets/Logo.png'),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'قم بتسجيل الدخول باستخدام البريد الالكتروني وكلمة المرور',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 20),
+            TextFormField(
+              decoration: const InputDecoration(
+                labelText: 'البريد الالكتروني',
+              ),
+              controller: _emailController,
+            ),
+            const SizedBox(height: 10),
+            TextFormField(
+              decoration: const InputDecoration(
+                labelText: 'كلمة المرور',
+              ),
+              obscureText: true,
+              controller: _passwordController,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onPressed: _loading ? null : _loginWithEmailAndPassword,
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : const Text(
+                      'تسجيل الدخول',
+                      style: TextStyle(fontSize: 20, color: Colors.black),
+                    ),
+            ),
+            Container(height: MediaQuery.of(context).size.height / 38),
+            RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                style:
+                    const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                children: [
+                  TextSpan(
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    text: 'بتسجيل دخولك فإنك توافق على ',
+                  ),
+                  TextSpan(
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Colors.blue,
+                        ),
+                    text: 'شروط الاستخدام',
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () => LauncherService.I.launch(
+                            'https://meetinghelper-2a869.web.app/terms-of-service/',
+                          ),
+                  ),
+                  TextSpan(
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    text: ' و',
+                  ),
+                  TextSpan(
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Colors.blue,
+                        ),
+                    text: 'سياسة الخصوصية',
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () => LauncherService.I.launch(
+                            'https://meetinghelper-2a869.web.app/privacy-policy/',
+                          ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
