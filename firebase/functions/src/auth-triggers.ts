@@ -1,7 +1,7 @@
 import { FieldValue } from "@google-cloud/firestore";
 import download from "download";
 import { auth, database, firestore, messaging, storage } from "firebase-admin";
-import { auth as auth_1 } from "firebase-functions";
+import { auth as auth_1 } from "firebase-functions/v1";
 import { HttpsError } from "firebase-functions/v1/auth";
 import { getFCMTokensForUser } from "./common";
 import {

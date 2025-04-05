@@ -1,6 +1,6 @@
 import archiver from "archiver";
 import { auth, firestore, storage } from "firebase-admin";
-import { runWith } from "firebase-functions";
+import { runWith } from "firebase-functions/v1";
 import { HttpsError } from "firebase-functions/v1/https";
 import fs from "fs";
 import { projectId } from "./environment";

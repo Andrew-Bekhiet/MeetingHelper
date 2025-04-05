@@ -1,4 +1,4 @@
-import { https, runWith } from "firebase-functions";
+import { https, runWith } from "firebase-functions/v1";
 
 import { Timestamp } from "@google-cloud/firestore";
 import { auth, firestore, storage } from "firebase-admin";

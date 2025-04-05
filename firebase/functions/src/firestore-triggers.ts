@@ -6,7 +6,7 @@ import {
 } from "@google-cloud/firestore";
 import { firestore, storage } from "firebase-admin";
 import { FirebaseDynamicLinks } from "firebase-dynamic-links";
-import { firestore as firestore_1 } from "firebase-functions";
+import { firestore as firestore_1 } from "firebase-functions/v1";
 import { DateTime } from "luxon";
 import { getChangeType } from "./common";
 import {

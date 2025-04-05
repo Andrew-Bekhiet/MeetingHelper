@@ -1,6 +1,6 @@
 import { FieldValue, v1 } from "@google-cloud/firestore";
 import { firestore, storage } from "firebase-admin";
-import { pubsub, runWith } from "firebase-functions";
+import { pubsub, runWith } from "firebase-functions/v1";
 import { projectId } from "./environment";
 
 export const doBackupFirestoreData = runWith({

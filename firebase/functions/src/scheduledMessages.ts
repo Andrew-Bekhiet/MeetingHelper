@@ -1,5 +1,5 @@
 import { auth, messaging } from "firebase-admin";
-import { pubsub } from "firebase-functions";
+import { pubsub } from "firebase-functions/v1";
 import { getFCMTokensForUser } from "./common";
 import { firebaseDynamicLinksPrefix, packageName } from "./environment";
 

@@ -1,6 +1,6 @@
 import { FieldValue, Timestamp } from "@google-cloud/firestore";
 import { auth, database, firestore } from "firebase-admin";
-import { https as _https } from "firebase-functions";
+import { https as _https } from "firebase-functions/v1";
 import { assertNotEmpty } from "./common";
 
 const https = _https;

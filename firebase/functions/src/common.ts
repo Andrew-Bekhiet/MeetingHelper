@@ -1,5 +1,5 @@
 import { database } from "firebase-admin";
-import { Change, https } from "firebase-functions";
+import { Change, https } from "firebase-functions/v1";
 
 export async function getFCMTokensForUser(
   uid: string

@@ -5,7 +5,7 @@ import {
 } from "@google-cloud/firestore";
 import download from "download";
 import { auth, database, firestore, messaging, storage } from "firebase-admin";
-import { https as _https } from "firebase-functions";
+import { https as _https } from "firebase-functions/v1";
 import jwt from "jsonwebtoken";
 import nf from "node-fetch";
 import { assertNotEmpty, getFCMTokensForUser } from "./common";
