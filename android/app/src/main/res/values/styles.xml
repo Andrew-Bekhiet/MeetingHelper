@@ -17,4 +17,6 @@
         parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowBackground">?android:colorBackground</item>
     </style>
+    <style name="Ucrop.CropTheme"
+        parent="Theme.AppCompat.Light.NoActionBar"/>
 </resources>
