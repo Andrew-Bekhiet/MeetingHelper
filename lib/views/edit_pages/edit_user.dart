@@ -47,7 +47,7 @@ class _EditUserState extends State<EditUser> {
               pinned: true,
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(Icons.block),
                   tooltip: 'إلغاء تنشيط الحساب',
                   onPressed: unApproveUser,
                 ),
