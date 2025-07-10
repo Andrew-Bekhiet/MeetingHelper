@@ -1218,9 +1218,8 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
       } else {
         // ignore: unawaited_futures
         person.ref.delete();
-
-        navigator.currentState!.pop('deleted');
       }
+      navigator.currentState!.pop('deleted');
     }
   }
 
