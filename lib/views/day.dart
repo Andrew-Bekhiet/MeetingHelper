@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:intl/intl.dart';
 import 'package:meetinghelper/controllers.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
@@ -39,7 +40,6 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
       _listControllers = {};
 
   final _sorting = GlobalKey();
-  final _analyticsToday = GlobalKey();
   final _lockUnchecks = GlobalKey();
 
   @override
@@ -85,26 +85,86 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                     : Container(),
               ),
               IconButton(
-                key: _analyticsToday,
-                tooltip: 'تحليل بيانات كشف اليوم',
-                icon: const Icon(Icons.analytics_outlined),
-                onPressed: () {
-                  navigator.currentState!.pushNamed(
-                    'Analytics',
-                    arguments: {
-                      'Day': widget.record,
-                      'HistoryCollection': widget.record.ref.parent.id,
-                    },
-                  );
-                },
+                tooltip: 'تنظيم الليستة',
+                icon: const Icon(Icons.filter_list),
+                onPressed: () => _showShareAttendanceDialog(context),
               ),
               PopupMenuButton(
                 key: _sorting,
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'analysis',
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 8,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.analytics_outlined),
+                        Text('تحليل بيانات كشف اليوم'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'share',
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 8,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.share),
+                        Text('مشاركة الكشف'),
+                      ],
+                    ),
+                  ),
+                  if (User.instance.permissions.changeHistory &&
+                      DateTime.now()
+                              .difference(widget.record.day.toDate())
+                              .inDays !=
+                          0)
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        spacing: 8,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (dayOptions.enabled.value) ...[
+                            const Icon(Icons.check_circle),
+                            const Text('اغلاق وضع التعديل'),
+                          ] else ...[
+                            const Icon(Icons.edit),
+                            const Text('تعديل الكشف'),
+                          ],
+                        ],
+                      ),
+                    ),
+                  if (User.instance.permissions.superAccess)
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        spacing: 8,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.delete_forever, color: Colors.red),
+                          Text('حذف الكشف'),
+                        ],
+                      ),
+                    ),
+                ],
                 onSelected: (v) async {
                   if (v == 'delete' && User.instance.permissions.superAccess) {
                     await _delete();
-                  } else if (v == 'sorting') {
-                    await _showShareAttendanceDialog(context);
+                  } else if (v == 'analysis') {
+                    unawaited(
+                      Navigator.of(context).pushNamed(
+                        'Analytics',
+                        arguments: {
+                          'Day': widget.record,
+                          'HistoryCollection': widget.record.ref.parent.id,
+                        },
+                      ),
+                    );
                   } else if (v == 'share') {
                     final tabIndex = tabController.index;
 
@@ -170,32 +230,6 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                     dayOptions.showOnly.add(null);
                   }
                 },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'sorting',
-                    child: Text('تنظيم الليستة'),
-                  ),
-                  const PopupMenuItem(
-                    value: 'share',
-                    child: Text('مشاركة الكشف'),
-                  ),
-                  if (User.instance.permissions.changeHistory &&
-                      DateTime.now()
-                              .difference(widget.record.day.toDate())
-                              .inDays !=
-                          0)
-                    PopupMenuItem(
-                      value: 'edit',
-                      child: dayOptions.enabled.value
-                          ? const Text('اغلاق وضع التعديل')
-                          : const Text('تعديل الكشف'),
-                    ),
-                  if (User.instance.permissions.superAccess)
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Text('حذف الكشف'),
-                    ),
-                ],
               ),
             ],
             bottom: TabBar(
@@ -494,9 +528,12 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
         ),
         onChanged: _searchSubject.add,
       );
-    } else {
-      return const Text('كشف الحضور');
     }
+    return Text(
+      'كشف ' +
+          DateFormat('EEEE، d MMMM y', 'ar-EG')
+              .format(widget.record.day.toDate()),
+    );
   }
 
   Future<String?> _showShareAttendanceDialog(
@@ -795,22 +832,6 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
               ],
               identify: 'Sorting',
               keyTarget: _sorting,
-              color: Theme.of(context).colorScheme.secondary,
-            ),
-            TargetFocus(
-              enableOverlayTab: true,
-              contents: [
-                TargetContent(
-                  child: Text(
-                    'عرض تحليل واحصاء لعدد الحضور اليوم من هنا',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSecondary,
-                        ),
-                  ),
-                ),
-              ],
-              identify: 'AnalyticsToday',
-              keyTarget: _analyticsToday,
               color: Theme.of(context).colorScheme.secondary,
             ),
             TargetFocus(
