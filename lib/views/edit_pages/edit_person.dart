@@ -1235,7 +1235,10 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
             duration: Duration(minutes: 1),
           ),
         );
-        final update = (await person.ref.get()).exists;
+        final update = await person.ref
+            .get()
+            .then((s) => s.exists)
+            .catchError((_) => false);
 
         if (person.id == 'null' && !update) {
           person = person.copyWith
