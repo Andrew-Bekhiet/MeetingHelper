@@ -50,9 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Image.asset('assets/Logo.png'),
               ),
             ),
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
             Center(
               child: Text(
                 'قم بتسجيل الدخول أو انشاء حساب',
@@ -95,36 +93,38 @@ class _LoginScreenState extends State<LoginScreen> {
             RichText(
               textAlign: TextAlign.center,
               text: TextSpan(
-                style:
-                    const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
                 children: [
                   TextSpan(
                     style: Theme.of(context).textTheme.bodyMedium,
                     text: 'بتسجيل دخولك فإنك توافق على ',
                   ),
                   TextSpan(
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.blue,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Colors.blue),
                     text: 'شروط الاستخدام',
                     recognizer: TapGestureRecognizer()
                       ..onTap = () => LauncherService.I.launch(
-                            'https://meetinghelper-2a869.web.app/terms-of-service/',
-                          ),
+                        'https://meetinghelper-2a869.web.app/terms-of-service/',
+                      ),
                   ),
                   TextSpan(
                     style: Theme.of(context).textTheme.bodyMedium,
                     text: ' و',
                   ),
                   TextSpan(
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.blue,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Colors.blue),
                     text: 'سياسة الخصوصية',
                     recognizer: TapGestureRecognizer()
                       ..onTap = () => LauncherService.I.launch(
-                            'https://meetinghelper-2a869.web.app/privacy-policy/',
-                          ),
+                        'https://meetinghelper-2a869.web.app/privacy-policy/',
+                      ),
                   ),
                 ],
               ),
@@ -140,25 +140,27 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       Future<auth.UserCredential>? signInFuture;
       if (kIsWeb) {
-        final credential = (await GetIt.I<auth.FirebaseAuth>()
-                .signInWithPopup(GoogleAuthProvider()))
-            .credential;
+        final credential = (await GetIt.I<auth.FirebaseAuth>().signInWithPopup(
+          GoogleAuthProvider(),
+        )).credential;
         if (credential != null) {
-          signInFuture =
-              GetIt.I<auth.FirebaseAuth>().signInWithCredential(credential);
+          signInFuture = GetIt.I<auth.FirebaseAuth>().signInWithCredential(
+            credential,
+          );
         }
       } else {
-        final googleUser = await GetIt.I<GoogleSignIn>().signIn();
-        if (googleUser != null) {
-          final googleAuth = await googleUser.authentication;
-          if (googleAuth.accessToken != null) {
-            final credential = GoogleAuthProvider.credential(
-              idToken: googleAuth.idToken,
-              accessToken: googleAuth.accessToken,
-            );
-            signInFuture =
-                GetIt.I<auth.FirebaseAuth>().signInWithCredential(credential);
-          }
+        final googleUser = await GetIt.I<GoogleSignIn>().authenticate(
+          scopeHint: ['email', 'profile'],
+        );
+        final googleAuth = googleUser.authentication;
+        if (googleAuth.idToken != null) {
+          final credential = GoogleAuthProvider.credential(
+            idToken: googleAuth.idToken,
+            // accessToken: googleAuth.accessToken,
+          );
+          signInFuture = GetIt.I<auth.FirebaseAuth>().signInWithCredential(
+            credential,
+          );
         }
       }
       if (signInFuture != null) {
@@ -216,13 +218,11 @@ class _LoginTitle extends StatelessWidget implements PreferredSizeWidget {
           child: Text(
             'خدمة مدارس الأحد',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: Theme.of(context)
-                      .textTheme
-                      .titleLarge
-                      ?.color
-                      ?.withValues(alpha: 1),
-                  fontWeight: FontWeight.bold,
-                ),
+              color: Theme.of(
+                context,
+              ).textTheme.titleLarge?.color?.withValues(alpha: 1),
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ),
@@ -297,16 +297,12 @@ class _EmailPasswordLoginScreenState extends State<_EmailPasswordLoginScreen> {
             ),
             const SizedBox(height: 20),
             TextFormField(
-              decoration: const InputDecoration(
-                labelText: 'البريد الالكتروني',
-              ),
+              decoration: const InputDecoration(labelText: 'البريد الالكتروني'),
               controller: _emailController,
             ),
             const SizedBox(height: 10),
             TextFormField(
-              decoration: const InputDecoration(
-                labelText: 'كلمة المرور',
-              ),
+              decoration: const InputDecoration(labelText: 'كلمة المرور'),
               obscureText: true,
               controller: _passwordController,
             ),
@@ -331,36 +327,38 @@ class _EmailPasswordLoginScreenState extends State<_EmailPasswordLoginScreen> {
             RichText(
               textAlign: TextAlign.center,
               text: TextSpan(
-                style:
-                    const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
                 children: [
                   TextSpan(
                     style: Theme.of(context).textTheme.bodyMedium,
                     text: 'بتسجيل دخولك فإنك توافق على ',
                   ),
                   TextSpan(
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.blue,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Colors.blue),
                     text: 'شروط الاستخدام',
                     recognizer: TapGestureRecognizer()
                       ..onTap = () => LauncherService.I.launch(
-                            'https://meetinghelper-2a869.web.app/terms-of-service/',
-                          ),
+                        'https://meetinghelper-2a869.web.app/terms-of-service/',
+                      ),
                   ),
                   TextSpan(
                     style: Theme.of(context).textTheme.bodyMedium,
                     text: ' و',
                   ),
                   TextSpan(
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.blue,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Colors.blue),
                     text: 'سياسة الخصوصية',
                     recognizer: TapGestureRecognizer()
                       ..onTap = () => LauncherService.I.launch(
-                            'https://meetinghelper-2a869.web.app/privacy-policy/',
-                          ),
+                        'https://meetinghelper-2a869.web.app/privacy-policy/',
+                      ),
                   ),
                 ],
               ),

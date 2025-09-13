@@ -39,9 +39,9 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
 
   late final AnimationController _addressAnimationController =
       AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 300),
-  );
+        vsync: this,
+        duration: const Duration(milliseconds: 300),
+      );
 
   late Person person;
 
@@ -70,8 +70,10 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                         const Positioned(
                           left: 1.0,
                           top: 2.0,
-                          child:
-                              Icon(Icons.photo_camera, color: Colors.black54),
+                          child: Icon(
+                            Icons.photo_camera,
+                            color: Colors.black54,
+                          ),
                         ),
                         Icon(
                           Icons.photo_camera,
@@ -86,8 +88,8 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
               ],
               backgroundColor: person.color != null
                   ? (Theme.of(context).brightness == Brightness.light
-                      ? person.color!.lighten()
-                      : person.color!.darken())
+                        ? person.color!.lighten()
+                        : person.color!.darken())
                   : null,
               //title: Text(widget.me.name),
               expandedHeight: 250.0,
@@ -101,16 +103,12 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                         : 1,
                     child: Text(
                       person.name,
-                      style: const TextStyle(
-                        fontSize: 16.0,
-                      ),
+                      style: const TextStyle(fontSize: 16.0),
                     ),
                   ),
                   background: changedImage == null
                       ? PhotoObjectWidget(person, circleCrop: false)
-                      : Image.file(
-                          File(changedImage!),
-                        ),
+                      : Image.file(File(changedImage!)),
                 ),
               ),
             ),
@@ -127,9 +125,7 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     child: TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'الاسم',
-                      ),
+                      decoration: const InputDecoration(labelText: 'الاسم'),
                       initialValue: person.name,
                       keyboardType: TextInputType.name,
                       autofillHints: const [AutofillHints.name],
@@ -240,15 +236,18 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                                   ),
                                 );
                                 if (rslt == 'delete') {
-                                  person = person.copyWith
-                                      .phones(person.phones..remove(e.key));
+                                  person = person.copyWith.phones(
+                                    person.phones..remove(e.key),
+                                  );
                                   setState(() {});
                                 } else if (rslt != null) {
-                                  person = person.copyWith
-                                      .phones(person.phones..remove(e.key));
                                   person = person.copyWith.phones(
-                                    {...person.phones, name.text: e.value},
+                                    person.phones..remove(e.key),
                                   );
+                                  person = person.copyWith.phones({
+                                    ...person.phones,
+                                    name.text: e.value,
+                                  });
                                   setState(() {});
                                 }
                               },
@@ -257,8 +256,10 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                           keyboardType: TextInputType.phone,
                           autofillHints: const [AutofillHints.telephoneNumber],
                           initialValue: e.value,
-                          onChanged: (s) => person = person.copyWith
-                              .phones({...person.phones, e.key: s}),
+                          onChanged: (s) => person = person.copyWith.phones({
+                            ...person.phones,
+                            e.key: s,
+                          }),
                           onFieldSubmitted: _nextFocus,
                           validator: (value) {
                             return null;
@@ -271,8 +272,9 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                     icon: const Icon(Icons.add),
                     label: const Text('اضافة رقم هاتف أخر'),
                     onPressed: () async {
-                      final TextEditingController name =
-                          TextEditingController(text: '');
+                      final TextEditingController name = TextEditingController(
+                        text: '',
+                      );
                       if (await showDialog(
                             context: context,
                             builder: (context) => AlertDialog(
@@ -294,8 +296,10 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                           ) !=
                           null) {
                         setState(
-                          () => person = person.copyWith
-                              .phones({...person.phones, name.text: ''}),
+                          () => person = person.copyWith.phones({
+                            ...person.phones,
+                            name.text: '',
+                          }),
                         );
                       }
                     },
@@ -354,9 +358,8 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                               builder: (context, state) => state.value != null
                                   ? FutureBuilder<String>(
                                       future: state.value?.get().then(
-                                            (doc) =>
-                                                StudyYear.fromDoc(doc).name,
-                                          ),
+                                        (doc) => StudyYear.fromDoc(doc).name,
+                                      ),
                                       builder: (context, snapshot) {
                                         if (snapshot.hasData) {
                                           return Text(snapshot.data!);
@@ -369,30 +372,33 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                               onTap: (value) async {
                                 final selected =
                                     await showModalBottomSheet<StudyYear?>(
-                                  context: context,
-                                  builder: (context) =>
-                                      MiniModelList<StudyYear>(
-                                    title: 'السنة الدراسية',
-                                    transformer: StudyYear.fromDoc,
-                                    showSearch: true,
-                                    add: (context) => studyYearTap(
-                                      context,
-                                      StudyYear.createNew(),
-                                      true,
-                                      canDelete: false,
-                                    ),
-                                    modify: (context, v, _) =>
-                                        Navigator.of(context).pop(v),
-                                    collection: GetIt.I<DatabaseRepository>()
-                                        .collection('StudyYears'),
-                                    completer: (q) => q.orderBy('Grade'),
-                                  ),
-                                );
+                                      context: context,
+                                      builder: (context) =>
+                                          MiniModelList<StudyYear>(
+                                            title: 'السنة الدراسية',
+                                            transformer: StudyYear.fromDoc,
+                                            showSearch: true,
+                                            add: (context) => studyYearTap(
+                                              context,
+                                              StudyYear.createNew(),
+                                              true,
+                                              canDelete: false,
+                                            ),
+                                            modify: (context, v, _) =>
+                                                Navigator.of(context).pop(v),
+                                            collection:
+                                                GetIt.I<DatabaseRepository>()
+                                                    .collection('StudyYears'),
+                                            completer: (q) =>
+                                                q.orderBy('Grade'),
+                                          ),
+                                    );
 
                                 if (selected == null) return;
 
-                                person =
-                                    person.copyWith.studyYear(selected.ref);
+                                person = person.copyWith.studyYear(
+                                  selected.ref,
+                                );
 
                                 setState(() {});
                                 FocusScope.of(context).nextFocus();
@@ -425,12 +431,10 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                                 icon: const Icon(Icons.delete),
                                 tooltip: 'ازالة الفصل المحدد',
                                 onPressed: () {
-                                  setState(
-                                    () {
-                                      person = person.copyWith.classId(null);
-                                      state.didChange(null);
-                                    },
-                                  );
+                                  setState(() {
+                                    person = person.copyWith.classId(null);
+                                    state.didChange(null);
+                                  });
                                 },
                               )
                             : null,
@@ -462,13 +466,15 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                     onTap: _selectServices,
                     validator: (s) =>
                         (s?.isEmpty ?? true) && person.classId == null
-                            ? 'برجاء ادخال الفصل او خدمة واحدة على الأقل'
-                            : null,
+                        ? 'برجاء ادخال الفصل او خدمة واحدة على الأقل'
+                        : null,
                     builder: (context, state) {
                       return state.value != null && state.value!.isNotEmpty
                           ? FutureBuilder<List<String>>(
                               future: Future.wait(
-                                state.value!.take(2).map(
+                                state.value!
+                                    .take(2)
+                                    .map(
                                       (s) async =>
                                           Service.fromDoc(
                                             await s.get(),
@@ -518,40 +524,39 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                                 labelText: 'النوع',
                                 errorText: state.errorText,
                               ),
-                              child: Row(
-                                children: [
-                                  ...[true, false].map(
-                                    (i) => Expanded(
-                                      child: Row(
-                                        children: [
-                                          Radio<bool>(
-                                            value: i,
-                                            groupValue: person.gender,
-                                            onChanged: (v) => setState(
-                                              () => person =
-                                                  person.copyWith.gender(v!),
+                              child: RadioGroup(
+                                groupValue: person.gender,
+                                onChanged: (v) => setState(
+                                  () => person = person.copyWith.gender(v!),
+                                ),
+                                child: Row(
+                                  children: [
+                                    ...[true, false].map(
+                                      (i) => Expanded(
+                                        child: Row(
+                                          children: [
+                                            Radio<bool>(value: i),
+                                            GestureDetector(
+                                              onTap: () => setState(
+                                                () => person = person.copyWith
+                                                    .gender(i),
+                                              ),
+                                              child: Text(i ? 'ذكر' : 'أنثى'),
                                             ),
-                                          ),
-                                          GestureDetector(
-                                            onTap: () => setState(
-                                              () => person =
-                                                  person.copyWith.gender(i),
-                                            ),
-                                            child: Text(i ? 'ذكر' : 'أنثى'),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                             onSaved: (value) =>
                                 person = person.copyWith.gender(value!),
                             validator: (value) =>
                                 person.classId == null && value == null
-                                    ? 'يجب اختيار النوع'
-                                    : null,
+                                ? 'يجب اختيار النوع'
+                                : null,
                           ),
                         );
                       }
@@ -568,32 +573,31 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                             labelText: 'شماس',
                             errorText: state.errorText,
                           ),
-                          child: Row(
-                            children: [
-                              ...[true, false].map(
-                                (i) => Expanded(
-                                  child: Row(
-                                    children: [
-                                      Radio<bool>(
-                                        value: i,
-                                        groupValue: person.isShammas,
-                                        onChanged: (v) => setState(
-                                          () => person =
-                                              person.copyWith.isShammas(v!),
+                          child: RadioGroup(
+                            groupValue: person.isShammas,
+                            onChanged: (v) => setState(
+                              () => person = person.copyWith.isShammas(v!),
+                            ),
+                            child: Row(
+                              children: [
+                                ...[true, false].map(
+                                  (i) => Expanded(
+                                    child: Row(
+                                      children: [
+                                        Radio<bool>(value: i),
+                                        GestureDetector(
+                                          onTap: () => setState(
+                                            () => person = person.copyWith
+                                                .isShammas(i),
+                                          ),
+                                          child: Text(i ? 'نعم' : 'لا'),
                                         ),
-                                      ),
-                                      GestureDetector(
-                                        onTap: () => setState(
-                                          () => person =
-                                              person.copyWith.isShammas(i),
-                                        ),
-                                        child: Text(i ? 'نعم' : 'لا'),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                         onSaved: (value) =>
@@ -604,28 +608,27 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 8),
                       child: DropdownButtonFormField<String>(
-                        value: person.shammasLevel,
+                        initialValue: person.shammasLevel,
                         isExpanded: true,
-                        items: [
-                          'ابصالتس',
-                          'اغأناغنوستيس',
-                          'أيبودياكون',
-                          'دياكون',
-                          'أرشيدياكون',
-                        ]
-                            .map(
-                              (item) => DropdownMenuItem(
-                                value: item,
-                                child: Text(item),
+                        items:
+                            [
+                                  'ابصالتس',
+                                  'اغأناغنوستيس',
+                                  'أيبودياكون',
+                                  'دياكون',
+                                  'أرشيدياكون',
+                                ]
+                                .map(
+                                  (item) => DropdownMenuItem(
+                                    value: item,
+                                    child: Text(item),
+                                  ),
+                                )
+                                .toList()
+                              ..insert(
+                                0,
+                                const DropdownMenuItem(child: Text('')),
                               ),
-                            )
-                            .toList()
-                          ..insert(
-                            0,
-                            const DropdownMenuItem(
-                              child: Text(''),
-                            ),
-                          ),
                         onChanged: (value) {
                           person = person.copyWith.shammasLevel(value);
                           FocusScope.of(context).nextFocus();
@@ -638,9 +641,7 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     child: TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'العنوان',
-                      ),
+                      decoration: const InputDecoration(labelText: 'العنوان'),
                       keyboardType: TextInputType.streetAddress,
                       autofillHints: const [AutofillHints.fullStreetAddress],
                       initialValue: person.address,
@@ -672,11 +673,7 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                         child: Row(
                           spacing: 10,
                           children: [
-                            Icon(
-                              Icons.warning,
-                              color: Colors.orange,
-                              size: 30,
-                            ),
+                            Icon(Icons.warning, color: Colors.orange, size: 30),
                             Expanded(
                               child: Text(
                                 'برجاء تحديث الموقع على الخريطة إذا قمت بتغيير العنوان',
@@ -697,13 +694,14 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                   FutureBuilder<bool>(
                     key: ValueKey(person.studyYear),
                     future: () async {
-                      final studyYear = await (person.studyYear ??
-                              (await person.classId
-                                      ?.get()
-                                      // ignore: invalid_return_type_for_catch_error
-                                      .catchError((_) => null))
-                                  ?.data()?['StudyYear'] as JsonRef?)
-                          ?.get();
+                      final studyYear =
+                          await (person.studyYear ??
+                                  (await person.classId?.get()
+                                          // ignore: invalid_return_type_for_catch_error
+                                          .catchError((_) => null))
+                                          ?.data()?['StudyYear']
+                                      as JsonRef?)
+                              ?.get();
 
                       return studyYear?.data()?['IsCollegeYear']?.toString() ==
                           'true';
@@ -720,8 +718,8 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                               builder: (context, state) => state.value != null
                                   ? FutureBuilder<String>(
                                       future: state.value?.get().then(
-                                            (doc) => College.fromDoc(doc).name,
-                                          ),
+                                        (doc) => College.fromDoc(doc).name,
+                                      ),
                                       builder: (context, snapshot) {
                                         if (snapshot.hasData) {
                                           return Text(snapshot.data!);
@@ -734,21 +732,24 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                               onTap: (state) async {
                                 final selected =
                                     await showModalBottomSheet<College?>(
-                                  context: context,
-                                  builder: (context) => MiniModelList<College>(
-                                    title: 'الكلية',
-                                    transformer: College.fromDoc,
-                                    showSearch: true,
-                                    modify: (context, v, _) =>
-                                        Navigator.of(context).pop(v),
-                                    collection: GetIt.I<DatabaseRepository>()
-                                        .collection('Colleges'),
-                                  ),
-                                );
+                                      context: context,
+                                      builder: (context) =>
+                                          MiniModelList<College>(
+                                            title: 'الكلية',
+                                            transformer: College.fromDoc,
+                                            showSearch: true,
+                                            modify: (context, v, _) =>
+                                                Navigator.of(context).pop(v),
+                                            collection:
+                                                GetIt.I<DatabaseRepository>()
+                                                    .collection('Colleges'),
+                                          ),
+                                    );
 
                                 if (selected != null) {
-                                  person =
-                                      person.copyWith.college(selected.ref);
+                                  person = person.copyWith.college(
+                                    selected.ref,
+                                  );
                                   state.didChange(selected.ref);
                                   FocusScope.of(context).nextFocus();
                                 }
@@ -768,8 +769,8 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                               builder: (context, state) => state.value != null
                                   ? FutureBuilder<String>(
                                       future: state.value?.get().then(
-                                            (doc) => School.fromDoc(doc).name,
-                                          ),
+                                        (doc) => School.fromDoc(doc).name,
+                                      ),
                                       builder: (context, snapshot) {
                                         if (snapshot.hasData) {
                                           return Text(snapshot.data!);
@@ -782,17 +783,19 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                               onTap: (state) async {
                                 final selected =
                                     await showModalBottomSheet<School?>(
-                                  context: context,
-                                  builder: (context) => MiniModelList<School>(
-                                    title: 'المدرسة',
-                                    transformer: School.fromDoc,
-                                    showSearch: true,
-                                    modify: (context, v, _) =>
-                                        Navigator.of(context).pop(v),
-                                    collection: GetIt.I<DatabaseRepository>()
-                                        .collection('Schools'),
-                                  ),
-                                );
+                                      context: context,
+                                      builder: (context) =>
+                                          MiniModelList<School>(
+                                            title: 'المدرسة',
+                                            transformer: School.fromDoc,
+                                            showSearch: true,
+                                            modify: (context, v, _) =>
+                                                Navigator.of(context).pop(v),
+                                            collection:
+                                                GetIt.I<DatabaseRepository>()
+                                                    .collection('Schools'),
+                                          ),
+                                    );
 
                                 if (selected != null) {
                                   person = person.copyWith.school(selected.ref);
@@ -819,8 +822,8 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                       builder: (context, state) => state.value != null
                           ? FutureBuilder<String>(
                               future: state.value?.get().then(
-                                    (doc) => Church.fromDoc(doc).name,
-                                  ),
+                                (doc) => Church.fromDoc(doc).name,
+                              ),
                               builder: (context, snapshot) {
                                 if (snapshot.hasData) {
                                   return Text(snapshot.data!);
@@ -870,8 +873,8 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                       builder: (context, state) => state.value != null
                           ? FutureBuilder<String>(
                               future: state.value?.get().then(
-                                    (doc) => Father.fromDoc(doc).name,
-                                  ),
+                                (doc) => Father.fromDoc(doc).name,
+                              ),
                               builder: (context, snapshot) {
                                 if (snapshot.hasData) {
                                   return Text(snapshot.data!);
@@ -1077,9 +1080,7 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     child: TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'ملاحظات',
-                      ),
+                      decoration: const InputDecoration(labelText: 'ملاحظات'),
                       textInputAction: TextInputAction.newline,
                       initialValue: person.notes,
                       onChanged: (v) => person = person.copyWith.notes(v),
@@ -1092,8 +1093,8 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                         ? ElevatedButton.styleFrom(
                             backgroundColor:
                                 Theme.of(context).brightness == Brightness.light
-                                    ? person.color?.lighten()
-                                    : person.color?.darken(),
+                                ? person.color?.lighten()
+                                : person.color?.darken(),
                           )
                         : null,
                     onPressed: _selectColor,
@@ -1117,10 +1118,7 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
   Future<void> _editLocation() async {
     final rslt = await navigator.currentState!.push(
       MaterialPageRoute(
-        builder: (context) => LocationMapView(
-          person: person,
-          editable: true,
-        ),
+        builder: (context) => LocationMapView(person: person, editable: true),
       ),
     );
     if (rslt == false) {
@@ -1240,12 +1238,14 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
             .catchError((_) => false);
 
         if (person.id == 'null' && !update) {
-          person = person.copyWith
-              .ref(GetIt.I<DatabaseRepository>().collection('Persons').doc());
+          person = person.copyWith.ref(
+            GetIt.I<DatabaseRepository>().collection('Persons').doc(),
+          );
         }
 
-        person = person.copyWith
-            .lastEdit(LastEdit(User.instance.uid, DateTime.now()));
+        person = person.copyWith.lastEdit(
+          LastEdit(User.instance.uid, DateTime.now()),
+        );
 
         if (person.classId == null &&
             person.classId != widget.person?.classId) {
@@ -1275,7 +1275,8 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
         if (widget.person is! User &&
             person.studyYear != null &&
             person.studyYear != widget.person?.studyYear) {
-          final isCollegeYear = (await person.studyYear?.get())
+          final isCollegeYear =
+              (await person.studyYear?.get())
                   ?.data()?['IsCollegeYear']
                   ?.toString() ==
               'true';
@@ -1292,20 +1293,18 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
               c == ConnectivityResult.ethernet,
         );
 
-        final Future<void> saveFuture =
-            switch ((person.ref.parent.id, update)) {
-          ('UsersData', true) => person.ref.update(
-              {
-                ...person.toJson(),
-                'AllowedUsers': FieldValue.arrayUnion([User.instance.uid]),
-              },
-            ),
-          ('UsersData', false) => person.ref.set(
-              {
-                ...person.toJson(),
-                'AllowedUsers': [User.instance.uid],
-              },
-            ),
+        final Future<void> saveFuture = switch ((
+          person.ref.parent.id,
+          update,
+        )) {
+          ('UsersData', true) => person.ref.update({
+            ...person.toJson(),
+            'AllowedUsers': FieldValue.arrayUnion([User.instance.uid]),
+          }),
+          ('UsersData', false) => person.ref.set({
+            ...person.toJson(),
+            'AllowedUsers': [User.instance.uid],
+          }),
           (_, true) => person.update(old: widget.person?.toJson() ?? {}),
           (_, false) => person.set(),
         };
@@ -1343,9 +1342,7 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
       } else {
         if (person.classId != null || person.services.isNotEmpty) {
           scaffoldMessenger.currentState!.showSnackBar(
-            const SnackBar(
-              content: Text('يرجى التحقق من الييانات المدخلة'),
-            ),
+            const SnackBar(content: Text('يرجى التحقق من الييانات المدخلة')),
           );
         }
         await showDialog(
@@ -1368,9 +1365,7 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
-          content: Text(
-            err.toString(),
-          ),
+          content: Text(err.toString()),
           duration: const Duration(seconds: 7),
         ),
       );
@@ -1379,8 +1374,9 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
 
   Future<void> _selectClass(FormFieldState<JsonRef?> state) async {
     final controller = ServicesListController<Class>(
-      objectsPaginatableStream:
-          PaginatableStream.loadAll(stream: MHDatabaseRepo.I.classes.getAll()),
+      objectsPaginatableStream: PaginatableStream.loadAll(
+        stream: MHDatabaseRepo.I.classes.getAll(),
+      ),
       groupByStream: MHDatabaseRepo.I.services.groupServicesByStudyYearRef,
     );
 
@@ -1439,8 +1435,9 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                   return Text(
                     (snapshot.data?.length ?? 0).toString() + ' خدمة',
                     textAlign: TextAlign.center,
-                    strutStyle:
-                        StrutStyle(height: IconTheme.of(context).size! / 7.5),
+                    strutStyle: StrutStyle(
+                      height: IconTheme.of(context).size! / 7.5,
+                    ),
                     style: Theme.of(context).primaryTextTheme.bodyLarge,
                   );
                 },
@@ -1451,8 +1448,10 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
                     onPressed: () async {
                       navigator.currentState!.pop();
                       person = person.copyWith.classId(
-                        await navigator.currentState!
-                                .pushNamed('Data/EditClass') as JsonRef? ??
+                        await navigator.currentState!.pushNamed(
+                                  'Data/EditClass',
+                                )
+                                as JsonRef? ??
                             person.classId,
                       );
                       state.didChange(person.classId);
@@ -1486,20 +1485,20 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
 
   Future<void> _selectServices(FormFieldState<List<JsonRef>> state) async {
     final selected = await Future.wait(
-      (state.value ?? []).map(
-        (e) async {
-          final data = await e.get();
-          if (data.exists) return Service.fromDoc(data);
-        },
-      ),
+      (state.value ?? []).map((e) async {
+        final data = await e.get();
+        if (data.exists) return Service.fromDoc(data);
+      }),
     );
 
-    final newSelectedServices =
-        await selectServices<Service>(selected.whereType<Service>().toList());
+    final newSelectedServices = await selectServices<Service>(
+      selected.whereType<Service>().toList(),
+    );
 
-    _servicesHaveRange = newSelectedServices
-            ?.whereType<Service>()
-            .any((s) => s.studyYearRange != null) ??
+    _servicesHaveRange =
+        newSelectedServices?.whereType<Service>().any(
+          (s) => s.studyYearRange != null,
+        ) ??
         _servicesHaveRange;
 
     person = person.copyWith.services(
@@ -1545,8 +1544,9 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
       return;
     }
 
-    final selectedImage = await ImagePicker()
-        .pickImage(source: source ? ImageSource.camera : ImageSource.gallery);
+    final selectedImage = await ImagePicker().pickImage(
+      source: source ? ImageSource.camera : ImageSource.gallery,
+    );
     if (selectedImage == null) return;
     changedImage = (await ImageCropper().cropImage(
       sourcePath: selectedImage.path,
@@ -1559,8 +1559,7 @@ class _EditPersonState extends State<EditPerson> with TickerProviderStateMixin {
           lockAspectRatio: false,
         ),
       ],
-    ))
-        ?.path;
+    ))?.path;
     deletePhoto = false;
     setState(() {});
   }

@@ -54,32 +54,28 @@ class _MiniModelListState<T extends MetaObject>
               ? TextField(
                   autofocus: true,
                   style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                        color: Theme.of(context)
-                            .primaryTextTheme
-                            .titleLarge!
-                            .color,
-                      ),
+                    color: Theme.of(context).primaryTextTheme.titleLarge!.color,
+                  ),
                   decoration: InputDecoration(
                     suffixIcon: IconButton(
                       icon: Icon(
                         Icons.close,
-                        color: Theme.of(context)
-                            .primaryTextTheme
-                            .titleLarge!
-                            .color,
+                        color: Theme.of(
+                          context,
+                        ).primaryTextTheme.titleLarge!.color,
                       ),
                       onPressed: () => _searchQuery.add(null),
                     ),
                     hintStyle: Theme.of(context).textTheme.titleLarge!.copyWith(
-                          color: Theme.of(context)
-                              .primaryTextTheme
-                              .titleLarge!
-                              .color,
-                        ),
+                      color: Theme.of(
+                        context,
+                      ).primaryTextTheme.titleLarge!.color,
+                    ),
                     icon: Icon(
                       Icons.search,
-                      color:
-                          Theme.of(context).primaryTextTheme.titleLarge!.color,
+                      color: Theme.of(
+                        context,
+                      ).primaryTextTheme.titleLarge!.color,
                     ),
                     hintText: 'بحث ...',
                   ),
@@ -89,17 +85,11 @@ class _MiniModelListState<T extends MetaObject>
         ),
       ),
       body: DataObjectListView<void, T>(
-        itemBuilder: (
-          current, {
-          onLongPress,
-          onTap,
-          trailing,
-          subtitle,
-        }) =>
+        itemBuilder: (current, {onLongPress, onTap, trailing, subtitle}) =>
             ListTile(
-          title: Text(current.name),
-          onTap: () => onTap?.call(current),
-        ),
+              title: Text(current.name),
+              onTap: () => onTap?.call(current),
+            ),
         onTap: (item) {
           if (widget.modify != null) {
             widget.modify!(context, item, false);
@@ -134,8 +124,9 @@ class _MiniModelListState<T extends MetaObject>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             TextField(
-                              decoration:
-                                  const InputDecoration(labelText: 'الاسم'),
+                              decoration: const InputDecoration(
+                                labelText: 'الاسم',
+                              ),
                               controller: name,
                             ),
                           ],
@@ -202,8 +193,9 @@ class _MiniModelListState<T extends MetaObject>
                     actions: <Widget>[
                       TextButton.icon(
                         icon: const Icon(Icons.delete),
-                        style:
-                            TextButton.styleFrom(foregroundColor: Colors.red),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.red,
+                        ),
                         label: const Text('نعم'),
                         onPressed: () async {
                           await item.ref.delete();
@@ -235,7 +227,8 @@ class _MiniModelListState<T extends MetaObject>
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 0.0),
                   child: DefaultTextStyle(
-                    style: Theme.of(context).dialogTheme.titleTextStyle ??
+                    style:
+                        Theme.of(context).dialogTheme.titleTextStyle ??
                         Theme.of(context).textTheme.titleLarge!,
                     child: Text(item.name),
                   ),
@@ -319,10 +312,7 @@ Future<void> churchTap(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            DefaultTextStyle(
-              style: title,
-              child: const Text('الاسم:'),
-            ),
+            DefaultTextStyle(style: title, child: const Text('الاسم:')),
             if (editMode)
               TextField(
                 controller: TextEditingController(text: church.name),
@@ -330,10 +320,7 @@ Future<void> churchTap(
               )
             else
               Text(church.name),
-            DefaultTextStyle(
-              style: title,
-              child: const Text('العنوان:'),
-            ),
+            DefaultTextStyle(style: title, child: const Text('العنوان:')),
             if (editMode)
               TextField(
                 controller: TextEditingController(text: church.address),
@@ -459,27 +446,24 @@ Future<void> fatherTap(
                     return Container(
                       padding: const EdgeInsets.symmetric(vertical: 4.0),
                       child: DropdownButtonFormField<JsonRef?>(
-                        value: father.churchId,
-                        items: data.data!
-                            .map(
-                              (item) => DropdownMenuItem(
-                                value: item.ref,
-                                child: Text(item.name),
+                        initialValue: father.churchId,
+                        items:
+                            data.data!
+                                .map(
+                                  (item) => DropdownMenuItem(
+                                    value: item.ref,
+                                    child: Text(item.name),
+                                  ),
+                                )
+                                .toList()
+                              ..insert(
+                                0,
+                                const DropdownMenuItem(child: Text('')),
                               ),
-                            )
-                            .toList()
-                          ..insert(
-                            0,
-                            const DropdownMenuItem(
-                              child: Text(''),
-                            ),
-                          ),
                         onChanged: (value) {
                           father = father.copyWith.churchId(value);
                         },
-                        decoration: const InputDecoration(
-                          labelText: 'الكنيسة',
-                        ),
+                        decoration: const InputDecoration(labelText: 'الكنيسة'),
                       ),
                     );
                   } else {
@@ -582,10 +566,7 @@ Future<void> studyYearTap(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            DefaultTextStyle(
-              style: title,
-              child: const Text('الاسم:'),
-            ),
+            DefaultTextStyle(style: title, child: const Text('الاسم:')),
             if (editMode)
               TextField(
                 controller: TextEditingController(text: year.name),
@@ -593,10 +574,7 @@ Future<void> studyYearTap(
               )
             else
               Text(year.name),
-            DefaultTextStyle(
-              style: title,
-              child: const Text('ترتيب السنة:'),
-            ),
+            DefaultTextStyle(style: title, child: const Text('ترتيب السنة:')),
             if (editMode)
               ListTile(
                 onTap: () =>

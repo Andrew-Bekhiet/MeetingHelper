@@ -71,10 +71,10 @@ class MHAuthRepository extends AuthRepository<User, Person> {
           .map((doc) {
             userSubject.add(
               User(
-                lastTanawol:
-                    (doc.data()?['LastTanawol'] as Timestamp?)?.toDate(),
-                lastConfession:
-                    (doc.data()?['LastConfession'] as Timestamp?)?.toDate(),
+                lastTanawol: (doc.data()?['LastTanawol'] as Timestamp?)
+                    ?.toDate(),
+                lastConfession: (doc.data()?['LastConfession'] as Timestamp?)
+                    ?.toDate(),
                 ref: doc.reference,
                 uid: firebaseUser?.uid ?? uid!,
                 name: firebaseUser?.displayName ?? name ?? '',
@@ -95,7 +95,8 @@ class MHAuthRepository extends AuthRepository<User, Person> {
     } else {
       userSubject.add(
         User(
-          ref: currentUser?.ref ??
+          ref:
+              currentUser?.ref ??
               GetIt.I<DatabaseRepository>()
                   .collection('UsersData')
                   .doc(idTokenClaims['personId'] ?? 'null'),
@@ -122,7 +123,8 @@ class MHAuthRepository extends AuthRepository<User, Person> {
         .listen(connectionChanged);
 
     return User(
-      ref: currentUser?.ref ??
+      ref:
+          currentUser?.ref ??
           MHDatabaseRepo.I
               .collection('UsersData')
               .doc(idTokenClaims['personId'] ?? 'null'),
@@ -146,9 +148,7 @@ class MHAuthRepository extends AuthRepository<User, Person> {
     final expiration = supabaseToken != null
         ? json.decode(
             utf8.decode(
-              base64.decode(
-                base64.normalize(supabaseToken.split('.')[1]),
-              ),
+              base64.decode(base64.normalize(supabaseToken.split('.')[1])),
             ),
           )['exp']
         : null;
@@ -157,27 +157,27 @@ class MHAuthRepository extends AuthRepository<User, Person> {
         DateTime.fromMillisecondsSinceEpoch(
           expiration * 1000,
         ).isBefore(DateTime.now())) {
-      try {
-        await GetIt.I<MHFunctionsService>().refreshSupabaseToken();
-      } catch (e) {}
+      await GetIt.I<MHFunctionsService>().refreshSupabaseToken().whenComplete(
+        () {},
+      );
     } else {
       await GetIt.I<SupabaseClient>().auth.recoverSession(
-            json.encode(
-              Session(
-                accessToken: supabaseToken,
-                tokenType: 'bearer',
-                user: const supabase.User(
-                  id: '',
-                  appMetadata: {},
-                  userMetadata: {},
-                  aud: '',
-                  role: '',
-                  updatedAt: '',
-                  createdAt: '',
-                ),
-              ).toJson(),
+        json.encode(
+          Session(
+            accessToken: supabaseToken,
+            tokenType: 'bearer',
+            user: const supabase.User(
+              id: '',
+              appMetadata: {},
+              userMetadata: {},
+              aud: '',
+              role: '',
+              updatedAt: '',
+              createdAt: '',
             ),
-          );
+          ).toJson(),
+        ),
+      );
     }
   }
 }

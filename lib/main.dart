@@ -4,7 +4,8 @@ import 'dart:math';
 import 'package:async/async.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:churchdata_core/churchdata_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart' as firestore
+import 'package:cloud_firestore/cloud_firestore.dart'
+    as firestore
     show Settings;
 import 'package:cloud_firestore/cloud_firestore.dart' show FirebaseFirestore;
 import 'package:cloud_functions/cloud_functions.dart';
@@ -43,9 +44,7 @@ Future<void> main() async {
 
   await initMeetingHelper();
 
-  runApp(
-    const MeetingHelperApp(),
-  );
+  runApp(const MeetingHelperApp());
 }
 
 Future<void> initMeetingHelper() async {
@@ -115,8 +114,9 @@ Future<void> initMeetingHelper() async {
   );
 
   final mhDataObjectTapHandler = MHViewableObjectService(navigator);
-  GetIt.I
-      .registerSingleton<DefaultViewableObjectService>(mhDataObjectTapHandler);
+  GetIt.I.registerSingleton<DefaultViewableObjectService>(
+    mhDataObjectTapHandler,
+  );
   GetIt.I.registerSingleton<MHViewableObjectService>(mhDataObjectTapHandler);
 
   GetIt.I.registerSingleton<LocationParsingService>(
@@ -126,8 +126,9 @@ Future<void> initMeetingHelper() async {
   final cacheSizeBytes = min(
     100 * 1024 * 1024,
     GetIt.I<CacheRepository>()
-        .box('Settings')
-        .get('cacheSize', defaultValue: 100 * 1024 * 1024) as int,
+            .box('Settings')
+            .get('cacheSize', defaultValue: 100 * 1024 * 1024)
+        as int,
   );
 
   await Hive.openBox('BirthdaysShownDates');
@@ -137,7 +138,8 @@ Future<void> initMeetingHelper() async {
 
     GetIt.I<FirebaseFirestore>().settings = firestore.Settings(
       persistenceEnabled: true,
-      sslEnabled: devBox.get('kEmulatorsHost') == null ||
+      sslEnabled:
+          devBox.get('kEmulatorsHost') == null ||
           devBox.get('kEmulatorsHost') == '',
       cacheSizeBytes: cacheSizeBytes,
     );
@@ -184,8 +186,9 @@ Future<void> initFirebase() async {
   }
 
   await FirebaseAppCheck.instance.activate(
-    androidProvider:
-        kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
+    androidProvider: kDebugMode
+        ? AndroidProvider.debug
+        : AndroidProvider.playIntegrity,
     appleProvider: kDebugMode ? AppleProvider.debug : AppleProvider.deviceCheck,
     webProvider: ReCaptchaV3Provider(appCheckRecaptchaSiteKey),
   );
@@ -195,9 +198,7 @@ Future<void> initFirebase() async {
 
   FirebaseDatabase.instance.setPersistenceEnabled(false);
 
-  registerFirebaseDependencies(
-    googleSignInOverride: GoogleSignIn(scopes: ['email', 'profile']),
-  );
+  registerFirebaseDependencies(googleSignInOverride: GoogleSignIn.instance);
 }
 
 class MeetingHelperApp extends StatefulWidget {
@@ -239,19 +240,20 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
         return StreamBuilder<User?>(
           initialData:
               GetIt.I<MHAuthRepository>().currentUser?.userDataUpToDate() ??
-                      false
-                  ? GetIt.I<MHAuthRepository>().currentUser
-                  : null,
+                  false
+              ? GetIt.I<MHAuthRepository>().currentUser
+              : null,
           stream: GetIt.I<MHAuthRepository>().userStream.map(
-                (event) => GetIt.I<MHAuthRepository>().isSignedIn &&
-                        User.instance.password != null &&
-                        !User.instance.userDataUpToDate()
-                    ? throw UpdateUserDataException(
-                        lastTanawol: User.instance.lastTanawol,
-                        lastConfession: User.instance.lastConfession,
-                      )
-                    : event,
-              ),
+            (event) =>
+                GetIt.I<MHAuthRepository>().isSignedIn &&
+                    User.instance.password != null &&
+                    !User.instance.userDataUpToDate()
+                ? throw UpdateUserDataException(
+                    lastTanawol: User.instance.lastTanawol,
+                    lastConfession: User.instance.lastConfession,
+                  )
+                : event,
+          ),
           builder: (context, userSnapshot) {
             final user = userSnapshot.data;
 
@@ -292,9 +294,7 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
             } else if (user.permissions.approved && user.password != null) {
               return AuthScreen(
                 onSuccess: () => Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
-                    builder: (context) => const Root(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const Root()),
                 ),
               );
             } else {
@@ -316,21 +316,18 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
           debugShowCheckedModeBanner: false,
           scaffoldMessengerKey: scaffoldMessenger,
           navigatorKey: navigator,
-          navigatorObservers: [
-            GetIt.I<LoggingService>().navigatorObserver,
-          ],
+          navigatorObservers: [GetIt.I<LoggingService>().navigatorObserver],
           title: 'خدمة مدارس الأحد',
           initialRoute: '/',
           routes: {
             '/': buildLoadAppWidget,
             'Login': (context) => const LoginScreen(),
             'Data/EditClass': (context) => EditClass(
-                  class$: ModalRoute.of(context)!.settings.arguments as Class?,
-                ),
+              class$: ModalRoute.of(context)!.settings.arguments as Class?,
+            ),
             'Data/EditService': (context) => EditService(
-                  service:
-                      ModalRoute.of(context)!.settings.arguments as Service?,
-                ),
+              service: ModalRoute.of(context)!.settings.arguments as Service?,
+            ),
             'Data/EditPerson': (context) {
               if (ModalRoute.of(context)?.settings.arguments == null) {
                 return EditPerson(person: Person.empty());
@@ -359,10 +356,10 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
               );
             },
             'EditInvitation': (context) => EditInvitation(
-                  invitation: ModalRoute.of(context)?.settings.arguments
-                          as Invitation? ??
-                      Invitation.empty(),
-                ),
+              invitation:
+                  ModalRoute.of(context)?.settings.arguments as Invitation? ??
+                  Invitation.empty(),
+            ),
             'Day': (context) {
               if (ModalRoute.of(context)?.settings.arguments != null) {
                 return Day(
@@ -370,21 +367,18 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
                       ModalRoute.of(context)!.settings.arguments! as HistoryDay,
                 );
               } else {
-                return Day(
-                  record: HistoryDay(),
-                );
+                return Day(record: HistoryDay());
               }
             },
             'ServantsDay': (context) {
               if (ModalRoute.of(context)?.settings.arguments != null) {
                 return Day(
-                  record: ModalRoute.of(context)!.settings.arguments!
-                      as ServantsHistoryDay,
+                  record:
+                      ModalRoute.of(context)!.settings.arguments!
+                          as ServantsHistoryDay,
                 );
               } else {
-                return Day(
-                  record: ServantsHistoryDay(),
-                );
+                return Day(record: ServantsHistoryDay());
               }
             },
             'Trash': (context) => const Trash(),
@@ -395,96 +389,93 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
             'MyAccount': (context) => const MyAccount(),
             'Notifications': (context) => const NotificationsPage(),
             'ClassInfo': (context) => ClassInfo(
-                  class$: ModalRoute.of(context)!.settings.arguments! as Class,
-                ),
+              class$: ModalRoute.of(context)!.settings.arguments! as Class,
+            ),
             'ServiceInfo': (context) => ServiceInfo(
-                  service:
-                      ModalRoute.of(context)!.settings.arguments! as Service,
-                ),
+              service: ModalRoute.of(context)!.settings.arguments! as Service,
+            ),
             'PersonInfo': (context) => PersonInfo(
-                  person: ModalRoute.of(context)!.settings.arguments! is Person
-                      ? ModalRoute.of(context)!.settings.arguments!
-                      : (ModalRoute.of(context)!.settings.arguments!
-                          as Json)['Person'],
-                  showMotherAndFatherPhones: ModalRoute.of(context)!
-                          .settings
-                          .arguments is Map
-                      ? ((ModalRoute.of(context)!.settings.arguments!
-                              as Json)['showMotherAndFatherPhones'] ??
-                          false)
-                      : ModalRoute.of(context)!.settings.arguments is Person,
-                ),
+              person: ModalRoute.of(context)!.settings.arguments! is Person
+                  ? ModalRoute.of(context)!.settings.arguments!
+                  : (ModalRoute.of(context)!.settings.arguments!
+                        as Json)['Person'],
+              showMotherAndFatherPhones:
+                  ModalRoute.of(context)!.settings.arguments is Map
+                  ? ((ModalRoute.of(context)!.settings.arguments!
+                            as Json)['showMotherAndFatherPhones'] ??
+                        false)
+                  : ModalRoute.of(context)!.settings.arguments is Person,
+            ),
             'UserInfo': (context) => UserInfo(
-                  user: ModalRoute.of(context)!.settings.arguments!
-                      as UserWithPerson,
-                ),
+              user:
+                  ModalRoute.of(context)!.settings.arguments! as UserWithPerson,
+            ),
             'InvitationInfo': (context) => InvitationInfo(
-                  invitation:
-                      ModalRoute.of(context)!.settings.arguments! as Invitation,
-                ),
+              invitation:
+                  ModalRoute.of(context)!.settings.arguments! as Invitation,
+            ),
             'Update': (context) => const Update(),
             'Search': (context) => const SearchQuery(),
             'SearchQuery': (context) => SearchQuery(
-                  query:
-                      ModalRoute.of(context)!.settings.arguments as QueryInfo?,
-                ),
+              query: ModalRoute.of(context)!.settings.arguments as QueryInfo?,
+            ),
             'DataMap': (context) => const MHMapView(),
             'Settings': (context) => const Settings(),
             'Settings/Churches': (context) => MiniModelList<Church>(
-                  title: 'الكنائس',
-                  transformer: Church.fromDoc,
-                  add: (context) => churchTap(
-                    context,
-                    Church.createNew(),
-                    true,
-                    canDelete: false,
-                  ),
-                  modify: churchTap,
-                  collection: GetIt.I<MHDatabaseRepo>().collection('Churches'),
-                ),
+              title: 'الكنائس',
+              transformer: Church.fromDoc,
+              add: (context) => churchTap(
+                context,
+                Church.createNew(),
+                true,
+                canDelete: false,
+              ),
+              modify: churchTap,
+              collection: GetIt.I<MHDatabaseRepo>().collection('Churches'),
+            ),
             'Settings/Fathers': (context) => MiniModelList<Father>(
-                  title: 'الأباء الكهنة',
-                  transformer: Father.fromDoc,
-                  add: (context) => fatherTap(
-                    context,
-                    Father.createNew(),
-                    true,
-                    canDelete: false,
-                  ),
-                  modify: fatherTap,
-                  collection: GetIt.I<MHDatabaseRepo>().collection('Fathers'),
-                ),
+              title: 'الأباء الكهنة',
+              transformer: Father.fromDoc,
+              add: (context) => fatherTap(
+                context,
+                Father.createNew(),
+                true,
+                canDelete: false,
+              ),
+              modify: fatherTap,
+              collection: GetIt.I<MHDatabaseRepo>().collection('Fathers'),
+            ),
             'Settings/StudyYears': (context) => MiniModelList<StudyYear>(
-                  title: 'السنوات الدراسية',
-                  transformer: StudyYear.fromDoc,
-                  add: (context) => studyYearTap(
-                    context,
-                    StudyYear.createNew(),
-                    true,
-                    canDelete: false,
-                  ),
-                  modify: studyYearTap,
-                  completer: (q) => q.orderBy('Grade'),
-                  collection:
-                      GetIt.I<MHDatabaseRepo>().collection('StudyYears'),
-                ),
+              title: 'السنوات الدراسية',
+              transformer: StudyYear.fromDoc,
+              add: (context) => studyYearTap(
+                context,
+                StudyYear.createNew(),
+                true,
+                canDelete: false,
+              ),
+              modify: studyYearTap,
+              completer: (q) => q.orderBy('Grade'),
+              collection: GetIt.I<MHDatabaseRepo>().collection('StudyYears'),
+            ),
             'Settings/Schools': (context) => MiniModelList<School>(
-                  transformer: School.fromDoc,
-                  collection: GetIt.I<MHDatabaseRepo>().collection('Schools'),
-                  title: 'المدارس',
-                ),
+              transformer: School.fromDoc,
+              collection: GetIt.I<MHDatabaseRepo>().collection('Schools'),
+              title: 'المدارس',
+            ),
             'Settings/Colleges': (context) => MiniModelList<College>(
-                  transformer: College.fromDoc,
-                  collection: GetIt.I<MHDatabaseRepo>().collection('Colleges'),
-                  title: 'الكليات',
-                ),
+              transformer: College.fromDoc,
+              collection: GetIt.I<MHDatabaseRepo>().collection('Colleges'),
+              title: 'الكليات',
+            ),
             'UpdateUserDataError': (context) => const UpdateUserDataErrorPage(),
             'ManageUsers': (context) => const UsersPage(),
             'Invitations': (context) => const InvitationsPage(),
             'ActivityAnalysis': (context) => ActivityAnalysis(
-                  parents: ModalRoute.of(context)?.settings.arguments
+              parents:
+                  ModalRoute.of(context)?.settings.arguments
                       as List<DataObject>?,
-                ),
+            ),
             'Analytics': (context) {
               if (ModalRoute.of(context)!.settings.arguments is Person) {
                 return PersonAnalyticsPage(
@@ -500,8 +491,9 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
               } else if (ModalRoute.of(context)!.settings.arguments
                   is HistoryDayBase) {
                 return AnalyticsPage(
-                  day: ModalRoute.of(context)!.settings.arguments!
-                      as HistoryDayBase,
+                  day:
+                      ModalRoute.of(context)!.settings.arguments!
+                          as HistoryDayBase,
                 );
               } else {
                 final Json args =
@@ -532,9 +524,7 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: const [
-            Locale('ar', 'EG'),
-          ],
+          supportedLocales: const [Locale('ar', 'EG')],
           themeMode: theme.data!.brightness == Brightness.dark
               ? ThemeMode.dark
               : ThemeMode.light,

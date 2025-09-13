@@ -5,7 +5,7 @@ plugins {
     id "com.google.gms.google-services"
 }
 dependencies {
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
 }
 
 def localProperties = new Properties()
@@ -29,8 +29,10 @@ if (flutterVersionName == null) {
 android {
     namespace 'com.AndroidQuartz.meetinghelper'
 
-    compileSdkVersion 35
+    compileSdkVersion 36
     buildToolsVersion '34.0.0'
+    ndkVersion "27.0.12077973"
+
 
     compileOptions {
         coreLibraryDesugaringEnabled true
@@ -82,17 +84,15 @@ android {
     }
     buildTypes {
         debug{
-            defaultConfig.minSdkVersion 25
             signingConfig signingConfigs.debug
         }
         profile{
-            defaultConfig.minSdkVersion 26
             signingConfig signingConfigs.debug
             minifyEnabled true
             shrinkResources true
         }
         release {
-            defaultConfig.minSdkVersion 23
+            defaultConfig.minSdkVersion 24
             signingConfig signingConfigs.release
             minifyEnabled true
             shrinkResources true

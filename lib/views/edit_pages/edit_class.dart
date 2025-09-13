@@ -54,8 +54,10 @@ class _EditClassState extends State<EditClass> {
                         const Positioned(
                           left: 1.0,
                           top: 2.0,
-                          child:
-                              Icon(Icons.photo_camera, color: Colors.black54),
+                          child: Icon(
+                            Icons.photo_camera,
+                            color: Colors.black54,
+                          ),
                         ),
                         Icon(
                           Icons.photo_camera,
@@ -69,8 +71,8 @@ class _EditClassState extends State<EditClass> {
               ],
               backgroundColor: class$.color != Colors.transparent
                   ? (Theme.of(context).brightness == Brightness.light
-                      ? class$.color?.lighten()
-                      : class$.color?.darken())
+                        ? class$.color?.lighten()
+                        : class$.color?.darken())
                   : null,
               //title: Text(widget.me.name),
               expandedHeight: 250.0,
@@ -84,9 +86,7 @@ class _EditClassState extends State<EditClass> {
                         : 1,
                     child: Text(
                       class$.name,
-                      style: const TextStyle(
-                        fontSize: 16.0,
-                      ),
+                      style: const TextStyle(fontSize: 16.0),
                     ),
                   ),
                   background: changedImage == null || deletePhoto
@@ -139,21 +139,20 @@ class _EditClassState extends State<EditClass> {
                                   return null;
                                 }
                               },
-                              value: class$.studyYear,
-                              items: data.data!
-                                  .map(
-                                    (item) => DropdownMenuItem(
-                                      value: item.ref,
-                                      child: Text(item.name),
+                              initialValue: class$.studyYear,
+                              items:
+                                  data.data!
+                                      .map(
+                                        (item) => DropdownMenuItem(
+                                          value: item.ref,
+                                          child: Text(item.name),
+                                        ),
+                                      )
+                                      .toList()
+                                    ..insert(
+                                      0,
+                                      const DropdownMenuItem(child: Text('')),
                                     ),
-                                  )
-                                  .toList()
-                                ..insert(
-                                  0,
-                                  const DropdownMenuItem(
-                                    child: Text(''),
-                                  ),
-                                ),
                               onChanged: (value) {
                                 setState(() {});
                                 class$ = class$.copyWith.studyYear(value);
@@ -173,7 +172,7 @@ class _EditClassState extends State<EditClass> {
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     child: DropdownButtonFormField<bool?>(
-                      value: class$.gender,
+                      initialValue: class$.gender,
                       items: [null, true, false]
                           .map(
                             (item) => DropdownMenuItem(
@@ -182,8 +181,8 @@ class _EditClassState extends State<EditClass> {
                                 item == null
                                     ? 'بنين وبنات'
                                     : item
-                                        ? 'بنين'
-                                        : 'بنات',
+                                    ? 'بنين'
+                                    : 'بنات',
                               ),
                             ),
                           )
@@ -192,9 +191,7 @@ class _EditClassState extends State<EditClass> {
                         class$ = class$.copyWith.gender(value);
                         setState(() {});
                       },
-                      decoration: const InputDecoration(
-                        labelText: 'نوع الفصل',
-                      ),
+                      decoration: const InputDecoration(labelText: 'نوع الفصل'),
                     ),
                   ),
                   ElevatedButton.icon(
@@ -202,8 +199,8 @@ class _EditClassState extends State<EditClass> {
                         ? ElevatedButton.styleFrom(
                             backgroundColor:
                                 Theme.of(context).brightness == Brightness.light
-                                    ? class$.color?.lighten()
-                                    : class$.color?.darken(),
+                                ? class$.color?.lighten()
+                                : class$.color?.darken(),
                           )
                         : null,
                     onPressed: selectColor,
@@ -215,7 +212,8 @@ class _EditClassState extends State<EditClass> {
                     ElevatedButton.icon(
                       style: class$.color != Colors.transparent
                           ? ElevatedButton.styleFrom(
-                              backgroundColor: Theme.of(context).brightness ==
+                              backgroundColor:
+                                  Theme.of(context).brightness ==
                                       Brightness.light
                                   ? class$.color?.lighten()
                                   : class$.color?.darken(),
@@ -280,8 +278,9 @@ class _EditClassState extends State<EditClass> {
       return;
     }
 
-    final selectedImage = await ImagePicker()
-        .pickImage(source: source ? ImageSource.camera : ImageSource.gallery);
+    final selectedImage = await ImagePicker().pickImage(
+      source: source ? ImageSource.camera : ImageSource.gallery,
+    );
     if (selectedImage == null) return;
     changedImage = kIsWeb
         ? selectedImage.path
@@ -295,8 +294,7 @@ class _EditClassState extends State<EditClass> {
                 lockAspectRatio: false,
               ),
             ],
-          ))
-            ?.path;
+          ))?.path;
     deletePhoto = false;
     setState(() {});
   }
@@ -306,8 +304,9 @@ class _EditClassState extends State<EditClass> {
           context: context,
           builder: (context) => AlertDialog(
             title: Text(class$.name),
-            content:
-                Text('هل أنت متأكد من حذف ${class$.name} وكل ما به مخدومين؟'),
+            content: Text(
+              'هل أنت متأكد من حذف ${class$.name} وكل ما به مخدومين؟',
+            ),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
@@ -349,11 +348,10 @@ class _EditClassState extends State<EditClass> {
   @override
   void initState() {
     super.initState();
-    class$ = (widget.class$ ??
-            Class.empty().copyWith(
-              allowedUsers: [User.instance.uid],
-            ))
-        .copyWith();
+    class$ =
+        (widget.class$ ??
+                Class.empty().copyWith(allowedUsers: [User.instance.uid]))
+            .copyWith();
   }
 
   void nameChanged(String value) {
@@ -371,12 +369,14 @@ class _EditClassState extends State<EditClass> {
         );
         final update = class$.id != 'null';
         if (!update) {
-          class$ = class$.copyWith
-              .ref(GetIt.I<DatabaseRepository>().collection('Classes').doc());
+          class$ = class$.copyWith.ref(
+            GetIt.I<DatabaseRepository>().collection('Classes').doc(),
+          );
         }
 
-        class$ = class$.copyWith
-            .lastEdit(LastEdit(User.instance.uid, DateTime.now()));
+        class$ = class$.copyWith.lastEdit(
+          LastEdit(User.instance.uid, DateTime.now()),
+        );
 
         final bool isConnected = (await Connectivity().checkConnectivity()).any(
           (c) =>
@@ -475,14 +475,14 @@ class _EditClassState extends State<EditClass> {
       },
       createController: (users, isGroupingUsersSubject) =>
           ListController<Class?, User>(
-        objectsPaginatableStream: PaginatableStream.loadAll(
-          stream: MHDatabaseRepo.instance.users.getAllUsersNames().map(
+            objectsPaginatableStream: PaginatableStream.loadAll(
+              stream: MHDatabaseRepo.instance.users.getAllUsersNames().map(
                 (users) => users.where((u) => u.uid != User.emptyUID).toList(),
               ),
-        ),
-        groupingStream: isGroupingUsersSubject,
-        groupByStream: MHDatabaseRepo.I.users.groupUsersByClass,
-      )..selectAll(users.toList()),
+            ),
+            groupingStream: isGroupingUsersSubject,
+            groupByStream: MHDatabaseRepo.I.users.groupUsersByClass,
+          )..selectAll(users.toList()),
     );
 
     if (rslt == null) return;

@@ -10,11 +10,7 @@ import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/services.dart';
 import 'package:meetinghelper/utils/globals.dart';
 
-enum DateType {
-  month,
-  week,
-  day,
-}
+enum DateType { month, week, day }
 
 class Settings extends StatefulWidget {
   const Settings({super.key});
@@ -40,9 +36,7 @@ class SettingsState extends State<Settings> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('الاعدادات'),
-      ),
+      appBar: AppBar(title: const Text('الاعدادات')),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -57,10 +51,7 @@ class SettingsState extends State<Settings> {
                     iconColor: Theme.of(context).iconTheme.color,
                     bodyAlignment: ExpandablePanelBodyAlignment.right,
                   ),
-                  header: const Text(
-                    'المظهر',
-                    style: TextStyle(fontSize: 24),
-                  ),
+                  header: const Text('المظهر', style: TextStyle(fontSize: 24)),
                   collapsed: const Text('المظهر العام للبرنامج'),
                   expanded: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -105,7 +96,8 @@ class SettingsState extends State<Settings> {
                           GetIt.I<MHThemingService>().switchTheme(
                             darkTheme ??
                                 PlatformDispatcher
-                                        .instance.platformBrightness ==
+                                        .instance
+                                        .platformBrightness ==
                                     Brightness.dark,
                           );
                         },
@@ -133,28 +125,33 @@ class SettingsState extends State<Settings> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       ElevatedButton(
-                        onPressed: () => navigator.currentState!
-                            .pushNamed('Settings/Churches'),
+                        onPressed: () => navigator.currentState!.pushNamed(
+                          'Settings/Churches',
+                        ),
                         child: const Text('الكنائس'),
                       ),
                       ElevatedButton(
-                        onPressed: () => navigator.currentState!
-                            .pushNamed('Settings/Fathers'),
+                        onPressed: () => navigator.currentState!.pushNamed(
+                          'Settings/Fathers',
+                        ),
                         child: const Text('الأباء الكهنة'),
                       ),
                       ElevatedButton(
-                        onPressed: () => navigator.currentState!
-                            .pushNamed('Settings/StudyYears'),
+                        onPressed: () => navigator.currentState!.pushNamed(
+                          'Settings/StudyYears',
+                        ),
                         child: const Text('السنوات الدراسية'),
                       ),
                       ElevatedButton(
-                        onPressed: () => navigator.currentState!
-                            .pushNamed('Settings/Schools'),
+                        onPressed: () => navigator.currentState!.pushNamed(
+                          'Settings/Schools',
+                        ),
                         child: const Text('المدارس'),
                       ),
                       ElevatedButton(
-                        onPressed: () => navigator.currentState!
-                            .pushNamed('Settings/Colleges'),
+                        onPressed: () => navigator.currentState!.pushNamed(
+                          'Settings/Colleges',
+                        ),
                         child: const Text('الكليات'),
                       ),
                     ],
@@ -180,29 +177,29 @@ class SettingsState extends State<Settings> {
                       Container(
                         padding: const EdgeInsets.symmetric(vertical: 4.0),
                         child: DropdownButtonFormField<String?>(
-                          value: settings.get('ClassSecondLine'),
-                          items: Class.propsMetadata()
-                              .entries
-                              .map(
-                                (e) => DropdownMenuItem(
-                                  value: e.key,
-                                  child: Text(e.value.label),
+                          initialValue: settings.get('ClassSecondLine'),
+                          items:
+                              Class.propsMetadata().entries
+                                  .map(
+                                    (e) => DropdownMenuItem(
+                                      value: e.key,
+                                      child: Text(e.value.label),
+                                    ),
+                                  )
+                                  .toList()
+                                ..removeWhere(
+                                  (element) => element.value == 'Color',
+                                )
+                                ..add(
+                                  const DropdownMenuItem(
+                                    value: 'Members',
+                                    child: Text('المخدومين بالفصل'),
+                                  ),
+                                )
+                                ..insert(
+                                  0,
+                                  const DropdownMenuItem(child: Text('')),
                                 ),
-                              )
-                              .toList()
-                            ..removeWhere((element) => element.value == 'Color')
-                            ..add(
-                              const DropdownMenuItem(
-                                value: 'Members',
-                                child: Text('المخدومين بالفصل'),
-                              ),
-                            )
-                            ..insert(
-                              0,
-                              const DropdownMenuItem(
-                                child: Text(''),
-                              ),
-                            ),
                           onChanged: (value) {},
                           onSaved: (value) async {
                             await settings.put('ClassSecondLine', value);
@@ -215,23 +212,23 @@ class SettingsState extends State<Settings> {
                       Container(
                         padding: const EdgeInsets.symmetric(vertical: 4.0),
                         child: DropdownButtonFormField<String?>(
-                          value: settings.get('PersonSecondLine'),
-                          items: Person.propsMetadata()
-                              .entries
-                              .map(
-                                (e) => DropdownMenuItem(
-                                  value: e.key,
-                                  child: Text(e.value.label),
+                          initialValue: settings.get('PersonSecondLine'),
+                          items:
+                              Person.propsMetadata().entries
+                                  .map(
+                                    (e) => DropdownMenuItem(
+                                      value: e.key,
+                                      child: Text(e.value.label),
+                                    ),
+                                  )
+                                  .toList()
+                                ..removeWhere(
+                                  (element) => element.value == 'Color',
+                                )
+                                ..insert(
+                                  0,
+                                  const DropdownMenuItem(child: Text('')),
                                 ),
-                              )
-                              .toList()
-                            ..removeWhere((element) => element.value == 'Color')
-                            ..insert(
-                              0,
-                              const DropdownMenuItem(
-                                child: Text(''),
-                              ),
-                            ),
                           onChanged: (value) {},
                           onSaved: (value) async {
                             await settings.put('PersonSecondLine', value);
@@ -245,8 +242,9 @@ class SettingsState extends State<Settings> {
                   ),
                 ),
                 StreamBuilder<Map<String, bool>>(
-                  stream: User.loggedInStream
-                      .map((u) => u.getNotificationsPermissions()),
+                  stream: User.loggedInStream.map(
+                    (u) => u.getNotificationsPermissions(),
+                  ),
                   builder: (context, permission) {
                     if (permission.data?.containsValue(true) ?? false) {
                       return ExpandablePanel(
@@ -260,8 +258,9 @@ class SettingsState extends State<Settings> {
                           style: TextStyle(fontSize: 24),
                         ),
                         collapsed: const Text('اعدادات الاشعارات'),
-                        expanded:
-                            _getNotificationsContent(permission.requireData),
+                        expanded: _getNotificationsContent(
+                          permission.requireData,
+                        ),
                       );
                     }
                     return Container();
@@ -283,19 +282,22 @@ class SettingsState extends State<Settings> {
                       ),
                       keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.done,
-                      initialValue: ((min(
-                                    100 * 1024 * 1024,
-                                    GetIt.I<CacheRepository>()
-                                        .box('Settings')
-                                        .get(
-                                          'cacheSize',
-                                          defaultValue: 100 * 1024 * 1024,
-                                        ) as int,
-                                  ) /
-                                  1024) /
-                              1024)
-                          .truncate()
-                          .toString(),
+                      initialValue:
+                          ((min(
+                                        100 * 1024 * 1024,
+                                        GetIt.I<CacheRepository>()
+                                                .box('Settings')
+                                                .get(
+                                                  'cacheSize',
+                                                  defaultValue:
+                                                      100 * 1024 * 1024,
+                                                )
+                                            as int,
+                                      ) /
+                                      1024) /
+                                  1024)
+                              .truncate()
+                              .toString(),
                       onSaved: (c) async {
                         await settings.put(
                           'cacheSize',
@@ -320,9 +322,7 @@ class SettingsState extends State<Settings> {
         onPressed: () {
           _form.currentState!.save();
           scaffoldMessenger.currentState!.showSnackBar(
-            const SnackBar(
-              content: Text('تم الحفظ'),
-            ),
+            const SnackBar(content: Text('تم الحفظ')),
           );
         },
         tooltip: 'حفظ',

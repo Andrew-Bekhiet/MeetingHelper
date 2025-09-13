@@ -39,7 +39,7 @@ class Trash extends StatelessWidget {
 class TrashDay extends DataObject {
   final DateTime date;
   TrashDay(this.date, JsonRef ref)
-      : super(ref, date.toUtc().toIso8601String().split('T')[0]);
+    : super(ref, date.toUtc().toIso8601String().split('T')[0]);
 
   @override
   Json toJson() {
@@ -68,10 +68,12 @@ class _TrashDayScreenState extends State<TrashDayScreen>
   final BehaviorSubject<bool> _showSearch = BehaviorSubject<bool>.seeded(false);
   final FocusNode _searchFocus = FocusNode();
 
-  final BehaviorSubject<OrderOptions> _personsOrder =
-      BehaviorSubject.seeded(const OrderOptions());
-  final BehaviorSubject<String> _searchQuery =
-      BehaviorSubject<String>.seeded('');
+  final BehaviorSubject<OrderOptions> _personsOrder = BehaviorSubject.seeded(
+    const OrderOptions(),
+  );
+  final BehaviorSubject<String> _searchQuery = BehaviorSubject<String>.seeded(
+    '',
+  );
 
   late final ListController<void, Person> _personsOptions;
   late final ListController<void, Class> _classesOptions;
@@ -117,40 +119,31 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                 'ترتيب حسب:',
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
-                              ...Person.propsMetadata().entries.map(
-                                    (e) => RadioListTile(
-                                      value: e.key,
-                                      groupValue: _personsOrder.value.orderBy,
-                                      title: Text(e.value.label),
-                                      onChanged: (value) {
-                                        _personsOrder.add(
-                                          OrderOptions(
-                                            orderBy: value!,
-                                            asc: _personsOrder.value.asc,
-                                          ),
-                                        );
-                                        navigator.currentState!.pop();
-                                      },
-                                    ),
-                                  ),
-                              RadioListTile(
-                                value: true,
-                                groupValue: _personsOrder.value.asc,
-                                title: const Text('تصاعدي'),
+                              RadioGroup(
+                                groupValue: _personsOrder.value.orderBy,
                                 onChanged: (value) {
                                   _personsOrder.add(
                                     OrderOptions(
-                                      orderBy: _personsOrder.value.orderBy,
-                                      asc: value!,
+                                      orderBy: value!,
+                                      asc: _personsOrder.value.asc,
                                     ),
                                   );
                                   navigator.currentState!.pop();
                                 },
+                                child: Column(
+                                  children: [
+                                    ...Person.propsMetadata().entries.map(
+                                      (e) => RadioListTile(
+                                        value: e.key,
+                                        title: Text(e.value.label),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              RadioListTile(
-                                value: false,
+
+                              RadioGroup(
                                 groupValue: _personsOrder.value.asc,
-                                title: const Text('تنازلي'),
                                 onChanged: (value) {
                                   _personsOrder.add(
                                     OrderOptions(
@@ -160,6 +153,18 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                   );
                                   navigator.currentState!.pop();
                                 },
+                                child: const Column(
+                                  children: [
+                                    RadioListTile(
+                                      value: true,
+                                      title: Text('تصاعدي'),
+                                    ),
+                                    RadioListTile(
+                                      value: false,
+                                      title: Text('تنازلي'),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
@@ -179,18 +184,9 @@ class _TrashDayScreenState extends State<TrashDayScreen>
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(
-              text: 'الخدمات',
-              icon: Icon(Icons.miscellaneous_services),
-            ),
-            Tab(
-              text: 'الفصول',
-              icon: Icon(Icons.group),
-            ),
-            Tab(
-              text: 'المخدومين',
-              icon: Icon(Icons.person),
-            ),
+            Tab(text: 'الخدمات', icon: Icon(Icons.miscellaneous_services)),
+            Tab(text: 'الفصول', icon: Icon(Icons.group)),
+            Tab(text: 'المخدومين', icon: Icon(Icons.person)),
           ],
         ),
         title: StreamBuilder<bool>(
@@ -200,19 +196,15 @@ class _TrashDayScreenState extends State<TrashDayScreen>
               ? TextField(
                   focusNode: _searchFocus,
                   style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                        color: Theme.of(context)
-                            .primaryTextTheme
-                            .titleLarge!
-                            .color,
-                      ),
+                    color: Theme.of(context).primaryTextTheme.titleLarge!.color,
+                  ),
                   decoration: InputDecoration(
                     suffixIcon: IconButton(
                       icon: Icon(
                         Icons.close,
-                        color: Theme.of(context)
-                            .primaryTextTheme
-                            .titleLarge!
-                            .color,
+                        color: Theme.of(
+                          context,
+                        ).primaryTextTheme.titleLarge!.color,
                       ),
                       onPressed: () {
                         _searchQuery.add('');
@@ -220,15 +212,15 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                       },
                     ),
                     hintStyle: Theme.of(context).textTheme.titleLarge!.copyWith(
-                          color: Theme.of(context)
-                              .primaryTextTheme
-                              .titleLarge!
-                              .color,
-                        ),
+                      color: Theme.of(
+                        context,
+                      ).primaryTextTheme.titleLarge!.color,
+                    ),
                     icon: Icon(
                       Icons.search,
-                      color:
-                          Theme.of(context).primaryTextTheme.titleLarge!.color,
+                      color: Theme.of(
+                        context,
+                      ).primaryTextTheme.titleLarge!.color,
                     ),
                     hintText: 'بحث ...',
                   ),
@@ -246,16 +238,17 @@ class _TrashDayScreenState extends State<TrashDayScreen>
             stream: _tabController!.index == 0
                 ? _servicesOptions.objectsStream
                 : _tabController!.index == 1
-                    ? _classesOptions.objectsStream
-                    : _personsOptions.objectsStream,
+                ? _classesOptions.objectsStream
+                : _personsOptions.objectsStream,
             builder: (context, snapshot) {
               return Text(
                 (snapshot.data?.length ?? 0).toString() +
                     ' ' +
                     (_tabController!.index != 2 ? 'خدمة' : 'مخدوم'),
                 textAlign: TextAlign.center,
-                strutStyle:
-                    StrutStyle(height: IconTheme.of(context).size! / 7.5),
+                strutStyle: StrutStyle(
+                  height: IconTheme.of(context).size! / 7.5,
+                ),
                 style: Theme.of(context).primaryTextTheme.bodyLarge,
               );
             },
@@ -306,10 +299,9 @@ class _TrashDayScreenState extends State<TrashDayScreen>
       objectsPaginatableStream: PaginatableStream.query(
         query: User.instance.permissions.superAccess
             ? widget.day.ref.collection('Classes')
-            : GetIt.I<DatabaseRepository>().collection('Classes').where(
-                  'Allowed',
-                  arrayContains: User.instance.uid,
-                ),
+            : GetIt.I<DatabaseRepository>()
+                  .collection('Classes')
+                  .where('Allowed', arrayContains: User.instance.uid),
         mapper: Class.fromDoc,
       ),
     );
@@ -317,36 +309,43 @@ class _TrashDayScreenState extends State<TrashDayScreen>
     _personsOptions = ListController<void, Person>(
       searchStream: _searchQuery,
       objectsPaginatableStream: PaginatableStream.loadAll(
-        stream: Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
-          User.loggedInStream,
-          MHDatabaseRepo.I.classes.getAll(),
-          Tuple2.new,
-        ).switchMap(
-          (u) {
-            if (u.item1.permissions.superAccess) {
-              return widget.day.ref
-                  .collection('Persons')
-                  .snapshots()
-                  .map((p) => p.docs.map(Person.fromDoc).toList());
-            } else if (u.item2.length <= 30) {
-              return widget.day.ref
-                  .collection('Persons')
-                  .where('ClassId', whereIn: u.item2.map((e) => e.ref).toList())
-                  .snapshots()
-                  .map((p) => p.docs.map(Person.fromDoc).toList());
-            }
-            return Rx.combineLatestList<JsonQuery>(
-              u.item2.split(30).map(
-                    (c) => widget.day.ref
-                        .collection('Persons')
-                        .where('ClassId', whereIn: c.map((e) => e.ref).toList())
-                        .snapshots(),
-                  ),
-            ).map(
-              (s) => s.expand((n) => n.docs).map(Person.fromDoc).toList(),
-            );
-          },
-        ),
+        stream:
+            Rx.combineLatest2<User, List<Class>, Tuple2<User, List<Class>>>(
+              User.loggedInStream,
+              MHDatabaseRepo.I.classes.getAll(),
+              Tuple2.new,
+            ).switchMap((u) {
+              if (u.item1.permissions.superAccess) {
+                return widget.day.ref
+                    .collection('Persons')
+                    .snapshots()
+                    .map((p) => p.docs.map(Person.fromDoc).toList());
+              } else if (u.item2.length <= 30) {
+                return widget.day.ref
+                    .collection('Persons')
+                    .where(
+                      'ClassId',
+                      whereIn: u.item2.map((e) => e.ref).toList(),
+                    )
+                    .snapshots()
+                    .map((p) => p.docs.map(Person.fromDoc).toList());
+              }
+              return Rx.combineLatestList<JsonQuery>(
+                u.item2
+                    .split(30)
+                    .map(
+                      (c) => widget.day.ref
+                          .collection('Persons')
+                          .where(
+                            'ClassId',
+                            whereIn: c.map((e) => e.ref).toList(),
+                          )
+                          .snapshots(),
+                    ),
+              ).map(
+                (s) => s.expand((n) => n.docs).map(Person.fromDoc).toList(),
+              );
+            }),
       ),
     );
   }

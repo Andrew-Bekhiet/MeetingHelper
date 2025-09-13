@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart' hide Notification;
@@ -36,8 +35,6 @@ class Root extends StatefulWidget {
 
 class _RootState extends State<Root>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
-  StreamSubscription<PendingDynamicLinkData>? _dynamicLinksSubscription;
-
   TabController? _tabController;
   Timer? _keepAliveTimer;
   bool _timeout = false;
@@ -49,14 +46,17 @@ class _RootState extends State<Root>
 
   final Map<String, GlobalKey> _features = {};
 
-  final BehaviorSubject<OrderOptions> _personsOrder =
-      BehaviorSubject.seeded(const OrderOptions());
+  final BehaviorSubject<OrderOptions> _personsOrder = BehaviorSubject.seeded(
+    const OrderOptions(),
+  );
 
-  final BehaviorSubject<String> _searchQuery =
-      BehaviorSubject<String>.seeded('');
+  final BehaviorSubject<String> _searchQuery = BehaviorSubject<String>.seeded(
+    '',
+  );
 
-  final BehaviorSubject<bool> isGroupingUsersSubject =
-      BehaviorSubject.seeded(true);
+  final BehaviorSubject<bool> isGroupingUsersSubject = BehaviorSubject.seeded(
+    true,
+  );
   bool wasGroupingBeforeSearch = true;
 
   late final ServicesListController _servicesOptions;
@@ -158,40 +158,31 @@ class _RootState extends State<Root>
                                 'ترتيب حسب:',
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
-                              ...Person.propsMetadata().entries.map(
-                                    (e) => RadioListTile<String>(
-                                      value: e.key,
-                                      groupValue: _personsOrder.value.orderBy,
-                                      title: Text(e.value.label),
-                                      onChanged: (value) {
-                                        _personsOrder.add(
-                                          OrderOptions(
-                                            orderBy: value!,
-                                            asc: _personsOrder.value.asc,
-                                          ),
-                                        );
-                                        navigator.currentState!.pop();
-                                      },
-                                    ),
-                                  ),
-                              RadioListTile(
-                                value: true,
-                                groupValue: _personsOrder.value.asc,
-                                title: const Text('تصاعدي'),
+                              RadioGroup(
+                                groupValue: _personsOrder.value.orderBy,
                                 onChanged: (value) {
                                   _personsOrder.add(
                                     OrderOptions(
-                                      orderBy: _personsOrder.value.orderBy,
-                                      asc: value!,
+                                      orderBy: value!,
+                                      asc: _personsOrder.value.asc,
                                     ),
                                   );
                                   navigator.currentState!.pop();
                                 },
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    ...Person.propsMetadata().entries.map(
+                                      (e) => RadioListTile<String>(
+                                        value: e.key,
+                                        title: Text(e.value.label),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              RadioListTile(
-                                value: false,
+                              RadioGroup(
                                 groupValue: _personsOrder.value.asc,
-                                title: const Text('تنازلي'),
                                 onChanged: (value) {
                                   _personsOrder.add(
                                     OrderOptions(
@@ -201,6 +192,19 @@ class _RootState extends State<Root>
                                   );
                                   navigator.currentState!.pop();
                                 },
+                                child: const Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    RadioListTile(
+                                      value: true,
+                                      title: Text('تصاعدي'),
+                                    ),
+                                    RadioListTile(
+                                      value: false,
+                                      title: Text('تنازلي'),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
@@ -278,19 +282,15 @@ class _RootState extends State<Root>
               ? TextField(
                   focusNode: _searchFocus,
                   style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                        color: Theme.of(context)
-                            .primaryTextTheme
-                            .titleLarge!
-                            .color,
-                      ),
+                    color: Theme.of(context).primaryTextTheme.titleLarge!.color,
+                  ),
                   decoration: InputDecoration(
                     suffixIcon: IconButton(
                       icon: Icon(
                         Icons.close,
-                        color: Theme.of(context)
-                            .primaryTextTheme
-                            .titleLarge!
-                            .color,
+                        color: Theme.of(
+                          context,
+                        ).primaryTextTheme.titleLarge!.color,
                       ),
                       onPressed: () {
                         _searchQuery.add('');
@@ -299,15 +299,15 @@ class _RootState extends State<Root>
                       },
                     ),
                     hintStyle: Theme.of(context).textTheme.titleLarge!.copyWith(
-                          color: Theme.of(context)
-                              .primaryTextTheme
-                              .titleLarge!
-                              .color,
-                        ),
+                      color: Theme.of(
+                        context,
+                      ).primaryTextTheme.titleLarge!.color,
+                    ),
                     icon: Icon(
                       Icons.search,
-                      color:
-                          Theme.of(context).primaryTextTheme.titleLarge!.color,
+                      color: Theme.of(
+                        context,
+                      ).primaryTextTheme.titleLarge!.color,
                     ),
                     hintText: 'بحث ...',
                   ),
@@ -365,8 +365,10 @@ class _RootState extends State<Root>
                   return Text(
                     (snapshot.data?.length ?? 0).toString() +
                         ' خدمة و' +
-                        (snapshot.data?.values
-                                    .fold<int>(0, (p, c) => p + c.length) ??
+                        (snapshot.data?.values.fold<int>(
+                                  0,
+                                  (p, c) => p + c.length,
+                                ) ??
                                 0)
                             .toString() +
                         ' فصل',
@@ -386,8 +388,9 @@ class _RootState extends State<Root>
                 return Text(
                   (snapshot.data?.length ?? 0).toString() + ' خادم',
                   textAlign: TextAlign.center,
-                  strutStyle:
-                      StrutStyle(height: IconTheme.of(context).size! / 7.5),
+                  strutStyle: StrutStyle(
+                    height: IconTheme.of(context).size! / 7.5,
+                  ),
                   style: Theme.of(context).primaryTextTheme.bodyLarge,
                 );
               },
@@ -428,9 +431,7 @@ class _RootState extends State<Root>
           children: <Widget>[
             DrawerHeader(
               decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/Logo.png'),
-                ),
+                image: DecorationImage(image: AssetImage('assets/Logo.png')),
                 gradient: LinearGradient(
                   colors: [Colors.limeAccent, Colors.amber],
                   stops: [0, 1],
@@ -465,18 +466,15 @@ class _RootState extends State<Root>
                   .distinct(),
               builder: (context, data) {
                 if (!data.data!) {
-                  return const SizedBox(
-                    width: 0,
-                    height: 0,
-                  );
+                  return const SizedBox(width: 0, height: 0);
                 }
 
                 return ListTile(
                   leading: const Icon(Icons.admin_panel_settings),
                   onTap: () async {
                     mainScfld.currentState!.openEndDrawer();
-                    final connectivity =
-                        await Connectivity().checkConnectivity();
+                    final connectivity = await Connectivity()
+                        .checkConnectivity();
                     if (connectivity.any(
                       (c) =>
                           c == ConnectivityResult.mobile ||
@@ -630,10 +628,7 @@ class _RootState extends State<Root>
                   .distinct(),
               builder: (context, data) {
                 if (!data.data!) {
-                  return const SizedBox(
-                    width: 0,
-                    height: 0,
-                  );
+                  return const SizedBox(width: 0, height: 0);
                 }
 
                 return ListTile(
@@ -727,8 +722,7 @@ class _RootState extends State<Root>
                             final documentsDirectory = Platform.isAndroid
                                 ? (await getExternalStorageDirectories(
                                     type: StorageDirectory.documents,
-                                  ))!
-                                    .first
+                                  ))!.first
                                 : await getDownloadsDirectory();
 
                             final file = await File(
@@ -807,8 +801,11 @@ class _RootState extends State<Root>
                 mainScfld.currentState!.openEndDrawer();
                 showAboutDialog(
                   context: context,
-                  applicationIcon:
-                      Image.asset('assets/Logo.png', width: 50, height: 50),
+                  applicationIcon: Image.asset(
+                    'assets/Logo.png',
+                    width: 50,
+                    height: 50,
+                  ),
                   applicationName: 'خدمة مدارس الأحد',
                   applicationLegalese:
                       'جميع الحقوق محفوظة: كنيسة السيدة العذراء مريم بالاسماعيلية',
@@ -820,34 +817,26 @@ class _RootState extends State<Root>
                       text: TextSpan(
                         children: [
                           TextSpan(
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium!
-                                .copyWith(
-                                  color: Colors.blue,
-                                ),
+                            style: Theme.of(context).textTheme.bodyMedium!
+                                .copyWith(color: Colors.blue),
                             text: 'شروط الاستخدام',
                             recognizer: TapGestureRecognizer()
                               ..onTap = () => LauncherService.I.launch(
-                                    'https://meetinghelper-2a869.web.app/terms-of-service/',
-                                  ),
+                                'https://meetinghelper-2a869.web.app/terms-of-service/',
+                              ),
                           ),
                           TextSpan(
                             style: Theme.of(context).textTheme.bodyMedium,
                             text: ' • ',
                           ),
                           TextSpan(
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium!
-                                .copyWith(
-                                  color: Colors.blue,
-                                ),
+                            style: Theme.of(context).textTheme.bodyMedium!
+                                .copyWith(color: Colors.blue),
                             text: 'سياسة الخصوصية',
                             recognizer: TapGestureRecognizer()
                               ..onTap = () => LauncherService.I.launch(
-                                    'https://meetinghelper-2a869.web.app/privacy-policy/',
-                                  ),
+                                'https://meetinghelper-2a869.web.app/privacy-policy/',
+                              ),
                           ),
                         ],
                       ),
@@ -857,8 +846,9 @@ class _RootState extends State<Root>
               },
             ),
             ListTile(
-              leading:
-                  const Icon(IconData(0xe9ba, fontFamily: 'MaterialIconsR')),
+              leading: const Icon(
+                IconData(0xe9ba, fontFamily: 'MaterialIconsR'),
+              ),
               title: const Text('تسجيل الخروج'),
               onTap: () async {
                 mainScfld.currentState!.openEndDrawer();
@@ -890,14 +880,10 @@ class _RootState extends State<Root>
             Expanded(
               child: ServicesList(
                 autoDisposeController: true,
-                onTap: (_class) => navigator.currentState!.pop(
-                  _class,
-                ),
+                onTap: (_class) => navigator.currentState!.pop(_class),
                 options: ServicesListController<DataObject>(
                   objectsPaginatableStream: PaginatableStream.loadAll(
-                    stream: Stream.value(
-                      [],
-                    ),
+                    stream: Stream.value([]),
                   ),
                   groupByStream: (_) =>
                       MHDatabaseRepo.I.services.groupServicesByStudyYearRef(),
@@ -927,29 +913,22 @@ class _RootState extends State<Root>
 
     try {
       final String filename = Uri.decodeComponent(
-        (await GetIt.I<FunctionsService>().httpsCallable('exportToExcel').call(
-          {
-            if (rslt is Class)
-              'onlyClass': rslt.id
-            else if (rslt is Service)
-              'onlyService': rslt.id,
-          },
-        ))
-            .data,
+        (await GetIt.I<FunctionsService>().httpsCallable('exportToExcel').call({
+          if (rslt is Class)
+            'onlyClass': rslt.id
+          else if (rslt is Service)
+            'onlyService': rslt.id,
+        })).data,
       );
 
       final documentsDirectory = Platform.isAndroid
           ? (await getExternalStorageDirectories(
               type: StorageDirectory.documents,
-            ))!
-              .first
+            ))!.first
           : await getDownloadsDirectory();
 
       final file = await File(
-        path.join(
-          documentsDirectory!.path,
-          filename.replaceAll(':', ''),
-        ),
+        path.join(documentsDirectory!.path, filename.replaceAll(':', '')),
       ).create(recursive: true);
 
       await GetIt.I<StorageRepository>().ref(filename).writeToFile(file);
@@ -969,17 +948,13 @@ class _RootState extends State<Root>
     } catch (err, stack) {
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(
-        const SnackBar(
-          content: Text('فشل تصدير البيانات'),
-        ),
+        const SnackBar(content: Text('فشل تصدير البيانات')),
       );
       await Sentry.captureException(
         err,
         stackTrace: stack,
-        withScope: (scope) => scope.setTag(
-          'LasErrorIn',
-          '_RootState.dataExport',
-        ),
+        withScope: (scope) =>
+            scope.setTag('LasErrorIn', '_RootState.dataExport'),
       );
     }
   }
@@ -992,43 +967,46 @@ class _RootState extends State<Root>
           _pushed = true;
           navigator.currentState!
               .push(
-            MaterialPageRoute(
-              builder: (context) => PopScope(
-                canPop: false,
-                child: AuthScreen(
-                  onSuccess: () => navigator.currentState!.pop(true),
+                MaterialPageRoute(
+                  builder: (context) => PopScope(
+                    canPop: false,
+                    child: AuthScreen(
+                      onSuccess: () => navigator.currentState!.pop(true),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          )
+              )
               .then((value) {
-            _pushed = false;
-            _timeout = false;
+                _pushed = false;
+                _timeout = false;
 
-            if (_dynamicLinksSubscription?.isPaused ?? false) {
-              _dynamicLinksSubscription?.resume();
-            }
-            if (MHNotificationsService
-                .I.onMessageOpenedAppSubscription.isPaused) {
-              MHNotificationsService.I.onMessageOpenedAppSubscription.resume();
-            }
-            if (MHNotificationsService
-                    .I.onForegroundMessageSubscription?.isPaused ??
-                false) {
-              MHNotificationsService.I.onForegroundMessageSubscription
-                  ?.resume();
-            }
-          });
+                if (MHNotificationsService
+                    .I
+                    .onMessageOpenedAppSubscription
+                    .isPaused) {
+                  MHNotificationsService.I.onMessageOpenedAppSubscription
+                      .resume();
+                }
+                if (MHNotificationsService
+                        .I
+                        .onForegroundMessageSubscription
+                        ?.isPaused ??
+                    false) {
+                  MHNotificationsService.I.onForegroundMessageSubscription
+                      ?.resume();
+                }
+              });
         } else {
-          if (_dynamicLinksSubscription?.isPaused ?? false) {
-            _dynamicLinksSubscription?.resume();
-          }
           if (MHNotificationsService
-              .I.onMessageOpenedAppSubscription.isPaused) {
+              .I
+              .onMessageOpenedAppSubscription
+              .isPaused) {
             MHNotificationsService.I.onMessageOpenedAppSubscription.resume();
           }
           if (MHNotificationsService
-                  .I.onForegroundMessageSubscription?.isPaused ??
+                  .I
+                  .onForegroundMessageSubscription
+                  ?.isPaused ??
               false) {
             MHNotificationsService.I.onForegroundMessageSubscription?.resume();
           }
@@ -1041,9 +1019,6 @@ class _RootState extends State<Root>
       case AppLifecycleState.paused:
         _keepAlive(false);
         _recordLastSeen();
-        if (!(_dynamicLinksSubscription?.isPaused ?? false)) {
-          _dynamicLinksSubscription?.pause();
-        }
     }
   }
 
@@ -1060,8 +1035,6 @@ class _RootState extends State<Root>
 
     super.dispose();
 
-    await _dynamicLinksSubscription?.cancel();
-
     await _showSearch.close();
     await _personsOrder.close();
     await _searchQuery.close();
@@ -1075,7 +1048,8 @@ class _RootState extends State<Root>
   void initState() {
     super.initState();
     initializeDateFormatting('ar_EG');
-    _usersOptions = User.instance.permissions.manageUsers ||
+    _usersOptions =
+        User.instance.permissions.manageUsers ||
             User.instance.permissions.manageAllowedUsers
         ? ListController<Class?, UserWithPerson>(
             searchStream: _searchQuery,
@@ -1112,11 +1086,13 @@ class _RootState extends State<Root>
 
     _tabController = TabController(
       vsync: this,
-      initialIndex: User.instance.permissions.manageUsers ||
+      initialIndex:
+          User.instance.permissions.manageUsers ||
               User.instance.permissions.manageAllowedUsers
           ? 1
           : 0,
-      length: User.instance.permissions.manageUsers ||
+      length:
+          User.instance.permissions.manageUsers ||
               User.instance.permissions.manageAllowedUsers
           ? 3
           : 2,
@@ -1166,28 +1142,6 @@ class _RootState extends State<Root>
     }
   }
 
-  Future<void> showDynamicLink() async {
-    if (kIsWeb) return;
-    final PendingDynamicLinkData? data =
-        await GetIt.I<FirebaseDynamicLinks>().getInitialLink();
-
-    _dynamicLinksSubscription = GetIt.I<FirebaseDynamicLinks>().onLink.listen(
-      (dynamicLink) async {
-        final object =
-            await MHDatabaseRepo.I.getObjectFromLink(dynamicLink.link);
-
-        if (object != null) GetIt.I<MHViewableObjectService>().onTap(object);
-      },
-      onError: (e) async {
-        debugPrint('DynamicLinks onError $e');
-      },
-    );
-    if (data == null) return;
-
-    final object = await MHDatabaseRepo.I.getObjectFromLink(data.link);
-    if (object != null) GetIt.I<MHViewableObjectService>().onTap(object);
-  }
-
   TargetFocus _getTarget(String key, GlobalKey v) {
     const alignSkip = Alignment.bottomLeft;
     late final List<TargetContent> contents;
@@ -1200,10 +1154,9 @@ class _RootState extends State<Root>
             child: Text(
               'هنا تجد قائمة بكل الفصول في'
               ' البرنامج مقسمة الى الخدمات وسنوات الدراسة',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleSmall
-                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSecondary,
+              ),
             ),
           ),
         ];
@@ -1212,10 +1165,9 @@ class _RootState extends State<Root>
           TargetContent(
             child: Text(
               'الخدام: قائمة الخدام الموجودين في التطبيق',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleSmall
-                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSecondary,
+              ),
             ),
           ),
         ];
@@ -1224,10 +1176,9 @@ class _RootState extends State<Root>
           TargetContent(
             child: Text(
               'المخدومين: قائمة المخدومين الموجودين في التطبيق',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleSmall
-                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSecondary,
+              ),
             ),
           ),
         ];
@@ -1236,10 +1187,9 @@ class _RootState extends State<Root>
           TargetContent(
             child: Text(
               'البحث: يمكنك استخدام البحث السريع لإيجاد المخدومين او الفصول',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleSmall
-                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSecondary,
+              ),
             ),
           ),
         ];
@@ -1248,10 +1198,9 @@ class _RootState extends State<Root>
           TargetContent(
             child: Text(
               'حسابي:من خلاله يمكنك رؤية صلاحياتك او تغيير تاريخ أخر تناول واخر اعتراف',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleSmall
-                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSecondary,
+              ),
             ),
           ),
         ];
@@ -1261,10 +1210,9 @@ class _RootState extends State<Root>
           TargetContent(
             child: Text(
               'ادارة المستخدمين: يمكنك من خلالها تغيير وادارة صلاحيات الخدام في التطبيق',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleSmall
-                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSecondary,
+              ),
             ),
           ),
         ];
@@ -1274,10 +1222,9 @@ class _RootState extends State<Root>
           TargetContent(
             child: Text(
               'كشف حضور المخدومين: تسجيل كشف حضور جديد في كشوفات المخدومين',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleSmall
-                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSecondary,
+              ),
             ),
           ),
         ];
@@ -1287,10 +1234,9 @@ class _RootState extends State<Root>
           TargetContent(
             child: Text(
               'كشف حضور الخدام: تسجيل كشف حضور جديد في كشوفات الخدام',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleSmall
-                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSecondary,
+              ),
             ),
           ),
         ];
@@ -1300,10 +1246,9 @@ class _RootState extends State<Root>
           TargetContent(
             child: Text(
               'سجل المخدومين: سجل كشوفات المخدومين لأي يوم تم تسجيله',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleSmall
-                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSecondary,
+              ),
             ),
           ),
         ];
@@ -1313,10 +1258,9 @@ class _RootState extends State<Root>
           TargetContent(
             child: Text(
               'سجل الخدام: سجل كشوفات الخدام لأي يوم تم تسجيله',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleSmall
-                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSecondary,
+              ),
             ),
           ),
         ];
@@ -1328,10 +1272,9 @@ class _RootState extends State<Root>
               'تحليل سجل المخدومين: يمكنك '
               'من خلالها تحليل واحصاء '
               'أعداد المخدومين الحاضرين خلال مدة معينة ',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleSmall
-                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSecondary,
+              ),
             ),
           ),
         ];
@@ -1343,10 +1286,9 @@ class _RootState extends State<Root>
               'تحليل سجل الخدام: يمكنك '
               'من خلالها تحليل واحصاء '
               'أعداد الخدام الحاضرين خلال مدة معينة ',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleSmall
-                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSecondary,
+              ),
             ),
           ),
         ];
@@ -1356,10 +1298,9 @@ class _RootState extends State<Root>
           TargetContent(
             child: Text(
               'بحث متقدم: بحث عن البيانات بصورة دقيقة ومفصلة',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleSmall
-                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSecondary,
+              ),
             ),
           ),
         ];
@@ -1370,10 +1311,9 @@ class _RootState extends State<Root>
             child: Text(
               'سلة المحذوفات: يمكنك '
               'من خلالها استرجاع المحذوفات التي تم حذفها خلال الشهر الحالي ',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleSmall
-                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSecondary,
+              ),
             ),
           ),
         ];
@@ -1386,10 +1326,9 @@ class _RootState extends State<Root>
               ' الحالي ومواقع المخدومين ويمكنك ايضًا تحديد'
               ' فصول معينة والذهاب لمكان المخدوم'
               ' من خلال خرائط جوجل',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleSmall
-                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSecondary,
+              ),
             ),
           ),
         ];
@@ -1399,10 +1338,9 @@ class _RootState extends State<Root>
           TargetContent(
             child: Text(
               'الاعدادات: ضبط بعض الاعدادات والتفضيلات وضبط مواعيد الاشعارت اليومية',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleSmall
-                  ?.copyWith(color: Theme.of(context).colorScheme.onSecondary),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSecondary,
+              ),
             ),
           ),
         ];
@@ -1485,8 +1423,9 @@ class _RootState extends State<Root>
 
       TutorialCoachMark(
         focusAnimationDuration: const Duration(milliseconds: 200),
-        targets:
-            featuresInOrder.map((k) => _getTarget(k, _features[k]!)).toList(),
+        targets: featuresInOrder
+            .map((k) => _getTarget(k, _features[k]!))
+            .toList(),
         alignSkip: Alignment.bottomLeft,
         textSkip: 'تخطي',
         onClickOverlay: _next,
@@ -1509,7 +1448,6 @@ class _RootState extends State<Root>
       await showErrorUpdateDataDialog(context: context, pushApp: false);
     }
 
-    await showDynamicLink();
     await GetIt.I<MHNotificationsService>().showInitialNotification(context);
     await showBatteryOptimizationDialog();
     await showFeatures();
@@ -1520,15 +1458,11 @@ class _RootState extends State<Root>
     if (visible) {
       _keepAliveTimer = null;
     } else {
-      _keepAliveTimer = Timer(
-        const Duration(minutes: 1),
-        () {
-          _timeout = true;
-          _dynamicLinksSubscription?.pause();
-          MHNotificationsService.I.onMessageOpenedAppSubscription.pause();
-          MHNotificationsService.I.onForegroundMessageSubscription?.pause();
-        },
-      );
+      _keepAliveTimer = Timer(const Duration(minutes: 1), () {
+        _timeout = true;
+        MHNotificationsService.I.onMessageOpenedAppSubscription.pause();
+        MHNotificationsService.I.onForegroundMessageSubscription?.pause();
+      });
     }
   }
 

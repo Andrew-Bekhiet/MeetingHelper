@@ -23,10 +23,7 @@ import 'package:tinycolor2/tinycolor2.dart';
 class EditService extends StatefulWidget {
   final Service? service;
 
-  const EditService({
-    required this.service,
-    super.key,
-  });
+  const EditService({required this.service, super.key});
   @override
   _EditServiceState createState() => _EditServiceState();
 }
@@ -60,8 +57,10 @@ class _EditServiceState extends State<EditService> {
                         const Positioned(
                           left: 1.0,
                           top: 2.0,
-                          child:
-                              Icon(Icons.photo_camera, color: Colors.black54),
+                          child: Icon(
+                            Icons.photo_camera,
+                            color: Colors.black54,
+                          ),
                         ),
                         Icon(
                           Icons.photo_camera,
@@ -75,8 +74,8 @@ class _EditServiceState extends State<EditService> {
               ],
               backgroundColor: service.color != Colors.transparent
                   ? (Theme.of(context).brightness == Brightness.light
-                      ? service.color?.lighten()
-                      : service.color?.darken())
+                        ? service.color?.lighten()
+                        : service.color?.darken())
                   : null,
               //title: Text(widget.me.name),
               expandedHeight: 250.0,
@@ -90,17 +89,13 @@ class _EditServiceState extends State<EditService> {
                         : 1,
                     child: Text(
                       service.name,
-                      style: const TextStyle(
-                        fontSize: 16.0,
-                      ),
+                      style: const TextStyle(fontSize: 16.0),
                     ),
                   ),
                   background: changedImage == null || deletePhoto
                       ? PhotoObjectWidget(service, circleCrop: false)
                       : PhotoView(
-                          imageProvider: FileImage(
-                            File(changedImage!),
-                          ),
+                          imageProvider: FileImage(File(changedImage!)),
                         ),
                 ),
               ),
@@ -118,8 +113,9 @@ class _EditServiceState extends State<EditService> {
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     child: TextFormField(
-                      decoration:
-                          const InputDecoration(labelText: 'اسم الخدمة'),
+                      decoration: const InputDecoration(
+                        labelText: 'اسم الخدمة',
+                      ),
                       initialValue: service.name,
                       onChanged: (v) => service = service.copyWith.name(v),
                       textInputAction: TextInputAction.next,
@@ -149,8 +145,8 @@ class _EditServiceState extends State<EditService> {
                               tooltip: 'ازالة',
                               onPressed: () {
                                 setState(
-                                  () => service =
-                                      service.copyWith.studyYearRange(null),
+                                  () => service = service.copyWith
+                                      .studyYearRange(null),
                                 );
                               },
                             ),
@@ -160,21 +156,22 @@ class _EditServiceState extends State<EditService> {
                               Expanded(
                                 child: DropdownButtonFormField<JsonRef?>(
                                   isExpanded: true,
-                                  value: service.studyYearRange?.from,
-                                  items: data.data!
-                                      .map(
-                                        (item) => DropdownMenuItem(
-                                          value: item.ref,
-                                          child: Text(item.name),
+                                  initialValue: service.studyYearRange?.from,
+                                  items:
+                                      data.data!
+                                          .map(
+                                            (item) => DropdownMenuItem(
+                                              value: item.ref,
+                                              child: Text(item.name),
+                                            ),
+                                          )
+                                          .toList()
+                                        ..insert(
+                                          0,
+                                          const DropdownMenuItem(
+                                            child: Text(''),
+                                          ),
                                         ),
-                                      )
-                                      .toList()
-                                    ..insert(
-                                      0,
-                                      const DropdownMenuItem(
-                                        child: Text(''),
-                                      ),
-                                    ),
                                   onChanged: (value) {
                                     if (service.studyYearRange == null) {
                                       service = service.copyWith.studyYearRange(
@@ -182,8 +179,9 @@ class _EditServiceState extends State<EditService> {
                                       );
                                     } else {
                                       service = service.copyWith.studyYearRange(
-                                        service.studyYearRange!.copyWith
-                                            .from(value),
+                                        service.studyYearRange!.copyWith.from(
+                                          value,
+                                        ),
                                       );
                                     }
 
@@ -200,21 +198,22 @@ class _EditServiceState extends State<EditService> {
                               Expanded(
                                 child: DropdownButtonFormField<JsonRef?>(
                                   isExpanded: true,
-                                  value: service.studyYearRange?.to,
-                                  items: data.data!
-                                      .map(
-                                        (item) => DropdownMenuItem(
-                                          value: item.ref,
-                                          child: Text(item.name),
+                                  initialValue: service.studyYearRange?.to,
+                                  items:
+                                      data.data!
+                                          .map(
+                                            (item) => DropdownMenuItem(
+                                              value: item.ref,
+                                              child: Text(item.name),
+                                            ),
+                                          )
+                                          .toList()
+                                        ..insert(
+                                          0,
+                                          const DropdownMenuItem(
+                                            child: Text(''),
+                                          ),
                                         ),
-                                      )
-                                      .toList()
-                                    ..insert(
-                                      0,
-                                      const DropdownMenuItem(
-                                        child: Text(''),
-                                      ),
-                                    ),
                                   onChanged: (value) {
                                     if (service.studyYearRange == null) {
                                       service = service.copyWith.studyYearRange(
@@ -222,8 +221,9 @@ class _EditServiceState extends State<EditService> {
                                       );
                                     } else {
                                       service = service.copyWith.studyYearRange(
-                                        service.studyYearRange!.copyWith
-                                            .to(value),
+                                        service.studyYearRange!.copyWith.to(
+                                          value,
+                                        ),
                                       );
                                     }
 
@@ -266,20 +266,21 @@ class _EditServiceState extends State<EditService> {
                               context: context,
                               builder: (context, dialog) => Theme(
                                 data: Theme.of(context).copyWith(
-                                  textTheme:
-                                      Theme.of(context).textTheme.copyWith(
-                                            labelSmall: const TextStyle(
-                                              fontSize: 0,
-                                            ),
-                                          ),
+                                  textTheme: Theme.of(context).textTheme
+                                      .copyWith(
+                                        labelSmall: const TextStyle(
+                                          fontSize: 0,
+                                        ),
+                                      ),
                                 ),
                                 child: dialog!,
                               ),
                               confirmText: 'تم',
                               saveText: 'تم',
                               firstDate: DateTime(2020),
-                              lastDate: DateTime.now()
-                                  .add(const Duration(days: 2191)),
+                              lastDate: DateTime.now().add(
+                                const Duration(days: 2191),
+                              ),
                               initialDateRange: service.validity,
                             ) ??
                             state.value,
@@ -289,11 +290,15 @@ class _EditServiceState extends State<EditService> {
                       if (state.value == null) return null;
                       return Text(
                         'من ' +
-                            DateFormat('yyyy/M/d', 'ar-EG')
-                                .format(state.value!.start) +
+                            DateFormat(
+                              'yyyy/M/d',
+                              'ar-EG',
+                            ).format(state.value!.start) +
                             ' الى ' +
-                            DateFormat('yyyy/M/d', 'ar-EG')
-                                .format(state.value!.end),
+                            DateFormat(
+                              'yyyy/M/d',
+                              'ar-EG',
+                            ).format(state.value!.end),
                       );
                     },
                   ),
@@ -312,8 +317,8 @@ class _EditServiceState extends State<EditService> {
                         ? ElevatedButton.styleFrom(
                             backgroundColor:
                                 Theme.of(context).brightness == Brightness.light
-                                    ? service.color?.lighten()
-                                    : service.color?.darken(),
+                                ? service.color?.lighten()
+                                : service.color?.darken(),
                           )
                         : null,
                     onPressed: selectColor,
@@ -325,7 +330,8 @@ class _EditServiceState extends State<EditService> {
                     ElevatedButton.icon(
                       style: service.color != Colors.transparent
                           ? ElevatedButton.styleFrom(
-                              backgroundColor: Theme.of(context).brightness ==
+                              backgroundColor:
+                                  Theme.of(context).brightness ==
                                       Brightness.light
                                   ? service.color?.lighten()
                                   : service.color?.darken(),
@@ -390,8 +396,9 @@ class _EditServiceState extends State<EditService> {
       return;
     }
 
-    final selectedImage = await ImagePicker()
-        .pickImage(source: source ? ImageSource.camera : ImageSource.gallery);
+    final selectedImage = await ImagePicker().pickImage(
+      source: source ? ImageSource.camera : ImageSource.gallery,
+    );
     if (selectedImage == null) return;
     changedImage = kIsWeb
         ? selectedImage.path
@@ -405,8 +412,7 @@ class _EditServiceState extends State<EditService> {
                 lockAspectRatio: false,
               ),
             ],
-          ))
-            ?.path;
+          ))?.path;
     deletePhoto = false;
     setState(() {});
   }
@@ -416,8 +422,9 @@ class _EditServiceState extends State<EditService> {
           context: context,
           builder: (context) => AlertDialog(
             title: Text(service.name),
-            content:
-                Text('هل أنت متأكد من حذف ${service.name} وكل ما به مخدومين؟'),
+            content: Text(
+              'هل أنت متأكد من حذف ${service.name} وكل ما به مخدومين؟',
+            ),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
@@ -489,15 +496,13 @@ class _EditServiceState extends State<EditService> {
         );
         final update = service.id != 'null';
         if (!update) {
-          service = service.copyWith
-              .ref(GetIt.I<DatabaseRepository>().collection('Services').doc());
+          service = service.copyWith.ref(
+            GetIt.I<DatabaseRepository>().collection('Services').doc(),
+          );
         }
 
         service = service.copyWith.lastEdit(
-          LastEdit(
-            User.instance.uid,
-            DateTime.now(),
-          ),
+          LastEdit(User.instance.uid, DateTime.now()),
         );
 
         final bool isConnected = (await Connectivity().checkConnectivity()).any(
@@ -539,13 +544,14 @@ class _EditServiceState extends State<EditService> {
 
         if (allowedUsers != null) {
           final batch = GetIt.I<DatabaseRepository>().batch();
-          final oldAllowed = (await GetIt.I<DatabaseRepository>()
-                  .collection('UsersData')
-                  .where('AdminServices', arrayContains: service.ref)
-                  .get())
-              .docs
-              .map(UserWithPerson.fromDoc)
-              .toList();
+          final oldAllowed =
+              (await GetIt.I<DatabaseRepository>()
+                      .collection('UsersData')
+                      .where('AdminServices', arrayContains: service.ref)
+                      .get())
+                  .docs
+                  .map(UserWithPerson.fromDoc)
+                  .toList();
           for (final item in oldAllowed) {
             if (!allowedUsers!.contains(item)) {
               batch.update(item.ref, {
@@ -617,23 +623,23 @@ class _EditServiceState extends State<EditService> {
       initialSelection: () => allowedUsers != null
           ? SynchronousFuture(allowedUsers ?? [])
           : GetIt.I<DatabaseRepository>()
-              .collection('UsersData')
-              .where('AdminServices', arrayContains: service.ref)
-              .get()
-              .then(
-                (value) =>
-                    value.docs.map(UserWithPerson.fromDoc).nonNulls.toList(),
-              ),
+                .collection('UsersData')
+                .where('AdminServices', arrayContains: service.ref)
+                .get()
+                .then(
+                  (value) =>
+                      value.docs.map(UserWithPerson.fromDoc).nonNulls.toList(),
+                ),
       createController: (users, isGroupingUsersSubject) =>
           ListController<Class?, UserWithPerson>(
-        objectsPaginatableStream: PaginatableStream.loadAll(
-          stream: MHDatabaseRepo.instance.users.getAllUsersData().map(
+            objectsPaginatableStream: PaginatableStream.loadAll(
+              stream: MHDatabaseRepo.instance.users.getAllUsersData().map(
                 (users) => users.where((u) => u.uid != User.emptyUID).toList(),
               ),
-        ),
-        groupingStream: isGroupingUsersSubject,
-        groupByStream: MHDatabaseRepo.I.users.groupUsersByClass,
-      )..selectAll(users.toList()),
+            ),
+            groupingStream: isGroupingUsersSubject,
+            groupByStream: MHDatabaseRepo.I.users.groupUsersByClass,
+          )..selectAll(users.toList()),
     );
 
     if (rslt == null) return;
