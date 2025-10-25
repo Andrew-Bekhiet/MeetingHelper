@@ -1,5 +1,6 @@
 import { FieldValue, v1 } from "@google-cloud/firestore";
-import { firestore, storage } from "firebase-admin";
+import { auth, firestore, storage } from "firebase-admin";
+import { UserRecord } from "firebase-admin/auth";
 import { pubsub, runWith } from "firebase-functions/v1";
 import { projectId } from "./environment";
 
@@ -223,6 +224,24 @@ export const deleteStaleData = runWith({
       );
     }
   });
+
+export const deleteUnapprovedAccounts = pubsub
+  .schedule("0 0 * * 0")
+  .onRun(async () => {
+    const users = await getAllUsers();
+
+    for (const user of users.filter(
+      (u) => u.customClaims?.["approved"] !== true
+    )) {
+      console.log(
+        `Deleting unapproved user ${user.uid} with email: ${user.email}`
+      );
+      console.log(`User claims: ${JSON.stringify(user.customClaims)}`);
+
+      await auth().deleteUser(user.uid);
+    }
+  });
+
 export const updateStudyYears = pubsub
   .schedule("0 0 11 9 *")
   .timeZone("Africa/Cairo")
@@ -251,3 +270,17 @@ export const updateStudyYears = pubsub
 
     await batch.commit();
   });
+
+async function getAllUsers(): Promise<UserRecord[]> {
+  const result: Array<UserRecord> = [];
+  let nextPageToken: string | undefined = undefined;
+
+  do {
+    const { users, pageToken } = await auth().listUsers(1000, nextPageToken);
+
+    nextPageToken = pageToken;
+    result.push(...users);
+  } while (nextPageToken);
+
+  return result;
+}

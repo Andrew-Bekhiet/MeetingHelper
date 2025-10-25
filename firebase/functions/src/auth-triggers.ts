@@ -167,12 +167,12 @@ export const onUserDeleted = auth_1.user().onDelete(async (user) => {
     .file("UsersPhotos/" + user.uid);
 
   if (await userPhoto.exists()) {
-    await userPhoto.delete();
+    await userPhoto.delete().catch(() => null);
   }
 
   const userDoc = firestore().collection("Users").doc(user.uid);
   if ((await userDoc.get()).exists) {
-    await userDoc.delete();
+    await userDoc.delete().catch(() => null);
   }
 
   if (
@@ -184,7 +184,7 @@ export const onUserDeleted = auth_1.user().onDelete(async (user) => {
       .doc(user.customClaims.personId);
 
     if ((await userDataDoc.get()).exists) {
-      await userDataDoc.delete();
+      await userDataDoc.delete().catch(() => null);
     }
   }
 
